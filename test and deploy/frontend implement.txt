@@ -1,0 +1,777 @@
+# Frontend Implementation Plan for Academic Management System
+
+## 📋 Overview
+This document outlines the complete frontend implementation plan for the Academic Management System, based on the comprehensive Django backend with 100+ API endpoints.
+
+## 🎯 System Architecture
+
+### Technology Stack
+- **Frontend Framework**: React with TypeScript
+- **UI Library**: Shadcn/ui (already configured)
+- **State Management**: React Context + useReducer
+- **HTTP Client**: Axios with interceptors
+- **Form Handling**: React Hook Form + Zod validation
+- **Routing**: React Router v6
+- **Authentication**: JWT tokens with refresh mechanism
+- **Real-time**: WebSocket for notifications and chat
+- **File Upload**: Custom hooks with progress tracking
+- **Charts**: Reeact-chartjs-2 for analytics
+- **PDF**: React-pdf for document viewing
+
+## 🏗️ Project Structure
+
+```
+src/
+├── components/
+│   ├── auth/           # Authentication components
+│   ├── common/         # Shared components
+│   ├── dashboards/     # Role-specific dashboards
+│   ├── faculty/        # Faculty-specific components
+│   ├── hod/           # HOD-specific components
+│   ├── student/       # Student-specific components
+│   ├── admin/         # Admin-specific components
+│   └── ui/            # Shadcn/ui components
+├── hooks/             # Custom React hooks
+├── services/          # API service layer
+├── utils/             # Utility functions
+├── types/             # TypeScript type definitions
+├── contexts/          # React contexts
+├── pages/             # Page components
+└── styles/            # Global styles
+```
+
+## preselected
+
+### 1. Authentication System
+**Endpoints**: `/api/login/`, `/api/forgot-password/`, `/api/verify-otp/`, `/api/reset-password/`, `/api/logout/`
+
+**Components**:
+- `LoginForm.tsx` - Username/password login
+- `ForgotPasswordForm.tsx` - Email-based password reset
+- `OTPVerification.tsx` - OTP input and verification
+- `ResetPasswordForm.tsx` - New password setup
+- `AuthGuard.tsx` - Route protection component
+
+**Features**:
+- JWT token management
+- Automatic token refresh
+- Role-based route protection
+- Remember me functionality
+- Session timeout handling
+
+### 2. Profile Management
+**Endpoints**: `/api/profile/`, `/api/profile/upload-picture/`, `/api/profile/delete-picture/`, `/api/profile/stats/`
+
+**Components**:
+- `ProfileForm.tsx` - Editable profile information
+- `ProfilePicture.tsx` - Image upload with preview
+- `UserStats.tsx` - User activity statistics
+- `ProfileCard.tsx` - Profile display component
+
+**Features**:
+- Image upload with drag & drop
+- Real-time form validation
+- Profile picture cropping
+- Activity timeline
+- Settings management
+
+## 👨‍🎓 Student Dashboard
+
+### 3. Student Dashboard Overview
+**Endpoints**: `/api/student/dashboard/`, `/api/student/full-profile/`
+
+**Components**:
+- `StudentDashboard.tsx` - Main dashboard layout
+- `StudentStats.tsx` - Attendance, marks, attendance percentage
+- `QuickActions.tsx` - Common student actions
+- `RecentActivity.tsx` - Recent activities timeline
+
+**Features**:
+- Attendance percentage visualization
+- Quick access to assignments and exams
+- Recent announcements display
+- Performance trends
+
+### 4. Student Timetable
+**Endpoints**: `/api/student/timetable/`
+
+**Components**:
+- `Timetable.tsx` - Weekly timetable view
+- `TimetableDay.tsx` - Individual day view
+- `TimetableSlot.tsx` - Class slot component
+- `TimetableFilters.tsx` - Filter by subject/teacher
+
+**Features**:
+- Weekly/monthly view toggle
+- Color-coded subjects
+- Room and teacher information
+- Export to calendar
+
+### 5. Student Attendance
+**Endpoints**: `/api/student/attendance/`
+
+**Components**:
+- `AttendanceCalendar.tsx` - Monthly attendance calendar
+- `AttendanceStats.tsx` - Attendance statistics
+- `AttendanceChart.tsx` - Attendance trends
+- `AttendanceDetails.tsx` - Detailed attendance view
+
+**Features**:
+- Calendar view with attendance status
+- Subject-wise attendance breakdown
+- Attendance percentage charts
+- Export attendance reports
+
+### 6. Student Internal Marks
+**Endpoints**: `/api/student/internal-marks/`
+
+**Components**:
+- `MarksOverview.tsx` - Overall marks summary
+- `SubjectMarks.tsx` - Subject-wise marks
+- `MarksChart.tsx` - Performance visualization
+- `MarksHistory.tsx` - Marks progression
+
+**Features**:
+- Subject-wise marks display
+- Performance trends
+- Grade calculation
+- Comparison with class average
+
+### 7. Student Leave Management
+**Endpoints**: `/api/student/submit-leave-request/`, `/api/student/leave-requests/`
+
+**Components**:
+- `LeaveRequestForm.tsx` - Submit leave request
+- `LeaveRequestsList.tsx` - View all requests
+- `LeaveStatus.tsx` - Request status tracking
+- `LeaveCalendar.tsx` - Leave calendar view
+
+**Features**:
+- Leave request form with validation
+- Status tracking (Pending/Approved/Rejected)
+- Leave history
+- Calendar integration
+
+### 8. Student Certificates
+**Endpoints**: `/api/student/upload-certificate/`, `/api/student/certificates/`, `/api/student/delete-certificate/`
+
+**Components**:
+- `CertificateUpload.tsx` - Certificate upload
+- `CertificatesList.tsx` - View all certificates
+- `CertificateViewer.tsx` - Certificate preview
+- `CertificateManager.tsx` - Certificate management
+
+**Features**:
+- Drag & drop file upload
+- Certificate preview
+- File type validation
+- Certificate organization
+
+### 9. Student Assignments
+**Endpoints**: `/api/student/assignments/`, `/api/student/assignments/<id>/submit/`
+
+**Components**:
+- `AssignmentsList.tsx` - View all assignments
+- `AssignmentCard.tsx` - Individual assignment
+- `AssignmentSubmission.tsx` - Submit assignment
+- `AssignmentDetails.tsx` - Assignment details
+
+**Features**:
+- Assignment due date tracking
+- File submission with progress
+- Submission status
+- Grade viewing
+
+### 10. Student Exams
+**Endpoints**: `/api/student/exams/`
+
+**Components**:
+- `ExamsList.tsx` - View all exams
+- `ExamCard.tsx` - Individual exam
+- `ExamResults.tsx` - View exam results
+- `ExamSchedule.tsx` - Exam schedule
+
+**Features**:
+- Exam schedule display
+- Result viewing
+- Performance analysis
+- Exam notifications
+
+### 11. Student Study Materials
+**Endpoints**: `/api/student/study-materials/`
+
+**Components**:
+- `StudyMaterialsList.tsx` - View all materials
+- `MaterialCard.tsx` - Individual material
+- `MaterialViewer.tsx` - PDF viewer
+- `MaterialSearch.tsx` - Search materials
+
+**Features**:
+- PDF viewer integration
+- Material categorization
+- Search and filter
+- Download tracking
+
+### 12. Student Notifications
+**Endpoints**: `/api/student/notifications/`, `/api/student/notifications/mark-read/<id>/`
+
+**Components**:
+- `NotificationsList.tsx` - View notifications
+- `NotificationCard.tsx` - Individual notification
+- `NotificationBadge.tsx` - Unread count
+- `NotificationSettings.tsx` - Notification preferences
+
+**Features**:
+- Real-time notifications
+- Mark as read functionality
+- Notification categories
+- Push notifications
+
+### 13. Student Chat
+**Endpoints**: `/api/student/chat/`
+
+**Components**:
+- `ChatInterface.tsx` - Main chat interface
+- `ChatChannel.tsx` - Channel selection
+- `ChatMessage.tsx` - Individual message
+- `ChatInput.tsx` - Message input
+
+**Features**:
+- Real-time messaging
+- File sharing
+- Message history
+- Online status
+
+## 👨‍🏫 Faculty Dashboard
+
+### 14. Faculty Dashboard Overview
+**Endpoints**: `/api/faculty/dashboard/`
+
+**Components**:
+- `FacultyDashboard.tsx` - Main dashboard
+- `FacultyStats.tsx` - Teaching statistics
+- `ClassSchedule.tsx` - Today's classes
+- `QuickActions.tsx` - Common actions
+
+**Features**:
+- Class schedule display
+- Attendance tracking
+- Quick access to tools
+- Performance metrics
+
+### 15. Faculty Attendance Management
+**Endpoints**: `/api/faculty/take-attendance/`, `/api/faculty/attendance-records/`
+
+**Components**:
+- `TakeAttendance.tsx` - Attendance taking interface
+- `AttendanceRecords.tsx` - View attendance records
+- `AttendanceDetails.tsx` - Detailed attendance view
+- `AttendanceExport.tsx` - Export attendance data
+
+**Features**:
+- Face recognition integration
+- Bulk attendance marking
+- Attendance reports
+- Data export
+
+### 16. Faculty Marks Management
+**Endpoints**: `/api/faculty/upload-marks/`, `/api/faculty/internal-marks/`
+
+**Components**:
+- `MarksUpload.tsx` - Upload marks interface
+- `MarksManagement.tsx` - Manage marks
+- `MarksReport.tsx` - Generate reports
+- `MarksAnalytics.tsx` - Performance analytics
+
+**Features**:
+- Bulk marks upload
+- Individual marks entry
+- Performance analytics
+- Report generation
+
+### 17. Faculty Assignment Management
+**Endpoints**: `/api/faculty/assignments/manage/`, `/api/faculty/assignments/<id>/`
+
+**Components**:
+- `AssignmentCreator.tsx` - Create assignments
+- `AssignmentEditor.tsx` - Edit assignments
+- `AssignmentSubmissions.tsx` - View submissions
+- `AssignmentGrading.tsx` - Grade submissions
+
+**Features**:
+- Assignment creation wizard
+- File attachment support
+- Submission tracking
+- Grading interface
+
+### 18. Faculty Exam Management
+**Endpoints**: `/api/faculty/exams/`, `/api/faculty/exams/<id>/results/`
+
+**Components**:
+- `ExamCreator.tsx` - Create exams
+- `ExamManager.tsx` - Manage exams
+- `ExamResults.tsx` - View results
+- `ExamAnalytics.tsx` - Performance analytics
+
+**Features**:
+- Exam creation interface
+- Result entry
+- Performance analysis
+- Grade distribution
+
+### 19. Faculty Leave Management
+**Endpoints**: `/api/faculty/apply-leave/`, `/api/faculty/leave-requests/`
+
+**Components**:
+- `LeaveApplication.tsx` - Apply for leave
+- `LeaveRequests.tsx` - View requests
+- `LeaveApproval.tsx` - Approve student leaves
+- `LeaveCalendar.tsx` - Leave calendar
+
+**Features**:
+- Leave application form
+- Approval workflow
+- Calendar integration
+- Leave history
+
+### 20. Faculty Announcements
+**Endpoints**: `/api/faculty/announcements/`
+
+**Components**:
+- `AnnouncementCreator.tsx` - Create announcements
+- `AnnouncementManager.tsx` - Manage announcements
+- `AnnouncementPreview.tsx` - Preview announcements
+- `AnnouncementAnalytics.tsx` - View engagement
+
+**Features**:
+- Rich text editor
+- Target audience selection
+- Scheduled announcements
+- Engagement tracking
+
+### 21. Faculty Proctor Management
+**Endpoints**: `/api/faculty/proctor-students/`
+
+**Components**:
+- `ProctorStudents.tsx` - View proctor students
+- `StudentMentoring.tsx` - Mentoring interface
+- `StudentProgress.tsx` - Track student progress
+- `MentoringSchedule.tsx` - Schedule sessions
+
+**Features**:
+- Student list management
+- Progress tracking
+- Mentoring sessions
+- Performance reports
+
+## 👨‍💼 HOD Dashboard
+
+### 22. HOD Dashboard Overview
+**Endpoints**: `/api/hod/dashboard-stats/`
+
+**Components**:
+- `HODDashboard.tsx` - Main dashboard
+- `DepartmentStats.tsx` - Department statistics
+- `FacultyOverview.tsx` - Faculty overview
+- `StudentOverview.tsx` - Student overview
+
+**Features**:
+- Department performance metrics
+- Faculty workload overview
+- Student performance trends
+- Quick actions
+
+### 23. HOD Academic Management
+**Endpoints**: `/api/hod/semesters/`, `/api/hod/sections/`, `/api/hod/subjects/`
+
+**Components**:
+- `SemesterManager.tsx` - Manage semesters
+- `SectionManager.tsx` - Manage sections
+- `SubjectManager.tsx` - Manage subjects
+- `AcademicCalendar.tsx` - Academic calendar
+
+**Features**:
+- Semester creation and management
+- Section assignment
+- Subject configuration
+- Academic calendar
+
+### 24. HOD Faculty Management
+**Endpoints**: `/api/hod/faculty-assignments/`, `/api/hod/faculties/`
+
+**Components**:
+- `FacultyAssignments.tsx` - Manage faculty assignments
+- `FacultyDirectory.tsx` - Faculty directory
+- `WorkloadDistribution.tsx` - Workload management
+- `FacultyPerformance.tsx` - Performance tracking
+
+**Features**:
+- Faculty assignment interface
+- Workload distribution
+- Performance tracking
+- Assignment optimization
+
+### 25. HOD Student Management
+**Endpoints**: `/api/hod/students/`, `/api/hod/performance/`
+
+**Components**:
+- `StudentDirectory.tsx` - Student directory
+- `StudentPerformance.tsx` - Performance tracking
+- `BulkOperations.tsx` - Bulk student operations
+- `StudentAnalytics.tsx` - Student analytics
+
+**Features**:
+- Student directory management
+- Performance tracking
+- Bulk operations
+- Analytics dashboard
+
+### 26. HOD Attendance Monitoring
+**Endpoints**: `/api/hod/attendance/`, `/api/hod/low-attendance/`
+
+**Components**:
+- `AttendanceOverview.tsx` - Department attendance
+- `LowAttendanceAlert.tsx` - Low attendance alerts
+- `AttendanceAnalytics.tsx` - Attendance analytics
+- `AttendanceReports.tsx` - Generate reports
+
+**Features**:
+- Department-wide attendance view
+- Low attendance alerts
+- Attendance trends
+- Report generation
+
+### 27. HOD Leave Management
+**Endpoints**: `/api/hod/leaves/`, `/api/hod/leave-applications/`
+
+**Components**:
+- `LeaveApplications.tsx` - Review leave applications
+- `LeaveApproval.tsx` - Approve/reject leaves
+- `LeaveAnalytics.tsx` - Leave analytics
+- `LeaveCalendar.tsx` - Department leave calendar
+
+**Features**:
+- Leave application review
+- Approval workflow
+- Leave analytics
+- Calendar integration
+
+### 28. HOD Study Materials
+**Endpoints**: `/api/hod/study-materials/`
+
+**Components**:
+- `StudyMaterialManager.tsx` - Manage study materials
+- `MaterialUpload.tsx` - Upload materials
+- `MaterialDistribution.tsx` - Distribute materials
+- `MaterialAnalytics.tsx` - Usage analytics
+
+**Features**:
+- Material upload and management
+- Distribution to sections
+- Usage tracking
+- Analytics dashboard
+
+## 👨‍💻 Admin Dashboard
+
+### 29. Admin Dashboard Overview
+**Endpoints**: `/api/admin/stats-overview/`
+
+**Components**:
+- `AdminDashboard.tsx` - Main admin dashboard
+- `SystemStats.tsx` - System statistics
+- `UserOverview.tsx` - User overview
+- `SystemHealth.tsx` - System health monitoring
+
+**Features**:
+- System-wide statistics
+- User management overview
+- System health monitoring
+- Quick administrative actions
+
+### 30. Admin User Management
+**Endpoints**: `/api/admin/enroll-user/`, `/api/admin/users/`
+
+**Components**:
+- `UserEnrollment.tsx` - Enroll new users
+- `UserDirectory.tsx` - User directory
+- `UserProfile.tsx` - User profile management
+- `BulkUserOperations.tsx` - Bulk operations
+
+**Features**:
+- User enrollment interface
+- User directory management
+- Profile editing
+- Bulk user operations
+
+### 31. Admin Branch Management
+**Endpoints**: `/api/admin/branches/`
+
+**Components**:
+- `BranchManager.tsx` - Manage branches
+- `BranchCreator.tsx` - Create new branches
+- `BranchAnalytics.tsx` - Branch analytics
+- `BranchSettings.tsx` - Branch settings
+
+**Features**:
+- Branch creation and management
+- HOD assignment
+- Branch analytics
+- Settings configuration
+
+### 32. Admin Notifications
+**Endpoints**: `/api/admin/notifications/`
+
+**Components**:
+- `NotificationManager.tsx` - Manage notifications
+- `NotificationCreator.tsx` - Create notifications
+- `NotificationHistory.tsx` - View history
+- `NotificationAnalytics.tsx` - Analytics
+
+**Features**:
+- System-wide notifications
+- Targeted messaging
+- Notification history
+- Engagement analytics
+
+### 33. Admin Reports
+**Endpoints**: `/api/admin/reports/system/`
+
+**Components**:
+- `SystemReports.tsx` - Generate system reports
+- `ReportBuilder.tsx` - Custom report builder
+- `ReportScheduler.tsx` - Schedule reports
+- `ReportAnalytics.tsx` - Report analytics
+
+**Features**:
+- System-wide reporting
+- Custom report builder
+- Scheduled reports
+- Export functionality
+
+## 📊 Reporting & Analytics
+
+### 34. Report Generation
+**Endpoints**: `/api/faculty/reports/attendance/`, `/api/faculty/reports/marks/`, `/api/hod/reports/department/`
+
+**Components**:
+- `ReportGenerator.tsx` - Generate reports
+- `ReportViewer.tsx` - View reports
+- `ReportExporter.tsx` - Export reports
+- `ReportScheduler.tsx` - Schedule reports
+
+**Features**:
+- Multiple report types
+- Custom date ranges
+- Export to Excel/PDF
+- Scheduled reporting
+
+### 35. Analytics Dashboard
+**Components**:
+- `AnalyticsOverview.tsx` - Analytics overview
+- `PerformanceCharts.tsx` - Performance charts
+- `TrendAnalysis.tsx` - Trend analysis
+- `PredictiveAnalytics.tsx` - Predictive analytics
+
+**Features**:
+- Interactive charts
+- Trend analysis
+- Performance metrics
+- Predictive insights
+
+## 🔔 Notification System
+
+### 36. Notification Management
+**Endpoints**: Various notification endpoints
+
+**Components**:
+- `NotificationCenter.tsx` - Central notification hub
+- `NotificationPreferences.tsx` - User preferences
+- `NotificationHistory.tsx` - Notification history
+- `NotificationSettings.tsx` - System settings
+
+**Features**:
+- Real-time notifications
+- User preferences
+- Notification history
+- System-wide settings
+
+## 💬 Chat System
+
+### 37. Chat Interface
+**Endpoints**: Various chat endpoints
+
+**Components**:
+- `ChatInterface.tsx` - Main chat interface
+- `ChatChannels.tsx` - Channel management
+- `ChatMessages.tsx` - Message display
+- `ChatInput.tsx` - Message input
+
+**Features**:
+- Real-time messaging
+- File sharing
+- Channel management
+- Message history
+
+## 📱 Mobile Responsiveness
+
+### 38. Mobile Optimization
+**Components**:
+- `MobileNavigation.tsx` - Mobile navigation
+- `MobileDashboard.tsx` - Mobile dashboard
+- `MobileForms.tsx` - Mobile-optimized forms
+- `MobileCharts.tsx` - Mobile charts
+
+**Features**:
+- Responsive design
+- Touch-friendly interface
+- Mobile-specific features
+- Offline capabilities
+
+## 🔧 Development Phases
+
+### Phase 1: Core Infrastructure (Weeks 1-2)
+- [ ] Authentication system
+- [ ] Basic routing
+- [ ] API service layer
+- [ ] Common components
+- [ ] Error handling
+
+### Phase 2: Student Module (Weeks 3-4)
+- [ ] Student dashboard
+- [ ] Attendance tracking
+- [ ] Marks viewing
+- [ ] Leave management
+- [ ] Profile management
+
+### Phase 3: Faculty Module (Weeks 5-6)
+- [ ] Faculty dashboard
+- [ ] Attendance taking
+- [ ] Marks management
+- [ ] Assignment management
+- [ ] Exam management
+
+### Phase 4: HOD Module (Weeks 7-8)
+- [ ] HOD dashboard
+- [ ] Academic management
+- [ ] Faculty management
+- [ ] Student oversight
+- [ ] Department analytics
+
+### Phase 5: Admin Module (Weeks 9-10)
+- [ ] Admin dashboard
+- [ ] User management
+- [ ] System configuration
+- [ ] Reporting tools
+- [ ] System monitoring
+
+### Phase 6: Advanced Features (Weeks 11-12)
+- [ ] Real-time notifications
+- [ ] Chat system
+- [ ] Advanced analytics
+- [ ] Mobile optimization
+- [ ] Performance optimization
+
+## 🧪 Testing Strategy
+
+### Unit Testing
+- [ ] Component testing with React Testing Library
+- [ ] Hook testing
+- [ ] Utility function testing
+- [ ] API service testing
+
+### Integration Testing
+- [ ] End-to-end testing with Cypress
+- [ ] API integration testing
+- [ ] User flow testing
+- [ ] Cross-browser testing
+
+### Performance Testing
+- [ ] Load testing
+- [ ] Memory leak detection
+- [ ] Bundle size optimization
+- [ ] Performance monitoring
+
+## 🚀 Deployment Strategy
+
+### Development Environment
+- [ ] Local development setup
+- [ ] Hot reloading
+- [ ] Development server
+- [ ] Debug tools
+
+### Staging Environment
+- [ ] Staging server setup
+- [ ] Database migration testing
+- [ ] User acceptance testing
+- [ ] Performance testing
+
+### Production Environment
+- [ ] Production server setup
+- [ ] SSL certificate configuration
+- [ ] CDN integration
+- [ ] Monitoring and logging
+
+## 📈 Success Metrics
+
+### Performance Metrics
+- [ ] Page load time < 3 seconds
+- [ ] API response time < 500ms
+- [ ] 99.9% uptime
+- [ ] Mobile performance optimization
+
+### User Experience Metrics
+- [ ] User engagement rate
+- [ ] Feature adoption rate
+- [ ] User satisfaction score
+- [ ] Error rate reduction
+
+### Technical Metrics
+- [ ] Code coverage > 80%
+- [ ] Bundle size < 2MB
+- [ ] Lighthouse score > 90
+- [ ] Accessibility compliance
+
+## 🎯 Key Features Summary
+
+### ✅ Core Features
+- **Multi-role authentication** with JWT tokens
+- **Real-time notifications** and chat system
+- **Comprehensive dashboards** for all user roles
+- **Advanced reporting** and analytics
+- **Mobile-responsive** design
+- **File upload** and management
+- **Face recognition** integration
+- **PDF handling** and viewing
+
+### ✅ Student Features
+- Attendance tracking and viewing
+- Marks and exam results
+- Assignment submission
+- Leave request management
+- Study material access
+- Timetable viewing
+- Certificate management
+
+### ✅ Faculty Features
+- Attendance taking with face recognition
+- Marks upload and management
+- Assignment creation and grading
+- Exam management
+- Student mentoring
+- Announcement creation
+
+### ✅ HOD Features
+- Department oversight
+- Faculty management
+- Academic planning
+- Performance monitoring
+- Leave approval workflow
+
+### ✅ Admin Features
+- System-wide user management
+- Branch and course management
+- System configuration
+- Advanced reporting
+- System monitoring
+
+This comprehensive implementation plan ensures a robust, scalable, and user-friendly academic management system that meets all the requirements identified in the backend API endpoints. 

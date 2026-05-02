@@ -1,0 +1,190 @@
+HOD Dashboard Pages & API Analysis
+1. HOD Dashboard Overview (hod_dashboard_bootstrap)
+API Calls: hod/dashboard/ (GET)
+Backend Function: hod_dashboard_bootstrap
+Current Implementation: Combined endpoint returning profile, semesters, sections, overview stats, attendance trend, and leave requests
+Issues/Improvements Needed:
+✅ Good: Combined endpoint reduces API calls
+✅ Good: Uses optimized Count() aggregations
+⚠️ Attendance Trend: Calculates weekly attendance for last 4 weeks - could be expensive with large datasets
+⚠️ Add Caching: Implement Redis caching for attendance trend data
+⚠️ Leave Requests: Loads all faculty leave requests without pagination
+
+2. HOD Bootstrap (hod_bootstrap)
+API Calls: hod/bootstrap/ (GET)
+Backend Function: hod_bootstrap
+Current Implementation: Returns basic profile, semesters, and sections
+Issues/Improvements Needed:
+✅ Good: Lightweight endpoint, no scalability issues
+
+3. Student Management (hod_student_bootstrap + manage_students)
+API Calls:
+
+hod/student-bootstrap/ (GET)
+hod/students/ (GET/POST/PUT/DELETE)
+Backend Functions: hod_student_bootstrap, manage_students
+Current Implementation: Bootstrap loads all semesters/sections/batches, manage_students uses AdminPagination
+Issues/Improvements Needed:
+✅ Good: manage_students implements pagination
+❌ hod_student_bootstrap: Loads ALL students for branch without pagination (page_size=10 but still loads all then paginates)
+⚠️ Fix Required: Implement proper server-side pagination in hod_student_bootstrap
+⚠️ Performance: Student queries use select_related but could benefit from prefetch_related for complex relationships
+4. Subjects Management (hod_subjects_bootstrap + manage_subjects)
+API Calls:
+
+hod/subject-bootstrap/ (GET)
+hod/subjects/ (GET/POST/PUT/DELETE)
+Backend Functions: hod_subjects_bootstrap, manage_subjects
+Current Implementation: Bootstrap loads all subjects, manage_subjects uses AdminPagination
+Issues/Improvements Needed:
+❌ hod_subjects_bootstrap: Loads ALL subjects for branch without pagination
+⚠️ Fix Required: Add pagination to subject bootstrap endpoint
+✅ Good: manage_subjects properly paginated
+5. Timetable Management (hod_timetable_bootstrap + manage_timetable)
+API Calls:
+
+hod/timetable-bootstrap/ (GET)
+hod/timetable-semester-data/ (GET)
+hod/timetable/ (GET/POST/PUT/DELETE)
+Backend Functions: hod_timetable_bootstrap, hod_timetable_semester_data, manage_timetable
+Current Implementation: Bootstrap loads all faculties/subjects, manage_timetable uses AdminPagination
+Issues/Improvements Needed:
+❌ hod_timetable_bootstrap: Loads ALL subjects and faculties without pagination
+❌ hod_timetable_semester_data: Loads ALL faculty assignments for semester without pagination
+⚠️ Fix Required: Add pagination to both bootstrap endpoints
+✅ Good: manage_timetable properly paginated
+⚠️ Bulk Upload: Uses pandas to process Excel files - memory intensive for large files
+6. Attendance Management (hod_attendance_bootstrap + get_attendance)
+API Calls:
+
+hod/attendance-bootstrap/ (GET)
+hod/attendance/ (GET)
+Backend Functions: hod_attendance_bootstrap, get_attendance
+Current Implementation: Bootstrap loads semesters/sections/subjects, get_attendance filters by parameters
+Issues/Improvements Needed:
+❌ hod_attendance_bootstrap: Loads ALL subjects without pagination
+⚠️ Fix Required: Add pagination to attendance bootstrap
+⚠️ get_attendance: No explicit pagination mentioned - could load large datasets
+⚠️ Add Filtering: Implement date range and search filtering
+7. Leave Management (hod_leave_bootstrap + manage_leaves)
+API Calls:
+
+hod/leave-bootstrap/ (GET)
+hod/faculty-leaves-bootstrap/ (GET)
+hod/leaves/ (GET/PUT)
+Backend Functions: hod_leave_bootstrap, hod_faculty_leaves_bootstrap, manage_leaves
+Current Implementation: Bootstrap endpoints load recent leave data, manage_leaves handles approvals
+Issues/Improvements Needed:
+✅ Good: Bootstrap endpoints load limited recent data
+⚠️ hod_leave_bootstrap: Could benefit from configurable date range instead of fixed periods
+⚠️ Add Filtering: Allow filtering by status, date range, faculty
+8. Proctor Management (hod_proctor_bootstrap + assign_proctors_bulk)
+API Calls:
+
+hod/proctor-bootstrap/ (GET)
+hod/proctors/ (GET/POST)
+hod/proctors/bulk/ (POST)
+Backend Functions: hod_proctor_bootstrap, assign_proctor, assign_proctors_bulk, get_proctors
+Current Implementation: Bootstrap loads students/faculties, bulk operations for assignments
+Issues/Improvements Needed:
+❌ hod_proctor_bootstrap: Loads ALL students and faculties without pagination
+⚠️ Fix Required: Add pagination to proctor bootstrap
+⚠️ assign_proctors_bulk: Processes bulk assignments - could be slow with large datasets
+⚠️ Add Async Processing: Consider Celery for bulk proctor assignments
+9. Semester Management (hod_semester_bootstrap + manage_semesters)
+API Calls:
+
+hod/semester-bootstrap/ (GET)
+hod/semesters/ (GET/POST/PUT/DELETE)
+Backend Functions: hod_semester_bootstrap, manage_semesters
+Current Implementation: Bootstrap loads semesters/sections, manage_semesters uses AdminPagination
+Issues/Improvements Needed:
+✅ Good: Both endpoints properly handle data volumes
+10. Marks Management (hod_marks_bootstrap + get_marks)
+API Calls:
+
+hod/marks-bootstrap/ (GET)
+hod/marks/ (GET)
+Backend Functions: hod_marks_bootstrap, get_marks
+Current Implementation: Bootstrap loads subjects/students, get_marks returns marks data
+Issues/Improvements Needed:
+❌ hod_marks_bootstrap: Loads ALL subjects and students without pagination
+⚠️ Fix Required: Add pagination to marks bootstrap
+⚠️ get_marks: No pagination mentioned - could return large datasets
+⚠️ Optimize Queries: Use select_related/prefetch_related for better performance
+11. Faculty Assignments (hod_faculty_assignments_bootstrap + manage_faculty_assignments)
+API Calls:
+
+hod/faculty-assignments-bootstrap/ (GET)
+hod/faculty-assignments/ (GET/POST/PUT/DELETE)
+Backend Functions: hod_faculty_assignments_bootstrap, manage_faculty_assignments
+Current Implementation: Bootstrap loads ALL assignments, manage uses conditional pagination
+Issues/Improvements Needed:
+❌ hod_faculty_assignments_bootstrap: Loads ALL faculty assignments without pagination
+⚠️ Fix Required: Add pagination to assignments bootstrap
+⚠️ manage_faculty_assignments: Only paginates when no filters applied - could be problematic
+12. Notifications (hod_notifications_bootstrap + send_notification)
+API Calls:
+
+hod/notifications-bootstrap/ (GET)
+hod/notifications/ (POST)
+hod/notifications/history/ (GET)
+Backend Functions: hod_notifications_bootstrap, send_notification, get_notifications
+Current Implementation: Bootstrap loads recent notifications, send creates notifications
+Issues/Improvements Needed:
+✅ Good: Bootstrap loads limited notification history
+⚠️ send_notification: Creates notifications for all users in branch - could be slow
+⚠️ Add Async Processing: Use Celery for bulk notification creation
+13. Promotion Management (hod_promotion_bootstrap + promote_students_to_next_semester)
+API Calls:
+
+hod/promotion-bootstrap/ (GET)
+hod/promote-students/ (POST)
+hod/promote-selected-students/ (POST)
+Backend Functions: hod_promotion_bootstrap, promote_students_to_next_semester, promote_selected_students
+Current Implementation: Bootstrap loads eligible students, promotion operations
+Issues/Improvements Needed:
+❌ hod_promotion_bootstrap: Loads ALL eligible students without pagination
+⚠️ Fix Required: Add pagination to promotion bootstrap
+⚠️ Bulk Operations: Could be resource-intensive for large student populations
+14. Low Attendance (hod_low_attendance_bootstrap + low_attendance_students)
+API Calls:
+
+hod/low-attendance-bootstrap/ (GET)
+hod/low-attendance/ (GET)
+Backend Functions: hod_low_attendance_bootstrap, low_attendance_students
+Current Implementation: Bootstrap loads semesters/sections, low_attendance filters and calculates
+Issues/Improvements Needed:
+✅ Good: Bootstrap endpoints are lightweight
+⚠️ low_attendance_students: Calculates attendance percentage for each student - N+1 query potential
+⚠️ Optimize Queries: Use annotations and aggregations to avoid N+1 problems
+⚠️ Add Caching: Cache attendance calculations
+15. Faculty Leave Applications (hod_faculty_leaves_bootstrap)
+API Calls: hod/faculty-leaves-bootstrap/ (GET)
+Backend Function: hod_faculty_leaves_bootstrap
+Current Implementation: Loads recent faculty leave requests
+Issues/Improvements Needed:
+✅ Good: Loads limited recent data
+⚠️ Add Filtering: Allow filtering by status, date range
+
+Database Indexing Status
+✅ Good: Multiple performance indexes exist (from migrations 0008-0014), including:
+
+Attendance records indexes
+Internal marks indexes
+Student leave request indexes
+Faculty performance indexes
+Summary of Critical Fixes Needed:
+hod_student_bootstrap: Add proper server-side pagination
+hod_subjects_bootstrap: Add pagination
+hod_timetable_bootstrap & hod_timetable_semester_data: Add pagination
+hod_attendance_bootstrap: Add pagination
+hod_proctor_bootstrap: Add pagination
+hod_marks_bootstrap: Add pagination
+hod_faculty_assignments_bootstrap: Add pagination
+hod_promotion_bootstrap: Add pagination
+low_attendance_students: Optimize queries with annotations
+Add Caching: Implement Redis caching for frequently accessed data
+Async Processing: Use Celery for bulk operations (notifications, proctor assignments)
+Rate Limiting: Add to sensitive operations
+File Upload Limits: Add size limits for Excel/timetable uploads

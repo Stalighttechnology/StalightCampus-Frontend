@@ -1,0 +1,308 @@
+/* Card Container - All breakpoints */
+.card {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.exportButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Table Container - All breakpoints */
+.timetableContainer {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.timetableTable {
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.timetableTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.timetableTable th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.timetableTable td {
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.timetableTable tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Columns */
+.timeColumn {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.dayColumn {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Cell Content */
+.cellContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subject {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.room {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.emptyCell {
+  font-size: 0.875rem;
+}
+
+/* Mobile Styles (below 768px) */
+@media (max-width: 767px) {
+  .card {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .cardHeader {
+    padding: 0.5rem;
+  }
+
+  .timetableContainer {
+    width: 100%;
+    max-width: 100%;
+    max-height: 70vh;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  .timetableTable {
+    width: 100%;
+    min-width: 900px;
+  }
+
+  .timetableTable th,
+  .timetableTable td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .timetableTable th {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .timeColumn {
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  .dayColumn {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cellContent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .subject {
+    font-size: 0.875rem;
+  }
+
+  .room {
+    font-size: 0.75rem;
+  }
+}
+
+/* Tablet-Specific Styles (768px to 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .card {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .cardHeader {
+    padding: 1rem;
+  }
+
+  .timetableContainer {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden !important;
+  }
+
+  .timetableTable {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  .timetableTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .timetableTable th,
+  .timetableTable td {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+
+  .timetableTable th {
+    padding: 12px 8px;
+    font-weight: 600;
+  }
+
+  .timeColumn {
+    width: 90px !important;
+    padding: 12px 6px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  .dayColumn {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cellContent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cellContent .subject {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .cellContent .room {
+    font-size: 11px;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .emptyCell {
+    font-size: 13px;
+  }
+}
+
+/* Desktop (above 1024px) */
+@media (min-width: 1025px) {
+  .card {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .cardHeader {
+    padding: 1rem;
+  }
+
+  .timetableContainer {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .timetableTable {
+    width: 100%;
+    text-align: left;
+    font-size: 0.875rem;
+  }
+
+  .timetableTable th,
+  .timetableTable td {
+    padding: 0.75rem 1rem;
+  }
+
+  .timetableTable th {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .timetableTable td {
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .timeColumn {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  .dayColumn {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cellContent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .subject {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .room {
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+
+  .emptyCell {
+    font-size: 0.875rem;
+  }
+}

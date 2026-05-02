@@ -1,0 +1,144 @@
+🟢 1. git checkout main
+👉 Switches to the main branch
+ 
+If you're currently working on another branch (workingr, feature-branch, etc.), this command moves you back to main.
+Always make sure you're on the correct branch before pulling updates.
+🔹 If the branch does not exist locally, you can create it and track the remote branch:
+ 
+bash
+Copy
+Edit
+git checkout -b main origin/main
+🟢 2. git status
+👉 Checks the current state of the repository
+ 
+Shows unstaged, staged, and untracked files.
+Helps confirm if you are on the correct branch (main in this case) and if there are any pending changes before pulling.
+🟢 3. git pull origin main
+👉 Fetches the latest changes from the remote repository (origin/main) and merges them into your local main branch.
+ 
+git pull is equivalent to running:
+bash
+Copy
+Edit
+git fetch origin main   # Get updates from the remote
+git merge origin/main   # Merge them into your current branch
+If there are conflicts, Git will pause and ask you to resolve them before completing the merge.
+🟢 4. git pull --no-rebase origin main
+👉 Pulls the latest changes without rebasing.
+ 
+By default, git pull can be configured to rebase changes (instead of merging).
+This command ensures that the pull will perform a merge instead of a rebase.
+Useful when you want to preserve the commit history instead of rewriting it.
+🟢 5. git config pull.rebase false
+👉 Tells Git to always use merge instead of rebase when running git pull
+ 
+This command sets a global configuration so that future git pull commands will not use rebase.
+If you ever want to turn it back on:
+bash
+Copy
+Edit
+git config pull.rebase true
+🟢 6. git reset --hard origin/main
+👉 Forces your local main branch to match the remote branch exactly, discarding any local changes.
+ 
+This is a destructive command, meaning:
+Any local commits that haven’t been pushed will be lost.
+It resets the working directory to match origin/main exactly.
+⚠️ Use this with caution! If you want to save local changes before resetting:
+ 
+bash
+Copy
+Edit
+git stash  # Saves local changes without committing them
+🟢 7. git push origin main
+👉 Pushes your local main branch to the remote repository (origin/main).
+ 
+If you used git reset --hard, this forces your local version to replace the remote branch.
+If the remote has new commits that you don’t have locally, Git may reject the push. In that case, you may need to force push:
+bash
+Copy
+Edit
+git push --force origin main
+⚠️ Use --force carefully, as it can overwrite others' work!
+ 
+🔄 When to Use These Commands?
+✔ When you want to reset your local branch to match the remote
+✔ If your local main branch has become out of sync with origin/main
+✔ If you need to ensure a clean history before pushing
+ 
+💡 Alternative (Safe) Approach
+If you want to keep local commits but still update your branch safely, use git pull --rebase instead:
+ 
+bash
+Copy
+Edit
+git checkout main
+git pull --rebase origin main  # Applies your changes on top of the latest remote branch
+This avoids unnecessary merge commits while keeping history clean.
+ 
+🚀 Summary Table
+Command	Purpose
+git checkout main	Switch to the main branch
+git status	Check current repository status
+git pull origin main	Fetch and merge changes from origin/main
+git pull --no-rebase origin main	Ensures merge strategy instead of rebase
+git config pull.rebase false	Disables rebasing when pulling updates
+git reset --hard origin/main	Resets local main to match remote exactly (⚠ Destroys local changes)
+git push origin main	Pushes local main to the remote repository
+💡 Need more control? Instead of reset --hard, use stash:
+ 
+bash
+Copy
+Edit
+git stash       # Save local changes
+git pull origin main  # Get latest updates
+git stash pop   # Reapply local changes
+This avoids losing work while keeping everything updated.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ Student Login:
+
+Username Pattern: 1AM22CI001
+This represents a University Seat Number (USN).
+1AM22CI: Represents the college code, year of admission, and branch.
+001: Represents a unique identifier for the student.
+Password: student123
+A generic password for all students for simplicity in this example.
+Faculty Login:
+
+Username Pattern: 1AM22CI
+This represents the college code followed by the year and branch name.
+Password: CI@2024
+A generic password for faculty, combining the branch name and year.
+HOD Login:
+
+Username Pattern: CI@HOD
+This represents the branch name followed by "HOD".
+Password: HOD@2024
+A generic password for HODs, combining the role and year.
+
+
+
+the goal is to reduce the backend calls to reduce server load so we have to combine endpoints to one endpoint that should work correctly so refer backend hod_views , hod2_views.py and urls and also in frontend hod_api.ts and also hodbootstrapcontext and now we are only concentrating on hod pages 
+note : donot chnage the exisiting implementation like hod_views.py and urls.py , you can do it in hod2_views and add urls and can add that new endpoints structure in the hod_api.ts in frontend and change the page to call that endpoint correctly , 
+say yes if you understood what exactly you should do and explain in short 
+
+
+
+Yes, I understood. I'll review the backend files (hod_views.py, hod2_views.py, urls.py) to identify the current HOD-related endpoints and their data. Then, in hod2_views.py, I'll create a new combined endpoint that aggregates the necessary data into a single response. I'll add the new URL pattern in urls.py without altering existing ones. In the frontend, I'll update hod_api.ts to include the new endpoint structure, modify HODBootstrapContext.tsx to handle the combined data, and adjust the HOD pages to call this single endpoint instead of multiple ones, ensuring the implementation works correctly while reducing backend calls.

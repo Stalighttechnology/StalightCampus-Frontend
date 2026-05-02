@@ -1,0 +1,259 @@
+Student Dashboard Pages & API Analysis
+1. Student Dashboard Overview (dashboard_overview + get_dashboard_with_notifications)
+API Calls:
+
+student/dashboard/ (GET) - Basic dashboard data
+student/dashboard-with-notifications/ (GET) - Combined dashboard + notifications
+Backend Functions: dashboard_overview, get_dashboard_with_notifications
+Current Implementation: Highly optimized with database aggregations, select_related, and limited queries
+Issues/Improvements Needed:
+✅ Good: Uses database aggregations (Count, Avg, Case/When) to avoid N+1 queries
+✅ Good: select_related used for foreign key optimization
+✅ Good: Limited leave requests to [:5] and notifications to [:15]
+⚠️ Correlation Calculation: Complex correlation calculation done in Python - could be moved to database
+⚠️ Multiple Queries: Separate queries for InternalMark and StudentIAMark - could be combined
+⚠️ Add Caching: Implement Redis caching for dashboard data that doesn't change frequently
+2. Student Timetable (get_timetable)
+API Calls: student/timetable/ (GET)
+Backend Function: get_timetable
+Current Implementation: Returns student's weekly timetable with select_related
+Issues/Improvements Needed:
+✅ Good: Uses select_related for optimization
+⚠️ No Caching: Timetable data could be cached since it doesn't change frequently
+⚠️ Add Filtering: Allow filtering by day/week for better UX
+
+3. Student Attendance (get_student_attendance + get_attendance_with_marks)
+API Calls:
+
+student/attendance/ (GET) - Attendance data
+student/attendance-with-marks/ (GET) - Combined attendance + marks
+Backend Functions: get_student_attendance, get_attendance_with_marks
+Current Implementation: Uses select_related, processes attendance by subject
+Issues/Improvements Needed:
+✅ Good: Uses select_related for record__subject
+⚠️ Notification Creation: Creates notifications for low attendance during GET requests - should be async
+⚠️ No Pagination: Loads all attendance records at once - could be large dataset
+⚠️ Fix Required: Add pagination for attendance records
+⚠️ Add Caching: Cache attendance calculations
+4. Internal Marks (get_internal_marks)
+API Calls: student/internal-marks/ (GET)
+Backend Function: get_internal_marks
+Current Implementation: Returns student's marks with select_related
+Issues/Improvements Needed:
+✅ Good: Uses select_related for subject/faculty
+⚠️ No Pagination: Loads all marks at once
+⚠️ Exam Restrictions: Checks for exam failures but could be optimized
+⚠️ Add Filtering: Allow filtering by subject/test type
+
+5. Leave Requests (submit_student_leave_request + get_student_leave_requests)
+API Calls:
+
+student/submit-leave-request/ (POST) - Submit leave
+student/leave-requests/ (GET) - Get leave history
+Backend Functions: submit_student_leave_request, get_student_leave_requests
+Current Implementation: Standard CRUD operations
+Issues/Improvements Needed:
+✅ Good: Single operations, no major scalability issues
+⚠️ No Pagination: get_student_leave_requests loads all leave requests
+⚠️ Add Pagination: Implement pagination for leave history
+6. Certificate Management (upload_certificate + bulk_upload_certificates + get_certificates)
+API Calls:
+
+student/upload-certificate/ (POST) - Single certificate upload
+student/bulk-upload-certificates/ (POST) - Bulk certificate upload
+student/certificates/ (GET) - Get certificates
+Backend Functions: upload_certificate, bulk_upload_certificates, get_certificates
+Current Implementation: File upload with validation, bulk upload limited to 10 files
+Issues/Improvements Needed:
+✅ Good: File validation and size limits implemented
+✅ Good: Bulk upload limited to 10 files to prevent abuse
+⚠️ File Storage: Files stored locally - consider cloud storage for scalability
+⚠️ No Compression: Large images not compressed server-side
+⚠️ Add Async Processing: Move file processing to background for large uploads
+7. Student Profile (update_profile + get_full_student_profile)
+API Calls:
+
+student/update-profile/ (POST) - Update profile
+student/full-profile/ (GET) - Get full profile
+Backend Functions: update_profile, get_full_student_profile
+Current Implementation: Standard profile management
+Issues/Improvements Needed:
+✅ Good: Single operations, no issues
+8. Student Chat (manage_chat)
+API Calls: student/chat/ (GET/POST)
+Backend Function: manage_chat
+Current Implementation: Chat functionality with channel/message management
+Issues/Improvements Needed:
+⚠️ No Pagination: Chat messages may load without pagination
+⚠️ Real-time Updates: No WebSocket implementation mentioned
+⚠️ Add Pagination: Implement pagination for chat history
+
+9. Notifications (get_notifications)
+API Calls: student/notifications/ (GET)
+Backend Function: get_notifications
+Current Implementation: Returns student notifications
+Issues/Improvements Needed:
+⚠️ No Pagination: Loads all notifications
+⚠️ Mark as Read: No bulk mark as read functionality
+⚠️ Add Pagination: Implement pagination for notifications
+
+10. Announcements (get_announcements)
+API Calls: student/announcements/ (GET)
+Backend Function: get_announcements
+Current Implementation: Returns student announcements
+Issues/Improvements Needed:
+⚠️ No Pagination: May load all announcements
+⚠️ Add Pagination: Implement pagination for announcements
+
+11. Study Materials (get_study_materials)
+API Calls: student/study-materials/ (GET)
+Backend Function: get_study_materials
+Current Implementation: Returns study materials for student's branch/semester
+Issues/Improvements Needed:
+⚠️ No Pagination: May load all study materials
+⚠️ Add Filtering: Allow filtering by subject/type
+⚠️ Add Pagination: Implement pagination for study materials
+
+12. Student Assignments (get_student_assignments)
+API Calls: student/assignments/ (GET)
+Backend Function: get_student_assignments
+Current Implementation: Returns assignments for student's subjects
+Issues/Improvements Needed:
+⚠️ No Pagination: Loads all assignments
+⚠️ Complex Query: May involve complex joins for subject registration
+⚠️ Add Pagination: Implement pagination for assignments
+
+13. Historical Data (get_historical_student_data)
+API Calls: student/historical-data/ (GET)
+Backend Function: get_historical_student_data
+Current Implementation: Returns student's historical academic data
+Issues/Improvements Needed:
+⚠️ Large Dataset: Historical data could be very large
+⚠️ No Pagination: Loads all historical data
+⚠️ Fix Required: Add pagination and filtering for historical data
+
+14. Student Exams (get_student_exams)
+API Calls: student/exams/ (GET)
+Backend Function: get_student_exams (from exam_views)
+Current Implementation: Returns student's exam schedule/results
+Issues/Improvements Needed:
+⚠️ No Pagination: May load all exam data
+⚠️ Add Pagination: Implement pagination for exam history
+
+15. Fee Data (get_student_fee_data)
+API Calls: student/fee-data/ (GET)
+Backend Function: get_student_fee_data
+Current Implementation: Returns student's fee information
+Issues/Improvements Needed:
+✅ Good: Single student operations
+
+Frontend Scalability Analysis
+1. StudentDashboardOverview Component
+Issues/Improvements Needed:
+✅ Good: Uses React.memo for performance
+⚠️ Chart Rendering: Re-renders charts on every data change
+⚠️ Large Dataset: Performance overview data could be large
+⚠️ Optimize Charts: Use lazy loading for chart components
+
+2. StudentAttendance Component
+Issues/Improvements Needed:
+✅ Good: Uses virtualization (@tanstack/react-virtual) for large tables
+✅ Good: Memoized chart component
+⚠️ Chart Data Processing: Processes all attendance data in browser
+⚠️ Memory Usage: Large attendance datasets could cause issues
+⚠️ Add Pagination: Implement server-side pagination
+
+3. CertificatesManagement Component
+Issues/Improvements Needed:
+✅ Good: Uses file compression hook (useFileUpload)
+✅ Good: Form validation with useFormValidation
+✅ Good: Progress indicators for uploads
+⚠️ Bulk Upload: Multiple file uploads could be optimized
+⚠️ File Preview: Large files may cause preview issues
+⚠️ Add Drag & Drop: Implement drag-and-drop for better UX
+
+4. InternalMarks Component
+Issues/Improvements Needed:
+⚠️ No Pagination: Loads all marks at once
+⚠️ Table Rendering: Large mark datasets render all rows
+⚠️ Fix Required: Add pagination/virtualization
+
+5. StudentAssignments Component
+Issues/Improvements Needed:
+⚠️ No Pagination: Loads all assignments
+⚠️ File Downloads: Multiple file downloads not optimized
+⚠️ Add Pagination: Implement pagination for assignments
+
+6. StudentNotifications Component
+Issues/Improvements Needed:
+⚠️ No Pagination: Loads all notifications
+⚠️ Real-time Updates: No polling/websockets for new notifications
+⚠️ Add Pagination: Implement pagination for notifications
+
+7. StudentTimetable Component
+Issues/Improvements Needed:
+✅ Good: Weekly view is manageable
+⚠️ No Caching: Re-fetches timetable frequently
+⚠️ Add Caching: Cache timetable data
+
+Database Indexing Status
+✅ Good: Multiple performance indexes exist (from migrations 0008-0014), including:
+
+Attendance records indexes
+Internal marks indexes
+Student leave request indexes
+Certificate indexes
+Summary of Critical Fixes Needed:
+Student Attendance: Add pagination to attendance endpoints
+Internal Marks: Add pagination to marks endpoints
+Historical Data: Add pagination and filtering
+Notifications: Add pagination to notification endpoints
+Assignments: Add pagination to assignment lists
+Study Materials: Add pagination and filtering
+Leave Requests: Add pagination to leave history
+Chat Messages: Add pagination to chat history
+File Uploads: Move large file processing to background
+Frontend Components: Add virtualization to large lists
+Add Caching: Implement Redis caching for static data
+Async Notifications: Move notification creation to background tasks
+Additional Recommendations:
+API Response Compression: Enable gzip compression for large responses
+Lazy Loading: Implement lazy loading for heavy components
+Optimistic Updates: Use optimistic updates for better UX
+Service Workers: Implement service workers for offline functionality
+WebSockets: Add real-time updates for notifications/chat
+Error Boundaries: Add error boundaries for data-heavy components
+Memory Management: Implement proper cleanup for large datasets
+Progressive Loading: Load data in chunks for better performance
+Background Sync: Implement background sync for offline actions
+Push Notifications: Add push notification support for mobile
+
+
+
+Recommendations to Handle the Load
+Optimize Password Hashing:
+
+Switch to Argon2 (faster and more secure than PBKDF2). Add to settings.py:
+This reduces hashing time by ~20-50%, lowering CPU usage.
+Scale the Server:
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.SHA1PasswordHasher',
+]
+
+Upgrade to a server with 4-8 vCPUs and 4-8 GB RAM (e.g., Render Pro, AWS t3.medium).
+Increase Gunicorn workers (e.g., to 8-12) in Procfile or config: gunicorn attendance_system.wsgi:application --workers 8 --threads 2.
+Use a load balancer (e.g., Nginx) or cloud auto-scaling.
+Mitigate Peak Load:
+
+Stagger logins: Notify users to change passwords over days, not all at once.
+Add rate limiting (e.g., via django-ratelimit) to prevent abuse.
+Cache or offload: Use Redis for sessions if needed, but not critical here.
+Monitor and Test:
+
+Use tools like New Relic, Datadog, or Django's django-debug-toolbar to monitor CPU/RAM during load tests.
+Simulate with locust or ab: ab -n 300 -c 50 http://your-server/change-password-endpoint (adjust concurrency).
+If DB is the bottleneck, ensure connection pooling (already set with conn_max_age=600).

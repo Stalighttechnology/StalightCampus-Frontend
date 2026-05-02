@@ -1,0 +1,11 @@
+now we will test all endpoints correctly so the api url shodul not be changed because it is used in the frontend , and also the functionality and logic shoudl not be chnaged , there is faculty_views.py or faculty2_views.py,faculty3_views , faculty3_endpoint views , that are created there is logic but for code simplification  i splitted the logics into the views/faculty folder files , 
+
+i want you to check the api calls i will give the calls so check that call if it production ready or not and the logic shoudl remain in the faculty folder itself , in case if it is there in faculty_views.py or faculty2_views.py,faculty3_views , faculty3_endpoint views the move that correctly into the faculty folder files correctly , because of code simplification 
+
+explain in short what you understand now correctly refer the folder structure files and expalin in short , 
+
+
+API URLs must remain unchanged (no modifications to endpoints) since the frontend relies on them for integration.
+Functionality and logic must stay identical—no behavioral changes, just code reorganization for simplification.
+
+Task: Review the API calls you'll provide next. For each, verify if it's production-ready (e.g., proper error handling, security, performance). If logic resides in faculty_views.py or faculty2_views.py,faculty3_views , faculty3_endpoint views  move it correctly into the appropriate faculty/ files without altering URLs or behavior.

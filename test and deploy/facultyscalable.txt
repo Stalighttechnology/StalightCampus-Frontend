@@ -1,0 +1,228 @@
+Faculty/Teacher Dashboard Pages & API Analysis
+1. Faculty Dashboard Overview (faculty_dashboard_bootstrap + dashboard_overview)
+API Calls:
+
+faculty/dashboard/ (GET) - Basic overview
+faculty/dashboard/bootstrap/ (GET) - Combined bootstrap data
+Backend Functions: dashboard_overview, faculty_dashboard_bootstrap
+Current Implementation: Bootstrap loads assignments, proctor students with prefetch_related, attendance calculations with annotations
+Issues/Improvements Needed:
+✅ Good: Uses prefetch_related and select_related for proctor students
+✅ Good: Attendance calculations use annotations to avoid N+1 queries
+⚠️ Proctor Students Loading: Loads ALL proctor students without pagination - could be slow with many students
+⚠️ IA Marks Query: Additional query for IA marks could be optimized
+⚠️ Fix Required: Add pagination to proctor students loading in bootstrap
+2. Take Attendance (get_take_attendance_bootstrap + take_attendance)
+API Calls:
+
+faculty/take-attendance/bootstrap/ (GET)
+faculty/take-attendance/ (POST)
+Backend Functions: get_take_attendance_bootstrap, take_attendance
+Current Implementation: Bootstrap loads students for selected class, take_attendance processes attendance
+Issues/Improvements Needed:
+✅ Good: Loads students only for selected class
+⚠️ Student Loading: No pagination for class students - could be problematic for large classes
+⚠️ Notification Creation: Creates notification for every student - could be slow with large classes
+⚠️ Google Sheets Integration: Synchronous Google Sheets update could slow response
+⚠️ Add Async Processing: Move Google Sheets updates and notifications to background tasks
+3. Upload Internal Marks (get_upload_marks_bootstrap + upload_internal_marks)
+API Calls:
+
+faculty/upload-marks/bootstrap/ (GET)
+faculty/upload-marks/ (POST)
+faculty/students-for-marks/ (GET)
+Backend Functions: get_upload_marks_bootstrap, upload_internal_marks, get_students_for_marks
+Current Implementation: Bootstrap loads students, supports Excel/CSV upload with pandas
+Issues/Improvements Needed:
+❌ Memory Intensive: Uses pandas to load entire Excel/CSV files into memory
+❌ No File Size Limits: Can crash with large files
+❌ No Streaming: Processes all rows at once
+⚠️ Notification Creation: Creates notification for every student in class
+⚠️ Fix Required: Implement streaming CSV processing, add file size limits (max 5MB), add progress tracking
+⚠️ Add Async Processing: Move bulk notifications to background
+4. IA Marks Upload (upload_ia_marks + create_question_paper)
+API Calls:
+
+faculty/upload-ia-marks/ (POST)
+faculty/qps/ (POST)
+Backend Functions: upload_ia_marks, create_question_paper
+Current Implementation: Handles IA marks with question paper validation
+Issues/Improvements Needed:
+✅ Good: Single operations, no major scalability issues
+⚠️ File Processing: Similar file processing issues as internal marks if Excel upload supported
+5. Proctor Students Management (faculty_dashboard_bootstrap - proctor data)
+API Calls: faculty/dashboard/bootstrap/ (GET)
+Backend Function: faculty_dashboard_bootstrap (proctor section)
+Current Implementation: Loads proctor students with complex prefetch_related queries
+Issues/Improvements Needed:
+❌ No Pagination: Loads ALL proctor students at once
+⚠️ Complex Queries: Multiple prefetch_related could be memory intensive
+⚠️ Fix Required: Implement pagination for proctor students
+⚠️ Add Search/Filtering: Allow filtering by semester, section, attendance
+
+6. Attendance Records (get_attendance_records_with_summary + view_attendance_records)
+API Calls:
+
+faculty/attendance-records/summary/ (GET)
+faculty/attendance-records/ (GET)
+faculty/attendance-records/list/ (GET)
+Backend Functions: get_attendance_records_with_summary, view_attendance_records, get_attendance_records_list
+Current Implementation: Summary uses annotations, detailed views may not have pagination
+Issues/Improvements Needed:
+✅ Good: Summary endpoint uses proper aggregations
+⚠️ Detailed Records: get_attendance_records_list may not have pagination
+⚠️ Add Pagination: Ensure all attendance record endpoints are paginated
+7. Apply Leave (get_apply_leave_bootstrap + apply_leave)
+API Calls:
+
+faculty/apply-leave/bootstrap/ (GET)
+faculty/apply-leave/ (POST)
+Backend Functions: get_apply_leave_bootstrap, apply_leave
+Current Implementation: Bootstrap loads leave history, apply creates leave requests
+Issues/Improvements Needed:
+✅ Good: Bootstrap loads limited recent data
+⚠️ Leave History: Could benefit from configurable date ranges
+8. Faculty Leave Requests (get_faculty_leave_requests)
+API Calls: faculty/leave-requests/ (GET)
+Backend Function: get_faculty_leave_requests
+Current Implementation: Returns faculty's own leave requests
+Issues/Improvements Needed:
+✅ Good: Single faculty operations, no issues
+
+9. Manage Student Leave (manage_student_leave)
+API Calls: faculty/manage-student-leave/ (POST)
+Backend Function: manage_student_leave
+Current Implementation: Faculty approves/rejects student leave requests
+Issues/Improvements Needed:
+✅ Good: Individual operations, no scalability issues
+
+10. Announcements (create_announcement)
+API Calls: faculty/announcements/ (POST)
+Backend Function: create_announcement
+Current Implementation: Creates announcements for students/faculty
+Issues/Improvements Needed:
+⚠️ Bulk Notifications: Creates notifications for all targeted users
+⚠️ Add Async Processing: Use Celery for bulk announcement notifications
+
+11. Timetable View (get_timetable)
+API Calls: faculty/timetable/ (GET)
+Backend Function: get_timetable
+Current Implementation: Returns faculty's timetable entries
+Issues/Improvements Needed:
+✅ Good: Limited to faculty's own schedule
+
+12. Faculty Profile (manage_profile)
+API Calls: faculty/profile/ (GET/PATCH)
+Backend Function: manage_profile
+Current Implementation: Standard profile management
+Issues/Improvements Needed:
+✅ Good: Single operations, no issues
+
+13. Question Papers (question_paper_list_create + update_question_paper)
+API Calls:
+
+faculty/qps/ (GET/POST)
+faculty/qps/<id>/ (PUT)
+Backend Functions: question_paper_list_create, update_question_paper
+Current Implementation: CRUD operations for question papers
+Issues/Improvements Needed:
+✅ Good: Standard CRUD operations
+14. Assignment Management (manage_assignments + assignment_detail)
+API Calls:
+
+faculty/assignments/manage/ (GET/POST)
+faculty/assignments/<id>/ (GET)
+faculty/assignments/<id>/submissions/ (GET)
+Backend Functions: manage_assignments, assignment_detail, get_assignment_submissions
+Current Implementation: Assignment CRUD with submission management
+Issues/Improvements Needed:
+⚠️ Submissions Loading: get_assignment_submissions may load all submissions without pagination
+⚠️ Add Pagination: Ensure submission lists are paginated
+15. Exam Management (manage_exams + exam_detail)
+API Calls:
+
+faculty/exams/ (GET/POST)
+faculty/exams/<id>/ (GET/PUT)
+faculty/exams/<id>/results/ (GET)
+Backend Functions: manage_exams, exam_detail, get_exam_results
+Current Implementation: Exam CRUD with result management
+Issues/Improvements Needed:
+⚠️ Results Loading: get_exam_results may not have pagination
+⚠️ Add Pagination: Ensure exam results are paginated
+16. AI Campus Assistant (ai_campus_assistant)
+API Calls: faculty/ai-campus-assistant/ (POST)
+Backend Function: ai_campus_assistant
+Current Implementation: AI-powered assistant for faculty queries
+Issues/Improvements Needed:
+✅ Good: Individual operations, no major scalability issues
+
+17. Faculty Attendance (mark_faculty_attendance + get_faculty_attendance_records)
+API Calls:
+
+faculty/mark-attendance/ (POST)
+faculty/my-attendance-records/ (GET)
+Backend Functions: mark_faculty_attendance, get_faculty_attendance_records
+Current Implementation: Faculty attendance tracking
+Issues/Improvements Needed:
+✅ Good: Individual operations
+18. Exam Applications (exam_applications)
+API Calls: faculty/exam-applications/ (GET)
+Backend Function: exam_applications
+Current Implementation: Lists exam applications for faculty's subjects
+Issues/Improvements Needed:
+⚠️ No Pagination: May load all applications without pagination
+⚠️ Add Pagination: Implement pagination for exam applications
+
+Frontend Scalability Analysis
+1. ProctorStudents Component
+Issues/Improvements Needed:
+❌ No Pagination: Loads all proctor students in memory
+❌ No Virtual Scrolling: Table renders all rows at once
+⚠️ Search Performance: Client-side search only
+⚠️ Fix Required: Implement pagination/virtual scrolling for large student lists
+
+2. TakeAttendance Component
+Issues/Improvements Needed:
+❌ No Pagination: Loads all students for a class at once
+⚠️ Memory Usage: Large classes could cause performance issues
+⚠️ Fix Required: Add pagination for class student lists
+
+3. UploadMarks Component
+Issues/Improvements Needed:
+❌ File Processing: Processes entire Excel/CSV files in browser
+❌ Memory Intensive: Large files crash browser
+⚠️ No Chunked Upload: Single large file uploads
+⚠️ Fix Required: Implement chunked file upload, streaming processing
+
+4. Faculty Dashboard
+Issues/Improvements Needed:
+⚠️ Multiple API Calls: Could benefit from single bootstrap endpoint
+⚠️ Data Loading: Loads all proctor data at once
+
+Database Indexing Status
+✅ Good: Multiple performance indexes exist (from migrations 0008-0014), including:
+
+Attendance records indexes
+Internal marks indexes
+Student leave request indexes
+Faculty performance indexes
+Summary of Critical Fixes Needed:
+faculty_dashboard_bootstrap: Add pagination for proctor students
+UploadMarks/UploadIAMarks: Implement streaming file processing, add file size limits
+TakeAttendance: Add async processing for notifications and Google Sheets
+ProctorStudents Component: Implement pagination/virtual scrolling
+TakeAttendance Component: Add pagination for large classes
+UploadMarks Component: Implement chunked file upload
+Announcement Creation: Move bulk notifications to background
+Assignment Submissions: Add pagination to submission lists
+Exam Results: Add pagination to result lists
+Exam Applications: Add pagination
+Additional Recommendations:
+API Response Compression: Enable gzip compression for large responses
+Lazy Loading: Implement lazy loading for heavy components
+Optimistic Updates: Use optimistic updates for better UX
+Background Processing: Move heavy operations to Web Workers
+Caching: Implement client-side caching for static data
+Error Boundaries: Add error boundaries for file processing operations
+Progress Indicators: Add progress bars for bulk operations
+Rate Limiting: Implement rate limiting for file uploads and bulk operations
