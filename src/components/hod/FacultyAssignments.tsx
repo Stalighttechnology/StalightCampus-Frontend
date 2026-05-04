@@ -194,7 +194,10 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     filterSectionId: "",
     filterSections: [] as Section[],
     isFirstLoad: true,
+    assignmentsPage: 1,
+    assignmentsTotalPages: 1,
   });
+  const [localFacultySearch, setLocalFacultySearch] = useState("");
 
   // Helper to update state (stable reference for hooks)
   const updateState = useCallback((newState: Partial<typeof state>) => {
@@ -408,7 +411,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               ...f,
               name: `${f.first_name} ${f.last_name || ""}`.trim(),
             })),
-            facultyTotalPages: res.pagination.total_pages,
+            facultyTotalPages: res.total_pages || Math.ceil((res.count || 0) / 10) || 1,
           });
         }
       } catch (err) {
@@ -420,10 +423,18 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
 
     const timer = setTimeout(() => {
       fetchFacultiesData();
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [state.selectedBranchForFaculty, state.facultySearch, state.facultyPage, updateState]);
+
+  // Sync local search to state.facultySearch with debounce to avoid excessive re-renders
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateState({ facultySearch: localFacultySearch, facultyPage: 1 });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localFacultySearch, updateState]);
 
   // Fetch subjects and sections when semester changes
   useEffect(() => {
@@ -482,11 +493,13 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
           branch_id: state.branchId,
           semester_id: state.filterSemesterId,
           section_id: state.filterSectionId,
+          page: state.assignmentsPage,
         }, "GET");
 
-        if (response.success && response.data?.assignments) {
+        if (response.success && (response.data?.assignments || (response as any).results?.data?.assignments)) {
           updateState({
-            assignments: response.data.assignments,
+            assignments: response.data?.assignments || (response as any).results?.data?.assignments,
+            assignmentsTotalPages: response.total_pages || Math.ceil((response.count || 0) / 10) || 1,
           });
         }
       } catch (err) {
@@ -497,7 +510,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     };
 
     fetchAssignments();
-  }, [state.branchId, state.filterSemesterId, state.filterSectionId, updateState]);
+  }, [state.branchId, state.filterSemesterId, state.filterSectionId, state.assignmentsPage, updateState]);
 
   const resetForm = () => {
     updateState({
@@ -717,8 +730,8 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                           type="text"
                           autoFocus
                           placeholder="Search faculty..."
-                          value={state.facultySearch}
-                          onChange={(e) => updateState({ facultySearch: e.target.value, facultyPage: 1 })}
+                          value={localFacultySearch}
+                          onChange={(e) => setLocalFacultySearch(e.target.value)}
                           onKeyDown={(e) => e.stopPropagation()}
                           onMouseDown={(e) => e.stopPropagation()}
                           onTouchStart={(e) => e.stopPropagation()}
@@ -986,6 +999,31 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       ))}
                     </tbody>
                   </table>
+                  {state.assignmentsTotalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4 px-2 py-3 border-t">
+                      <div className="text-sm text-muted-foreground">
+                        Page {state.assignmentsPage} of {state.assignmentsTotalPages}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateState({ assignmentsPage: state.assignmentsPage - 1 })}
+                          disabled={state.assignmentsPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateState({ assignmentsPage: state.assignmentsPage + 1 })}
+                          disabled={state.assignmentsPage === state.assignmentsTotalPages}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })()}

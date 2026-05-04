@@ -118,15 +118,15 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         setUsers(hodData);
 
         // Set pagination info
-        if (hasResults) {
-          setTotalCount(paginationData.count || 0);
-          setTotalPages(Math.ceil((paginationData.count || 0) / pageSize));
-          setCurrentPage(page);
+        const count = paginationData.count || (dataSource && dataSource.count);
+        if (count !== undefined) {
+          setTotalPages(Math.ceil(count / 10));
+          setTotalCount(count);
         } else {
-          setTotalCount(branchData.length);
           setTotalPages(1);
-          setCurrentPage(1);
+          setTotalCount(branchData.length);
         }
+        setCurrentPage(page);
 
       } else {
         setError(dataSource?.message || "Failed to fetch branches and HODs");

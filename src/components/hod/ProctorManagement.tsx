@@ -66,6 +66,7 @@ const ProctorStudents = () => {
     saving: false,
     cancelling: false,
   });
+  const [localSearch, setLocalSearch] = useState("");
 
   const studentsPerPage = 20;
 
@@ -189,7 +190,7 @@ const ProctorStudents = () => {
         totalCount: data.count,
         totalAssigned: data.total_assigned || 0,
         totalUnassigned: data.total_unassigned || 0,
-        totalPages: Math.ceil(data.count / studentsPerPage),
+        totalPages: data.total_pages || Math.ceil(data.count / studentsPerPage),
       });
     } catch (error) {
       const errorMessage = (error as Error).message || "Network error";

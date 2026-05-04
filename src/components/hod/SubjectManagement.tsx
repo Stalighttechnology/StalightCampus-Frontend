@@ -163,7 +163,7 @@ const SubjectManagement = () => {
         updateState({
           subjects: subjectsRes.data || [],
           totalCount: subjectsRes.count || 0,
-          totalPages: subjectsRes.total_pages || 0,
+          totalPages: subjectsRes.total_pages || Math.ceil((subjectsRes.count || 0) / pageSize) || 1,
           currentPage: subjectsRes.current_page || 1
         });
       } else {

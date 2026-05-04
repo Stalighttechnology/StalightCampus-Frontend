@@ -59,9 +59,11 @@ interface StudyMaterial {
 }
 
 // Hook for managing study materials (loads by branch/semester/section/search)
-const useStudyMaterials = (branchId: string | null, semesterFilter: string, sectionFilter: string, searchQuery: string, sectionsLoaded: boolean) => {
+const useStudyMaterials = (branchId: string | null, semesterFilter: string, sectionFilter: string, searchQuery: string, sectionsLoaded: boolean, page: number) => {
   const [studyMaterials, setStudyMaterials] = useState<StudyMaterial[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -73,7 +75,7 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
       try {
         const sem = semesterFilter === 'All Semesters' ? undefined : semesterFilter;
         const sec = sectionFilter === 'All Sections' ? undefined : sectionFilter;
-        const resp = await getStudyMaterials(branchId || undefined, sem, sec, searchQuery);
+        const resp = await getStudyMaterials(branchId || undefined, sem, sec, searchQuery, page);
         if (resp && resp.success && Array.isArray(resp.data)) {
           const mapped = resp.data.map((m: any) => ({
             id: m.id,
@@ -91,12 +93,18 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
             file_url: m.drive_web_view_link || m.file_url,
           }));
           setStudyMaterials(mapped);
+          setTotalPages(resp.total_pages || Math.ceil((resp.count || 0) / 20) || 1);
+          setTotalCount(resp.count || 0);
         } else {
           setStudyMaterials([]);
+          setTotalPages(1);
+          setTotalCount(0);
         }
       } catch (error) {
         console.error("Error fetching study materials:", error);
         setStudyMaterials([]);
+        setTotalPages(1);
+        setTotalCount(0);
       } finally {
         setLoading(false);
       }
@@ -106,13 +114,13 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
       fetchMaterials();
     }, 300);
     return () => clearTimeout(timer);
-  }, [branchId, semesterFilter, sectionFilter, searchQuery, sectionsLoaded]);
+  }, [branchId, semesterFilter, sectionFilter, searchQuery, sectionsLoaded, page]);
 
   const addStudyMaterial = (material: StudyMaterial) => {
-    setStudyMaterials((s) => [...s, material]);
+    setStudyMaterials((s) => [material, ...s]);
   };
 
-  return { studyMaterials, addStudyMaterial, loading };
+  return { studyMaterials, addStudyMaterial, loading, totalPages, totalCount };
 };
 
 // Hook for managing upload modal
@@ -242,11 +250,22 @@ const StudyMaterials = () => {
 
   // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
   const [searchQuery, setSearchQuery] = useState("");
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("All Semesters");
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Debounce sync local search to searchQuery
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(localSearchQuery);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localSearchQuery]);
 
   // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
   const branchIdForHook = selectedBranchFilter === "All Branches" ? null : selectedBranchFilter;
-  const { studyMaterials, addStudyMaterial, loading } = useStudyMaterials(branchIdForHook, semesterFilter, selectedSectionFilter, searchQuery, pageSectionsLoaded);
+  const { studyMaterials, addStudyMaterial, loading, totalPages, totalCount } = useStudyMaterials(branchIdForHook, semesterFilter, selectedSectionFilter, searchQuery, pageSectionsLoaded, currentPage);
   const {
     showUploadModal,
     setShowUploadModal,
@@ -314,6 +333,7 @@ const StudyMaterials = () => {
       }
       setSemesterFilter("All Semesters");
       setSelectedSectionFilter("All Sections");
+      setCurrentPage(1);
     };
     loadPageSemesters();
   }, [selectedBranchFilter]);
@@ -341,6 +361,7 @@ const StudyMaterials = () => {
         setSections([]);
       }
       setSelectedSectionFilter("All Sections");
+      setCurrentPage(1);
       setPageSectionsLoaded(true);
     };
     loadSections();
@@ -497,12 +518,11 @@ const StudyMaterials = () => {
           {/* Filters Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="sm:col-span-2 lg:col-span-1">
-              <input
-                type="text"
+              <Input
                 placeholder="Search by title, course name, course code, semester, or uploaded by..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full px-3 py-2 rounded outline-none focus:ring-2 border ${theme === 'dark' ? 'bg-background text-foreground border-border focus:ring-primary' : 'bg-white text-gray-900 border-gray-300 focus:ring-blue-500'}`}
+                className={`w-full ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
               />
             </div>
             <div>
@@ -606,6 +626,35 @@ const StudyMaterials = () => {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mt-6">
+              <Button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || loading}
+                variant="outline"
+                size="sm"
+                className={`w-full sm:w-auto ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}`}
+              >
+                Previous
+              </Button>
+
+              <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                Page {currentPage} of {totalPages} ({totalCount} total materials)
+              </span>
+
+              <Button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || loading}
+                variant="outline"
+                size="sm"
+                className={`w-full sm:w-auto ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}`}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -759,65 +808,56 @@ const StudyMaterials = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setFile(null)}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
                     >
-                      <X size={16} className="mr-1" /> Remove
+                      <X size={14} className="mr-1" /> Remove
                     </Button>
                   </div>
                 ) : (
-                  <>
-                    <p className="text-sm font-medium mb-1">Drag & drop your file here</p>
-                    <p className={`text-xs mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      PDF, JPG, PNG or JPEG (Max 50MB)
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Click or drag to upload</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      PDF, DOCX, etc. (Max 50MB)
                     </p>
-                    <input
+                    <Input
                       type="file"
-                      id="study-material-file"
                       className="hidden"
+                      id="file-upload"
                       onChange={handleFileChange}
-                      accept=".pdf,.png,.jpg,.jpeg"
+                      disabled={uploading}
                     />
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => document.getElementById('study-material-file')?.click()}
-                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:text-white"
+                      className="mt-2"
+                      onClick={() => document.getElementById('file-upload')?.click()}
                     >
-                      Select File
+                      Browse Files
                     </Button>
-                  </>
+                  </div>
                 )}
-              </div>
-
-              <div className="pt-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Instructions</p>
-                <ul className={`text-[11px] list-disc pl-4 space-y-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  <li>Select the correct Branch and Semester to see available courses.</li>
-                  <li>Title should be descriptive (e.g., "Unit 1 - Calculus Notes").</li>
-                  <li>Ensure the file is clear and readable.</li>
-                  <li>Maximum file size allowed is 50MB.</li>
-                </ul>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => setShowUploadModal(false)}
+              onClick={() => {
+                resetForm();
+                setShowUploadModal(false);
+              }}
               disabled={uploading}
-              className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpload}
-              disabled={uploading || !file || !title || !branchId || !semesterId || !subjectId}
-              className="bg-primary text-white hover:bg-primary/90 min-w-[120px]"
+              disabled={uploading || !file || !title || !branchId || !semesterId || (!subjectId && !subjectName)}
             >
               {uploading ? (
                 <>
-                  <span className="animate-spin mr-2">◌</span>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Uploading...
                 </>
               ) : (

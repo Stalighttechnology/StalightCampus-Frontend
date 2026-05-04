@@ -62,9 +62,10 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
         if (Array.isArray(batchesArray)) {
           setBatches(batchesArray);
           
-          if (hasResults) {
-            setTotalCount(paginationData.count || 0);
-            setTotalPages(Math.ceil((paginationData.count || 0) / pageSize));
+          const count = paginationData.count || (dataSource && dataSource.count);
+          if (count !== undefined) {
+            setTotalCount(count);
+            setTotalPages(Math.ceil(count / pageSize));
             setCurrentPage(page);
           } else {
             // Not a paginated response, fallback
