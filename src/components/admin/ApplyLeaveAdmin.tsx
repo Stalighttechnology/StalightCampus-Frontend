@@ -46,24 +46,46 @@ const ApplyLeaveAdmin = () => {
   const [selectedLeave, setSelectedLeave] = useState<AdminLeave | null>(null);
   const [showReasonDialog, setShowReasonDialog] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 50; // Matching backend
+
   // Fetch leaves data
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await adminLeaveApplications();
-        if (response.success && response.data) {
-          setLeaves(response.data);
+  const fetchLeaves = async (page: number = 1) => {
+    setLoading(true);
+    try {
+      const response = await adminLeaveApplications({ page, page_size: pageSize });
+      
+      const hasResults = response && typeof response === 'object' && 'results' in response;
+      const paginationData = response as any;
+      const dataSource = hasResults ? paginationData.results : paginationData;
+
+      if (dataSource && dataSource.success && dataSource.data) {
+        setLeaves(dataSource.data);
+        
+        if (hasResults) {
+          setTotalCount(paginationData.count || 0);
+          setTotalPages(Math.ceil((paginationData.count || 0) / pageSize));
+          setCurrentPage(page);
         } else {
-          setError(response.message || "Failed to fetch leaves");
+          setTotalCount(dataSource.data.length);
+          setTotalPages(1);
+          setCurrentPage(1);
         }
-      } catch (err) {
-        setError("Failed to fetch leaves");
-      } finally {
-        setLoading(false);
+      } else {
+        setError(dataSource?.message || "Failed to fetch leaves");
       }
-    };
-    fetchData();
+    } catch (err) {
+      setError("Failed to fetch leaves");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaves(1);
   }, []);
 
   const handleSubmit = async () => {
@@ -99,9 +121,8 @@ const ApplyLeaveAdmin = () => {
         end_date: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(dateRange.from, "yyyy-MM-dd"),
         reason: reason.trim(),
       };
-      const response = await adminLeaveApplications(request, "POST");
       if (response.success && response.data) {
-        setLeaves([response.data, ...leaves]);
+        fetchLeaves(1);
 
         // Show success alert
         const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
@@ -306,6 +327,55 @@ const ApplyLeaveAdmin = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-2 py-4 border-t border-border mt-4">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <Button
+                    onClick={() => fetchLeaves(currentPage - 1)}
+                    disabled={currentPage === 1 || loading}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    onClick={() => fetchLeaves(currentPage + 1)}
+                    disabled={currentPage === totalPages || loading}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Next
+                  </Button>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => fetchLeaves(currentPage - 1)}
+                      disabled={currentPage === 1 || loading}
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      onClick={() => fetchLeaves(currentPage + 1)}
+                      disabled={currentPage === totalPages || loading}
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

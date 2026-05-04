@@ -38,40 +38,62 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
   const [validationError, setValidationError] = useState("");
   const { theme } = useTheme();
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await manageNotifications();
-        console.log("Fetch Notifications Response:", response); // Debug log
-        if (response.results && response.results.success) {
-          setNotifications(
-            response.results.notifications.map((note: any) => ({
-              ...note,
-              color: getBadgeColor(note.notification_type, theme),
-            }))
-          );
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 10;
+
+  const fetchNotifications = async (page: number = 1) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await manageNotifications({ page, page_size: pageSize });
+      console.log("Fetch Notifications Response:", response); // Debug log
+
+      const hasResults = response && typeof response === 'object' && 'results' in response;
+      const paginationData = response as any;
+      const dataSource = hasResults ? paginationData.results : paginationData;
+
+      if (dataSource && dataSource.success) {
+        setNotifications(
+          (dataSource.notifications || []).map((note: any) => ({
+            ...note,
+            color: getBadgeColor(note.notification_type, theme),
+          }))
+        );
+
+        if (hasResults) {
+          setTotalCount(paginationData.count || 0);
+          setTotalPages(Math.ceil((paginationData.count || 0) / pageSize));
+          setCurrentPage(page);
         } else {
-          setError(response.message || "Failed to fetch notifications");
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: response.message || "Failed to fetch notifications",
-          });
+          setTotalCount(dataSource.notifications?.length || 0);
+          setTotalPages(1);
+          setCurrentPage(1);
         }
-      } catch (err) {
-        setError("Network error");
+      } else {
+        setError(dataSource?.message || "Failed to fetch notifications");
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Network error",
+          description: dataSource?.message || "Failed to fetch notifications",
         });
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchNotifications();
+    } catch (err) {
+      setError("Network error");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications(1);
   }, [setError, toast]);
 
   const handleSendNotification = async () => {
@@ -110,15 +132,7 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
 
       if (response.success) {
         // Refetch notifications to get the new notification with its ID
-        const updatedResponse = await manageNotifications();
-        if (updatedResponse.results && updatedResponse.results.success) {
-          setNotifications(
-            updatedResponse.results.notifications.map((note: any) => ({
-              ...note,
-              color: getBadgeColor(note.notification_type, theme),
-            }))
-          );
-        }
+        fetchNotifications(1);
         setTitle("");
         setMessage("");
         setTargetRole("");
@@ -205,6 +219,74 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
           )}
         </CardContent>
 
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <Button
+                onClick={() => fetchNotifications(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+                variant="outline"
+                size="sm"
+              >
+                Previous
+              </Button>
+              <Button
+                onClick={() => fetchNotifications(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+                variant="outline"
+                size="sm"
+              >
+                Next
+              </Button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{" "}
+                  <span className="font-medium">
+                    {Math.min(currentPage * pageSize, totalCount)}
+                  </span>{" "}
+                  of <span className="font-medium">{totalCount}</span> results
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => fetchNotifications(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <Button
+                      key={p}
+                      onClick={() => fetchNotifications(p)}
+                      variant={currentPage === p ? "default" : "outline"}
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${currentPage === p ? 'bg-primary text-white shadow-sm' : ''}`}
+                      disabled={loading}
+                    >
+                      {p}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  onClick={() => fetchNotifications(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Create Notification */}
