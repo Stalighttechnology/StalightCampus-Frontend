@@ -15,6 +15,7 @@ import withReactContent from 'sweetalert2-react-content';
 import { Circle, CalendarCheck2, CalendarX2, Filter } from 'lucide-react';
 import { API_ENDPOINT } from '@/utils/config';
 import { fetchWithTokenRefresh } from '@/utils/authService';
+import { SkeletonList } from '../ui/skeleton';
 
 const MySwal = withReactContent(Swal);
 
@@ -406,7 +407,9 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6">
             {loading ? (
-              <div className={`text-center text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Loading...</div>
+              <div className="space-y-4">
+                <SkeletonList items={5} />
+              </div>
             ) : filteredLeaveList.length === 0 ? (
               <div className={`text-center text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 {filterStatus === 'All' ? 'No leave requests found.' : `No ${filterStatus.toLowerCase()} leave requests found.`}

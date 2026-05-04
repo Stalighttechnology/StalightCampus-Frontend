@@ -9,6 +9,7 @@ import { Calendar, Eye, EyeOff } from "lucide-react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "@/context/ThemeContext";
+import { SkeletonCard } from '../ui/skeleton';
 import Swal from "sweetalert2";
 
 interface COEProfile {
@@ -184,7 +185,11 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   if (loading) {
-    return <div className={`p-4 sm:p-6 text-center text-sm sm:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Loading profile...</div>;
+    return (
+      <div className="p-4 sm:p-6 space-y-6">
+        <SkeletonCard className="w-full h-[400px]" />
+      </div>
+    );
   }
 
   if (!profile) {

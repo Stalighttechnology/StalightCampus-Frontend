@@ -12,6 +12,7 @@ import { CheckCircle, Clock, Download, Eye, XCircle, Search } from 'lucide-react
 import { getRevaluationRequests, getExamRequestFilters, updateRevaluationRequestStatus, getSemesters, RevaluationRequest, ExamRequestFilters } from '@/utils/coe_api';
 import { fetchWithTokenRefresh } from '@/utils/authService';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { SkeletonTable } from '@/components/ui/skeleton';
 import { useTheme } from '@/context/ThemeContext';
 import { toast } from 'sonner';
 
@@ -337,7 +338,9 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">Loading...</TableCell>
+                      <TableCell colSpan={7} className="p-0 border-none">
+                        <SkeletonTable rows={pageSize} cols={7} />
+                      </TableCell>
                     </TableRow>
                   ) : requests.length === 0 ? (
                     <TableRow>

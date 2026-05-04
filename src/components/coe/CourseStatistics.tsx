@@ -8,6 +8,7 @@ import { BookOpen, Users, Download } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getCourseApplicationStats, getFilterOptions, getSemesters, FilterOptions } from "../../utils/coe_api";
+import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
 import "./CourseStatistics.css";
 
 const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -336,9 +337,13 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       )}
 
       {loading && (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading course statistics...</p>
+        <div className="space-y-6">
+          <SkeletonStatsGrid items={2} columns={2} />
+          <Card>
+            <CardContent className="p-6">
+              <SkeletonTable rows={10} cols={6} />
+            </CardContent>
+          </Card>
         </div>
       )}
 

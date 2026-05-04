@@ -323,7 +323,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
           )}
 
           <div className="space-y-4">
-            {exams.length === 0 ? (
+            {loading ? (
+              <div className="p-6">
+                <SkeletonTable rows={10} cols={6} />
+              </div>
+            ) : exams.length === 0 ? (
                <div className="px-6 py-12">
                  <Card className="border-dashed border-2 shadow-none bg-transparent">
                     <CardContent className="flex flex-col items-center justify-center py-20 text-center">

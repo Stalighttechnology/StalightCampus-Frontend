@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Users, CheckCircle, XCircle, Search, Download } from "lucide-react";
 import { getStudentApplicationStatus, getFilterOptions, getSemesters, FilterOptions } from "../../utils/coe_api";
+import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { useToast } from "@/hooks/use-toast";
@@ -381,9 +382,13 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       )}
 
       {loading && (
-        <div className="text-center py-6 sm:py-8 px-4">
-          <div className="animate-spin rounded-full h-6 sm:h-8 w-6 sm:w-8 border-b-2 border-gray-900 mx-auto loading-spinner"></div>
-          <p className="mt-2 text-xs sm:text-sm text-muted-foreground loading-text">Loading student status...</p>
+        <div className="space-y-6">
+          <SkeletonStatsGrid items={4} />
+          <Card>
+            <CardContent className="p-6">
+              <SkeletonTable rows={10} cols={5} />
+            </CardContent>
+          </Card>
         </div>
       )}
 
