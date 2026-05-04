@@ -166,7 +166,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   return (
     <motion.div
-      className={`flex h-screen overflow-hidden ${
+      className={`flex h-screen h-[100dvh] overflow-hidden ${
         theme === "dark"
           ? "dark bg-background text-foreground"
           : "bg-gray-50 text-gray-900"
@@ -187,7 +187,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content Area */}
       <div
-        className={`flex-1 min-w-0 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
+        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 ${
           sidebarCollapsed ? 'ml-0' : 'ml-64'
         }`}
       >
@@ -208,7 +208,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Page Content */}
         <motion.main
-          className={`flex-1 min-w-0 p-4 mb-2 overflow-y-auto overflow-x-hidden thin-scrollbar ${
+          className={`flex-1 min-w-0 p-4 pb-28 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${
             theme === "dark" ? "bg-background" : "bg-gray-50"
           }`}
           initial={isNoAnimation ? false : { opacity: 0, y: 20 }}

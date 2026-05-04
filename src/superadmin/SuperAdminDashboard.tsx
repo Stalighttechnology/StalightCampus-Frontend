@@ -42,7 +42,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
   };
 
   return (
-    <div className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`flex h-screen h-[100dvh] overflow-hidden ${theme === 'dark' ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
       <Sidebar
         activePage={activePage}
         setActivePage={handlePageChange}
@@ -51,7 +51,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
         toggleCollapse={() => setCollapsed(!collapsed)}
       />
 
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+      <main className="flex-1 flex flex-col h-screen h-[100dvh] overflow-hidden relative">
         {/* Top Navbar */}
         <header className={`h-16 flex-shrink-0 border-b flex items-center justify-between px-6 sticky top-0 z-20 ${theme === 'dark' ? 'bg-zinc-950/80 backdrop-blur-md border-zinc-800' : 'bg-white/80 backdrop-blur-md border-gray-200'}`}>
           <div className="flex items-center gap-4">
@@ -72,7 +72,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <div className="flex-1 overflow-y-auto p-6 lg:p-8 pb-28 md:pb-8">
           <div className="container mx-auto max-w-7xl">
             <motion.div
               key={activePage}
