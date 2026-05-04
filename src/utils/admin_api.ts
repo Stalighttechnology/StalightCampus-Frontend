@@ -772,7 +772,16 @@ export const adminLeaveApplications = async (
   method: "GET" | "POST" = "GET"
 ): Promise<AdminLeaveApplicationsResponse> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/leave-applications/`, {
+    let url = `${API_ENDPOINT}/admin/leave-applications/`;
+    if (method === "GET" && data) {
+      const params = new URLSearchParams();
+      const anyData = data as any;
+      if (anyData.page) params.append('page', anyData.page.toString());
+      if (anyData.page_size) params.append('page_size', anyData.page_size.toString());
+      if (params.toString()) url += `?${params.toString()}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
