@@ -9,6 +9,7 @@ import { Calendar, Eye, EyeOff } from "lucide-react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "@/context/ThemeContext";
+import { SkeletonCard } from '../ui/skeleton';
 import Swal from "sweetalert2";
 
 interface COEProfile {
@@ -184,7 +185,11 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   if (loading) {
-    return <div className={`p-4 sm:p-6 text-center text-sm sm:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Loading profile...</div>;
+    return (
+      <div className="p-4 sm:p-6 space-y-6">
+        <SkeletonCard className="w-full h-[400px]" />
+      </div>
+    );
   }
 
   if (!profile) {
@@ -196,10 +201,10 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   }
 
   return (
-    <Card ref={ref} className={`w-full max-w-none mx-auto my-2 sm:my-4 px-2 sm:px-4 md:px-6 py-2 sm:py-4 md:py-6 ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-      <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+    <Card ref={ref} className={`w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+      <CardHeader className=" flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
         <div className="flex-1 min-w-0">
-          <CardTitle className="text-lg sm:text-xl md:text-2xl font-bold line-clamp-2">COE Profile</CardTitle>
+          <CardTitle >COE Profile</CardTitle>
           <p className={`text-xs sm:text-sm mt-1 line-clamp-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage your profile and account details</p>
         </div>
 
@@ -320,7 +325,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className={`text-xs sm:text-sm mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Controller of Examinations</div>
 
             <div className="w-full mt-4 sm:mt-6 flex-1 flex flex-col">
-              <h4 className={`text-xs sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+              <h4 className={`text-xs sm:text-sm font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
               <div className={`border rounded-lg p-2.5 sm:p-4 flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5 h-full">
                   <div className="flex flex-col justify-start">

@@ -17,6 +17,7 @@ import withReactContent from 'sweetalert2-react-content';
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { SkeletonList, SkeletonCard } from '../ui/skeleton';
 
 interface QPPending {
   id: number;
@@ -367,7 +368,18 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   }
 
   if (loading) {
-    return <div className="text-center py-6">Loading pending QPs...</div>;
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <SkeletonCard className="h-8 w-64" />
+          </CardHeader>
+          <CardContent>
+            <SkeletonList items={5} />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -378,7 +390,17 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         </CardHeader>
         <CardContent>
           {pendingQPs.length === 0 ? (
-            <p className="text-center text-muted-foreground">No pending QPs for final approval.</p>
+             <Card className="border-dashed border-2 shadow-none bg-transparent">
+                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="bg-primary/5 p-6 rounded-full mb-4">
+                    <CheckCircle className="w-12 h-12 text-primary/40" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">No pending approvals</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    All question papers have been processed. New submissions will appear here for your final review and approval.
+                  </p>
+                </CardContent>
+             </Card>
           ) : (
             <div className="space-y-4">
               {pendingQPs.map((qp) => (
@@ -466,7 +488,17 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         </CardHeader>
         <CardContent>
           {finalizedQPs.length === 0 ? (
-            <p className="text-center text-muted-foreground">No finalized QPs yet.</p>
+             <Card className="border-dashed border-2 shadow-none bg-transparent">
+                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="bg-primary/5 p-6 rounded-full mb-4">
+                    <Eye className="w-12 h-12 text-primary/40" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">No finalized papers</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    Approved and finalized question papers will be archived here for your reference.
+                  </p>
+                </CardContent>
+             </Card>
           ) : (
             <div className="space-y-4">
               {finalizedQPs.map((qp) => (
@@ -566,7 +598,10 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
 
           <div className="overflow-auto px-4 py-2 space-y-4 flex-1">
             {detailLoading ? (
-              <div className="text-center py-4">Loading QP details...</div>
+              <div className="space-y-4">
+                <SkeletonCard className="h-40 w-full" />
+                <SkeletonList items={3} />
+              </div>
             ) : qpDetail ? (
               <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
                 <h4 className="font-semibold mb-4">Question Paper Preview</h4>

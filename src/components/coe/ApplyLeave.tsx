@@ -15,6 +15,8 @@ import withReactContent from 'sweetalert2-react-content';
 import { Circle, CalendarCheck2, CalendarX2, Filter } from 'lucide-react';
 import { API_ENDPOINT } from '@/utils/config';
 import { fetchWithTokenRefresh } from '@/utils/authService';
+import { SkeletonList } from '../ui/skeleton';
+import { toast } from 'sonner';
 
 const MySwal = withReactContent(Swal);
 
@@ -48,7 +50,6 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [viewReason, setViewReason] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
   const today = new Date();
 
@@ -91,7 +92,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
       }
     } catch (error) {
       console.error('Failed to fetch leave requests:', error);
-      setError('Failed to load leave requests');
+      toast.error('Failed to load leave requests');
     } finally {
       setLoading(false);
     }
@@ -109,11 +110,9 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!title.trim() || !dateRange?.from || !dateRange?.to || !reason.trim()) {
-      setError("Please provide a valid title, date range and reason.");
+      toast.error("Please provide a valid title, date range and reason.");
       return;
     }
-
-    setError(null);
 
     const startDateStr = format(dateRange.from, "yyyy-MM-dd");
     const endDateStr = format(dateRange.to, "yyyy-MM-dd");
@@ -125,7 +124,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
     });
 
     if (hasOverlap) {
-      setError("You already have a leave request that overlaps with these dates.");
+      toast.error("You already have a leave request that overlaps with these dates.");
       return;
     }
 
@@ -186,14 +185,14 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
       }
     } catch (error) {
       console.error("Failed to submit leave request:", error);
-      setError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again.";
 
       // Show error alert with theme-aware styling
       const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 
       await MySwal.fire({
         title: 'Error!',
-        text: error instanceof Error ? error.message : 'Something went wrong. Please try again.',
+        text: errorMessage,
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
@@ -251,24 +250,15 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div ref={ref} className={`p-2 sm:p-4 lg:p-6 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <h2 className={`text-lg sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4 lg:mb-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Apply Leave</h2>
-
+    <div ref={ref} className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Main Container with Responsive Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Leave Application Form - Left Side */}
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex items-start justify-start p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2">
-            <CardTitle className={`text-sm sm:text-base lg:text-lg font-semibold text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
+            <CardTitle>Leave Application Form</CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
-            {/* Error Message */}
-            {error && (
-              <div className={`p-1.5 sm:p-2 lg:p-3 rounded-lg text-xs sm:text-sm ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                {error}
-              </div>
-            )}
-
             {/* Title */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
               <Label htmlFor="title" className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
@@ -353,16 +343,12 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
 
         {/* Leave Requests List - Right Side */}
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
+          <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
             {/* Title */}
-            <CardTitle
-              className={`text-sm sm:text-base lg:text-lg font-semibold flex-1 min-w-0 truncate ${
-                theme === 'dark' ? 'text-foreground' : 'text-gray-900'
-              }`}
-            >
+            <CardTitle>
               Leave Requests
             </CardTitle>
-
+            
             {/* Filter Button */}
             <div className="flex-shrink-0">
               <Popover open={filterOpen} onOpenChange={setFilterOpen}>
@@ -370,7 +356,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-7 sm:h-8 lg:h-9 px-1.5 sm:px-2 lg:px-3 whitespace-nowrap"
+                    className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-8 sm:h-9 lg:h-10 px-2 sm:px-3 lg:px-4 whitespace-nowrap"
                   >
                     <Filter className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
                     <span className="hidden sm:inline">Filter</span>
@@ -412,14 +398,16 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6">
             {loading ? (
-              <div className={`text-center text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Loading...</div>
+              <div className="space-y-4">
+                <SkeletonList items={5} />
+              </div>
             ) : filteredLeaveList.length === 0 ? (
               <div className={`text-center text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 {filterStatus === 'All' ? 'No leave requests found.' : `No ${filterStatus.toLowerCase()} leave requests found.`}
               </div>
             ) : (
               <div
-                className="max-h-[350px] sm:max-h-[450px] lg:max-h-[520px] overflow-y-auto thin-scrollbar space-y-1 sm:space-y-2 lg:space-y-3 border-r border-gray-200 dark:border-border pr-2"
+                className="max-h-[350px] sm:max-h-[450px] lg:max-h-[520px] overflow-y-auto thin-scrollbar space-y-1 sm:space-y-2 lg:space-y-3 border-r border-gray-200 dark:border-border"
                 style={{ scrollbarWidth: 'thin' }}
               >
                 {filteredLeaveList.map((leave) => {

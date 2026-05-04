@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { AlertTriangle, Copy, ExternalLink } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult } from '../../utils/coe_api';
+import { AlertTriangle, Copy, ExternalLink, Search } from 'lucide-react';
+import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult } from "../../utils/coe_api";
+import { toast } from "sonner";
+import { SkeletonForm, SkeletonTable } from '@/components/ui/skeleton';
 
 const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { theme } = useTheme();
@@ -25,17 +26,20 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [pendingNav, setPendingNav] = useState<{ page: number; pageSize?: number } | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
-  const { toast } = useToast();
   // marks for current page (kept for compatibility)
   const [marks, setMarks] = useState<Record<string, Record<string, { cie?: number | string | null; see?: number | string | null }>>>({});
   // persisted marks across pages keyed by student_id -> { usn, subs: { subjectId: {cie,see} }}
   const [allMarks, setAllMarks] = useState<Record<string, { usn: string; subs: Record<string, { cie?: number | string | null; see?: number | string | null }> }>>({});
   const [saving, setSaving] = useState(false);
+  const [filtersLoading, setFiltersLoading] = useState(true);
+  const [studentsLoading, setStudentsLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
+      setFiltersLoading(true);
       const opts = await getFilterOptions();
       setFilters(opts);
+      setFiltersLoading(false);
     })();
   }, []);
 
@@ -55,7 +59,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleCreate = async () => {
     if (!selected.batch || !selected.branch || !selected.semester || !selected.exam_period) {
-      toast({ variant: 'destructive', title: 'Missing filters', description: 'Select all filters before creating upload' });
+      toast.error('Select all filters before creating upload');
       return;
     }
     const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
@@ -64,7 +68,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       // fetch students (includes existing marks if present)
       await fetchStudentsPage(res.upload_batch.id, studentsPage, studentsPageSize);
     } else {
-      toast({ variant: 'destructive', title: 'Error', description: res.message || 'Failed to create upload' });
+      toast.error(res.message || 'Failed to create upload');
     }
   };
 
@@ -89,7 +93,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   // Helper to fetch a specific students page and merge marks
   const fetchStudentsPage = async (uploadId: number, page?: number, pageSize?: number, overwriteExisting: boolean = false) => {
+    setStudentsLoading(true);
     const stu = await getStudentsForUpload(uploadId, page, pageSize);
+    setStudentsLoading(false);
     if (stu.success) {
       const studentList = stu.data?.students || [];
       setStudents(studentList);
@@ -164,7 +170,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleSave = async () => {
     if (!upload) {
-      toast({ variant: 'destructive', title: 'No upload', description: 'Create upload batch first' });
+      toast.error('Create upload batch first');
       return false;
     }
     // Build payload from all persisted marks across pages so multi-page edits are preserved
@@ -184,8 +190,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     const res = await saveMarksForUpload(upload.id, payload);
     setSaving(false);
     if (res.success) {
-      toast({ title: 'Saved', description: `Saved ${res.saved_count} records` });
-      // clear dirty flags after a successful save
+      toast.success(`Saved ${res.saved_count} records`);
       setDirtyPages({});
       // Merge the saved payload into local cache so UI reflects confirmed values
       setAllMarks(prev => {
@@ -221,7 +226,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       return true;
     } else {
-      toast({ variant: 'destructive', title: 'Save failed', description: res.message || 'Failed saving' });
+      toast.error(res.message || 'Failed saving');
       return false;
     }
   };
@@ -264,24 +269,24 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handlePublish = async () => {
     if (!upload) {
-      toast({ variant: 'destructive', title: 'No upload', description: 'Create upload batch first' });
+      toast.error('Create upload batch first');
       return;
     }
     const res = await publishUploadBatch(upload.id);
     if (res.success) {
-      toast({ title: 'Published', description: 'Published successfully' });
+      toast.success('Published successfully');
       // refresh upload info
       setUpload({ ...upload, is_published: true });
       // refresh students in case published_result_id/is_withheld changed after publish
       await fetchStudentsPage(upload.id, studentsPage, studentsPageSize);
     } else {
-      toast({ variant: 'destructive', title: 'Publish failed', description: res.message || 'Publish failed' });
+      toast.error(res.message || 'Publish failed');
     }
   };
 
   const handleToggleWithhold = async (studentId: number, studentName: string, publishedResultId: number | null, currentWithheld: boolean) => {
     if (!publishedResultId) {
-      toast({ variant: 'destructive', title: 'Cannot withhold', description: 'No published result found for this student' });
+      toast.error('No published result found for this student');
       return;
     }
     
@@ -289,90 +294,90 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       const res = await toggleWithholdResult(publishedResultId);
       if (res.success) {
         const actionText = res.withheld ? 'withheld' : 'released';
-        toast({ title: 'Success', description: `Result ${actionText} for ${studentName}` });
+        toast.success(`Result ${actionText} for ${studentName}`);
         // Refresh students list to update withheld status
         if (upload) {
           await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true);
         }
       } else {
-        toast({ variant: 'destructive', title: 'Failed to toggle withhold', description: res.message || 'Toggle failed' });
+        toast.error(res.message || 'Toggle failed');
       }
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e?.message || 'Failed to toggle withhold status' });
+      toast.error(e?.message || 'Failed to toggle withhold status');
     }
   };
 
   return (
-    <div ref={ref} className={`p-3 sm:p-4 lg:p-6 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-        Publish Exam Results
-      </h2>
-
+    <div ref={ref} className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg sm:text-xl">Filter And Create Upload Batch</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle >Filter And Create Upload Batch</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4">
-        <div>
-          <label htmlFor="publish-results-batch" className="block text-sm mb-1">Batch</label>
-          <Select value={selected.batch} onValueChange={(v) => setSelected(s => ({ ...s, batch: v }))}>
-            <SelectTrigger id="publish-results-batch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-              <SelectValue placeholder="Select batch" />
-            </SelectTrigger>
-            <SelectContent>
-              {filters.batches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label htmlFor="publish-results-branch" className="block text-sm mb-1">Branch</label>
-          <Select value={selected.branch} onValueChange={(v) => {
-            setSelected(s => ({ ...s, branch: v, semester: '' }));
-            fetchSemesters(v);
-          }}>
-            <SelectTrigger id="publish-results-branch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-              <SelectValue placeholder="Select branch" />
-            </SelectTrigger>
-            <SelectContent>
-              {filters.branches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label htmlFor="publish-results-semester" className="block text-sm mb-1">Semester</label>
-          <Select value={selected.semester} onValueChange={(v) => setSelected(s => ({ ...s, semester: v }))}>
-            <SelectTrigger id="publish-results-semester" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-              <SelectValue placeholder="Select semester" />
-            </SelectTrigger>
-            <SelectContent>
-              {semesters.map((s: any) => (
-                <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label htmlFor="publish-results-exam-period" className="block text-sm mb-1">Exam Period</label>
-          <Select value={selected.exam_period} onValueChange={(v) => setSelected(s => ({ ...s, exam_period: v }))}>
-            <SelectTrigger id="publish-results-exam-period" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
-              <SelectValue placeholder="Exam period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="june_july">June/July</SelectItem>
-              <SelectItem value="nov_dec">Nov/Dec</SelectItem>
-              <SelectItem value="jan_feb">Jan/Feb</SelectItem>
-              <SelectItem value="apr_may">Apr/May</SelectItem>
-              <SelectItem value="supplementary">Supplementary</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-end">
-          <Button className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={handleCreate}>
-            Create Upload Batch
-          </Button>
-        </div>
-      </div>
+          {filtersLoading ? (
+            <SkeletonForm fields={4} />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4">
+              <div>
+                <label htmlFor="publish-results-batch" className="block text-sm mb-1">Batch</label>
+                <Select value={selected.batch} onValueChange={(v) => setSelected(s => ({ ...s, batch: v }))}>
+                  <SelectTrigger id="publish-results-batch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
+                    <SelectValue placeholder="Select batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filters.batches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label htmlFor="publish-results-branch" className="block text-sm mb-1">Branch</label>
+                <Select value={selected.branch} onValueChange={(v) => {
+                  setSelected(s => ({ ...s, branch: v, semester: '' }));
+                  fetchSemesters(v);
+                }}>
+                  <SelectTrigger id="publish-results-branch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filters.branches.map((b: any) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label htmlFor="publish-results-semester" className="block text-sm mb-1">Semester</label>
+                <Select value={selected.semester} onValueChange={(v) => setSelected(s => ({ ...s, semester: v }))}>
+                  <SelectTrigger id="publish-results-semester" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
+                    <SelectValue placeholder="Select semester" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {semesters.map((s: any) => (
+                      <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label htmlFor="publish-results-exam-period" className="block text-sm mb-1">Exam Period</label>
+                <Select value={selected.exam_period} onValueChange={(v) => setSelected(s => ({ ...s, exam_period: v }))}>
+                  <SelectTrigger id="publish-results-exam-period" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
+                    <SelectValue placeholder="Exam period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="june_july">June/July</SelectItem>
+                    <SelectItem value="nov_dec">Nov/Dec</SelectItem>
+                    <SelectItem value="jan_feb">Jan/Feb</SelectItem>
+                    <SelectItem value="apr_may">Apr/May</SelectItem>
+                    <SelectItem value="supplementary">Supplementary</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={handleCreate}>
+                  Create Upload Batch
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -390,7 +395,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               onClick={() => {
                 const url = `${window.location.origin}/results/view/${upload.token}`;
                 navigator.clipboard.writeText(url);
-                toast({ title: 'Copied', description: 'Result link copied to clipboard' });
+                toast.success('Result link copied to clipboard');
               }}
             >
               <Copy className="h-3 w-3 mr-1" /> Copy Link
@@ -418,7 +423,19 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
         </Card>
       )}
 
-      {students.length > 0 && (
+      {!selected.batch || !selected.branch || !selected.semester || !selected.exam_period ? (
+         <Card className="border-dashed border-2 shadow-none bg-transparent">
+            <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="bg-primary/5 p-6 rounded-full mb-4">
+                <Search className="w-12 h-12 text-primary/40" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Select filters to publish results</h3>
+              <p className="text-muted-foreground max-w-sm mx-auto">
+                Please select a batch, branch, semester, and exam period from the dropdowns above to load the student list and entry form.
+              </p>
+            </CardContent>
+         </Card>
+      ) : students.length > 0 && (
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
@@ -454,174 +471,178 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
             
             </div>
           </div>
-          <div className="space-y-4">
-            {students.map((s) => {
-              const studentMarks = (allMarks[String(s.student_id)]?.subs) || marks[String(s.student_id)] || {};
-              // Consistent pass/fail rule used across this student row
-              const meetsPassCriteria = (c: any, se: any, t: any) => {
-                return (typeof c === 'number' && typeof se === 'number' && typeof t === 'number') && (c >= 20 && se >= 18 && t >= 40);
-              };
-              const incompleteCount = (s.subjects || []).reduce((acc: number, sub: any) => {
-                const e = studentMarks[String(sub.id)];
-                const cie = e?.cie;
-                const see = e?.see;
-                if (cie === null || cie === undefined || see === null || see === undefined || cie === '' || see === '') return acc + 1;
-                return acc;
-              }, 0);
+            {studentsLoading ? (
+              <SkeletonTable rows={10} cols={9} />
+            ) : (
+              <div className="space-y-4">
+                {students.map((s) => {
+                  const studentMarks = (allMarks[String(s.student_id)]?.subs) || marks[String(s.student_id)] || {};
+                  // Consistent pass/fail rule used across this student row
+                  const meetsPassCriteria = (c: any, se: any, t: any) => {
+                    return (typeof c === 'number' && typeof se === 'number' && typeof t === 'number') && (c >= 20 && se >= 18 && t >= 40);
+                  };
+                  const incompleteCount = (s.subjects || []).reduce((acc: number, sub: any) => {
+                    const e = studentMarks[String(sub.id)];
+                    const cie = e?.cie;
+                    const see = e?.see;
+                    if (cie === null || cie === undefined || see === null || see === undefined || cie === '' || see === '') return acc + 1;
+                    return acc;
+                  }, 0);
 
-              return (
-                <div key={s.student_id} className="border rounded-md p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <div className="font-medium">{s.name} <span className="text-sm text-muted-foreground">({s.usn})</span></div>
-                      <div className="text-sm text-muted-foreground">Subjects: {(s.subjects || []).length} • Incomplete Entries: {incompleteCount}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {s.is_withheld && (
-                        <div className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded border border-amber-300">
-                          Withheld
+                  return (
+                    <div key={s.student_id} className="border rounded-md p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <div className="font-medium">{s.name} <span className="text-sm text-muted-foreground">({s.usn})</span></div>
+                          <div className="text-sm text-muted-foreground">Subjects: {(s.subjects || []).length} • Incomplete Entries: {incompleteCount}</div>
                         </div>
-                      )}
-                      {upload?.is_published && (
-                        <Button
-                          size="sm"
-                          variant={s.is_withheld ? "outline" : "destructive"}
-                          onClick={async () => {
-                            if (!s.published_result_id) {
-                              toast({ variant: 'destructive', title: 'Not Ready', description: 'Published result ID not found yet. Please refresh student list.' });
-                              return;
-                            }
-                            await handleToggleWithhold(s.student_id, s.name, s.published_result_id, s.is_withheld);
-                          }}
-                          className="text-xs"
-                        >
-                          {s.is_withheld ? "Release Result" : "Withhold Result"}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                        <div className="flex items-center gap-2">
+                          {s.is_withheld && (
+                            <div className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded border border-amber-300">
+                              Withheld
+                            </div>
+                          )}
+                          {upload?.is_published && (
+                            <Button
+                              size="sm"
+                              variant={s.is_withheld ? "outline" : "destructive"}
+                              onClick={async () => {
+                                if (!s.published_result_id) {
+                                  toast.error('Published result ID not found yet. Please refresh student list.');
+                                  return;
+                                }
+                                await handleToggleWithhold(s.student_id, s.name, s.published_result_id, s.is_withheld);
+                              }}
+                              className="text-xs"
+                            >
+                              {s.is_withheld ? "Release Result" : "Withhold Result"}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
 
-                  <div className="w-full overflow-x-auto">
-                  <table className="table-auto w-full min-w-[980px] border-collapse">
-                    <thead>
-                      <tr>
-                        <th className="border px-2 py-1 whitespace-nowrap">Subject Code</th>
-                        <th className="border px-2 py-1 whitespace-nowrap">Subject Title</th>
-                        <th className="border px-2 py-1 whitespace-nowrap">CIE</th>
-                        <th className="border px-2 py-1 whitespace-nowrap">SEE</th>
-                        <th className="border px-2 py-1 whitespace-nowrap">Total Marks</th>
-                        <th className="border px-2 py-1 whitespace-nowrap">Result</th>
-                        <th className="border px-2 py-1 whitespace-nowrap">Grade</th>
-                        <th className="border px-2 py-1 whitespace-nowrap">Grade Point</th>
-                        <th className="border px-2 py-1 whitespace-nowrap">Credits Assigned</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(s.subjects || []).map((sub: any) => {
-                        const entry = studentMarks[String(sub.id)];
-                        const cie = entry?.cie ?? '';
-                        const see = entry?.see ?? '';
-                        const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : '';
-                        const displayTotal = total;
-                        const result = displayTotal === '' ? 'Incomplete' : (meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail');
-                        
-                        // Calculate grade based on total marks (assuming 100 max)
-                        let grade = '';
-                        let gradePoints = '';
-                        if (typeof total === 'number') {
-                          if (total >= 90) { grade = 'S'; gradePoints = '10'; }
-                          else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
-                          else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
-                          else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
-                          else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
-                          else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
-                          else { grade = 'F'; gradePoints = '0'; }
-                        }
-                        
-                        return (
-                          <tr key={sub.id}>
-                            <td className="border px-2 py-1">{sub.code}</td>
-                            <td className="border px-2 py-1">{sub.name}</td>
-                            <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e:any) => e.currentTarget.blur()} /></td>
-                            <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e:any) => e.currentTarget.blur()} /></td>
-                            <td className="border px-2 py-1">{displayTotal}</td>
-                            <td className={`border px-2 py-1 ${result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : 'text-yellow-600'}`}>{result}</td>
-                            <td className="border px-2 py-1">{grade}</td>
-                            <td className="border px-2 py-1">{gradePoints}</td>
-                            <td className="border px-2 py-1">{result === 'Pass' ? (sub.credits ?? 0) : (result === 'Fail' ? 0 : 'N/A')}</td>
+                      <div className="w-full overflow-x-auto">
+                      <table className="table-auto w-full min-w-[980px] border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="border px-2 py-1 whitespace-nowrap">Subject Code</th>
+                            <th className="border px-2 py-1 whitespace-nowrap">Subject Title</th>
+                            <th className="border px-2 py-1 whitespace-nowrap">CIE</th>
+                            <th className="border px-2 py-1 whitespace-nowrap">SEE</th>
+                            <th className="border px-2 py-1 whitespace-nowrap">Total Marks</th>
+                            <th className="border px-2 py-1 whitespace-nowrap">Result</th>
+                            <th className="border px-2 py-1 whitespace-nowrap">Grade</th>
+                            <th className="border px-2 py-1 whitespace-nowrap">Grade Point</th>
+                            <th className="border px-2 py-1 whitespace-nowrap">Credits Assigned</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot>
-                      <tr>
-                        <td colSpan={8} className="border px-2 py-1 font-semibold text-right">Total Credits Earned:</td>
-                        <td className="border px-2 py-1 font-semibold">
-                          {(s.subjects || []).reduce((acc: number, sub: any) => {
+                        </thead>
+                        <tbody>
+                          {(s.subjects || []).map((sub: any) => {
                             const entry = studentMarks[String(sub.id)];
-                            const cie = entry?.cie;
-                            const see = entry?.see;
-                            const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : null;
-                            const passed = meetsPassCriteria(cie, see, total);
-                            const creditsToAdd = passed ? (sub.credits || 0) : 0;
-                            return acc + creditsToAdd;
-                          }, 0)}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td colSpan={8} className="border px-2 py-1 font-semibold text-right">Total Marks Obtained:</td>
-                        <td className="border px-2 py-1 font-semibold">
-                          {(s.subjects || []).reduce((acc: number, sub: any) => {
-                            const entry = studentMarks[String(sub.id)];
-                            const cie = entry?.cie;
-                            const see = entry?.see;
-                            const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : 0;
-                            return acc + (typeof total === 'number' ? total : 0);
-                          }, 0)}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td colSpan={8} className="border px-2 py-1 font-semibold text-right">SGPA:</td>
-                        <td className="border px-2 py-1 font-semibold">
-                          {(() => {
-                            const subjects = s.subjects || [];
-                            let totalGradePoints = 0;
-                            let totalCredits = 0;
+                            const cie = entry?.cie ?? '';
+                            const see = entry?.see ?? '';
+                            const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : '';
+                            const displayTotal = total;
+                            const result = displayTotal === '' ? 'Incomplete' : (meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail');
                             
-                            subjects.forEach((sub: any) => {
-                              const entry = studentMarks[String(sub.id)];
-                              const cie = entry?.cie;
-                              const see = entry?.see;
-                              const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : null;
-                              const credits = sub.credits || 0;
-                              const passed = meetsPassCriteria(cie, see, total);
-
-                              if (typeof total === 'number' && credits > 0 && passed) {
-                                let gradePoints = 0;
-                                if (total >= 90) gradePoints = 10;
-                                else if (total >= 80) gradePoints = 9;
-                                else if (total >= 70) gradePoints = 8;
-                                else if (total >= 60) gradePoints = 7;
-                                else if (total >= 50) gradePoints = 6;
-                                else if (total >= 40) gradePoints = 5;
-                                else gradePoints = 0;
-
-                                totalGradePoints += gradePoints * credits;
-                                totalCredits += credits;
-                              }
-                            });
+                            // Calculate grade based on total marks (assuming 100 max)
+                            let grade = '';
+                            let gradePoints = '';
+                            if (typeof total === 'number') {
+                              if (total >= 90) { grade = 'S'; gradePoints = '10'; }
+                              else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
+                              else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
+                              else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
+                              else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
+                              else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
+                              else { grade = 'F'; gradePoints = '0'; }
+                            }
                             
-                            return totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
-                          })()}
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                            return (
+                              <tr key={sub.id}>
+                                <td className="border px-2 py-1">{sub.code}</td>
+                                <td className="border px-2 py-1">{sub.name}</td>
+                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e:any) => e.currentTarget.blur()} /></td>
+                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e:any) => e.currentTarget.blur()} /></td>
+                                <td className="border px-2 py-1">{displayTotal}</td>
+                                <td className={`border px-2 py-1 ${result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : 'text-yellow-600'}`}>{result}</td>
+                                <td className="border px-2 py-1">{grade}</td>
+                                <td className="border px-2 py-1">{gradePoints}</td>
+                                <td className="border px-2 py-1">{result === 'Pass' ? (sub.credits ?? 0) : (result === 'Fail' ? 0 : 'N/A')}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan={8} className="border px-2 py-1 font-semibold text-right">Total Credits Earned:</td>
+                            <td className="border px-2 py-1 font-semibold">
+                              {(s.subjects || []).reduce((acc: number, sub: any) => {
+                                const entry = studentMarks[String(sub.id)];
+                                const cie = entry?.cie;
+                                const see = entry?.see;
+                                const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : null;
+                                const passed = meetsPassCriteria(cie, see, total);
+                                const creditsToAdd = passed ? (sub.credits || 0) : 0;
+                                return acc + creditsToAdd;
+                              }, 0)}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colSpan={8} className="border px-2 py-1 font-semibold text-right">Total Marks Obtained:</td>
+                            <td className="border px-2 py-1 font-semibold">
+                              {(s.subjects || []).reduce((acc: number, sub: any) => {
+                                const entry = studentMarks[String(sub.id)];
+                                const cie = entry?.cie;
+                                const see = entry?.see;
+                                const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : 0;
+                                return acc + (typeof total === 'number' ? total : 0);
+                              }, 0)}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colSpan={8} className="border px-2 py-1 font-semibold text-right">SGPA:</td>
+                            <td className="border px-2 py-1 font-semibold">
+                              {(() => {
+                                const subjects = s.subjects || [];
+                                let totalGradePoints = 0;
+                                let totalCredits = 0;
+                                
+                                subjects.forEach((sub: any) => {
+                                  const entry = studentMarks[String(sub.id)];
+                                  const cie = entry?.cie;
+                                  const see = entry?.see;
+                                  const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : null;
+                                  const credits = sub.credits || 0;
+                                  const passed = meetsPassCriteria(cie, see, total);
+
+                                  if (typeof total === 'number' && credits > 0 && passed) {
+                                    let gradePoints = 0;
+                                    if (total >= 90) gradePoints = 10;
+                                    else if (total >= 80) gradePoints = 9;
+                                    else if (total >= 70) gradePoints = 8;
+                                    else if (total >= 60) gradePoints = 7;
+                                    else if (total >= 50) gradePoints = 6;
+                                    else if (total >= 40) gradePoints = 5;
+                                    else gradePoints = 0;
+
+                                    totalGradePoints += gradePoints * credits;
+                                    totalCredits += credits;
+                                  }
+                                });
+                                
+                                return totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
+                              })()}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
           <div className="mt-4 flex flex-wrap gap-2">
             <div className="flex items-center gap-3 mr-auto">
@@ -725,9 +746,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               const res = await unpublishUploadBatch(upload.id);
               if (res.success) {
                 setUpload({ ...upload, is_published: false });
-                toast({ title: 'Unpublished', description: 'Public link is now inactive.' });
+                toast.success('Public link is now inactive.');
               } else {
-                toast({ variant: 'destructive', title: 'Unpublish failed', description: res.message || 'Failed to unpublish' });
+                toast.error(res.message || 'Failed to unpublish');
               }
             }}>Confirm Unpublish</Button>
           </div>

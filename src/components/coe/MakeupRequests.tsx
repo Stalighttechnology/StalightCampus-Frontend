@@ -8,9 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Clock, Download, Eye, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Download, Eye, XCircle, Search } from 'lucide-react';
 import { getMakeupRequests, getExamRequestFilters, updateMakeupRequestStatus, getSemesters, MakeupRequest, ExamRequestFilters } from '@/utils/coe_api';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { SkeletonTable } from '@/components/ui/skeleton';
 import { useTheme } from '@/context/ThemeContext';
 import { toast } from 'sonner';
 
@@ -208,7 +209,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
     <div ref={ref} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle>
             Makeup Exam Requests
           </CardTitle>
         </CardHeader>
@@ -305,104 +306,114 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
 
           {/* Requests Table */}
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow className={theme === 'dark' ? 'bg-muted/40 border-b border-border' : 'bg-slate-100 border-b border-slate-200'}>
-                  <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Student</TableHead>
-                  <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Subject</TableHead>
-                  <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Batch/Branch/Sem</TableHead>
-                  <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Exam Period</TableHead>
-                  <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Status</TableHead>
-                  <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Requested</TableHead>
-                  <TableHead className={theme === 'dark' ? 'font-bold text-foreground' : 'font-bold text-slate-900'}>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">Loading...</TableCell>
+          {!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ? (
+             <Card className="border-dashed border-2 shadow-none bg-transparent">
+                <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+                  <div className="bg-primary/5 p-6 rounded-full mb-4">
+                    <Search className="w-12 h-12 text-primary/40" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Select filters to view requests</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    Please select a batch, branch, semester, and exam period from the dropdowns above to load the makeup exam requests.
+                  </p>
+                </CardContent>
+             </Card>
+          ) : (
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow className={theme === 'dark' ? 'bg-muted/40 border-b border-border' : 'bg-slate-100 border-b border-slate-200'}>
+                    <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Student</TableHead>
+                    <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Subject</TableHead>
+                    <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Batch/Branch/Sem</TableHead>
+                    <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Exam Period</TableHead>
+                    <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Status</TableHead>
+                    <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-slate-900'}>Requested</TableHead>
+                    <TableHead className={theme === 'dark' ? 'font-bold text-foreground' : 'font-bold text-slate-900'}>Actions</TableHead>
                   </TableRow>
-                ) : !batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Please select Batch, Branch, Semester, and Exam Period to load makeup requests
-                    </TableCell>
-                  </TableRow>
-                ) : requests.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">No makeup requests found</TableCell>
-                  </TableRow>
-                ) : (
-                  requests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{request.student_name}</div>
-                          <div className="text-sm text-muted-foreground">{request.student_usn}</div>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="p-0 border-none">
+                        <SkeletonTable rows={pageSize} cols={7} />
                       </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{request.subject_name}</div>
-                          <div className="text-sm text-muted-foreground">{request.subject_code}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {request.batch} / {request.branch} / Sem {request.semester}
-                          {request.section && ` / ${request.section}`}
-                        </div>
-                      </TableCell>
-                      <TableCell>{request.exam_period}</TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell>{new Date(request.requested_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedRequest(request)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          {request.attachment && (
+                    </TableRow>
+                  ) : requests.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">No makeup requests found</TableCell>
+                    </TableRow>
+                  ) : (
+                    requests.map((request) => (
+                      <TableRow key={request.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{request.student_name}</div>
+                            <div className="text-sm text-muted-foreground">{request.student_usn}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{request.subject_name}</div>
+                            <div className="text-sm text-muted-foreground">{request.subject_code}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {request.batch} / {request.branch} / Sem {request.semester}
+                            {request.section && ` / ${request.section}`}
+                          </div>
+                        </TableCell>
+                        <TableCell>{request.exam_period}</TableCell>
+                        <TableCell>{getStatusBadge(request.status)}</TableCell>
+                        <TableCell>{new Date(request.requested_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => window.open(request.attachment!, '_blank')}
+                              onClick={() => setSelectedRequest(request)}
                             >
-                              <Download className="w-4 h-4" />
+                              <Eye className="w-4 h-4" />
                             </Button>
-                          )}
-                          {request.status === 'pending' && (
-                            <>
+                            {request.attachment && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleAction(request, 'approve')}
-                                className="text-green-700 border-green-600 hover:bg-green-100"
+                                onClick={() => window.open(request.attachment!, '_blank')}
                               >
-                                Approve
+                                <Download className="w-4 h-4" />
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleAction(request, 'reject')}
-                                className="text-red-700 border-red-600 hover:bg-red-100"
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                            )}
+                            {request.status === 'pending' && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAction(request, 'approve')}
+                                  className="text-green-700 border-green-600 hover:bg-green-100"
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAction(request, 'reject')}
+                                  className="text-red-700 border-red-600 hover:bg-red-100"
+                                >
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
           {/* Pagination Controls */}
           {totalPages > 1 && (

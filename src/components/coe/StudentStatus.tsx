@@ -6,14 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Users, CheckCircle, XCircle, Search, Download } from "lucide-react";
 import { getStudentApplicationStatus, getFilterOptions, getSemesters, FilterOptions } from "../../utils/coe_api";
+import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import "./StudentStatus.css";
 
 
 const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
-  const { toast } = useToast();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState<number>(1);
@@ -107,20 +107,12 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
 
   const totalCount = pagination?.count ?? null;
   const totalPages = totalCount ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
-  const visiblePages = Array.from(
-    { length: totalPages },
-    (_, index) => index + 1
-  ).slice(Math.max(0, page - 3), Math.max(5, page + 2));
 
   const handleExport = async () => {
     if (!filters.batch || !filters.exam_period || !filters.branch || !filters.semester) return;
     const accessToken = localStorage.getItem('access_token');
     if (!accessToken) {
-      toast({
-        title: "Authentication Required",
-        description: "You must be logged in to export. Please login and try again.",
-        variant: "destructive",
-      });
+      toast.error("Authentication Required: You must be logged in to export.");
       return;
     }
     setExporting(true);
@@ -154,17 +146,10 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       a.remove();
       window.URL.revokeObjectURL(urlBlob);
       
-      toast({
-        title: "Export Successful",
-        description: `Downloaded ${filename}`,
-      });
+      toast.success(`Export Successful: Downloaded ${filename}`);
     } catch (err) {
       console.error('Export error', err);
-      toast({
-        title: "Export Failed",
-        description: err instanceof Error ? err.message : "An unknown error occurred during export",
-        variant: "destructive",
-      });
+      toast.error(`Export Failed: ${err instanceof Error ? err.message : "An unknown error occurred"}`);
     } finally {
       setExporting(false);
     }
@@ -173,10 +158,6 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
   return (
     <div ref={ref} className="student-status-main-container w-full max-w-full">
       <div className="space-y-4 sm:space-y-6">
-        <div className="flex justify-between items-center header-section px-0">
-          <h1 className="text-2xl sm:text-3xl font-bold header-title">Student Status</h1>
-        </div>
-
       {/* Filters */}
       <Card>
         <CardContent className="p-6">
@@ -365,17 +346,13 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                 </Button>
 
                 <div className="flex items-center gap-2">
-                  {visiblePages.map((pageNumber) => (
-                    <Button
-                      key={pageNumber}
-                      size="sm"
-                      variant={page === pageNumber ? "default" : "outline"}
-                      onClick={() => setPage(pageNumber)}
-                      className={page === pageNumber ? "bg-primary text-white" : "bg-white text-black border-gray-300 hover:bg-gray-100"}
-                    >
-                      {pageNumber}
-                    </Button>
-                  ))}
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="bg-white text-black border-2 cursor-default hover:bg-primary"
+                  >
+                    {page}
+                  </Button>
                 </div>
 
                 <Button
@@ -393,10 +370,28 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       )}
 
       {loading && (
-        <div className="text-center py-6 sm:py-8 px-4">
-          <div className="animate-spin rounded-full h-6 sm:h-8 w-6 sm:w-8 border-b-2 border-gray-900 mx-auto loading-spinner"></div>
-          <p className="mt-2 text-xs sm:text-sm text-muted-foreground loading-text">Loading student status...</p>
+        <div className="space-y-6">
+          <SkeletonStatsGrid items={4} />
+          <Card>
+            <CardContent className="p-6">
+              <SkeletonTable rows={10} cols={5} />
+            </CardContent>
+          </Card>
         </div>
+      )}
+
+      {!data && !loading && (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="bg-primary/5 p-6 rounded-full mb-4">
+              <Search className="w-12 h-12 text-primary/40" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Select filters to view data</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">
+              Please select a batch, exam period, branch, and semester from the dropdowns above to load the student application status.
+            </p>
+          </CardContent>
+        </Card>
       )}
       </div>
     </div>

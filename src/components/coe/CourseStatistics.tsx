@@ -8,6 +8,7 @@ import { BookOpen, Users, Download } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getCourseApplicationStats, getFilterOptions, getSemesters, FilterOptions } from "../../utils/coe_api";
+import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
 import "./CourseStatistics.css";
 
 const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -145,10 +146,6 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <div ref={ref} className="course-statistics-main space-y-6">
-      <div className="course-statistics-header flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Course Statistics</h1>
-      </div>
-
       {/* Filters */}
       <Card className="course-statistics-filters">
         <CardContent className="p-6 course-statistics-filters-content">
@@ -340,10 +337,28 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       )}
 
       {loading && (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading course statistics...</p>
+        <div className="space-y-6">
+          <SkeletonStatsGrid items={2} columns={2} />
+          <Card>
+            <CardContent className="p-6">
+              <SkeletonTable rows={10} cols={6} />
+            </CardContent>
+          </Card>
         </div>
+      )}
+
+      {!data && !loading && (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="bg-primary/5 p-6 rounded-full mb-4">
+              <BookOpen className="w-12 h-12 text-primary/40" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Select filters to view stats</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">
+              Please select a batch, exam period, branch, and semester from the dropdowns above to load the subject-wise application statistics.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

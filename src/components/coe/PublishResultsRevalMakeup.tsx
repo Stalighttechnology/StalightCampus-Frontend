@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { AlertTriangle, Copy, ExternalLink } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { AlertTriangle, Copy, ExternalLink, Search } from 'lucide-react';
+import { toast } from 'sonner';
 import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForRevalMakeupUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult } from '../../utils/coe_api';
 
 const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -24,7 +24,6 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [pendingNav, setPendingNav] = useState<{ page: number; pageSize?: number } | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
-  const { toast } = useToast();
   const [marks, setMarks] = useState<Record<string, Record<string, { cie?: number | string | null; see?: number | string | null }>>>({});
   const [allMarks, setAllMarks] = useState<Record<string, { usn: string; subs: Record<string, { cie?: number | string | null; see?: number | string | null }> }>>({});
   const [saving, setSaving] = useState(false);
@@ -52,14 +51,14 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleCreate = async () => {
     if (!selected.batch || !selected.branch || !selected.semester || !selected.exam_period || !selected.request_type || selected.request_type === 'all') {
-      toast({ variant: 'destructive', title: 'Missing filters', description: 'Select all filters including Request Type before creating upload' });
+      toast.error('Select all filters including Request Type before creating upload');
       return;
     }
     const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
     if (res.success) {
       setUpload(res.upload_batch);
     } else {
-      toast({ variant: 'destructive', title: 'Error', description: res.message || 'Failed to create upload' });
+      toast.error(res.message || 'Failed to create upload');
     }
   };
 
@@ -153,7 +152,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleSave = async () => {
     if (!upload) {
-      toast({ variant: 'destructive', title: 'No upload', description: 'Create upload batch first' });
+      toast.error('Create upload batch first');
       return false;
     }
     const payload: any[] = [];
@@ -172,7 +171,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
     const res = await saveMarksForUpload(upload.id, payload);
     setSaving(false);
     if (res.success) {
-      toast({ title: 'Saved', description: `Saved ${res.saved_count} records` });
+      toast.success(`Saved ${res.saved_count} records`);
       setDirtyPages({});
       setAllMarks(prev => {
         const next = { ...(prev || {}) } as any;
@@ -204,7 +203,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       return true;
     } else {
-      toast({ variant: 'destructive', title: 'Save failed', description: res.message || 'Failed saving' });
+      toast.error(res.message || 'Failed saving');
       return false;
     }
   };
@@ -244,22 +243,22 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handlePublish = async () => {
     if (!upload) {
-      toast({ variant: 'destructive', title: 'No upload', description: 'Create upload batch first' });
+      toast.error('Create upload batch first');
       return;
     }
     const res = await publishUploadBatch(upload.id);
     if (res.success) {
-      toast({ title: 'Published', description: 'Published successfully' });
+      toast.success('Published successfully');
       setUpload({ ...upload, is_published: true });
       await fetchStudentsPage(upload.id, studentsPage, studentsPageSize);
     } else {
-      toast({ variant: 'destructive', title: 'Publish failed', description: res.message || 'Publish failed' });
+      toast.error(res.message || 'Publish failed');
     }
   };
 
   const handleToggleWithhold = async (studentId: number, studentName: string, publishedResultId: number | null, currentWithheld: boolean) => {
     if (!publishedResultId) {
-      toast({ variant: 'destructive', title: 'Cannot withhold', description: 'No published result found for this student' });
+      toast.error('No published result found for this student');
       return;
     }
     
@@ -267,27 +266,23 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       const res = await toggleWithholdResult(publishedResultId);
       if (res.success) {
         const actionText = res.withheld ? 'withheld' : 'released';
-        toast({ title: 'Success', description: `Result ${actionText} for ${studentName}` });
+        toast.success(`Result ${actionText} for ${studentName}`);
         if (upload) {
           await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true);
         }
       } else {
-        toast({ variant: 'destructive', title: 'Failed to toggle withhold', description: res.message || 'Toggle failed' });
+        toast.error(res.message || 'Toggle failed');
       }
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e?.message || 'Failed to toggle withhold status' });
+      toast.error(e?.message || 'Failed to toggle withhold status');
     }
   };
 
   return (
-    <div ref={ref} className={`p-2 sm:p-3 lg:p-4 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-        Publish Results (Reval/Makeup)
-      </h2>
-
+    <div ref={ref} className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg sm:text-xl">Filter And Create Upload Batch</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle>Filter And Create Upload Batch</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4">
@@ -384,7 +379,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               onClick={() => {
                 const url = `${window.location.origin}/results/view/${upload.token}`;
                 navigator.clipboard.writeText(url);
-                toast({ title: 'Copied', description: 'Result link copied to clipboard' });
+                toast.success('Result link copied to clipboard');
               }}
             >
               <Copy className="h-3 w-3 mr-1" /> Copy Link
@@ -412,7 +407,19 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </Card>
       )}
 
-      {students.length > 0 && (
+      {!selected.batch || !selected.branch || !selected.semester || !selected.exam_period || !selected.request_type || selected.request_type === 'all' ? (
+         <Card className="border-dashed border-2 shadow-none bg-transparent">
+            <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="bg-primary/5 p-6 rounded-full mb-4">
+                <Search className="w-12 h-12 text-primary/40" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Select filters to publish results</h3>
+              <p className="text-muted-foreground max-w-sm mx-auto">
+                Please select a batch, branch, semester, exam period, and request type from the dropdowns above to load the student list and entry form.
+              </p>
+            </CardContent>
+         </Card>
+      ) : students.length > 0 && (
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
@@ -498,7 +505,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                             }
 
                             if (!publishedResultId) {
-                              toast({ variant: 'destructive', title: 'Not Ready', description: 'Published result ID not found yet. Please refresh student list.' });
+                              toast.error('Published result ID not found yet. Please refresh student list.');
                               return;
                             }
 
@@ -758,9 +765,9 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               const res = await unpublishUploadBatch(upload.id);
               if (res.success) {
                 setUpload({ ...upload, is_published: false }); 
-                toast({ title: 'Unpublished', description: 'Public link is now inactive.' });
+                toast.success('Public link is now inactive.');
               } else {
-                toast({ variant: 'destructive', title: 'Unpublish failed', description: res.message || 'Failed to unpublish' });
+                toast.error(res.message || 'Failed to unpublish');
               }
             }}>Unpublish</Button>
           </DialogFooter>
