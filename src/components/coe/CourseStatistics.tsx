@@ -145,10 +145,6 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <div ref={ref} className="course-statistics-main space-y-6">
-      <div className="course-statistics-header flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Course Statistics</h1>
-      </div>
-
       {/* Filters */}
       <Card className="course-statistics-filters">
         <CardContent className="p-6 course-statistics-filters-content">
@@ -344,6 +340,20 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
           <p className="mt-2 text-muted-foreground">Loading course statistics...</p>
         </div>
+      )}
+
+      {!data && !loading && (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="bg-primary/5 p-6 rounded-full mb-4">
+              <BookOpen className="w-12 h-12 text-primary/40" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Select filters to view stats</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">
+              Please select a batch, exam period, branch, and semester from the dropdowns above to load the subject-wise application statistics.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

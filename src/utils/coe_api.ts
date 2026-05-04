@@ -790,7 +790,7 @@ export const getExamSchedule = async (paramsObj: { page?: number; page_size?: nu
     Object.entries(paramsObj).forEach(([k, v]) => {
       if (v !== undefined && v !== null) params.append(k, String(v));
     });
-    
+
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/exam-schedule/?${params}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }

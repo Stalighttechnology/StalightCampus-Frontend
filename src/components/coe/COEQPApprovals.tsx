@@ -378,7 +378,17 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         </CardHeader>
         <CardContent>
           {pendingQPs.length === 0 ? (
-            <p className="text-center text-muted-foreground">No pending QPs for final approval.</p>
+             <Card className="border-dashed border-2 shadow-none bg-transparent">
+                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="bg-primary/5 p-6 rounded-full mb-4">
+                    <CheckCircle className="w-12 h-12 text-primary/40" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">No pending approvals</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    All question papers have been processed. New submissions will appear here for your final review and approval.
+                  </p>
+                </CardContent>
+             </Card>
           ) : (
             <div className="space-y-4">
               {pendingQPs.map((qp) => (
@@ -466,7 +476,17 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         </CardHeader>
         <CardContent>
           {finalizedQPs.length === 0 ? (
-            <p className="text-center text-muted-foreground">No finalized QPs yet.</p>
+             <Card className="border-dashed border-2 shadow-none bg-transparent">
+                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="bg-primary/5 p-6 rounded-full mb-4">
+                    <Eye className="w-12 h-12 text-primary/40" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">No finalized papers</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    Approved and finalized question papers will be archived here for your reference.
+                  </p>
+                </CardContent>
+             </Card>
           ) : (
             <div className="space-y-4">
               {finalizedQPs.map((qp) => (

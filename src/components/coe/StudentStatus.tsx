@@ -107,10 +107,6 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
 
   const totalCount = pagination?.count ?? null;
   const totalPages = totalCount ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
-  const visiblePages = Array.from(
-    { length: totalPages },
-    (_, index) => index + 1
-  ).slice(Math.max(0, page - 3), Math.max(5, page + 2));
 
   const handleExport = async () => {
     if (!filters.batch || !filters.exam_period || !filters.branch || !filters.semester) return;
@@ -173,10 +169,6 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
   return (
     <div ref={ref} className="student-status-main-container w-full max-w-full">
       <div className="space-y-4 sm:space-y-6">
-        <div className="flex justify-between items-center header-section px-0">
-          <h1 className="text-2xl sm:text-3xl font-bold header-title">Student Status</h1>
-        </div>
-
       {/* Filters */}
       <Card>
         <CardContent className="p-6">
@@ -365,17 +357,13 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                 </Button>
 
                 <div className="flex items-center gap-2">
-                  {visiblePages.map((pageNumber) => (
-                    <Button
-                      key={pageNumber}
-                      size="sm"
-                      variant={page === pageNumber ? "default" : "outline"}
-                      onClick={() => setPage(pageNumber)}
-                      className={page === pageNumber ? "bg-primary text-white" : "bg-white text-black border-gray-300 hover:bg-gray-100"}
-                    >
-                      {pageNumber}
-                    </Button>
-                  ))}
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="bg-white text-black border-2 cursor-default hover:bg-primary"
+                  >
+                    {page}
+                  </Button>
                 </div>
 
                 <Button
@@ -397,6 +385,20 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
           <div className="animate-spin rounded-full h-6 sm:h-8 w-6 sm:w-8 border-b-2 border-gray-900 mx-auto loading-spinner"></div>
           <p className="mt-2 text-xs sm:text-sm text-muted-foreground loading-text">Loading student status...</p>
         </div>
+      )}
+
+      {!data && !loading && (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="bg-primary/5 p-6 rounded-full mb-4">
+              <Search className="w-12 h-12 text-primary/40" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Select filters to view data</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">
+              Please select a batch, exam period, branch, and semester from the dropdowns above to load the student application status.
+            </p>
+          </CardContent>
+        </Card>
       )}
       </div>
     </div>

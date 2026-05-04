@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { AlertTriangle, Copy, ExternalLink } from 'lucide-react';
+import { AlertTriangle, Copy, ExternalLink, Search } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForRevalMakeupUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult } from '../../utils/coe_api';
 
@@ -280,14 +280,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div ref={ref} className={`p-2 sm:p-3 lg:p-4 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <h2 className={`text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-        Publish Results (Reval/Makeup)
-      </h2>
-
+    <div ref={ref} className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg sm:text-xl">Filter And Create Upload Batch</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle>Filter And Create Upload Batch</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4">
@@ -412,7 +408,19 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </Card>
       )}
 
-      {students.length > 0 && (
+      {!selected.batch || !selected.branch || !selected.semester || !selected.exam_period || !selected.request_type || selected.request_type === 'all' ? (
+         <Card className="border-dashed border-2 shadow-none bg-transparent">
+            <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="bg-primary/5 p-6 rounded-full mb-4">
+                <Search className="w-12 h-12 text-primary/40" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Select filters to publish results</h3>
+              <p className="text-muted-foreground max-w-sm mx-auto">
+                Please select a batch, branch, semester, exam period, and request type from the dropdowns above to load the student list and entry form.
+              </p>
+            </CardContent>
+         </Card>
+      ) : students.length > 0 && (
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>

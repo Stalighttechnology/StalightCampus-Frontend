@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Clock, Download, Eye, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Download, Eye, XCircle, Search } from 'lucide-react';
 import { getRevaluationRequests, getExamRequestFilters, updateRevaluationRequestStatus, getSemesters, RevaluationRequest, ExamRequestFilters } from '@/utils/coe_api';
 import { fetchWithTokenRefresh } from '@/utils/authService';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -308,109 +308,117 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
 
           {/* Requests Table */}
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Batch/Branch/Sem</TableHead>
-                  <TableHead>Previous Marks</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Requested</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
+          {!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ? (
+             <Card className="border-dashed border-2 shadow-none bg-transparent">
+                <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+                  <div className="bg-primary/5 p-6 rounded-full mb-4">
+                    <Search className="w-12 h-12 text-primary/40" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Select filters to view requests</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    Please select a batch, branch, semester, and exam period from the dropdowns above to load the revaluation requests.
+                  </p>
+                </CardContent>
+             </Card>
+          ) : (
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">Loading...</TableCell>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Batch/Branch/Sem</TableHead>
+                    <TableHead>Previous Marks</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Requested</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ) : !batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Please select Batch, Branch, Semester, and Exam Period to load revaluation requests
-                    </TableCell>
-                  </TableRow>
-                ) : requests.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">No revaluation requests found</TableCell>
-                  </TableRow>
-                ) : (
-                  requests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{request.student_name}</div>
-                          <div className="text-sm text-muted-foreground">{request.student_usn}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{request.subject_name}</div>
-                          <div className="text-sm text-muted-foreground">{request.subject_code}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {request.batch} / {request.branch} / Sem {request.semester}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          CIE: {request.previous_cie || 'N/A'}<br />
-                          SEE: {request.previous_see || 'N/A'}<br />
-                          Total: {request.previous_total || 'N/A'}
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell>{new Date(request.requested_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedRequest(request)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          {request.attachment && (
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">Loading...</TableCell>
+                    </TableRow>
+                  ) : requests.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">No revaluation requests found</TableCell>
+                    </TableRow>
+                  ) : (
+                    requests.map((request) => (
+                      <TableRow key={request.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{request.student_name}</div>
+                            <div className="text-sm text-muted-foreground">{request.student_usn}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{request.subject_name}</div>
+                            <div className="text-sm text-muted-foreground">{request.subject_code}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {request.batch} / {request.branch} / Sem {request.semester}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            CIE: {request.previous_cie || 'N/A'}<br />
+                            SEE: {request.previous_see || 'N/A'}<br />
+                            Total: {request.previous_total || 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(request.status)}</TableCell>
+                        <TableCell>{new Date(request.requested_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => window.open(request.attachment!, '_blank')}
+                              onClick={() => setSelectedRequest(request)}
                             >
-                              <Download className="w-4 h-4" />
+                              <Eye className="w-4 h-4" />
                             </Button>
-                          )}
-                          {request.status === 'pending' && (
-                            <>
+                            {request.attachment && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleAction(request, 'approve')}
-                                className="text-green-700 border-green-600 hover:bg-green-100"
+                                onClick={() => window.open(request.attachment!, '_blank')}
                               >
-                                Approve
+                                <Download className="w-4 h-4" />
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleAction(request, 'reject')}
-                                className="text-red-700 border-red-600 hover:bg-red-100"
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                            )}
+                            {request.status === 'pending' && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAction(request, 'approve')}
+                                  className="text-green-700 border-green-600 hover:bg-green-100"
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAction(request, 'reject')}
+                                  className="text-red-700 border-red-600 hover:bg-red-100"
+                                >
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
