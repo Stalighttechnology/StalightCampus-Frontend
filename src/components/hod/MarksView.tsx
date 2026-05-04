@@ -94,6 +94,7 @@ const MarksView = () => {
     totalStudents: 0,
     totalPages: 0,
   });
+  const [localSearchTerm, setLocalSearchTerm] = useState("");
 
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -212,8 +213,8 @@ const MarksView = () => {
           students: studentsData,
           loading: false,
           error: null,
-          totalStudents: data.pagination.total_students,
-          totalPages: data.pagination.total_pages,
+          totalStudents: data.pagination?.total_students || 0,
+          totalPages: data.pagination?.total_pages || Math.ceil((data.pagination?.total_students || 0) / state.pageSize) || 1,
         });
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch data";
@@ -231,6 +232,14 @@ const MarksView = () => {
     };
     fetchData();
   }, [state.semesterFilter, state.sectionFilter, state.subjectFilter, state.searchTerm, state.currentPage, state.pageSize, toast]);
+
+  // Debounce sync local search to state.searchTerm
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateState({ searchTerm: localSearchTerm, currentPage: 1 });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localSearchTerm]);
 
   // Custom Tooltip for BarChart
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
@@ -464,8 +473,8 @@ const MarksView = () => {
               <Input
                 placeholder="Search by name or roll number..."
                 className={`w-1/3 ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-                value={state.searchTerm}
-                onChange={(e) => updateState({ searchTerm: e.target.value, currentPage: 1 })}
+                value={localSearchTerm}
+                onChange={(e) => setLocalSearchTerm(e.target.value)}
                 disabled={state.loading}
               />
               <Button
@@ -614,8 +623,8 @@ const MarksView = () => {
               <Input
                 placeholder="Search by name or roll number..."
                 className={`w-1/3 ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-                value={state.searchTerm}
-                onChange={(e) => updateState({ searchTerm: e.target.value, currentPage: 1 })}
+                value={localSearchTerm}
+                onChange={(e) => setLocalSearchTerm(e.target.value)}
                 disabled={state.loading}
               />
               <Button

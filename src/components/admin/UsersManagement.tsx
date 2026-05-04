@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { manageUsers, manageUserAction } from "../../utils/admin_api";
+import { manageUsers, manageUserAction, manageBranches } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable, SkeletonPageHeader } from "../ui/skeleton";
@@ -24,6 +24,8 @@ interface User {
   role: string;
   status: string;
   username?: string; // Added to store original username
+  department?: string;
+  extra?: any;
 }
 
 interface UsersManagementProps {
@@ -63,6 +65,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [roleFilter, setRoleFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [departmentFilter, setDepartmentFilter] = useState("All");
+  const [departments, setDepartments] = useState<string[]>(["All"]);
   const [searchQuery, setSearchQuery] = useState(""); // Input value
   const [appliedSearch, setAppliedSearch] = useState(""); // Applied search term
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -79,7 +83,25 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   // Reset current page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [roleFilter, statusFilter, appliedSearch]);
+  }, [roleFilter, statusFilter, departmentFilter, appliedSearch]);
+
+  // Fetch departments for filter
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const res = await manageBranches({ page_size: 100 });
+        if (res.success) {
+          const dataSource = res.results || res.branches || (res as any).data || [];
+          const branchList = Array.isArray(dataSource) ? dataSource : [];
+          const names = branchList.map((b: any) => b.name).filter(Boolean);
+          setDepartments(["All", ...names]);
+        }
+      } catch (e) {
+        console.error("Failed to fetch departments", e);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   // Function to perform search
   const performSearch = () => {
@@ -115,6 +137,11 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           filterParams.is_active = statusFilter === "Active";
         }
 
+        // Add department filter if not "All"
+        if (departmentFilter !== "All") {
+          filterParams.department = departmentFilter;
+        }
+
         // Add search filter if not empty
         if (appliedSearch.trim()) {
           filterParams.search = appliedSearch.trim();
@@ -135,7 +162,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         if (dataSource && dataSource.success) {
           // Handle paginated response format where data is nested under results
           const usersData = dataSource.users || [];
-          const paginationData = hasResults ? (response as any) : dataSource;
+          const paginationData = response as any;
           
           // Transform backend user data to frontend format
           const transformedUsers = Array.isArray(usersData) ? usersData.map((user: any) => ({
@@ -145,16 +172,22 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
             role: user.role || "N/A",
             status: user.is_active ? "Active" : "Inactive",
             username: user.username || "",
+            department: user.department || "N/A",
+            extra: user.extra || {},
           })) : [];
           
           setUsers(transformedUsers);
-          setTotalUsers(paginationData.count || 0);
-          const calculatedTotalPages = Math.ceil((paginationData.count || 0) / pageSize);
-          setTotalPages(calculatedTotalPages);
           
-          // Reset to page 1 if current page exceeds total pages
-          if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
-            setCurrentPage(1);
+          const count = paginationData.count || (dataSource && dataSource.count);
+          if (count !== undefined) {
+            setTotalUsers(count);
+            const calculatedTotalPages = Math.ceil(count / pageSize);
+            setTotalPages(calculatedTotalPages);
+            
+            // Reset to page 1 if current page exceeds total pages
+            if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+              setCurrentPage(1);
+            }
           }
         } else {
           setError(dataSource?.message || "Failed to fetch users");
@@ -177,7 +210,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       }
     };
     fetchUsers();
-  }, [setError, toast, currentPage, roleFilter, statusFilter, appliedSearch, pageSize]);
+  }, [setError, toast, currentPage, roleFilter, statusFilter, departmentFilter, appliedSearch, pageSize]);
 
 const filteredUsers = Array.isArray(users) ? users : [];
 
@@ -407,55 +440,69 @@ const filteredUsers = Array.isArray(users) ? users : [];
             <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
           </CardHeader>
           <CardContent className="users-card-content">
-            <div className="filters-search flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-              {/* Filters */}
-              <div className="grid grid-cols-1 gap-3 md:flex md:gap-4">
-              <div className="w-full lg:w-auto">
-                <span className={`filter-label block mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Filter by Role</span>
-                <SelectMenu
-                  label=""
-                  value={roleFilter}
-                  onChange={setRoleFilter}
-                  options={roles}
-                />
+            <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
+              {/* Filters Section */}
+              <div className="flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  <div className="flex flex-col gap-2">
+                    <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
+                    <SelectMenu
+                      label=""
+                      value={roleFilter}
+                      onChange={setRoleFilter}
+                      options={roles}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Account Status</span>
+                    <SelectMenu
+                      label=""
+                      value={statusFilter}
+                      onChange={setStatusFilter}
+                      options={statuses}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
+                    <SelectMenu
+                      label=""
+                      value={departmentFilter}
+                      onChange={setDepartmentFilter}
+                      options={departments}
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="w-full lg:w-auto">
-                <span className={`filter-label block mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Filter by Status</span>
-                <SelectMenu
-                  label=""
-                  value={statusFilter}
-                  onChange={setStatusFilter}
-                  options={statuses}
-                />
-              </div>
-            </div>
 
-            {/* Search */}
-            <div className="w-full md:w-auto flex flex-col">
-              <label className={`filter-label mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Search</label>
-              <div className="search-wrapper flex gap-2">
-                <Input
-                  placeholder="Search name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleSearchKeyPress}
-                  className={`search-input w-full md:w-52 rounded ${theme === 'dark' 
-                    ? 'bg-card border border-border text-foreground px-2 py-1' 
-                    : 'bg-white border border-gray-300 text-gray-900 px-2 py-1'}`}
-                />
-                <Button
-                  onClick={performSearch}
-                  variant="outline"
-                  size="sm"
-                  className={theme === 'dark' 
-                    ? 'bg-card border border-border text-foreground hover:bg-accent' 
-                    : 'bg-white border border-gray-300 text-gray-900 hover:bg-gray-50'}
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
+              {/* Search Section */}
+              <div className="w-full xl:w-auto xl:min-w-[320px]">
+                <div className="flex flex-col gap-2">
+                  <label className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Global Search</label>
+                  <div className="search-wrapper flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
+                      <Input
+                        placeholder="Search name, email or USN..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyPress={handleSearchKeyPress}
+                        className={`search-input h-10 w-full pl-10 rounded-md shadow-sm ${theme === 'dark' 
+                          ? 'bg-card border-border text-foreground' 
+                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                      />
+                    </div>
+                    <Button
+                      onClick={performSearch}
+                      className={`h-10 px-6 font-medium transition-all duration-200 ${theme === 'dark' 
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                        : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'}`}
+                    >
+                      Search
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
           <div className="table-wrapper block overflow-x-auto">
             <table className="users-table w-full text-left">
@@ -463,7 +510,8 @@ const filteredUsers = Array.isArray(users) ? users : [];
                 <tr>
                   <th className="py-2 px-4 sm:w-[200px]">Full Name</th>
                   <th className="py-2 px-1 md:w-[200px]">Email</th>
-                  <th className="py-2 px-1 md:w-[120px]">Role</th>
+                   <th className="py-2 px-1 md:w-[120px]">Role</th>
+                  <th className="py-2 px-1 md:w-[250px]">Department</th>
                   <th className="py-2 px-1 md:w-[120px]">Status</th>
                   <th className="py-2 px-1 text-right">Actions</th>
                 </tr>
@@ -507,7 +555,12 @@ const filteredUsers = Array.isArray(users) ? users : [];
                           user.email
                         )}
                       </td>
-                      <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
+                       <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
+                      <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[250px]">
+                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {user.department !== "N/A" ? user.department : "-"}
+                        </span>
+                      </td>
                       <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
                       <td className="table-cell py-2 px-1 text-right">
                         <div className="action-buttons flex flex-wrap sm:flex-nowrap justify-end gap-2">

@@ -508,6 +508,7 @@ export const manageUsers = async (
       if (data.role) params.append('role', data.role);
       if (data.is_active !== undefined) params.append('is_active', data.is_active.toString());
       if (data.search) params.append('search', data.search);
+      if ((data as any).department) params.append('department', (data as any).department);
       if (params.toString()) url += `?${params.toString()}`;
     }
     

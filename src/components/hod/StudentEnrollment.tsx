@@ -177,7 +177,7 @@ const StudentEnrollment = () => {
 
       setStudents(mapped);
       setCurrentPage(page);
-      setTotalPages(Math.ceil(data.count / 50));  // Fixed page size of 50
+      setTotalPages(data.total_pages || Math.ceil(data.count / 50));  // Fixed page size of 50
       setTotalStudents(data.count);
 
       // Reset enrolled count - derived when needed (removed state)

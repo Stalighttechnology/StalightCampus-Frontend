@@ -110,7 +110,7 @@ const QPApprovals = () => {
       setPendingQPs(dataSource);
       
       if (hasResults && responseData.count) {
-        setTotalPages(Math.ceil(responseData.count / 10));
+        setTotalPages(responseData.total_pages || Math.ceil(responseData.count / 10));
         setTotalCount(responseData.count);
       } else {
         setTotalPages(1);

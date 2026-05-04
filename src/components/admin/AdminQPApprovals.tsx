@@ -206,9 +206,10 @@ const AdminQPApprovals = () => {
       
       setPendingQPs(dataSource);
       
-      if (hasResults && responseData.count) {
-        setTotalPages(Math.ceil(responseData.count / 10));
-        setTotalCount(responseData.count);
+      const count = responseData.count || (dataSource && dataSource.count);
+      if (count !== undefined) {
+        setTotalPages(Math.ceil(count / 10));
+        setTotalCount(count);
       } else {
         setTotalPages(1);
         setTotalCount(dataSource.length);

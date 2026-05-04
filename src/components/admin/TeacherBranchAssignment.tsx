@@ -140,16 +140,17 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
         return;
       }
       
-      // Handle response structure (similar to UsersManagement)
       const hasResults = result && typeof result === 'object' && 'results' in result;
       const dataSource = hasResults ? result.results : result;
-      const paginationData = hasResults ? result : dataSource;
       
       if (dataSource && dataSource.success) {
         setTeachers(dataSource.teachers || []);
         setBranches(dataSource.branches || []);
-        setTotalPages(Math.ceil((paginationData.count || 0) / 10));
-        setTotalCount(paginationData.count || 0);
+        const count = result.count || (dataSource && dataSource.count);
+        if (count !== undefined) {
+          setTotalPages(Math.ceil(count / 10));
+          setTotalCount(count);
+        }
       } else {
         setError(dataSource?.message || result.message || "Failed to fetch Faculty assignments");
       }

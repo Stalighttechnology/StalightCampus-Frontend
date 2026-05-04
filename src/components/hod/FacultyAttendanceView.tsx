@@ -98,6 +98,17 @@ const FacultyAttendanceView: React.FC = () => {
         setTodayAttendance(response.data);
         if (response.pagination) {
           setTodayPagination(response.pagination);
+        } else if (response.count !== undefined) {
+          setTodayPagination({
+            page: page,
+            page_size: pageSize,
+            total_pages: response.total_pages || Math.ceil(response.count / pageSize) || 1,
+            total_items: response.count,
+            has_next: !!response.next,
+            has_prev: !!response.previous,
+            next_page: response.next ? page + 1 : null,
+            prev_page: response.previous ? page - 1 : null
+          });
         }
         if (response.summary) {
           setTodaySummary(response.summary);
@@ -161,6 +172,17 @@ const FacultyAttendanceView: React.FC = () => {
         setFacultySummary(response.faculty_summary || []);
         if (response.pagination) {
           setRecordsPagination(response.pagination);
+        } else if (response.count !== undefined) {
+          setRecordsPagination({
+            page: page,
+            page_size: pageSize,
+            total_pages: response.total_pages || Math.ceil(response.count / pageSize) || 1,
+            total_items: response.count,
+            has_next: !!response.next,
+            has_prev: !!response.previous,
+            next_page: response.next ? page + 1 : null,
+            prev_page: response.previous ? page - 1 : null
+          });
         }
       } else {
         console.error("Failed to fetch faculty attendance records:", response.message);

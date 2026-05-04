@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Eye, FileDown } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import Fuse from "fuse.js";
 import {
   Dialog,
   DialogContent,
@@ -78,6 +77,9 @@ interface AttendanceBootstrapResponse {
       students: Student[];
     };
   };
+  count?: number;
+  current_page?: number;
+  total_pages?: number;
 }
 
 const AttendanceView = () => {
@@ -140,6 +142,7 @@ const AttendanceView = () => {
       total_pages: 0,
     },
   });
+  const [localSearch, setLocalSearch] = useState("");
 
   const studentsPerPage = 50;
 
@@ -148,71 +151,71 @@ const AttendanceView = () => {
     setState((prev) => ({ ...prev, ...newState }));
   };
 
-  // Fetch all data using combined endpoint with pagination
-  useEffect(() => {
-    const fetchData = async () => {
-      updateState({ loading: true, search: "", currentPage: 1 });
-      try {
-        // Fetch data with pagination support
-        const response = await getAttendanceBootstrap("", {
-          page: state.pagination.page,
-          page_size: state.pagination.page_size,
-          ...(state.filters.semester_id && { semester_id: state.filters.semester_id }),
-          ...(state.filters.section_id && { section_id: state.filters.section_id }),
-          ...(state.filters.subject_id && { subject_id: state.filters.subject_id }),
+  // Fetch all data using combined endpoint with server-side pagination + search
+  const fetchData = useCallback(async () => {
+    updateState({ loading: true });
+    try {
+      const response = await getAttendanceBootstrap("", {
+        page: state.pagination.page,
+        page_size: state.pagination.page_size,
+        ...(state.filters.semester_id && { semester_id: state.filters.semester_id }),
+        ...(state.filters.section_id && { section_id: state.filters.section_id }),
+        ...(state.filters.subject_id && { subject_id: state.filters.subject_id }),
+        ...(state.search && { search: state.search }),
+      });
+      if (response.success && response.data) {
+        updateState({
+          branch: response.data.profile.branch,
+          branchId: response.data.profile.branch_id,
+          semesters: response.data.semesters,
+          sections: response.data.sections.map((s) => ({
+            id: s.id,
+            name: s.name,
+            semester_id: s.semester_id.toString(),
+          })),
+          subjects: response.data.subjects.map((s) => ({
+            id: s.id,
+            name: s.name,
+            subject_code: s.subject_code,
+            semester_id: s.semester_id.toString(),
+          })),
+          students: response.data.attendance.students,
+          pagination: {
+            page: response.current_page || state.pagination.page,
+            page_size: state.pagination.page_size,
+            total_students: response.count || 0,
+            total_pages: response.total_pages || Math.ceil((response.count || 0) / state.pagination.page_size) || 1,
+          },
         });
-        if (response.success && response.data) {
-          updateState({
-            branch: response.data.profile.branch,
-            branchId: response.data.profile.branch_id,
-            semesters: response.data.semesters,
-            sections: response.data.sections.map((s) => ({
-              id: s.id,
-              name: s.name,
-              semester_id: s.semester_id.toString(),
-            })),
-            subjects: response.data.subjects.map((s) => ({
-              id: s.id,
-              name: s.name,
-              subject_code: s.subject_code,
-              semester_id: s.semester_id.toString(),
-            })),
-            students: response.data.attendance.students,
-            pagination: {
-              page: response.count ? Math.ceil(response.count / state.pagination.page_size) : 1,
-              page_size: state.pagination.page_size,
-              total_students: response.count || 0,
-              total_pages: response.count ? Math.ceil(response.count / state.pagination.page_size) : 1,
-            },
-          });
-        } else {
-          throw new Error(response.message || "Failed to fetch data");
-        }
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : "Network error";
-        updateState({ error: errorMessage });
-        toast({ variant: "destructive", title: "Error", description: errorMessage });
-      } finally {
-        updateState({ loading: false });
+      } else {
+        throw new Error(response.message || "Failed to fetch data");
       }
-    };
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Network error";
+      updateState({ error: errorMessage });
+      toast({ variant: "destructive", title: "Error", description: errorMessage });
+    } finally {
+      updateState({ loading: false });
+    }
+  }, [state.filters.semester_id, state.filters.section_id, state.filters.subject_id, state.search, state.pagination.page, state.pagination.page_size, toast]);
+
+  // Debounce sync local search to state.search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateState({ search: localSearch, pagination: { ...state.pagination, page: 1 } });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [localSearch]);
+
+  useEffect(() => {
     fetchData();
-  }, [state.filters.semester_id, state.filters.section_id, state.filters.subject_id, state.pagination.page, state.pagination.page_size, toast]);
+  }, [fetchData]);
 
-// Use fuzzy search on current page data
-const fuse = new Fuse(state.students, {
-  keys: ["name", "usn", "semester", "section"],
-  threshold: 0.3,
-  includeScore: true,
-});
+  const filteredStudents = state.students; // server-side filtered
+  const totalPages = state.pagination.total_pages;
+  const currentStudents = filteredStudents;
 
-// Use fuzzy search
-const filteredStudents = state.search
-  ? fuse.search(state.search).map((result) => result.item)
-  : state.students;
-
-const totalPages = state.pagination.total_pages;
-const currentStudents = filteredStudents;  const handlePrev = () => {
+  const handlePrev = () => {
     if (state.pagination.page > 1) {
       updateState({
         pagination: { ...state.pagination, page: state.pagination.page - 1 },
@@ -372,11 +375,11 @@ const currentStudents = filteredStudents;  const handlePrev = () => {
             <Input
               className={`w-full ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
               placeholder="Search by name or USN..."
-              value={state.search}
+              value={localSearch}
               onChange={(e) => {
                 const value = e.target.value;
-                if (/^[a-zA-Z0-9]*$/.test(value)) {
-                  updateState({ search: value });
+                if (/^[a-zA-Z0-9\s]*$/.test(value)) {
+                  setLocalSearch(value);
                 }
               }}
             />

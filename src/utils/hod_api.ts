@@ -48,6 +48,11 @@ interface GetSemestersResponse {
   success: boolean;
   message?: string;
   data?: Semester[];
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  total_pages?: number;
+  current_page?: number;
 }
 
 interface Section {
@@ -60,6 +65,11 @@ interface GetSectionsResponse {
   success: boolean;
   message?: string;
   data?: Section[];
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  total_pages?: number;
+  current_page?: number;
 }
 
 interface Branch {
@@ -77,6 +87,8 @@ interface GetAttendanceBootstrapResponse {
   success: boolean;
   message?: string;
   count?: number;
+  total_pages?: number;
+  current_page?: number;
   next?: string | null;
   previous?: string | null;
   data?: {
@@ -148,6 +160,9 @@ interface GetFacultiesResponse {
   success: boolean;
   message?: string;
   data?: Faculty[];
+  count?: number;
+  total_pages?: number;
+  current_page?: number;
 }
 
 interface ManageSemestersRequest {
@@ -220,6 +235,8 @@ interface ManageStudentsRequest {
 interface ManageStudentsResponse {
   // For GET requests (DRF pagination)
   count?: number;
+  total_pages?: number;
+  current_page?: number;
   next?: string | null;
   previous?: string | null;
   results?: Array<{
@@ -315,12 +332,19 @@ interface ManageFacultyAssignmentsRequest {
   semester_id?: string;
   section_id?: string;
   branch_id: string;
+  page?: number;
+  search?: string;
 }
 
 interface ManageFacultyAssignmentsResponse {
   success: boolean;
   message?: string;
   data?: { assignments?: FacultyAssignment[]; assignment_id?: string };
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  total_pages?: number;
+  current_page?: number;
 }
 
 interface TimetableEntry {
@@ -356,6 +380,8 @@ interface ManageTimetableResponse {
   success: boolean;
   message?: string;
   count?: number;
+  total_pages?: number;
+  current_page?: number;
   next?: string | null;
   previous?: string | null;
   data?: { timetable_id?: string; created_count?: number; errors?: string[] } | TimetableEntry[];
@@ -401,6 +427,8 @@ interface GetAttendanceParams {
   section_id?: string;
   subject_id?: string;
   branch_id: string;
+  page?: number;
+  page_size?: number;
 }
 
 interface AttendanceRecord {
@@ -415,6 +443,11 @@ interface GetAttendanceResponse {
   success: boolean;
   message?: string;
   data?: { records: AttendanceRecord[] };
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  total_pages?: number;
+  current_page?: number;
 }
 
 interface GetMarksParams {
@@ -763,6 +796,9 @@ interface UploadStudyMaterialResponse {
 interface GetStudyMaterialsResponse {
   success: boolean;
   message?: string;
+  count?: number;
+  total_pages?: number;
+  current_page?: number;
   data?: StudyMaterial[];
 }
 
@@ -811,6 +847,8 @@ export const getBranches = async (): Promise<GetBranchesResponse> => {
 
 interface GetLeaveBootstrapResponse {
   count?: number;
+  total_pages?: number;
+  current_page?: number;
   next?: string | null;
   previous?: string | null;
   results?: {
@@ -1217,6 +1255,8 @@ export const getLowAttendanceStudents = async (
   success: boolean;
   message?: string;
   count?: number;
+  total_pages?: number;
+  current_page?: number;
   next?: string | null;
   previous?: string | null;
   data?: {
@@ -1256,7 +1296,7 @@ export const getLowAttendanceStudents = async (
 
 export const getAttendanceBootstrap = async (
   branch_id?: string,
-  filters: { semester_id?: string; section_id?: string; subject_id?: string; page?: number; page_size?: number } = {}
+  filters: { semester_id?: string; section_id?: string; subject_id?: string; search?: string; page?: number; page_size?: number } = {}
 ): Promise<GetAttendanceBootstrapResponse> => {
   try {
     const params: Record<string, string> = {};
@@ -1264,6 +1304,7 @@ export const getAttendanceBootstrap = async (
     if (filters.semester_id) params.semester_id = filters.semester_id;
     if (filters.section_id) params.section_id = filters.section_id;
     if (filters.subject_id) params.subject_id = filters.subject_id;
+    if (filters.search) params.search = filters.search;
     if (filters.page) params.page = filters.page.toString();
     if (filters.page_size) params.page_size = filters.page_size.toString();
     const query = new URLSearchParams(params).toString();
@@ -1284,6 +1325,8 @@ export const getMarksBootstrap = async (
   success: boolean;
   message?: string;
   count?: number;
+  total_pages?: number;
+  current_page?: number;
   next?: string | null;
   previous?: string | null;
   data?: {
@@ -1361,15 +1404,20 @@ export const getStudentOptions = async (branch_id: string): Promise<GetStudentOp
   }
 };
 
-export const getSemesters = async (branch_id: string): Promise<GetSemestersResponse> => {
+export const getSemesters = async (branch_id: string, page?: number): Promise<GetSemestersResponse> => {
   try {
     if (!branch_id) throw new Error("Branch ID is required");
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/semesters/?branch_id=${branch_id}`, {
+    let url = `${API_ENDPOINT}/hod/semesters/?branch_id=${branch_id}`;
+    if (page) url += `&page=${page}`;
+    const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
-
     });
-    return await response.json();
+    const data = await response.json();
+    if (data.results && data.results.success) {
+      return { ...data, ...data.results };
+    }
+    return data;
   } catch (error: unknown) {
     return handleApiError(error, (error as any).response);
   }
@@ -1423,7 +1471,11 @@ export const manageSections = async (
       body: method === "POST" ? JSON.stringify(data) : undefined,
 
     });
-    return await response.json();
+    const dataRes = await response.json();
+    if (dataRes.results && dataRes.results.success) {
+      return { ...dataRes, ...dataRes.results };
+    }
+    return dataRes;
   } catch (error: unknown) {
     return handleApiError(error, (error as any).response);
   }
@@ -1685,7 +1737,8 @@ export const manageStudents = async (
       body: method === "POST" ? JSON.stringify(data) : undefined,
 
     });
-    const result = await response.json();
+    const rawResult = await response.json();
+    const result = (rawResult.results && rawResult.results.success) ? { ...rawResult, ...rawResult.results } : rawResult;
 
     // Cache GET responses for students endpoint (in-memory and localStorage)
     if (method === 'GET') {
@@ -1821,7 +1874,11 @@ export const manageFaculties = async (
       method,
       headers: { "Content-Type": "application/json" },
     });
-    return await response.json();
+    const data = await response.json();
+    if (data.results && data.results.success) {
+      return { ...data, ...data.results };
+    }
+    return data;
   } catch (error: unknown) {
     return handleApiError(error, (error as any).response);
   }
@@ -1839,15 +1896,20 @@ export const listFacultyBranches = async (): Promise<GetBranchesResponse> => {
   }
 };
 
-export const getProctors = async (branch_id: string): Promise<GetFacultiesResponse> => {
+export const getProctors = async (branch_id: string, page?: number): Promise<any> => {
   try {
     if (!branch_id) throw new Error("Branch ID is required");
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctors/list/?branch_id=${branch_id}`, {
+    let url = `${API_ENDPOINT}/hod/proctors/list/?branch_id=${branch_id}`;
+    if (page) url += `&page=${page}`;
+    const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
-
     });
-    return await response.json();
+    const data = await response.json();
+    if (data.results && data.results.success) {
+      return { ...data, ...data.results };
+    }
+    return data;
   } catch (error: unknown) {
     return handleApiError(error, (error as any).response);
   }
@@ -2004,7 +2066,11 @@ export const getAttendance = async (params: GetAttendanceParams): Promise<GetAtt
       headers: { "Content-Type": "application/json" },
 
     });
-    return await response.json();
+    const dataRes = await response.json();
+    if (dataRes.results && dataRes.results.success) {
+      return { ...dataRes, ...dataRes.results };
+    }
+    return dataRes;
   } catch (error: unknown) {
     return handleApiError(error, (error as any).response);
   }
@@ -2019,7 +2085,11 @@ export const getMarks = async (params: GetMarksParams): Promise<GetMarksResponse
       headers: { "Content-Type": "application/json" },
 
     });
-    return await response.json();
+    const dataRes = await response.json();
+    if (dataRes.results && dataRes.results.success) {
+      return { ...dataRes, ...dataRes.results };
+    }
+    return dataRes;
   } catch (error: unknown) {
     return handleApiError(error, (error as any).response);
   }
@@ -2223,7 +2293,9 @@ export const getStudyMaterials = async (
   branch_id?: string,
   semester_id?: string,
   section_id?: string,
-  search?: string
+  search?: string,
+  page?: number,
+  page_size?: number
 ): Promise<GetStudyMaterialsResponse> => {
   try {
     const params = new URLSearchParams();
@@ -2231,12 +2303,18 @@ export const getStudyMaterials = async (
     if (semester_id) params.append('semester_id', semester_id);
     if (section_id) params.append('section_id', section_id);
     if (search) params.append('search', search);
+    if (page) params.append('page', page.toString());
+    if (page_size) params.append('page_size', page_size.toString());
     const qs = params.toString() ? `?${params.toString()}` : '';
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/study-materials/${qs}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
-    return await response.json();
+    const dataRes = await response.json();
+    if (dataRes.results && dataRes.results.success) {
+      return { ...dataRes, ...dataRes.results };
+    }
+    return dataRes;
   } catch (error: unknown) {
     return handleApiError(error, (error as any).response);
   }

@@ -165,7 +165,7 @@ const StudentManagement = () => {
         cycle: s.cycle,
         mode_of_admission: s.mode_of_admission,
       }));
-      const totalPages = Math.ceil(count / pageSize);
+      const totalPages = (studentRes as ManageStudentsResponse).total_pages || Math.ceil(count / pageSize);
       updateState({ students, totalStudents: count, currentPage: page, totalPages });
     } catch (err) {
       updateState({ uploadErrors: [...state.uploadErrors, "Failed to fetch students"] });

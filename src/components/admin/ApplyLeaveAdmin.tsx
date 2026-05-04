@@ -65,9 +65,10 @@ const ApplyLeaveAdmin = () => {
       if (dataSource && dataSource.success && dataSource.data) {
         setLeaves(dataSource.data);
         
-        if (hasResults) {
-          setTotalCount(paginationData.count || 0);
-          setTotalPages(Math.ceil((paginationData.count || 0) / pageSize));
+        const count = paginationData.count || (dataSource && dataSource.count);
+        if (count !== undefined) {
+          setTotalCount(count);
+          setTotalPages(Math.ceil(count / pageSize));
           setCurrentPage(page);
         } else {
           setTotalCount(dataSource.data.length);

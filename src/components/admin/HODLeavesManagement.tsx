@@ -54,10 +54,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewReason, setViewReason] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  });
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -110,9 +107,10 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         setLeaveRequests(leaveData);
         
         // Set pagination info if available
-        if (hasResults && response.count) {
-          setTotalPages(Math.ceil(response.count / 10)); // Assuming page_size is 10
-          setTotalCount(response.count);
+        const count = response.count || (dataSource && dataSource.count);
+        if (count !== undefined) {
+          setTotalPages(Math.ceil(count / 10)); // Assuming page_size is 10
+          setTotalCount(count);
         }
       } else {
         setError(dataSource?.message || response?.message || "Failed to fetch leave requests");
@@ -488,7 +486,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-6 py-4 border-t border-border">
             <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-              Showing {Math.min((currentPage - 1) * 20 + 1, totalCount)} to {Math.min(currentPage * 20, totalCount)} of {totalCount} leave requests
+              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} leave requests
             </div>
             <div className="flex items-center gap-2">
               <Button

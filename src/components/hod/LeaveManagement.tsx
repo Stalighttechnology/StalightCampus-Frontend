@@ -51,6 +51,7 @@ interface FacultyLeavesBootstrapResponse {
 
 const LeaveManagement = () => {
   const [search, setSearch] = useState("");
+  const [localSearch, setLocalSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<"All" | "Pending" | "Approved" | "Rejected">("All");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -145,6 +146,9 @@ const LeaveManagement = () => {
           const r = item.raw;
           const status = (r.status || '').toUpperCase();
 
+          // If user has chosen a specific date range (e.g. via Month filter), skip the "7-day/pending active" rule
+          if (filters?.date_from || filters?.date_to) return true;
+
           if (status === 'PENDING') {
             try {
               const end = new Date(r.end_date);
@@ -166,12 +170,13 @@ const LeaveManagement = () => {
 
           return false;
         })
+
         .map(item => item.mapped) as LeaveRequest[];
 
       setLeaveRequests(processed);
       setTotalCount(response.count || 0);
-      setTotalPages(Math.ceil((response.count || 0) / 50));
-      setCurrentPage(page);
+      setTotalPages(response.total_pages || Math.ceil((response.count || 0) / 50));
+      setCurrentPage(response.current_page || page);
       setErrors([]);
       console.log("Processed leave requests:", processed);
     } catch (err: unknown) {
@@ -256,15 +261,19 @@ const LeaveManagement = () => {
 
   // Handle search changes - real-time search (only after initial load)
   useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearch(localSearch);
+    }, 500); // Increased debounce to 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [localSearch]);
+
+  useEffect(() => {
     if (initialLoadRef.current) return; // Don't search on initial load
     
     isSilentOperationRef.current = true;
-    const timeoutId = setTimeout(() => {
-      setCurrentPage(1);
-      fetchLeaveRequests(1);
-    }, 300); // Debounce search by 300ms
-
-    return () => clearTimeout(timeoutId);
+    setCurrentPage(1);
+    fetchLeaveRequests(1);
   }, [search]);
 
   // Combined effect for initial load and filter changes
@@ -302,8 +311,8 @@ const LeaveManagement = () => {
           <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
             <Input
               placeholder="Search faculty..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
               className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
             />
             <Select
