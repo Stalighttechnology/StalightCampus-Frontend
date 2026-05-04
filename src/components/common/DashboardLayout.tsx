@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "./Sidebar";
@@ -48,6 +48,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const navigate = useNavigate();
+  const mainContentRef = useRef<HTMLElement>(null);
 
   // Lock sidebar open on desktop, collapsible only on mobile/tablet
   useEffect(() => {
@@ -108,11 +109,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     const interval = setInterval(fetchUnreadCount, 5 * 60 * 1000);
     
     // Add event listener for manual refreshes from child components
-    window.addEventListener('refresh-unread-count', fetchUnreadCount);
+    const handleRefresh = (e: any) => {
+      if (e.detail?.decrement) {
+        setUnreadCount(prev => Math.max(0, prev - (e.detail.decrement || 1)));
+      } else {
+        fetchUnreadCount();
+      }
+    };
+    window.addEventListener('refresh-unread-count', handleRefresh);
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('refresh-unread-count', fetchUnreadCount);
+      window.removeEventListener('refresh-unread-count', handleRefresh);
     };
   }, [fetchUnreadCount]);
 
@@ -120,6 +128,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   useEffect(() => {
     if (window.innerWidth < 1024) {
       setSidebarCollapsed(true);
+    }
+    // Always scroll to top when page changes
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: "instant" });
     }
   }, [activePage]);
 
@@ -132,7 +144,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   const handlePageChange = (page: string) => {
     onPageChange(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: "instant" });
+    }
   };
 
   const handleLogout = async () => {
@@ -208,6 +222,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Page Content */}
         <motion.main
+          ref={mainContentRef}
           className={`flex-1 min-w-0 p-4 pb-32 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${
             theme === "dark" ? "bg-background" : "bg-gray-50"
           }`}

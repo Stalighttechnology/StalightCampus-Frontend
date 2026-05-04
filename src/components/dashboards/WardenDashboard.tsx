@@ -27,7 +27,6 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
   const handlePageChange = (page: string) => {
     const path = page === 'dashboard' ? '/warden' : `/warden/${page}`;
     navigate(path);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const renderContent = () => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaUserGraduate, FaChalkboardTeacher, FaUserTie, FaUserCheck } from "react-icons/fa";
+import { FaUserGraduate, FaChalkboardTeacher, FaUserTie, FaUserCheck, FaBuilding } from "react-icons/fa";
 import { FiDownload, FiSearch } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { Bar, Pie } from "react-chartjs-2";
@@ -226,39 +226,37 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       <div>
         
         {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div>
-            <DashboardCard
-              title="Total Students"
-              value={stats.total_students || 0}
-              description="Enrolled in all branches"
-              icon={<FaUserGraduate className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />}
-            />
-          </div>
-          <div>
-            <DashboardCard
-              title="Total Faculty"
-              value={stats.total_faculty || 0}
-              description="Across all departments"
-              icon={<FaChalkboardTeacher className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />}
-            />
-          </div>
-          <div>
-            <DashboardCard
-              title="Total HODs"
-              value={stats.total_hods || 0}
-              description="Department heads"
-              icon={<FaUserTie className={theme === 'dark' ? "text-orange-400 text-3xl" : "text-orange-500 text-3xl"} />}
-            />
-          </div>
-          <div>
-            <DashboardCard
-              title="Active Now"
-              value={stats.active_users || 0}
-              description="Users currently online"
-              icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />}
-            />
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <DashboardCard
+            title="Branches"
+            value={stats.total_branches || 0}
+            description="Active branches"
+            icon={<FaBuilding className={theme === 'dark' ? "text-indigo-400 text-3xl" : "text-indigo-500 text-3xl"} />}
+          />
+          <DashboardCard
+            title="Total Students"
+            value={stats.total_students || 0}
+            description="Across branches"
+            icon={<FaUserGraduate className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />}
+          />
+          <DashboardCard
+            title="Total Faculty"
+            value={stats.total_faculty || 0}
+            description="Teaching staff"
+            icon={<FaChalkboardTeacher className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />}
+          />
+          <DashboardCard
+            title="HODs"
+            value={stats.total_hods || 0}
+            description="Dept heads"
+            icon={<FaUserTie className={theme === 'dark' ? "text-yellow-400 text-3xl" : "text-yellow-500 text-3xl"} />}
+          />
+          <DashboardCard
+            title="COE"
+            value={stats.total_coe || 0}
+            description="Exams controller"
+            icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />}
+          />
         </div>
 
         {/* Search and Export */}

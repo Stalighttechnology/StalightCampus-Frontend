@@ -59,6 +59,16 @@ const AdminAnnouncementManagement = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  
+  // Pagination state
+  const [myPage, setMyPage] = useState(1);
+  const [receivedPage, setReceivedPage] = useState(1);
+  const [totalMyCount, setTotalMyCount] = useState(0);
+  const [totalReceivedCount, setTotalReceivedCount] = useState(0);
+  const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
+  const [activeTab, setActiveTab] = useState("my");
+  const pageSize = 10;
+
   const { theme } = useTheme();
 
   // Form state
@@ -75,12 +85,21 @@ const AdminAnnouncementManagement = () => {
   const loadAnnouncements = async () => {
     setLoading(true);
     setError(null);
-    // Fetch all for management view (include inactive and expired)
-    const response = await fetchAnnouncements(1, 100, true, true);
+    // Fetch for management view with pagination
+    const response = await fetchAnnouncements({
+      myPage,
+      receivedPage,
+      pageSize,
+      includeInactive: true,
+      includeExpired: true
+    });
 
     if (response.success && response.data) {
       setMyAnnouncements(response.data.my_announcements.results || []);
+      setTotalMyCount(response.data.my_announcements.count || 0);
       setReceivedAnnouncements(response.data.received_announcements.results || []);
+      setTotalReceivedCount(response.data.received_announcements.count || 0);
+      setUnreadReceivedCount(response.data.received_announcements.unread_count || 0);
       setError(null);
     } else {
       setError(response.message || "Failed to load announcements");
@@ -92,7 +111,15 @@ const AdminAnnouncementManagement = () => {
 
   useEffect(() => {
     loadAnnouncements();
-  }, []);
+  }, [myPage, receivedPage]);
+
+  const handlePageChange = (page: number, type: 'my' | 'received') => {
+    if (type === 'my') {
+      setMyPage(page);
+    } else {
+      setReceivedPage(page);
+    }
+  };
 
   const handleCreateOrUpdate = async () => {
     if (!formData.title.trim() || !formData.message.trim()) {
@@ -258,8 +285,10 @@ const AdminAnnouncementManagement = () => {
         setReceivedAnnouncements((prev) =>
           prev.map((a) => (a.id === announcementId ? { ...a, is_read: true } : a))
         );
+        // Optimistically update local unread count for real-time feel
+        setUnreadReceivedCount(prev => Math.max(0, prev - 1));
         // Trigger global unread count refresh
-        window.dispatchEvent(new CustomEvent('refresh-unread-count'));
+        window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: 1 } }));
       }
     } catch (error: any) {
       console.error("Failed to mark as read:", error);
@@ -278,7 +307,7 @@ const AdminAnnouncementManagement = () => {
     });
   };
 
-  const roles = ["student", "hod", "faculty"];
+  const roles = ["student", "hod", "faculty", "principal"];
 
   return (
     <>
@@ -316,8 +345,7 @@ const AdminAnnouncementManagement = () => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent 
-                className="mobile-modal max-w-2xl max-h-[90vh] overflow-y-auto"
-                onInteractOutside={(e) => e.preventDefault()}
+                className="mobile-modal max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar"
               >
                   <DialogHeader>
                     <DialogTitle>
@@ -450,20 +478,20 @@ const AdminAnnouncementManagement = () => {
                           <div key={role} className="flex items-center gap-2">
                             <Checkbox
                               id={role}
-                              checked={formData.target_roles.includes(role)}
+                              checked={formData.target_roles?.includes(role) || false}
                               onCheckedChange={(checked) => {
                                 if (checked) {
                                   setFormData({
                                     ...formData,
                                     target_roles: [
-                                      ...formData.target_roles,
+                                      ...(formData.target_roles || []),
                                       role,
                                     ],
                                   });
                                 } else {
                                   setFormData({
                                     ...formData,
-                                    target_roles: formData.target_roles.filter(
+                                    target_roles: (formData.target_roles || []).filter(
                                       (r) => r !== role
                                     ),
                                   });
@@ -515,6 +543,16 @@ const AdminAnnouncementManagement = () => {
                   onMarkRead={handleMarkRead}
                   loading={loading}
                   showActions={true}
+                  myPagination={{ count: totalMyCount, page: myPage, pageSize }}
+                  receivedPagination={{ 
+                    count: totalReceivedCount, 
+                    page: receivedPage, 
+                    pageSize,
+                    unreadCount: unreadReceivedCount
+                  }}
+                  onPageChange={handlePageChange}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
                 />
               )}
             </div>

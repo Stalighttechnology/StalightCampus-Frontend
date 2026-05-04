@@ -62,7 +62,6 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
     // Navigate to the corresponding dean route. Default to `/dean/{page}`
     const path = page === 'dashboard' ? '/dean/dashboard' : `/dean/${page}`;
     navigate(path);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const renderContent = () => {

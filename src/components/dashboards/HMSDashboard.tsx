@@ -51,7 +51,6 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
   const handlePageChange = (page: string) => {
     const path = page === 'dashboard' ? '/hms' : `/hms/${page}`;
     navigate(path);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleNotificationClick = () => {

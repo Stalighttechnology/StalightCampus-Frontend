@@ -82,7 +82,7 @@ const StudentAnnouncements = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetchAnnouncements(1, 100);
+      const response = await fetchAnnouncements({ page: 1, pageSize: 100 });
       if (response.success && response.data) {
         setAnnouncements(response.data.received_announcements?.results || []);
       } else {
@@ -106,7 +106,7 @@ const StudentAnnouncements = () => {
         prev.map((a) => (a.id === announcementId ? { ...a, is_read: true } : a))
       );
       // Trigger global unread count refresh
-      window.dispatchEvent(new CustomEvent('refresh-unread-count'));
+      window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: 1 } }));
     }
   };
 

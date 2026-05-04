@@ -68,14 +68,31 @@ const HODAnnouncementManagement = () => {
     priority: "normal",
   });
 
+  const [myPage, setMyPage] = useState(1);
+  const [receivedPage, setReceivedPage] = useState(1);
+  const [totalMyCount, setTotalMyCount] = useState(0);
+  const [totalReceivedCount, setTotalReceivedCount] = useState(0);
+  const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
+  const [activeTab, setActiveTab] = useState("my");
+  const pageSize = 10;
+
   const loadAnnouncements = async () => {
     setLoading(true);
     setError(null);
-    const response = await fetchAnnouncements(1, 50);
+    const response = await fetchAnnouncements({ 
+      myPage, 
+      receivedPage, 
+      pageSize,
+      includeInactive: true,
+      includeExpired: true
+    });
 
     if (response.success && response.data) {
       setMyAnnouncements(response.data.my_announcements.results || []);
+      setTotalMyCount(response.data.my_announcements.count || 0);
       setReceivedAnnouncements(response.data.received_announcements.results || []);
+      setTotalReceivedCount(response.data.received_announcements.count || 0);
+      setUnreadReceivedCount(response.data.received_announcements.unread_count || 0);
       setError(null);
     } else {
       setError(response.message || "Failed to load announcements");
@@ -87,7 +104,15 @@ const HODAnnouncementManagement = () => {
 
   useEffect(() => {
     loadAnnouncements();
-  }, []);
+  }, [myPage, receivedPage]);
+
+  const handlePageChange = (page: number, type: 'my' | 'received') => {
+    if (type === 'my') {
+      setMyPage(page);
+    } else {
+      setReceivedPage(page);
+    }
+  };
 
   const handleCreateOrUpdate = async () => {
     if (!formData.title.trim() || !formData.message.trim()) {
@@ -255,8 +280,10 @@ const HODAnnouncementManagement = () => {
         setReceivedAnnouncements((prev) =>
           prev.map((a) => (a.id === announcementId ? { ...a, is_read: true } : a))
         );
+        // Optimistically update local unread count for real-time feel
+        setUnreadReceivedCount(prev => Math.max(0, prev - 1));
         // Trigger global unread count refresh
-        window.dispatchEvent(new CustomEvent('refresh-unread-count'));
+        window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: 1 } }));
       }
     } catch (error: any) {
       console.error("Failed to mark as read:", error);
@@ -312,7 +339,6 @@ const HODAnnouncementManagement = () => {
               </DialogTrigger>
               <DialogContent 
                 className="mobile-modal w-[92%] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl"
-                onInteractOutside={(e) => e.preventDefault()}
               >
               <DialogHeader>
                 <DialogTitle>
@@ -398,20 +424,20 @@ const HODAnnouncementManagement = () => {
                       <div key={role} className="flex items-center gap-2">
                         <Checkbox
                           id={role}
-                          checked={formData.target_roles.includes(role)}
+                          checked={formData.target_roles?.includes(role) || false}
                           onCheckedChange={(checked) => {
                             if (checked) {
                               setFormData({
                                 ...formData,
                                 target_roles: [
-                                  ...formData.target_roles,
+                                  ...(formData.target_roles || []),
                                   role,
                                 ],
                               });
                             } else {
                               setFormData({
                                 ...formData,
-                                target_roles: formData.target_roles.filter(
+                                target_roles: (formData.target_roles || []).filter(
                                   (r) => r !== role
                                 ),
                               });
@@ -474,6 +500,16 @@ const HODAnnouncementManagement = () => {
           onMarkRead={handleMarkRead}
           loading={loading}
           showActions={true}
+          myPagination={{ count: totalMyCount, page: myPage, pageSize }}
+          receivedPagination={{ 
+            count: totalReceivedCount, 
+            page: receivedPage, 
+            pageSize,
+            unreadCount: unreadReceivedCount
+          }}
+          onPageChange={handlePageChange}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
         />
       )}
 

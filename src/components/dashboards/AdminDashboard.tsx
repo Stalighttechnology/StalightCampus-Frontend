@@ -58,7 +58,6 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
     const path = page === 'dashboard' ? '/admin' : `/admin/${page}`;
     navigate(path);
     setError(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
 

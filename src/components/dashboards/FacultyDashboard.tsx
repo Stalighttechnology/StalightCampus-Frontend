@@ -139,9 +139,6 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
 
     const path = pathMap[page] || '/faculty/dashboard';
     navigate(path);
-
-    // scroll window to top just in case
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleNotificationClick = () => {

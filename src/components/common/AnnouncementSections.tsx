@@ -23,6 +23,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+interface PaginationData {
+  count: number;
+  page: number;
+  pageSize: number;
+  unreadCount?: number;
+}
+
 interface AnnouncementSectionsProps {
   myAnnouncements: Announcement[];
   receivedAnnouncements: Announcement[];
@@ -32,6 +48,11 @@ interface AnnouncementSectionsProps {
   onMarkRead: (announcementId: number) => void;
   loading?: boolean;
   showActions?: boolean; // Whether to show edit/delete buttons
+  myPagination?: PaginationData;
+  receivedPagination?: PaginationData;
+  onPageChange?: (page: number, type: 'my' | 'received') => void;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -97,9 +118,13 @@ export const AnnouncementSections = ({
   onMarkRead,
   loading = false,
   showActions = true,
+  myPagination,
+  receivedPagination,
+  onPageChange,
+  activeTab,
+  onTabChange,
 }: AnnouncementSectionsProps) => {
   const { theme } = useTheme();
-  const [activeTab, setActiveTab] = useState("my");
   const [showExpired, setShowExpired] = useState(false);
   const [viewingAnnouncement, setViewingAnnouncement] = useState<Announcement | null>(null);
 
@@ -116,28 +141,31 @@ export const AnnouncementSections = ({
   ).length;
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <TabsList className="grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl">
           <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
             <span className="text-sm font-semibold">My Announcements</span>
-            {filteredMyAnnouncements.length > 0 && (
-              <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-bold bg-primary/10 text-primary border-none">
-                {filteredMyAnnouncements.length}
+            {myPagination && myPagination.count > 0 && (
+              <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary border-none">
+                {myPagination.count}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
             <span className="text-sm font-semibold">Received</span>
-            {totalUnread > 0 && (
-              <Badge className="bg-primary text-white text-[10px] h-5 px-1.5 font-bold border-none shadow-sm">
-                {totalUnread}
-              </Badge>
-            )}
-            {filteredReceivedAnnouncements.length > 0 && (
-              <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-bold ml-1 bg-muted text-muted-foreground border-none">
-                {filteredReceivedAnnouncements.length}
-              </Badge>
+            {receivedPagination && receivedPagination.unreadCount !== undefined ? (
+              receivedPagination.unreadCount > 0 && (
+                <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-primary text-white border-none shadow-sm pointer-events-none select-none">
+                  {receivedPagination.unreadCount}
+                </Badge>
+              )
+            ) : (
+              receivedPagination && receivedPagination.count > 0 && (
+                <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-muted text-muted-foreground border-none pointer-events-none select-none">
+                  {receivedPagination.count}
+                </Badge>
+              )
             )}
           </TabsTrigger>
         </TabsList>
@@ -146,7 +174,7 @@ export const AnnouncementSections = ({
           variant="outline"
           size="sm"
           onClick={() => setShowExpired(!showExpired)}
-          className={`text-xs font-bold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${
+          className={`text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${
             showExpired 
               ? "bg-primary/5 border-primary text-primary hover:bg-primary/10" 
               : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
@@ -190,15 +218,19 @@ export const AnnouncementSections = ({
                     return (
                       <TableRow key={announcement.id} className={`${expired ? 'opacity-60' : ''} ${theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}`}>
                       <TableCell>
-                        <div className="flex flex-col gap-1.5">
-                          <span className="font-semibold text-foreground text-lg line-clamp-1">{announcement.title}</span>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs flex items-center gap-1 text-muted-foreground font-medium">
-                                <Clock className="w-3.5 h-3.5" />
-                                {formatDate(announcement.created_at)}
-                              </span>
-                            </div>
+                        <div className="flex flex-col gap-1">
+                          <div className="font-semibold text-foreground text-sm sm:text-base leading-tight whitespace-normal break-words">{announcement.title}</div>
+                          <div className="flex flex-col gap-0.5 mt-1">
+                            <span className="text-xs font-semibold text-primary/80 flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              {announcement.created_by_name}
+                            </span>
+                            <span className="text-[10px] flex items-center gap-1 text-muted-foreground font-medium">
+                              <Clock className="w-3 h-3" />
+                              {formatDate(announcement.created_at)}
+                            </span>
                           </div>
+                        </div>
                         </TableCell>
                         <TableCell className="text-center">
                           <Button
@@ -294,6 +326,42 @@ export const AnnouncementSections = ({
             </div>
           </div>
         )}
+
+        {/* Pagination for My Announcements */}
+        {myPagination && myPagination.count > 0 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4">
+            <div>
+              Showing {Math.min((myPagination.page - 1) * myPagination.pageSize + 1, myPagination.count)} to {Math.min(myPagination.page * myPagination.pageSize, myPagination.count)} of {myPagination.count} announcements
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange?.(Math.max(1, myPagination.page - 1), 'my')}
+                disabled={myPagination.page === 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {myPagination.page}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange?.(Math.min(Math.ceil(myPagination.count / myPagination.pageSize), myPagination.page + 1), 'my')}
+                disabled={myPagination.page >= Math.ceil(myPagination.count / myPagination.pageSize)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </TabsContent>
 
       <TabsContent value="received" className="space-y-4 mt-6">
@@ -315,12 +383,11 @@ export const AnnouncementSections = ({
               <Table>
                 <TableHeader>
                   <TableRow className={theme === 'dark' ? 'hover:bg-transparent' : 'bg-gray-50/50 hover:bg-gray-50/50'}>
-                    <TableHead className="w-[200px] text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Announcement</TableHead>
-                    <TableHead className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Content</TableHead>
-                    <TableHead className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">From</TableHead>
-                    <TableHead className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Priority</TableHead>
-                    <TableHead className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Date</TableHead>
-                    <TableHead className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Action</TableHead>
+                    <TableHead className="w-[250px] text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Announcement</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Content</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Priority</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Date</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -329,10 +396,20 @@ export const AnnouncementSections = ({
                     return (
                       <TableRow key={announcement.id} className={`${unread ? 'bg-primary/5 font-medium' : ''} ${theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}`}>
                         <TableCell>
-                          <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center gap-2">
-                              {unread && <div className="w-2.5 h-2.5 rounded-full bg-primary shrink-0 shadow-sm" />}
-                              <span className="text-foreground text-lg font-bold line-clamp-1">{announcement.title}</span>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-start gap-2">
+                              {unread && <div className="w-2 h-2 rounded-full bg-primary shrink-0 shadow-sm mt-1.5" />}
+                              <div className="text-foreground text-sm sm:text-base font-semibold leading-tight whitespace-normal break-words">{announcement.title}</div>
+                            </div>
+                            <div className="flex flex-col gap-0.5 mt-0.5 ml-4.5">
+                              <span className="text-xs font-semibold text-primary/80 flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                {announcement.created_by_name}
+                              </span>
+                              <span className="text-[10px] flex items-center gap-1 text-muted-foreground font-medium">
+                                <Clock className="w-3 h-3" />
+                                {format(new Date(announcement.created_at), 'dd MMM, HH:mm')}
+                              </span>
                             </div>
                           </div>
                         </TableCell>
@@ -348,14 +425,6 @@ export const AnnouncementSections = ({
                           >
                             View Content
                           </Button>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-2.5 text-sm font-medium">
-                            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary font-bold border border-primary/20">
-                              {announcement.created_by_name?.charAt(0).toUpperCase()}
-                            </div>
-                            <span>{announcement.created_by_name}</span>
-                          </div>
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge className={`${getPriorityColor(announcement.priority)} text-xs px-2.5 py-0.5 h-6 font-semibold mx-auto`}>
@@ -391,6 +460,42 @@ export const AnnouncementSections = ({
             </div>
           </div>
         )}
+
+        {/* Pagination for Received Announcements */}
+        {receivedPagination && receivedPagination.count > 0 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4">
+            <div>
+              Showing {Math.min((receivedPagination.page - 1) * receivedPagination.pageSize + 1, receivedPagination.count)} to {Math.min(receivedPagination.page * receivedPagination.pageSize, receivedPagination.count)} of {receivedPagination.count} announcements
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange?.(Math.max(1, receivedPagination.page - 1), 'received')}
+                disabled={receivedPagination.page === 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {receivedPagination.page}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange?.(Math.min(Math.ceil(receivedPagination.count / receivedPagination.pageSize), receivedPagination.page + 1), 'received')}
+                disabled={receivedPagination.page >= Math.ceil(receivedPagination.count / receivedPagination.pageSize)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </TabsContent>
       {/* View Announcement Dialog */}
       <Dialog open={!!viewingAnnouncement} onOpenChange={(open) => !open && setViewingAnnouncement(null)}>
@@ -416,7 +521,7 @@ export const AnnouncementSections = ({
                   <div className="w-6 h-6 rounded-full bg-primary text-[10px] text-white flex items-center justify-center font-semibold shadow-sm">
                     {viewingAnnouncement?.created_by_name?.charAt(0).toUpperCase()}
                   </div>
-                  <span className="font-bold text-foreground/80">{viewingAnnouncement?.created_by_name}</span>
+                  <span className="font-semibold text-foreground/80">{viewingAnnouncement?.created_by_name}</span>
                 </div>
                 {viewingAnnouncement?.branch_name && (
                   <>

@@ -66,15 +66,32 @@ const FacultyAnnouncementManagement = () => {
     expires_at: "",
     priority: "normal",
   });
+  
+  const [myPage, setMyPage] = useState(1);
+  const [receivedPage, setReceivedPage] = useState(1);
+  const [totalMyCount, setTotalMyCount] = useState(0);
+  const [totalReceivedCount, setTotalReceivedCount] = useState(0);
+  const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
+  const [activeTab, setActiveTab] = useState("my");
+  const pageSize = 10;
 
   const loadAnnouncements = async () => {
     setLoading(true);
     setError(null);
-    const response = await fetchAnnouncements(1, 50);
+    const response = await fetchAnnouncements({ 
+      myPage, 
+      receivedPage, 
+      pageSize,
+      includeInactive: true,
+      includeExpired: true
+    });
 
     if (response.success && response.data) {
       setMyAnnouncements(response.data.my_announcements.results || []);
+      setTotalMyCount(response.data.my_announcements.count || 0);
       setReceivedAnnouncements(response.data.received_announcements.results || []);
+      setTotalReceivedCount(response.data.received_announcements.count || 0);
+      setUnreadReceivedCount(response.data.received_announcements.unread_count || 0);
       setError(null);
     } else {
       setError(response.message || "Failed to load announcements");
@@ -86,7 +103,15 @@ const FacultyAnnouncementManagement = () => {
 
   useEffect(() => {
     loadAnnouncements();
-  }, []);
+  }, [myPage, receivedPage]);
+
+  const handlePageChange = (page: number, type: 'my' | 'received') => {
+    if (type === 'my') {
+      setMyPage(page);
+    } else {
+      setReceivedPage(page);
+    }
+  };
 
   const handleCreateOrUpdate = async () => {
     if (!formData.title.trim() || !formData.message.trim()) {
@@ -247,8 +272,10 @@ const FacultyAnnouncementManagement = () => {
         setReceivedAnnouncements((prev) =>
           prev.map((a) => (a.id === announcementId ? { ...a, is_read: true } : a))
         );
+        // Optimistically update local unread count for real-time feel
+        setUnreadReceivedCount(prev => Math.max(0, prev - 1));
         // Trigger global unread count refresh
-        window.dispatchEvent(new CustomEvent('refresh-unread-count'));
+        window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: 1 } }));
       }
     } catch (error: any) {
       console.error("Failed to mark as read:", error);
@@ -305,7 +332,6 @@ const FacultyAnnouncementManagement = () => {
                 </DialogTrigger>
                 <DialogContent 
                   className="mobile-modal max-w-2xl max-h-[90vh] overflow-y-auto"
-                  onInteractOutside={(e) => e.preventDefault()}
                 >
                 <DialogHeader>
                   <DialogTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -432,6 +458,16 @@ const FacultyAnnouncementManagement = () => {
               onMarkRead={handleMarkRead}
               loading={loading}
               showActions={true}
+              myPagination={{ count: totalMyCount, page: myPage, pageSize }}
+              receivedPagination={{ 
+                count: totalReceivedCount, 
+                page: receivedPage, 
+                pageSize,
+                unreadCount: unreadReceivedCount
+              }}
+              onPageChange={handlePageChange}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
             />
           )}
         </CardContent>

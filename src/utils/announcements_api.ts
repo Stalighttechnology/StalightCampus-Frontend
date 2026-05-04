@@ -58,18 +58,51 @@ export interface AnnouncementStats {
 
 // Fetch announcements visible to user (split into my/received)
 export const fetchAnnouncements = async (
-  page = 1, 
-  pageSize = 20, 
-  includeInactive = false, 
-  includeExpired = false
+  options: any = {}
 ) => {
+  let page: any = 1;
+  let pageSize: any = 20;
+  let myPage: any;
+  let receivedPage: any;
+  let includeInactive = false;
+  let includeExpired = false;
+
+  // Handle both legacy positional arguments and modern options object
+  if (typeof options === 'object' && options !== null && !Array.isArray(options)) {
+    // If it's a React event or something similar that we shouldn't treat as options
+    if ('nativeEvent' in options || 'target' in options) {
+      page = 1;
+    } else {
+      page = options.page ?? 1;
+      pageSize = options.pageSize ?? 20;
+      myPage = options.myPage;
+      receivedPage = options.receivedPage;
+      includeInactive = options.includeInactive ?? false;
+      includeExpired = options.includeExpired ?? false;
+    }
+  } else if (typeof options === 'number') {
+    page = options;
+    // For legacy support of fetchAnnouncements(page, pageSize, includeInactive, includeExpired)
+    // We can use the 'arguments' object if we want to be fully compatible
+    if (arguments.length > 1) pageSize = arguments[1];
+    if (arguments.length > 2) includeInactive = arguments[2];
+    if (arguments.length > 3) includeExpired = arguments[3];
+  }
+
+  // Extra safety: ensure page and pageSize are numbers to avoid [object Object]
+  const safePage = (typeof page === 'number' || (typeof page === 'string' && !isNaN(Number(page)))) ? page : 1;
+  const safePageSize = (typeof pageSize === 'number' || (typeof pageSize === 'string' && !isNaN(Number(pageSize)))) ? pageSize : 20;
+
   try {
     const params = new URLSearchParams({
-      page: String(page),
-      page_size: String(pageSize),
+      page: String(safePage),
+      page_size: String(safePageSize),
       include_inactive: String(includeInactive),
       include_expired: String(includeExpired),
     });
+
+    if (myPage !== undefined && myPage !== null) params.append("my_page", String(myPage));
+    if (receivedPage !== undefined && receivedPage !== null) params.append("received_page", String(receivedPage));
 
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/?${params.toString()}`,

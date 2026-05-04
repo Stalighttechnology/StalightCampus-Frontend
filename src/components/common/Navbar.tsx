@@ -173,7 +173,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
             >
               <FiBell size={18} />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-background">
+                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-semibold rounded-full flex items-center justify-center">
                   {unreadCount}
                 </span>
               )}
