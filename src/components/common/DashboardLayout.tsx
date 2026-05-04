@@ -208,7 +208,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Page Content */}
         <motion.main
-          className={`flex-1 min-w-0 p-4 pb-28 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${
+          className={`flex-1 min-w-0 p-4 pb-32 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${
             theme === "dark" ? "bg-background" : "bg-gray-50"
           }`}
           initial={isNoAnimation ? false : { opacity: 0, y: 20 }}
@@ -237,7 +237,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
           {/* Children Content */}
           {isNoAnimation ? (
-            <div className="h-full w-full">{children}</div>
+            <div className="w-full">{children}</div>
           ) : (
             <AnimatePresence mode="popLayout">{children}</AnimatePresence>
           )}

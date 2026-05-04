@@ -72,7 +72,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-8 pb-28 md:pb-8">
+        <div className="flex-1 overflow-y-auto p-6 lg:p-8 pb-32 md:pb-8">
           <div className="container mx-auto max-w-7xl">
             <motion.div
               key={activePage}
