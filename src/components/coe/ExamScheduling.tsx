@@ -15,6 +15,9 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonStatsGrid, SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import { Button } from "../ui/button";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+import { toast } from 'sonner';
 import { Alert, AlertDescription } from "../ui/alert";
 import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -52,9 +55,9 @@ const EXAM_PERIODS = [
 
 const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { theme } = useTheme();
+  const MySwal = withReactContent(Swal);
   const [loading, setLoading] = useState(false);
   const [exams, setExams] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -97,7 +100,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
         }
       }
     } catch (e: any) {
-      setError(e.message || "Failed to load data");
+      toast.error(e.message || "Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -153,17 +156,30 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
           max_marks: '100', weightage: '30'
         });
       } else {
-        setError(res.message || "Failed to schedule exam");
+        toast.error(res.message || "Failed to schedule exam");
       }
     } catch (e: any) {
-      setError(e.message || "Error occurred");
+      toast.error(e.message || "Error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this exam schedule?")) return;
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+      color: theme === 'dark' ? '#ffffff' : '#000000',
+    });
+
+    if (!result.isConfirmed) return;
+
     setLoading(true);
     try {
       const res = await deleteExam(id);
@@ -173,11 +189,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
           ...prev,
           totalItems: prev.totalItems - 1
         }));
+        toast.success("Exam schedule deleted successfully");
       } else {
-        setError(res.message || "Failed to delete");
+        toast.error(res.message || "Failed to delete");
       }
     } catch (e: any) {
-      setError(e.message || "Error occurred");
+      toast.error(e.message || "Error occurred");
     } finally {
       setLoading(false);
     }
@@ -316,12 +333,6 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
         </Dialog>
 
         <CardContent className="p-0">
-          {error && (
-            <Alert variant="destructive" className="mx-6 mt-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
           <div className="space-y-4">
             {loading ? (
               <div className="p-6">

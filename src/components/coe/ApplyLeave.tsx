@@ -16,6 +16,7 @@ import { Circle, CalendarCheck2, CalendarX2, Filter } from 'lucide-react';
 import { API_ENDPOINT } from '@/utils/config';
 import { fetchWithTokenRefresh } from '@/utils/authService';
 import { SkeletonList } from '../ui/skeleton';
+import { toast } from 'sonner';
 
 const MySwal = withReactContent(Swal);
 
@@ -49,7 +50,6 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [viewReason, setViewReason] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
   const today = new Date();
 
@@ -92,7 +92,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
       }
     } catch (error) {
       console.error('Failed to fetch leave requests:', error);
-      setError('Failed to load leave requests');
+      toast.error('Failed to load leave requests');
     } finally {
       setLoading(false);
     }
@@ -110,11 +110,9 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!title.trim() || !dateRange?.from || !dateRange?.to || !reason.trim()) {
-      setError("Please provide a valid title, date range and reason.");
+      toast.error("Please provide a valid title, date range and reason.");
       return;
     }
-
-    setError(null);
 
     const startDateStr = format(dateRange.from, "yyyy-MM-dd");
     const endDateStr = format(dateRange.to, "yyyy-MM-dd");
@@ -126,7 +124,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
     });
 
     if (hasOverlap) {
-      setError("You already have a leave request that overlaps with these dates.");
+      toast.error("You already have a leave request that overlaps with these dates.");
       return;
     }
 
@@ -187,14 +185,14 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
       }
     } catch (error) {
       console.error("Failed to submit leave request:", error);
-      setError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again.";
 
       // Show error alert with theme-aware styling
       const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 
       await MySwal.fire({
         title: 'Error!',
-        text: error instanceof Error ? error.message : 'Something went wrong. Please try again.',
+        text: errorMessage,
         icon: 'error',
         confirmButtonText: 'OK',
         confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
@@ -261,13 +259,6 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
             <CardTitle>Leave Application Form</CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
-            {/* Error Message */}
-            {error && (
-              <div className={`p-1.5 sm:p-2 lg:p-3 rounded-lg text-xs sm:text-sm ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                {error}
-              </div>
-            )}
-
             {/* Title */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
               <Label htmlFor="title" className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>

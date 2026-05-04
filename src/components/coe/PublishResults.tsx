@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertTriangle, Copy, ExternalLink, Search } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult } from '../../utils/coe_api';
+import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult } from "../../utils/coe_api";
+import { toast } from "sonner";
 import { SkeletonForm, SkeletonTable } from '@/components/ui/skeleton';
 
 const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -26,7 +26,6 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [pendingNav, setPendingNav] = useState<{ page: number; pageSize?: number } | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
-  const { toast } = useToast();
   // marks for current page (kept for compatibility)
   const [marks, setMarks] = useState<Record<string, Record<string, { cie?: number | string | null; see?: number | string | null }>>>({});
   // persisted marks across pages keyed by student_id -> { usn, subs: { subjectId: {cie,see} }}
@@ -60,7 +59,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleCreate = async () => {
     if (!selected.batch || !selected.branch || !selected.semester || !selected.exam_period) {
-      toast({ variant: 'destructive', title: 'Missing filters', description: 'Select all filters before creating upload' });
+      toast.error('Select all filters before creating upload');
       return;
     }
     const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
@@ -69,7 +68,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       // fetch students (includes existing marks if present)
       await fetchStudentsPage(res.upload_batch.id, studentsPage, studentsPageSize);
     } else {
-      toast({ variant: 'destructive', title: 'Error', description: res.message || 'Failed to create upload' });
+      toast.error(res.message || 'Failed to create upload');
     }
   };
 
@@ -171,7 +170,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handleSave = async () => {
     if (!upload) {
-      toast({ variant: 'destructive', title: 'No upload', description: 'Create upload batch first' });
+      toast.error('Create upload batch first');
       return false;
     }
     // Build payload from all persisted marks across pages so multi-page edits are preserved
@@ -191,8 +190,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     const res = await saveMarksForUpload(upload.id, payload);
     setSaving(false);
     if (res.success) {
-      toast({ title: 'Saved', description: `Saved ${res.saved_count} records` });
-      // clear dirty flags after a successful save
+      toast.success(`Saved ${res.saved_count} records`);
       setDirtyPages({});
       // Merge the saved payload into local cache so UI reflects confirmed values
       setAllMarks(prev => {
@@ -228,7 +226,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       return true;
     } else {
-      toast({ variant: 'destructive', title: 'Save failed', description: res.message || 'Failed saving' });
+      toast.error(res.message || 'Failed saving');
       return false;
     }
   };
@@ -271,24 +269,24 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   const handlePublish = async () => {
     if (!upload) {
-      toast({ variant: 'destructive', title: 'No upload', description: 'Create upload batch first' });
+      toast.error('Create upload batch first');
       return;
     }
     const res = await publishUploadBatch(upload.id);
     if (res.success) {
-      toast({ title: 'Published', description: 'Published successfully' });
+      toast.success('Published successfully');
       // refresh upload info
       setUpload({ ...upload, is_published: true });
       // refresh students in case published_result_id/is_withheld changed after publish
       await fetchStudentsPage(upload.id, studentsPage, studentsPageSize);
     } else {
-      toast({ variant: 'destructive', title: 'Publish failed', description: res.message || 'Publish failed' });
+      toast.error(res.message || 'Publish failed');
     }
   };
 
   const handleToggleWithhold = async (studentId: number, studentName: string, publishedResultId: number | null, currentWithheld: boolean) => {
     if (!publishedResultId) {
-      toast({ variant: 'destructive', title: 'Cannot withhold', description: 'No published result found for this student' });
+      toast.error('No published result found for this student');
       return;
     }
     
@@ -296,16 +294,16 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       const res = await toggleWithholdResult(publishedResultId);
       if (res.success) {
         const actionText = res.withheld ? 'withheld' : 'released';
-        toast({ title: 'Success', description: `Result ${actionText} for ${studentName}` });
+        toast.success(`Result ${actionText} for ${studentName}`);
         // Refresh students list to update withheld status
         if (upload) {
           await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true);
         }
       } else {
-        toast({ variant: 'destructive', title: 'Failed to toggle withhold', description: res.message || 'Toggle failed' });
+        toast.error(res.message || 'Toggle failed');
       }
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e?.message || 'Failed to toggle withhold status' });
+      toast.error(e?.message || 'Failed to toggle withhold status');
     }
   };
 
@@ -397,7 +395,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               onClick={() => {
                 const url = `${window.location.origin}/results/view/${upload.token}`;
                 navigator.clipboard.writeText(url);
-                toast({ title: 'Copied', description: 'Result link copied to clipboard' });
+                toast.success('Result link copied to clipboard');
               }}
             >
               <Copy className="h-3 w-3 mr-1" /> Copy Link
@@ -510,7 +508,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                               variant={s.is_withheld ? "outline" : "destructive"}
                               onClick={async () => {
                                 if (!s.published_result_id) {
-                                  toast({ variant: 'destructive', title: 'Not Ready', description: 'Published result ID not found yet. Please refresh student list.' });
+                                  toast.error('Published result ID not found yet. Please refresh student list.');
                                   return;
                                 }
                                 await handleToggleWithhold(s.student_id, s.name, s.published_result_id, s.is_withheld);
@@ -748,9 +746,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               const res = await unpublishUploadBatch(upload.id);
               if (res.success) {
                 setUpload({ ...upload, is_published: false });
-                toast({ title: 'Unpublished', description: 'Public link is now inactive.' });
+                toast.success('Public link is now inactive.');
               } else {
-                toast({ variant: 'destructive', title: 'Unpublish failed', description: res.message || 'Failed to unpublish' });
+                toast.error(res.message || 'Failed to unpublish');
               }
             }}>Confirm Unpublish</Button>
           </div>

@@ -16,6 +16,7 @@ import {
 import { getCOEDashboardStats, DashboardStats } from "../../utils/coe_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonStatsGrid, SkeletonChart, SkeletonTable } from "../ui/skeleton";
+import { toast } from "sonner";
 
 const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -271,7 +272,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                             onClick={() => {
                               const url = `${window.location.origin}/results/view/${pr.token}`;
                               navigator.clipboard.writeText(url);
-                              alert('Link copied to clipboard!');
+                              toast.success('Link copied to clipboard!');
                             }}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-muted/50 hover:bg-muted text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                             title="Copy Link"

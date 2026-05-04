@@ -9,12 +9,11 @@ import { getStudentApplicationStatus, getFilterOptions, getSemesters, FilterOpti
 import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import "./StudentStatus.css";
 
 
 const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
-  const { toast } = useToast();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState<number>(1);
@@ -113,11 +112,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
     if (!filters.batch || !filters.exam_period || !filters.branch || !filters.semester) return;
     const accessToken = localStorage.getItem('access_token');
     if (!accessToken) {
-      toast({
-        title: "Authentication Required",
-        description: "You must be logged in to export. Please login and try again.",
-        variant: "destructive",
-      });
+      toast.error("Authentication Required: You must be logged in to export.");
       return;
     }
     setExporting(true);
@@ -151,17 +146,10 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       a.remove();
       window.URL.revokeObjectURL(urlBlob);
       
-      toast({
-        title: "Export Successful",
-        description: `Downloaded ${filename}`,
-      });
+      toast.success(`Export Successful: Downloaded ${filename}`);
     } catch (err) {
       console.error('Export error', err);
-      toast({
-        title: "Export Failed",
-        description: err instanceof Error ? err.message : "An unknown error occurred during export",
-        variant: "destructive",
-      });
+      toast.error(`Export Failed: ${err instanceof Error ? err.message : "An unknown error occurred"}`);
     } finally {
       setExporting(false);
     }
