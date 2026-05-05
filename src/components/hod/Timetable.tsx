@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Skeleton, SkeletonTable } from "../ui/skeleton";
-import { DownloadIcon, EditIcon, User } from "lucide-react";
+import { DownloadIcon, EditIcon, User, Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -926,47 +926,59 @@ const Timetable = () => {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm text-left">
-                <thead className="text-foreground">
-                  <tr>
-                    <th className="py-2 px-4 font-semibold">Time/Day</th>
-                    <th className="py-2 px-4 font-semibold">Monday</th>
-                    <th className="py-2 px-4 font-semibold">Tuesday</th>
-                    <th className="py-2 px-4 font-semibold">Wednesday</th>
-                    <th className="py-2 px-4 font-semibold">Thursday</th>
-                    <th className="py-2 px-4 font-semibold">Friday</th>
-                    <th className="py-2 px-4 font-semibold">Saturday</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getTableData().map((row, idx) => (
-                    <tr key={idx} className="border-t hover:bg-accent border-border">
-                      <td className="py-3 px-4 font-medium text-foreground">{row.time}</td>
-                      {["mon", "tue", "wed", "thu", "fri", "sat"].map((day, i) => (
-                        <td
-                          key={i}
-                          className="py-3 px-4 whitespace-pre-line text-foreground cursor-pointer"
-                          onClick={() => handleClassClick(row.time, day.toUpperCase())}
-                        >
-                          {row[day] ? (
-                            <>
-                              <span className="font-semibold">{row[day].split("\n")[0]}</span>
-                              <br />
-                              {row[day].split("\n")[1]}
-                              <br />
-                              {row[day].split("\n")[2]}
-                            </>
-                          ) : (
-                            state.isEditing && <span className="text-muted-foreground">Click to add</span>
-                          )}
-                        </td>
-                      ))}
+            {(!state.semesterId || !state.sectionId) ? (
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                  <Calendar className="w-12 h-12 opacity-80" />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>View Timetable</h3>
+                <p className="max-w-xs text-base leading-relaxed">
+                  Select a <span className="font-semibold text-primary">semester</span> and <span className="font-semibold text-primary">section</span> above to display the weekly schedule.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm text-left">
+                  <thead className="text-foreground">
+                    <tr>
+                      <th className="py-2 px-4 font-semibold">Time/Day</th>
+                      <th className="py-2 px-4 font-semibold">Monday</th>
+                      <th className="py-2 px-4 font-semibold">Tuesday</th>
+                      <th className="py-2 px-4 font-semibold">Wednesday</th>
+                      <th className="py-2 px-4 font-semibold">Thursday</th>
+                      <th className="py-2 px-4 font-semibold">Friday</th>
+                      <th className="py-2 px-4 font-semibold">Saturday</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {getTableData().map((row, idx) => (
+                      <tr key={idx} className="border-t hover:bg-accent border-border">
+                        <td className="py-3 px-4 font-medium text-foreground">{row.time}</td>
+                        {["mon", "tue", "wed", "thu", "fri", "sat"].map((day, i) => (
+                          <td
+                            key={i}
+                            className="py-3 px-4 whitespace-pre-line text-foreground cursor-pointer"
+                            onClick={() => handleClassClick(row.time, day.toUpperCase())}
+                          >
+                            {row[day] ? (
+                              <>
+                                <span className="font-semibold">{row[day].split("\n")[0]}</span>
+                                <br />
+                                {row[day].split("\n")[1]}
+                                <br />
+                                {row[day].split("\n")[2]}
+                              </>
+                            ) : (
+                              state.isEditing && <span className="text-muted-foreground">Click to add</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

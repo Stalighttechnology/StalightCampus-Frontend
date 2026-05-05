@@ -585,7 +585,7 @@ const ApplyLeave = () => {
                 disabled={currentPage === 1 || loading}
                 variant="outline"
                 size="sm"
-                className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}
+                className={theme === 'dark' ? 'border-2 border-border text-foreground hover:bg-accent' : 'border-2 border-gray-300 text-gray-900 hover:bg-gray-100'}
               >
                 Previous
               </Button>
@@ -599,7 +599,7 @@ const ApplyLeave = () => {
                 disabled={currentPage === totalPages || loading}
                 variant="outline"
                 size="sm"
-                className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}
+                className={theme === 'dark' ? 'border-2 border-border text-foreground hover:bg-accent' : 'border-2 border-gray-300 text-gray-900 hover:bg-gray-100'}
               >
                 Next
               </Button>

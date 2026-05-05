@@ -7,6 +7,7 @@ import { Input } from "../ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { manageSubjects, getSemesters, manageProfile, getHODSubjectBootstrap } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
+import Swal from "sweetalert2";
 
 interface Subject {
   id: string;
@@ -289,50 +290,82 @@ const SubjectManagement = () => {
 
   // Handle deleting a subject
   const handleDelete = (subjectId: string) => {
-    updateState({ deleteConfirmation: subjectId });
+    Swal.fire({
+      title: "Delete Course?",
+      text: "Are you sure you want to delete this course? This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: theme === 'dark' ? '#374151' : '#e5e7eb',
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+      background: theme === 'dark' ? '#1f2937' : '#ffffff',
+      color: theme === 'dark' ? '#f3f4f6' : '#111827',
+      iconColor: "#ef4444",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        executeDelete(subjectId);
+      }
+    });
   };
 
-  const confirmDelete = async (confirmed: boolean) => {
-    if (confirmed && state.deleteConfirmation) {
-      const data: ManageSubjectsRequest = {
-        action: "delete",
-        branch_id: state.branchId,
-        subject_id: state.deleteConfirmation,
-      };
+  const executeDelete = async (subjectId: string) => {
+    const data: ManageSubjectsRequest = {
+      action: "delete",
+      branch_id: state.branchId,
+      subject_id: subjectId,
+    };
 
-      updateState({ loading: true });
-      try {
-        const response = await manageSubjects(data, "POST");
-        if (response.success) {
-          // Remove locally and adjust pagination; only fetch if previous page must be loaded
-          const removedId = state.deleteConfirmation;
-          const newSubjectsList = state.subjects.filter((s) => s.id !== removedId);
-          const newTotalCount = Math.max(0, state.totalCount - 1);
-          const newTotalPages = Math.ceil(newTotalCount / state.pageSize);
-          let newPage = state.currentPage;
-          // If current page became empty and there is a previous page, go back one page and fetch it
-          if (newSubjectsList.length === 0 && state.currentPage > 1) {
-            newPage = Math.max(1, newTotalPages);
-            updateState({ loading: false, deleteConfirmation: null, success: "Course deleted successfully", currentPage: newPage, totalCount: newTotalCount, totalPages: newTotalPages });
-            // Load previous page because we don't have its items locally
-            await fetchSubjects(state.branchId, newPage, state.pageSize);
-          } else {
-            updateState({ subjects: newSubjectsList, totalCount: newTotalCount, totalPages: newTotalPages, success: "Course deleted successfully" });
-          }
+    updateState({ loading: true });
+    try {
+      const response = await manageSubjects(data, "POST");
+      if (response.success) {
+        // Remove locally and adjust pagination
+        const newSubjectsList = state.subjects.filter((s) => s.id !== subjectId);
+        const newTotalCount = Math.max(0, state.totalCount - 1);
+        const newTotalPages = Math.ceil(newTotalCount / state.pageSize);
+        let newPage = state.currentPage;
+
+        if (newSubjectsList.length === 0 && state.currentPage > 1) {
+          newPage = Math.max(1, newTotalPages);
+          updateState({ loading: false, success: "Course deleted successfully", currentPage: newPage, totalCount: newTotalCount, totalPages: newTotalPages });
+          await fetchSubjects(state.branchId, newPage, state.pageSize);
         } else {
-          updateState({ error: response.message });
+          updateState({ subjects: newSubjectsList, totalCount: newTotalCount, totalPages: newTotalPages, success: "Course deleted successfully" });
         }
-      } catch (err) {
-        if (isErrorWithMessage(err)) {
-          updateState({ error: err.message || "Failed to delete subject" });
-        } else {
-          updateState({ error: "Failed to delete subject" });
-        }
-      } finally {
-        updateState({ loading: false });
+        
+        Swal.fire({
+          title: "Deleted!",
+          text: "The course has been deleted.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+          background: theme === 'dark' ? '#1f2937' : '#ffffff',
+          color: theme === 'dark' ? '#f3f4f6' : '#111827',
+        });
+      } else {
+        updateState({ error: response.message });
+        Swal.fire({
+          title: "Error!",
+          text: response.message || "Failed to delete subject",
+          icon: "error",
+          background: theme === 'dark' ? '#1f2937' : '#ffffff',
+          color: theme === 'dark' ? '#f3f4f6' : '#111827',
+        });
       }
+    } catch (err) {
+      const msg = isErrorWithMessage(err) ? err.message : "Failed to delete subject";
+      updateState({ error: msg });
+      Swal.fire({
+        title: "Error!",
+        text: msg,
+        icon: "error",
+        background: theme === 'dark' ? '#1f2937' : '#ffffff',
+        color: theme === 'dark' ? '#f3f4f6' : '#111827',
+      });
+    } finally {
+      updateState({ loading: false });
     }
-    updateState({ deleteConfirmation: null });
   };
 
   // Helper to get semester number by ID
@@ -415,12 +448,12 @@ const SubjectManagement = () => {
                 <table className="w-full table-auto text-sm">
                   <thead className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-gray-100 text-gray-900'}>
                     <tr>
-                      <th className="px-4 py-3 text-left">COURSE CODE</th>
-                      <th className="px-4 py-3 text-left">COURSE NAME</th>
-                      <th className="px-4 py-3 text-left">SEMESTER</th>
-                      <th className="px-4 py-3 text-left">COURSE TYPE</th>
-                      <th className="px-4 py-3 text-left">COURSE CREDITS</th>
-                      <th className="px-4 py-3 text-left">ACTIONS</th>
+                      <th className="px-4 py-3 font-semibold text-left">COURSE CODE</th>
+                      <th className="px-4 py-3 font-semibold text-left">COURSE NAME</th>
+                      <th className="px-4 py-3 font-semibold text-left">SEMESTER</th>
+                      <th className="px-4 py-3 font-semibold text-left">COURSE TYPE</th>
+                      <th className="px-4 py-3 font-semibold text-left">COURSE CREDITS</th>
+                      <th className="px-4 py-3 font-semibold text-left">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody className={theme === 'dark' ? 'bg-background' : 'bg-white'}>
@@ -505,32 +538,6 @@ const SubjectManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Modal */}
-      {state.deleteConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={() => confirmDelete(false)}>
-          <div className={`p-4 md:p-6 w-[92%] max-w-sm md:w-auto rounded-2xl md:rounded shadow-lg ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} onClick={(e) => e.stopPropagation()}>
-            <h3 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Are you sure you want to delete this course?
-            </h3>
-            <div className="flex justify-end gap-4">
-              <Button
-                onClick={() => confirmDelete(false)}
-                className={`text-foreground ${theme === 'dark' ? 'bg-card border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-100'}`}
-                disabled={state.loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => confirmDelete(true)}
-                className="bg-red-600 hover:bg-red-700 text-white"
-                disabled={state.loading}
-              >
-                Confirm
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Add/Edit Subject Modal */}
       {state.showModal && (

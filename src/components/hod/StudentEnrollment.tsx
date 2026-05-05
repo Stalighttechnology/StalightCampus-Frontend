@@ -271,7 +271,7 @@ const StudentEnrollment = () => {
             <div className="w-full">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold block text-gray-700 dark:text-gray-300">Semester</label>
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Semester</label>
                   <Select value={semesterId} onValueChange={(v: string) => { setSemesterId(v); setSectionId(""); }}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select semester" />
@@ -284,7 +284,7 @@ const StudentEnrollment = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold block text-gray-700 dark:text-gray-300">Section</label>
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Section</label>
                   <Select value={sectionId} onValueChange={setSectionId}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select section" />
@@ -302,7 +302,7 @@ const StudentEnrollment = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold block text-gray-700 dark:text-gray-300">Subject Type</label>
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Subject Type</label>
                   <Select value={subjectType} onValueChange={setSubjectType}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Subject type" />
@@ -314,7 +314,7 @@ const StudentEnrollment = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold block text-gray-700 dark:text-gray-300">Subject</label>
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Subject</label>
                   <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select subject" />
@@ -374,8 +374,8 @@ const StudentEnrollment = () => {
             </div>
             <div className="flex flex-row items-center justify-center sm:justify-start gap-4 sm:gap-6 text-sm pt-2 sm:pt-0 border-t sm:border-none border-gray-200 dark:border-gray-800 mt-2 sm:mt-0">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-gray-600 dark:text-gray-400">Enrolled:</span>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                <span className="font-semibold text-gray-600 dark:text-gray-400">Enrolled:</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                   theme === 'dark' 
                     ? 'bg-green-900/30 text-green-400 border border-green-800/50' 
                     : 'bg-green-100 text-green-800 border border-green-200'

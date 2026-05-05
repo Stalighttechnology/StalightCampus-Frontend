@@ -1136,7 +1136,7 @@ const StudentManagement = () => {
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
           <div className="flex flex-row justify-between items-center gap-2 md:gap-4">
-            <CardTitle className={`text-lg md:text-base flex-1 truncate ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Student List</CardTitle>
+            <CardTitle>Student List</CardTitle>
             <div className="flex gap-2">
               <Button
                 onClick={() => updateState({ addStudentModal: true })}
@@ -1191,7 +1191,7 @@ const StudentManagement = () => {
                   />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>All Semesters</SelectItem>
+                  <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Choose Semesters</SelectItem>
                   {state.semesters.map((s) => (
                     <SelectItem key={s.id} value={s.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
                       Semester {s.number}
@@ -1617,115 +1617,136 @@ const StudentManagement = () => {
       </Dialog>
 
       <Dialog open={state.editDialog} onOpenChange={() => updateState({ editDialog: false, editSections: [] })}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[92%] sm:w-auto max-w-md sm:max-w-2xl rounded-2xl sm:rounded-md`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[90%] sm:w-auto max-w-md sm:max-w-3xl rounded-2xl sm:rounded-md`}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Edit Student</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <Input
-              className={` ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-              placeholder="Name"
-              value={state.editForm.name}
-              onChange={(e) => updateState({ editForm: { ...state.editForm, name: e.target.value } })}
-            />
-            <Input
-              className={` ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-              placeholder="Email"
-              value={state.editForm.email}
-              onChange={(e) => updateState({ editForm: { ...state.editForm, email: e.target.value } })}
-            />
-            <Input
-              className={` ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-              placeholder="Phone"
-              value={state.editForm.phone}
-              onChange={(e) => {
-                const value = e.target.value.replace(/[^0-9]/g, "");
-                updateState({ editForm: { ...state.editForm, phone: value } });
-              }}
-            />
-            <Select
-              value={state.editForm.mode_of_admission}
-              onValueChange={(value) => updateState({ editForm: { ...state.editForm, mode_of_admission: value } })}
-            >
-              <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                <SelectValue placeholder="Mode of Admission" />
-              </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                <SelectItem value="KCET">KCET</SelectItem>
-                <SelectItem value="COMEDK">COMEDK</SelectItem>
-                <SelectItem value="JEE Main">JEE Main</SelectItem>
-                <SelectItem value="NEET">NEET</SelectItem>
-                <SelectItem value="Merit">Merit</SelectItem>
-                <SelectItem value="Management">Management</SelectItem>
-                <SelectItem value="NRI">NRI</SelectItem>
-                <SelectItem value="Lateral Entry">Lateral Entry</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={state.editForm.semester}
-              onValueChange={(value) =>
-                updateState({
-                  editForm: { ...state.editForm, semester: value, section: "" },
-                  editSections: [],
-                })
-              }
-              disabled={state.isLoading || state.semesters.length === 0}
-            >
-              <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                <SelectValue
-                  placeholder={state.semesters.length === 0 ? "No semesters available" : "Select Semester"}
-                />
-              </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                {state.semesters.map((s) => (
-                  <SelectItem key={s.id} value={`${s.number}th Semester`} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
-                    Semester {s.number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={state.editForm.section}
-              onValueChange={(value) => updateState({ editForm: { ...state.editForm, section: value } })}
-              disabled={
-                state.isLoading || state.isEditSectionsLoading || !state.editForm.semester || state.editSections.length === 0
-              }
-            >
-              <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                <SelectValue
-                  placeholder={
-                    state.editSections.length === 0 || !state.editForm.semester
-                      ? "Select semester first"
-                      : state.isEditSectionsLoading
-                        ? <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                        : "Select Section"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                {state.editSections
-                  .filter((section) => section.semester_id === getSemesterId(state.editForm.semester))
-                  .map((section) => (
-                    <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
-                      Section {section.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-            {/* Cycle field - only show for semesters 1 and 2 */}
-            {getSemesterNumber(state.editForm.semester) <= 2 && (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+            <div className="col-span-2 space-y-1">
+              <label className="text-[11px] font-medium ml-1">Full Name</label>
+              <Input
+                className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                placeholder="Name"
+                value={state.editForm.name}
+                onChange={(e) => updateState({ editForm: { ...state.editForm, name: e.target.value } })}
+              />
+            </div>
+            <div className="col-span-2 space-y-1">
+              <label className="text-[11px] font-medium ml-1">Email Address</label>
+              <Input
+                className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                placeholder="Email"
+                value={state.editForm.email}
+                onChange={(e) => updateState({ editForm: { ...state.editForm, email: e.target.value } })}
+              />
+            </div>
+            <div className="col-span-1 space-y-1">
+              <label className="text-[11px] font-medium ml-1">Phone</label>
+              <Input
+                className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                placeholder="Phone"
+                value={state.editForm.phone}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, "");
+                  updateState({ editForm: { ...state.editForm, phone: value } });
+                }}
+              />
+            </div>
+            <div className="col-span-1 space-y-1">
+              <label className="text-[11px] font-medium ml-1">Admission</label>
               <Select
-                value={state.editForm.cycle}
-                onValueChange={(value) => updateState({ editForm: { ...state.editForm, cycle: value } })}
+                value={state.editForm.mode_of_admission}
+                onValueChange={(value) => updateState({ editForm: { ...state.editForm, mode_of_admission: value } })}
               >
-                <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectValue placeholder="Select Cycle" />
+                <SelectTrigger className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectValue placeholder="Mode" />
                 </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="P" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Physics Cycle</SelectItem>
-                  <SelectItem value="C" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Chemistry Cycle</SelectItem>
+                <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+                  <SelectItem value="KCET">KCET</SelectItem>
+                  <SelectItem value="COMEDK">COMEDK</SelectItem>
+                  <SelectItem value="JEE Main">JEE Main</SelectItem>
+                  <SelectItem value="NEET">NEET</SelectItem>
+                  <SelectItem value="Merit">Merit</SelectItem>
+                  <SelectItem value="Management">Management</SelectItem>
+                  <SelectItem value="NRI">NRI</SelectItem>
+                  <SelectItem value="Lateral Entry">Lateral Entry</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="col-span-1 space-y-1">
+              <label className="text-[11px] font-medium ml-1">Semester</label>
+              <Select
+                value={state.editForm.semester}
+                onValueChange={(value) =>
+                  updateState({
+                    editForm: { ...state.editForm, semester: value, section: "" },
+                    editSections: [],
+                  })
+                }
+                disabled={state.isLoading || state.semesters.length === 0}
+              >
+                <SelectTrigger className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectValue
+                    placeholder={state.semesters.length === 0 ? "None" : "Sem"}
+                  />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  {state.semesters.map((s) => (
+                    <SelectItem key={s.id} value={`${s.number}th Semester`} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
+                      Semester {s.number}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-1 space-y-1">
+              <label className="text-[11px] font-medium ml-1">Section</label>
+              <Select
+                value={state.editForm.section}
+                onValueChange={(value) => updateState({ editForm: { ...state.editForm, section: value } })}
+                disabled={
+                  state.isLoading || state.isEditSectionsLoading || !state.editForm.semester || state.editSections.length === 0
+                }
+              >
+                <SelectTrigger className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectValue
+                    placeholder={
+                      state.editSections.length === 0 || !state.editForm.semester
+                        ? "N/A"
+                        : state.isEditSectionsLoading
+                          ? "..."
+                          : "Sec"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  {state.editSections
+                    .filter((section) => section.semester_id === getSemesterId(state.editForm.semester))
+                    .map((section) => (
+                      <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
+                        Section {section.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Cycle field - only show for semesters 1 and 2 */}
+            {getSemesterNumber(state.editForm.semester) <= 2 && (
+              <div className="col-span-2 space-y-1">
+                <label className="text-[11px] font-medium ml-1">Cycle</label>
+                <Select
+                  value={state.editForm.cycle}
+                  onValueChange={(value) => updateState({ editForm: { ...state.editForm, cycle: value } })}
+                >
+                  <SelectTrigger className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                    <SelectValue placeholder="Select Cycle" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                    <SelectItem value="P" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Physics Cycle</SelectItem>
+                    <SelectItem value="C" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Chemistry Cycle</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </div>
           <DialogFooter className="flex justify-end gap-2 mt-4">

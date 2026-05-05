@@ -3,7 +3,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { FileDown, Loader2, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileDown, Loader2, CheckCircle, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { FaUsers, FaExclamationTriangle, FaChartLine } from 'react-icons/fa';
 import {
   Select,
@@ -81,8 +81,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 };
 
-// Virtualized Attendance Table Component
-const VirtualizedSectionTable = React.memo(({
+// Attendance Table Component
+const AttendanceTable = React.memo(({
   students,
   theme,
   notifyingStudents,
@@ -95,15 +95,6 @@ const VirtualizedSectionTable = React.memo(({
   notifiedStudents: Record<string, boolean>;
   onNotifyStudent: (student: Student) => void;
 }) => {
-  const parentRef = React.useRef<HTMLDivElement>(null);
-
-  const virtualizer = useVirtualizer({
-    count: students.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 50, // Estimated row height
-    overscan: 5,
-  });
-
   const getAttendanceColorClass = (attendance: number | string): string => {
     if (attendance === "NA" || attendance === null || attendance === undefined) {
       return "text-gray-400";
@@ -111,12 +102,9 @@ const VirtualizedSectionTable = React.memo(({
     if (typeof attendance === "string") {
       return "text-gray-400";
     }
-    if (attendance < 40) {
-      return "text-red-500";
-    }
-    if (attendance <= 60) {
-      return "text-orange-500";
-    }
+    const num = typeof attendance === 'string' ? parseFloat(attendance) : attendance;
+    if (num < 40) return "text-red-500";
+    if (num <= 60) return "text-orange-500";
     return "text-green-500";
   };
 
@@ -131,57 +119,34 @@ const VirtualizedSectionTable = React.memo(({
   };
 
   return (
-    <div
-      ref={parentRef}
-      className="h-96 overflow-auto overflow-x-auto custom-scrollbar"
-    >
-      {/* Fixed Header */}
-      <div className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-gray-600 bg-card' : 'border-gray-300 bg-white'}`}>
-        <div className={`grid grid-cols-5 gap-2 sm:gap-4 p-2 sm:p-3 text-sm font-medium min-w-max ${theme === 'dark' ? 'text-gray-200 bg-card' : 'text-gray-900 bg-white'}`}>
-          <div className={`w-20 sm:w-auto border-r text-center ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>USN</div>
-          <div className={`w-24 sm:w-auto border-r text-center ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>Name</div>
-          <div className={`w-24 sm:w-auto border-r text-center ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>Course</div>
-          <div className={`w-28 sm:w-auto border-r text-center ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>Attendance %</div>
-          <div className="w-20 sm:w-auto text-center">Actions</div>
-        </div>
-      </div>
-
-      {/* Virtualized Rows */}
-      <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          position: 'relative',
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualItem) => {
-          const student = students[virtualItem.index];
-
-          return (
-            <div
-              key={virtualItem.key}
-              className={`grid grid-cols-5 gap-2 sm:gap-4 p-2 sm:p-3 text-sm border-b min-w-max ${theme === 'dark' ? 'border-gray-600 text-card-foreground hover:bg-accent' : 'border-gray-200 text-gray-900 hover:bg-gray-50'} items-center content-center`}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualItem.size}px`,
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
+    <div className="overflow-x-auto custom-scrollbar">
+      <table className={`w-full text-sm text-left border-collapse ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+        <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card border-b border-border' : 'bg-gray-50 border-b border-gray-200'}`}>
+          <tr>
+            <th className="py-3 px-4 font-semibold">USN</th>
+            <th className="py-3 px-4 font-semibold">Name</th>
+            <th className="py-3 px-4 font-semibold">Course</th>
+            <th className="py-3 px-4 font-semibold text-center">Attendance</th>
+            <th className="py-3 px-4 font-semibold text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+          {students.map((student, idx) => (
+            <tr 
+              key={`${student.student_id}-${student.subject}-${idx}`} 
+              className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-gray-50'}`}
             >
-              <div className={`truncate text-sm w-20 sm:w-auto border-r text-center ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>{student.usn}</div>
-              <div className={`truncate text-sm w-24 sm:w-auto border-r text-center ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>{student.name}</div>
-              <div className={`truncate text-sm w-24 sm:w-auto border-r text-center ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>{student.subject}</div>
-              <div
-                className={`font-medium text-sm w-28 sm:w-auto border-r text-center ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'} ${getAttendanceColorClass(student.attendance_percentage)}`}
-              >
+              <td className="py-3 px-4 font-medium whitespace-nowrap">{student.usn}</td>
+              <td className="py-3 px-4 font-medium">{student.name}</td>
+              <td className="py-3 px-4">{student.subject}</td>
+              <td className={`py-3 px-4 text-center font-bold ${getAttendanceColorClass(student.attendance_percentage)}`}>
                 {formatAttendancePercentage(student.attendance_percentage)}
-              </div>
-              <div className="flex items-center justify-center w-20 sm:w-auto">
+              </td>
+              <td className="py-3 px-4 text-center">
                 <Button
                   size="sm"
                   onClick={() => onNotifyStudent(student)}
-                  className={`px-4 py-1 text-sm flex items-center gap-1 rounded-md shadow-sm border transition-all duration-200 ease-in-out transform hover:scale-105
+                  className={`px-4 py-1 text-xs min-w-[90px] flex items-center justify-center gap-1 mx-auto rounded-md shadow-sm border transition-all duration-200 ease-in-out transform hover:scale-105
                     ${notifiedStudents?.[student.student_id]
                       ? "bg-green-700 border-green-600 text-white cursor-default"
                       : "bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
@@ -202,11 +167,11 @@ const VirtualizedSectionTable = React.memo(({
                     "Notify"
                   )}
                 </Button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 });
@@ -691,7 +656,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   </h2>
                 </div>
                 <div className="border rounded-lg overflow-hidden">
-                  <VirtualizedSectionTable
+                  <AttendanceTable
                     students={state.students}
                     theme={theme}
                     notifyingStudents={state.notifyingStudents}
@@ -754,13 +719,19 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   </div>
                 )}
               </div>
-            ) : state.selectedSemester && state.selectedSection ? (
-              <div className={`text-center py-12 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                No students with low attendance found for the selected semester and section.
-              </div>
             ) : (
-              <div className={`text-center py-12 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                Please select a semester and section to view students with low attendance.
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                  <AlertTriangle className="w-12 h-12 opacity-80" />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {state.selectedSemester && state.selectedSection ? "No Low Attendance" : "View Attendance Reports"}
+                </h3>
+                <p className="max-w-xs text-base leading-relaxed">
+                  {state.selectedSemester && state.selectedSection 
+                    ? "Great! No students have low attendance in the selected section." 
+                    : "Select a semester and section above to identify students who may require attendance interventions."}
+                </p>
               </div>
             )}
           </CardContent>
