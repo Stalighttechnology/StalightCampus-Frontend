@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -9,6 +9,8 @@ import { SkeletonTable } from "../ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "../ui/dialog";
 import { getSemesters, manageSemesters, manageSections, manageProfile, getSemesterBootstrap } from "../../utils/hod_api";
 import { useHODBootstrap } from "../../context/HODBootstrapContext";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { cn } from "../../lib/utils";
 import { useTheme } from "../../context/ThemeContext";
 
 interface Semester {
@@ -29,6 +31,37 @@ interface FormState {
 interface SectionFormState {
   name: string;
 }
+
+// Custom SelectContent components without scroll arrows
+const CustomSelectContent = forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        position === "popper" &&
+        "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1 max-h-[calc(100%-8px)] overflow-y-auto custom-scrollbar",
+          position === "popper" &&
+          "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+));
+CustomSelectContent.displayName = SelectPrimitive.Content.displayName;
 
 const SemesterManagement = () => {
   const { toast } = useToast();
@@ -537,18 +570,18 @@ const SemesterManagement = () => {
             <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
           <SelectValue placeholder="Select Section" />
             </SelectTrigger>
-            <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+            <CustomSelectContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} max-h-[250px]`}>
           {["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].map((section) => (
             <SelectItem key={section} value={section} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
               Section {section}
             </SelectItem>
           ))}
-            </SelectContent>
+            </CustomSelectContent>
           </Select>
         </div>
           </div>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
-        <Button onClick={closeSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-200'}`}>
+        <Button onClick={closeSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
           Cancel
         </Button>
         <Button onClick={handleSaveSection} disabled={loading} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
@@ -568,7 +601,7 @@ const SemesterManagement = () => {
         </p>
           </DialogHeader>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
-        <Button onClick={closeDeleteModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-200'}`}>
+        <Button onClick={closeDeleteModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
           Cancel
         </Button>
         <Button variant="destructive" onClick={handleDelete} disabled={loading} className="w-full sm:w-auto">
@@ -588,7 +621,7 @@ const SemesterManagement = () => {
         </p>
           </DialogHeader>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
-        <Button onClick={closeDeleteSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-200'}`}>
+        <Button onClick={closeDeleteSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
           Cancel
         </Button>
         <Button variant="destructive" onClick={handleDeleteSection} disabled={loading} className="w-full sm:w-auto">

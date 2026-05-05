@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, ReactNode, Component } from "react";
+import { useState, useEffect, useCallback, ReactNode, Component, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
@@ -8,6 +8,7 @@ import { Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, Search } from "luci
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "../ui/dialog";
 import { manageFacultyAssignments, manageSections, getFacultyAssignmentsBootstrap, getHODTimetableSemesterData, listFacultyBranches, manageFaculties } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
+import Swal from "sweetalert2";
 
 // Interfaces
 interface FacultyAssignmentsProps {
@@ -168,6 +169,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   const { theme } = useTheme();
   const { toast } = useToast();
+  const formRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState({
     facultyId: "",
     subjectId: "",
@@ -622,39 +624,59 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       sectionId: assignment.section_id,
       semesterId: assignment.semester_id,
     });
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleConfirmDelete = async () => {
-    if (!state.deleteId || !state.branchId) return;
+  const handleDelete = (deleteId: string) => {
+    Swal.fire({
+      title: "Delete Assignment?",
+      text: "Are you sure you want to delete this assignment? This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: theme === 'dark' ? '#374151' : '#e5e7eb',
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+      background: theme === 'dark' ? '#1f2937' : '#ffffff',
+      color: theme === 'dark' ? '#f3f4f6' : '#111827',
+      iconColor: "#ef4444",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        executeDelete(deleteId);
+      }
+    });
+  };
+
+  const executeDelete = async (deleteId: string) => {
+    if (!deleteId || !state.branchId) return;
 
     // Store original state for potential reversion
     const originalAssignments = [...state.assignments];
 
     // Optimistic update: remove assignment from list
-    const updatedAssignments = state.assignments.filter(a => a.id !== state.deleteId);
+    const updatedAssignments = state.assignments.filter(a => a.id !== deleteId);
     updateState({ assignments: updatedAssignments });
-
-    // Close modal optimistically
-    updateState({ deleteId: null, openDeleteModal: false });
-
-    // Show success toast optimistically
-    toast({
-      title: "Deleted",
-      description: "Assignment deleted successfully",
-      className: "bg-green-100 text-green-800",
-    });
 
     updateState({ loading: true });
 
     try {
       const data: ManageFacultyAssignmentsRequest = {
         action: "delete",
-        assignment_id: state.deleteId,
+        assignment_id: deleteId,
         branch_id: state.branchId,
       };
       const response = await manageFacultyAssignments(data, "POST");
       if (response.success) {
         // Deletion succeeded on server; we already removed it optimistically
+        Swal.fire({
+          title: "Deleted!",
+          text: "The assignment has been deleted.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+          background: theme === 'dark' ? '#1f2937' : '#ffffff',
+          color: theme === 'dark' ? '#f3f4f6' : '#111827',
+        });
       } else {
         throw new Error(response.message || "Failed to delete assignment");
       }
@@ -662,15 +684,17 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       // Revert optimistic changes
       updateState({ assignments: originalAssignments });
 
-      if (isErrorWithMessage(err)) {
-        const errorMessage = err.message || "Network error";
-        toast({ variant: "destructive", title: "Error", description: errorMessage });
-        setError(errorMessage);
-      } else {
-        const errorMessage = "Network error";
-        toast({ variant: "destructive", title: "Error", description: errorMessage });
-        setError(errorMessage);
-      }
+      const errorMessage = isErrorWithMessage(err) ? err.message : "Network error";
+      toast({ variant: "destructive", title: "Error", description: errorMessage });
+      setError(errorMessage);
+      
+      Swal.fire({
+        title: "Error!",
+        text: errorMessage,
+        icon: "error",
+        background: theme === 'dark' ? '#1f2937' : '#ffffff',
+        color: theme === 'dark' ? '#f3f4f6' : '#111827',
+      });
     } finally {
       updateState({ loading: false });
     }
@@ -689,14 +713,14 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   return (
     <ErrorBoundary>
       <div className={` space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <Card ref={formRef} className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{state.editingId ? "Edit Faculty Assignment" : "Add Faculty Assignment"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={`block mb-1 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch
+                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch
                 <Select
                   value={state.selectedBranchForFaculty}
                   onValueChange={(value) => updateState({ selectedBranchForFaculty: value, facultyPage: 1, facultyId: "" })}
@@ -716,7 +740,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                 </label>
               </div>
               <div>
-                <label className={`block mb-1 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty
+                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty
                 <Select
                   value={state.facultyId}
                   onValueChange={(value) => updateState({ facultyId: value })}
@@ -791,7 +815,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                 </label>
               </div>
               <div>
-                <label className={`block mb-1 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester
+                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester
                 <Select
                   value={state.semesterId}
                   onValueChange={(value) => updateState({ semesterId: value, subjectId: "", sectionId: "" })}
@@ -811,7 +835,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                 </label>
               </div>
               <div>
-                <label className={`block mb-1 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course
+                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course
                 <Select
                   value={state.subjectId}
                   onValueChange={(value) => updateState({ subjectId: value })}
@@ -832,7 +856,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                 </label>
               </div>
               <div>
-                <label className={`block mb-1 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section
+                <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section
                 <Select
                   value={state.sectionId}
                   onValueChange={(value) => updateState({ sectionId: value })}
@@ -943,7 +967,17 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
             </div>
             {(() => {
               if (state.loading) return <SkeletonTable rows={5} cols={5} />;
-              if (!state.filterSemesterId || !state.filterSectionId) return <div className={`text-center py-8 border-2 border-dashed rounded-lg ${theme === 'dark' ? 'border-border text-muted-foreground' : 'border-gray-200 text-gray-500'}`}>Please select a semester and section to view assignments.</div>;
+              if (!state.filterSemesterId || !state.filterSectionId) return (
+                <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-5 rounded-full mb-5 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                    <Search className="w-10 h-10 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Ready to View Assignments?</h3>
+                  <p className="max-w-md text-base leading-relaxed">
+                    Select a <span className="font-semibold text-primary">semester</span> and <span className="font-semibold text-primary">section</span> from the filters above to load the assignment list.
+                  </p>
+                </div>
+              );
               if (filteredAssignments.length === 0) return <div className={`text-center py-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No assignments found for the selected criteria.</div>;
 
               return (
@@ -951,11 +985,11 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   <table className="w-full text-sm scroll-smooth">
                     <thead className={theme === 'dark' ? 'bg-card sticky top-0 z-10 border-border' : 'bg-gray-100 sticky top-0 z-10 border-gray-300'}>
                       <tr className="border-b">
-                        <th className="text-left p-2">Course</th>
-                        <th className="text-left p-2">Section</th>
-                        <th className="text-left p-2">Semester</th>
-                        <th className="text-left p-2">Assigned Faculty</th>
-                        <th className="text-left p-2">Actions</th>
+                        <th className="text-left font-semibold p-2">Course</th>
+                        <th className="text-left font-semibold p-2">Section</th>
+                        <th className="text-left font-semibold p-2">Semester</th>
+                        <th className="text-left font-semibold p-2">Assigned Faculty</th>
+                        <th className="text-left font-semibold p-2">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -987,12 +1021,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                               size="icon"
                               variant="ghost"
                               className={theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-200'}
-                              onClick={() =>
-                                updateState({
-                                  deleteId: assignment.id,
-                                  openDeleteModal: true,
-                                })
-                              }
+                              onClick={() => handleDelete(assignment.id)}
                               disabled={state.loading || state.isAssigning}
                             >
                               <Trash2 className={`h-4 w-4 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`} />
@@ -1033,31 +1062,6 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
           </CardContent>
         </Card>
 
-        <Dialog open={state.openDeleteModal} onOpenChange={(open) => updateState({ openDeleteModal: open })}>
-          <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} p-4 md:p-6 w-[92%] max-w-sm md:w-auto rounded-2xl md:rounded` }>
-            <DialogHeader>
-              <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Delete Assignment?</DialogTitle>
-              <DialogDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Are you sure you want to delete this assignment?</DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="mt-4">
-              <Button
-                variant="outline"
-                className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-900 bg-white border-gray-300 hover:bg-gray-100'}
-                onClick={() => updateState({ openDeleteModal: false })}
-                disabled={state.loading || state.isAssigning}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="bg-red-600 hover:bg-red-700 text-white"
-                onClick={handleConfirmDelete}
-                disabled={state.loading || state.isAssigning}
-              >
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </ErrorBoundary>
   );

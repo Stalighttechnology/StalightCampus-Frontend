@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Eye, Download } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Download, ClipboardCheck } from "lucide-react";
 import { SkeletonTable } from "../ui/skeleton";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../hooks/use-toast";
@@ -378,9 +378,14 @@ const QPApprovals = () => {
         <CardContent className="flex-1 overflow-hidden px-4 sm:px-6 pt-0">
           <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4">
             {pendingQPs.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-20">
-                <p className="text-lg">No pending QPs for approval.</p>
-                <p className="text-sm">Check back later for new submissions.</p>
+              <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                  <ClipboardCheck className="w-12 h-12 opacity-80" />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Pending QPs</h3>
+                <p className="max-w-xs text-base leading-relaxed">
+                  All question papers have been reviewed. Check back later for new submissions from your faculty.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
