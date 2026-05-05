@@ -181,7 +181,12 @@ interface SubmitLeaveRequestResponse {
 interface GetLeaveRequestsResponse {
   success: boolean;
   message?: string;
-  leave_requests?: LeaveRequest[];
+  data?: LeaveRequest[];
+  count?: number;
+  total_pages?: number;
+  current_page?: number;
+  next?: string | null;
+  previous?: string | null;
 }
 
 // Export the interface so it can be imported in components
@@ -442,20 +447,15 @@ export const submitLeaveRequest = async (
   }
 };
 
-export const getLeaveRequests = async (): Promise<GetLeaveRequestsResponse> => {
+export const getLeaveRequests = async (page = 1, pageSize = 20): Promise<GetLeaveRequestsResponse> => {
   try {
     console.log("=== GET LEAVE REQUESTS START ==="); // Debug log
-    console.log("API Base URL:", API_ENDPOINT); // Debug log
-    console.log("Auth token exists:", !!localStorage.getItem("access_token")); // Debug log
-    
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: String(pageSize),
+    });
     const token = localStorage.getItem("access_token");
-    if (!token) {
-      console.error("No auth token found!");
-      return { success: false, message: "No authentication token found" };
-    }
-    
-    console.log("Fetching leave requests from API..."); // Debug log
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/leave-requests/`, {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/leave-requests/?${params.toString()}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -747,6 +747,7 @@ export const getAllStudyMaterials = async (
 };
 
 export const getBranches = async () => {
+  console.log("Fetching student branches...");
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/branches/`, {
       method: "GET",

@@ -76,15 +76,30 @@ const StudentAnnouncements = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "unread" | "priority">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "low" | "normal" | "high" | "urgent">("all");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const pageSize = 10;
   const { theme } = useTheme();
 
-  const loadAnnouncements = async () => {
+  const loadAnnouncements = async (page = currentPage) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetchAnnouncements({ page: 1, pageSize: 100 });
+      const response = await fetchAnnouncements({ 
+        page, 
+        pageSize,
+        receivedPage: page 
+      });
       if (response.success && response.data) {
-        setAnnouncements(response.data.received_announcements?.results || []);
+        const received = response.data.received_announcements;
+        setAnnouncements(received?.results || []);
+        setTotalCount(received?.count || 0);
+        setUnreadCount(received?.unread_count || 0);
+        setTotalPages(Math.ceil((received?.count || 0) / pageSize));
       } else {
         setError(response.message || "Failed to load announcements");
       }
@@ -96,8 +111,8 @@ const StudentAnnouncements = () => {
   };
 
   useEffect(() => {
-    loadAnnouncements();
-  }, []);
+    loadAnnouncements(currentPage);
+  }, [currentPage]);
 
   const handleMarkRead = async (announcementId: number) => {
     const response = await markAnnouncementRead(announcementId);
@@ -127,12 +142,12 @@ const StudentAnnouncements = () => {
 
   const stats = useMemo(() => {
     return {
-      total: announcements.length,
-      unread: announcements.filter(a => !a.is_read).length,
-      urgent: announcements.filter(a => a.priority === "urgent" || a.priority === "high").length,
-      recent: announcements.filter(a => isRecent(a.created_at)).length
+      total: totalCount,
+      unread: unreadCount,
+      urgent: announcements.filter(a => a.priority === "urgent" || a.priority === "high").length, // Current page only
+      recent: announcements.filter(a => isRecent(a.created_at)).length // Current page only
     };
-  }, [announcements]);
+  }, [announcements, totalCount, unreadCount]);
 
   return (
     <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
@@ -343,6 +358,35 @@ const StudentAnnouncements = () => {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Pagination Controls */}
+            {!loading && totalPages > 1 && (
+              <div className="flex items-center justify-between mt-8 pt-6 border-t border-border/50">
+                <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Showing page {currentPage} of {totalPages} ({totalCount} announcements)
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className={theme === 'dark' ? 'border-border h-8' : 'h-8'}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className={theme === 'dark' ? 'border-border h-8' : 'h-8'}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           )}
         </CardContent>

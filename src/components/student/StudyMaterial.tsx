@@ -125,10 +125,15 @@ const StudyMaterialsStudent = () => {
 
   const loadMaterials = async () => {
     setLoading(true);
-    const resp = await getAllStudyMaterials(selectedBranch === 'All Branches' ? undefined : selectedBranch, selectedSemester === 'All Semesters' ? undefined : selectedSemester, selectedSection === 'All Sections' ? undefined : selectedSection, searchQuery || undefined);
-    if (resp && resp.success && Array.isArray(resp.data?.results || resp.data)) {
-      setMaterials(resp.data.results || resp.data || []);
-    } else if (resp && resp.success && Array.isArray(resp.data)) {
+    console.log("Fetching all study materials...");
+    const resp = await getAllStudyMaterials(
+      selectedBranch === 'All Branches' ? undefined : selectedBranch, 
+      selectedSemester === 'All Semesters' ? undefined : selectedSemester, 
+      selectedSection === 'All Sections' ? undefined : selectedSection, 
+      searchQuery || undefined
+    );
+    
+    if (resp && resp.success && Array.isArray(resp.data)) {
       setMaterials(resp.data);
     } else {
       setMaterials([]);
@@ -137,11 +142,9 @@ const StudyMaterialsStudent = () => {
     setLoading(false);
   };
 
-  // Auto-load materials when all filters are selected
+  // Load materials on mount and when filters change
   useEffect(() => {
-    if (selectedBranch !== "All Branches" && selectedSemester !== "All Semesters" && selectedSection !== "All Sections") {
-      loadMaterials();
-    }
+    loadMaterials();
   }, [selectedBranch, selectedSemester, selectedSection, searchQuery]);
 
   return (

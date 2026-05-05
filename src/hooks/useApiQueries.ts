@@ -197,19 +197,24 @@ export const useStudentStudyMaterialsQuery = (enabled: boolean = false) => {
   });
 };
 
-// Student Leave Requests with react-query
-export const useStudentLeaveRequestsQuery = (enabled: boolean = true) => {
-  return useQuery({
-    queryKey: ['studentLeaveRequests'],
-    queryFn: async () => {
-      const response = await getLeaveRequests();
-      if (!response.success) throw new Error(response.message || 'Failed to fetch leave requests');
-      return response.leave_requests || [];
-    },
-    enabled,
-    staleTime: 1000 * 30, // 30s
-    refetchOnWindowFocus: false,
-  });
+export const useStudentLeaveRequestsQuery = () => {
+  const pagination = usePagination(['studentLeaveRequests']);
+
+  return {
+    ...useQuery({
+      queryKey: pagination.queryKey,
+      queryFn: async (): Promise<GetLeaveRequestsResponse> => {
+        const response = await getLeaveRequests(pagination.page, pagination.pageSize);
+        if (response.success) {
+          pagination.updatePagination(response);
+          return response;
+        }
+        throw new Error(response.message || 'Failed to fetch leave requests');
+      },
+      staleTime: 1000 * 30, // 30s
+    }),
+    pagination,
+  };
 };
 
 // Historical Student Data with Lazy Loading

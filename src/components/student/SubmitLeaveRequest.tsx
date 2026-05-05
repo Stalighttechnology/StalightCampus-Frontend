@@ -68,7 +68,7 @@ const SubmitLeaveRequest = () => {
   const today = new Date();
   const { toast } = useToast();
 
-  const { data: leavesData = [], isLoading: leavesLoading, isError: leavesError, refetch: refetchLeaves } = useStudentLeaveRequestsQuery();
+  const { data: leavesResponse, isLoading: leavesLoading, isError: leavesError, refetch: refetchLeaves, pagination } = useStudentLeaveRequestsQuery();
   const [filter, setFilter] = useState<string>('ALL');
   const [query, setQuery] = useState<string>('');
   const [viewReason, setViewReason] = useState<string | null>(null);
@@ -80,13 +80,13 @@ const SubmitLeaveRequest = () => {
 
   const filteredLeaves = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const currentLeaves = (leavesData || []) as LeaveRequest[];
+    const currentLeaves = (leavesResponse?.data || []) as LeaveRequest[];
     return currentLeaves.filter(l => {
       if (statusFilter !== "All" && l.status.toUpperCase() !== statusFilter.toUpperCase()) return false;
       if (!q) return true;
-      return l.reason.toLowerCase().includes(q) || l.start_date.includes(q) || l.end_date.includes(q);
+      return l.reason.toLowerCase().includes(q) || (l.start_date && l.start_date.includes(q)) || (l.end_date && l.end_date.includes(q));
     });
-  }, [leavesData, statusFilter, query]);
+  }, [leavesResponse, statusFilter, query]);
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -120,7 +120,7 @@ const SubmitLeaveRequest = () => {
     const endDateStr = format(endDate, "yyyy-MM-dd");
 
     // Check for overlaps in local state (excluding REJECTED leaves)
-    const hasOverlap = (leavesData as LeaveRequest[]).some(l => {
+    const hasOverlap = (leavesResponse?.data || []).some(l => {
       if (l.status === 'REJECTED') return false;
       return startDateStr <= l.end_date && endDateStr >= l.start_date;
     });
@@ -333,49 +333,82 @@ const SubmitLeaveRequest = () => {
                 No leave requests found.
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                    <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</TableHead>
-                    <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</TableHead>
-                    <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</TableHead>
-                    <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLeaves.map((item) => (
-                    <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
-                      <TableCell className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
-                      </TableCell>
-                      <TableCell className={`text-sm mobile-table-cell mobile-period-cell ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {format(parseISO(item.start_date), 'MMM dd')} - {format(parseISO(item.end_date), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setViewReason(item.reason)}
-                          className={`h-8 px-2 ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={`text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}
-                        >
-                          <div className="flex items-center gap-1">
-                            {getStatusStyles(theme, item.status).icon}
-                            {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
-                          </div>
-                        </Badge>
-                      </TableCell>
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                      <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</TableHead>
+                      <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</TableHead>
+                      <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</TableHead>
+                      <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLeaves.map((item) => (
+                      <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
+                        <TableCell className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
+                        </TableCell>
+                        <TableCell className={`text-sm mobile-table-cell mobile-period-cell ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                          {item.start_date && item.end_date ? (
+                            `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}`
+                          ) : 'N/A'}
+                        </TableCell>
+                        <TableCell className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewReason(item.reason)}
+                            className={`h-8 px-2 ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            View
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={`text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}
+                          >
+                            <div className="flex items-center gap-1">
+                              {getStatusStyles(theme, item.status).icon}
+                              {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
+                            </div>
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination Controls */}
+                {pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6 px-2">
+                    <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Page {pagination.page} of {pagination.totalPages} ({pagination.totalItems} total)
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!pagination.hasPrevious}
+                        onClick={() => pagination.prevPage()}
+                        className={theme === 'dark' ? 'border-border h-8' : 'h-8'}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!pagination.hasNext}
+                        onClick={() => pagination.nextPage()}
+                        className={theme === 'dark' ? 'border-border h-8' : 'h-8'}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
