@@ -652,7 +652,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                   <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    Students ({state.totalCount > 0 ? `${(state.currentPage - 1) * state.pageSize + 1}-${Math.min(state.currentPage * state.pageSize, state.totalCount)} of ${state.totalCount}` : state.students.length})
+                    Students List
                   </h2>
                 </div>
                 <div className="border rounded-lg overflow-hidden">

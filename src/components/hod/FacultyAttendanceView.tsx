@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Users, CheckCircle, XCircle, Clock, FileDown } from "lucide-react";
+import { Calendar, Users, CheckCircle, XCircle, Clock, FileDown, CalendarIcon } from "lucide-react";
 import { getFacultyAttendanceToday, getFacultyAttendanceRecords } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonCard, SkeletonTable } from "../ui/skeleton";
 import Swal from "sweetalert2";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, isBefore, isSameDay } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface FacultyAttendanceTodayRecord {
   id: string;
@@ -222,7 +227,7 @@ const FacultyAttendanceView: React.FC = () => {
   const handleExportTodayPDF = () => {
     const doc = new jsPDF();
     const todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    
+
     doc.setFontSize(18);
     doc.text("Today's Faculty Attendance Report", 14, 20);
     doc.setFontSize(12);
@@ -255,7 +260,7 @@ const FacultyAttendanceView: React.FC = () => {
     }
 
     const doc = new jsPDF();
-    
+
     doc.setFontSize(18);
     doc.text("Faculty Attendance Summary Report", 14, 20);
     doc.setFontSize(12);
@@ -396,25 +401,23 @@ const FacultyAttendanceView: React.FC = () => {
       <div className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
         <button
           onClick={() => setActiveTab('today')}
-          className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'today'
+          className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today'
               ? 'bg-primary text-white'
               : theme === 'dark'
                 ? 'text-muted-foreground hover:text-foreground'
                 : 'text-gray-600 hover:text-gray-900'
-          }`}
+            }`}
         >
           Today's Attendance
         </button>
         <button
           onClick={() => setActiveTab('records')}
-          className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === 'records'
+          className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'records'
               ? 'bg-primary text-white'
               : theme === 'dark'
                 ? 'text-muted-foreground hover:text-foreground'
                 : 'text-gray-600 hover:text-gray-900'
-          }`}
+            }`}
         >
           Attendance Records
         </button>
@@ -563,9 +566,8 @@ const FacultyAttendanceView: React.FC = () => {
               <button
                 onClick={loadAllData}
                 disabled={isLoading}
-                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border border-green-500 text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 whitespace-nowrap ${
-                  theme === 'dark' ? 'hover:bg-accent' : ''
-                }`}
+                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border border-green-500 text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 whitespace-nowrap ${theme === 'dark' ? 'hover:bg-accent' : ''
+                  }`}
               >
                 {isLoading ? 'Loading...' : 'Load All'}
               </button>
@@ -574,11 +576,10 @@ const FacultyAttendanceView: React.FC = () => {
             <button
               onClick={() => handlePageChange(todayPagination.page - 1)}
               disabled={!todayPagination.has_prev || isLoading}
-              className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${
-                todayPagination.has_prev && !isLoading
+              className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${todayPagination.has_prev && !isLoading
                   ? 'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm'
                   : 'bg-primary opacity-50 text-white border-primary cursor-not-allowed'
-              }`}
+                }`}
             >
               Previous
             </button>
@@ -593,11 +594,10 @@ const FacultyAttendanceView: React.FC = () => {
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
                     disabled={isLoading}
-                    className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${
-                      pageNum === todayPagination.page
+                    className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${pageNum === todayPagination.page
                         ? 'bg-white text-primary font-semibold'
                         : `bg-white text-gray-600 hover:text-primary ${theme === 'dark' ? 'hover:bg-accent' : ''}`
-                    }`}
+                      }`}
                   >
                     {pageNum}
                   </button>
@@ -608,11 +608,10 @@ const FacultyAttendanceView: React.FC = () => {
             <button
               onClick={() => handlePageChange(todayPagination.page + 1)}
               disabled={!todayPagination.has_next || isLoading}
-              className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${
-                todayPagination.has_next && !isLoading
+              className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${todayPagination.has_next && !isLoading
                   ? 'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm'
                   : 'bg-primary opacity-50 text-white border-primary cursor-not-allowed'
-              }`}
+                }`}
             >
               Next
             </button>
@@ -629,31 +628,61 @@ const FacultyAttendanceView: React.FC = () => {
                 <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
                   Start Date
                 </label>
-                <input
-                  type="date"
-                  value={dateRange.start_date}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))}
-                  className={`w-full sm:w-auto px-2 sm:px-3 py-1 sm:py-2 border text-xs sm:text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    theme === 'dark'
-                      ? 'bg-background border-border text-foreground'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                        !dateRange.start_date && "text-muted-foreground",
+                        theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <ShadcnCalendar
+                      mode="single"
+                      selected={new Date(dateRange.start_date)}
+                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, start_date: date.toISOString().split('T')[0] }))}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="w-full sm:w-auto">
                 <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
                   End Date
                 </label>
-                <input
-                  type="date"
-                  value={dateRange.end_date}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))}
-                  className={`w-full sm:w-auto px-2 sm:px-3 py-1 sm:py-2 border text-xs sm:text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    theme === 'dark'
-                      ? 'bg-background border-border text-foreground'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                        !dateRange.end_date && "text-muted-foreground",
+                        theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <ShadcnCalendar
+                      mode="single"
+                      selected={new Date(dateRange.end_date)}
+                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, end_date: date.toISOString().split('T')[0] }))}
+                      disabled={(date) => {
+                        const start = new Date(dateRange.start_date);
+                        return isBefore(date, start) || isSameDay(date, start);
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="w-full sm:w-auto pt-4 sm:pt-0 ml-auto">
                 <button
@@ -703,10 +732,9 @@ const FacultyAttendanceView: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
                             {summary.absent_days}
                           </td>
-                          <td className={`px-6 py-4 whitespace-nowrap font-medium ${
-                            summary.attendance_percentage >= 75 ? 'text-green-600' :
-                            summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
+                          <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
+                              summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
                             {summary.attendance_percentage.toFixed(1)}%
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -718,17 +746,16 @@ const FacultyAttendanceView: React.FC = () => {
                                   fetchFacultyDetails(summary);
                                 }
                               }}
-                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                                theme === 'dark' 
-                                  ? 'bg-primary/20 text-primary hover:bg-primary/30' 
+                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark'
+                                  ? 'bg-primary/20 text-primary hover:bg-primary/30'
                                   : 'bg-primary text-white hover:bg-primary/90'
-                              }`}
+                                }`}
                             >
                               {selectedFaculty?.id === summary.id ? (isDetailLoading ? 'Loading...' : 'Close') : 'View'}
                             </button>
                           </td>
                         </tr>
-                        
+
                         {/* Inline Calendar View */}
                         {selectedFaculty?.id === summary.id && (
                           <tr className={`${theme === 'dark' ? 'bg-accent/10' : 'bg-blue-50/30'}`}>
@@ -771,28 +798,27 @@ const FacultyAttendanceView: React.FC = () => {
                                       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                                         days.push(new Date(d));
                                       }
-                                      
+
                                       return days.map((date) => {
                                         const dateStr = date.toISOString().split('T')[0];
                                         const record = facultyAttendanceDetails.find(r => r.date === dateStr);
                                         const isFuture = date > today;
-                                        
+
                                         const isPresent = record?.status?.toLowerCase() === 'present';
                                         // If no record and not future, it's considered absent
                                         const isAbsent = record?.status?.toLowerCase() === 'absent' || (!record && !isFuture);
-                                        
+
                                         return (
-                                          <div 
+                                          <div
                                             key={dateStr}
-                                            className={`relative group p-3 rounded-xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 ${
-                                              isPresent 
-                                                ? 'bg-green-500/10 border-green-500/30 text-green-600 shadow-sm' 
-                                                : isAbsent 
+                                            className={`relative group p-3 rounded-xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 ${isPresent
+                                                ? 'bg-green-500/10 border-green-500/30 text-green-600 shadow-sm'
+                                                : isAbsent
                                                   ? 'bg-red-500/10 border-red-500/30 text-red-600 shadow-sm'
-                                                  : theme === 'dark' 
-                                                    ? 'bg-white/5 border-white/5 text-white/20' 
+                                                  : theme === 'dark'
+                                                    ? 'bg-white/5 border-white/5 text-white/20'
                                                     : 'bg-gray-50 border-gray-100 text-gray-300'
-                                            }`}
+                                              }`}
                                           >
                                             <span className="text-[9px] font-black uppercase tracking-tighter mb-0.5 opacity-50">
                                               {date.toLocaleDateString('en-US', { weekday: 'short' })}
@@ -801,11 +827,10 @@ const FacultyAttendanceView: React.FC = () => {
                                             <span className="text-[9px] font-bold uppercase tracking-widest opacity-50">
                                               {date.toLocaleDateString('en-US', { month: 'short' })}
                                             </span>
-                                            
+
                                             {record ? (
-                                              <div className={`mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${
-                                                isPresent ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                                              }`}>
+                                              <div className={`mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                                }`}>
                                                 {record.status[0]}
                                               </div>
                                             ) : (
@@ -815,7 +840,7 @@ const FacultyAttendanceView: React.FC = () => {
                                                 </div>
                                               )
                                             )}
-                                            
+
                                             <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[9px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg border border-white/10">
                                               {date.toLocaleDateString('en-US', { dateStyle: 'medium' })}
                                               {!record && !isFuture && <div className="text-white/70 mt-0.5 italic">Auto-marked Absent</div>}
@@ -835,6 +860,57 @@ const FacultyAttendanceView: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Pagination for Records */}
+              <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center border-t border-gray-200 gap-4">
+                <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                  Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleRecordsPageChange(recordsPagination.page - 1)}
+                    disabled={!recordsPagination.has_prev || isLoading}
+                    className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${recordsPagination.has_prev && !isLoading
+                        ? 'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm'
+                        : 'bg-primary opacity-50 text-white border-primary cursor-not-allowed'
+                      }`}
+                  >
+                    Previous
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, recordsPagination.total_pages) }, (_, i) => {
+                      const pageNum = Math.max(1, Math.min(recordsPagination.total_pages - 4, recordsPagination.page - 2)) + i;
+                      if (pageNum < 1 || pageNum > recordsPagination.total_pages) return null;
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handleRecordsPageChange(pageNum)}
+                          disabled={isLoading}
+                          className={`px-3 py-1 text-sm font-medium transition-colors border rounded-md disabled:opacity-50 ${pageNum === recordsPagination.page
+                              ? 'bg-primary text-white border-primary shadow-sm'
+                              : `bg-white text-gray-600 hover:text-primary border-gray-300 hover:bg-gray-50 ${theme === 'dark' ? 'bg-card border-border text-foreground hover:bg-accent' : ''}`
+                            }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => handleRecordsPageChange(recordsPagination.page + 1)}
+                    disabled={!recordsPagination.has_next || isLoading}
+                    className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${recordsPagination.has_next && !isLoading
+                        ? 'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm'
+                        : 'bg-primary opacity-50 text-white border-primary cursor-not-allowed'
+                      }`}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           )}
