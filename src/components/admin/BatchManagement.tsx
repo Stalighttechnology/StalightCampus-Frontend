@@ -278,7 +278,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm mb-6' : 'bg-white border border-gray-200 shadow-sm mb-6'}>
         <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="w-full">
-            <CardTitle className={`block text-lg md:text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <CardTitle>
               Add New Batch
             </CardTitle>
             <p className={`block text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -319,7 +319,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]'}>
         <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="w-full">
-            <CardTitle className={`block text-lg md:text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <CardTitle>
               Existing Batches
             </CardTitle>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1">

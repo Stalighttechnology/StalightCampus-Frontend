@@ -290,8 +290,15 @@ const FeesManagerLeave = () => {
             {loading ? (
               <SkeletonList count={5} />
             ) : leaveList.length === 0 ? (
-
-              <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests found.</div>
+              <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                  <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+                </div>
+                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications found</h3>
+                <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  There are currently no leave requests to display for your account.
+                </p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {leaveList.slice(0, 10).map((leave) => (

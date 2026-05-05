@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Users, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Users, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
@@ -12,6 +12,12 @@ import {
   DialogFooter,
 } from "../ui/dialog";
 import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar as ShadcnCalendar } from "../ui/calendar";
+import { Button } from "../ui/button";
+import { format } from "date-fns";
+import { cn } from "../../lib/utils";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 interface TodayRow {
   branch: string;
@@ -81,6 +87,9 @@ const AdminHODAttendance: React.FC = () => {
   const [selectedHOD, setSelectedHOD] = useState<SummaryRow | null>(null);
   const [hodAttendanceDetails, setHODAttendanceDetails] = useState<RecordRow[]>([]);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const getStatusIcon = (status: string) => {
     const s = (status || '').toLowerCase();
@@ -193,13 +202,12 @@ const AdminHODAttendance: React.FC = () => {
   };
 
   useEffect(() => {
-    if (activeTab === 'today') fetchToday(todayPagination.page, todayPagination.page_size);
-    else fetchRecords(recordsPagination.page, recordsPagination.page_size);
-  }, [activeTab]);
-
-  useEffect(() => {
-    if (activeTab === 'records') fetchRecords(recordsPagination.page, recordsPagination.page_size);
-  }, [recordsPagination.page, recordsPagination.page_size]);
+    if (activeTab === 'today') {
+      fetchToday(todayPagination.page, todayPagination.page_size);
+    } else if (activeTab === 'records' && hasSearched) {
+      fetchRecords(recordsPagination.page, recordsPagination.page_size);
+    }
+  }, [activeTab, hasSearched, recordsPagination.page, recordsPagination.page_size]);
 
   const formatDate = (dateString: string) => {
     try { return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); } catch { return dateString; }
@@ -279,21 +287,31 @@ const AdminHODAttendance: React.FC = () => {
           <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
             <div className="px-6 py-4 border-b border-gray-200"><h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Today's HOD Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</h3></div>
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full table-fixed">
-                <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                  <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                    <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Branch</th>
-                    <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">HOD</th>
-                    <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Contact</th>
-                    <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-                    <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
-                    <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Marked At</th>
-                    <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Notes</th>
-                  </tr>
-                </thead>
-                <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                  {todayRows.length === 0 ? (<tr><td colSpan={7} className={`px-6 py-4 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No HOD attendance records for today</td></tr>) : (
-                    todayRows.map((r, idx) => (
+              {todayRows.length === 0 ? (
+                <div className={`flex flex-col items-center justify-center py-20 px-4 ${theme === 'dark' ? 'bg-card/30' : 'bg-white'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                    <Users className="w-10 h-10 text-primary opacity-50" />
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance today</h3>
+                  <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    There are no HOD attendance records marked for today yet.
+                  </p>
+                </div>
+              ) : (
+                <table className="w-full table-fixed">
+                  <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                    <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Branch</th>
+                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">HOD</th>
+                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Contact</th>
+                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
+                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Marked At</th>
+                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                    {todayRows.map((r, idx) => (
                       <tr key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
                         <td className="px-3 py-4 font-medium text-gray-900 truncate">{r.branch}</td>
                         <td className="px-3 py-4 text-gray-900 truncate">{r.hod_name}</td>
@@ -310,26 +328,30 @@ const AdminHODAttendance: React.FC = () => {
                         <td className="px-3 py-4 text-sm text-gray-600 truncate">{r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</td>
                         <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 truncate">{r.notes || '-'}</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
             <div className="md:hidden p-4 space-y-3">
-              {todayRows.map((r, idx) => (
-                <div key={idx} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm text-gray-500">{r.branch}</div>
-                      <div className="font-medium text-gray-900 truncate">{r.hod_name}</div>
+              {todayRows.length === 0 ? (
+                <div className={`text-center py-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No attendance records today</div>
+              ) : (
+                todayRows.map((r, idx) => (
+                  <div key={idx} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-500">{r.branch}</div>
+                        <div className="font-medium text-gray-900 truncate">{r.hod_name}</div>
+                      </div>
+                      <div className="text-sm text-right">
+                        <div className="mt-1">{getStatusIcon(r.status)}<span className={`ml-2 ${getStatusBadge(r.status)}`}>{r.status}</span></div>
+                      </div>
                     </div>
-                    <div className="text-sm text-right">
-                      <div className="mt-1">{getStatusIcon(r.status)}<span className={`ml-2 ${getStatusBadge(r.status)}`}>{r.status}</span></div>
-                    </div>
+                    <div className="mt-2 text-sm text-gray-600">Marked: {r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</div>
                   </div>
-                  <div className="mt-2 text-sm text-gray-600">Marked: {r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             {/* Pagination for Today */}
@@ -383,132 +405,217 @@ const AdminHODAttendance: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-end gap-4">
               <div className="w-full sm:w-auto">
                 <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Start Date</label>
-                <input type="date" value={dateRange.start_date} onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))} className={`w-full sm:w-auto px-2 sm:px-3 py-1 sm:py-2 border text-xs sm:text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full sm:w-[240px] justify-start text-left font-normal",
+                        !dateRange.start_date && "text-muted-foreground",
+                        theme === 'dark' ? "bg-background border-border text-foreground" : "bg-white border-gray-300 text-gray-900"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <ShadcnCalendar
+                      mode="single"
+                      selected={new Date(dateRange.start_date)}
+                      onSelect={(date) => {
+                        if (date) {
+                          setDateRange(prev => ({ ...prev, start_date: format(date, "yyyy-MM-dd") }));
+                          setStartDateOpen(false);
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="w-full sm:w-auto">
                 <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>End Date</label>
-                <input type="date" value={dateRange.end_date} onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))} className={`w-full sm:w-auto px-2 sm:px-3 py-1 sm:py-2 border text-xs sm:text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full sm:w-[240px] justify-start text-left font-normal",
+                        !dateRange.end_date && "text-muted-foreground",
+                        theme === 'dark' ? "bg-background border-border text-foreground" : "bg-white border-gray-300 text-gray-900"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <ShadcnCalendar
+                      mode="single"
+                      selected={new Date(dateRange.end_date)}
+                      onSelect={(date) => {
+                        if (date) {
+                          setDateRange(prev => ({ ...prev, end_date: format(date, "yyyy-MM-dd") }));
+                          setEndDateOpen(false);
+                        }
+                      }}
+                      disabled={(date) => {
+                        const start = new Date(dateRange.start_date);
+                        start.setHours(0, 0, 0, 0);
+                        return date <= start;
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-              <button 
-                onClick={() => { setRecordsPagination(p => ({ ...p, page: 1 })); fetchRecords(1); }} 
-                className="w-full sm:w-auto px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-md font-medium transition-colors text-sm"
+              <Button 
+                onClick={() => { 
+                  setHasSearched(true);
+                  setRecordsPagination(p => ({ ...p, page: 1 })); 
+                  fetchRecords(1); 
+                }} 
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white"
               >
                 Apply Filter
-              </button>
+              </Button>
             </div>
           </div>
 
-          <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>HOD Attendance Summary</h3>
+          {!hasSearched ? (
+            <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
+              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Ready to view attendance?</h3>
+              <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Select a start and end date above, then click <strong>Apply Filter</strong> to view HOD attendance records.
+              </p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className={`${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                  <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>HOD Name</th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Branch</th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
-                    <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                  {facultySummary.map((s, idx) => (
-                    <React.Fragment key={idx}>
-                      <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedHOD?.hod_id === s.hod_id ? (theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50') : ''}`}>
-                        <td className="px-6 py-4 font-medium text-gray-900">{s.hod_name}</td>
-                        <td className="px-6 py-4 text-gray-900">{s.branch}</td>
-                        <td className="px-6 py-4 text-gray-900">{s.total_days}</td>
-                        <td className="px-6 py-4 text-green-600 font-medium">{s.present_days}</td>
-                        <td className="px-6 py-4 text-red-600 font-medium">{s.absent_days}</td>
-                        <td className={`px-6 py-4 font-medium ${s.attendance_percentage >= 75 ? 'text-green-600' : s.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>{s.attendance_percentage.toFixed(1)}%</td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => selectedHOD?.hod_id === s.hod_id ? setSelectedHOD(null) : fetchHODDetails(s)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
-                          >
-                            {selectedHOD?.hod_id === s.hod_id ? (isDetailLoading ? 'Loading...' : 'Close') : 'View'}
-                          </button>
-                        </td>
-                      </tr>
-                      
-                      {selectedHOD?.hod_id === s.hod_id && (
-                        <tr className={`${theme === 'dark' ? 'bg-accent/10' : 'bg-blue-50/30'}`}>
-                          <td colSpan={7} className="px-4 py-6">
-                            <div className={`p-4 sm:p-6 rounded-2xl shadow-inner transition-all duration-300 ${theme === 'dark' ? 'bg-card/50 border border-white/5' : 'bg-white border border-blue-100'}`}>
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                                <div>
-                                  <h4 className={`text-lg font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Attendance Grid</h4>
-                                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}</p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="flex items-center gap-1.5">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Present</span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Absent</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {isDetailLoading ? (
-                                <div className="flex flex-col items-center justify-center py-10 gap-3">
-                                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                                  <p className="text-xs font-semibold animate-pulse">Syncing data...</p>
-                                </div>
-                              ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-10 gap-2 sm:gap-3">
-                                  {(() => {
-                                    const start = new Date(dateRange.start_date);
-                                    const end = new Date(dateRange.end_date);
-                                    const today = new Date();
-                                    today.setHours(0, 0, 0, 0);
-                                    const days = [];
-                                    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                                      days.push(new Date(d));
-                                    }
-                                    
-                                    return days.map((date) => {
-                                      const dateStr = date.toISOString().split('T')[0];
-                                      const record = hodAttendanceDetails.find(r => r.date === dateStr);
-                                      const isFuture = date > today;
-                                      const isPresent = record?.status?.toLowerCase() === 'present';
-                                      const isAbsent = record?.status?.toLowerCase() === 'absent' || (!record && !isFuture);
-                                      
-                                      return (
-                                        <div key={dateStr} className={`relative group p-3 rounded-xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 ${isPresent ? 'bg-green-500/10 border-green-500/30 text-green-600 shadow-sm' : isAbsent ? 'bg-red-500/10 border-red-500/30 text-red-600 shadow-sm' : theme === 'dark' ? 'bg-white/5 border-white/5 text-white/20' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
-                                          <span className="text-[9px] font-black uppercase tracking-tighter mb-0.5 opacity-50">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                                          <span className="text-lg font-black leading-tight">{date.getDate()}</span>
-                                          <span className="text-[9px] font-bold uppercase tracking-widest opacity-50">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
-                                          {record ? (
-                                            <div className={`mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>{record.status[0]}</div>
-                                          ) : (!isFuture && <div className="mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter bg-red-500 text-white">A</div>)}
-                                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[9px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg border border-white/10">
-                                            {date.toLocaleDateString('en-US', { dateStyle: 'medium' })}
-                                            {!record && !isFuture && <div className="text-white/70 mt-0.5 italic">Auto-marked Absent</div>}
-                                            {record && <div className="text-white/70 mt-0.5 font-bold uppercase">{record.status}</div>}
-                                          </div>
-                                        </div>
-                                      );
-                                    });
-                                  })()}
-                                </div>
-                              )}
-                            </div>
+          ) : facultySummary.length === 0 ? (
+            <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
+              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                <Users className="w-10 h-10 text-primary opacity-50" />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No records found</h3>
+              <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                We couldn't find any attendance history for the selected date range. Try adjusting your dates.
+              </p>
+            </div>
+          ) : (
+            <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>HOD Attendance Summary</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className={`${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                    <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>HOD Name</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Branch</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
+                      <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                    {facultySummary.map((s, idx) => (
+                      <React.Fragment key={idx}>
+                        <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedHOD?.hod_id === s.hod_id ? (theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50') : ''}`}>
+                          <td className="px-6 py-4 font-medium text-gray-900">{s.hod_name}</td>
+                          <td className="px-6 py-4 text-gray-900">{s.branch}</td>
+                          <td className="px-6 py-4 text-gray-900">{s.total_days}</td>
+                          <td className="px-6 py-4 text-green-600 font-medium">{s.present_days}</td>
+                          <td className="px-6 py-4 text-red-600 font-medium">{s.absent_days}</td>
+                          <td className={`px-6 py-4 font-medium ${s.attendance_percentage >= 75 ? 'text-green-600' : s.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>{s.attendance_percentage.toFixed(1)}%</td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => selectedHOD?.hod_id === s.hod_id ? setSelectedHOD(null) : fetchHODDetails(s)}
+                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
+                            >
+                              {selectedHOD?.hod_id === s.hod_id ? (isDetailLoading ? 'Loading...' : 'Close') : 'View'}
+                            </button>
                           </td>
                         </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
+                        
+                        {selectedHOD?.hod_id === s.hod_id && (
+                          <tr className={`${theme === 'dark' ? 'bg-accent/10' : 'bg-blue-50/30'}`}>
+                            <td colSpan={7} className="px-4 py-6">
+                              <div className={`p-4 sm:p-6 rounded-2xl shadow-inner transition-all duration-300 ${theme === 'dark' ? 'bg-card/50 border border-white/5' : 'bg-white border border-blue-100'}`}>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                                  <div>
+                                    <h4 className={`text-lg font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Attendance Grid</h4>
+                                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}</p>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
+                                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Present</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
+                                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Absent</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {isDetailLoading ? (
+                                  <div className="flex flex-col items-center justify-center py-10 gap-3">
+                                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                                    <p className="text-xs font-semibold animate-pulse">Syncing data...</p>
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-10 gap-2 sm:gap-3">
+                                    {(() => {
+                                      const start = new Date(dateRange.start_date);
+                                      const end = new Date(dateRange.end_date);
+                                      const today = new Date();
+                                      today.setHours(0, 0, 0, 0);
+                                      const days = [];
+                                      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                                        days.push(new Date(d));
+                                      }
+                                      
+                                      return days.map((date) => {
+                                        const dateStr = date.toISOString().split('T')[0];
+                                        const record = hodAttendanceDetails.find(r => r.date === dateStr);
+                                        const isFuture = date > today;
+                                        const isPresent = record?.status?.toLowerCase() === 'present';
+                                        const isAbsent = record?.status?.toLowerCase() === 'absent' || (!record && !isFuture);
+                                        
+                                        return (
+                                          <div key={dateStr} className={`relative group p-3 rounded-xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 ${isPresent ? 'bg-green-500/10 border-green-500/30 text-green-600 shadow-sm' : isAbsent ? 'bg-red-500/10 border-red-500/30 text-red-600 shadow-sm' : theme === 'dark' ? 'bg-white/5 border-white/5 text-white/20' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
+                                            <span className="text-[9px] font-black uppercase tracking-tighter mb-0.5 opacity-50">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                                            <span className="text-lg font-black leading-tight">{date.getDate()}</span>
+                                            <span className="text-[9px] font-bold uppercase tracking-widest opacity-50">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
+                                            {record ? (
+                                              <div className={`mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>{record.status[0]}</div>
+                                            ) : (!isFuture && <div className="mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter bg-red-500 text-white">A</div>)}
+                                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[9px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg border border-white/10">
+                                              {date.toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                                              {!record && !isFuture && <div className="text-white/70 mt-0.5 italic">Auto-marked Absent</div>}
+                                              {record && <div className="text-white/70 mt-0.5 font-bold uppercase">{record.status}</div>}
+                                            </div>
+                                          </div>
+                                        );
+                                      });
+                                    })()}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

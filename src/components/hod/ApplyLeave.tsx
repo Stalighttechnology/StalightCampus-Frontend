@@ -476,7 +476,15 @@ const ApplyLeave = () => {
                   <SkeletonCard />
                 </div>
               ) : filteredLeaves.length === 0 ? (
-                <p className={`text-sm py-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No applications found.</p>
+                <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                  <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                    <CalendarIcon className="w-8 h-8 text-primary opacity-50" />
+                  </div>
+                  <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications</h3>
+                  <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    You haven't submitted any leave requests recently.
+                  </p>
+                </div>
               ) : (
                 filteredLeaves.map((leave) => (
                   <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
@@ -525,8 +533,16 @@ const ApplyLeave = () => {
                   </tr>
                 ) : filteredLeaves.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className={`text-center py-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      No applications found.
+                    <td colSpan={4} className="py-20 px-4">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                          <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+                        </div>
+                        <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications found</h3>
+                        <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          There are currently no leave requests to display for the selected period.
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
