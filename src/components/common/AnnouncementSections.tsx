@@ -174,11 +174,10 @@ export const AnnouncementSections = ({
           variant="outline"
           size="sm"
           onClick={() => setShowExpired(!showExpired)}
-          className={`text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${
-            showExpired 
-              ? "bg-primary/5 border-primary text-primary hover:bg-primary/10" 
+          className={`text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${showExpired
+              ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
               : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
-          }`}
+            }`}
         >
           {showExpired ? "Hide Archive" : "Show Archive"}
         </Button>
@@ -205,13 +204,13 @@ export const AnnouncementSections = ({
               <Table>
                 <TableHeader>
                   <TableRow className={theme === 'dark' ? 'hover:bg-transparent' : 'bg-gray-50/50 hover:bg-gray-50/50'}>
-                  <TableHead className="w-[250px] text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Announcement</TableHead>
-                  <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Reason</TableHead>
-                  <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Target Roles</TableHead>
-                  <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Priority</TableHead>
-                  <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Status</TableHead>
-                  <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Expires</TableHead>
-                  <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Actions</TableHead>
+                    <TableHead className="w-[250px] text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Announcement</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Reason</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Target Roles</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Priority</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Status</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Expires</TableHead>
+                    <TableHead className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground py-4">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -219,20 +218,20 @@ export const AnnouncementSections = ({
                     const expired = isExpired(announcement.expires_at);
                     return (
                       <TableRow key={announcement.id} className={`${expired ? 'opacity-60' : ''} ${theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}`}>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <div className="font-semibold text-foreground text-sm sm:text-base leading-tight whitespace-normal break-words">{announcement.title}</div>
-                          <div className="flex flex-col gap-0.5 mt-1">
-                            <span className="text-xs font-semibold text-primary/80 flex items-center gap-1">
-                              <User className="w-3 h-3" />
-                              {announcement.created_by_name}
-                            </span>
-                            <span className="text-[10px] flex items-center gap-1 text-muted-foreground font-medium">
-                              <Clock className="w-3 h-3" />
-                              {formatDate(announcement.created_at)}
-                            </span>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <div className="font-semibold text-foreground text-sm sm:text-base leading-tight whitespace-normal break-words">{announcement.title}</div>
+                            <div className="flex flex-col gap-0.5 mt-1">
+                              <span className="text-xs font-semibold text-primary/80 flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                {announcement.created_by_name}
+                              </span>
+                              <span className="text-[10px] flex items-center gap-1 text-muted-foreground font-medium">
+                                <Clock className="w-3 h-3" />
+                                {formatDate(announcement.created_at)}
+                              </span>
+                            </div>
                           </div>
-                        </div>
                         </TableCell>
                         <TableCell className="text-center">
                           <Button
@@ -517,12 +516,12 @@ export const AnnouncementSections = ({
                   </div>
                 )}
               </div>
-              <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground">
+              <DialogTitle className="text-xl font-semibold tracking-tight text-foreground">
                 {viewingAnnouncement?.title}
               </DialogTitle>
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground pb-4 border-b border-border/50">
                 <div className="flex items-center gap-2 bg-muted/50 px-2 py-1 rounded-full">
-                  <div className="w-6 h-6 rounded-full bg-primary text-[10px] text-white flex items-center justify-center font-semibold shadow-sm">
+                  <div className="w-6 h-6 rounded-full bg-primary text-[12px] text-white flex items-center justify-center font-semibold shadow-sm">
                     {viewingAnnouncement?.created_by_name?.charAt(0).toUpperCase()}
                   </div>
                   <span className="font-semibold text-foreground/80">{viewingAnnouncement?.created_by_name}</span>
@@ -536,7 +535,7 @@ export const AnnouncementSections = ({
                 {viewingAnnouncement?.is_global && (
                   <>
                     <span className="text-muted-foreground/40">•</span>
-                    <Badge variant="secondary" className="text-[10px] h-5 font-semibold uppercase bg-primary/10 text-primary border-none">Global</Badge>
+                    <Badge variant="secondary" className="text-[12px] h-5 font-semibold uppercase bg-primary/10 text-primary border-none">Global</Badge>
                   </>
                 )}
               </div>
@@ -544,7 +543,7 @@ export const AnnouncementSections = ({
 
             <div className="relative">
               <div className={`p-6 sm:p-8 rounded-2xl border ${theme === 'dark' ? 'bg-muted/20 border-border/50' : 'bg-gray-50/50 border-gray-100'} min-h-[120px]`}>
-                <p className="text-base sm:text-lg text-foreground/90 leading-relaxed whitespace-pre-wrap font-medium">
+                <p className="text-base sm:text-md text-foreground/90 leading-relaxed whitespace-pre-wrap font-semibold">
                   {viewingAnnouncement?.message}
                 </p>
               </div>
@@ -553,12 +552,12 @@ export const AnnouncementSections = ({
             <div className="pt-4 flex flex-wrap gap-4 items-center justify-between border-t border-border/30">
               <div className="flex flex-wrap gap-2">
                 {viewingAnnouncement?.target_roles.map((role) => (
-                  <Badge key={role} variant="outline" className="capitalize text-xs font-semibold px-3 py-1 rounded-lg bg-background">
+                  <Badge key={role} variant="outline" className="capitalize text-sm font-semibold px-3 py-1 rounded-lg bg-background">
                     {role}
                   </Badge>
                 ))}
               </div>
-              <div className="text-xs text-muted-foreground font-semibold opacity-70">
+              <div className="text-sm text-muted-foreground font-semibold opacity-70">
                 Expires: {viewingAnnouncement && formatDate(viewingAnnouncement.expires_at)}
               </div>
             </div>

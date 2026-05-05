@@ -516,78 +516,82 @@ const StudyMaterials = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Filters Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="sm:col-span-2 lg:col-span-1">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <Select
+                  value={selectedBranchFilter}
+                  onValueChange={(value) => setSelectedBranchFilter(value)}
+                >
+                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                    <SelectValue placeholder="All Branches" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                    <SelectItem value="All Branches">All Branches</SelectItem>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Select
+                  value={semesterFilter}
+                  onValueChange={(value) => setSemesterFilter(value)}
+                >
+                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                    <SelectValue placeholder="All Semesters" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                    <SelectItem value="All Semesters">All Semesters</SelectItem>
+                    {pageSemesters && pageSemesters.length > 0 ? (
+                      pageSemesters.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {`Semester ${s.number}`}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      ["1","2","3","4","5","6","7","8"].map((semester) => (
+                        <SelectItem key={semester} value={semester}>
+                          {semester}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Select
+                  value={selectedSectionFilter}
+                  onValueChange={(value) => setSelectedSectionFilter(value)}
+                >
+                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                    <SelectValue placeholder="All Sections" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                    <SelectItem value="All Sections">All Sections</SelectItem>
+                    {sections.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Search Row */}
+            <div className="w-full">
               <Input
                 placeholder="Search by title, course name, course code, semester, or uploaded by..."
                 className={`w-full ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
                 value={localSearchQuery}
                 onChange={(e) => setLocalSearchQuery(e.target.value)}
               />
-            </div>
-            <div>
-              <Select
-                value={selectedBranchFilter}
-                onValueChange={(value) => setSelectedBranchFilter(value)}
-              >
-                <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="All Branches" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="All Branches">All Branches</SelectItem>
-                  {branches.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Select
-                value={semesterFilter}
-                onValueChange={(value) => setSemesterFilter(value)}
-              >
-                <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="All Semesters" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="All Semesters">All Semesters</SelectItem>
-                  {pageSemesters && pageSemesters.length > 0 ? (
-                    pageSemesters.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {`Semester ${s.number}`}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    ["1","2","3","4","5","6","7","8"].map((semester) => (
-                      <SelectItem key={semester} value={semester}>
-                        {semester}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Select
-                value={selectedSectionFilter}
-                onValueChange={(value) => setSelectedSectionFilter(value)}
-              >
-                <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="All Sections" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="All Sections">All Sections</SelectItem>
-                  {sections.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
@@ -612,10 +616,28 @@ const StudyMaterials = () => {
                       <SkeletonTable rows={10} cols={7} />
                     </TableCell>
                   </TableRow>
+                ) : selectedBranchFilter === "All Branches" ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="p-0">
+                      <div className={`flex flex-col items-center justify-center py-20 px-6 text-center space-y-4 ${theme === 'dark' ? 'bg-accent/5' : 'bg-gray-50/50'}`}>
+                        <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
+                          <FileText className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+                        </div>
+                        <div className="max-w-xs mx-auto">
+                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            Select Branch to View Materials
+                          </h3>
+                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            Please select a branch, semester, and section from the dropdowns above to explore available study materials.
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ) : filteredMaterials.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                      No study materials found.
+                      No study materials found for the selected filters.
                     </TableCell>
                   </TableRow>
                 ) : (

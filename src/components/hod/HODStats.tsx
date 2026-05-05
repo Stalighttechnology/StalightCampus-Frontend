@@ -5,6 +5,7 @@ import {
   CheckCircle,
   XCircle,
   UserPlus,
+  ClipboardList,
 } from "lucide-react";
 import {
   LineChart,
@@ -486,8 +487,14 @@ const handleApprove = async (index: number) => {
           {/* Mobile-only card list */}
           <div className={`block md:hidden space-y-3`}> 
             {leaveRequests.length === 0 && !isLoading ? (
-              <div className={`py-3 text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                No leave requests found
+              <div className={`p-8 mt-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                  <ClipboardList className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                </div>
+                <div className="text-center">
+                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests found</p>
+                  <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Check back later for new applications</p>
+                </div>
               </div>
             ) : (
               leaveRequests.slice(0, 20).map((row, index) => (
@@ -573,8 +580,16 @@ const handleApprove = async (index: number) => {
               <tbody>
                 {leaveRequests.length === 0 && !isLoading ? (
                   <tr>
-                    <td colSpan={5} className={`py-3 text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      No leave requests found
+                    <td colSpan={5} className="py-8">
+                      <div className={`mx-auto w-full max-w-sm border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                        <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                          <ClipboardList className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="text-center">
+                          <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests found</p>
+                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>All applications have been reviewed</p>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ) : (

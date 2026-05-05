@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Users, CheckCircle, XCircle, Clock, FileDown, CalendarIcon } from "lucide-react";
+import { Calendar, Users, CheckCircle, XCircle, Clock, FileDown, CalendarIcon, CalendarX, ClipboardX } from "lucide-react";
 import { getFacultyAttendanceToday, getFacultyAttendanceRecords } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonCard, SkeletonTable } from "../ui/skeleton";
@@ -11,6 +11,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, isBefore, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface FacultyAttendanceTodayRecord {
   id: string;
@@ -396,6 +403,7 @@ const FacultyAttendanceView: React.FC = () => {
   };
 
   return (
+    <>
     <div className={` sm: space-y-4 sm:space-y-6 min-h-screen max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Tab Navigation */}
       <div className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
@@ -506,8 +514,16 @@ const FacultyAttendanceView: React.FC = () => {
                 <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
                   {todayAttendance.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className={`px-6 py-4 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        No attendance records for today
+                      <td colSpan={4} className="py-12">
+                        <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                          <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                            <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                          </div>
+                          <div className="text-center">
+                            <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -697,7 +713,7 @@ const FacultyAttendanceView: React.FC = () => {
           </div>
 
           {/* Faculty Summary */}
-          {facultySummary.length > 0 && (
+          {facultySummary.length > 0 ? (
             <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
               <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -739,123 +755,16 @@ const FacultyAttendanceView: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <button
-                              onClick={() => {
-                                if (selectedFaculty?.id === summary.id) {
-                                  setSelectedFaculty(null);
-                                } else {
-                                  fetchFacultyDetails(summary);
-                                }
-                              }}
+                              onClick={() => fetchFacultyDetails(summary)}
                               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark'
                                   ? 'bg-primary/20 text-primary hover:bg-primary/30'
                                   : 'bg-primary text-white hover:bg-primary/90'
                                 }`}
                             >
-                              {selectedFaculty?.id === summary.id ? (isDetailLoading ? 'Loading...' : 'Close') : 'View'}
+                              {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
                             </button>
                           </td>
                         </tr>
-
-                        {/* Inline Calendar View */}
-                        {selectedFaculty?.id === summary.id && (
-                          <tr className={`${theme === 'dark' ? 'bg-accent/10' : 'bg-blue-50/30'}`}>
-                            <td colSpan={6} className="px-4 py-6">
-                              <div className={`p-4 sm:p-6 rounded-2xl shadow-inner transition-all duration-300 ${theme === 'dark' ? 'bg-card/50 border border-white/5' : 'bg-white border border-blue-100'}`}>
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                                  <div>
-                                    <h4 className={`text-lg font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                      Attendance Grid
-                                    </h4>
-                                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                                      {formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}
-                                    </p>
-                                  </div>
-                                  <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-1.5">
-                                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-                                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Present</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                      <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
-                                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Absent</span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {isDetailLoading ? (
-                                  <div className="flex flex-col items-center justify-center py-10 gap-3">
-                                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                                    <p className="text-xs font-semibold animate-pulse">Syncing data...</p>
-                                  </div>
-                                ) : (
-                                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-10 gap-2 sm:gap-3">
-                                    {(() => {
-                                      const start = new Date(dateRange.start_date);
-                                      const end = new Date(dateRange.end_date);
-                                      const today = new Date();
-                                      today.setHours(0, 0, 0, 0);
-                                      const days = [];
-                                      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                                        days.push(new Date(d));
-                                      }
-
-                                      return days.map((date) => {
-                                        const dateStr = date.toISOString().split('T')[0];
-                                        const record = facultyAttendanceDetails.find(r => r.date === dateStr);
-                                        const isFuture = date > today;
-
-                                        const isPresent = record?.status?.toLowerCase() === 'present';
-                                        // If no record and not future, it's considered absent
-                                        const isAbsent = record?.status?.toLowerCase() === 'absent' || (!record && !isFuture);
-
-                                        return (
-                                          <div
-                                            key={dateStr}
-                                            className={`relative group p-3 rounded-xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 ${isPresent
-                                                ? 'bg-green-500/10 border-green-500/30 text-green-600 shadow-sm'
-                                                : isAbsent
-                                                  ? 'bg-red-500/10 border-red-500/30 text-red-600 shadow-sm'
-                                                  : theme === 'dark'
-                                                    ? 'bg-white/5 border-white/5 text-white/20'
-                                                    : 'bg-gray-50 border-gray-100 text-gray-300'
-                                              }`}
-                                          >
-                                            <span className="text-[9px] font-black uppercase tracking-tighter mb-0.5 opacity-50">
-                                              {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                                            </span>
-                                            <span className="text-lg font-black leading-tight">{date.getDate()}</span>
-                                            <span className="text-[9px] font-bold uppercase tracking-widest opacity-50">
-                                              {date.toLocaleDateString('en-US', { month: 'short' })}
-                                            </span>
-
-                                            {record ? (
-                                              <div className={`mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                                                }`}>
-                                                {record.status[0]}
-                                              </div>
-                                            ) : (
-                                              !isFuture && (
-                                                <div className="mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter bg-red-500 text-white">
-                                                  A
-                                                </div>
-                                              )
-                                            )}
-
-                                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[9px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg border border-white/10">
-                                              {date.toLocaleDateString('en-US', { dateStyle: 'medium' })}
-                                              {!record && !isFuture && <div className="text-white/70 mt-0.5 italic">Auto-marked Absent</div>}
-                                              {record && <div className="text-white/70 mt-0.5 font-bold uppercase">{record.status}</div>}
-                                            </div>
-                                          </div>
-                                        );
-                                      });
-                                    })()}
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     ))}
                   </tbody>
@@ -889,9 +798,9 @@ const FacultyAttendanceView: React.FC = () => {
                           key={pageNum}
                           onClick={() => handleRecordsPageChange(pageNum)}
                           disabled={isLoading}
-                          className={`px-3 py-1 text-sm font-medium transition-colors border rounded-md disabled:opacity-50 ${pageNum === recordsPagination.page
-                              ? 'bg-primary text-white border-primary shadow-sm'
-                              : `bg-white text-gray-600 hover:text-primary border-gray-300 hover:bg-gray-50 ${theme === 'dark' ? 'bg-card border-border text-foreground hover:bg-accent' : ''}`
+                          className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${pageNum === recordsPagination.page
+                        ? 'bg-white text-primary font-semibold'
+                        : `bg-white text-gray-600 hover:text-primary ${theme === 'dark' ? 'hover:bg-accent' : ''}`
                             }`}
                         >
                           {pageNum}
@@ -913,11 +822,129 @@ const FacultyAttendanceView: React.FC = () => {
                 </div>
               </div>
             </div>
+          ) : (
+            <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                <ClipboardX className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </div>
+              <div className="text-center">
+                <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records found</p>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Try adjusting your date range or faculty filters</p>
+              </div>
+            </div>
           )}
 
         </>
       )}
     </div>
+
+    {/* Attendance Details Modal */}
+    <Dialog open={!!selectedFaculty} onOpenChange={(open) => !open && setSelectedFaculty(null)}>
+      <DialogContent className={`max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar rounded-xl w-[90%] ${theme === 'dark' ? 'bg-slate-950 border-white/10' : 'bg-white'}`}>
+        <DialogHeader className="pb-4 border-b border-border/50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <DialogTitle>
+                {selectedFaculty?.name}'s Attendance
+              </DialogTitle>
+              <p className={`text-sm mt-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                {formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}
+              </p>
+            </div>
+            <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-xl border border-border/50">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Present</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Absent</span>
+              </div>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className={`p-4 sm:p-6 rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-muted/20 border border-white/5' : 'bg-gray-50 border border-gray-100'}`}>
+          {isDetailLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+              <p className="text-sm font-semibold animate-pulse text-muted-foreground">Syncing attendance data...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
+              {(() => {
+                const start = new Date(dateRange.start_date);
+                const end = new Date(dateRange.end_date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const days = [];
+                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                  days.push(new Date(d));
+                }
+
+                return days.map((date) => {
+                  const dateStr = date.toISOString().split('T')[0];
+                  const record = facultyAttendanceDetails.find(r => r.date === dateStr);
+                  const isFuture = date > today;
+
+                  const isPresent = record?.status?.toLowerCase() === 'present';
+                  const isAbsent = record?.status?.toLowerCase() === 'absent' || (!record && !isFuture);
+
+                  return (
+                    <div
+                      key={dateStr}
+                      className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent
+                          ? 'bg-green-500/10 border-green-500/30 text-green-600'
+                          : isAbsent
+                            ? 'bg-red-500/10 border-red-500/30 text-red-600'
+                            : theme === 'dark'
+                              ? 'bg-white/5 border-white/5 text-muted-foreground/30'
+                              : 'bg-gray-100 border-gray-200 text-gray-300'
+                        }`}
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">
+                        {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                      </span>
+                      <span className="text-xl font-black leading-tight">{date.getDate()}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                        {date.toLocaleDateString('en-US', { month: 'short' })}
+                      </span>
+
+                      {record ? (
+                        <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                          }`}>
+                          {record.status[0]}
+                        </div>
+                      ) : (
+                        !isFuture && (
+                          <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+                            A
+                          </div>
+                        )
+                      )}
+
+                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
+                        <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
+                        {!record && !isFuture && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
+                        {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
+          <div className="text-[11px] text-muted-foreground italic font-medium">
+            Note: "A" indicates auto-marked absence due to missing records.
+          </div>
+          <Button onClick={() => setSelectedFaculty(null)} className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

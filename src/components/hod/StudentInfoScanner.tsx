@@ -349,6 +349,23 @@ const StudentInfoScanner = () => {
         </CardContent>
       </Card>
 
+      {/* Initial Empty State */}
+      {!loading && !studentData && !error && (
+        <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
+            <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+          </div>
+          <div className="max-w-xs mx-auto">
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Search Student
+            </h3>
+            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Enter USN or use scanner to find student information
+            </p>
+          </div>
+        </Card>
+      )}
+
       {/* Error Message */}
       {error && (
         <div className={`p-4 rounded-lg border mb-6 ${
@@ -467,338 +484,331 @@ const StudentInfoScanner = () => {
         <div className="space-y-6">
           {/* Basic Information */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5 text-primary" />
-                    Basic Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Name:</span>
-                        <span>{studentData.student_info.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">USN:</span>
-                        <Badge variant="secondary" className="font-mono">{studentData.student_info.usn}</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Email:</span>
-                        {studentData.student_info.email ? (
-                          <a
-                            href={`mailto:${studentData.student_info.email}`}
-                            className="text-blue-600 hover:text-blue-800 underline text-sm hover:underline"
-                          >
-                            {studentData.student_info.email}
-                          </a>
-                        ) : (
-                          <span className="text-sm text-gray-500">Not provided</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Mobile:</span>
-                        {studentData.student_info.mobile_number ? (
-                          <a
-                            href={`tel:${studentData.student_info.mobile_number}`}
-                            className="text-blue-600 hover:text-blue-800 underline text-sm hover:underline"
-                          >
-                            {studentData.student_info.mobile_number}
-                          </a>
-                        ) : (
-                          <span className="text-sm text-gray-500">Not provided</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Branch:</span>
-                        <span>{studentData.student_info.branch}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Semester:</span>
-                        <Badge>{studentData.student_info.semester}</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Section:</span>
-                        <Badge variant="outline">{studentData.student_info.section}</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Batch:</span>
-                        <span>{studentData.student_info.batch}</span>
-                      </div>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <User className="h-5 w-5 text-primary" />
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Name:</span>
+                    <span className="text-sm">{studentData.student_info.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">USN:</span>
+                    <Badge variant="secondary" className="font-mono text-xs">{studentData.student_info.usn}</Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Email:</span>
+                    {studentData.student_info.email ? (
+                      <a
+                        href={`mailto:${studentData.student_info.email}`}
+                        className="text-primary hover:underline text-sm truncate"
+                      >
+                        {studentData.student_info.email}
+                      </a>
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">Not provided</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Mobile:</span>
+                    {studentData.student_info.mobile_number ? (
+                      <a
+                        href={`tel:${studentData.student_info.mobile_number}`}
+                        className="text-primary hover:underline text-sm"
+                      >
+                        {studentData.student_info.mobile_number}
+                      </a>
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">Not provided</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Branch:</span>
+                    <span className="text-sm">{studentData.student_info.branch}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Semester:</span>
+                    <Badge variant="outline" className="text-xs">Semester {studentData.student_info.semester}</Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Section:</span>
+                    <Badge variant="outline" className="text-xs">Section {studentData.student_info.section}</Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Batch:</span>
+                    <span className="text-sm">{studentData.student_info.batch}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="opacity-50" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Course:</span>
+                    <span className="text-sm">{studentData.student_info.course}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Admission:</span>
+                    <span className="text-sm">{studentData.student_info.mode_of_admission}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Joined On:</span>
+                    <span className="text-sm">{studentData.student_info.date_of_admission}</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Heart className="h-4 w-4 text-destructive" />
+                    <span className="text-sm font-semibold w-24">Blood Grp:</span>
+                    <Badge variant="destructive" className="text-xs">{studentData.student_info.blood_group}</Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-24">Proctor:</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{studentData.student_info.proctor?.name || 'Not assigned'}</span>
+                      {studentData.student_info.proctor?.email && (
+                        <a
+                          href={`mailto:${studentData.student_info.proctor.email}`}
+                          className="text-primary hover:underline text-xs"
+                        >
+                          {studentData.student_info.proctor.email}
+                        </a>
+                      )}
                     </div>
                   </div>
-                  <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Course:</span>
-                        <span>{studentData.student_info.course}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Mode of Admission:</span>
-                        <span>{studentData.student_info.mode_of_admission}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Date of Admission:</span>
-                        <span>{studentData.student_info.date_of_admission}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Heart className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Blood Group:</span>
-                        <Badge variant="destructive">{studentData.student_info.blood_group}</Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Proctor:</span>
-                        <div className="flex flex-col">
-                          <span>{studentData.student_info.proctor?.name || 'Not assigned'}</span>
-                          {studentData.student_info.proctor?.email && (
-                            <a
-                              href={`mailto:${studentData.student_info.proctor.email}`}
-                              className="text-blue-600 hover:text-blue-800 underline text-xs hover:underline"
-                            >
-                              {studentData.student_info.proctor.email}
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Contact Information */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Phone className="h-5 w-5 text-primary" />
-                    Emergency Contacts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Parent Name:</span>
-                        <span>{studentData.student_info.parent_name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Parent Contact:</span>
-                        {studentData.student_info.parent_contact ? (
-                          <a
-                            href={`tel:${studentData.student_info.parent_contact}`}
-                            className="text-blue-600 hover:text-blue-800 underline text-sm hover:underline"
-                          >
-                            {studentData.student_info.parent_contact}
-                          </a>
-                        ) : (
-                          <span className="text-sm text-gray-500">Not provided</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-red-500" />
-                        <span className="font-medium">Emergency Contact:</span>
-                        {studentData.student_info.emergency_contact ? (
-                          <a
-                            href={`tel:${studentData.student_info.emergency_contact}`}
-                            className="text-red-600 hover:text-red-800 underline text-sm hover:underline"
-                          >
-                            {studentData.student_info.emergency_contact}
-                          </a>
-                        ) : (
-                          <span className="text-sm text-gray-500">Not provided</span>
-                        )}
-                      </div>
-                    </div>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Phone className="h-5 w-5 text-primary" />
+                Emergency Contacts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Parent Name:</span>
+                    <span className="text-sm">{studentData.student_info.parent_name}</span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold w-32">Parent Contact:</span>
+                    {studentData.student_info.parent_contact ? (
+                      <a
+                        href={`tel:${studentData.student_info.parent_contact}`}
+                        className="text-primary hover:underline text-sm"
+                      >
+                        {studentData.student_info.parent_contact}
+                      </a>
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">Not provided</span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                    <span className="text-sm font-semibold w-32">Emergency Contact:</span>
+                    {studentData.student_info.emergency_contact ? (
+                      <a
+                        href={`tel:${studentData.student_info.emergency_contact}`}
+                        className="text-destructive hover:underline text-sm font-medium"
+                      >
+                        {studentData.student_info.emergency_contact}
+                      </a>
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">Not provided</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Class Schedule */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Class Schedule
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Current Class */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <h3 className="font-semibold text-green-600">Current Class</h3>
-                      </div>
-                      {studentData.current_class ? (
-                        <div className="space-y-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-green-700 dark:text-green-300">{studentData.current_class.subject}</span>
-                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                              {studentData.current_class.subject_code}
-                            </Badge>
-                          </div>
-                          <div className="text-sm space-y-1">
-                            <div className="flex items-center gap-2">
-                              <User className="h-3 w-3 text-gray-500" />
-                              <span>{studentData.current_class.teacher}</span>
-                              {studentData.current_class.faculty_email && (
-                                <a
-                                  href={`mailto:${studentData.current_class.faculty_email}`}
-                                  className="text-blue-600 hover:text-blue-800 underline text-xs"
-                                >
-                                  ✉
-                                </a>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                <span className="font-mono">{studentData.current_class.room}</span>
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span className="font-semibold">{studentData.current_class.start_time} - {studentData.current_class.end_time}</span>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 px-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                          <Clock className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">No ongoing class</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Next Class */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <h3 className="font-semibold text-blue-600">Next Class</h3>
-                      </div>
-                      {studentData.next_class ? (
-                        <div className="space-y-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-blue-700 dark:text-blue-300">{studentData.next_class.subject}</span>
-                            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
-                              {studentData.next_class.subject_code}
-                            </Badge>
-                          </div>
-                          <div className="text-sm space-y-1">
-                            <div className="flex items-center gap-2">
-                              <User className="h-3 w-3 text-gray-500" />
-                              <span>{studentData.next_class.teacher}</span>
-                              {studentData.next_class.faculty_email && (
-                                <a
-                                  href={`mailto:${studentData.next_class.faculty_email}`}
-                                  className="text-blue-600 hover:text-blue-800 underline text-xs"
-                                >
-                                  ✉
-                                </a>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                <span className="font-mono">{studentData.next_class.room}</span>
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span className="font-semibold">{studentData.next_class.start_time} - {studentData.next_class.end_time}</span>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 px-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                          <Clock className="h-6 w-6 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">No upcoming class</p>
-                        </div>
-                      )}
-                    </div>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Clock className="h-5 w-5 text-primary" />
+                Class Schedule
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Current Class */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <h3 className="font-semibold text-green-600 text-sm">Current Class</h3>
                   </div>
-
-                  {/* Schedule Info */}
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                      <Calendar className="h-4 w-4" />
-                      <span>Classes typically scheduled between 9 AM - 5 PM</span>
+                  {studentData.current_class ? (
+                    <div className="space-y-3 p-4 rounded-xl bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50">
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="font-semibold text-green-700 dark:text-green-300 leading-tight">{studentData.current_class.subject}</span>
+                        <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-800 whitespace-nowrap">
+                          {studentData.current_class.subject_code}
+                        </Badge>
+                      </div>
+                      <div className="text-sm space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <User className="h-3.5 w-3.5" />
+                          <span className="truncate">{studentData.current_class.teacher}</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                          <span className="flex items-center gap-1.5 text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
+                            <span className="font-mono font-medium">{studentData.current_class.room}</span>
+                          </span>
+                          <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400 font-semibold">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>{studentData.current_class.start_time} - {studentData.current_class.end_time}</span>
+                          </span>
+                        </div>
+                      </div>
                     </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-dashed border-gray-200 dark:border-gray-700">
+                      <Clock className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                      <p className="text-sm text-muted-foreground italic">No ongoing class</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Next Class */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <h3 className="font-semibold text-blue-600 text-sm">Next Class</h3>
                   </div>
-                </CardContent>
-              </Card>
+                  {studentData.next_class ? (
+                    <div className="space-y-3 p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/50">
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="font-semibold text-blue-700 dark:text-blue-300 leading-tight">{studentData.next_class.subject}</span>
+                        <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-800 whitespace-nowrap">
+                          {studentData.next_class.subject_code}
+                        </Badge>
+                      </div>
+                      <div className="text-sm space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <User className="h-3.5 w-3.5" />
+                          <span className="truncate">{studentData.next_class.teacher}</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                          <span className="flex items-center gap-1.5 text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
+                            <span className="font-mono font-medium">{studentData.next_class.room}</span>
+                          </span>
+                          <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-semibold">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>{studentData.next_class.start_time} - {studentData.next_class.end_time}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-dashed border-gray-200 dark:border-gray-700">
+                      <Clock className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                      <p className="text-sm text-muted-foreground italic">No upcoming class</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Schedule Info */}
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-accent/5 py-2 rounded-lg">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>Classes typically scheduled between 9 AM - 5 PM</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Attendance Overview */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Attendance Overview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="text-center">
-                      <div className={`text-3xl font-bold ${
-                        studentData.attendance.overall_percentage >= 75 ? 'text-green-500' :
-                        studentData.attendance.overall_percentage >= 60 ? 'text-yellow-500' : 'text-red-500'
-                      }`}>
-                        {studentData.attendance.overall_percentage}%
-                      </div>
-                      <div className="text-sm text-gray-500">Overall</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-500">
-                        {studentData.attendance.present_classes}
-                      </div>
-                      <div className="text-sm text-gray-500">Present</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-500">
-                        {studentData.attendance.total_classes}
-                      </div>
-                      <div className="text-sm text-gray-500">Total Classes</div>
-                    </div>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Attendance Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-accent/5 border border-border/50">
+                  <div className={`text-4xl font-black ${
+                    studentData.attendance.overall_percentage >= 75 ? 'text-green-500' :
+                    studentData.attendance.overall_percentage >= 60 ? 'text-yellow-500' : 'text-red-500'
+                  }`}>
+                    {studentData.attendance.overall_percentage}%
                   </div>
-                  <Separator />
-                  <div className="mt-4">
-                    <h4 className="font-medium mb-3">Subject-wise Attendance</h4>
-                    <div className="space-y-2">
-                      {Object.entries(studentData.attendance.by_subject).map(([subject, data]) => (
-                        <div key={subject} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <span className="font-medium">{subject}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">{data.present}/{data.total}</span>
-                            <Badge
-                              variant={data.percentage >= 75 ? "default" : data.percentage >= 60 ? "secondary" : "destructive"}
-                              className="text-xs"
-                            >
-                              {data.percentage}%
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">Overall</div>
+                </div>
+                <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-accent/5 border border-border/50">
+                  <div className="text-3xl font-black text-primary">
+                    {studentData.attendance.present_classes}
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">Present</div>
+                </div>
+                <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-accent/5 border border-border/50">
+                  <div className="text-3xl font-black text-muted-foreground">
+                    {studentData.attendance.total_classes}
+                  </div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">Total Classes</div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                  Subject-wise Attendance
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {Object.entries(studentData.attendance.by_subject).map(([subject, data]) => (
+                    <div key={subject} className="flex items-center justify-between p-3 rounded-xl bg-accent/5 border border-border/50 hover:bg-accent/10 transition-colors">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm font-semibold">{subject}</span>
+                        <span className="text-xs text-muted-foreground font-medium">{data.present} / {data.total} attended</span>
+                      </div>
+                      <Badge
+                        variant={data.percentage >= 75 ? "default" : data.percentage >= 60 ? "secondary" : "destructive"}
+                        className="text-xs font-semibold min-w-[50px] justify-center"
+                      >
+                        {data.percentage}%
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Fee Summary */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
@@ -812,19 +822,19 @@ const StudentInfoScanner = () => {
                   {studentData.fee_summary && !studentData.fee_summary.error ? (
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div className="text-center">
-                        <div className="text-xl font-bold text-blue-500">
+                        <div className="text-xl font-semibold text-blue-500">
                           ₹{studentData.fee_summary.total_fees?.toLocaleString() || 'N/A'}
                         </div>
                         <div className="text-sm text-gray-500">Total Fees</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-bold text-green-500">
+                        <div className="text-xl font-semibold text-green-500">
                           ₹{studentData.fee_summary.amount_paid?.toLocaleString() || 'N/A'}
                         </div>
                         <div className="text-sm text-gray-500">Paid</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-bold text-red-500">
+                        <div className="text-xl font-semibold text-red-500">
                           ₹{studentData.fee_summary.remaining_fees?.toLocaleString() || 'N/A'}
                         </div>
                         <div className="text-sm text-gray-500">Remaining</div>

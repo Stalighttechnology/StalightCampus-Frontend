@@ -739,7 +739,7 @@ const PromotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (ta
       )}
 
       {/* Student List */}
-      {state.students.length > 0 && (
+      {state.students.length > 0 ? (
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
             <CardTitle className={`flex items-center justify-between ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -801,27 +801,27 @@ const PromotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (ta
 
               {/* Pagination Controls */}
               {state.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Showing {state.students.length} of {state.totalStudents} students
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex gap-2 items-center justify-center sm:justify-end">
                     <Button
                       onClick={() => handlePageChange(state.currentPage - 1)}
                       disabled={!state.hasPrevious || state.isLoading}
                       variant="outline"
-                      size="sm"
+                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
                     >
-                      Previous
+                      Prev
                     </Button>
-                    <span className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      Page {state.currentPage} of {state.totalPages}
+                    <span className="px-3 text-base font-medium text-primary">
+                      {state.currentPage}
                     </span>
                     <Button
                       onClick={() => handlePageChange(state.currentPage + 1)}
                       disabled={!state.hasNext || state.isLoading}
                       variant="outline"
-                      size="sm"
+                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
                     >
                       Next
                     </Button>
@@ -830,6 +830,21 @@ const PromotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (ta
               )}
             </div>
           </CardContent>
+        </Card>
+      ) : !state.isLoading && (
+        <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'
+          }`}>
+          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+            <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+          </div>
+          <div className="max-w-xs mx-auto">
+            <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              No Students to Display
+            </h3>
+            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Please select a semester and section to view students eligible for promotion.
+            </p>
+          </div>
         </Card>
       )}
     </div>
@@ -1302,7 +1317,7 @@ const DemotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (tab
       </Card>
 
       {/* Student List */}
-      {state.students.length > 0 && (
+      {state.students.length > 0 ? (
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
             <CardTitle className={`flex items-center justify-between ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -1364,27 +1379,27 @@ const DemotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (tab
 
               {/* Pagination Controls */}
               {state.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Showing {state.students.length} of {state.totalStudents} students
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    Showing {Math.min((state.currentPage - 1) * 50 + 1, state.totalStudents)} to {Math.min(state.currentPage * 50, state.totalStudents)} of {state.totalStudents}
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex gap-2 items-center justify-center sm:justify-end">
                     <Button
                       onClick={() => handlePageChange(state.currentPage - 1)}
                       disabled={!state.hasPrevious || state.isLoading}
                       variant="outline"
-                      size="sm"
+                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
                     >
-                      Previous
+                      Prev
                     </Button>
-                    <span className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      Page {state.currentPage} of {state.totalPages}
+                    <span className="px-3 text-base font-medium text-primary">
+                      {state.currentPage}
                     </span>
                     <Button
                       onClick={() => handlePageChange(state.currentPage + 1)}
                       disabled={!state.hasNext || state.isLoading}
                       variant="outline"
-                      size="sm"
+                      className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
                     >
                       Next
                     </Button>
@@ -1393,6 +1408,21 @@ const DemotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (tab
               )}
             </div>
           </CardContent>
+        </Card>
+      ) : !state.isLoading && (
+        <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'
+          }`}>
+          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+            <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+          </div>
+          <div className="max-w-xs mx-auto">
+            <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              No Students to Display
+            </h3>
+            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Please select a semester and section to view students eligible for demotion.
+            </p>
+          </div>
         </Card>
       )}
 

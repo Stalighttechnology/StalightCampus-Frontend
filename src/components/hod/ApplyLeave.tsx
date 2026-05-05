@@ -323,7 +323,7 @@ const ApplyLeave = () => {
   });
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Main Container with Flex Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
@@ -465,7 +465,7 @@ const ApplyLeave = () => {
           </div>
         </CardHeader>
 
-        <CardContent className="max-h-[500px] overflow-y-auto thin-scrollbar">
+        <CardContent className="max-h-[500px] overflow-y-auto custom-scrollbar">
           <div className="overflow-x-auto thin-scrollbar">
             {/* Mobile: stacked cards */}
             <div className="md:hidden space-y-3">
@@ -579,37 +579,38 @@ const ApplyLeave = () => {
           
           {/* Pagination Footer */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mt-6 pt-6 border-t border-border">
-              <Button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
-                variant="outline"
-                size="sm"
-                className={theme === 'dark' ? 'border-2 border-border text-foreground hover:bg-accent' : 'border-2 border-gray-300 text-gray-900 hover:bg-gray-100'}
-              >
-                Previous
-              </Button>
-
-              <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                Page {currentPage} of {totalPages}
-              </span>
-
-              <Button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
-                variant="outline"
-                size="sm"
-                className={theme === 'dark' ? 'border-2 border-border text-foreground hover:bg-accent' : 'border-2 border-gray-300 text-gray-900 hover:bg-gray-100'}
-              >
-                Next
-              </Button>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6 pt-6 border-t border-border">
+              <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount}
+              </div>
+              <div className="flex gap-2 items-center justify-center sm:justify-end">
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1 || loading}
+                  variant="outline"
+                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
+                >
+                  Prev
+                </Button>
+                <span className="px-3 text-base font-medium text-primary">
+                  {currentPage}
+                </span>
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  variant="outline"
+                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
 
         {/* Popup Modal */}
         <Dialog open={!!selectedReason} onOpenChange={() => setSelectedReason(null)}>
-          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
             <DialogHeader>
               <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
             </DialogHeader>
@@ -627,8 +628,8 @@ const ApplyLeave = () => {
                 variant="outline"
                 onClick={() => setSelectedReason(null)}
                 className={theme === 'dark' 
-                  ? 'text-foreground bg-card border border-border hover:bg-accent' 
-                  : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+                  ? 'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white'
+                  : 'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}
               >
                 Close
               </Button>

@@ -338,7 +338,7 @@ const HODAnnouncementManagement = () => {
                 </Button>
               </DialogTrigger>
               <DialogContent 
-                className="mobile-modal w-[92%] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl"
+                className="mobile-modal w-[90%] sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl custom-scrollbar"
               >
               <DialogHeader>
                 <DialogTitle>
@@ -373,7 +373,7 @@ const HODAnnouncementManagement = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, message: e.target.value })
                     }
-                    className={`h-40 resize-none overflow-y-auto ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}
+                    className={`h-20 resize-none overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}
                   />
                 </div>
 
