@@ -884,13 +884,16 @@ interface GetLeaveBootstrapResponse {
 }
 
 export const getLeaveBootstrap = async (
-  branch_id?: string
+  params: { branch_id?: string; page?: number; status?: string; date_from?: string } = {}
 ): Promise<GetLeaveBootstrapResponse> => {
   try {
-    const params: Record<string, string> = {};
-    if (branch_id) params.branch_id = branch_id;
-    const query = new URLSearchParams(params).toString();
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/leave-bootstrap/${query ? '?' + query : ''}`, {
+    const queryParams = new URLSearchParams();
+    if (params.branch_id) queryParams.append("branch_id", params.branch_id);
+    if (params.page) queryParams.append("page", params.page.toString());
+    if (params.status) queryParams.append("status", params.status);
+    if (params.date_from) queryParams.append("date_from", params.date_from);
+
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/leave-bootstrap/?${queryParams.toString()}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });

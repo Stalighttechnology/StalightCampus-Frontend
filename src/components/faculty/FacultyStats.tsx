@@ -98,10 +98,13 @@ const FacultyStats = ({ setActivePage }: FacultyStatsProps) => {
   // class/section filters removed; use per-subject trends instead
   const subjectOptions = [
     { value: "all", label: "All Subjects" },
-    ...subjectPerformanceTrends.map((trend) => ({
-      value: trend.subject_id.toString(),
-      label: `${trend.subject_name} (${trend.subject_code})`
-    }))
+    ...Array.from(new Set(subjectPerformanceTrends.map(t => t.subject_id))).map(id => {
+      const trend = subjectPerformanceTrends.find(t => t.subject_id === id)!;
+      return {
+        value: id.toString(),
+        label: `${trend.subject_name} (${trend.subject_code})`
+      };
+    })
   ];
 
   // Get filtered performance trends based on selected subject

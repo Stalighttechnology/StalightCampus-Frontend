@@ -72,6 +72,7 @@ const AttendanceRecords = () => {
   useEffect(() => {
     const fetchRecords = async () => {
       setLoading(true);
+      setError("");
       try {
         const res = await getAttendanceRecordsWithSummary({
           page: pagination.page,
@@ -326,88 +327,38 @@ const AttendanceRecords = () => {
 
       {/* Pagination Controls */}
       {pagination.paginationState.totalPages > 1 && (
-        <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-          <CardContent className="pt-3 md:pt-4">
-            <div className="flex justify-between items-center gap-2 md:gap-2">
-              <div className={`text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                Showing {records.length} of {pagination.paginationState.totalItems} records
-              </div>
-              <div className="flex items-center gap-1 md:gap-1">
-                <Button
-                  variant="outline"
-                  onClick={() => pagination.goToPage(1)}
-                  disabled={pagination.page === 1}
-                  aria-label="First page"
-                  className="text-xs md:text-xs px-1.5 md:px-2 py-0.5 md:py-0.5 whitespace-nowrap bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
-                >
-                  First
-                </Button>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4 py-6 border-t border-border">
+          <div className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} font-medium`}>
+            Showing {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} records
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => pagination.goToPage(Math.max(1, pagination.page - 1))}
+              disabled={pagination.page === 1 || loading}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all shadow-md shadow-primary/20"
+            >
+              Previous
+            </Button>
 
-                <Button
-                  variant="outline"
-                  onClick={() => pagination.goToPage(pagination.page - 1)}
-                  disabled={!pagination.paginationState.hasPrev}
-                  aria-label="Previous page"
-                  className="text-xs md:text-xs px-1.5 md:px-2 py-0.5 md:py-0.5 whitespace-nowrap bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
-                >
-                  Prev
-                </Button>
-
-                {/* Numeric page buttons (windowed) */}
-                <div className="flex items-center space-x-0.5 md:space-x-0.5">
-                  {(() => {
-                    const total = pagination.paginationState.totalPages || 1;
-                    const current = pagination.page || 1;
-                    const maxButtons = 5;
-                    let start = Math.max(1, current - Math.floor(maxButtons / 2));
-                    let end = Math.min(total, start + maxButtons - 1);
-                    if (end - start + 1 < maxButtons) start = Math.max(1, end - maxButtons + 1);
-                    const buttons = [];
-                    for (let p = start; p <= end; p++) {
-                      buttons.push(
-                        <Button
-                          key={p}
-                          variant={p === current ? undefined : 'ghost'}
-                          onClick={() => pagination.goToPage(p)}
-                          aria-current={p === current ? 'page' : undefined}
-                          aria-label={`Page ${p}`}
-                          className={`px-1.5 md:px-2 py-0.5 md:py-0.5 text-xs md:text-xs lg:text-sm ${p === current ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border border-gray-200'} rounded-md`}
-                        >
-                          {p}
-                        </Button>
-                      );
-                    }
-                    return buttons;
-                  })()}
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={() => pagination.goToPage(pagination.page + 1)}
-                  disabled={!pagination.paginationState.hasNext}
-                  aria-label="Next page"
-                  className="text-xs md:text-xs px-1.5 md:px-2 py-0.5 md:py-0.5 whitespace-nowrap bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
-                >
-                  Next
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => pagination.goToPage(pagination.paginationState.totalPages)}
-                  disabled={pagination.page === pagination.paginationState.totalPages}
-                  aria-label="Last page"
-                  className="text-xs md:text-xs px-1.5 md:px-2 py-0.5 md:py-0.5 whitespace-nowrap bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
-                >
-                  Last
-                </Button>
-
-                <span className={`text-xs md:text-xs lg:text-sm px-1.5 md:px-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Page {pagination.page} of {pagination.paginationState.totalPages}
-                </span>
-              </div>
+            <div className="flex items-center justify-center min-w-[2.5rem]">
+              <span className={`text-sm font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {pagination.page}
+              </span>
             </div>
-          </CardContent>
-        </Card>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.page + 1))}
+              disabled={pagination.page >= pagination.paginationState.totalPages || loading}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all shadow-md shadow-primary/20"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

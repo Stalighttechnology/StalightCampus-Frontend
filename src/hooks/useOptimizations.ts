@@ -32,15 +32,20 @@ export const usePagination = (options: PaginationOptions) => {
   });
 
   const updatePagination = useCallback((data: any) => {
-    if (data?.pagination) {
-      const p = data.pagination || {};
+    if (!data) return;
+    
+    // Check if pagination info is nested or flat
+    const p = data.pagination || data;
+    
+    // Only update if we find at least some pagination markers
+    if (p.total_pages !== undefined || p.totalPages !== undefined || p.count !== undefined || p.total_items !== undefined) {
       const currentPage = p.current_page ?? p.page ?? page;
       const pageSz = p.page_size ?? p.pageSize ?? pageSize;
-      const hasNext = p.has_next ?? p.hasNext ?? false;
-      const hasPrev = p.has_prev ?? p.hasPrev ?? false;
+      const hasNext = p.has_next ?? p.hasNext ?? (p.total_pages ? currentPage < p.total_pages : false);
+      const hasPrev = p.has_prev ?? p.hasPrev ?? (currentPage > 1);
       const totalPages = p.total_pages ?? p.totalPages ?? 0;
-      const totalItems = p.total_items ?? p.totalItems ?? 0;
-      // Sync both the pagination state and the current page value so UI and hook stay consistent
+      const totalItems = p.total_items ?? p.totalItems ?? p.count ?? 0;
+      
       setPaginationState({
         page: currentPage,
         pageSize: pageSz,
@@ -77,7 +82,7 @@ export const usePagination = (options: PaginationOptions) => {
     goToPage,
     nextPage,
     prevPage,
-    queryKey: [...queryKey, page, pageSize],
+    queryKey: [...(queryKey || []), page, pageSize],
   };
 };
 

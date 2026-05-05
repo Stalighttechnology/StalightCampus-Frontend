@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { applyLeave, getApplyLeaveBootstrap } from '../../utils/faculty_api';
 import { useTheme } from '@/context/ThemeContext';
 import { SkeletonList } from '@/components/ui/skeleton';
+import { usePagination } from '@/hooks/useOptimizations';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { Circle, CalendarCheck2, CalendarX2, Filter } from 'lucide-react';
@@ -39,42 +40,45 @@ interface LeaveRequestDisplay {
   appliedOn: string;
 }
 
-const LeaveRequests = () => {
+const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [branches, setBranches] = useState<{ id: number; name: string }[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [reason, setReason] = useState('');
-  const [leaveList, setLeaveList] = useState<LeaveRequestDisplay[]>([]);
-  const [filteredLeaveList, setFilteredLeaveList] = useState<LeaveRequestDisplay[]>([]);
   const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [filterOpen, setFilterOpen] = useState(false);
   const [viewReason, setViewReason] = useState<string | null>(null);
+  const pagination = usePagination({
+    queryKey: ['facultyLeaves'],
+    pageSize: 10,
+  });
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
   const today = new Date();
+  const [leaveList, setLeaveList] = useState<LeaveRequestDisplay[]>([]);
 
-  // Fetch branches and leave history on mount
+  // Fetch branches and leave history
   useEffect(() => {
     setLoading(true);
-    getApplyLeaveBootstrap()
+    getApplyLeaveBootstrap({ page: pagination.page, page_size: pagination.pageSize })
       .then((res) => {
         if (res.success && res.data) {
           const { assignments, leave_requests, branches } = res.data;
 
-          // Set branches from the combined response
-          setBranches(branches);
-          if (branches.length > 0) setSelectedBranch(branches[0].id.toString());
+          // Set branches only once or update if needed
+          if (branches) {
+            setBranches(branches);
+            if (branches.length > 0 && !selectedBranch) setSelectedBranch(branches[0].id.toString());
+          }
 
           // Transform backend data to match original mock structure
-          const transformedLeaves: LeaveRequestDisplay[] = leave_requests.map((leave) => {
-            console.log('Original status from backend:', leave.status);
+          const transformedLeaves: LeaveRequestDisplay[] = leave_requests.map((leave: any) => {
             const mappedStatus = (leave.status === 'PENDING' ? 'Pending' :
-                                leave.status === 'APPROVED' ? 'Approved' :
-                                leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as 'Pending' | 'Approved' | 'Rejected';
-            console.log('Mapped status:', mappedStatus);
+                                 leave.status === 'APPROVED' ? 'Approved' :
+                                 leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
 
             return {
               id: leave.id,
@@ -87,22 +91,19 @@ const LeaveRequests = () => {
             };
           });
           setLeaveList(transformedLeaves);
+          pagination.updatePagination(res);
         } else {
           setError(res.message || 'Failed to load data');
         }
       })
       .catch(() => setError('Failed to load data'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [pagination.page, pagination.pageSize]);
 
-  // Update filtered leave list when leave list or filter changes
-  useEffect(() => {
-    if (filterStatus === 'All') {
-      setFilteredLeaveList(leaveList);
-    } else {
-      setFilteredLeaveList(leaveList.filter(leave => leave.status === filterStatus));
-    }
-  }, [leaveList, filterStatus]);
+  // Derived filtered list for UI
+  const filteredLeaveList = filterStatus === 'All' 
+    ? leaveList 
+    : leaveList.filter(leave => leave.status === filterStatus);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -246,7 +247,7 @@ const LeaveRequests = () => {
   };
 
   return (
-    <div className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} space-y-4 sm:space-y-6 min-h-screen`}>  
+    <div ref={ref} className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} space-y-4 sm:space-y-6 min-h-screen`}>  
       {/* Main Container with Responsive Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Leave Application Form - Left Side */}
@@ -412,9 +413,8 @@ const LeaveRequests = () => {
                 {filterStatus === 'All' ? 'No leave requests found.' : `No ${filterStatus.toLowerCase()} leave requests found.`}
               </div>
             ) : (
-              <div className="max-h-[350px] sm:max-h-[450px] lg:max-h-[520px] overflow-y-auto custom-scrollbar space-y-1 sm:space-y-2 lg:space-y-3">
+              <div className="max-h-[350px] sm:max-h-[450px] lg:max-h-[520px] overflow-y-auto custom-scrollbar space-y-1 sm:space-y-2 lg:space-y-3 pr-2">
                 {filteredLeaveList.map((leave) => {
-                  console.log('Rendering leave card with status:', leave.status);
                   return (
                     <div key={leave.id} className={`p-1.5 sm:p-2 lg:p-3 border rounded-lg ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}>
                       <div className="flex justify-between items-start gap-1.5 sm:gap-2">
@@ -444,6 +444,42 @@ const LeaveRequests = () => {
                     </div>
                   );
                 })}
+
+                {/* Pagination Controls */}
+                {pagination.paginationState.totalPages > 1 && (
+                  <div className="flex flex-col items-center gap-4 text-sm text-muted-foreground mt-6 pt-6 border-t border-border">
+                    <div className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} font-medium`}>
+                      Showing {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => pagination.goToPage(Math.max(1, pagination.page - 1))}
+                        disabled={pagination.page === 1 || loading}
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all shadow-md shadow-primary/20"
+                      >
+                        Previous
+                      </Button>
+
+                      <div className="flex items-center justify-center min-w-[2rem]">
+                        <span className={`text-sm font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {pagination.page}
+                        </span>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.page + 1))}
+                        disabled={pagination.page >= pagination.paginationState.totalPages || loading}
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all shadow-md shadow-primary/20"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -479,6 +515,6 @@ const LeaveRequests = () => {
       </Dialog>
     </div>
   );
-};
+});
 
 export default LeaveRequests;
