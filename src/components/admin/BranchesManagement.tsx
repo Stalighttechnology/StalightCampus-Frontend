@@ -23,6 +23,10 @@ import autoTable from "jspdf-autotable";
 import { manageBranches, manageUsers, getBranchesWithHODs } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
 
 interface Branch {
   id: number;
@@ -231,11 +235,29 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
     }
   };
 
-  const confirmDelete = (id: number) => setDeleteId(id);
-  const deleteBranch = async () => {
+  const confirmDelete = (id: number) => {
+    const currentTheme = theme === 'dark' ? 'dark' : 'light';
+    MySwal.fire({
+      title: 'Confirm Deletion',
+      text: "Are you sure you want to delete this branch? This action cannot be undone.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#3b82f6',
+      confirmButtonText: 'Delete Branch',
+      background: currentTheme === 'dark' ? '#1f2937' : '#fff',
+      color: currentTheme === 'dark' ? '#fff' : '#000',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteBranch(id);
+      }
+    });
+  };
+
+  const deleteBranch = async (id: number) => {
     setLoading(true);
     try {
-      const response = await manageBranches(undefined, deleteId!, "DELETE");
+      const response = await manageBranches(undefined, id, "DELETE");
       const hasResults = response && typeof response === 'object' && 'results' in response;
       const dataSource = hasResults ? (response as any).results : (response as any);
 
@@ -245,14 +267,11 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         } else {
           fetchData(currentPage);
         }
-        setDeleteId(null);
         toast({ title: "Success", description: "Branch deleted successfully" });
       } else {
-        setError(response.message || "Failed to delete branch");
-        toast({ variant: "destructive", title: "Error", description: response.message || "Failed to delete branch" });
+        toast({ variant: "destructive", title: "Error", description: dataSource?.message || "Failed to delete branch" });
       }
     } catch (err) {
-      setError("Network error");
       toast({ variant: "destructive", title: "Error", description: "Network error" });
     } finally {
       setLoading(false);
@@ -620,24 +639,9 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         </CardContent>
       </Card>
 
-      {/* Dialogs remain similar but with consistent styling */}
-      <Dialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-md' : 'bg-white text-gray-900 max-w-md'}>
-          <DialogHeader><DialogTitle className="text-destructive">Confirm Deletion</DialogTitle></DialogHeader>
-          <div className="py-4">
-            <p>Are you sure you want to delete this branch? This action cannot be undone.</p>
-          </div>
-          <DialogFooter className="flex gap-3">
-            <Button variant="ghost" onClick={() => setDeleteId(null)} className="flex-1">Cancel</Button>
-            <Button variant="destructive" onClick={deleteBranch} disabled={loading} className="flex-1">
-              {loading ? "Deleting..." : "Delete Branch"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-md' : 'bg-white text-gray-900 max-w-md'}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
           <DialogHeader><DialogTitle>Add New Branch</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -667,7 +671,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
       </Dialog>
 
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-md' : 'bg-white text-gray-900 max-w-md'}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
           <DialogHeader><DialogTitle>Assign Department Head</DialogTitle></DialogHeader>
           <div className="space-y-5 py-4">
             <div className="space-y-2">

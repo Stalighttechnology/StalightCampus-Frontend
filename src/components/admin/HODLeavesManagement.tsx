@@ -132,9 +132,12 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   };
 
   useEffect(() => {
-    setCurrentPage(1); // Reset to first page when month changes
-    fetchLeaves(selectedMonth, 1);
-  }, [setError, toast, selectedMonth]);
+    fetchLeaves(selectedMonth, currentPage);
+  }, [selectedMonth, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedMonth]);
 
   const handleApprove = async (id: number) => {
     const result = await Swal.fire({
@@ -275,15 +278,17 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         <CardHeader className="pb-2">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
-              <div className="flex items-center gap-3">
-                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and approve leave requests from Heads of Departments</p>
+              <div className="flex items-center gap-3 mb-1">
+                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Requests</CardTitle>
                 {totalCount > 0 && (
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {totalCount} Total
                   </span>
                 )}
               </div>
+              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Review and approve leave requests from Heads of Departments
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
@@ -501,70 +506,38 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           </div>
         </CardContent>
         
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-6 py-4 border-t border-border">
-            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} leave requests
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const newPage = currentPage - 1;
-                  setCurrentPage(newPage);
-                  fetchLeaves(selectedMonth, newPage);
-                }}
-                disabled={currentPage === 1 || loading}
-                className={theme === 'dark' 
-                  ? 'border-border text-foreground hover:bg-accent' 
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'}
-              >
-                Previous
-              </Button>
-
-              {/* Page Numbers */}
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                  if (pageNum > totalPages) return null;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setCurrentPage(pageNum);
-                        fetchLeaves(selectedMonth, pageNum);
-                      }}
-                      disabled={loading}
-                      className={`w-8 h-8 p-0 ${currentPage === pageNum ? 'bg-primary hover:bg-primary/90 text-white' : ''}`}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const newPage = currentPage + 1;
-                  setCurrentPage(newPage);
-                  fetchLeaves(selectedMonth, newPage);
-                }}
-                disabled={currentPage === totalPages || loading}
-                className={theme === 'dark' 
-                  ? 'border-border text-foreground hover:bg-accent' 
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'}
-              >
-                Next
-              </Button>
-            </div>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+          <div>
+            Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1 || loading}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Previous
+            </Button>
+
+            <div className="flex items-center justify-center min-w-[2rem]">
+              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {currentPage}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages || loading}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </Card>
 
       {/* View Reason Dialog */}

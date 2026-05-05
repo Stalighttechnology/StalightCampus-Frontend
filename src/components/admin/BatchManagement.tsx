@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../ui/dialog";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Layers } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 
 interface Batch {
@@ -51,17 +51,17 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
     if (setError) setError(null);
     try {
       const res = await manageBatches({ page, page_size: pageSize, search });
-      
+
       // The backend returns a paginated response with a top-level 'results' key
       const hasResults = res && typeof res === 'object' && 'results' in res;
       const paginationData = res as any;
       const dataSource = hasResults ? paginationData.results : paginationData;
-      
+
       if (dataSource && dataSource.success) {
         const batchesArray = dataSource.batches || [];
         if (Array.isArray(batchesArray)) {
           setBatches(batchesArray);
-          
+
           const count = paginationData.count || (dataSource && dataSource.count);
           if (count !== undefined) {
             setTotalCount(count);
@@ -124,7 +124,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
       );
       const hasResults = res && typeof res === 'object' && 'results' in res;
       const dataSource = hasResults ? (res as any).results : (res as any);
-      
+
       if (dataSource && dataSource.success) {
         // Refresh to maintain pagination integrity
         fetchBatches(1);
@@ -178,7 +178,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
       );
       const hasResults = res && typeof res === 'object' && 'results' in res;
       const dataSource = hasResults ? (res as any).results : (res as any);
-      
+
       if (dataSource && dataSource.success) {
         // Update local state for immediate feedback
         if (dataSource.batch) {
@@ -237,7 +237,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
       const res = await manageBatches(undefined, batchToDelete.id, "DELETE");
       const hasResults = res && typeof res === 'object' && 'results' in res;
       const dataSource = hasResults ? (res as any).results : (res as any);
-      
+
       if (dataSource && dataSource.success) {
         // If it was the last item on the page, go to previous page
         if (batches.length === 1 && currentPage > 1) {
@@ -317,29 +317,25 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
 
       {/* Existing Batches */}
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]'}>
-        <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="w-full">
-            <CardTitle>
-              Existing Batches
-            </CardTitle>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <p className={`block text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Manage, edit, or delete created batches
-                </p>
-                <Input
-                  placeholder="Search batches..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`h-8 w-full sm:w-48 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}
-                />
-              </div>
-              {totalCount > 0 && (
-                <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-800'}`}>
-                  Total: {totalCount}
-                </span>
-              )}
-            </div>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle>Existing Batches</CardTitle>
+            {totalCount > 0 && (
+              <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-800'}`}>
+                Total: {totalCount}
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-4">
+            <p className={`text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Manage, edit, or delete created batches
+            </p>
+            <Input
+              placeholder="Search batches..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`h-9 w-full sm:w-64 ${theme === 'dark' ? 'bg-card border-border' : 'bg-gray-50 border-gray-200'}`}
+            />
           </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden flex flex-col pt-0">
@@ -347,30 +343,34 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
             <SkeletonTable rows={pageSize} cols={4} />
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
-                <table className="w-full text-[11px] md:text-sm text-left border-collapse table-auto align-middle">
-                  <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card border-b border-border shadow-sm' : 'bg-gray-50 border-b border-gray-200 shadow-sm'}`}>
-                    <tr>
-                      <th className={`py-3 px-3 text-left font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Batch Name</th>
-                      <th className={`py-3 px-3 hidden sm:table-cell font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Start Year</th>
-                      <th className={`py-3 px-3 hidden sm:table-cell font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>End Year</th>
-                      <th className={`py-3 px-3 w-20 font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Students</th>
-                      <th className={`py-3 px-3 w-28 font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Created At</th>
-                      <th className={`py-3 px-3 w-28 text-right font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {batches.length === 0 ? (
+              {batches.length === 0 ? (
+                <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                    <Layers className="w-10 h-10 text-primary opacity-50" />
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No batches found</h3>
+                  <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    There are currently no batches available. Create a new batch using the form above to get started.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
+                  <table className="w-full text-[11px] md:text-sm text-left border-collapse table-auto align-middle">
+                    <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card border-b border-border shadow-sm' : 'bg-gray-50 border-b border-gray-200 shadow-sm'}`}>
                       <tr>
-                        <td colSpan={6} className="py-10 text-center text-muted-foreground">
-                          No batches found.
-                        </td>
+                        <th className={`py-3 px-3 text-left font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Batch Name</th>
+                        <th className={`py-3 px-3 hidden sm:table-cell font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Start Year</th>
+                        <th className={`py-3 px-3 hidden sm:table-cell font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>End Year</th>
+                        <th className={`py-3 px-3 w-20 font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Students</th>
+                        <th className={`py-3 px-3 w-28 font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Created At</th>
+                        <th className={`py-3 px-3 w-28 text-right font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
                       </tr>
-                    ) : (
-                      batches.map((batch) => (
+                    </thead>
+                    <tbody>
+                      {batches.map((batch) => (
                         <tr
                           key={batch.id}
-                          className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`} 
+                          className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}
                         >
                           <td className="py-3 px-3 align-middle font-medium">
                             <div className="truncate">{batch.name}</div>
@@ -394,11 +394,11 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
                             </Button>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
@@ -475,7 +475,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
 
       {/* Edit Batch Dialog */}
       <Dialog open={!!editingBatch} onOpenChange={() => setEditingBatch(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-full rounded-xl shadow-xl` }>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-full rounded-xl shadow-xl`}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Edit Batch Details</DialogTitle>
           </DialogHeader>
@@ -528,7 +528,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-full rounded-xl shadow-xl` }>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-full rounded-xl shadow-xl`}>
           <DialogHeader>
             <DialogTitle className="text-destructive">Delete Batch</DialogTitle>
           </DialogHeader>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle } from "lucide-react";
+import { Edit2, Trash2, Eye, Clock, User, AlertCircle, MoreVertical, CheckCircle2, XCircle, Megaphone, BellOff } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { Announcement } from "@/utils/announcements_api";
 import {
@@ -190,13 +190,15 @@ export const AnnouncementSections = ({
             <p className="text-muted-foreground">Loading announcements...</p>
           </div>
         ) : myAnnouncements.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">
-                No announcements created yet. Create your first announcement!
-              </p>
-            </CardContent>
-          </Card>
+          <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-2xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+              <Megaphone className="w-10 h-10 text-primary opacity-50" />
+            </div>
+            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements created</h3>
+            <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              You haven't created any announcements yet. Click the button above to create your first announcement!
+            </p>
+          </div>
         ) : (
           <div className={`rounded-2xl border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'} overflow-hidden shadow-sm`}>
             <div className="overflow-x-auto custom-scrollbar">
@@ -370,13 +372,15 @@ export const AnnouncementSections = ({
             <p className="text-muted-foreground">Loading announcements...</p>
           </div>
         ) : receivedAnnouncements.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">
-                No announcements received yet.
-              </p>
-            </CardContent>
-          </Card>
+          <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-2xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+              <BellOff className="w-10 h-10 text-primary opacity-50" />
+            </div>
+            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements received</h3>
+            <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Your inbox is clear! There are currently no announcements for you to review.
+            </p>
+          </div>
         ) : (
           <div className={`rounded-2xl border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'} overflow-hidden shadow-sm`}>
             <div className="overflow-x-auto custom-scrollbar">

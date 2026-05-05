@@ -9,7 +9,7 @@ import {
 } from "../ui/select";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "../../lib/utils";
-import { Building, Search } from "lucide-react";
+import { Building, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import {
@@ -29,8 +29,8 @@ import { SkeletonTable } from "../ui/skeleton";
 // Custom SelectContent components without scroll arrows
 const CustomSelectContent = forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & { header?: React.ReactNode }
+>(({ className, children, position = "popper", header, ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
@@ -43,6 +43,7 @@ const CustomSelectContent = forwardRef<
       position={position}
       {...props}
     >
+      {header && <div className="z-20 bg-popover border-b">{header}</div>}
       <SelectPrimitive.Viewport
         className={cn(
           "p-1 max-h-[calc(100%-8px)] overflow-y-auto custom-scrollbar",
@@ -133,16 +134,16 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
         },
       });
       const result = await response.json();
-      
+
       // Handle invalid page due to filter changes
       if (!result.success && result.message && result.message.includes("Invalid page")) {
         setCurrentPage(1);
         return;
       }
-      
+
       const hasResults = result && typeof result === 'object' && 'results' in result;
       const dataSource = hasResults ? result.results : result;
-      
+
       if (dataSource && dataSource.success) {
         setTeachers(dataSource.teachers || []);
         setBranches(dataSource.branches || []);
@@ -207,31 +208,25 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <SkeletonTable rows={8} cols={4} />
-      </div>
-    );
-  }
+  // Removed global loading return to prevent unmounting of Dialog/State
 
   return (
     <div className={`${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <Card className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
         <CardHeader>
-          <div className="w-full flex items-start justify-between">
+          <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty-Branch Assignments</CardTitle>
               <p className={`block text-xs md:text-base text-gray-500 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Assign primary branches to faculty members</p>
             </div>
-            <div>
+            <div className="w-full sm:w-auto">
               <Button
                 onClick={() => {
                   setSelectedTeacher(null);
                   setSelectedBranch("");
                   setShowBranchDialog(true);
                 }}
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white"
               >
                 <Building className="h-4 w-4" />
                 Assign Primary Branch
@@ -276,81 +271,87 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             </div>
           </div>
 
-          <div className="max-h-[calc(100vh-28rem)] sm:max-h-[calc(100vh-26rem)] md:max-h-[calc(100vh-24rem)] lg:max-h-[calc(100vh-22rem)] overflow-y-auto custom-scrollbar pr-2">
-            <div className="grid grid-cols-1 gap-2 sm:gap-4">
-              {teachers.map((teacher) => (
-                <Card 
-                  key={teacher.id} 
-                  className="p-2 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
-                  onClick={() => {
-                    setSelectedTeacher(teacher);
-                    if (teacher.primary_branch) {
-                      setSelectedBranch(teacher.primary_branch.id.toString());
-                    } else {
-                      setSelectedBranch("");
-                    }
-                    setShowBranchDialog(true);
-                  }}
-                >
-                  <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
-                    <div>
-                      <h3 className="text-sm sm:text-lg font-semibold">
-                        {teacher.first_name} {teacher.last_name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{teacher.email}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Branch: {teacher.primary_branch && teacher.primary_branch.name ? teacher.primary_branch.name : "Not Assigned"}
-                      </p>
+          <div>
+            {loading ? (
+              <SkeletonTable rows={5} cols={1} />
+            ) : (
+              <div className="grid grid-cols-1 gap-2 sm:gap-4">
+                {teachers.map((teacher) => (
+                  <Card
+                    key={teacher.id}
+                    className="p-2 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => {
+                      setSelectedTeacher(teacher);
+                      if (teacher.primary_branch) {
+                        setSelectedBranch(teacher.primary_branch.id.toString());
+                      } else {
+                        setSelectedBranch("");
+                      }
+                      setShowBranchDialog(true);
+                    }}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
+                      <div>
+                        <h3 className="text-sm sm:text-lg font-semibold">
+                          {teacher.first_name} {teacher.last_name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{teacher.email}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Branch: {teacher.primary_branch && teacher.primary_branch.name ? teacher.primary_branch.name : "Not Assigned"}
+                        </p>
+                      </div>
+                      {teacher.primary_branch && teacher.primary_branch.name ? (
+                        <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-xs'}>
+                          {teacher.primary_branch.name}
+                        </Badge>
+                      ) : (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
+                          Not Assigned
+                        </span>
+                      )}
                     </div>
-                    {teacher.primary_branch && teacher.primary_branch.name ? (
-                      <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-xs'}>
-                        {teacher.primary_branch.name}
-                      </Badge>
-                    ) : (
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
-                        Not Assigned
-                      </span>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Pagination Info - moved to bottom */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600 mt-4">
-            <div>
-              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} teachers
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="bg-primary hover:bg-primary/90 text-white border-primary"
-              >
-                Previous
-              </Button>
-
-              {/* Current Page Number */}
-              <div className="flex gap-1">
-                <span className="px-3 py-2 text-sm font-medium">
-                  {currentPage}
-                </span>
+          {!loading && (
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600 mt-0">
+              <div>
+                Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} teachers
               </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary"
+                >
+                  Previous
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="bg-primary hover:bg-primary/90 text-white border-primary"
-              >
-                Next
-              </Button>
+                {/* Current Page Number */}
+                <div className="flex gap-1">
+                  <span className="px-3 py-2 text-sm font-medium">
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -375,12 +376,77 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                 <SelectTrigger className="w-full mt-1">
                   <SelectValue placeholder="Choose a faculty" />
                 </SelectTrigger>
-                <CustomSelectContent className="max-h-[180px]">
-                  {teachers.map((teacher) => (
-                    <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                      {teacher.first_name} {teacher.last_name}
-                    </SelectItem>
-                  ))}
+                <CustomSelectContent 
+                  className="max-h-[250px]"
+                  header={
+                    <div className="p-2 space-y-2">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                        <Input
+                          placeholder="Search faculty..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              performSearch();
+                            }
+                            e.stopPropagation();
+                          }}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          className="h-8 pl-8 text-xs bg-muted/50 border-none ring-1 focus-visible:ring-primary"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between px-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onPointerDown={(e) => e.preventDefault()}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setCurrentPage(prev => Math.max(1, prev - 1));
+                          }}
+                          disabled={currentPage === 1 || loading}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onPointerDown={(e) => e.preventDefault()}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                          }}
+                          disabled={currentPage === totalPages || loading}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="pt-1">
+                    {loading ? (
+                      <div className="p-4 flex flex-col items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                        <span className="text-[10px] text-muted-foreground">Loading...</span>
+                      </div>
+                    ) : (
+                      teachers.map((teacher) => (
+                        <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                          {teacher.first_name} {teacher.last_name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </div>
                 </CustomSelectContent>
               </Select>
             </div>
