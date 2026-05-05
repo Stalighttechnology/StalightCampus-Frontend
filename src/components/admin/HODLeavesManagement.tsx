@@ -50,8 +50,6 @@ const getStatusBadge = (status: string, theme: string) => {
 
 const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewReason, setViewReason] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -139,13 +137,26 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   }, [setError, toast, selectedMonth]);
 
   const handleApprove = async (id: number) => {
+    const result = await Swal.fire({
+      title: 'Approve Leave?',
+      text: "Are you sure you want to approve this leave request?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#22c55e',
+      cancelButtonColor: theme === 'dark' ? '#3f3f46' : '#d1d5db',
+      confirmButtonText: 'Yes, Approve',
+      background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+      color: theme === 'dark' ? '#E4E4E7' : '#000000',
+    });
+
+    if (!result.isConfirmed) return;
+
     setLoading(true);
     setError(null);
     try {
       const response = await manageHODLeaves({ leave_id: id, action: "APPROVED" }, "POST");
       console.log("Approve API response:", response);
       if (response.success) {
-        // Update local state with returned leave data instead of making another GET call
         if (response.leave) {
           setLeaveRequests(prevRequests =>
             prevRequests.map(leave =>
@@ -161,7 +172,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         Swal.fire({
           icon: 'success',
           title: 'Leave Approved!',
-          text: 'Hope the time off is refreshing!',
+          text: 'The leave request has been approved successfully.',
           background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
           color: theme === 'dark' ? '#E4E4E7' : '#000000',
           confirmButtonColor: '#22c55e',
@@ -187,69 +198,68 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
     }
   };
 
-  const handleConfirmReject = async () => {
-    if (selectedId !== null) {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await manageHODLeaves({ leave_id: selectedId, action: "REJECTED" }, "POST");
-        console.log("Reject API response:", response);
-        if (response.success) {
-          // Update local state with returned leave data instead of making another GET call
-          if (response.leave) {
-            setLeaveRequests(prevRequests =>
-              prevRequests.map(leave =>
-                leave.id === selectedId
-                  ? {
-                      ...leave,
-                      status: response.leave.status === "REJECTED" ? "Rejected" : leave.status
-                    }
-                  : leave
-              )
-            );
-          }
-          setShowModal(false);
-          setSelectedId(null);
-          Swal.fire({
-            icon: 'error',
-            title: 'Leave Rejected',
-            text: 'We hope for a better time next time!',
-            background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-            color: theme === 'dark' ? '#E4E4E7' : '#000000',
-          });
-        } else {
-          setError(response.message || "Failed to reject leave");
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: response.message || "Failed to reject leave",
-          });
+  const handleReject = async (id: number) => {
+    const result = await Swal.fire({
+      title: 'Reject Leave?',
+      text: "Are you sure you want to reject this leave request?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: theme === 'dark' ? '#3f3f46' : '#d1d5db',
+      confirmButtonText: 'Yes, Reject',
+      background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+      color: theme === 'dark' ? '#E4E4E7' : '#000000',
+    });
+
+    if (!result.isConfirmed) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await manageHODLeaves({ leave_id: id, action: "REJECTED" }, "POST");
+      console.log("Reject API response:", response);
+      if (response.success) {
+        if (response.leave) {
+          setLeaveRequests(prevRequests =>
+            prevRequests.map(leave =>
+              leave.id === id
+                ? {
+                    ...leave,
+                    status: response.leave.status === "REJECTED" ? "Rejected" : leave.status
+                  }
+                : leave
+            )
+          );
         }
-      } catch (err) {
-        console.error("Reject leave error:", err);
-        setError("Network error");
+        Swal.fire({
+          icon: 'error',
+          title: 'Leave Rejected',
+          text: 'The leave request has been rejected.',
+          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: theme === 'dark' ? '#E4E4E7' : '#000000',
+          confirmButtonColor: '#ef4444',
+        });
+      } else {
+        setError(response.message || "Failed to reject leave");
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Network error",
+          description: response.message || "Failed to reject leave",
         });
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.error("Reject leave error:", err);
+      setError("Network error");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Show reason in modal (use SweetAlert2 to match HODStats)
-  const openReasonModal = (reason: string) => {
-    Swal.fire({
-      title: "Leave Reason",
-      html: `<div style="white-space:pre-wrap;text-align:left">${reason || 'No reason provided'}</div>`,
-      background: theme === 'dark' ? '#1c1c1e' : '#fff',
-      color: theme === 'dark' ? '#e5e7eb' : '#000',
-      confirmButtonText: 'Close',
-      width: '600px',
-    });
-  };
 
   if (loading && leaveRequests.length === 0) {
     return (
@@ -385,7 +395,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         {leave.status === "Pending" ? (
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => handleApprove(leave.id)}>Approve</Button>
-                            <Button size="sm" variant="destructive" className="w-full sm:w-auto" onClick={() => { setSelectedId(leave.id); setShowModal(true); }}>Reject</Button>
+                            <Button size="sm" variant="destructive" className="w-full sm:w-auto" onClick={() => handleReject(leave.id)}>Reject</Button>
                           </div>
                         ) : (
                           <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
@@ -395,7 +405,11 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                   </div>
                 ))
               ) : (
-                <div className={`text-center py-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No leave requests available.</div>
+                <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
+                  <CalendarIcon className="w-10 h-10 text-primary opacity-30 mb-3" />
+                  <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests</h3>
+                  <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no leave requests to display for this period.</p>
+                </div>
               )}
             </div>
 
@@ -455,10 +469,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                                   ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
                                   : 'text-red-700 border-red-600 hover:bg-red-100'
                               }`}
-                              onClick={() => {
-                                setShowModal(true);
-                                setSelectedId(leave.id);
-                              }}
+                              onClick={() => handleReject(leave.id)}
                               disabled={loading}
                             >
                               <XCircle size={16} /> Reject
@@ -472,8 +483,16 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className={`text-center py-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      No leave requests available.
+                    <td colSpan={5} className="py-20 px-4">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                          <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+                        </div>
+                        <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests</h3>
+                        <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          There are currently no leave requests available for the selected period.
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -566,39 +585,11 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
             <Button
               variant="outline"
               className={theme === 'dark' 
-                ? 'text-foreground bg-card border border-border hover:bg-accent' 
-                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+                ? 'text-foreground bg-card border border-border bg-primary hover:text-white hover:bg-primary/80' 
+                : 'border border-gray-300 hover:bg-gray-50 text bg-primary text-white hover:bg-primary/80 hover:text-white'}
               onClick={() => setViewReason(null)}
             >
               Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[92%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[92%] sm:max-w-md mx-auto rounded-lg p-4 sm:p-6'}>
-          <DialogHeader>
-            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reject Leave Request</DialogTitle>
-          </DialogHeader>
-          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Are you sure you want to reject this leave request?</p>
-          <DialogFooter className="pt-4 flex flex-col sm:flex-row justify-end gap-2">
-            <Button
-              variant="outline"
-              className={(theme === 'dark' ? 'border-border text-foreground bg-card hover:bg-accent' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50') + ' w-full sm:w-auto'}
-              onClick={() => setShowModal(false)}
-              disabled={loading}
-              style={{ boxShadow: "none" }}
-            >
-              Cancel
-            </Button>
-            <Button
-              className={(theme === 'dark' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 border border-destructive' : 'bg-red-600 text-white hover:bg-red-700 border border-red-600') + ' w-full sm:w-auto'}
-              onClick={handleConfirmReject}
-              disabled={loading}
-              style={{ boxShadow: "none" }}
-            >
-              {loading ? "Rejecting..." : "Confirm Reject"}
             </Button>
           </DialogFooter>
         </DialogContent>

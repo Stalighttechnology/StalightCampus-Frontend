@@ -196,10 +196,10 @@ const BulkUpload = ({ setError, toast }: BulkUploadProps) => {
   };
 
   return (
-    <div className={`px-4  w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-      <Card className={theme === 'dark' ? 'bg-card shadow-md border border-border text-foreground' : 'bg-white shadow-md border border-gray-200 text-gray-900'}>
+    <div className={` w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+      <Card >
         <CardHeader>
-          <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bulk Upload Faculty</CardTitle>
+          <CardTitle>Bulk Upload Faculty</CardTitle>
           <CardDescription className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
             Upload CSV or Excel files to bulk enroll faculty members
           </CardDescription>

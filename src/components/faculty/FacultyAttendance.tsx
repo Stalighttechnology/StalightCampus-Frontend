@@ -468,9 +468,15 @@ const FacultyAttendance = () => {
               ))}
             </div>
           ) : (
-            <p className={`text-center py-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              No attendance records found
-            </p>
+            <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                <Clock className="w-8 h-8 text-primary opacity-50" />
+              </div>
+              <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No recent records</h3>
+              <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                You haven't marked any attendance in the last 7 days.
+              </p>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -565,9 +571,15 @@ const FacultyAttendance = () => {
               )}
             </>
           ) : (
-            <p className={`text-center py-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              No history available
-            </p>
+            <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                <RotateCcw className="w-10 h-10 text-primary opacity-50" />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>History empty</h3>
+              <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                There are no historical attendance records found for your account.
+              </p>
+            </div>
           )}
         </CardContent>
       </Card>
