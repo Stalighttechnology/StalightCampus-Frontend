@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Filter } from "lucide-react";
+import { Filter, AlertCircle } from "lucide-react";
 import { useStudentInternalMarksQuery } from "@/hooks/useApiQueries";
 import { useMemoizedCalculation } from "@/hooks/useOptimizations";
 import { useTheme } from "@/context/ThemeContext";
@@ -185,7 +185,9 @@ const VirtualizedMarksTable = memo(({ filteredSubjects, marksData, theme }: {
       </div>
     </div>
   );
-});const InternalMarks = () => {
+});
+
+const InternalMarks = () => {
   const { theme } = useTheme();
   const { data: marksResponse, isLoading, error, pagination } = useStudentInternalMarksQuery();
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
@@ -340,9 +342,25 @@ const VirtualizedMarksTable = memo(({ filteredSubjects, marksData, theme }: {
   }
 
   if (error) {
+    const errorMessage = error instanceof Error ? error.message : "There was an error loading your internal marks data.";
+    const isRestricted = errorMessage.toLowerCase().includes("restricted");
+
     return (
-      <div className="h-48 flex items-center justify-center">
-        <div className="text-red-500">Error loading internal marks data</div>
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
+        <div className={`p-4 rounded-full mb-4 ${isRestricted ? "bg-amber-100 text-amber-600" : "bg-destructive/10 text-destructive"}`}>
+          <AlertCircle className="h-10 w-10" />
+        </div>
+        <h3 className="text-xl font-bold mb-2">{isRestricted ? "Access Restricted" : "Error Loading Data"}</h3>
+        <p className={`max-w-md mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-muted-foreground'}`}>
+          {errorMessage}
+        </p>
+        <Button 
+          onClick={() => window.location.reload()}
+          variant="outline"
+          className={theme === 'dark' ? 'border-gray-700 hover:bg-gray-800' : ''}
+        >
+          {isRestricted ? "Contact Admin" : "Try Again"}
+        </Button>
       </div>
     );
   }

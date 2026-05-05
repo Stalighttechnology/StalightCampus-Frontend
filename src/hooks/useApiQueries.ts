@@ -154,8 +154,12 @@ export const useStudentInternalMarksQuery = () => {
       queryKey: pagination.queryKey,
       queryFn: async (): Promise<GetInternalMarksResponse> => {
         const response = await getInternalMarks();
-        pagination.updatePagination(response);
-        return response;
+        if (response.success) {
+          pagination.updatePagination(response);
+          return response;
+        }
+        // Throw the message so useQuery can catch it and put it in 'error' state
+        throw new Error(response.message || 'Failed to fetch internal marks');
       },
     }),
     pagination,
