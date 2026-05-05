@@ -10,7 +10,7 @@ import {
 } from "../ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Eye, Download } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Download, FileText } from "lucide-react";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { useTheme } from "../../context/ThemeContext";
@@ -366,9 +366,14 @@ const AdminQPApprovals = () => {
         <CardContent className="flex-1 px-4 sm:px-6 pt-2">
           <div className="border rounded-xl p-4">
             {pendingQPs.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-20">
-                <p className="text-lg">No pending QPs for approval.</p>
-                <p className="text-sm">Check back later for new submissions.</p>
+              <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                  <FileText className="w-10 h-10 text-primary opacity-50" />
+                </div>
+                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No pending QPs</h3>
+                <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Review and approve question papers pending your oversight. Check back later for new submissions.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

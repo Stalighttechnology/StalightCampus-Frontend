@@ -276,7 +276,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             </div>
           </div>
 
-          <div className="max-h-[calc(100vh-28rem)] sm:max-h-[calc(100vh-26rem)] md:max-h-[calc(100vh-24rem)] lg:max-h-[calc(100vh-22rem)] overflow-y-auto custom-scrollbar pr-2">
+          <div>
             <div className="grid grid-cols-1 gap-2 sm:gap-4">
               {teachers.map((teacher) => (
                 <Card 

@@ -18,6 +18,14 @@ import { Button } from "../ui/button";
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 
 interface TodayRow {
   branch: string;
@@ -509,115 +517,136 @@ const AdminHODAttendance: React.FC = () => {
                 <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>HOD Attendance Summary</h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className={`${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                    <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>HOD Name</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Branch</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
-                      <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                <Table>
+                  <TableHeader className={theme === 'dark' ? 'bg-card' : 'bg-gray-50'}>
+                    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                      <TableHead className="px-6 py-3 text-left">HOD Name</TableHead>
+                      <TableHead className="px-6 py-3 text-left">Branch</TableHead>
+                      <TableHead className="px-6 py-3 text-left">Total Days</TableHead>
+                      <TableHead className="px-6 py-3 text-left">Present</TableHead>
+                      <TableHead className="px-6 py-3 text-left">Absent</TableHead>
+                      <TableHead className="px-6 py-3 text-left">Attendance %</TableHead>
+                      <TableHead className="px-6 py-3 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {facultySummary.map((s, idx) => (
-                      <React.Fragment key={idx}>
-                        <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedHOD?.hod_id === s.hod_id ? (theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50') : ''}`}>
-                          <td className="px-6 py-4 font-medium text-gray-900">{s.hod_name}</td>
-                          <td className="px-6 py-4 text-gray-900">{s.branch}</td>
-                          <td className="px-6 py-4 text-gray-900">{s.total_days}</td>
-                          <td className="px-6 py-4 text-green-600 font-medium">{s.present_days}</td>
-                          <td className="px-6 py-4 text-red-600 font-medium">{s.absent_days}</td>
-                          <td className={`px-6 py-4 font-medium ${s.attendance_percentage >= 75 ? 'text-green-600' : s.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>{s.attendance_percentage.toFixed(1)}%</td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              onClick={() => selectedHOD?.hod_id === s.hod_id ? setSelectedHOD(null) : fetchHODDetails(s)}
-                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-primary text-white hover:bg-primary/90'}`}
-                            >
-                              {selectedHOD?.hod_id === s.hod_id ? (isDetailLoading ? 'Loading...' : 'Close') : 'View'}
-                            </button>
-                          </td>
-                        </tr>
-                        
-                        {selectedHOD?.hod_id === s.hod_id && (
-                          <tr className={`${theme === 'dark' ? 'bg-accent/10' : 'bg-blue-50/30'}`}>
-                            <td colSpan={7} className="px-4 py-6">
-                              <div className={`p-4 sm:p-6 rounded-2xl shadow-inner transition-all duration-300 ${theme === 'dark' ? 'bg-card/50 border border-white/5' : 'bg-white border border-blue-100'}`}>
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                                  <div>
-                                    <h4 className={`text-lg font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Attendance Grid</h4>
-                                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}</p>
-                                  </div>
-                                  <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-1.5">
-                                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-                                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Present</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                      <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
-                                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Absent</span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {isDetailLoading ? (
-                                  <div className="flex flex-col items-center justify-center py-10 gap-3">
-                                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                                    <p className="text-xs font-semibold animate-pulse">Syncing data...</p>
-                                  </div>
-                                ) : (
-                                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 lg:grid-cols-10 gap-2 sm:gap-3">
-                                    {(() => {
-                                      const start = new Date(dateRange.start_date);
-                                      const end = new Date(dateRange.end_date);
-                                      const today = new Date();
-                                      today.setHours(0, 0, 0, 0);
-                                      const days = [];
-                                      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                                        days.push(new Date(d));
-                                      }
-                                      
-                                      return days.map((date) => {
-                                        const dateStr = date.toISOString().split('T')[0];
-                                        const record = hodAttendanceDetails.find(r => r.date === dateStr);
-                                        const isFuture = date > today;
-                                        const isPresent = record?.status?.toLowerCase() === 'present';
-                                        const isAbsent = record?.status?.toLowerCase() === 'absent' || (!record && !isFuture);
-                                        
-                                        return (
-                                          <div key={dateStr} className={`relative group p-3 rounded-xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 ${isPresent ? 'bg-green-500/10 border-green-500/30 text-green-600 shadow-sm' : isAbsent ? 'bg-red-500/10 border-red-500/30 text-red-600 shadow-sm' : theme === 'dark' ? 'bg-white/5 border-white/5 text-white/20' : 'bg-gray-50 border-gray-100 text-gray-300'}`}>
-                                            <span className="text-[9px] font-black uppercase tracking-tighter mb-0.5 opacity-50">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                                            <span className="text-lg font-black leading-tight">{date.getDate()}</span>
-                                            <span className="text-[9px] font-bold uppercase tracking-widest opacity-50">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
-                                            {record ? (
-                                              <div className={`mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>{record.status[0]}</div>
-                                            ) : (!isFuture && <div className="mt-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter bg-red-500 text-white">A</div>)}
-                                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[9px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg border border-white/10">
-                                              {date.toLocaleDateString('en-US', { dateStyle: 'medium' })}
-                                              {!record && !isFuture && <div className="text-white/70 mt-0.5 italic">Auto-marked Absent</div>}
-                                              {record && <div className="text-white/70 mt-0.5 font-bold uppercase">{record.status}</div>}
-                                            </div>
-                                          </div>
-                                        );
-                                      });
-                                    })()}
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
+                      <TableRow key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
+                        <TableCell className="font-medium text-foreground">{s.hod_name}</TableCell>
+                        <TableCell className="text-foreground">{s.branch}</TableCell>
+                        <TableCell className="text-foreground">{s.total_days}</TableCell>
+                        <TableCell className="text-green-600 font-medium">{s.present_days}</TableCell>
+                        <TableCell className="text-red-600 font-medium">{s.absent_days}</TableCell>
+                        <TableCell>
+                          <span className={`font-medium ${s.attendance_percentage >= 75 ? 'text-green-600' : s.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {s.attendance_percentage.toFixed(1)}%
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            onClick={() => fetchHODDetails(s)}
+                            variant="ghost"
+                            size="sm"
+                            className={`h-8 gap-2 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20 hover:text-white' : 'bg-primary text-white hover:bg-primary/90 hover:text-white'}`}
+                          >
+                            <CalendarIcon className="w-3.5 h-3.5" />
+                            View Grid
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}
         </>
       )}
+
+      {/* Attendance Grid Dialog */}
+      <Dialog open={!!selectedHOD} onOpenChange={(open) => !open && setSelectedHOD(null)}>
+        <DialogContent className="w-[90vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl sm:rounded-xl p-0 border-none shadow-2xl custom-scrollbar">
+          <div className="p-4 sm:p-6 space-y-6">
+            <DialogHeader className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">Attendance Grid</DialogTitle>
+                  <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Reviewing records for <span className="font-semibold text-primary">{selectedHOD?.hod_name}</span>
+                  </p>
+                  <p className="text-[10px] mt-1 font-semibold uppercase tracking-widest opacity-60">
+                    {formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Present</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Absent</span>
+                  </div>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className={`p-4 sm:p-6 rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-muted/20 border border-white/5' : 'bg-gray-50 border border-gray-100'}`}>
+              {isDetailLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                  <p className="text-sm font-semibold animate-pulse text-muted-foreground">Syncing attendance data...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
+                  {(() => {
+                    const start = new Date(dateRange.start_date);
+                    const end = new Date(dateRange.end_date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const days = [];
+                    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                      days.push(new Date(d));
+                    }
+                    
+                    return days.map((date) => {
+                      const dateStr = date.toISOString().split('T')[0];
+                      const record = hodAttendanceDetails.find(r => r.date === dateStr);
+                      const isFuture = date > today;
+                      const isPresent = record?.status?.toLowerCase() === 'present';
+                      const isAbsent = record?.status?.toLowerCase() === 'absent' || (!record && !isFuture);
+                      
+                      return (
+                        <div key={dateStr} className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent ? 'bg-green-500/10 border-green-500/30 text-green-600' : isAbsent ? 'bg-red-500/10 border-red-500/30 text-red-600' : theme === 'dark' ? 'bg-white/5 border-white/5 text-muted-foreground/30' : 'bg-gray-100 border-gray-200 text-gray-300'}`}>
+                          <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                          <span className="text-xl font-black leading-tight">{date.getDate()}</span>
+                          <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
+                          {record ? (
+                            <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`}>{record.status[0]}</div>
+                          ) : (!isFuture && <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">A</div>)}
+                          
+                          <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
+                            <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
+                            {!record && !isFuture && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
+                            {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              )}
+            </div>
+            
+            <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
+              <div className="text-[11px] text-muted-foreground italic font-medium">
+                Note: "A" indicates auto-marked absence due to missing records.
+              </div>
+              <Button onClick={() => setSelectedHOD(null)} variant="outline" className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90 hover:text-white">Close</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

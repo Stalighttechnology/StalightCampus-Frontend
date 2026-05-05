@@ -49,7 +49,7 @@ const getRoleBadge = (role: string, theme: string) => {
   );
 };
 
-const roles = ["All", "Student", "Head of Department", "Teacher", "COE", "Fees Manager", "Principal"];
+const roles = ["All", "Student", "Head of Department", "Teacher", "COE", "Fees Manager", "Principal", "HMS", "Warden"];
 const statuses = ["All", "Active", "Inactive"];
 
 const roleMap: Record<string, string> = {
@@ -59,6 +59,8 @@ const roleMap: Record<string, string> = {
   "COE": "coe",
   "Fees Manager": "fees_manager",
   "Principal": "principal",
+  "HMS": "hms_admin",
+  "Warden": "warden",
 };
 
 const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
@@ -118,6 +120,26 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
   useEffect(() => {
     const fetchUsers = async () => {
+      // Smart Filter Logic:
+      // 1. If searching, always fetch.
+      // 2. If a role is selected:
+      //    - If it's a role needing a department (Student, Teacher, HOD), require department too.
+      //    - If it's a role that doesn't use department (Principal, COE, etc.), fetch immediately.
+      const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
+      const isAnyFilterActive = appliedSearch !== "" || (
+        roleFilter !== "All" && (
+          !rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All"
+        )
+      ) || (roleFilter === "All" && departmentFilter !== "All");
+
+      if (!isAnyFilterActive) {
+        setUsers([]);
+        setTotalUsers(0);
+        setTotalPages(0);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
@@ -453,15 +475,7 @@ const filteredUsers = Array.isArray(users) ? users : [];
                       options={roles}
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Account Status</span>
-                    <SelectMenu
-                      label=""
-                      value={statusFilter}
-                      onChange={setStatusFilter}
-                      options={statuses}
-                    />
-                  </div>
+
                   <div className="flex flex-col gap-2">
                     <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
                     <SelectMenu
@@ -471,6 +485,17 @@ const filteredUsers = Array.isArray(users) ? users : [];
                       options={departments}
                     />
                   </div>
+
+                                    <div className="flex flex-col gap-2">
+                    <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Account Status</span>
+                    <SelectMenu
+                      label=""
+                      value={statusFilter}
+                      onChange={setStatusFilter}
+                      options={statuses}
+                    />
+                  </div>
+                  
                 </div>
               </div>
 
@@ -495,7 +520,7 @@ const filteredUsers = Array.isArray(users) ? users : [];
                       onClick={performSearch}
                       className={`h-10 px-6 font-medium transition-all duration-200 ${theme === 'dark' 
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                        : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'}`}
+                        : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
                     >
                       Search
                     </Button>
@@ -504,117 +529,156 @@ const filteredUsers = Array.isArray(users) ? users : [];
               </div>
             </div>
 
-          <div className="table-wrapper block overflow-x-auto">
-            <table className="users-table w-full text-left">
-              <thead className={`table-header border-b ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-200 text-gray-900'}`}>
-                <tr>
-                  <th className="py-2 px-4 sm:w-[200px]">Full Name</th>
-                  <th className="py-2 px-1 md:w-[200px]">Email</th>
-                   <th className="py-2 px-1 md:w-[120px]">Role</th>
-                  <th className="py-2 px-1 md:w-[250px]">Department</th>
-                  <th className="py-2 px-1 md:w-[120px]">Status</th>
-                  <th className="py-2 px-1 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                  {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <tr
-                      key={user.id}
-                      className={`table-row border-b transition-colors duration-200 ${
-                        theme === 'dark' 
-                          ? 'border-border hover:bg-accent' 
-                          : 'border-gray-200 hover:bg-gray-50'
-                      }`}
-                    >
-                      <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[200px]">
-                        {editingId === user.id ? (
-                          <Input
-                            name="name"
-                            value={editData?.name || ""}
-                            onChange={handleEditChange}
-                            className={theme === 'dark' 
-                              ? 'bg-card text-foreground w-full' 
-                              : 'bg-white text-gray-900 w-full'}
-                          />
-                        ) : (
-                          user.name
-                        )}
-                      </td>
-                      <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[200px]">
-                        {editingId === user.id ? (
-                          <Input
-                            name="email"
-                            value={editData?.email || ""}
-                            onChange={handleEditChange}
-                            className={theme === 'dark' 
-                              ? 'bg-card text-foreground w-full' 
-                              : 'bg-white text-gray-900 w-full'}
-                          />
-                        ) : (
-                          user.email
-                        )}
-                      </td>
-                       <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
-                      <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[250px]">
-                        <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                          {user.department !== "N/A" ? user.department : "-"}
-                        </span>
-                      </td>
-                      <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
-                      <td className="table-cell py-2 px-1 text-right">
-                        <div className="action-buttons flex flex-wrap sm:flex-nowrap justify-end gap-2">
-                          {editingId === user.id ? (
-                            <Button
-                              size="sm"
-                              onClick={saveEdit}
-                              disabled={loading}
-                              className={theme === 'dark' 
-                                ? 'text-foreground bg-card border border-border w-full sm:w-auto hover:bg-accent' 
-                                : 'text-gray-700 bg-white border border-gray-300 w-full sm:w-auto hover:bg-gray-50'}
-                            >
-                              {loading ? "Saving..." : "Save"}
-                            </Button>
-                          ) : (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(user)}
-                                disabled={loading}
-                                className={theme === 'dark' 
-                                  ? 'p-2 rounded hover:bg-accent' 
-                                  : 'p-2 rounded hover:bg-gray-100'}
-                              >
-                                <Pencil1Icon className={theme === 'dark' ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-blue-500'} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => confirmDelete(user.id)}
-                                disabled={loading}
-                                className={theme === 'dark' 
-                                  ? 'p-2 rounded hover:bg-accent' 
-                                  : 'p-2 rounded hover:bg-gray-100'}
-                              >
-                                <TrashIcon className={theme === 'dark' ? 'w-5 h-5 text-destructive' : 'w-5 h-5 text-red-500'} />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+          {(() => {
+            const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
+            const isAnyFilterActive = appliedSearch !== "" || (
+              roleFilter !== "All" && (
+                !rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All"
+              )
+            ) || (roleFilter === "All" && departmentFilter !== "All");
+
+            if (!isAnyFilterActive) {
+              const needsDept = rolesNeedingDept.includes(roleFilter) && departmentFilter === "All";
+              
+              return (
+                <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                    <Search className="w-10 h-10 text-primary opacity-50" />
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {needsDept ? "Department Selection Required" : "Ready to manage users?"}
+                  </h3>
+                  <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    {needsDept ? (
+                      <>Please select a <strong>Department</strong> to view all {roleFilter}s.</>
+                    ) : (
+                      <>Select a <strong>User Role</strong> or <strong>Department</strong> above to load the user list.</>
+                    )}
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="table-wrapper block overflow-x-auto">
+                {loading ? (
+                  <SkeletonTable rows={pageSize} cols={6} />
                 ) : (
-                  <tr>
-                    <td colSpan={5} className={`py-4 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      No users found.
-                    </td>
-                  </tr>
+                  <table className="users-table w-full text-left">
+                    <thead className={`table-header border-b ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-200 text-gray-900'}`}>
+                      <tr>
+                        <th className="py-2 px-4 sm:w-[200px]">Full Name</th>
+                        <th className="py-2 px-1 md:w-[200px]">Email</th>
+                         <th className="py-2 px-1 md:w-[120px]">Role</th>
+                        <th className="py-2 px-1 md:w-[250px]">Department</th>
+                        <th className="py-2 px-1 md:w-[120px]">Status</th>
+                        <th className="py-2 px-1 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <>
+                        {filteredUsers.length > 0 ? (
+                          filteredUsers.map((user) => (
+                            <tr
+                              key={user.id}
+                              className={`table-row border-b transition-colors duration-200 ${
+                                theme === 'dark' 
+                                  ? 'border-border hover:bg-accent' 
+                                  : 'border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[200px]">
+                                {editingId === user.id ? (
+                                  <Input
+                                    name="name"
+                                    value={editData?.name || ""}
+                                    onChange={handleEditChange}
+                                    className={theme === 'dark' 
+                                      ? 'bg-card text-foreground w-full' 
+                                      : 'bg-white text-gray-900 w-full'}
+                                  />
+                                ) : (
+                                  user.name
+                                )}
+                              </td>
+                              <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[200px]">
+                                {editingId === user.id ? (
+                                  <Input
+                                    name="email"
+                                    value={editData?.email || ""}
+                                    onChange={handleEditChange}
+                                    className={theme === 'dark' 
+                                      ? 'bg-card text-foreground w-full' 
+                                      : 'bg-white text-gray-900 w-full'}
+                                  />
+                                ) : (
+                                  user.email
+                                )}
+                              </td>
+                               <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
+                              <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[250px]">
+                                <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {user.department !== "N/A" ? user.department : "-"}
+                                </span>
+                              </td>
+                              <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
+                              <td className="table-cell py-2 px-1 text-right">
+                                <div className="action-buttons flex flex-wrap sm:flex-nowrap justify-end gap-2">
+                                  {editingId === user.id ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={saveEdit}
+                                      disabled={loading}
+                                      className={theme === 'dark' 
+                                        ? 'text-foreground bg-card border border-border w-full sm:w-auto hover:bg-accent' 
+                                        : 'text-gray-700 bg-white border border-gray-300 w-full sm:w-auto hover:bg-gray-50'}
+                                    >
+                                      {loading ? "Saving..." : "Save"}
+                                    </Button>
+                                  ) : (
+                                    <>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleEdit(user)}
+                                        disabled={loading}
+                                        className={theme === 'dark' 
+                                          ? 'p-2 rounded hover:bg-accent' 
+                                          : 'p-2 rounded hover:bg-gray-100'}
+                                      >
+                                        <Pencil1Icon className={theme === 'dark' ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-blue-500'} />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => confirmDelete(user.id)}
+                                        disabled={loading}
+                                        className={theme === 'dark' 
+                                          ? 'p-2 rounded hover:bg-accent' 
+                                          : 'p-2 rounded hover:bg-gray-100'}
+                                      >
+                                        <TrashIcon className={theme === 'dark' ? 'w-5 h-5 text-destructive' : 'w-5 h-5 text-red-500'} />
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={6} className={`py-8 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              No users found for the selected criteria.
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    </tbody>
+                  </table>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            );
+        })()}
 
           {/* Mobile: show table only; compact card list removed */}
 
