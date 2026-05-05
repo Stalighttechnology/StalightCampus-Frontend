@@ -341,11 +341,12 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
         }
 
         const profile = boot.data.profile;
-        const semesters = boot.data.semesters.map((s) => ({
+        const semesters = boot.data.semesters.map((s: any) => ({
           id: s.id.toString(),
           number: s.number
         }));
         const faculties = boot.data.faculties;
+        const facultiesPagination = boot.data.faculties_pagination;
 
         const branchesRes = await listFacultyBranches();
         const allBranches = branchesRes.success ? branchesRes.data || [] : [];
@@ -358,6 +359,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
             ...f,
             name: `${f.first_name} ${f.last_name || ""}`.trim(),
           })),
+          facultyTotalPages: facultiesPagination?.total_pages || 1,
           selectedBranchForFaculty: profile.branch_id, // Default to own branch
         });
       } catch (err) {
@@ -430,11 +432,12 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
 
   // Sync local search to state.facultySearch with debounce to avoid excessive re-renders
   useEffect(() => {
+    if (localFacultySearch === state.facultySearch) return;
     const timer = setTimeout(() => {
       updateState({ facultySearch: localFacultySearch, facultyPage: 1 });
     }, 300);
     return () => clearTimeout(timer);
-  }, [localFacultySearch, updateState]);
+  }, [localFacultySearch, state.facultySearch, updateState]);
 
   // Fetch subjects and sections when semester changes
   useEffect(() => {

@@ -101,89 +101,105 @@ const ApplyLeave = () => {
   const [loading, setLoading] = useState(false);
   const [branchId, setBranchId] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const today = new Date();
 
 
   // Fetch profile and leaves data using combined endpoint
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await getLeaveBootstrap();
-        if (!response.success || !response.data) {
-          throw new Error(response.message || "Failed to fetch data");
+  const fetchData = async (page: number = 1) => {
+    setLoading(true);
+    try {
+      const response = await getLeaveBootstrap({ page });
+      if (!response.success && !response.data) {
+        // Handle DRF wrapped response if applicable
+        if ((response as any).results?.success) {
+           const res = (response as any);
+           setBranchId(res.results.data.profile.branch_id);
+           processLeaves(res.results.data.leaves, page);
+           setTotalPages(res.total_pages || 1);
+           setTotalCount(res.count || 0);
+           setCurrentPage(res.current_page || page);
+           return;
         }
-
-        const data: LeaveBootstrapResponse = response.data;
-
-        // Set branch ID from profile
-        setBranchId(data.profile.branch_id);
-
-        // Client-side safety filtering according to FINAL RULE
-        const today = new Date();
-        const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const sevenDaysAgo = new Date(todayDateOnly);
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-        const processed = data.leaves
-          .map((leave: LeaveData) => ({
-            raw: leave,
-            mapped: {
-              id: leave.id.toString(),
-              title: leave.title || leave.faculty_name || "Leave Application",
-              start_date: leave.start_date,
-              end_date: leave.end_date,
-              reason: leave.reason,
-              status: leave.status
-            } as Leave
-          }))
-          .filter(item => {
-            const r = item.raw;
-            const status = (r.status || '').toUpperCase();
-
-            if (status === 'PENDING') {
-              try {
-                const end = new Date(r.end_date);
-                const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-                return endDateOnly >= todayDateOnly;
-              } catch {
-                return false;
-              }
-            }
-
-            if (status === 'APPROVED' || status === 'REJECTED') {
-              const refStr = r.reviewed_at || r.submitted_at;
-              if (!refStr) return false;
-              const ref = new Date(refStr);
-              const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-              return refDateOnly >= sevenDaysAgo;
-            }
-
-            return false;
-          })
-          .map(item => item.mapped) as Leave[];
-
-        setLeaves(processed);
-        setError("");
-      } catch (err) {
-        if (isErrorWithMessage(err)) {
-          const errorMessage = err.message || "Failed to fetch data";
-          console.error("Error fetching data:", err);
-          setError(errorMessage);
-        } else {
-          const errorMessage = "Failed to fetch data";
-          console.error("Error fetching data:", err);
-          setError(errorMessage);
-        }
-        setLeaves([]);
-      } finally {
-        setLoading(false);
+        throw new Error(response.message || "Failed to fetch data");
       }
-    };
-    fetchData();
-  }, []);
+
+      const data: any = response.data;
+      setBranchId(data.profile.branch_id);
+      processLeaves(data.leaves, page);
+      
+      // Handle pagination metadata from standardized response
+      setTotalPages((response as any).total_pages || 1);
+      setTotalCount((response as any).count || 0);
+      setCurrentPage((response as any).current_page || page);
+      
+      setError("");
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError(isErrorWithMessage(err) ? err.message : "Failed to fetch data");
+      setLeaves([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const processLeaves = (rawLeaves: any[], page: number) => {
+    const today = new Date();
+    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const sevenDaysAgo = new Date(todayDateOnly);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const processed = rawLeaves
+      .map((leave: LeaveData) => ({
+        raw: leave,
+        mapped: {
+          id: leave.id.toString(),
+          title: leave.title || leave.faculty_name || "Leave Application",
+          start_date: leave.start_date,
+          end_date: leave.end_date,
+          reason: leave.reason,
+          status: leave.status
+        } as Leave
+      }))
+      .filter(item => {
+        const r = item.raw;
+        const status = (r.status || '').toUpperCase();
+        
+        // Tuned Rule: If user is on Page 1, apply "recency" filters to keep view clean.
+        // If user is on Page 2+, they are explicitly looking for history, so show everything.
+        if (page > 1) return true;
+        
+        if (status === 'PENDING') {
+          try {
+            const end = new Date(r.end_date);
+            const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            return endDateOnly >= todayDateOnly;
+          } catch {
+            return false;
+          }
+        }
+
+        if (status === 'APPROVED' || status === 'REJECTED') {
+          const refStr = r.reviewed_at || r.submitted_at;
+          if (!refStr) return false;
+          const ref = new Date(refStr);
+          const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
+          return refDateOnly >= sevenDaysAgo;
+        }
+        return false;
+      })
+      .map(item => item.mapped) as Leave[];
+
+    setLeaves(processed);
+  };
+
+  useEffect(() => {
+    fetchData(currentPage);
+  }, [currentPage]);
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -560,6 +576,35 @@ const ApplyLeave = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Footer */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mt-6 pt-6 border-t border-border">
+              <Button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || loading}
+                variant="outline"
+                size="sm"
+                className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}
+              >
+                Previous
+              </Button>
+
+              <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <Button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || loading}
+                variant="outline"
+                size="sm"
+                className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </CardContent>
 
         {/* Popup Modal */}

@@ -872,9 +872,14 @@ export const getAttendanceRecordsWithSummary = async (params?: {
   }
 };
 
-export const getApplyLeaveBootstrap = async (): Promise<GetApplyLeaveBootstrapResponse> => {
+export const getApplyLeaveBootstrap = async (params?: { page?: number; page_size?: number }): Promise<GetApplyLeaveBootstrapResponse> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/apply-leave/bootstrap/`, {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
+    
+    const qs = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/apply-leave/bootstrap/${qs}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
