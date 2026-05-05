@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CalendarDays,
   Users,
@@ -81,7 +81,7 @@ interface FacultyStatsProps {
   setActivePage: (page: string) => void;
 }
 
-const FacultyStats = ({ setActivePage }: FacultyStatsProps) => {
+const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setActivePage }, ref) => {
   const [stats, setStats] = useState<Stat[]>([]);
   const [proctorStudentsCount, setProctorStudentsCount] = useState<number>(0);
   const [performanceTrends, setPerformanceTrends] = useState<{avg_attendance_percent_30d?: number; avg_ia_mark?: number}>({});
@@ -252,7 +252,7 @@ const FacultyStats = ({ setActivePage }: FacultyStatsProps) => {
   }
 
   return (
-    <div className={`space-y-6 w-full max-w-full min-h-0 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div ref={ref} className={`space-y-6 w-full max-w-full min-h-0 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Top Stats Cards (admin style) */}
       <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -480,6 +480,6 @@ const FacultyStats = ({ setActivePage }: FacultyStatsProps) => {
       </motion.div>
     </div>
   );
-};
+});
 
 export default FacultyStats;

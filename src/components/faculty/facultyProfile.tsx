@@ -1,5 +1,5 @@
 // FacultyProfile.tsx
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -15,7 +15,7 @@ import { fetchWithTokenRefresh } from "../../utils/authService";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 
-const FacultyProfile = () => {
+const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -348,7 +348,7 @@ const FacultyProfile = () => {
   };
 
   return (
-    <Card className={`w-full max-w-none mx-auto ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+    <Card ref={ref} {...props} className={`w-full max-w-none mx-auto ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
       <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
         <div className="flex-1 min-w-0">
           <CardTitle className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900">Faculty Profile</CardTitle>
@@ -494,6 +494,6 @@ const FacultyProfile = () => {
       </CardContent>
     </Card>
   );
-};
+});
 
 export default FacultyProfile;

@@ -44,7 +44,7 @@ export const usePagination = (options: PaginationOptions) => {
       const hasNext = p.has_next ?? p.hasNext ?? (p.total_pages ? currentPage < p.total_pages : false);
       const hasPrev = p.has_prev ?? p.hasPrev ?? (currentPage > 1);
       const totalPages = p.total_pages ?? p.totalPages ?? 0;
-      const totalItems = p.total_items ?? p.totalItems ?? p.count ?? 0;
+      const totalItems = p.total_items ?? p.totalItems ?? p.total_students ?? p.total_records ?? p.total_count ?? p.count ?? p.total ?? 0;
       
       setPaginationState({
         page: currentPage,

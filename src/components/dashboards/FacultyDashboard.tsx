@@ -86,21 +86,6 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { theme } = useTheme();
 
-  // Only fetch proctor students when a page requires them (lazy load)
-  const pagesNeedingProctor = [
-    'proctor-students',
-    'student-leave'
-  ];
-  const needsProctorData = pagesNeedingProctor.includes(activePage);
-  // Determine which fields to include based on active page to minimize payload
-  // Request a lightweight payload with only required fields for the Proctor Students page
-  const includeForProctor = activePage === 'student-leave'
-    ? 'leave_requests'
-    : (needsProctorData ? (activePage === 'proctor-students' ? 'id,name,usn,semester,section,contact,minimal' : 'students') : undefined);
-  const onlyWithLeaves = activePage === 'student-leave';
-  const { data: proctorStudentsData, isLoading: proctorStudentsLoading, pagination: proctorPagination } = useProctorStudentsQuery(needsProctorData, includeForProctor, undefined, onlyWithLeaves);
-  const proctorStudents = proctorStudentsData?.data || [];
-
   // Update active page when location changes
   useEffect(() => {
     setActivePage(getActivePageFromPath(location.pathname));
@@ -188,15 +173,15 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       case "faculty-announcement-management":
         return <FacultyAnnouncementManagement />;
       case "proctor-students":
-        return <ProctorStudents proctorStudents={proctorStudents} proctorStudentsLoading={proctorStudentsLoading} pagination={proctorPagination} />;
+        return <ProctorStudents />;
       case "exam-applications":
-        return <ExamApplication proctorStudents={proctorStudents} proctorStudentsLoading={proctorStudentsLoading} />;
+        return <ExamApplication />;
       case "revaluation":
         return <Revaluation />;
       case "makeupexam":
         return <MakeupExam />;
       case "student-leave":
-        return <ManageStudentLeave proctorStudents={proctorStudents} proctorStudentsLoading={proctorStudentsLoading} />;
+        return <ManageStudentLeave />;
       case "timetable":
         return <Timetable role="faculty" />;
       case "chat":

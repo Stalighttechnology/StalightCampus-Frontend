@@ -56,13 +56,15 @@ export const uploadStudyMaterial = async (data: UploadStudyMaterialRequest) => {
   }
 };
 
-export const getStudyMaterials = async (branch_id?: string, semester_id?: string, section_id?: string, search?: string) => {
+export const getStudyMaterials = async (branch_id?: string, semester_id?: string, section_id?: string, search?: string, page: number = 1, page_size: number = 20) => {
   try {
     const params = new URLSearchParams();
     if (branch_id) params.append('branch_id', branch_id);
     if (semester_id) params.append('semester_id', semester_id);
     if (section_id) params.append('section_id', section_id);
     if (search) params.append('search', search);
+    params.append('page', String(page));
+    params.append('page_size', String(page_size));
     const qs = params.toString() ? `?${params.toString()}` : '';
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/study-materials/${qs}`, {
       method: 'GET',
@@ -703,11 +705,13 @@ export const getProctorStudents = async (params?: {
   include?: string | string[]; // e.g. 'students' or ['students']
   exam_period?: string;
   only_with_leaves?: boolean;
+  search?: string;
 }): Promise<GetProctorStudentsResponse> => {
   try {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
+    if (params?.search) queryParams.append('search', params.search);
     if (params?.include) {
       const includes = Array.isArray(params.include) ? params.include : params.include.split(',');
       const normalizedIncludes = includes.map(s => s.trim()).filter(Boolean);
@@ -1449,6 +1453,56 @@ export const manageStudentLeave = async (
     return await response.json();
   } catch (error) {
     console.error("Manage Student Leave Error:", error);
+    return { success: false, message: "Network error" };
+  }
+};
+
+export interface ProctorStudentLeave {
+  id: string;
+  student_name: string;
+  usn: string;
+  start_date: string | null;
+  end_date: string | null;
+  reason: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  submitted_at: string | null;
+  submitted_at_raw: string | null;
+  reviewed_at_raw: string | null;
+  reviewed_by: string | null;
+}
+
+export interface GetProctorStudentLeavesResponse {
+  success: boolean;
+  message?: string;
+  data?: ProctorStudentLeave[];
+  pagination?: {
+    page: number;
+    page_size: number;
+    total_pages: number;
+    total_count: number;
+  };
+}
+
+export const getProctorStudentLeaves = async (params?: {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  status?: string;
+}): Promise<GetProctorStudentLeavesResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.page_size) queryParams.append('page_size', params.page_size.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status && params.status !== 'All') queryParams.append('status', params.status);
+    const url = `${API_ENDPOINT}/faculty/proctor-student-leaves/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const response = await fetchWithTokenRefresh(url, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Get Proctor Student Leaves Error:", error);
     return { success: false, message: "Network error" };
   }
 };
