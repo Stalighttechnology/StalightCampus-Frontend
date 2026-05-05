@@ -366,6 +366,7 @@ export const getStudentAttendance = async (): Promise<GetStudentAttendanceRespon
 };
 
 export const getInternalMarks = async (): Promise<GetInternalMarksResponse> => {
+  console.log("Fetching internal marks...");
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/internal-marks/`, {
       method: "GET",
