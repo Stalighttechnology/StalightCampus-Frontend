@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -66,7 +66,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     getApplyLeaveBootstrap({ page: pagination.page, page_size: pagination.pageSize })
       .then((res) => {
         if (res.success && res.data) {
-          const { assignments, leave_requests, branches } = res.data;
+          const { leave_requests, branches } = res.data;
 
           // Set branches only once or update if needed
           if (branches) {

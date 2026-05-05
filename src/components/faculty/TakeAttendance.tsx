@@ -28,6 +28,8 @@ import { getSubjectDetail, takeAttendance, aiAttendance, getStudentsForRegular, 
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
+import { AdminPagination } from "../common/AdminPagination";
+import { usePagination } from "@/hooks/useOptimizations";
 
 const TakeAttendance = () => {
   const { toast } = useToast();
@@ -48,10 +50,12 @@ const TakeAttendance = () => {
   const [students, setStudents] = useState<ClassStudent[]>([]);
   const [subjectStudents, setSubjectStudents] = useState<any[]>([]); // students returned for subject-only bootstrap
   const [bootstrapParams, setBootstrapParams] = useState<any | null>(null);
-  const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(50);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [totalStudentsCount, setTotalStudentsCount] = useState<number | null>(null);
+  
+  const { page, pageSize, paginationState, updatePagination, goToPage } = usePagination({
+    queryKey: ['takeAttendance'],
+    pageSize: 50,
+  });
+
   const [attendance, setAttendance] = useState<{ [studentId: number]: boolean }>({});
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -114,14 +118,10 @@ const TakeAttendance = () => {
             setStudents(studentsArr);
           }
           setRecentRecords(response.data.recent_records || []);
-          if (response.data.pagination) {
-            setPage(response.data.pagination.page);
-            setPageSize(response.data.pagination.page_size);
-            setTotalPages(response.data.pagination.total_pages);
-            setTotalStudentsCount(response.data.pagination.total_students);
+          if (response.data.pagination || response.data.count) {
+            updatePagination(response.data);
           } else {
-            setTotalPages(1);
-            setTotalStudentsCount(studentsArr.length || 0);
+            updatePagination({ pagination: { page: 1, page_size: 50, total_pages: 1, total_students: studentsArr.length } });
           }
         } else {
           setErrorMsg(response?.message || "Failed to load data");
@@ -371,8 +371,7 @@ const TakeAttendance = () => {
             setSubjectStudents([]);
             setRecentRecords([]);
             setBootstrapParams(null);
-            setTotalPages(1);
-            setTotalStudentsCount(0);
+            updatePagination({ pagination: { page: 1, page_size: 50, total_pages: 1, total_students: 0 } });
           } else {
             // normal subject: do not call subject-only bootstrap; wait for branch/sem/section selection
             setSubjectStudents([]);
@@ -710,30 +709,7 @@ const TakeAttendance = () => {
 
                     {/* Fixed controls outside scroll area */}
                     <div className="p-3 sm:p-4 space-y-4">
-                      {totalPages && totalPages > 1 && (
-                        <div className="flex items-center justify-between gap-3">
-                          <div className={`text-sm sm:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            Showing page {page} of {totalPages} {totalStudentsCount !== null && `— ${totalStudentsCount} students`}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button className="w-auto" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</Button>
-                            <Button className="w-auto" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next</Button>
-                            <div className="flex items-center gap-2 ml-4">
-                              <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Per page:</label>
-                              <Select value={pageSize.toString()} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-                                <SelectTrigger className="w-[70px] h-8">
-                                  <SelectValue placeholder={pageSize.toString()} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="25">25</SelectItem>
-                                  <SelectItem value="50">50</SelectItem>
-                                  <SelectItem value="100">100</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      <AdminPagination pagination={paginationState} onPageChange={goToPage} />
 
                       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                         <div className={`text-sm sm:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

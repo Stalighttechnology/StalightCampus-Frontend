@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "../ui/card";
-import { Download, FileText, UploadCloud, X } from "lucide-react";
+import { Download, FileText, UploadCloud, X, Search } from "lucide-react";
 import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject } from "../../utils/faculty_api";
 import { useTheme } from "../../context/ThemeContext";
 import {
@@ -11,6 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SkeletonList } from "@/components/ui/skeleton";
+import { usePagination, useDebouncedSearch } from "@/hooks/useOptimizations";
+import { AdminPagination } from "../common/AdminPagination";
 
 interface StudyMaterial {
   id: number;
@@ -77,7 +79,7 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
   </div>
 );
 
-const StudyMaterialsFaculty = () => {
+const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const { theme } = useTheme();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [grouped, setGrouped] = useState<AssignedSubject[]>([]);
@@ -94,12 +96,18 @@ const StudyMaterialsFaculty = () => {
   const [uploadSection, setUploadSection] = useState<string>("");
   const [uploadTitle, setUploadTitle] = useState<string>("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [semesters, setSemesters] = useState<{ id: string; number: number }[]>([]);
   const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
+
+  const pagination = usePagination({
+    queryKey: ['facultyStudyMaterials', selectedBranch, selectedSemester, selectedSection, debouncedSearch],
+    pageSize: 20,
+  });
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -167,11 +175,18 @@ const StudyMaterialsFaculty = () => {
 
   const loadMaterials = async () => {
     setLoading(true);
-    const resp = await getStudyMaterials(selectedBranch === 'All Branches' ? undefined : selectedBranch, selectedSemester === 'All Semesters' ? undefined : selectedSemester, selectedSection === 'All Sections' ? undefined : selectedSection, searchQuery || undefined);
-    if (resp && resp.success && Array.isArray(resp.data?.results || resp.data)) {
-      setMaterials(resp.data.results || resp.data || []);
-    } else if (resp && resp.success && Array.isArray(resp.data)) {
-      setMaterials(resp.data);
+    const resp = await getStudyMaterials(
+      selectedBranch === 'All Branches' ? undefined : selectedBranch,
+      selectedSemester === 'All Semesters' ? undefined : selectedSemester,
+      selectedSection === 'All Sections' ? undefined : selectedSection,
+      debouncedSearch || undefined,
+      pagination.page,
+      pagination.pageSize
+    );
+    if (resp && resp.success) {
+      const dataItems = resp.data?.results || resp.data || [];
+      setMaterials(dataItems);
+      pagination.updatePagination(resp);
     } else {
       setMaterials([]);
     }
@@ -181,13 +196,11 @@ const StudyMaterialsFaculty = () => {
 
   // Auto-load materials when all filters are selected
   useEffect(() => {
-    if (selectedBranch !== "All Branches" && selectedSemester !== "All Semesters" && selectedSection !== "All Sections") {
-      loadMaterials();
-    }
-  }, [selectedBranch, selectedSemester, selectedSection, searchQuery]);
+    loadMaterials();
+  }, [selectedBranch, selectedSemester, selectedSection, debouncedSearch, pagination.page, pagination.pageSize]);
 
   return (
-    <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+    <div ref={ref} className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`} {...props}>
       <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
           <div className="flex flex-row justify-between items-center gap-2 sm:gap-3">
@@ -251,13 +264,20 @@ const StudyMaterialsFaculty = () => {
               </Select>
             </div>
 
-            <input
-              type="text"
-              placeholder="Search by title, course name, course code, semester, or uploaded by..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}
-            />
+            <div className="relative">
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              <input
+                type="text"
+                placeholder="Search by title, course name, course code, semester, or uploaded by..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-xs sm:text-sm transition-all outline-none focus:ring-2 focus:ring-primary/20 ${
+                  theme === 'dark' 
+                    ? 'border-border bg-background text-foreground focus:border-primary' 
+                    : 'border-gray-200 bg-white text-gray-900 focus:border-primary'
+                }`}
+              />
+            </div>
           </div>
 
           {/* Materials Table Section */}
@@ -275,8 +295,6 @@ const StudyMaterialsFaculty = () => {
                 <div className="py-4">
                   <SkeletonList items={5} />
                 </div>
-              ) : !hasSearched ? (
-                <div className="text-center py-10 text-xs sm:text-sm text-gray-500 italic">Select branch, semester, and section to view study materials.</div>
               ) : materials.length === 0 ? (
                 <div className="text-center py-10 text-xs sm:text-sm text-gray-500">No study materials found for the selected criteria.</div>
               ) : (
@@ -284,6 +302,11 @@ const StudyMaterialsFaculty = () => {
               )}
             </div>
           </div>
+          
+          <AdminPagination
+            pagination={pagination.paginationState}
+            onPageChange={pagination.goToPage}
+          />
         </CardContent>
       </Card>
 
@@ -392,6 +415,6 @@ const StudyMaterialsFaculty = () => {
 
     </div>
   );
-};
+});
 
 export default StudyMaterialsFaculty;

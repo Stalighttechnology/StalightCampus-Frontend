@@ -107,7 +107,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     fetchUnreadCount();
     // Refresh every 5 minutes
     const interval = setInterval(fetchUnreadCount, 5 * 60 * 1000);
-    
+
     // Add event listener for manual refreshes from child components
     const handleRefresh = (e: any) => {
       if (e.detail?.decrement) {
@@ -180,11 +180,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   return (
     <motion.div
-      className={`flex h-screen h-[100dvh] overflow-hidden ${
-        theme === "dark"
+      className={`flex h-screen h-[100dvh] overflow-hidden ${theme === "dark"
           ? "dark bg-background text-foreground"
           : "bg-gray-50 text-gray-900"
-      }`}
+        }`}
       initial={isNoAnimation ? false : { opacity: 0 }}
       animate={isNoAnimation ? false : { opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -201,9 +200,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content Area */}
       <div
-        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 ${
-          sidebarCollapsed ? 'ml-0' : 'ml-64'
-        }`}
+        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-64'
+          }`}
       >
         {/* Navbar */}
         <div
@@ -223,24 +221,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         {/* Page Content */}
         <motion.main
           ref={mainContentRef}
-          className={`flex-1 min-w-0 p-4 pb-32 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${
-            theme === "dark" ? "bg-background" : "bg-gray-50"
-          }`}
+          className={`flex-1 min-w-0 p-4 pb-32 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${theme === "dark" ? "bg-background" : "bg-gray-50"
+            }`}
           initial={isNoAnimation ? false : { opacity: 0, y: 20 }}
           animate={isNoAnimation ? false : { opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
         >
           {/* Page Header */}
-          
+
 
           {/* Error Message */}
           {error && (
             <motion.div
-              className={`p-3 rounded-lg mb-4 ${
-                theme === "dark"
+              className={`p-3 rounded-lg mb-4 ${theme === "dark"
                   ? "bg-destructive/10 border border-destructive/20 text-destructive-foreground"
                   : "bg-red-100 border border-red-200 text-red-700"
-              }`}
+                }`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
@@ -250,11 +246,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </motion.div>
           )}
 
-          {/* Children Content */}
           {isNoAnimation ? (
             <div className="w-full">{children}</div>
           ) : (
-            <AnimatePresence mode="popLayout">{children}</AnimatePresence>
+            <AnimatePresence mode="popLayout">
+              <motion.div
+                key={activePage}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="w-full"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           )}
         </motion.main>
       </div>

@@ -55,9 +55,9 @@ import { usePagination, useInfiniteScroll, useOptimisticUpdate } from './useOpti
 import { getLeaveRequests } from '../utils/student_api';
 
 // Custom hooks for data fetching
-export const useProctorStudentsQuery = (enabled: boolean = true, include?: string | string[], examPeriod?: string, onlyWithLeaves: boolean = false) => {
+export const useProctorStudentsQuery = (enabled: boolean = true, include?: string | string[], examPeriod?: string, onlyWithLeaves: boolean = false, search?: string) => {
   const pagination = usePagination({
-    queryKey: ['proctorStudents', examPeriod || ''],
+    queryKey: ['proctorStudents', examPeriod || '', search || '', String(include) || '', String(onlyWithLeaves)],
     pageSize: 20,
   });
 
@@ -71,6 +71,7 @@ export const useProctorStudentsQuery = (enabled: boolean = true, include?: strin
           include: include,
           exam_period: examPeriod,
           only_with_leaves: onlyWithLeaves,
+          search: search,
         });
         if (response.success && response.data) {
           pagination.updatePagination(response);

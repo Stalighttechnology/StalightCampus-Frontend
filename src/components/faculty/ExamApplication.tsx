@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -13,6 +13,8 @@ import { useProctorStudentsQuery } from "@/hooks/useApiQueries";
 import type { ProctorStudent } from "@/utils/faculty_api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
+import { useDebouncedSearch } from "@/hooks/useOptimizations";
+import { AdminPagination } from "../common/AdminPagination";
 
 interface ExamApplicationProps {
   proctorStudents?: ProctorStudent[];
@@ -25,7 +27,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
   const printRef = useRef<HTMLDivElement | null>(null);
   const [exporting, setExporting] = useState(false);
 
-  const [search, setSearch] = useState("");
+  const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
   const [examPeriod, setExamPeriod] = useState("june_july");
   const [open, setOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<ProctorStudent | null>(null);
@@ -38,10 +40,6 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
   const [existingApplications, setExistingApplications] = useState<Array<any>>([]);
   const [editingApplication, setEditingApplication] = useState<any>(null);
 
-  // Pagination state aligned with system default (20) for better cache sharing
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-
   // Use hooks for fetching - requesting only essential fields to optimize payload
   const includeFields = 'id,user_id,name,usn,branch,semester,section';
   const {
@@ -49,14 +47,9 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
     isLoading: isProctorLoading,
     pagination: proctorPagination,
     refetch: refetchProctor
-  } = useProctorStudentsQuery(true, includeFields, examPeriod);
+  } = useProctorStudentsQuery(true, includeFields, examPeriod, false, debouncedSearch);
 
-  // Sync current page to pagination hook
-  useEffect(() => {
-    if (proctorPagination) proctorPagination.goToPage(currentPage);
-  }, [currentPage, proctorPagination]);
-
-  const students = proctorData?.data || initialProctorStudents;
+  const students = proctorData?.data || [];
   const totalPages = proctorPagination?.paginationState.totalPages || 1;
   const totalStudentsCount = proctorPagination?.paginationState.totalItems || 0;
 
@@ -119,12 +112,6 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
       });
     }
   };
-
-  const filtered = students.filter((s: any) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return (s.usn || "").toLowerCase().includes(q) || (s.name || "").toLowerCase().includes(q);
-  });
 
   const openFor = async (student: ProctorStudent) => {
     setSelectedStudent(student);
@@ -460,7 +447,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
             <>
               {/* Mobile view: Stacked cards */}
               <div className="md:hidden space-y-3">
-                {filtered.map((student: any) => (
+                {students.map((student: any) => (
                   <div key={student.usn} className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'} shadow-sm`}>
                     <div className="flex justify-between items-start mb-3">
                       <div className="min-w-0">
@@ -497,7 +484,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                     </div>
                   </div>
                 ))}
-                {filtered.length === 0 && (
+                {students.length === 0 && (
                   <div className="text-center py-10 text-muted-foreground">No students found.</div>
                 )}
               </div>
@@ -514,7 +501,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                   </tr>
                 </thead>
                 <tbody className={theme === 'dark' ? 'divide-border' : 'divide-gray-200'}>
-                  {filtered.map((student: any) => (
+                  {students.map((student: any) => (
                     <tr key={student.usn} className={`border-b ${theme === 'dark' ? 'border-border hover:bg-muted' : 'border-gray-100 hover:bg-gray-50'} transition-colors`}>
                       <td className="px-4 py-3 text-sm font-medium text-center">{student.usn}</td>
                       <td className="px-4 py-3 text-sm text-center">{student.name}</td>
@@ -549,7 +536,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                       </td>
                     </tr>
                   ))}
-                  {filtered.length === 0 && (
+                  {students.length === 0 && (
                     <tr>
                       <td colSpan={5} className="text-center py-6">
                         {examPeriod ? `No students found with exam applications for ${examPeriod === 'june_july' ? 'June/July' : 'January/February'} period.` : 'No students found.'}
@@ -563,34 +550,10 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
         </div>
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between py-2 px-4 border rounded-md">
-            <div className="text-sm text-gray-500">
-              Showing {filtered.length} of {totalStudentsCount} students
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <div className="flex items-center px-2 text-sm font-medium">
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
+          <AdminPagination
+            pagination={proctorPagination.paginationState}
+            onPageChange={proctorPagination.goToPage}
+          />
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[70vw] max-h-[90vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar">
