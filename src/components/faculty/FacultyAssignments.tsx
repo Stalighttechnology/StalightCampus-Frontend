@@ -80,14 +80,10 @@ const FacultyAssignments = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchData(1); // Reset to page 1 on search
+      fetchData(currentPage);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    fetchData(currentPage);
-  }, [currentPage]);
+  }, [currentPage, searchTerm]);
 
   const fetchData = async (page = currentPage) => {
     setLoading(true);
@@ -100,7 +96,6 @@ const FacultyAssignments = () => {
       if (res.success) {
         setAssignments(res.assignments);
         setPagination(res.pagination);
-        if (page !== currentPage) setCurrentPage(page);
       }
     } catch (error) {
       console.error("Error fetching assignment data:", error);
@@ -430,7 +425,10 @@ const FacultyAssignments = () => {
                   placeholder="Search assignments..." 
                   className="pl-10 w-full md:w-64"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
               <Select value={filterSubject} onValueChange={setFilterSubject}>
