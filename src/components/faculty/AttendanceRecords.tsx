@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
-import { Loader2, FileDown } from "lucide-react";
+import { Loader2, FileDown, ClipboardList } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "../ui/dialog";
 import { getAttendanceRecordsWithSummary, getAttendanceRecordDetails } from "@/utils/faculty_api";
 import { API_BASE_URL } from "@/utils/config";
@@ -156,13 +156,25 @@ const AttendanceRecords = () => {
     <div className={`space-y-3 md:space-y-3 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
         <CardHeader>
-          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900`}>Attendance Records</CardTitle>
+          <CardTitle>Attendance Records</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <SkeletonTable rows={5} columns={8} />
           ) : error ? (
             <div className={`p-4 ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>{error}</div>
+          ) : records.length === 0 ? (
+            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${
+              theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+            }`}>
+              <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <ClipboardList className="w-12 h-12 opacity-80" />
+              </div>
+              <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Records Found</h3>
+              <p className="max-w-xs text-base leading-relaxed">
+                You haven't submitted any attendance records yet. Your history will appear here once you start marking attendance.
+              </p>
+            </div>
           ) : (
             <div className="overflow-y-auto w-full overscroll-contain min-h-0 max-h-[60vh] md:max-h-none md:overflow-visible border rounded-md" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
               <div className="w-full overflow-x-auto">
@@ -204,7 +216,7 @@ const AttendanceRecords = () => {
                                 View Details
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className={`w-[95vw] max-w-2xl rounded-2xl p-0 overflow-hidden border-none shadow-2xl ${theme === 'dark' ? 'bg-[#0f172a] text-slate-100' : 'bg-white text-slate-900'}`}>
+                            <DialogContent className={`w-[90vw] max-w-xl h-[90vh] rounded-2xl p-0 overflow-hidden border-none shadow-2xl ${theme === 'dark' ? 'bg-[#0f172a] text-slate-100' : 'bg-white text-slate-900'}`}>
                               <div className={`p-6 border-b ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
                                 <DialogHeader>
                                   <DialogTitle className="text-xl font-semibold tracking-tight">Attendance Details</DialogTitle>

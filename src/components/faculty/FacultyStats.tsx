@@ -405,10 +405,23 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                   )}
                 </>
               ) : (
-                <div className="w-full text-center">
-                  <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No class is currently running</p>
+                <div className="w-full">
+                  <div className={`flex flex-col items-center justify-center py-7 px-3 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${
+                    theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                  }`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-accent/20 text-primary/80' : 'bg-primary/10 text-primary/80'}`}>
+                      <Activity className="w-8 h-8 opacity-60" />
+                    </div>
+                    <h4 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      No class is currently running
+                    </h4>
+                    <p className="text-xs max-w-[200px] mx-auto leading-relaxed opacity-70">
+                      Take a break or prepare for your next scheduled session.
+                    </p>
+                  </div>
+                  
                   {nextClass && (
-                    <div className={`border rounded-md p-3 mt-3 shadow-md ${
+                    <div className={`border rounded-md p-3 mt-4 shadow-md text-center ${
                       getClassStatus(nextClass).status === 'starting-soon'
                         ? (theme === 'dark' ? 'border-orange-500 bg-orange-900/20' : 'border-orange-500 bg-orange-50')
                         : getClassStatus(nextClass).status === 'upcoming'

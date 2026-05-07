@@ -404,7 +404,15 @@ const StudentEnrollment = () => {
             ) : (
               <>
                 {students.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">No students loaded</div>
+                  <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <Loader2 className="w-12 h-12 opacity-80" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Loaded</h3>
+                    <p className="max-w-xs text-base leading-relaxed">
+                      Select a semester, section, and subject to load students for enrollment management.
+                    </p>
+                  </div>
                 ) : (
                   (() => {
                     // Server-side search is used when the user clicks the Search button.
@@ -438,7 +446,11 @@ const StudentEnrollment = () => {
                                   </div>
                                 </div>
                               ))}
-                              {enrolledListFiltered.length === 0 && <div className="text-sm text-muted-foreground py-4 text-center">No enrolled students</div>}
+                              {enrolledListFiltered.length === 0 && (
+                                <div className={`flex flex-col items-center justify-center py-8 px-4 text-center border-2 border-dashed rounded-xl mt-2 ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
+                                  <p className="text-xs font-medium">No enrolled students</p>
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -465,7 +477,11 @@ const StudentEnrollment = () => {
                                     </div>
                                   </div>
                                 ))}
-                                {notEnrolledListFiltered.length === 0 && <div className="text-sm text-muted-foreground py-4 text-center">All students enrolled</div>}
+                                {notEnrolledListFiltered.length === 0 && (
+                                  <div className={`flex flex-col items-center justify-center py-8 px-4 text-center border-2 border-dashed rounded-xl mt-2 ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
+                                    <p className="text-xs font-medium">All students enrolled</p>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
