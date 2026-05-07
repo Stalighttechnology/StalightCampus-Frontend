@@ -322,8 +322,14 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
       </Card>
 
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className={`p-4 sm:p-6 rounded-lg shadow-lg max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-md w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200"
+          onClick={() => setShowUploadModal(false)}
+        >
+          <div 
+            className={`p-4 sm:p-6 rounded-2xl shadow-2xl max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-md w-full border animate-in zoom-in-95 duration-200 ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h2 className="text-base sm:text-lg font-semibold">Upload Study Material</h2>
               <button onClick={() => setShowUploadModal(false)} className="text-gray-500 hover:text-gray-700">
