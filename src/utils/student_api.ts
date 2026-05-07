@@ -687,9 +687,15 @@ export const getFullStudentProfile = async () => {
   }
 };
 
-export const getStudentAssignments = async () => {
+export const getStudentAssignments = async (params?: { search?: string; page?: number; page_size?: number }) => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/assignments/`, {
+    const query = new URLSearchParams();
+    if (params?.search) query.append('search', params.search);
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.page_size) query.append('page_size', params.page_size.toString());
+    
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/assignments/${qs}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -699,6 +705,24 @@ export const getStudentAssignments = async () => {
     return await response.json();
   } catch (error) {
     console.error("Get Student Assignments Error:", error);
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const submitAssignment = async (assignmentId: number, file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append("submitted_file", file);
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/assignments/${assignmentId}/submit/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+      body: formData,
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Submit Assignment Error:", error);
     return { success: false, message: "Network error" };
   }
 };
@@ -723,7 +747,9 @@ export const getAllStudyMaterials = async (
   branchId?: string,
   semesterId?: string,
   sectionId?: string,
-  search?: string
+  search?: string,
+  page = 1,
+  pageSize = 50
 ) => {
   try {
     const params = new URLSearchParams();
@@ -731,6 +757,8 @@ export const getAllStudyMaterials = async (
     if (semesterId) params.append('semester_id', semesterId);
     if (sectionId) params.append('section_id', sectionId);
     if (search) params.append('search', search);
+    params.append('page', String(page));
+    params.append('page_size', String(pageSize));
 
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/all-study-materials/?${params.toString()}`, {
       method: "GET",

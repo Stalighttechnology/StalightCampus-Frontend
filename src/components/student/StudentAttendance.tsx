@@ -1,61 +1,69 @@
 import React, { useMemo } from "react";
 import { FaBookOpen, FaCheckCircle, FaFlag, FaCalendarPlus } from "react-icons/fa";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { useStudentAttendanceQuery } from "../../hooks/useApiQueries";
+import { useTheme } from "@/context/ThemeContext";
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { SkeletonChart, SkeletonTable, Skeleton } from "../ui/skeleton";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   ResponsiveContainer,
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { useStudentAttendanceQuery } from "../../hooks/useApiQueries";
-import { useTheme } from "@/context/ThemeContext";
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { SkeletonChart, SkeletonTable, Skeleton } from "../ui/skeleton";
 
 // Memoized Chart Component
-const MemoizedLineChart = React.memo(({ data, theme }: { data: any[], theme: string }) => (
+const MemoizedWavyChart = React.memo(({ data, theme }: { data: any[], theme: string }) => (
   <ResponsiveContainer width="100%" height="100%">
-    <LineChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? "#444" : "#ddd"} />
+    <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+      <defs>
+        <linearGradient id="colorAttendance" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stopColor="#3b82f6" stopOpacity={theme === 'dark' ? 0.3 : 0.2}/>
+          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+        </linearGradient>
+      </defs>
+      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? "#333" : "#eee"} />
       <XAxis
         dataKey="name"
-        stroke={theme === 'dark' ? "#ccc" : "#666"}
-        tick={{ fill: theme === 'dark' ? "#ccc" : "#666", fontSize: 12 }}
-        axisLine={{ stroke: theme === 'dark' ? "#ccc" : "#666" }}
-        tickLine={{ stroke: theme === 'dark' ? "#ccc" : "#666" }}
+        stroke={theme === 'dark' ? "#888" : "#999"}
+        tick={{ fill: theme === 'dark' ? "#888" : "#666", fontSize: 12 }}
+        axisLine={false}
+        tickLine={false}
+        dy={10}
       />
       <YAxis
-        stroke={theme === 'dark' ? "#ccc" : "#666"}
-        tick={{ fill: theme === 'dark' ? "#ccc" : "#666", fontSize: 12 }}
-        axisLine={{ stroke: theme === 'dark' ? "#ccc" : "#666" }}
-        tickLine={{ stroke: theme === 'dark' ? "#ccc" : "#666" }}
+        stroke={theme === 'dark' ? "#888" : "#999"}
+        tick={{ fill: theme === 'dark' ? "#888" : "#666", fontSize: 12 }}
+        axisLine={false}
+        tickLine={false}
         domain={[0, 100]}
+        tickFormatter={(v) => `${v}%`}
       />
       <Tooltip
         contentStyle={{
           backgroundColor: theme === 'dark' ? "#1c1c1e" : "#fff",
-          border: theme === 'dark' ? "1px solid #333" : "1px solid #ddd",
-          color: theme === 'dark' ? "#fff" : "#000",
+          borderRadius: "12px",
+          border: theme === 'dark' ? "1px solid #333" : "1px solid #eee",
+          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
         }}
+        itemStyle={{ color: "#3b82f6", fontWeight: "bold" }}
+        formatter={(value: any) => [`${value}%`, 'Attendance']}
       />
-      {Object.keys(data[0] || {}).filter(key => key !== 'name').map((subject, idx) => (
-        <Line
-          key={subject}
-          type="monotone"
-          dataKey={subject}
-          stroke={
-            ["#3b82f6", "#22c55e", "#f97316", "#a855f7", "#ef4444"][
-              idx % 5
-            ]
-          }
-          strokeWidth={2}
-          dot={{ r: 3 }}
-        />
-      ))}
-    </LineChart>
+      <Area 
+        type="monotone" 
+        dataKey="Attendance" 
+        stroke="#3b82f6" 
+        strokeWidth={3}
+        fillOpacity={1} 
+        fill="url(#colorAttendance)" 
+        animationDuration={2000}
+        dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: theme === 'dark' ? "#1c1c1e" : "#fff" }}
+        activeDot={{ r: 6, strokeWidth: 0 }}
+      />
+    </AreaChart>
   </ResponsiveContainer>
 ));
 
@@ -168,16 +176,19 @@ const StudentAttendance = () => {
   const attendanceData = attendanceResponse?.data || {};
 
   const generateTrendData = useMemo(() => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May"];
-    const subjects = Object.keys(attendanceData);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const backendTrend = attendanceResponse?.monthly_trend || [];
+    
+    // Create a map for quick lookup of backend values
+    const trendMap = new Map(backendTrend.map((t: any) => [t.month, t.percentage]));
+
     return months.map((month) => {
-      const obj: any = { name: month };
-      subjects.forEach((sub) => {
-        obj[sub] = attendanceData[sub]?.percentage || 0;
-      });
-      return obj;
+      return { 
+        name: month, 
+        Attendance: trendMap.has(month) ? Math.round(trendMap.get(month)) : 0
+      };
     });
-  }, [attendanceData]);
+  }, [attendanceResponse]);
 
   const overview = useMemo(() => {
     return Object.values(attendanceData).reduce(
@@ -271,7 +282,7 @@ const StudentAttendance = () => {
             <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Trends</CardTitle>
           </CardHeader>
           <CardContent className={`h-[300px] ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-            <MemoizedLineChart data={generateTrendData} theme={theme} />
+            <MemoizedWavyChart data={generateTrendData} theme={theme} />
           </CardContent>
         </Card>
 

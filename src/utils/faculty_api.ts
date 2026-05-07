@@ -799,6 +799,123 @@ export const getProctorStudentsForStats = async (params?: {
   }
 };
 
+export interface CreateAssignmentRequest {
+  title: string;
+  description: string;
+  subject_id: string;
+  branch_id?: string;
+  semester_id?: string;
+  section_id?: string;
+  due_date: string;
+  max_marks: string;
+  weightage: string;
+  file?: File;
+}
+
+export const manageAssignments = async (
+  data?: CreateAssignmentRequest | FormData | null,
+  method: "GET" | "POST" | "PUT" = "GET",
+  assignmentId?: number | string,
+  params?: { search?: string; page?: number; page_size?: number }
+) => {
+  try {
+    let url = `${API_ENDPOINT}/faculty/assignments/manage/`;
+    if (method === "PUT" && assignmentId) {
+      url = `${API_ENDPOINT}/faculty/assignments/${assignmentId}/`;
+    } else if (method === "GET" && params) {
+      const query = new URLSearchParams();
+      if (params.search) query.append('search', params.search);
+      if (params.page) query.append('page', params.page.toString());
+      if (params.page_size) query.append('page_size', params.page_size.toString());
+      const qs = query.toString();
+      if (qs) url += `?${qs}`;
+    }
+    
+    let config: any = {
+      method,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    };
+
+    if ((method === "POST" || method === "PUT") && data) {
+      if (data instanceof FormData) {
+        config.body = data;
+      } else {
+        const formData = new FormData();
+        formData.append("title", data.title);
+        formData.append("description", data.description);
+        formData.append("subject_id", data.subject_id);
+        if (data.branch_id) formData.append("branch_id", data.branch_id);
+        if (data.semester_id) formData.append("semester_id", data.semester_id);
+        if (data.section_id) formData.append("section_id", data.section_id);
+        formData.append("due_date", data.due_date);
+        formData.append("max_marks", data.max_marks);
+        formData.append("weightage", data.weightage);
+        if (data.file) formData.append("file", data.file);
+        config.body = formData;
+      }
+    } else {
+      config.headers["Content-Type"] = "application/json";
+    }
+
+    const response = await fetchWithTokenRefresh(url, config);
+    return await response.json();
+  } catch (error) {
+    console.error("Manage Assignments Error:", error);
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getAssignmentDetail = async (assignmentId: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/${assignmentId}/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Get Assignment Detail Error:", error);
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getAssignmentSubmissions = async (assignmentId: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/${assignmentId}/submissions/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Get Assignment Submissions Error:", error);
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const gradeSubmission = async (submissionId: number, data: { marks_obtained: string; feedback: string }) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/submissions/${submissionId}/grade/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Grade Submission Error:", error);
+    return { success: false, message: "Network error" };
+  }
+};
+
 export const getFacultyAssignments = async (): Promise<GetFacultyAssignmentsResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/`, {

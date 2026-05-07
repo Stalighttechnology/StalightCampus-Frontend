@@ -284,6 +284,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
       // Academic
       { name: "Timetable", page: "timetable" },
+      { name: "Assignments", page: "faculty-assignments" },
       { name: "Exam Applications", page: "exam-applications" },
       { name: "Revaluation", page: "revaluation" },
       { name: "Makeup Exam", page: "makeupexam" },

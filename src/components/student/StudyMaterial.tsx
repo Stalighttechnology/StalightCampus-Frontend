@@ -20,7 +20,17 @@ import {
   getSections, 
   getAllStudyMaterials 
 } from "@/utils/student_api";
+import { Button } from "@/components/ui/button";
 import { SkeletonList } from "../ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface StudyMaterial {
   id: number;
@@ -123,28 +133,67 @@ const StudyMaterialsStudent = () => {
     }
   }, [selectedBranch, selectedSemester]);
 
-  const loadMaterials = async () => {
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
+  const loadMaterials = async (page = 1) => {
     setLoading(true);
-    console.log("Fetching all study materials...");
+
     const resp = await getAllStudyMaterials(
       selectedBranch === 'All Branches' ? undefined : selectedBranch, 
       selectedSemester === 'All Semesters' ? undefined : selectedSemester, 
       selectedSection === 'All Sections' ? undefined : selectedSection, 
-      searchQuery || undefined
+      searchQuery || undefined,
+      page
     );
     
     if (resp && resp.success && Array.isArray(resp.data)) {
       setMaterials(resp.data);
+      setTotalPages(resp.total_pages || 1);
+      setCurrentPage(page);
     } else {
       setMaterials([]);
+      setTotalPages(1);
     }
     setHasSearched(true);
     setLoading(false);
   };
 
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      loadMaterials(page);
+      // Scroll to top of materials section
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Helper to generate page numbers
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 3;
+    
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push('ellipsis');
+      
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      
+      for (let i = start; i <= end; i++) {
+        if (!pages.includes(i)) pages.push(i);
+      }
+      
+      if (currentPage < totalPages - 2) pages.push('ellipsis');
+      if (!pages.includes(totalPages)) pages.push(totalPages);
+    }
+    return pages;
+  };
+
   // Load materials on mount and when filters change
   useEffect(() => {
-    loadMaterials();
+    loadMaterials(1);
   }, [selectedBranch, selectedSemester, selectedSection, searchQuery]);
 
   return (
@@ -236,6 +285,56 @@ const StudyMaterialsStudent = () => {
                 materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
               )}
             </div>
+            
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(currentPage - 1);
+                        }}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {getPageNumbers().map((page, i) => (
+                      <PaginationItem key={i}>
+                        {page === 'ellipsis' ? (
+                          <PaginationEllipsis />
+                        ) : (
+                          <PaginationLink
+                            href="#"
+                            isActive={currentPage === page}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(page as number);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        )}
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(currentPage + 1);
+                        }}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

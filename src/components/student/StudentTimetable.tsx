@@ -52,10 +52,17 @@ const StudentTimetable = () => {
     [key: string]: string | DayEntry | null | undefined;
   }
 
-  const findTimetableEntry = (timetable: TimetableEntry[], start: string, end: string, day: string): TimetableEntry | undefined => {
-    return timetable.find(
-      (e) => e.start_time === start && e.end_time === end && e.day === day
-    );
+  const findTimetableEntry = (timetable: TimetableEntry[], slotStart: string, slotEnd: string, day: string): TimetableEntry | undefined => {
+    return timetable.find((e) => {
+      if (e.day !== day) return false;
+      
+      // Handle "HH:MM:SS" or "HH:MM" formats
+      const lectureStart = e.start_time.substring(0, 5);
+      
+      // Check if lecture starts within this slot
+      // e.g., if slot is 11:00-12:00 and lecture is 11:15, it matches
+      return lectureStart >= slotStart && lectureStart < slotEnd;
+    });
   };
 
   const createDayEntry = (entry: TimetableEntry | undefined): DayEntry | null => {
