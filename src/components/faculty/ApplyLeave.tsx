@@ -108,7 +108,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!title.trim() || !selectedBranch || !dateRange?.from || !dateRange?.to || !reason.trim()) {
-      setError("Please provide a valid title, branch, date range and reason.");
+      const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      await MySwal.fire({
+        title: 'Missing Information',
+        text: 'Please provide a valid title, branch, date range, and reason.',
+        icon: 'warning',
+        confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+      });
       return;
     }
 
@@ -128,7 +136,15 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     });
 
     if (hasOverlap) {
-      setError("You already have a leave request that overlaps with these dates.");
+      const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      await MySwal.fire({
+        title: 'Date Overlap',
+        text: 'You already have a leave request that overlaps with these dates.',
+        icon: 'warning',
+        confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+      });
       return;
     }
 
@@ -212,7 +228,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
   const renderStatus = (status: LeaveStatus) => {
     console.log('Rendering status:', status);
-    const baseClass = 'flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap';
+    const baseClass = 'flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[8px] sm:text-xs font-semibold whitespace-nowrap uppercase tracking-tight';
     switch (status) {
       case 'Pending':
         return (
@@ -247,25 +263,20 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   };
 
   return (
-    <div ref={ref} className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} space-y-4 sm:space-y-6 min-h-screen`}>  
+    <div ref={ref}>
       {/* Main Container with Responsive Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Leave Application Form - Left Side */}
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
-            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+            <CardTitle>Leave Application Form</CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
-            {/* Error Message */}
-            {error && (
-              <div className={`p-1.5 sm:p-2 lg:p-3 rounded-lg text-xs sm:text-sm ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                {error}
-              </div>
-            )}
+
             
             {/* Title */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label htmlFor="title" className={`text-lg sm:text-lg font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
+              <Label htmlFor="title" className={`text-md sm:text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
               <input
                 id="title"
                 type="text"
@@ -279,7 +290,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             
             {/* Branch Selection */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label className={`text-lg font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</Label>
+              <Label className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</Label>
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                 <SelectTrigger 
                   className={`text-xs sm:text-sm h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
@@ -302,7 +313,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
             {/* Date Range */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label className={`text-lg font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range</Label>
+              <Label className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -345,7 +356,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
             {/* Reason */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label htmlFor="reason" className={`text-lg font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</Label>
+              <Label htmlFor="reason" className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</Label>
               <Textarea
                 id="reason"
                 value={reason}
@@ -360,7 +371,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <Button 
               type="submit" 
               onClick={handleSubmit}
-              className={`w-full text-lg h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary' : 'text-white bg-primary hover:bg-primary/90 border-primary'}`} 
+              className={`w-full text-md h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary' : 'text-white bg-primary hover:bg-primary/90 border-primary'}`} 
               disabled={submitting}
             >
               {submitting ? "Submitting..." : "Submit Request"}
@@ -370,12 +381,9 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
         {/* Leave Requests List - Right Side */}
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
+          <CardHeader className="flex flex-row items-center justify-between pt-3">
             {/* Title */}
             <CardTitle
-              className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 ${
-                theme === 'dark' ? 'text-foreground' : 'text-gray-900'
-              }`}
             >
               Leave Requests
             </CardTitle>
@@ -399,7 +407,26 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                     ? 'bg-card text-foreground border-border'
                     : 'bg-white text-gray-900 border-gray-200'
                 }`}>
-                  {/* Your filter content stays same */}
+                  <div className="space-y-1 sm:space-y-2">
+                    <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter Status</p>
+                    {['All', 'Pending', 'Approved', 'Rejected'].map((status) => (
+                      <Button
+                        key={status}
+                        variant={filterStatus === status ? "default" : "ghost"}
+                        className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${
+                          filterStatus === status 
+                            ? 'bg-primary text-white hover:bg-primary/90' 
+                            : 'hover:bg-primary/10 hover:text-primary'
+                        }`}
+                        onClick={() => {
+                          setFilterStatus(status as any);
+                          setFilterOpen(false);
+                        }}
+                      >
+                        {status}
+                      </Button>
+                    ))}
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
@@ -409,36 +436,56 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             {loading ? (
               <SkeletonList count={3} />
             ) : filteredLeaveList.length === 0 ? (
-              <div className={`text-center text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                {filterStatus === 'All' ? 'No leave requests found.' : `No ${filterStatus.toLowerCase()} leave requests found.`}
+              <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <CalendarCheck2 className="w-10 h-10" />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {filterStatus === 'All' ? 'No Leave Requests' : `No ${filterStatus} Requests`}
+                </h3>
+                <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  {filterStatus === 'All' 
+                    ? "Your leave history is currently empty. Any applications you submit will appear here." 
+                    : `There are currently no ${filterStatus.toLowerCase()} requests matching your filter.`}
+                </p>
               </div>
             ) : (
               <div className="max-h-[350px] sm:max-h-[450px] lg:max-h-[520px] overflow-y-auto custom-scrollbar space-y-1 sm:space-y-2 lg:space-y-3 pr-2">
                 {filteredLeaveList.map((leave) => {
                   return (
                     <div key={leave.id} className={`p-1.5 sm:p-2 lg:p-3 border rounded-lg ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}>
-                      <div className="flex justify-between items-start gap-1.5 sm:gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className={`font-semibold mb-0.5 sm:mb-1 text-lg  ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
-                          <div className={`text-sm mb-0.5 sm:mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} truncate`}>
-                            {leave.from && leave.to ? (
-                              <>From: {leave.from} To: {leave.to}</>
-                            ) : (
-                              <>Date: {leave.date}</>
-                            )}
+                      <div className="flex justify-between items-stretch gap-1.5 sm:gap-2">
+                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                          <div>
+                            <div className={`font-semibold mb-0.5 sm:mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              {leave.title}
+                            </div>
+                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} truncate`}>
+                              {leave.from && leave.to ? (
+                                <>From: {leave.from} To: {leave.to}</>
+                              ) : (
+                                <>Date: {leave.date}</>
+                              )}
+                            </div>
                           </div>
-                          <div className="mb-0.5 sm:mb-1 flex items-center justify-end">
-                            <button
-                              onClick={() => setViewReason(leave.reason)}
-                              className={`text-lg px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                            >
-                              View Reason
-                            </button>
+                          <div className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            Applied: {leave.appliedOn}
                           </div>
-                          <div className={`text-lg ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Applied: {leave.appliedOn}</div>
                         </div>
-                        <div className="ml-1 sm:ml-2 flex-shrink-0">
-                          {renderStatus(leave.status)}
+                        <div className="flex-shrink-0 flex flex-col justify-between items-end gap-2">
+                          <div className="flex-shrink-0">
+                            {renderStatus(leave.status)}
+                          </div>
+                          <button
+                            onClick={() => setViewReason(leave.reason)}
+                            className={`text-xs px-2 py-1 rounded-md transition-all duration-200 ${
+                              theme === 'dark' 
+                                ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' 
+                                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'
+                            }`}
+                          >
+                            View Reason
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -447,7 +494,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
                 {/* Pagination Controls */}
                 {pagination.paginationState.totalPages > 1 && (
-                  <div className="flex flex-col items-center gap-4 text-sm text-muted-foreground mt-6 pt-6 border-t border-border">
+                  <div className="flex flex-row items-center justify-between text-sm text-muted-foreground mt-6 pt-6 border-t border-border">
                     <div className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} font-medium`}>
                       Showing {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems}
                     </div>
@@ -457,13 +504,13 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         size="sm"
                         onClick={() => pagination.goToPage(Math.max(1, pagination.page - 1))}
                         disabled={pagination.page === 1 || loading}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all shadow-md shadow-primary/20"
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 px-3 sm:h-9 sm:px-4 transition-all shadow-md shadow-primary/20 text-xs sm:text-sm"
                       >
                         Previous
                       </Button>
 
-                      <div className="flex items-center justify-center min-w-[2rem]">
-                        <span className={`text-sm font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      <div className="flex items-center justify-center min-w-[1.5rem] sm:min-w-[2rem]">
+                        <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           {pagination.page}
                         </span>
                       </div>
@@ -473,7 +520,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                         size="sm"
                         onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.page + 1))}
                         disabled={pagination.page >= pagination.paginationState.totalPages || loading}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all shadow-md shadow-primary/20"
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-8 px-3 sm:h-9 sm:px-4 transition-all shadow-md shadow-primary/20 text-xs sm:text-sm"
                       >
                         Next
                       </Button>

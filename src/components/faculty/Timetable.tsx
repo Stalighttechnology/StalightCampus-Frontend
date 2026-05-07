@@ -7,6 +7,7 @@ import { FaDownload } from 'react-icons/fa';
 import { getTimetable, TimetableEntry } from '../../utils/faculty_api';
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
+import { CalendarCheck2 } from "lucide-react";
 
 interface TimetableProps {
   role: string;
@@ -137,7 +138,7 @@ const Timetable = ({ role }: TimetableProps) => {
   return (
     <Card className={`shadow-xl ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
       <CardHeader className="flex flex-row items-center justify-between bg-card px-4 py-3 rounded-t-md">
-        <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Timetable - {role}</CardTitle>
+        <CardTitle>Timetable - {role}</CardTitle>
         <div className="flex space-x-2">
           <Button 
             onClick={exportPDF} 
@@ -154,14 +155,26 @@ const Timetable = ({ role }: TimetableProps) => {
           <SkeletonTable rows={8} cols={7} />
         ) : error ? (
           <div className={`text-center ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>{error}</div>
+        ) : timetableData.every(day => day.slots.length === 0) ? (
+          <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+              <CalendarCheck2 className="w-10 h-10" />
+            </div>
+            <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              No Scheduled Classes
+            </h3>
+            <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Your weekly timetable is currently empty. Once classes are scheduled, they will automatically appear here.
+            </p>
+          </div>
         ) : (
         <div className="overflow-x-auto">
           <table className={`min-w-full table-auto border-collapse text-sm ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>
             <thead>
               <tr className={theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-100 text-gray-900'}>
-                <th className={`border px-4 py-2 text-left ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Time/Day</th>
+                <th className={`border font-semibold px-4 py-2 text-left ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Time/Day</th>
                 {filteredData.map((d) => (
-                  <th key={d.day} className={`border px-4 py-2 ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>{d.day}</th>
+                  <th key={d.day} className={`border font-semibold px-4 py-2 ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>{d.day}</th>
                 ))}
               </tr>
             </thead>
@@ -176,12 +189,12 @@ const Timetable = ({ role }: TimetableProps) => {
                       <td key={day.day + time} className={`border px-4 py-2 text-center ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>
                         {slot ? (
                           <>
-                            <strong className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{slot.subject}</strong><br />
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{slot.faculty}</span><br />
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Room {slot.room}</span>
+                            <strong className={theme === 'dark' ? 'font-semibold' : 'font-semibold text-gray-900'}>{slot.subject}</strong><br />
+                            <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{slot.faculty}</span><br />
+                            <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Room {slot.room}</span>
                           </>
                         ) : (
-                          <span className={theme === 'dark' ? 'text-muted-foreground italic' : 'text-gray-500 italic'}>Break</span>
+                          <span className={ theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Break</span>
                         )}
                       </td>
                     );

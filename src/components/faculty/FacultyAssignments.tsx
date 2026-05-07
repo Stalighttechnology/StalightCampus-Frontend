@@ -369,84 +369,80 @@ const FacultyAssignments = () => {
   };
 
   return (
-    <div className={`p-6 space-y-6 min-h-screen ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Assignment Management</h1>
-          <p className={`${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            Create, track, and grade student assignments
-          </p>
-        </div>
-        <Button 
-          onClick={() => {
-            loadSubjects();
-            setShowCreateModal(true);
-          }}
-          className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center gap-2"
-        >
-          <Plus size={18} />
-          Create Assignment
-        </Button>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { label: 'Total Assignments', value: stats.total, icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-          { label: 'Active Assignments', value: stats.active, icon: Clock, color: 'text-green-500', bg: 'bg-green-500/10' },
-          { label: 'Pending Grading', value: stats.pendingGrading, icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' }
-        ].map((stat, i) => (
-          <Card key={i} className={`border-none shadow-sm ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                  <h3 className="text-2xl font-bold mt-1">{stat.value}</h3>
-                </div>
-                <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
-                  <stat.icon size={24} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Main Content Area */}
-      <Card className={`border-none shadow-md ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle>All Assignments</CardTitle>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                <Input 
-                  placeholder="Search assignments..." 
-                  className="pl-10 w-full md:w-64"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-              </div>
-              <Select value={filterSubject} onValueChange={setFilterSubject}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter size={16} className="mr-2" />
-                  <SelectValue placeholder="All Subjects" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Subjects</SelectItem>
-                  {Array.from(new Set(assignments.map(a => a.subject))).map(subj => (
-                    <SelectItem key={subj} value={subj}>{subj}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+    <div>
+      <Card>
+        <CardHeader className="border-b border-border/50 pb-6 pt-8 px-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <CardTitle>Assignment Management</CardTitle>
+              <CardDescription className="text-base">Create, track, and grade student assignments with a unified view.</CardDescription>
             </div>
+            <Button 
+              onClick={() => {
+                loadSubjects();
+                setShowCreateModal(true);
+              }}
+              className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center gap-2 h-11 px-6 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
+            >
+              <Plus size={20} />
+              <span className="font-semibold">Create Assignment</span>
+            </Button>
           </div>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="p-8 space-y-10">
+          {/* Stats Overview - Now more integrated */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { label: 'Total Assignments', value: stats.total, icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+              { label: 'Active Assignments', value: stats.active, icon: Clock, color: 'text-green-500', bg: 'bg-green-500/10' },
+              { label: 'Pending Grading', value: stats.pendingGrading, icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' }
+            ].map((stat, i) => (
+              <div key={i} className={`p-6 rounded-xl flex items-center justify-between transition-all hover:shadow-md ${theme === 'dark' ? 'bg-muted/10 border border-border/40' : 'bg-gray-50 border border-gray-200'}`}>
+                <div>
+                  <p className="text-sm font-semibold tracking-wider text-muted-foreground mb-1">{stat.label}</p>
+                  <h3 className="text-3xl font-semibold">{stat.value}</h3>
+                </div>
+                <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color}`}>
+                  <stat.icon size={28} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* List Section Container */}
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 className="text-xl font-semibold">All Assignments</h2>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                  <Input 
+                    placeholder="Search assignments..." 
+                    className="pl-10 w-full md:w-64 rounded-xl h-10"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </div>
+                <Select value={filterSubject} onValueChange={setFilterSubject}>
+                  <SelectTrigger className="w-[180px] rounded-xl h-10">
+                    <Filter size={16} className="mr-2" />
+                    <SelectValue placeholder="All Subjects" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Subjects</SelectItem>
+                    {Array.from(new Set(assignments.map(a => a.subject))).map(subj => (
+                      <SelectItem key={subj} value={subj}>{subj}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
@@ -516,7 +512,7 @@ const FacultyAssignments = () => {
                           </div>
                         </td>
                         <td className="py-4">
-                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-semibold uppercase ${
                             isOverdue 
                               ? 'bg-red-500/10 text-red-500' 
                               : 'bg-green-500/10 text-green-500'
@@ -555,22 +551,25 @@ const FacultyAssignments = () => {
               </table>
             </div>
           ) : (
-            <div className="py-20 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4 text-muted-foreground">
-                <FileText size={32} />
+            <div className={`flex flex-col items-center justify-center py-20 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+              <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <FileText size={36} />
               </div>
-              <h3 className="text-lg font-semibold">No assignments found</h3>
-              <p className="text-muted-foreground mt-1">Start by creating your first assignment for your students.</p>
+              <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                No Assignments Found
+              </h3>
+              <p className={`text-base max-w-[320px] mx-auto leading-relaxed mb-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Start by creating your first assignment. You can track submissions and grade them all in one place.
+              </p>
               <Button 
                 onClick={() => {
                   loadSubjects();
                   setShowCreateModal(true);
                 }}
-                variant="outline" 
-                className="mt-6 gap-2"
+                className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center gap-2 h-11 px-8 rounded-xl transition-all hover:scale-105 active:scale-95"
               >
-                <Plus size={18} />
-                Create New Assignment
+                <Plus size={20} />
+                <span className="font-semibold">Create New Assignment</span>
               </Button>
             </div>
           )}
@@ -613,8 +612,10 @@ const FacultyAssignments = () => {
               </div>
             </div>
           )}
+          </div>
         </CardContent>
       </Card>
+
 
       {/* Create Assignment Modal */}
       <AnimatePresence>
@@ -631,11 +632,11 @@ const FacultyAssignments = () => {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}
+              className={`relative w-[90%] max-w-xl max-h-[80vh] overflow-y-auto rounded-xl shadow-xl ${theme === 'dark' ? 'bg-background border border-border custom-scrollbar' : 'bg-white custom-scrollbar'}`}
             >
               <div className="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-inherit z-10">
                 <div>
-                  <h2 className="text-xl font-bold">{editingAssignment ? 'Edit Assignment' : 'New Assignment'}</h2>
+                  <h2 className="text-xl font-semibold">{editingAssignment ? 'Edit Assignment' : 'New Assignment'}</h2>
                   <p className="text-sm text-muted-foreground">
                     {editingAssignment ? 'Update the assignment details' : 'Fill in the details to publish a new assignment'}
                   </p>
@@ -662,7 +663,7 @@ const FacultyAssignments = () => {
                     <Textarea 
                       required
                       placeholder="Enter assignment details, rules, and guidelines..." 
-                      className="min-h-[100px]"
+                      className="min-h-[80px] max-h-[200px] resize-none overflow-y-auto custom-scrollbar"
                       value={formData.description}
                       onChange={e => setFormData({...formData, description: e.target.value})}
                     />
@@ -848,7 +849,7 @@ const FacultyAssignments = () => {
             >
               <div className="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-inherit z-10">
                 <div>
-                  <h2 className="text-xl font-bold">{selectedAssignment?.title}</h2>
+                  <h2 className="text-xl font-semibold">{selectedAssignment?.title}</h2>
                   <p className="text-sm text-muted-foreground">
                     {selectedAssignment?.subject} • {selectedAssignment?.branch_name} • Sem {selectedAssignment?.semester_number} {selectedAssignment?.section_name ? `• ${selectedAssignment?.section_name}` : ''}
                   </p>
@@ -933,7 +934,7 @@ const FacultyAssignments = () => {
                             <td className="px-6 py-4 text-sm font-mono">{student.usn}</td>
                             <td className="px-6 py-4 text-sm font-medium">{student.name}</td>
                             <td className="px-6 py-4">
-                              <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500">
+                              <span className="text-[10px] font-semibold uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500">
                                 Pending
                               </span>
                             </td>

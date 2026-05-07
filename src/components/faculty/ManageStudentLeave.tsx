@@ -3,7 +3,7 @@ import { manageStudentLeave, getProctorStudentLeaves, ProctorStudentLeave } from
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, CalendarCheck2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import {
@@ -168,8 +168,18 @@ const ManageStudentLeave = () => {
                 ))}
               </div>
             ) : leaves.length === 0 ? (
-              <div className={`text-center py-6 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                {search ? `No leave requests found for "${search}".` : "No active leave requests at this time."}
+              <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <CalendarCheck2 className="w-10 h-10" />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {search ? 'No Matches Found' : 'No Leave Requests'}
+                </h3>
+                <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  {search 
+                    ? `We couldn't find any leave requests matching "${search}". Please try a different search term.` 
+                    : "There are no active leave requests currently pending your review."}
+                </p>
               </div>
             ) : (
               leaves.map((leave) => (
@@ -332,8 +342,20 @@ const ManageStudentLeave = () => {
                 ))}
                 {!isLoading && leaves.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground italic">
-                      {search ? `No leave requests found for "${search}".` : "No active leave requests at this time."}
+                    <td colSpan={5} className="px-4 py-16">
+                      <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                          <CalendarCheck2 className="w-10 h-10" />
+                        </div>
+                        <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {search ? 'No Matches Found' : 'No Leave Requests'}
+                        </h3>
+                        <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          {search 
+                            ? `We couldn't find any leave requests matching "${search}". Please try a different search term.` 
+                            : "There are no active leave requests currently pending your review."}
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 )}
