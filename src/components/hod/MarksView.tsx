@@ -17,6 +17,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } fro
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 import { manageProfile, getStudentPerformance, getSemesters, manageSections, manageSubjects, getMarks, getMarksBootstrap } from "../../utils/hod_api";
+import { paginationToUI } from '../../utils/paginationToUI';
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonChart, SkeletonTable } from "../ui/skeleton";
 
@@ -205,6 +206,7 @@ const MarksView = () => {
         const studentsData = Array.from(studentsMap.values());
 
         // Update pagination state
+        const uiPag = paginationToUI(data, data.marks || [], state.pageSize);
         updateState({
           semesters: semestersData,
           sections: sectionsData,
@@ -213,8 +215,8 @@ const MarksView = () => {
           students: studentsData,
           loading: false,
           error: null,
-          totalStudents: data.pagination?.total_students || 0,
-          totalPages: data.pagination?.total_pages || Math.ceil((data.pagination?.total_students || 0) / state.pageSize) || 1,
+          totalStudents: uiPag.total_items || 0,
+          totalPages: uiPag.total_pages || Math.ceil(((uiPag.total_items || 0) / state.pageSize)) || 1,
         });
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch data";

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { FileTextIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 import { ProctorStudent, getProctorStudentsForStats } from '../../utils/faculty_api';
+import { normalizePaginatedResponse } from '../../utils/normalizePagination';
+import { paginationToUI } from '../../utils/paginationToUI';
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useTheme } from "@/context/ThemeContext";
@@ -27,11 +29,12 @@ const GenerateStatistics: React.FC = () => {
       try {
         const res = await getProctorStudentsForStats({ page, page_size: pageSize });
         if (res.success && res.data) {
-          if (mounted) setProctorStudents(res.data);
-          if (res.pagination?.total_pages) {
-            if (mounted) setTotalPages(res.pagination.total_pages);
-            if (mounted) setTotalCount(res.pagination.count || 0);
-          }
+          const norm = normalizePaginatedResponse(res, 'data');
+          const items = norm.items && norm.items.length ? norm.items : res.data;
+          if (mounted) setProctorStudents(items as ProctorStudent[]);
+          const ui = paginationToUI(res, items || [], pageSize);
+          if (mounted) setTotalPages(ui.total_pages || Math.max(1, Math.ceil((ui.total_items || 0) / pageSize)));
+          if (mounted) setTotalCount(ui.total_items || 0);
         }
       } catch (e) {
         if (mounted) setProctorStudents([]);

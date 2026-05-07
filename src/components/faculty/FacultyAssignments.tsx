@@ -48,6 +48,7 @@ import {
   gradeSubmission,
   AssignedSubject
 } from "../../utils/faculty_api";
+import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 
 const FacultyAssignments = () => {
   const { theme } = useTheme();
@@ -105,13 +106,18 @@ const FacultyAssignments = () => {
         page_size: 10
       });
       if (res.success) {
-        setAssignments(res.data || []);
+        const normalized = normalizePaginatedResponse(res, 'data');
+        let items = res.data || [];
+        if (normalized && normalized.items && normalized.items.length) items = normalized.items;
+        setAssignments(items);
+        const totalItems = (normalized && normalized.meta && normalized.meta.totalItems) ? normalized.meta.totalItems : (res.count || 0);
+        const totalPages = (normalized && normalized.meta && normalized.meta.totalPages) ? normalized.meta.totalPages : (res.total_pages || Math.max(1, Math.ceil((totalItems || 0) / 10)));
         setPagination({
-          count: res.count || 0,
-          total_pages: res.total_pages || 1,
-          current_page: res.current_page || 1,
-          next: res.next || null,
-          previous: res.previous || null
+          count: totalItems,
+          total_pages: totalPages,
+          current_page: (normalized && normalized.meta && normalized.meta.currentPage) ? normalized.meta.currentPage : (res.current_page || 1),
+          next: (normalized && normalized.meta && normalized.meta.next) ? normalized.meta.next : (res.next || null),
+          previous: (normalized && normalized.meta && normalized.meta.previous) ? normalized.meta.previous : (res.previous || null)
         });
       }
     } catch (error) {

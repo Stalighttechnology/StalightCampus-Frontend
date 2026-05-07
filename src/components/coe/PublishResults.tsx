@@ -4,6 +4,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
+import { paginationToUI } from '@/utils/paginationToUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertTriangle, Copy, ExternalLink, Search } from 'lucide-react';
 import { getFilterOptions, getSemesters, createResultUploadBatch, getStudentsForUpload, saveMarksForUpload, publishUploadBatch, unpublishUploadBatch, toggleWithholdResult } from "../../utils/coe_api";
@@ -653,7 +654,8 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               {/* page numbers (windowed) */}
               {(() => {
-                const totalPages = studentsPagination?.count ? Math.max(1, Math.ceil(studentsPagination.count / studentsPageSize)) : 1;
+                const ui = paginationToUI(studentsPagination || {}, [], studentsPageSize);
+                const totalPages = ui.count ? Math.max(1, Math.ceil(ui.count / studentsPageSize)) : ui.total_pages || 1;
                 const maxButtons = 20;
                 let start = 1, end = totalPages;
                 if (totalPages > maxButtons) {
