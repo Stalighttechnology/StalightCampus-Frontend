@@ -30,6 +30,15 @@ import {
 } from "../ui/select";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import { useTheme } from "../../context/ThemeContext";
 import { 
   getAssignedSubjectsGrouped, 
@@ -51,6 +60,8 @@ const FacultyAssignments = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [assignmentToDelete, setAssignmentToDelete] = useState<any>(null);
   
   // Create Assignment Form State
   const [formData, setFormData] = useState({
@@ -94,8 +105,14 @@ const FacultyAssignments = () => {
         page_size: 10
       });
       if (res.success) {
-        setAssignments(res.assignments);
-        setPagination(res.pagination);
+        setAssignments(res.data || []);
+        setPagination({
+          count: res.count || 0,
+          total_pages: res.total_pages || 1,
+          current_page: res.current_page || 1,
+          next: res.next || null,
+          previous: res.previous || null
+        });
       }
     } catch (error) {
       console.error("Error fetching assignment data:", error);
@@ -237,6 +254,45 @@ const FacultyAssignments = () => {
       });
     } finally {
       setLoadingSubmissions(false);
+    }
+  };
+
+  const handleDeleteAssignment = (assignment: any) => {
+    setAssignmentToDelete(assignment);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!assignmentToDelete) return;
+
+    try {
+      setSubmitting(true);
+      const res = await manageAssignments(null, 'DELETE', assignmentToDelete.id);
+      if (res.success) {
+        toast({
+          title: "Success",
+          description: "Assignment deleted successfully",
+          variant: "default"
+        });
+        fetchData(currentPage);
+      } else {
+        toast({
+          title: "Error",
+          description: res.message || "Failed to delete assignment",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting assignment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete assignment",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
+      setDeleteConfirmOpen(false);
+      setAssignmentToDelete(null);
     }
   };
 
@@ -530,7 +586,13 @@ const FacultyAssignments = () => {
                             >
                               <Edit size={16} />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                              onClick={() => handleDeleteAssignment(assignment)}
+                              disabled={submitting}
+                            >
                               <Trash2 size={16} />
                             </Button>
                              <Button 
@@ -959,6 +1021,28 @@ const FacultyAssignments = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Assignment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "<strong>{assignmentToDelete?.title}</strong>"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              disabled={submitting}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              {submitting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

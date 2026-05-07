@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { fetchWithTokenRefresh } from '../utils/authService';
+import { normalizePaginatedResponse } from '../utils/normalizePagination';
 
 // Pagination Hook
 export interface PaginationOptions {
@@ -34,28 +35,25 @@ export const usePagination = (options: PaginationOptions) => {
   const updatePagination = useCallback((data: any) => {
     if (!data) return;
     
-    // Check if pagination info is nested or flat
-    const p = data.pagination || data;
-    
-    // Only update if we find at least some pagination markers
-    if (p.total_pages !== undefined || p.totalPages !== undefined || p.count !== undefined || p.total_items !== undefined) {
-      const currentPage = p.current_page ?? p.page ?? page;
-      const pageSz = p.page_size ?? p.pageSize ?? pageSize;
-      const hasNext = p.has_next ?? p.hasNext ?? (p.total_pages ? currentPage < p.total_pages : false);
-      const hasPrev = p.has_prev ?? p.hasPrev ?? (currentPage > 1);
-      const totalPages = p.total_pages ?? p.totalPages ?? 0;
-      const totalItems = p.total_items ?? p.totalItems ?? p.total_students ?? p.total_records ?? p.total_count ?? p.count ?? p.total ?? 0;
-      
-      setPaginationState({
-        page: currentPage,
-        pageSize: pageSz,
-        hasNext,
-        hasPrev,
-        totalPages,
-        totalItems,
-      });
-      setPage(currentPage);
-    }
+    // Use shared normalizer to support AdminPagination, DRF, and legacy shapes
+    const normalized = normalizePaginatedResponse(data, 'results');
+    const meta = normalized.meta || {};
+    const currentPage = meta.currentPage ?? meta.current_page ?? page;
+    const pageSz = meta.pageSize ?? meta.page_size ?? pageSize;
+    const hasNext = meta.next !== undefined ? Boolean(meta.next) : Boolean(meta.hasNext ?? meta.has_next ?? false);
+    const hasPrev = meta.previous !== undefined ? Boolean(meta.previous) : Boolean(meta.hasPrev ?? meta.has_prev ?? false);
+    const totalPages = meta.totalPages ?? meta.total_pages ?? 0;
+    const totalItems = meta.totalItems ?? meta.total_items ?? 0;
+
+    setPaginationState({
+      page: currentPage,
+      pageSize: pageSz,
+      hasNext,
+      hasPrev,
+      totalPages,
+      totalItems,
+    });
+    setPage(currentPage);
   }, [page, pageSize]);
 
   const goToPage = useCallback((newPage: number) => {

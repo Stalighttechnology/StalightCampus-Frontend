@@ -21,6 +21,7 @@ import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { useTheme } from "../../context/ThemeContext";
 import { getStudentAssignments, submitAssignment } from "../../utils/student_api";
+import { normalizePaginatedResponse } from "../../utils/normalizePagination";
 
 const StudentAssignments = () => {
   const { theme } = useTheme();
@@ -56,8 +57,17 @@ const StudentAssignments = () => {
         page_size: 10
       });
       if (res.success) {
-        setAssignments(res.assignments);
-        setPagination(res.pagination);
+        // normalize different pagination shapes to a canonical shape
+        const normalized = normalizePaginatedResponse(res, 'assignments');
+        setAssignments((normalized.items && normalized.items.length) ? normalized.items : (res.assignments || []));
+        setPagination({
+          current_page: normalized.meta.currentPage ?? res.pagination?.current_page ?? page,
+          page_size: res.page_size || res.pagination?.page_size || 10,
+          total_items: normalized.meta.totalItems ?? res.pagination?.total_items ?? 0,
+          total_pages: normalized.meta.totalPages ?? res.pagination?.total_pages ?? 1,
+          has_next: Boolean(normalized.meta.next ?? res.pagination?.has_next ?? res.pagination?.next),
+          has_previous: Boolean(normalized.meta.previous ?? res.pagination?.has_prev ?? res.pagination?.previous),
+        });
         if (page !== currentPage) setCurrentPage(page);
       }
     } catch (error) {

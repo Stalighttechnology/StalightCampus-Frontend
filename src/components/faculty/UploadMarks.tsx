@@ -38,6 +38,7 @@ import {
 } from "../../utils/faculty_api";
 import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
+import { normalizePaginatedResponse } from "../../utils/normalizePagination";
 import { useToast } from "@/hooks/use-toast";
 import { SkeletonTable } from "@/components/ui/skeleton";
 
@@ -246,9 +247,18 @@ const UploadMarks = () => {
           newStudents.forEach(st => { m[st.id] = 'view'; });
           return m;
         });
-        if (response.pagination) {
-          setPagination(response.pagination as any);
-          setCurrentPage(response.pagination.page);
+        // Normalize any pagination shape (AdminPagination, DRF, legacy)
+        const normalized = normalizePaginatedResponse(response, 'students');
+        if (normalized.meta && Object.keys(normalized.meta).length > 0) {
+          setPagination({
+            page: normalized.meta.currentPage || page || 1,
+            page_size: response.page_size || response.pageSize || studentsPerPage,
+            total: normalized.meta.totalItems || 0,
+            total_pages: normalized.meta.totalPages || Math.ceil((normalized.meta.totalItems || 0) / studentsPerPage),
+            has_next: !!normalized.meta.next,
+            has_previous: !!normalized.meta.previous,
+          } as any);
+          setCurrentPage(normalized.meta.currentPage || page || 1);
         } else {
           setPagination({ page, page_size: studentsPerPage, total: newStudents.length, total_pages: Math.ceil(newStudents.length / studentsPerPage), has_next: false, has_previous: false });
           setCurrentPage(1);
@@ -541,45 +551,13 @@ const UploadMarks = () => {
           return branchId === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
         });
 
-        // Set the QP and load its questions immediately (regardless of approval status)
+        // Set the QP summary (lightweight) and defer loading full QP detail
+        // until the user explicitly opens the Question Paper tab. This
+        // avoids eager/detail requests when the page only needs summaries
+        // (prevents duplicate `qp_id&detail=true` calls).
         if (existingQp) {
           setQpId(existingQp.id);
           setExistingQpSummary(existingQp);
-          // Auto-open the Question Paper tab after QP is loaded
-          setTabValue('questionPaper');
-          try {
-            const detailRes = await getQuestionPaperDetail(existingQp.id);
-            if (detailRes && detailRes.success && detailRes.data && Array.isArray(detailRes.data) && detailRes.data.length > 0) {
-              const full = detailRes.data[0];
-              const loadedQuestions: Question[] = [];
-              (full.questions || []).forEach((q: any) => {
-                if (q.subparts && q.subparts.length > 0) {
-                  q.subparts.forEach((sub: any) => {
-                    loadedQuestions.push({
-                      id: `${q.question_number}${sub.subpart_label}`,
-                      number: `${q.question_number}${sub.subpart_label}`,
-                      content: sub.content || '',
-                      maxMarks: String(sub.max_marks || 0),
-                      co: q.co || 'UNMAPPED',
-                      bloomsLevel: q.blooms_level || ''
-                    });
-                  });
-                } else {
-                  loadedQuestions.push({
-                    id: `${q.question_number}`,
-                    number: `${q.question_number}`,
-                    content: q.content || '',
-                    maxMarks: String(q.max_marks || 0),
-                    co: q.co || 'UNMAPPED',
-                    bloomsLevel: q.blooms_level || ''
-                  });
-                }
-              });
-              if (loadedQuestions.length > 0) setQuestions(loadedQuestions);
-            }
-          } catch (err) {
-            console.error('Failed to fetch QP detail in loadExistingQP:', err);
-          }
         } else {
           // No QP found for the selected criteria
           setQpId(null);
@@ -1494,9 +1472,18 @@ const UploadMarks = () => {
             console.log('Loaded students:', newStudents);
             setStudents(newStudents);
             // update pagination state from backend if present
-            if (response.pagination) {
-              setPagination(response.pagination as any);
-              setCurrentPage(response.pagination.page);
+            // Normalize any pagination shape (AdminPagination, DRF, legacy)
+            const normalized = normalizePaginatedResponse(response, 'students');
+            if (normalized.meta && Object.keys(normalized.meta).length > 0) {
+              setPagination({
+                page: normalized.meta.currentPage || 1,
+                page_size: response.page_size || response.pageSize || studentsPerPage,
+                total: normalized.meta.totalItems || 0,
+                total_pages: normalized.meta.totalPages || Math.ceil((normalized.meta.totalItems || 0) / studentsPerPage),
+                has_next: !!normalized.meta.next,
+                has_previous: !!normalized.meta.previous,
+              } as any);
+              setCurrentPage(normalized.meta.currentPage || 1);
             } else {
               setPagination({ page: 1, page_size: studentsPerPage, total: newStudents.length, total_pages: Math.ceil(newStudents.length / studentsPerPage), has_next: false, has_previous: false });
               setCurrentPage(1);
