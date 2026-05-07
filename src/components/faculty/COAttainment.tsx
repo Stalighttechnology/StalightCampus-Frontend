@@ -43,7 +43,7 @@ const COAttainment = () => {
   // per-student marks removed: UI shows aggregated CO data from server
   const [errorMessage, setErrorMessage] = useState("");
   const { theme } = useTheme();
-  
+
   // CO Attainment calculation states
   const [coAttainment, setCoAttainment] = useState<Record<string, {
     co: string;
@@ -57,9 +57,9 @@ const COAttainment = () => {
     method2Percentage: number; // Method 2: Percentage of students above target
     method2Level: number; // Method 2 attainment level
   }>>({});
-  
+
   const [overallAttainment, setOverallAttainment] = useState<number>(0);
-  
+
   // Indirect attainment states
   const [indirectAttainment, setIndirectAttainment] = useState<Record<string, number>>({});
   const [finalAttainment, setFinalAttainment] = useState<Record<string, {
@@ -68,12 +68,12 @@ const COAttainment = () => {
     final: number;
     level: number;
   }>>({});
-  
 
-  
+
+
   // Target threshold (default 60%, but configurable)
   const [targetThreshold, setTargetThreshold] = useState<number>(60);
-  
+
   // Update dropdown data when assignments change
   useEffect(() => {
     const subjects = Array.from(
@@ -261,20 +261,20 @@ const COAttainment = () => {
     link.click();
     document.body.removeChild(link);
   };
-  
+
   // PDF Export Function
   const handleExportPDF = () => {
     const doc = new jsPDF('p', 'mm', 'a4') as jsPDF & { lastAutoTable?: { finalY: number } };
-    
+
     // Add title
     doc.setFontSize(18);
     doc.text("CO Attainment Report", 14, 20);
-    
+
     // Add selected filters information (subject only)
     doc.setFontSize(12);
     doc.text(`Subject: ${selected.subject}`, 14, 30);
     doc.text(`Target Threshold: ${targetThreshold}%`, 14, 37);
-    
+
     // Add CO Attainment Results table
     autoTable(doc, {
       startY: 70,
@@ -296,26 +296,26 @@ const COAttainment = () => {
       styles: { fontSize: 8 },
       headStyles: { fillColor: [162, 89, 255] }, // Purple color to match theme
     });
-    
+
     // Add Overall Course Attainment with highlighting
     let finalY = doc.lastAutoTable?.finalY || 70;
     doc.setFontSize(16);
     doc.setTextColor(162, 89, 255); // Purple color
     doc.text("Overall Course Attainment", 14, finalY + 15);
-    
+
     // Highlight the attainment level with a colored box
     const attainmentLevel = overallAttainment >= 2.7 ? 3 : overallAttainment >= 2.0 ? 2 : 1;
     const attainmentText = `${overallAttainment.toFixed(2)} (Level ${attainmentLevel})`;
-    
+
     doc.setFillColor(162, 89, 255); // Purple background
     doc.setTextColor(255, 255, 255); // White text
     doc.setFontSize(14);
     doc.rect(14, finalY + 20, 60, 10, 'F'); // Filled rectangle
     doc.text(attainmentText, 44, finalY + 27, { align: 'center' });
-    
+
     // Reset colors
     doc.setTextColor(0, 0, 0);
-    
+
     // Save the PDF (student-level marks omitted — aggregated CO results only)
     doc.save(`CO_Attainment_Report_${selected.branch}_${selected.subject}_${selected.testType}.pdf`);
   };
@@ -326,15 +326,9 @@ const COAttainment = () => {
   };
 
   return (
-    <div className={`w-full max-w-full min-h-screen md:min-h-screen h-auto md:h-auto overflow-visible ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full shadow-lg border-none`}>
-        <CardHeader className="p-6 border-b border-border/50">
-          <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">CO Attainment Calculation</CardTitle>
-          <p className="text-gray-600 text-sm">
-            Calculate and analyze Course Outcome attainment based on assessment marks
-          </p>
-        </CardHeader>
-        <CardContent className="p-6 space-y-8">
+    <div>
+      <Card>
+        <CardContent className="pt-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50">
             <div className="space-y-2">
               <label className="text-sm font-medium">Subject</label>
@@ -411,7 +405,7 @@ const COAttainment = () => {
                       <div className="text-5xl font-semibold text-primary tracking-tight">
                         {overallAttainment.toFixed(2)}
                       </div>
-                      <div className={`mt-3 inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold ${overallAttainment >= 2.7 ? 'bg-green-500/10 text-green-500' : overallAttainment >= 2.0 ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'}`}>
+                      <div className={`mt-3 inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${overallAttainment >= 2.7 ? 'bg-green-500/10 text-green-500' : overallAttainment >= 2.0 ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'}`}>
                         Level {overallAttainment >= 2.7 ? 3 : overallAttainment >= 2.0 ? 2 : 1}
                       </div>
                     </div>
@@ -421,15 +415,15 @@ const COAttainment = () => {
                         <h4 className="text-sm font-medium mb-3">Calculation Logic</h4>
                         <ul className="space-y-3 text-sm">
                           <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">M1</span>
+                            <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">M1</span>
                             <span className="text-foreground/80">Average marks per CO</span>
                           </li>
                           <li className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">M2</span>
+                            <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs">M2</span>
                             <span className="text-foreground/80">% of students &ge; {targetThreshold}% target</span>
                           </li>
                           <li className="flex items-center gap-3 pt-2 border-t border-border/50">
-                            <span className="w-6 h-6 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xs">F</span>
+                            <span className="w-6 h-6 rounded-lg bg-primary text-white flex items-center justify-center font-semibold text-xs">F</span>
                             <span className="font-medium text-foreground">(0.8 &times; Direct) + (0.2 &times; Indirect)</span>
                           </li>
                         </ul>
@@ -438,7 +432,7 @@ const COAttainment = () => {
 
                     <Button
                       onClick={handleCalculateFinalAttainment}
-                      className="w-full h-12 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 font-bold tracking-wide"
+                      className="w-full h-12 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 font-semibold tracking-wide"
                     >
                       Recalculate Final Attainment
                     </Button>
@@ -463,38 +457,38 @@ const COAttainment = () => {
                             <TableHead className="font-medium">M1 (Avg)</TableHead>
                             <TableHead className="font-medium">M2 (Students)</TableHead>
                             <TableHead className="w-24 font-medium text-center">Indirect</TableHead>
-                            <TableHead className="text-right font-medium pr-6">Final Level</TableHead>
+                            <TableHead className="text-right font-medium pr-6 whitespace-nowrap">Final Level</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {Object.values(coAttainment).map((co) => (
                             <TableRow key={co.co} className="hover:bg-muted/30 transition-colors">
-                              <TableCell className="text-center font-bold text-primary">{co.co}</TableCell>
+                              <TableCell className="text-center font-semibold text-primary">{co.co}</TableCell>
                               <TableCell className="font-medium">{co.maxMarks}</TableCell>
                               <TableCell className="text-muted-foreground">{co.targetMarks.toFixed(1)}</TableCell>
                               <TableCell className="font-semibold">{co.avgMarks.toFixed(2)}</TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-1">
                                   <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-                                    <div 
+                                    <div
                                       className={`h-full rounded-full ${co.totalStudents > 0 && (co.studentsAboveTarget / co.totalStudents) >= 0.6 ? 'bg-green-500' : 'bg-amber-500'}`}
                                       style={{ width: `${co.totalStudents > 0 ? (co.studentsAboveTarget / co.totalStudents) * 100 : 0}%` }}
                                     />
                                   </div>
-                                  <span className="text-[10px] font-bold text-muted-foreground">
+                                  <span className="text-[10px] font-semibold text-muted-foreground">
                                     {co.totalStudents > 0 ? ((co.studentsAboveTarget / co.totalStudents) * 100).toFixed(0) : 0}%
                                   </span>
                                 </div>
                               </TableCell>
                               <TableCell>
                                 <div className="flex flex-col">
-                                  <span className="text-xs font-bold">L{co.attainmentLevel}</span>
+                                  <span className="text-xs font-semibold">L{co.attainmentLevel}</span>
                                   <span className="text-[10px] text-muted-foreground">{co.percentage.toFixed(0)}%</span>
                                 </div>
                               </TableCell>
                               <TableCell>
                                 <div className="flex flex-col">
-                                  <span className="text-xs font-bold">L{co.method2Level}</span>
+                                  <span className="text-xs font-semibold">L{co.method2Level}</span>
                                   <span className="text-[10px] text-muted-foreground">{co.method2Percentage.toFixed(0)}%</span>
                                 </div>
                               </TableCell>
@@ -506,18 +500,17 @@ const COAttainment = () => {
                                   step="0.1"
                                   value={indirectAttainment[co.co] || 0}
                                   onChange={(e) => handleIndirectAttainmentChange(co.co, e.target.value)}
-                                  className="w-16 h-8 text-center mx-auto text-xs font-bold bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
+                                  className="w-16 h-8 text-center mx-auto text-xs font-semibold bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
                                 />
                               </TableCell>
                               <TableCell className="text-right pr-6">
                                 <div className="flex flex-col items-end">
-                                  <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-tight ${
-                                    finalAttainment[co.co]?.level === 3 
-                                      ? 'bg-green-500/10 text-green-600' 
-                                      : finalAttainment[co.co]?.level === 2 
-                                        ? 'bg-amber-500/10 text-amber-600' 
-                                        : 'bg-red-500/10 text-red-600'
-                                  }`}>
+                                  <span className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-tight ${finalAttainment[co.co]?.level === 3
+                                    ? 'bg-green-500/10 text-green-600'
+                                    : finalAttainment[co.co]?.level === 2
+                                      ? 'bg-amber-500/10 text-amber-600'
+                                      : 'bg-red-500/10 text-red-600'
+                                    }`}>
                                     Level {finalAttainment[co.co]?.level ?? "N/A"}
                                   </span>
                                   <span className="text-[10px] font-medium text-muted-foreground mt-1">

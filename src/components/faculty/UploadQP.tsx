@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Layers } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -284,16 +284,26 @@ const UploadQP = () => {
   };
 
   const findExistingQP = async (): Promise<QuestionPaper | null> => {
-    const res = await getQuestionPapers({
-      branch_id: selected.branch_id?.toString(),
-      semester_id: selected.semester_id?.toString(),
-      section_id: selected.section_id?.toString(),
-      subject_id: selected.subject_id?.toString(),
-      test_type: selected.testType,
-      detail: false,
-    });
-    if (res?.success && Array.isArray(res.data)) {
-      return res.data.find((q: QuestionPaper) => q.subject === selected.subject_id && q.test_type === selected.testType) || null;
+    try {
+      const res = await getQuestionPapers({
+        branch_id: selected.branch_id?.toString(),
+        semester_id: selected.semester_id?.toString(),
+        section_id: selected.section_id?.toString(),
+        subject_id: selected.subject_id?.toString(),
+        test_type: selected.testType,
+        detail: false,
+      });
+      if (res?.success && Array.isArray(res.data)) {
+        // Find exact match on Subject and Test Type for this section/semester
+        return res.data.find((q: QuestionPaper) => 
+          q.subject === selected.subject_id && 
+          q.test_type === selected.testType &&
+          q.semester === selected.semester_id &&
+          q.section === selected.section_id
+        ) || null;
+      }
+    } catch (err) {
+      console.error("Error finding existing QP:", err);
     }
     return null;
   };
@@ -337,14 +347,27 @@ const UploadQP = () => {
     const payload = buildPayload(ids.branch, ids.semester, ids.section);
 
     try {
-      const existing = await findExistingQP();
-      const res = await saveOrUpdateQP(payload, existing?.id);
+      // Prioritize local qpId if we already loaded one, otherwise double check with server
+      let existingId = qpId;
+      if (!existingId) {
+        const existing = await findExistingQP();
+        existingId = existing?.id || null;
+      }
+
+      const res = await saveOrUpdateQP(payload, existingId || undefined);
       
       if (res?.success) {
+        // Update local ID and metadata after save
+        if (res.data?.id) setQpId(res.data.id);
+        if (res.data?.status) {
+          setCurrentQPMeta({ status: res.data.status, last_action: res.data.last_action });
+        }
+        
         setTabValue('questionPaper');
         MySwal.fire('Success!', 'Question format saved successfully!', 'success');
       } else {
-        MySwal.fire('Error', 'Failed to save the format. Please try again.', 'error');
+        const errorMsg = res?.message || 'Failed to save the format. Please try again.';
+        MySwal.fire('Error', errorMsg, 'error');
       }
     } catch (err) {
       console.error(err);
@@ -536,7 +559,15 @@ const UploadQP = () => {
                     <SkeletonList items={3} />
                   </div>
                 ) : (!selected.branch_id || !selected.subject_id || !selected.testType) ? (
-                  <div className="p-6 text-center text-sm text-muted-foreground">Select Branch, Subject and Test Type to load or create a question paper.</div>
+                  <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <Layers className="w-12 h-12 opacity-80" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
+                    <p className="max-w-xs text-base leading-relaxed">
+                      Please select Branch, Subject and Test Type to load or create a question paper.
+                    </p>
+                  </div>
                 ) : (
                   <>
                     {questions.map(q => (
@@ -576,7 +607,18 @@ const UploadQP = () => {
               </div>
             </TabsContent>
             <TabsContent value="questionPaper">
-              <div className="mb-4 space-y-4">
+              {!selected.branch_id || !selected.subject_id || !selected.testType ? (
+                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <Layers className="w-12 h-12 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
+                  <p className="max-w-xs text-base leading-relaxed">
+                    Please select Branch, Subject and Test Type to preview the question paper.
+                  </p>
+                </div>
+              ) : (
+                <div className="mb-4 space-y-4">
                 <div className="flex justify-between items-start gap-4">
                   <h3 className="font-semibold text-lg">Question Paper Preview</h3>
                   <div className="flex gap-2 flex-shrink-0">
@@ -676,7 +718,8 @@ const UploadQP = () => {
                       </div>
                     </div>
                   </div>
-              </div>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

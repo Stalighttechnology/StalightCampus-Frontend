@@ -15,6 +15,7 @@ const GenerateStatistics: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   // Initial fetch and subsequent refetches are handled by the effect below
 
@@ -27,8 +28,9 @@ const GenerateStatistics: React.FC = () => {
         const res = await getProctorStudentsForStats({ page, page_size: pageSize });
         if (res.success && res.data) {
           if (mounted) setProctorStudents(res.data);
-          if (res.pagination) {
-            if (mounted) setTotalPages(res.pagination.total_pages || 1);
+          if (res.pagination?.total_pages) {
+            if (mounted) setTotalPages(res.pagination.total_pages);
+            if (mounted) setTotalCount(res.pagination.count || 0);
           }
         }
       } catch (e) {
@@ -263,7 +265,10 @@ const GenerateStatistics: React.FC = () => {
           </div>
 
           {/* Pagination controls */}
-          <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-center justify-end gap-2 sm:gap-4">
+          <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+              Showing {Math.min((page - 1) * pageSize + 1, totalCount)} to {Math.min(page * pageSize, totalCount)} of {totalCount}
+            </div>
             <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 size="sm"
@@ -275,58 +280,11 @@ const GenerateStatistics: React.FC = () => {
                 Prev
               </Button>
 
-              {/* Dynamic page numbers */}
-              <div className="flex items-center gap-0.5 sm:gap-1 flex-wrap">
-                {(() => {
-                  const pages: (number | string)[] = [];
-                  const maxPagesToShow = 5;
-                  const halfWindow = Math.floor(maxPagesToShow / 2);
-
-                  let startPage = Math.max(1, page - halfWindow);
-                  let endPage = Math.min(totalPages, page + halfWindow);
-
-                  // Adjust window if near boundaries
-                  if (endPage - startPage + 1 < maxPagesToShow) {
-                    if (startPage === 1) {
-                      endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-                    } else if (endPage === totalPages) {
-                      startPage = Math.max(1, endPage - maxPagesToShow + 1);
-                    }
-                  }
-
-                  // Add first page
-                  if (startPage > 1) {
-                    pages.push(1);
-                    if (startPage > 2) pages.push('...');
-                  }
-
-                  // Add page range
-                  for (let i = startPage; i <= endPage; i++) {
-                    pages.push(i);
-                  }
-
-                  // Add last page
-                  if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) pages.push('...');
-                    pages.push(totalPages);
-                  }
-
-                  return pages.map((p, idx) => (
-                    typeof p === 'number' ? (
-                      <Button
-                        key={idx}
-                        size="sm"
-                        variant={page === p ? "default" : "outline"}
-                        onClick={() => setPage(p)}
-                        className={`h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs ${page === p ? 'bg-white text-gray-900 hover:bg-gray-200 border border-gray-300' : ''}`}
-                      >
-                        {p}
-                      </Button>
-                    ) : (
-                      <span key={idx} className="px-1 text-gray-500">...</span>
-                    )
-                  ));
-                })()}
+              {/* Current page indicator */}
+              <div className="flex items-center justify-center min-w-[32px]">
+                <span className={`text-base font-semibold ${theme === 'dark' ? 'text-primary' : 'text-primary'}`}>
+                  {page}
+                </span>
               </div>
 
               <Button
