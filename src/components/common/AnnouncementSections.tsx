@@ -189,12 +189,12 @@ export const AnnouncementSections = ({
             <p className="text-muted-foreground">Loading announcements...</p>
           </div>
         ) : myAnnouncements.length === 0 ? (
-          <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-2xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-              <Megaphone className="w-10 h-10 text-primary opacity-50" />
+          <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+              <Megaphone className="w-10 h-10" />
             </div>
-            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements created</h3>
-            <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements created</h3>
+            <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               You haven't created any announcements yet. Click the button above to create your first announcement!
             </p>
           </div>
@@ -371,12 +371,12 @@ export const AnnouncementSections = ({
             <p className="text-muted-foreground">Loading announcements...</p>
           </div>
         ) : receivedAnnouncements.length === 0 ? (
-          <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-2xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-              <BellOff className="w-10 h-10 text-primary opacity-50" />
+          <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+              <BellOff className="w-10 h-10" />
             </div>
-            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements received</h3>
-            <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No announcements received</h3>
+            <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Your inbox is clear! There are currently no announcements for you to review.
             </p>
           </div>

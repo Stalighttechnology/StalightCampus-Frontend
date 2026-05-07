@@ -176,8 +176,8 @@ const ManageStudentLeave = () => {
                   {search ? 'No Matches Found' : 'No Leave Requests'}
                 </h3>
                 <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  {search 
-                    ? `We couldn't find any leave requests matching "${search}". Please try a different search term.` 
+                  {search
+                    ? `We couldn't find any leave requests matching "${search}". Please try a different search term.`
                     : "There are no active leave requests currently pending your review."}
                 </p>
               </div>
@@ -203,11 +203,10 @@ const ManageStudentLeave = () => {
                     </div>
                     <button
                       onClick={() => setViewReason(leave.reason)}
-                      className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${
-                        theme === 'dark' 
-                          ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' 
+                      className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${theme === 'dark'
+                          ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20'
                           : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       View Reason
                     </button>
@@ -217,11 +216,10 @@ const ManageStudentLeave = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <Button
                         variant="outline"
-                        className={`text-xs flex items-center justify-center gap-1 ${
-                          theme === 'dark' 
-                            ? 'text-green-400 border-green-400 hover:bg-green-900/20' 
+                        className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                            ? 'text-green-400 border-green-400 hover:bg-green-900/20'
                             : 'text-green-700 border-green-600 hover:bg-green-100'
-                        }`}
+                          }`}
                         onClick={() => handleApprove(leave.id)}
                         disabled={!!actionLoading}
                       >
@@ -229,11 +227,10 @@ const ManageStudentLeave = () => {
                       </Button>
                       <Button
                         variant="outline"
-                        className={`text-xs flex items-center justify-center gap-1 ${
-                          theme === 'dark' 
-                            ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
+                        className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                            ? 'text-red-400 border-red-400 hover:bg-red-900/20'
                             : 'text-red-700 border-red-600 hover:bg-red-100'
-                        }`}
+                          }`}
                         onClick={() => setShowRejectModal(leave.id)}
                         disabled={!!actionLoading}
                       >
@@ -285,11 +282,10 @@ const ManageStudentLeave = () => {
                     <td className="px-4 py-3">
                       <button
                         onClick={() => setViewReason(leave.reason)}
-                        className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${
-                          theme === 'dark' 
-                            ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' 
+                        className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${theme === 'dark'
+                            ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20'
                             : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         View
                       </button>
@@ -304,11 +300,10 @@ const ManageStudentLeave = () => {
                             onClick={() => handleApprove(leave.id)}
                             size="sm"
                             variant="outline"
-                            className={`px-3 py-1 text-xs flex items-center gap-1 ${
-                              theme === 'dark' 
-                                ? 'text-green-400 border-green-400 hover:bg-green-900/20' 
+                            className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                ? 'text-green-400 border-green-400 hover:bg-green-900/20'
                                 : 'text-green-700 border-green-600 hover:bg-green-100'
-                            }`}
+                              }`}
                             disabled={!!actionLoading}
                           >
                             {actionLoading === leave.id + "APPROVE" ? "..." : <CheckCircle size={16} />}
@@ -318,11 +313,10 @@ const ManageStudentLeave = () => {
                             onClick={() => setShowRejectModal(leave.id)}
                             size="sm"
                             variant="outline"
-                            className={`px-3 py-1 text-xs flex items-center gap-1 ${
-                              theme === 'dark' 
-                                ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
+                            className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                ? 'text-red-400 border-red-400 hover:bg-red-900/20'
                                 : 'text-red-700 border-red-600 hover:bg-red-100'
-                            }`}
+                              }`}
                             disabled={!!actionLoading}
                           >
                             {actionLoading === leave.id + "REJECT" ? "..." : <XCircle size={16} />}
@@ -351,8 +345,8 @@ const ManageStudentLeave = () => {
                           {search ? 'No Matches Found' : 'No Leave Requests'}
                         </h3>
                         <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          {search 
-                            ? `We couldn't find any leave requests matching "${search}". Please try a different search term.` 
+                          {search
+                            ? `We couldn't find any leave requests matching "${search}". Please try a different search term.`
                             : "There are no active leave requests currently pending your review."}
                         </p>
                       </div>
@@ -363,10 +357,10 @@ const ManageStudentLeave = () => {
             </table>
           </div>
 
-        {/* Server-side pagination */}
-        <AdminPagination pagination={pagination} onPageChange={setPage} />
-      </CardContent>
-    </Card>
+          {/* Server-side pagination */}
+          <AdminPagination pagination={pagination} onPageChange={setPage} />
+        </CardContent>
+      </Card>
 
       {/* View Reason Dialog */}
       <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
@@ -385,8 +379,8 @@ const ManageStudentLeave = () => {
           <DialogFooter>
             <Button
               variant="outline"
-              className={theme === 'dark' 
-                ? 'text-foreground bg-card border border-border hover:bg-accent' 
+              className={theme === 'dark'
+                ? 'text-foreground bg-card border border-border hover:bg-accent'
                 : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
               onClick={() => setViewReason(null)}
             >
@@ -406,9 +400,8 @@ const ManageStudentLeave = () => {
             <label className="text-sm font-medium">Rejection Reason (Optional)</label>
             <textarea
               id="rejection-reason"
-              className={`w-full p-3 border rounded-lg text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary/20 ${
-                theme === 'dark' ? 'bg-background border-border text-foreground focus:border-primary' : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
-              }`}
+              className={`w-full p-3 border rounded-lg text-sm min-h-[100px] outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark' ? 'bg-background border-border text-foreground focus:border-primary' : 'bg-white border-gray-200 text-gray-900 focus:border-primary'
+                }`}
               placeholder="Provide a reason for rejection..."
             />
           </div>

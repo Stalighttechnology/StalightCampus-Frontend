@@ -77,8 +77,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           // Transform backend data to match original mock structure
           const transformedLeaves: LeaveRequestDisplay[] = leave_requests.map((leave: any) => {
             const mappedStatus = (leave.status === 'PENDING' ? 'Pending' :
-                                 leave.status === 'APPROVED' ? 'Approved' :
-                                 leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
+              leave.status === 'APPROVED' ? 'Approved' :
+                leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
 
             return {
               id: leave.id,
@@ -101,8 +101,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   }, [pagination.page, pagination.pageSize]);
 
   // Derived filtered list for UI
-  const filteredLeaveList = filterStatus === 'All' 
-    ? leaveList 
+  const filteredLeaveList = filterStatus === 'All'
+    ? leaveList
     : leaveList.filter(leave => leave.status === filterStatus);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -161,11 +161,11 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     try {
       setSubmitting(true);
       const res = await applyLeave(requestData);
-      
+
       if (res.success) {
         // Show success alert with theme-aware styling
         const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        
+
         await MySwal.fire({
           title: 'Leave Request Submitted!',
           text: 'Your leave request has been successfully submitted.',
@@ -175,7 +175,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
           color: currentTheme === 'dark' ? '#ffffff' : '#000000',
         });
-        
+
         // Reset form
         setTitle("");
         setDateRange(undefined);
@@ -199,10 +199,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     } catch (error) {
       console.error("Failed to submit leave request:", error);
       setError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
-      
+
       // Show error alert with theme-aware styling
       const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-      
+
       await MySwal.fire({
         title: 'Error!',
         text: error instanceof Error ? error.message : 'Something went wrong. Please try again.',
@@ -273,7 +273,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
 
-            
+
             {/* Title */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
               <Label htmlFor="title" className={`text-md sm:text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
@@ -287,21 +287,21 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 required
               />
             </div>
-            
+
             {/* Branch Selection */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
               <Label className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</Label>
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger 
+                <SelectTrigger
                   className={`text-xs sm:text-sm h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}
                 >
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
                   {branches.map((b) => (
-                    <SelectItem 
-                      key={b.id} 
-                      value={b.id.toString()} 
+                    <SelectItem
+                      key={b.id}
+                      value={b.id.toString()}
                       className={`text-xs sm:text-sm ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'}`}
                     >
                       {b.name}
@@ -368,10 +368,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             </div>
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               onClick={handleSubmit}
-              className={`w-full text-md h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary' : 'text-white bg-primary hover:bg-primary/90 border-primary'}`} 
+              className={`w-full text-md h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary' : 'text-white bg-primary hover:bg-primary/90 border-primary'}`}
               disabled={submitting}
             >
               {submitting ? "Submitting..." : "Submit Request"}
@@ -402,22 +402,20 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${
-                  theme === 'dark'
+                <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark'
                     ? 'bg-card text-foreground border-border'
                     : 'bg-white text-gray-900 border-gray-200'
-                }`}>
+                  }`}>
                   <div className="space-y-1 sm:space-y-2">
                     <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter Status</p>
                     {['All', 'Pending', 'Approved', 'Rejected'].map((status) => (
                       <Button
                         key={status}
                         variant={filterStatus === status ? "default" : "ghost"}
-                        className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${
-                          filterStatus === status 
-                            ? 'bg-primary text-white hover:bg-primary/90' 
+                        className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${filterStatus === status
+                            ? 'bg-primary text-white hover:bg-primary/90'
                             : 'hover:bg-primary/10 hover:text-primary'
-                        }`}
+                          }`}
                         onClick={() => {
                           setFilterStatus(status as any);
                           setFilterOpen(false);
@@ -444,8 +442,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                   {filterStatus === 'All' ? 'No Leave Requests' : `No ${filterStatus} Requests`}
                 </h3>
                 <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  {filterStatus === 'All' 
-                    ? "Your leave history is currently empty. Any applications you submit will appear here." 
+                  {filterStatus === 'All'
+                    ? "Your leave history is currently empty. Any applications you submit will appear here."
                     : `There are currently no ${filterStatus.toLowerCase()} requests matching your filter.`}
                 </p>
               </div>
@@ -478,11 +476,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           </div>
                           <button
                             onClick={() => setViewReason(leave.reason)}
-                            className={`text-xs px-2 py-1 rounded-md transition-all duration-200 ${
-                              theme === 'dark' 
-                                ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' 
+                            className={`text-xs px-2 py-1 rounded-md transition-all duration-200 ${theme === 'dark'
+                                ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20'
                                 : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'
-                            }`}
+                              }`}
                           >
                             View Reason
                           </button>
@@ -550,8 +547,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           <DialogFooter>
             <Button
               variant="outline"
-              className={theme === 'dark' 
-                ? 'text-foreground bg-card border border-border hover:bg-accent' 
+              className={theme === 'dark'
+                ? 'text-foreground bg-card border border-border hover:bg-accent'
                 : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
               onClick={() => setViewReason(null)}
             >

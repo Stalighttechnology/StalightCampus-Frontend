@@ -8,17 +8,17 @@ import { SkeletonTable } from "@/components/ui/skeleton";
 import { useProctorStudentsQuery } from "@/hooks/useApiQueries";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
 import { AdminPagination } from "../common/AdminPagination";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 
 const ProctorStudents = () => {
   const { theme } = useTheme();
   const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
 
   const includeFields = 'id,name,usn,semester,section,contact';
-  const { 
-    data: proctorData, 
-    isLoading: proctorStudentsLoading, 
-    pagination 
+  const {
+    data: proctorData,
+    isLoading: proctorStudentsLoading,
+    pagination
   } = useProctorStudentsQuery(true, includeFields, undefined, false, debouncedSearch);
 
   const proctorStudents = proctorData?.data || [];
@@ -63,26 +63,37 @@ const ProctorStudents = () => {
               </tr>
             </thead>
             <tbody className={theme === 'dark' ? 'divide-border' : 'divide-gray-200'}>
-              {proctorStudents.map((student: any, index: number) => (
-                <tr key={index} className={theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-100'}>
-                  <td className={`px-4 py-2 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
-                  <td className={`px-4 py-2 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
-                  <td className={`px-4 py-2 text-center text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</td>
-                  <td className={`px-4 py-2 text-center text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section}</td>
-                  <td className={`px-4 py-2 text-center text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.contact || '-'}</td>
-                </tr>
-              ))}
-              {proctorStudents.length === 0 && (
+              {proctorStudents.length > 0 ? (
+                proctorStudents.map((student: any, index: number) => (
+                  <tr key={index} className={theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-100'}>
+                    <td className={`px-4 py-2 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
+                    <td className={`px-4 py-2 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
+                    <td className={`px-4 py-2 text-center text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</td>
+                    <td className={`px-4 py-2 text-center text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section}</td>
+                    <td className={`px-4 py-2 text-center text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.contact || '-'}</td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <td colSpan={5} className={`text-center py-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    No students found.
+                  <td colSpan={5} className="px-4 py-12">
+                    <div className={`flex flex-col items-center justify-center text-center`}>
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-primary/20 ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
+                        <Users className="w-8 h-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-1">No students found</h3>
+                      <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                        {debouncedSearch 
+                          ? `We couldn't find any proctor students matching "${debouncedSearch}".`
+                          : "You don't have any students assigned for proctoring yet."}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-        
+
         <AdminPagination
           pagination={pagination.paginationState}
           onPageChange={pagination.goToPage}

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/context/ThemeContext";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, UserX } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -363,9 +363,13 @@ const MakeupExam = () => {
               </div>
             ) : (
               !loading && (
-                <div className={`text-center p-6 sm:p-8 rounded-lg border border-dashed ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                    No students found. Try different search criteria.
+                <div className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center border border-dashed rounded-xl bg-muted/5 mt-4 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-primary/10 ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
+                    <UserX className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1">No students found</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                    Try different search criteria.
                   </p>
                 </div>
               )

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "../ui/card";
-import { Download, FileText, UploadCloud, X, Search } from "lucide-react";
+import { Download, FileText, UploadCloud, X, Search, BookOpen } from "lucide-react";
 import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject } from "../../utils/faculty_api";
 import { useTheme } from "../../context/ThemeContext";
 import {
@@ -271,11 +271,10 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 placeholder="Search by title, course name, course code, semester, or uploaded by..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-xs sm:text-sm transition-all outline-none focus:ring-2 focus:ring-primary/20 ${
-                  theme === 'dark' 
-                    ? 'border-border bg-background text-foreground focus:border-primary' 
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-xs sm:text-sm transition-all outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark'
+                    ? 'border-border bg-background text-foreground focus:border-primary'
                     : 'border-gray-200 bg-white text-gray-900 focus:border-primary'
-                }`}
+                  }`}
               />
             </div>
           </div>
@@ -296,13 +295,25 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                   <SkeletonList items={5} />
                 </div>
               ) : materials.length === 0 ? (
-                <div className="text-center py-10 text-xs sm:text-sm text-gray-500">No study materials found for the selected criteria.</div>
+                <div className={`flex flex-col items-center justify-center py-12 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <BookOpen className="w-10 h-10" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    No Materials Found
+                  </h3>
+                  <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    {search 
+                      ? `We couldn't find any materials matching "${search}". Please try a different search term or criteria.` 
+                      : "No study materials have been uploaded for the selected filters yet."}
+                  </p>
+                </div>
               ) : (
                 materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
               )}
             </div>
           </div>
-          
+
           <AdminPagination
             pagination={pagination.paginationState}
             onPageChange={pagination.goToPage}

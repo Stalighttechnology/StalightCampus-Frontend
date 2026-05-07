@@ -234,13 +234,12 @@ const FacultyAttendance = () => {
               <motion.button
                 onClick={() => handleToggleAttendance("present")}
                 disabled={isSubmitting}
-                className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${
-                  markingStatus === 'present'
+                className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${markingStatus === 'present'
                     ? 'bg-blue-500 text-white animate-pulse'
                     : attendanceStatus === 'present'
                       ? 'bg-green-500 text-white scale-110'
                       : theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'
-                }`}
+                  }`}
                 whileHover={{ scale: (attendanceStatus === 'present' || markingStatus === 'present') ? 1.1 : 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 animate={{
@@ -261,13 +260,12 @@ const FacultyAttendance = () => {
               <motion.button
                 onClick={() => handleToggleAttendance("absent")}
                 disabled={isSubmitting}
-                className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${
-                  markingStatus === 'absent'
+                className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${markingStatus === 'absent'
                     ? 'bg-blue-500 text-white animate-pulse'
                     : attendanceStatus === 'absent'
                       ? 'bg-red-500 text-white scale-110'
                       : theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'
-                }`}
+                  }`}
                 whileHover={{ scale: (attendanceStatus === 'absent' || markingStatus === 'absent') ? 1.1 : 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 animate={{
@@ -331,11 +329,10 @@ const FacultyAttendance = () => {
                   exit={{ opacity: 0, y: -10 }}
                   className="text-center mt-4"
                 >
-                  <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${
-                    attendanceStatus === 'present'
+                  <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${attendanceStatus === 'present'
                       ? theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800'
                       : theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800'
-                  }`}>
+                    }`}>
                     {getStatusIcon(attendanceStatus)}
                     <span className="font-medium capitalize">
                       {attendanceStatus === 'present' ? 'Present' : 'Absent'}
@@ -517,15 +514,14 @@ const FacultyAttendance = () => {
               {/* Pagination Controls */}
               {historyTotalPages > 1 && (
                 <div className="mt-4 flex items-center justify-center space-x-2">
-                  <Button 
-                    size="sm" 
-                    onClick={() => fetchHistoryPage(Math.max(1, historyPage - 1))} 
-                    disabled={historyLoading || historyPage === 1} 
-                    className={`font-medium transition-all duration-200 ${
-                      (historyLoading || historyPage === 1) 
-                        ? 'bg-primary opacity-50 text-white cursor-not-allowed' 
+                  <Button
+                    size="sm"
+                    onClick={() => fetchHistoryPage(Math.max(1, historyPage - 1))}
+                    disabled={historyLoading || historyPage === 1}
+                    className={`font-medium transition-all duration-200 ${(historyLoading || historyPage === 1)
+                        ? 'bg-primary opacity-50 text-white cursor-not-allowed'
                         : 'bg-primary text-white hover:bg-primary/90 shadow-sm'
-                    }`}
+                      }`}
                   >
                     Previous
                   </Button>
@@ -555,15 +551,14 @@ const FacultyAttendance = () => {
                       return buttons;
                     })()}
                   </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => fetchHistoryPage(Math.min(historyTotalPages, historyPage + 1))} 
-                    disabled={historyLoading || historyPage === historyTotalPages} 
-                    className={`font-medium transition-all duration-200 ${
-                      (historyLoading || historyPage === historyTotalPages) 
-                        ? 'bg-primary opacity-50 text-white cursor-not-allowed' 
+                  <Button
+                    size="sm"
+                    onClick={() => fetchHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
+                    disabled={historyLoading || historyPage === historyTotalPages}
+                    className={`font-medium transition-all duration-200 ${(historyLoading || historyPage === historyTotalPages)
+                        ? 'bg-primary opacity-50 text-white cursor-not-allowed'
                         : 'bg-primary text-white hover:bg-primary/90 shadow-sm'
-                    }`}
+                      }`}
                   >
                     Next
                   </Button>
@@ -587,4 +582,4 @@ const FacultyAttendance = () => {
   );
 };
 
-export default FacultyAttendance;
+export default FacultyAttendance;
