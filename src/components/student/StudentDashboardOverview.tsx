@@ -518,9 +518,11 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                       </h4>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-bold uppercase opacity-50">Starts In</p>
+                      <p className="text-[10px] font-bold uppercase opacity-50">
+                        {getSessionStatus(nextSession)?.status === 'later' ? 'Starts At' : 'Starts In'}
+                      </p>
                       <p className={`font-bold text-sm ${getSessionStatus(nextSession)?.color}`}>
-                        {getSessionStatus(nextSession)?.message.split('at')[0].trim()}
+                        {getSessionStatus(nextSession)?.message.replace('Starts at ', '').replace('Starting in ', '')}
                       </p>
                     </div>
                   </div>

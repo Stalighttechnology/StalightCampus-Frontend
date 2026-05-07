@@ -84,8 +84,8 @@ const AdminHODAttendance: React.FC = () => {
 
   // Records mode
   const [dateRange, setDateRange] = useState({
-    start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    end_date: new Date().toISOString().split('T')[0]
+    start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE'),
+    end_date: new Date().toLocaleDateString('sv-SE')
   });
   const [facultySummary, setFacultySummary] = useState<SummaryRow[]>([]);
   const [records, setRecords] = useState<RecordRow[]>([]);
@@ -610,7 +610,7 @@ const AdminHODAttendance: React.FC = () => {
                     }
                     
                     return days.map((date) => {
-                      const dateStr = date.toISOString().split('T')[0];
+                      const dateStr = date.toLocaleDateString('sv-SE');
                       const record = hodAttendanceDetails.find(r => r.date === dateStr);
                       const isFuture = date > today;
                       const isPresent = record?.status?.toLowerCase() === 'present';

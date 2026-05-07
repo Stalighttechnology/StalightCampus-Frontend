@@ -75,7 +75,7 @@ const Reports = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${type}_report_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `${type}_report_${new Date().toLocaleDateString('sv-SE')}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {

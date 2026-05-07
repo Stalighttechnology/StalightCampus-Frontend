@@ -116,7 +116,7 @@ const StudentProfile: React.FC = () => {
                   iso = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
                 } else {
                   const parsed = new Date(raw);
-                  if (!isNaN(parsed.getTime())) iso = parsed.toISOString().slice(0, 10);
+                  if (!isNaN(parsed.getTime())) iso = parsed.toLocaleDateString('sv-SE');
                 }
               }
               newForm['date_of_birth'] = iso ?? "";

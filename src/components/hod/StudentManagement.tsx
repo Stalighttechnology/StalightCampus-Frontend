@@ -450,7 +450,7 @@ const StudentManagement = () => {
             const phone = String(entry.phone || entry.Phone || entry.contact || entry.Contact || entry.contact_number || entry.ContactNumber || "").trim() || "";
             const blood_group = String(entry.blood_group || entry.BloodGroup || "").trim() || "";
             const mode_of_admission = String(entry.mode_of_admission || entry.ModeOfAdmission || state.manualForm.mode_of_admission || "KCET").trim();
-            const date_of_admission = entry.date_of_admission || entry.DateOfAdmission || new Date().toISOString().split("T")[0];
+            const date_of_admission = entry.date_of_admission || entry.DateOfAdmission || new Date().toLocaleDateString('sv-SE');
             const row = index + 2;
 
             if (!usn || !name) {

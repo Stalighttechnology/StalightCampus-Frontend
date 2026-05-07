@@ -117,7 +117,7 @@ const FeesManagerLeave = () => {
           end_date: dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : format(dateRange.from, 'yyyy-MM-dd'),
           reason: reason.trim(),
           status: 'Pending',
-          applied_on: new Date().toISOString().split('T')[0],
+          applied_on: new Date().toLocaleDateString('sv-SE'),
         };
         setLeaveList(prev => [newLeave, ...prev]);
 

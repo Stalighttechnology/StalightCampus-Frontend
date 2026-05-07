@@ -189,8 +189,8 @@ const useInitialDates = (initialStartDate?: string, initialEndDate?: string) => 
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      setStartDate(firstDay.toISOString().split('T')[0]);
-      setEndDate(lastDay.toISOString().split('T')[0]);
+      setStartDate(firstDay.toLocaleDateString('sv-SE'));
+      setEndDate(lastDay.toLocaleDateString('sv-SE'));
     }
   }, [initialStartDate, initialEndDate]);
 

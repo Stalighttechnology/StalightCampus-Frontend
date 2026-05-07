@@ -249,7 +249,7 @@ const Reports: React.FC = () => {
                     selected={startDate ? new Date(startDate) : undefined}
                     onSelect={(date) => {
                       if (date) {
-                        setStartDate(date.toISOString().split('T')[0]);
+                        setStartDate(date.toLocaleDateString('sv-SE'));
                         setIsStartPopoverOpen(false);
                       }
                     }}
@@ -281,7 +281,7 @@ const Reports: React.FC = () => {
                     selected={endDate ? new Date(endDate) : undefined}
                     onSelect={(date) => {
                       if (date) {
-                        setEndDate(date.toISOString().split('T')[0]);
+                        setEndDate(date.toLocaleDateString('sv-SE'));
                         setIsEndPopoverOpen(false);
                       }
                     }}
