@@ -68,8 +68,8 @@ const FacultyAttendanceView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'records'>('today');
   const [dateRange, setDateRange] = useState({
-    start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days ago
-    end_date: new Date().toISOString().split('T')[0] // today
+    start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE'), // 30 days ago
+    end_date: new Date().toLocaleDateString('sv-SE') // today
   });
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySummary | null>(null);
   const [facultyAttendanceDetails, setFacultyAttendanceDetails] = useState<FacultyAttendanceRecord[]>([]);
@@ -364,7 +364,7 @@ const FacultyAttendanceView: React.FC = () => {
 
       // If it's just a time string like "08:37:48", create a date for today
       if (/^\d{2}:\d{2}:\d{2}$/.test(dateString)) {
-        const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD
+        const today = new Date().toLocaleDateString('sv-SE'); // Get YYYY-MM-DD
         date = new Date(`${today}T${dateString}`);
       } else {
         date = new Date(dateString);
@@ -662,7 +662,7 @@ const FacultyAttendanceView: React.FC = () => {
                     <ShadcnCalendar
                       mode="single"
                       selected={new Date(dateRange.start_date)}
-                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, start_date: date.toISOString().split('T')[0] }))}
+                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, start_date: date.toLocaleDateString('sv-SE') }))}
                       initialFocus
                     />
                   </PopoverContent>
@@ -690,7 +690,7 @@ const FacultyAttendanceView: React.FC = () => {
                     <ShadcnCalendar
                       mode="single"
                       selected={new Date(dateRange.end_date)}
-                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, end_date: date.toISOString().split('T')[0] }))}
+                      onSelect={(date) => date && setDateRange(prev => ({ ...prev, end_date: date.toLocaleDateString('sv-SE') }))}
                       disabled={(date) => {
                         const start = new Date(dateRange.start_date);
                         return isBefore(date, start) || isSameDay(date, start);
@@ -883,7 +883,7 @@ const FacultyAttendanceView: React.FC = () => {
                 }
 
                 return days.map((date) => {
-                  const dateStr = date.toISOString().split('T')[0];
+                  const dateStr = date.toLocaleDateString('sv-SE');
                   const record = facultyAttendanceDetails.find(r => r.date === dateStr);
                   const isFuture = date > today;
 

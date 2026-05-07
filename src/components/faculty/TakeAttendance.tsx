@@ -72,7 +72,7 @@ const TakeAttendance = () => {
   const [subjectType, setSubjectType] = useState<string | null>(null);
   const [processingAI, setProcessingAI] = useState(false);
   const [lastBootstrapParams, setLastBootstrapParams] = useState<any>(null);
-  const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toLocaleDateString('sv-SE'));
 
   // Simple debounced value hook to avoid rapid-fire API calls when user changes selections
   const useDebounced = <T,>(value: T, delay = 300) => {

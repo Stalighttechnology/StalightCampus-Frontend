@@ -37,12 +37,12 @@ const FacultyAttendance = () => {
       // Load recent records and today's record in a single paginated call (reduces duplicate requests)
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      const startDate = weekAgo.toISOString().split('T')[0];
+      const startDate = weekAgo.toLocaleDateString('sv-SE');
 
       const resp = await fetchHistoryPage(1, startDate);
       if (resp && resp.success && resp.data) {
         setRecentRecords(resp.data.slice(0, 7));
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('sv-SE');
         const todayRec = resp.data.find((r) => r.date === today) || null;
         setTodayRecord(todayRec);
         if (todayRec) {
