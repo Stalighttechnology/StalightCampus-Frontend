@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Layers, Settings2 } from "lucide-react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1753,265 +1753,280 @@ const UploadMarks = () => {
           </TabsList>
 
           <TabsContent value="manual">
-            {/* Students Table - only shown after saving question format */}
-            {qpReady && areAllDropdownsSelected() && (
-              <div className={`border rounded-lg overflow-hidden ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
-                {/* Header */}
-                <div className={`p-4 border-b ${theme === 'dark' ? 'border-border bg-muted' : 'border-gray-300 bg-gray-50'}`}>
-                  <h3 className="text-lg font-semibold">Internal Assessment Test</h3>
+            {!areAllDropdownsSelected() ? (
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${
+                theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+              }`}>
+                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <Layers className="w-12 h-12 opacity-80" />
                 </div>
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
+                <p className="max-w-xs text-base leading-relaxed">
+                  Please select all the dropdown options above to view and enter student marks.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Students Table - only shown after saving question format */}
+                {qpReady && (
+                  <div className={`border rounded-lg overflow-hidden ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
+                    {/* Header */}
+                    <div className={`p-4 border-b ${theme === 'dark' ? 'border-border bg-muted' : 'border-gray-300 bg-gray-50'}`}>
+                      <h3 className="text-lg font-semibold">Internal Assessment Test</h3>
+                    </div>
 
-                {/* Table with new structure based on question format */}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
-                    <thead>
-                      <tr>
-                        <th rowSpan={3} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider align-middle">#</th>
-                        <th rowSpan={3} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider align-middle">USN</th>
-                        <th rowSpan={3} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider align-middle">Name</th>
+                    {/* Table with new structure based on question format */}
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
+                        <thead>
+                          <tr>
+                            <th rowSpan={3} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider align-middle">#</th>
+                            <th rowSpan={3} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider align-middle">USN</th>
+                            <th rowSpan={3} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider align-middle">Name</th>
 
-                        {/* Dynamic Question Groups based on question format */}
-                        {questions.map((question) => (
-                          <th key={`q-${question.id}`} colSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">
-                            Q{question.number}
-                          </th>
-                        ))}
-
-                        {/* Final Columns - Removed Marks After Weightage */}
-                        <th rowSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider align-middle">Total Marks</th>
-                        <th rowSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider align-middle">Action</th>
-                      </tr>
-                      <tr>
-                        {/* Sub-columns for each question */}
-                        {questions.map((question) => (
-                          <Fragment key={`sub-${question.id}`}>
-                            <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">CO</th>
-                            <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">Max Marks</th>
-                            <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">Marks</th>
-                          </Fragment>
-                        ))}
-                      </tr>
-                      <tr>
-                        {/* CO and Max Marks rows */}
-                        {questions.map((question, index) => (
-                          <Fragment key={`row-${question.id}`}>
-                            <td className="px-2 py-1 text-center text-xs italic">CO</td>
-                            <td className="px-2 py-1 text-center text-xs italic">Max marks</td>
-                            <td className="px-2 py-1 text-center text-xs italic">{formatTestType(selected.testType)}</td>
-                          </Fragment>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-border">
-                      {loadingStudents ? (
-                        <tr>
-                          <td colSpan={questions.length * 3 + 5} className="p-0">
-                            <div className="w-full h-20 flex items-center justify-center">
-                              <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Loading students...</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : currentStudents.length === 0 ? (
-                        <tr>
-                          <td colSpan={questions.length * 3 + 5} className={`text-center text-sm p-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            No students found for selected criteria.
-                          </td>
-                        </tr>
-                      ) : (
-                        currentStudents.map((student, index) => (
-                          <tr key={student.id} className={`${theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-50'}`}>
-                            <td className="px-4 py-2 text-sm">{indexOfFirstStudent + index + 1}</td>
-                            <td className="px-4 py-2 text-sm">{student.usn}</td>
-                            <td className="px-4 py-2 text-sm">{student.name}</td>
-
-                            {/* Debug information */}
-                            {/* <td colSpan={questions.length * 3}>
-                              <div className="text-xs">
-                                Student ID: {student.id}, Marks: {JSON.stringify(studentMarks[student.id] || {})}
-                              </div>
-                            </td> */}
-
-                            {/* Dynamic question inputs based on question format */}
-                            {questions.map((question, qIndex) => (
-                              <Fragment key={`input-${question.id}-${student.id}`}>
-                                <td className="px-2 py-1 text-center">
-                                  <Input
-                                    type="text"
-                                    className="w-16 text-center mx-auto"
-                                    placeholder="CO"
-                                    value={question.co}
-                                    readOnly
-                                  />
-                                </td>
-                                <td className="px-2 py-1 text-center">
-                                  <Input
-                                    type="text"
-                                    className="w-16 text-center mx-auto"
-                                    placeholder="Max"
-                                    value={question.maxMarks}
-                                    readOnly
-                                  />
-                                </td>
-                                <td className="px-2 py-1 text-center">
-                                  <Input
-                                    type="number"
-                                    className="w-16 text-center mx-auto"
-                                    placeholder="Marks"
-                                    value={studentMarks[student.id]?.[question.number] || ""}
-                                    min="0"
-                                    max={question.maxMarks}
-                                    onChange={(e) => {
-                                      const value = e.target.value;
-                                      const maxMarks = parseInt(question.maxMarks);
-                                      const numValue = parseInt(value);
-
-                                      // Validate that the entered value doesn't exceed max marks
-                                      if (value !== "" && (isNaN(numValue) || numValue < 0 || numValue > maxMarks)) {
-                                        // If invalid, don't update the state
-                                        return;
-                                      }
-
-                                      setStudentMarks(prev => {
-                                        const updated = { ...prev };
-                                        if (!updated[student.id]) updated[student.id] = {};
-                                        updated[student.id][question.number] = value;
-                                        return updated;
-                                      });
-                                    }}
-                                  />
-                                </td>
-                              </Fragment>
+                            {/* Dynamic Question Groups based on question format */}
+                            {questions.map((question) => (
+                              <th key={`q-${question.id}`} colSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">
+                                Q{question.number}
+                              </th>
                             ))}
 
-                            {/* Final columns */}
-                            <td className="px-4 py-2 text-center">
-                              {(() => {
-                                const autoTotal = calculateTotal(studentMarks[student.id] || {});
-                                const displayTotal = student.totalEdited ? (student.total ?? '') : (autoTotal || (student.total ?? ''));
-                                return (
-                                  <div className="flex items-center justify-center gap-2">
-                                    <Input
-                                      type="text"
-                                      className="w-20 text-center mx-auto"
-                                      placeholder="Total"
-                                      value={displayTotal}
-                                      onChange={(e) => {
-                                        const v = e.target.value;
-                                        if (!/^\d*$/.test(v)) return;
-                                        setStudents(prev => prev.map(s => s.id === student.id ? { ...s, total: v, totalEdited: true } : s));
-                                      }}
-                                    />
-                                    {/* Reset to auto-calc */}
-                                    <button
-                                      title="Reset to auto"
-                                      className="text-xs text-muted-foreground"
+                            {/* Final Columns - Removed Marks After Weightage */}
+                            <th rowSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider align-middle">Total Marks</th>
+                            <th rowSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider align-middle">Action</th>
+                          </tr>
+                          <tr>
+                            {/* Sub-columns for each question */}
+                            {questions.map((question) => (
+                              <Fragment key={`sub-${question.id}`}>
+                                <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">CO</th>
+                                <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">Max Marks</th>
+                                <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">Marks</th>
+                              </Fragment>
+                            ))}
+                          </tr>
+                          <tr>
+                            {/* CO and Max Marks rows */}
+                            {questions.map((question, index) => (
+                              <Fragment key={`row-${question.id}`}>
+                                <td className="px-2 py-1 text-center text-xs italic">CO</td>
+                                <td className="px-2 py-1 text-center text-xs italic">Max marks</td>
+                                <td className="px-2 py-1 text-center text-xs italic">{formatTestType(selected.testType)}</td>
+                              </Fragment>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 dark:divide-border">
+                          {loadingStudents ? (
+                            <tr>
+                              <td colSpan={questions.length * 3 + 5} className="p-0">
+                                <div className="w-full h-20 flex items-center justify-center">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Loading students...</span>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          ) : currentStudents.length === 0 ? (
+                            <tr>
+                              <td colSpan={questions.length * 3 + 5} className={`text-center text-sm p-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                No students found for selected criteria.
+                              </td>
+                            </tr>
+                          ) : (
+                            currentStudents.map((student, index) => (
+                              <tr key={student.id} className={`${theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-50'}`}>
+                                <td className="px-4 py-2 text-sm">{indexOfFirstStudent + index + 1}</td>
+                                <td className="px-4 py-2 text-sm">{student.usn}</td>
+                                <td className="px-4 py-2 text-sm">{student.name}</td>
+
+                                {/* Dynamic question inputs based on question format */}
+                                {questions.map((question, qIndex) => (
+                                  <Fragment key={`input-${question.id}-${student.id}`}>
+                                    <td className="px-2 py-1 text-center">
+                                      <Input
+                                        type="text"
+                                        className="w-16 text-center mx-auto"
+                                        placeholder="CO"
+                                        value={question.co}
+                                        readOnly
+                                      />
+                                    </td>
+                                    <td className="px-2 py-1 text-center">
+                                      <Input
+                                        type="text"
+                                        className="w-16 text-center mx-auto"
+                                        placeholder="Max"
+                                        value={question.maxMarks}
+                                        readOnly
+                                      />
+                                    </td>
+                                    <td className="px-2 py-1 text-center">
+                                      <Input
+                                        type="number"
+                                        className="w-16 text-center mx-auto"
+                                        placeholder="Marks"
+                                        value={studentMarks[student.id]?.[question.number] || ""}
+                                        min="0"
+                                        max={question.maxMarks}
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+                                          const maxMarks = parseInt(question.maxMarks);
+                                          const numValue = parseInt(value);
+
+                                          // Validate that the entered value doesn't exceed max marks
+                                          if (value !== "" && (isNaN(numValue) || numValue < 0 || numValue > maxMarks)) {
+                                            // If invalid, don't update the state
+                                            return;
+                                          }
+
+                                          setStudentMarks(prev => {
+                                            const updated = { ...prev };
+                                            if (!updated[student.id]) updated[student.id] = {};
+                                            updated[student.id][question.number] = value;
+                                            return updated;
+                                          });
+                                        }}
+                                      />
+                                    </td>
+                                  </Fragment>
+                                ))}
+
+                                {/* Final columns */}
+                                <td className="px-4 py-2 text-center">
+                                  {(() => {
+                                    const autoTotal = calculateTotal(studentMarks[student.id] || {});
+                                    const displayTotal = student.totalEdited ? (student.total ?? '') : (autoTotal || (student.total ?? ''));
+                                    return (
+                                      <div className="flex items-center justify-center gap-2">
+                                        <Input
+                                          type="text"
+                                          className="w-20 text-center mx-auto"
+                                          placeholder="Total"
+                                          value={displayTotal}
+                                          onChange={(e) => {
+                                            const v = e.target.value;
+                                            if (!/^\d*$/.test(v)) return;
+                                            setStudents(prev => prev.map(s => s.id === student.id ? { ...s, total: v, totalEdited: true } : s));
+                                          }}
+                                        />
+                                        {/* Reset to auto-calc */}
+                                        <button
+                                          title="Reset to auto"
+                                          className="text-xs text-muted-foreground"
+                                          onClick={() => {
+                                            setStudents(prev => prev.map(s => s.id === student.id ? { ...s, totalEdited: false, total: calculateTotal(studentMarks[student.id] || {}) } : s));
+                                          }}
+                                        >
+                                          Reset
+                                        </button>
+                                      </div>
+                                    );
+                                  })()}
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                  {actionModes[student.id] === 'edit' ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-primary text-primary hover:bg-primary hover:text-white"
                                       onClick={() => {
-                                        setStudents(prev => prev.map(s => s.id === student.id ? { ...s, totalEdited: false, total: calculateTotal(studentMarks[student.id] || {}) } : s));
+                                        setActionModes(prev => ({
+                                          ...prev,
+                                          [student.id]: 'save'
+                                        }));
                                       }}
                                     >
-                                      Reset
-                                    </button>
-                                  </div>
-                                );
-                              })()}
-                            </td>
-                            <td className="px-4 py-2 text-center">
-                              {actionModes[student.id] === 'edit' ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-primary text-primary hover:bg-primary hover:text-white"
-                                  onClick={() => {
-                                    setActionModes(prev => ({
-                                      ...prev,
-                                      [student.id]: 'save'
-                                    }));
-                                  }}
-                                >
-                                  Save
-                                </Button>
-                              ) : actionModes[student.id] === 'save' ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-primary text-primary hover:bg-primary hover:text-white"
-                                  onClick={() => {
-                                    // Save logic would go here
-                                    setActionModes(prev => ({
-                                      ...prev,
-                                      [student.id]: 'view'
-                                    }));
-                                  }}
-                                >
-                                  Save
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-primary text-primary hover:bg-primary hover:text-white"
-                                  onClick={() => {
-                                    setActionModes(prev => ({
-                                      ...prev,
-                                      [student.id]: 'edit'
-                                    }));
-                                  }}
-                                >
-                                  Edit
-                                </Button>
-                              )}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                                      Save
+                                    </Button>
+                                  ) : actionModes[student.id] === 'save' ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-primary text-primary hover:bg-primary hover:text-white"
+                                      onClick={() => {
+                                        // Save logic would go here
+                                        setActionModes(prev => ({
+                                          ...prev,
+                                          [student.id]: 'view'
+                                        }));
+                                      }}
+                                    >
+                                      Save
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-primary text-primary hover:bg-primary hover:text-white"
+                                      onClick={() => {
+                                        setActionModes(prev => ({
+                                          ...prev,
+                                          [student.id]: 'edit'
+                                        }));
+                                      }}
+                                    >
+                                      Edit
+                                    </Button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
 
-                <div className={`flex justify-between items-center mt-4 px-4 py-2 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  <span>
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <div className="space-x-2">
+                    <div className={`flex justify-between items-center mt-4 px-4 py-2 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      <span>
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <div className="space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
+                          onClick={handlePrevPage}
+                          disabled={pagination ? !pagination.has_previous : currentPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
+                          onClick={handleNextPage}
+                          disabled={pagination ? !pagination.has_next : currentPage === totalPages}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Message to configure question format first */}
+                {!qpReady && (
+                  <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${
+                    theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                  }`}>
+                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <Settings2 className="w-12 h-12 opacity-80" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Configuration Needed</h3>
+                    <p className="max-w-xs text-base leading-relaxed mb-6">
+                      Please configure the question paper format first to enable marks entry for this subject.
+                    </p>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
-                      onClick={handlePrevPage}
-                      disabled={pagination ? !pagination.has_previous : currentPage === 1}
+                      onClick={() => setTabValue("questionFormat")}
+                      className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
                     >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
-                      onClick={handleNextPage}
-                      disabled={pagination ? !pagination.has_next : currentPage === totalPages}
-                    >
-                      Next
+                      Go to Question Format
                     </Button>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Message to configure question format first */}
-            {areAllDropdownsSelected() && !qpReady && (
-              <div className={`p-6 text-center rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-gray-50 border border-gray-200'}`}>
-                <p className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                  Please configure the question paper format first.
-                </p>
-                <Button
-                  onClick={() => setTabValue("questionFormat")}
-                  className="mt-4 bg-primary text-white hover:bg-primary/90"
-                >
-                  Go to Question Format
-                </Button>
-              </div>
+                )}
+              </>
             )}
           </TabsContent>
 
@@ -2103,9 +2118,15 @@ const UploadMarks = () => {
                 </div>
               </div>
             ) : (
-              <div className={`p-6 text-center rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-gray-50 border border-gray-200'}`}>
-                <p className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                  Please select all the dropdown options first to configure question paper format.
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${
+                theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+              }`}>
+                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <Layers className="w-12 h-12 opacity-80" />
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
+                <p className="max-w-xs text-base leading-relaxed">
+                  Please select all the dropdown options first to configure the question paper format.
                 </p>
               </div>
             )}
@@ -2179,20 +2200,32 @@ const UploadMarks = () => {
                 </div>
               </div>
             ) : (
-              <div className={`p-6 text-center rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-gray-50 border border-gray-200'}`}>
-                <p className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${
+                theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+              }`}>
+                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  {areAllDropdownsSelected() ? (
+                    <Settings2 className="w-12 h-12 opacity-80" />
+                  ) : (
+                    <Layers className="w-12 h-12 opacity-80" />
+                  )}
+                </div>
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {areAllDropdownsSelected() ? "Configuration Needed" : "Selection Required"}
+                </h3>
+                <p className="max-w-xs text-base leading-relaxed mb-6">
                   {areAllDropdownsSelected()
-                    ? "Please configure the question paper format first."
-                    : "Please select all the dropdown options first."}
+                    ? "Please configure the question paper format first to view the final document."
+                    : "Please select all the dropdown options first to view the question paper."}
                 </p>
-                {areAllDropdownsSelected() ? (
+                {areAllDropdownsSelected() && (
                   <Button
                     onClick={() => setTabValue("questionFormat")}
-                    className="mt-4 bg-primary text-white hover:bg-primary/90"
+                    className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
                   >
                     Go to Question Format
                   </Button>
-                ) : null}
+                )}
               </div>
             )}
           </TabsContent>
@@ -2238,7 +2271,7 @@ const UploadMarks = () => {
                         <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4 flex-wrap justify-center">
                           <button
                             onClick={() => document.getElementById("bulkFileInput")?.click()}
-                            className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-md font-medium transition-all duration-200 whitespace-nowrap ${theme === 'dark' ? 'border border-border hover:bg-accent text-foreground' : 'border border-gray-300 hover:bg-gray-100 text-gray-700'}`}
+                            className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-md font-medium transition-all duration-200 whitespace-nowrap ${theme === 'dark' ? 'border border-border hover:bg-accent text-foreground bg-primary/70 text-white hover:bg-primary' : 'border border-gray-300 hover:bg-gray-100 text-gray-700 bg-primary/70 text-white hover:bg-primary'}`}
                           >
                             Select File
                           </button>
@@ -2311,7 +2344,7 @@ const UploadMarks = () => {
                     <div className={`border-t pt-3 sm:pt-4 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                       <button
                         onClick={downloadExcelTemplate}
-                        className={`w-full text-center py-2 sm:py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                        className={`w-full text-center py-2 sm:py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary/70 text-white hover:bg-primary' : 'bg-primary/70 text-white hover:bg-primary'}`}
                       >
                         Download Template
                       </button>
@@ -2334,9 +2367,15 @@ const UploadMarks = () => {
                   </div>
                 </div>
               ) : (
-                <div className={`p-6 sm:p-8 text-center rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-gray-50 border border-gray-200'}`}>
-                  <p className={`text-sm sm:text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    Please select all the dropdown options first to enable bulk upload.
+                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 w-full ${
+                  theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                }`}>
+                  <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <Layers className="w-12 h-12 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
+                  <p className="max-w-xs text-base leading-relaxed">
+                    Please select all the dropdown options first to enable bulk marks upload.
                   </p>
                 </div>
               )}

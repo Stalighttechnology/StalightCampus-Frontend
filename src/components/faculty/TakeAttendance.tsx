@@ -548,7 +548,7 @@ const TakeAttendance = () => {
     <div className={`w-full overflow-visible ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full`}>
         <CardHeader>
-          <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Take Attendance</CardTitle>
+          <CardTitle>Take Attendance</CardTitle>
           <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Record student attendance for your classes</CardDescription>
         </CardHeader>
         <CardContent>
