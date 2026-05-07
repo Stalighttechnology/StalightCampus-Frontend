@@ -39,7 +39,8 @@ export function normalizePaginatedResponse(resp: any, itemsKey = 'results') {
   const container = resp.data ?? resp;
   if (container?.pagination || container?.results || Array.isArray(container)) {
     const items = container.results ?? container.data ?? (Array.isArray(container) ? container : []);
-    const p = container.pagination ?? {};
+    // Prefer pagination metadata from top-level resp.pagination if present (some endpoints return { data: [...], pagination: {...} })
+    const p = resp.pagination ?? container.pagination ?? {};
     return {
       items: Array.isArray(items) ? items : [],
       meta: {
