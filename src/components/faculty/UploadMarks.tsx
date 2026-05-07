@@ -38,6 +38,7 @@ import {
 } from "../../utils/faculty_api";
 import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/hooks/use-toast";
 import { SkeletonTable } from "@/components/ui/skeleton";
 
 const MySwal = withReactContent(Swal);
@@ -106,6 +107,7 @@ const formatTestType = (testType: string): string => {
 
 const UploadMarks = () => {
   const { data: assignments = [], isLoading: assignmentsLoading, error: assignmentsError } = useFacultyAssignmentsQuery();
+  const { toast } = useToast();
   const [dropdownData, setDropdownData] = useState({
     branch: [] as { id: number; name: string }[],
     semester: [] as { id: number; number: number }[],
@@ -294,14 +296,14 @@ const UploadMarks = () => {
   ]);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [totalMarks, setTotalMarks] = useState(0);
-  const [questionFormatSaved, setQuestionFormatSaved] = useState(false);
+
 
   // New state for QP ID
   const [qpId, setQpId] = useState<number | null>(null);
   // Store lightweight summary returned from list endpoint
   const [existingQpSummary, setExistingQpSummary] = useState<any | null>(null);
-  // Computed flag: treat backend-provided QP as available even if local "saved" flag wasn't toggled
-  const qpReady = questionFormatSaved || Boolean(existingQpSummary);
+  // Computed flag: treat backend-provided QP as available for display and marks entry
+  const qpReady = Boolean(existingQpSummary);
   const [studentMarks, setStudentMarks] = useState<Record<string, Record<string, string>>>({});
   const [subjectType, setSubjectType] = useState<string | null>(null);
   // Effective subject type for rendering (prefer current state, fall back to stored selection)
@@ -343,9 +345,9 @@ const UploadMarks = () => {
     }
   }, [selected.branch_id, selected.semester_id, selected.subject_id, selected.testType]);
 
-  // Load full QP detail only when user opens the Question Format or Question Paper tab
+  // Load full QP detail only when user opens the Question Paper tab
   useEffect(() => {
-    const shouldLoad = (tabValue === 'questionFormat' || tabValue === 'questionPaper') && (questionFormatSaved || existingQpSummary) && existingQpSummary && (!questions || questions.length === 0);
+    const shouldLoad = (tabValue === 'questionPaper') && existingQpSummary && (!questions || questions.length === 0);
     if (!shouldLoad) return;
 
     let mounted = true;
@@ -386,7 +388,7 @@ const UploadMarks = () => {
       }
     })();
     return () => { mounted = false; };
-  }, [tabValue, questionFormatSaved, existingQpSummary]);
+  }, [tabValue, existingQpSummary]);
 
 
 
@@ -518,30 +520,33 @@ const UploadMarks = () => {
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
         detail: false,
-        approved_only: true,
+        approved_only: false,
       });
       if (qpResponse.success && qpResponse.data) {
         const existingQp = qpResponse.data.find((q: any) => {
+          // Handle branch as object {id, name} or as number
+          const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
+          
           // Match depending on effective subject type
           if (effectiveType === 'open_elective') {
             return q.subject === selected.subject_id && q.test_type === selected.testType;
           }
           if (effectiveType === 'elective') {
-            return q.branch === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
+            return branchId === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
           }
           // regular: if section not selected, match across sections for the same branch+semester+subject+test_type
           if (selected.section_id) {
-            return q.branch === selected.branch_id && q.semester === selected.semester_id && q.section === selected.section_id && q.subject === selected.subject_id && q.test_type === selected.testType;
+            return branchId === selected.branch_id && q.semester === selected.semester_id && q.section === selected.section_id && q.subject === selected.subject_id && q.test_type === selected.testType;
           }
-          return q.branch === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
+          return branchId === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
         });
 
-        // Only consider the QP usable for marks upload if it is COE-finalized (approved)
-        if (existingQp && existingQp.status === 'approved') {
-          // Load full QP details immediately and replace default questions
+        // Set the QP and load its questions immediately (regardless of approval status)
+        if (existingQp) {
           setQpId(existingQp.id);
-          setQuestionFormatSaved(true);
           setExistingQpSummary(existingQp);
+          // Auto-open the Question Paper tab after QP is loaded
+          setTabValue('questionPaper');
           try {
             const detailRes = await getQuestionPaperDetail(existingQp.id);
             if (detailRes && detailRes.success && detailRes.data && Array.isArray(detailRes.data) && detailRes.data.length > 0) {
@@ -576,29 +581,10 @@ const UploadMarks = () => {
             console.error('Failed to fetch QP detail in loadExistingQP:', err);
           }
         } else {
-          // If a QP exists but is not finalized, reset and surface a helpful message
-          const foundButNotFinalized = existingQp && existingQp.status !== 'approved';
+          // No QP found for the selected criteria
           setQpId(null);
-          setQuestionFormatSaved(false);
           setExistingQpSummary(null);
-          if (foundButNotFinalized) {
-            setErrorMessage('A question paper exists for the selected criteria but is not finalized by COE. It will not be available for marks upload.');
-          }
-          // Reset to default if no existing QP
-          setQuestions([
-            { id: "1a", number: "1a", content: "Question 1a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-            { id: "1b", number: "1b", content: "Question 1b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-            { id: "1c", number: "1c", content: "Question 1c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
-            { id: "2a", number: "2a", content: "Question 2a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-            { id: "2b", number: "2b", content: "Question 2b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-            { id: "2c", number: "2c", content: "Question 2c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
-            { id: "3a", number: "3a", content: "Question 3a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-            { id: "3b", number: "3b", content: "Question 3b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-            { id: "3c", number: "3c", content: "Question 3c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
-            { id: "4a", number: "4a", content: "Question 4a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-            { id: "4b", number: "4b", content: "Question 4b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-            { id: "4c", number: "4c", content: "Question 4c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
-          ]);
+          setQuestions([]);
         }
       }
     } catch (error) {
@@ -712,7 +698,6 @@ const UploadMarks = () => {
       }
 
       if (response.success) {
-        setQuestionFormatSaved(true);
         await loadExistingQP(); // Reload QP data to reflect changes immediately
         MySwal.fire({
           title: existingQp ? "Question Format Updated!" : "Question Format Saved!",
@@ -1448,7 +1433,6 @@ const UploadMarks = () => {
       if (!bulkUploadCompleted) {
         // Reset QP related states when selections change
         setQpId(null);
-        setQuestionFormatSaved(false);
         setStudents([]);
         setStudentMarks({});
         setActionModes({});
@@ -1724,20 +1708,34 @@ const UploadMarks = () => {
             </SelectContent>
           </Select>
         </div>
-        <Tabs value={tabValue} onValueChange={setTabValue} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+        <Tabs value={tabValue} onValueChange={(newTab) => {
+          // Prevent switching to Marks Entry if QP is not approved
+          if (newTab === 'manual' && (!existingQpSummary || existingQpSummary.status !== 'approved')) {
+            toast({
+              title: 'Cannot Access Marks Entry',
+              description: 'The question paper must be approved by COE before you can enter marks.',
+              variant: 'destructive'
+            });
+            return;
+          }
+          setTabValue(newTab);
+        }} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
           <TabsList className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-gray-100 border border-gray-300 text-gray-900'}>
             <TabsTrigger
               value="manual"
-              className={`data-[state=active]:bg-primary data-[state=active]:text-white ${theme === 'dark' ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}
+              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${
+                existingQpSummary?.status === 'approved'
+                  ? theme === 'dark'
+                    ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer'
+                    : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer'
+                  : 'opacity-50 cursor-not-allowed'
+              }`}
+              disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
+              title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing marks entry' : ''}
             >
               Marks Entry
             </TabsTrigger>
-            <TabsTrigger
-              value="questionFormat"
-              className={`data-[state=active]:bg-primary data-[state=active]:text-white ${theme === 'dark' ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}
-            >
-              Question Format
-            </TabsTrigger>
+            { /* Question Format tab removed per UX simplification */ }
             <TabsTrigger
               value="questionPaper"
               className={`data-[state=active]:bg-primary data-[state=active]:text-white ${theme === 'dark' ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}
@@ -2019,10 +2017,30 @@ const UploadMarks = () => {
                       Please configure the question paper format first to enable marks entry for this subject.
                     </p>
                     <Button
-                      onClick={() => setTabValue("questionFormat")}
+                      onClick={() => setTabValue("questionPaper")}
                       className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
                     >
-                      Go to Question Format
+                      View Question Paper
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Save button for Marks Entry */}
+                {qpReady && (
+                  <div className="flex justify-end mt-6">
+                    <Button
+                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
+                      onClick={handleSubmit}
+                      disabled={savingMarks}
+                    >
+                      {savingMarks ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save"
+                      )}
                     </Button>
                   </div>
                 )}
@@ -2030,107 +2048,7 @@ const UploadMarks = () => {
             )}
           </TabsContent>
 
-          {/* Question Format Tab - For configuring questions */}
-          <TabsContent value="questionFormat">
-            {areAllDropdownsSelected() ? (
-              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-gray-50 border border-gray-200'}`}>
-                {errorMessage && (
-                  <div className={`mb-4 p-3 rounded-md text-sm ${theme === 'dark' ? 'bg-destructive/20 text-destructive' : 'bg-red-100 text-red-700'}`}>
-                    {errorMessage}
-                  </div>
-                )}
-                <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white border border-gray-300'}`}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-medium">Questions</h4>
-                    <span className="text-sm">Total Marks: {totalMarks}</span>
-                  </div>
-
-                  {questions.map((question, index) => (
-                    <div key={question.id} className="flex items-center gap-3 mb-3">
-                      <div className="w-20">
-                        <Input
-                          value={question.number}
-                          onChange={(e) => updateQuestion(question.id, "number", e.target.value)}
-                          placeholder="1a"
-                          className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          value={question.content}
-                          onChange={(e) => updateQuestion(question.id, "content", e.target.value)}
-                          placeholder="Enter question"
-                          className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}
-                        />
-                      </div>
-                      <div className="w-24">
-                        <Input
-                          value={question.maxMarks}
-                          onChange={(e) => updateQuestion(question.id, "maxMarks", e.target.value)}
-                          placeholder="Max Marks"
-                          className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}
-                        />
-                      </div>
-                      <div className="w-20">
-                        <Input
-                          value={question.co}
-                          onChange={(e) => updateQuestion(question.id, "co", e.target.value)}
-                          placeholder="CO"
-                          className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}
-                        />
-                      </div>
-                      <div className="w-32">
-                        <Input
-                          value={question.bloomsLevel}
-                          onChange={(e) => updateQuestion(question.id, "bloomsLevel", e.target.value)}
-                          placeholder="Blooms Level"
-                          className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}
-                        />
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeQuestion(question.id)}
-                        disabled={questions.length <= 1}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      onClick={addQuestion}
-                      variant="outline"
-                      className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Question
-                    </Button>
-                    <Button
-                      onClick={saveQuestionFormat}
-                      className="bg-primary text-white hover:bg-primary/90"
-                    >
-                      Save Format
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${
-                theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-              }`}>
-                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <Layers className="w-12 h-12 opacity-80" />
-                </div>
-                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
-                <p className="max-w-xs text-base leading-relaxed">
-                  Please select all the dropdown options first to configure the question paper format.
-                </p>
-              </div>
-            )}
-          </TabsContent>
+          { /* Question Format tab content removed */ }
 
           {/* Question Paper Tab - For viewing the saved format */}
           <TabsContent value="questionPaper">
@@ -2146,6 +2064,63 @@ const UploadMarks = () => {
                       Download PDF
                     </Button>
                   </div>
+
+                  {/* Status panel showing approval status and history */}
+                  {existingQpSummary && (
+                    <div className={`mb-6 p-4 rounded-md border ${
+                      existingQpSummary.status === 'approved'
+                        ? theme === 'dark'
+                          ? 'bg-green-500/10 text-green-300 border-green-500/30'
+                          : 'bg-green-50 text-green-800 border-green-200'
+                        : theme === 'dark'
+                        ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30'
+                        : 'bg-yellow-50 text-yellow-800 border-yellow-200'
+                    }`}>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">Status:</span>
+                          <span className="capitalize font-medium">
+                            {existingQpSummary.status || 'Pending'}
+                          </span>
+                        </div>
+                        {existingQpSummary.last_action && (
+                          <>
+                            <div className="flex items-center justify-between text-sm">
+                              <span>Last Action:</span>
+                              <span className="capitalize">
+                                {existingQpSummary.last_action.action}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span>By:</span>
+                              <span>
+                                {existingQpSummary.last_action.actor} ({existingQpSummary.last_action.role})
+                              </span>
+                            </div>
+                            {existingQpSummary.last_action.timestamp && (
+                              <div className="flex items-center justify-between text-sm">
+                                <span>Date:</span>
+                                <span>
+                                  {new Date(existingQpSummary.last_action.timestamp).toLocaleString()}
+                                </span>
+                              </div>
+                            )}
+                            {existingQpSummary.last_action.comment && (
+                              <div className="text-sm pt-2 border-t border-current border-opacity-30">
+                                <span className="block font-medium mb-1">Comment:</span>
+                                <span className="block italic">{existingQpSummary.last_action.comment}</span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {existingQpSummary.status !== 'approved' && (
+                          <div className="pt-2 border-t border-current border-opacity-30 text-sm">
+                            Once approved, you can submit marks.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-6">
                     {questions.map((question, index) => (
@@ -2182,16 +2157,12 @@ const UploadMarks = () => {
                       </div>
                     </div>
                     <div className="flex justify-end gap-2 mt-6">
-                      <Button
-                        onClick={() => setTabValue("questionFormat")}
-                        variant="outline"
-                        className={theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}
-                      >
-                        Edit Format
-                      </Button>
+                      { /* Edit removed — QP editing happens on the Upload QP page */ }
                       <Button
                         onClick={() => setTabValue("manual")}
-                        className="bg-primary text-white hover:bg-primary/90"
+                        disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
+                        className={`${existingQpSummary?.status === 'approved' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                        title={existingQpSummary?.status !== 'approved' ? 'Question paper must be approved by COE before proceeding to marks entry' : ''}
                       >
                         Proceed to Marks Entry
                       </Button>
@@ -2220,10 +2191,10 @@ const UploadMarks = () => {
                 </p>
                 {areAllDropdownsSelected() && (
                   <Button
-                    onClick={() => setTabValue("questionFormat")}
+                    onClick={() => setTabValue("questionPaper")}
                     className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
                   >
-                    Go to Question Format
+                    View Question Paper
                   </Button>
                 )}
               </div>
@@ -2382,22 +2353,6 @@ const UploadMarks = () => {
             </div>
           </TabsContent>
         </Tabs>
-        <div className="flex justify-end mt-4">
-          <Button
-            className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
-            onClick={handleSubmit}
-            disabled={savingMarks}
-          >
-            {savingMarks ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save"
-            )}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
