@@ -536,7 +536,7 @@ const UploadMarks = () => {
         const existingQp = qpResponse.data.find((q: any) => {
           // Handle branch as object {id, name} or as number
           const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
-          
+
           // Match depending on effective subject type
           if (effectiveType === 'open_elective') {
             return q.subject === selected.subject_id && q.test_type === selected.testType;
@@ -1710,19 +1710,18 @@ const UploadMarks = () => {
           <TabsList className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-gray-100 border border-gray-300 text-gray-900'}>
             <TabsTrigger
               value="manual"
-              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${
-                existingQpSummary?.status === 'approved'
+              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved'
                   ? theme === 'dark'
                     ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer'
                     : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer'
                   : 'opacity-50 cursor-not-allowed'
-              }`}
+                }`}
               disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
               title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing marks entry' : ''}
             >
               Marks Entry
             </TabsTrigger>
-            { /* Question Format tab removed per UX simplification */ }
+            { /* Question Format tab removed per UX simplification */}
             <TabsTrigger
               value="questionPaper"
               className={`data-[state=active]:bg-primary data-[state=active]:text-white ${theme === 'dark' ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}
@@ -1739,9 +1738,8 @@ const UploadMarks = () => {
 
           <TabsContent value="manual">
             {!areAllDropdownsSelected() ? (
-              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${
-                theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-              }`}>
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                }`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                   <Layers className="w-12 h-12 opacity-80" />
                 </div>
@@ -1993,9 +1991,8 @@ const UploadMarks = () => {
 
                 {/* Message to configure question format first */}
                 {!qpReady && (
-                  <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${
-                    theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-                  }`}>
+                  <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                    }`}>
                     <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                       <Settings2 className="w-12 h-12 opacity-80" />
                     </div>
@@ -2011,7 +2008,7 @@ const UploadMarks = () => {
                     </Button>
                   </div>
                 )}
-                
+
                 {/* Save button for Marks Entry */}
                 {qpReady && (
                   <div className="flex justify-end mt-6">
@@ -2035,7 +2032,7 @@ const UploadMarks = () => {
             )}
           </TabsContent>
 
-          { /* Question Format tab content removed */ }
+          { /* Question Format tab content removed */}
 
           {/* Question Paper Tab - For viewing the saved format */}
           <TabsContent value="questionPaper">
@@ -2054,15 +2051,14 @@ const UploadMarks = () => {
 
                   {/* Status panel showing approval status and history */}
                   {existingQpSummary && (
-                    <div className={`mb-6 p-4 rounded-md border ${
-                      existingQpSummary.status === 'approved'
+                    <div className={`mb-6 p-4 rounded-md border ${existingQpSummary.status === 'approved'
                         ? theme === 'dark'
                           ? 'bg-green-500/10 text-green-300 border-green-500/30'
                           : 'bg-green-50 text-green-800 border-green-200'
                         : theme === 'dark'
-                        ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30'
-                        : 'bg-yellow-50 text-yellow-800 border-yellow-200'
-                    }`}>
+                          ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30'
+                          : 'bg-yellow-50 text-yellow-800 border-yellow-200'
+                      }`}>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold">Status:</span>
@@ -2144,7 +2140,7 @@ const UploadMarks = () => {
                       </div>
                     </div>
                     <div className="flex justify-end gap-2 mt-6">
-                      { /* Edit removed — QP editing happens on the Upload QP page */ }
+                      { /* Edit removed — QP editing happens on the Upload QP page */}
                       <Button
                         onClick={() => setTabValue("manual")}
                         disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
@@ -2158,9 +2154,8 @@ const UploadMarks = () => {
                 </div>
               </div>
             ) : (
-              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${
-                theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-              }`}>
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                }`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                   {areAllDropdownsSelected() ? (
                     <Settings2 className="w-12 h-12 opacity-80" />
@@ -2207,14 +2202,14 @@ const UploadMarks = () => {
                       onDragOver={handleBulkDragOver}
                       onDragLeave={handleBulkDragLeave}
                       className={`border rounded-md p-6 sm:p-8 lg:p-10 text-center space-y-3 sm:space-y-4 transition-all duration-300 min-h-[300px] sm:min-h-[320px] lg:min-h-[360px] flex flex-col items-center justify-center ${bulkDragActive
-                          ? (theme === 'dark' ? "border-primary bg-primary/10" : "border-blue-400 bg-blue-50")
-                          : (theme === 'dark' ? "border-dashed border-border bg-muted" : "border-dashed border-gray-300 bg-gray-50")
+                        ? (theme === 'dark' ? "border-primary bg-primary/10" : "border-blue-400 bg-blue-50")
+                        : (theme === 'dark' ? "border-dashed border-border bg-muted" : "border-dashed border-gray-300 bg-gray-50")
                         }`}
                     >
                       <UploadCloud
                         className={`mx-auto h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 transition-transform duration-300 ${bulkDragActive
-                            ? (theme === 'dark' ? "scale-110 text-primary" : "scale-110 text-blue-400")
-                            : (theme === 'dark' ? "text-muted-foreground" : "text-gray-400")
+                          ? (theme === 'dark' ? "scale-110 text-primary" : "scale-110 text-blue-400")
+                          : (theme === 'dark' ? "text-muted-foreground" : "text-gray-400")
                           }`}
                       />
                       <div className="space-y-1 sm:space-y-2">
@@ -2325,9 +2320,8 @@ const UploadMarks = () => {
                   </div>
                 </div>
               ) : (
-                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 w-full ${
-                  theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-                }`}>
+                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 w-full ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                  }`}>
                   <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <Layers className="w-12 h-12 opacity-80" />
                   </div>

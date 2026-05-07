@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "../ui/card";
-import { Download, FileText, UploadCloud, X, Search } from "lucide-react";
+import { Download, FileText, UploadCloud, X, Search, BookOpen } from "lucide-react";
 import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject } from "../../utils/faculty_api";
 import { useTheme } from "../../context/ThemeContext";
 import {
@@ -271,11 +271,10 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 placeholder="Search by title, course name, course code, semester, or uploaded by..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-xs sm:text-sm transition-all outline-none focus:ring-2 focus:ring-primary/20 ${
-                  theme === 'dark' 
-                    ? 'border-border bg-background text-foreground focus:border-primary' 
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-xs sm:text-sm transition-all outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark'
+                    ? 'border-border bg-background text-foreground focus:border-primary'
                     : 'border-gray-200 bg-white text-gray-900 focus:border-primary'
-                }`}
+                  }`}
               />
             </div>
           </div>
@@ -296,13 +295,25 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                   <SkeletonList items={5} />
                 </div>
               ) : materials.length === 0 ? (
-                <div className="text-center py-10 text-xs sm:text-sm text-gray-500">No study materials found for the selected criteria.</div>
+                <div className={`flex flex-col items-center justify-center py-12 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <BookOpen className="w-10 h-10" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    No Materials Found
+                  </h3>
+                  <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    {search 
+                      ? `We couldn't find any materials matching "${search}". Please try a different search term or criteria.` 
+                      : "No study materials have been uploaded for the selected filters yet."}
+                  </p>
+                </div>
               ) : (
                 materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
               )}
             </div>
           </div>
-          
+
           <AdminPagination
             pagination={pagination.paginationState}
             onPageChange={pagination.goToPage}
@@ -311,8 +322,14 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
       </Card>
 
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className={`p-4 sm:p-6 rounded-lg shadow-lg max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-md w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200"
+          onClick={() => setShowUploadModal(false)}
+        >
+          <div 
+            className={`p-4 sm:p-6 rounded-2xl shadow-2xl max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-md w-full border animate-in zoom-in-95 duration-200 ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h2 className="text-base sm:text-lg font-semibold">Upload Study Material</h2>
               <button onClick={() => setShowUploadModal(false)} className="text-gray-500 hover:text-gray-700">

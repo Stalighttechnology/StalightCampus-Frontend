@@ -28,7 +28,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useTheme } from "@/context/ThemeContext";
 import {
   fetchAnnouncements,
@@ -55,6 +63,7 @@ const FacultyAnnouncementManagement = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { theme } = useTheme();
 
   // Form state
@@ -363,16 +372,16 @@ const FacultyAnnouncementManagement = () => {
                     <Label htmlFor="message">Message *</Label>
                     <Textarea
                       id="message"
-                      placeholder="Announcement message"
+                      placeholder="Type your announcement message here..."
                       value={formData.message}
                       onChange={(e) =>
                         setFormData({ ...formData, message: e.target.value })
                       }
-                      rows={6}
+                      className="resize-none h-20 overflow-y-auto focus-visible:ring-primary/20 custom-scrollbar"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="priority">Priority</Label>
                       <Select
@@ -381,7 +390,7 @@ const FacultyAnnouncementManagement = () => {
                           setFormData({ ...formData, priority: value })
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -394,15 +403,44 @@ const FacultyAnnouncementManagement = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="expires_at">Expires At</Label>
-                      <Input
-                        id="expires_at"
-                        type="date"
-                        value={formData.expires_at}
-                        onChange={(e) =>
-                          setFormData({ ...formData, expires_at: e.target.value })
-                        }
-                      />
+                      <Label htmlFor="expires_at" className="block text-sm font-medium mt-1">Expires At</Label>
+                      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal h-10 px-3",
+                              !formData.expires_at && "text-muted-foreground",
+                              theme === 'dark' 
+                                ? 'bg-background border-border text-foreground hover:bg-muted/50' 
+                                : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                            <span className="truncate">
+                              {formData.expires_at ? (
+                                format(new Date(formData.expires_at), "PPP")
+                              ) : (
+                                "Pick a date"
+                              )}
+                            </span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
+                            onSelect={(date) => {
+                              setFormData({
+                                ...formData,
+                                expires_at: date ? format(date, "yyyy-MM-dd") : "",
+                              });
+                              setIsCalendarOpen(false);
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
 
