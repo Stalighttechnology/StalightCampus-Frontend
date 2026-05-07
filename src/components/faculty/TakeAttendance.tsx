@@ -56,6 +56,7 @@ const TakeAttendance = () => {
   const [students, setStudents] = useState<ClassStudent[]>([]);
   const [subjectStudents, setSubjectStudents] = useState<any[]>([]); // students returned for subject-only bootstrap
   const [bootstrapParams, setBootstrapParams] = useState<any | null>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const { page, pageSize, paginationState, updatePagination, goToPage } = usePagination({
     queryKey: ['takeAttendance'],
@@ -585,7 +586,7 @@ const TakeAttendance = () => {
                   {sections.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Popover>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant={"outline"}
@@ -606,6 +607,7 @@ const TakeAttendance = () => {
                     onSelect={(date) => {
                       if (date) {
                         setAttendanceDate(format(date, "yyyy-MM-dd"));
+                        setIsCalendarOpen(false);
                       }
                     }}
                     initialFocus
