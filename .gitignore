@@ -103,3 +103,6 @@ dist-ssr/
 
 # Bun
 bun.lockb
+
+# Agent
+.agent
