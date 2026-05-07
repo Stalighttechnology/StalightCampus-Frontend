@@ -30,6 +30,12 @@ import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
 import { AdminPagination } from "../common/AdminPagination";
 import { usePagination } from "@/hooks/useOptimizations";
+import { Calendar as CalendarComponent } from "../ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { format, parseISO } from "date-fns";
+import { CalendarIcon, UserCheck, Search, Users as UsersIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { showSuccessAlert, showErrorAlert } from "@/utils/sweetalert";
 
 const TakeAttendance = () => {
   const { toast } = useToast();
@@ -50,7 +56,7 @@ const TakeAttendance = () => {
   const [students, setStudents] = useState<ClassStudent[]>([]);
   const [subjectStudents, setSubjectStudents] = useState<any[]>([]); // students returned for subject-only bootstrap
   const [bootstrapParams, setBootstrapParams] = useState<any | null>(null);
-  
+
   const { page, pageSize, paginationState, updatePagination, goToPage } = usePagination({
     queryKey: ['takeAttendance'],
     pageSize: 50,
@@ -481,11 +487,9 @@ const TakeAttendance = () => {
       if (attendanceDate) data.date = attendanceDate;
       const res = await takeAttendance(data);
       if (res.success) {
-        toast({
-          title: "Success",
-          description: "Attendance submitted successfully!",
-        });
+        showSuccessAlert("Success", "Attendance submitted successfully!");
       } else {
+        showErrorAlert("Attendance Error", res.message || "Failed to submit attendance");
         setErrorMsg(res.message || "Failed to submit attendance");
       }
     } catch (e: unknown) {
@@ -523,11 +527,9 @@ const TakeAttendance = () => {
       });
       if (res.success) {
         setAiResults(res.data);
-        toast({
-          title: "Success",
-          description: "AI attendance processed successfully!",
-        });
+        showSuccessAlert("Success", "AI attendance processed successfully!");
       } else {
+        showErrorAlert("AI Error", res.message || "Failed to process AI attendance");
         setErrorMsg(res.message || "Failed to process AI attendance");
       }
     } catch (e: unknown) {
@@ -542,7 +544,7 @@ const TakeAttendance = () => {
   };
 
   return (
-    <div className={`w-full max-w-full min-h-screen md:min-h-screen h-auto md:h-auto overflow-visible ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`w-full overflow-visible ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full`}>
         <CardHeader>
           <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Take Attendance</CardTitle>
@@ -550,7 +552,7 @@ const TakeAttendance = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4 w-full max-w-full">
-            <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 md:grid-cols-4 w-full">
+            <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-5 w-full">
               <Select value={subjectId?.toString()} onValueChange={v => setSubjectId(Number(v))}>
                 <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`}>
                   <SelectValue placeholder="Select Subject" />
@@ -583,12 +585,34 @@ const TakeAttendance = () => {
                   {sections.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <input
-                type="date"
-                value={attendanceDate}
-                onChange={e => setAttendanceDate(e.target.value)}
-                className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${theme === 'dark' ? 'bg-background border-input text-foreground' : 'bg-white border-gray-300 text-gray-900'}`}
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !attendanceDate && "text-muted-foreground",
+                      theme === 'dark' ? 'bg-background border-input text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {attendanceDate ? format(parseISO(attendanceDate), "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={attendanceDate ? parseISO(attendanceDate) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setAttendanceDate(format(date, "yyyy-MM-dd"));
+                      }
+                    }}
+                    initialFocus
+                    className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             {recentRecords.length > 0 && (
@@ -732,11 +756,20 @@ const TakeAttendance = () => {
                         </Button>
                       </div>
 
-                      {errorMsg && <div className={`text-red-400 text-sm p-3 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errorMsg}</div>}
+
                     </div>
                   </div>
                 ) : (
-                  <div className={theme === 'dark' ? 'text-muted-foreground mt-4' : 'text-gray-500 mt-4'}>Select class details to load students.</div>
+                  <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                    }`}>
+                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <UsersIcon className="w-12 h-12 opacity-80" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Ready to take attendance?</h3>
+                    <p className="max-w-xs text-base leading-relaxed">
+                      Select your <span className="font-semibold text-primary">subject</span> and <span className="font-semibold text-primary">class details</span> above to load the student roster.
+                    </p>
+                  </div>
                 )}
               </TabsContent>
 
@@ -854,13 +887,17 @@ const TakeAttendance = () => {
                         </ul>
                       </div>
                     </div>
-                    {errorMsg && <div className={`text-red-400 text-sm p-3 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{errorMsg}</div>}
+
                   </div>
                 ) : (
-                  <div className={`border rounded-md mt-4 p-6 text-center ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
-                    <h3 className={`text-base font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Found</h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      Please select class details above to load students for AI processing.
+                  <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                    }`}>
+                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <UsersIcon className="w-12 h-12 opacity-80" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Found</h3>
+                    <p className="max-w-xs text-base leading-relaxed">
+                      Please select your <span className="font-semibold text-primary">subject</span> and <span className="font-semibold text-primary">class details</span> above to load students for AI processing.
                     </p>
                   </div>
                 )}
