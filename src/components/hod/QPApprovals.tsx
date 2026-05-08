@@ -103,12 +103,12 @@ const QPApprovals = () => {
         },
       });
       const responseData = await response.json();
-      
+
       const hasResults = responseData && typeof responseData === 'object' && 'results' in responseData;
       const dataSource = hasResults ? responseData.results : (Array.isArray(responseData.data) ? responseData.data : []);
-      
+
       setPendingQPs(dataSource);
-      
+
       if (hasResults && responseData.count) {
         setTotalPages(responseData.total_pages || Math.ceil(responseData.count / 10));
         setTotalCount(responseData.count);
@@ -205,9 +205,9 @@ const QPApprovals = () => {
           if (contentLines.length > 0) {
             // write first line and place marks at the right end of the same line
             doc.text(contentLines[0], margin, y);
-            try { doc.setFont(undefined, 'bold'); } catch (e) {}
+            try { doc.setFont(undefined, 'bold'); } catch (e) { }
             doc.text(`${s.max_marks}m`, pageWidth - margin, y, { align: 'right' });
-            try { doc.setFont(undefined, 'normal'); } catch (e) {}
+            try { doc.setFont(undefined, 'normal'); } catch (e) { }
             y += lineHeight;
           }
 
@@ -263,7 +263,7 @@ const QPApprovals = () => {
     });
 
     if (!result || result.isDismissed || !result.isConfirmed) {
-      try { MySwal.close(); } catch (e) {}
+      try { MySwal.close(); } catch (e) { }
       return;
     }
 
@@ -279,7 +279,7 @@ const QPApprovals = () => {
       });
       const data = await response.json();
       if (data.success) {
-        try { MySwal.close(); } catch (e) {}
+        try { MySwal.close(); } catch (e) { }
         const t = toast({ title: 'Approved', description: data.message || 'QP approved and forwarded to Admin.' });
         setTimeout(() => t.dismiss(), 3000);
         fetchPendingQPs(currentPage);
@@ -314,7 +314,7 @@ const QPApprovals = () => {
     });
 
     if (!result || result.isDismissed || !result.isConfirmed) {
-      try { MySwal.close(); } catch (e) {}
+      try { MySwal.close(); } catch (e) { }
       return;
     }
 
@@ -330,7 +330,7 @@ const QPApprovals = () => {
       });
       const data = await response.json();
       if (data.success) {
-        try { MySwal.close(); } catch (e) {}
+        try { MySwal.close(); } catch (e) { }
         const t = toast({ title: 'Rejected', description: data.message || 'QP rejected and sent back to Faculty for edits.' });
         setTimeout(() => t.dismiss(), 3000);
         fetchPendingQPs(currentPage);
@@ -378,7 +378,7 @@ const QPApprovals = () => {
         <CardContent className="flex-1 overflow-hidden px-4 sm:px-6 pt-0">
           <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4">
             {pendingQPs.length === 0 ? (
-              <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+              <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
                   <ClipboardCheck className="w-12 h-12 opacity-80" />
                 </div>
@@ -399,7 +399,7 @@ const QPApprovals = () => {
                             {qp.test_type}
                           </Badge>
                         </div>
-                        
+
                         <div className="space-y-1.5 mb-3">
                           <p className="text-sm flex items-center gap-2">
                             <span className="text-muted-foreground font-medium">Faculty:</span>
@@ -418,7 +418,7 @@ const QPApprovals = () => {
                         </div>
 
                         {qp.last_action && (
-                          <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-muted/30' : 'bg-white border'}`}>
+                          <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
                             <p className="font-medium mb-1">Last Action: {qp.last_action.action}</p>
                             <p className="text-muted-foreground italic line-clamp-2">
                               "{qp.last_action.comment || 'No comment provided'}"
@@ -431,7 +431,7 @@ const QPApprovals = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-white border-gray-300'}`}
+                          className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
                           onClick={() => handleReview(qp)}
                         >
                           <Eye className="w-4 h-4" />
@@ -468,7 +468,7 @@ const QPApprovals = () => {
                   let pageNum = currentPage <= 3 ? i + 1 : (currentPage >= totalPages - 2 ? totalPages - 4 + i : currentPage - 2 + i);
                   if (pageNum < 1) pageNum = i + 1;
                   if (pageNum > totalPages) return null;
-                  
+
                   return (
                     <Button
                       key={pageNum}
@@ -513,7 +513,7 @@ const QPApprovals = () => {
             setQpDetail(null);
             setComment("");
           }}
-          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90vw] mx-4 rounded-lg flex flex-col max-h-[92vh]`}>
+          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90vw] mx-4 rounded-lg flex flex-col max-h-[92vh] custom-scrollbar`}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type}</DialogTitle>
           </DialogHeader>
@@ -521,53 +521,53 @@ const QPApprovals = () => {
             {detailLoading ? (
               <div className="text-center py-4">Loading QP details...</div>
             ) : qpDetail ? (
-                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                  <h4 className="font-semibold mb-4">Question Paper Preview</h4>
-                  <div className="space-y-4">
-                    {qpDetail.questions.map((q, qIndex) => (
-                      <div key={qIndex} className="space-y-3">
-                        {q.subparts.map((s, sIndex) => {
-                          const key = `${qIndex}-${sIndex}`;
-                          const isExpanded = !!expanded[key];
-                          const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : (s.content || '');
-                          return (
-                            <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
-                              <div className="flex items-start gap-3">
-                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
-                                  {q.question_number}{s.subpart_label}
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                <h4 className="font-semibold mb-4">Question Paper Preview</h4>
+                <div className="space-y-4">
+                  {qpDetail.questions.map((q, qIndex) => (
+                    <div key={qIndex} className="space-y-3">
+                      {q.subparts.map((s, sIndex) => {
+                        const key = `${qIndex}-${sIndex}`;
+                        const isExpanded = !!expanded[key];
+                        const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : (s.content || '');
+                        return (
+                          <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
+                            <div className="flex items-start gap-3">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
+                                {q.question_number}{s.subpart_label}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start gap-4">
+                                  <div className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1">
+                                    {isExpanded ? s.content : shortContent}
+                                  </div>
+                                  <div className="ml-2 flex-shrink-0">
+                                    <Badge className="text-black font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
+                                  </div>
                                 </div>
-                                <div className="flex-1">
-                                  <div className="flex justify-between items-start gap-4">
-                                    <div className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1">
-                                      {isExpanded ? s.content : shortContent}
-                                    </div>
-                                    <div className="ml-2 flex-shrink-0">
-                                      <Badge className="text-black font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                                    <Badge className="text-black bg-transparent">CO: {q.co}</Badge>
-                                    <Badge className="text-black bg-transparent">{q.blooms_level}</Badge>
-                                    {((s.content || '').length > 160) && (
-                                      <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
-                                        {isExpanded ? 'Show less' : 'Show more'}
-                                      </button>
-                                    )}
-                                  </div>
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                  <Badge className="text-black bg-transparent">CO: {q.co}</Badge>
+                                  <Badge className="text-black bg-transparent">{q.blooms_level}</Badge>
+                                  {((s.content || '').length > 160) && (
+                                    <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
+                                      {isExpanded ? 'Show less' : 'Show more'}
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    ))}
-                    <div className="font-semibold pt-2 border-t">
-                      Total Marks: {qpDetail.questions.reduce((total, q) => 
-                        total + q.subparts.reduce((subTotal, s) => subTotal + s.max_marks, 0), 0
-                      )}
+                          </div>
+                        );
+                      })}
                     </div>
+                  ))}
+                  <div className="font-semibold pt-2 border-t">
+                    Total Marks: {qpDetail.questions.reduce((total, q) =>
+                      total + q.subparts.reduce((subTotal, s) => subTotal + s.max_marks, 0), 0
+                    )}
                   </div>
                 </div>
+              </div>
             ) : (
               <div className="text-center py-4 text-muted-foreground">
                 Failed to load QP details
@@ -589,17 +589,17 @@ const QPApprovals = () => {
               <Button
                 onClick={() => selectedQP && handleApprove(selectedQP.id)}
                 disabled={actionLoading}
-                className="bg-green-600 hover:bg-green-600 text-white w-full sm:w-auto justify-center transition-none"
+                className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}
               >
-                <CheckCircle className="w-4 h-4 mr-1 hidden sm:inline-block" />
+                <CheckCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                 <span className="whitespace-normal">Approve</span>
               </Button>
               <Button
                 onClick={() => selectedQP && handleReject(selectedQP.id)}
                 disabled={actionLoading}
-                className="bg-red-600 hover:bg-red-600 text-white w-full sm:w-auto justify-center transition-none"
+                className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
               >
-                <XCircle className="w-4 h-4 mr-1 hidden sm:inline-block" />
+                <XCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
                 <span className="whitespace-normal">Reject</span>
               </Button>
             </div>
