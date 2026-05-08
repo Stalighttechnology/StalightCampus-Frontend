@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { FaUserTie, FaUserCheck, FaUserSlash, FaUserShield } from "react-icons/fa";
 import { AlertCircle } from "lucide-react";
 import DashboardCard from "../common/DashboardCard";
+import { Card, CardContent } from "../ui/card";
 
 const DeanAttendance = () => {
   const { theme } = useTheme();
@@ -115,7 +116,7 @@ const DeanAttendance = () => {
             <div className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <div className="text-lg font-semibold mb-3">HODs — {isMonthly ? 'Monthly Report' : 'Today'}</div>
               <div className="grid grid-cols-1 gap-3">
-                {hodList.map((h: any) => (
+                {hodList.length > 0 ? hodList.map((h: any) => (
                   <div key={h.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
                     <div>
                       <div className="font-medium">{h.name}</div>
@@ -150,7 +151,16 @@ const DeanAttendance = () => {
                       )}
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <Card className="border-dashed border-2 shadow-none bg-transparent">
+                    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
+                        <FaUserTie className="w-8 h-8 text-primary/40" />
+                      </div>
+                      <p className="text-sm text-muted-foreground font-semibold">No HOD records found</p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
 
@@ -185,7 +195,16 @@ const DeanAttendance = () => {
                       )}
                     </div>
                   </div>
-                )}) : <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No admin users found.</div>}
+                )}) : (
+                  <Card className="border-dashed border-2 shadow-none bg-transparent">
+                    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
+                        <FaUserShield className="w-8 h-8 text-primary/40" />
+                      </div>
+                      <p className="text-sm text-muted-foreground font-semibold">No admin records found</p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </div>

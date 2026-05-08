@@ -370,9 +370,9 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
             <>
               <div className="filters-row flex flex-col lg:flex-row gap-6 items-start lg:items-end mb-6">
                 <div className="flex-1">
-                  <Label className={`text-sm mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Branch</Label>
+                  <Label className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Branch</Label>
                   <Select value={selectedBranch || ''} onValueChange={(val) => setSelectedBranch(val || null)}>
-                    <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}>
+                    <SelectTrigger className={`w-full font-normal ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
                       <SelectValue placeholder="Select a branch" />
                     </SelectTrigger>
                     <SelectContent>
@@ -386,7 +386,7 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
                 </div>
 
                 <div className="flex-1">
-                  <Label className={`text-sm mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Faculty</Label>
+                  <Label className={`text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Faculty</Label>
                   <FacultySearchDropdown
                     selectedBranch={selectedBranch}
                     selectedFaculty={selectedFaculty}
@@ -514,8 +514,16 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
                   </div>
                 </div>
               ) : (
-                <div className={`p-8 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border text-muted-foreground' : 'border-gray-200 text-gray-500'}`}>
-                  Select a faculty member to view their profile.
+                <div className={`flex flex-col items-center justify-center py-24 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                  <div className={`p-5 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                    <AlertCircle className="w-10 h-10 text-primary opacity-50" />
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    Select a Faculty Member to View Profile
+                  </h3>
+                  <p className={`text-center max-w-md text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Choose a branch and then select a faculty member from the dropdown above to view their detailed performance analytics, schedule, and attendance history.
+                  </p>
                 </div>
               )}
             </>
@@ -833,9 +841,9 @@ function FacultySearchDropdown({
           variant="outline"
           role="combobox"
           className={cn(
-            "w-full justify-between h-10 transition-all",
+            "w-full justify-between h-10 transition-all font-normal",
             !selectedFaculty && "text-muted-foreground",
-            theme === 'dark' ? 'bg-background border-border hover:bg-muted' : 'bg-white border-gray-300 hover:bg-gray-50'
+            theme === 'dark' ? 'bg-background border-border hover:bg-muted' : 'bg-white border-gray-200 hover:bg-gray-50'
           )}
           disabled={!selectedBranch}
         >

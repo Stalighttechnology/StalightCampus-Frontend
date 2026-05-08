@@ -281,122 +281,129 @@ const DeanExams: React.FC = () => {
                         </Badge>
                       </div>
 
-                      <div className={`rounded-xl border shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-                        }`}>
-                        <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
-                            <thead className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
-                              <tr className={`text-left text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'
-                                }`}>
-                                <th className="px-6 py-4">Exam Details</th>
-                                <th className="px-6 py-4 text-center">Batch / Sem</th>
-                                <th className="px-6 py-4 text-center">Date & Time</th>
-                                <th className="px-6 py-4">Venue</th>
-                                <th className="px-6 py-4 text-center">Status</th>
-                                <th className="px-6 py-4 text-center">Published</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                              {list.length === 0 ? (
-                                <tr>
-                                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground italic">
-                                    <div className="flex flex-col items-center gap-2">
-                                      <BookOpen className="w-8 h-8 opacity-20" />
-                                      <p>No {sectionKey} exams found</p>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ) : list.map((ex: ExamEntry) => (
-                                <tr key={ex.id} className={`text-sm hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
-                                  <td className="px-6 py-4">
-                                    <div className="font-semibold text-foreground">
-                                      {ex.title || ex.subject || 'Exam'}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground mt-0.5">
-                                      {ex.subject} • {ex.branch}
-                                    </div>
-                                    <div className="mt-1 flex gap-1">
-                                      {ex.exam_type && <Badge variant="outline" className="text-[10px] py-0">{ex.exam_type.replace('_', ' ')}</Badge>}
-                                      {ex.exam_period && <Badge variant="outline" className="text-[10px] py-0">{ex.exam_period.replace('_', '/')}</Badge>}
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 text-center">
-                                    <div className="font-medium">{ex.batch || '-'}</div>
-                                    <div className="text-xs text-muted-foreground">Sem {ex.semester || '-'}</div>
-                                  </td>
-                                  <td className="px-6 py-4 text-center whitespace-nowrap">
-                                    <div className="font-medium">{formatDate(ex.date)}</div>
-                                    <div className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-1">
-                                      <Clock className="w-3 h-3" />
-                                      {ex.start_time || '-'} - {ex.end_time || '-'}
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <Badge variant="secondary" className="font-medium">
-                                      {ex.room || 'TBD'}
-                                    </Badge>
-                                  </td>
-
-                                  <td className="px-6 py-4 text-center">
-                                    <Badge className={`capitalize ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                                      computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                                        'bg-gray-500/10 text-gray-600 border-gray-500/20'
-                                      }`} variant="outline">
-                                      {computeStatus(ex)}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-6 py-4 text-center">
-                                    {ex.is_published ? (
-                                      <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                                    ) : (
-                                      <span className="text-xs text-muted-foreground italic">Draft</span>
-                                    )}
-                                  </td>
-                                  <td className="px-6 py-4 text-right">
-                                    {!ex.is_published && (
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() => publishExam(ex.id)}
-                                        className="h-8 text-xs font-semibold"
-                                      >
-                                        Publish
-                                      </Button>
-                                    )}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                      {list.length === 0 ? (
+                        <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                          <div className={`p-5 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                            <BookOpen className="w-10 h-10 text-primary opacity-50" />
+                          </div>
+                          <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            No {sectionKey === 'other' ? 'Scheduled' : sectionKey} Exams Found
+                          </h3>
+                          <p className={`text-center max-w-sm text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            There are currently no {sectionKey === 'other' ? 'scheduled' : sectionKey} exams in the system. New entries will appear here once scheduled.
+                          </p>
                         </div>
-                      </div>
+                      ) : (
+                        <div className={`rounded-xl border shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
+                          }`}>
+                          <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
+                              <thead className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
+                                <tr className={`text-left text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'
+                                  }`}>
+                                  <th className="px-6 py-4">Exam Details</th>
+                                  <th className="px-6 py-4 text-center">Batch / Sem</th>
+                                  <th className="px-6 py-4 text-center">Date & Time</th>
+                                  <th className="px-6 py-4">Venue</th>
+                                  <th className="px-6 py-4 text-center">Status</th>
+                                  <th className="px-6 py-4 text-center">Published</th>
+                                  <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                                {list.map((ex: ExamEntry) => (
+                                  <tr key={ex.id} className={`text-sm hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
+                                    <td className="px-6 py-4">
+                                      <div className="font-semibold text-foreground">
+                                        {ex.title || ex.subject || 'Exam'}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground mt-0.5">
+                                        {ex.subject} • {ex.branch}
+                                      </div>
+                                      <div className="mt-1 flex gap-1">
+                                        {ex.exam_type && <Badge variant="outline" className="text-[10px] py-0">{ex.exam_type.replace('_', ' ')}</Badge>}
+                                        {ex.exam_period && <Badge variant="outline" className="text-[10px] py-0">{ex.exam_period.replace('_', '/')}</Badge>}
+                                      </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                      <div className="font-medium">{ex.batch || '-'}</div>
+                                      <div className="text-xs text-muted-foreground">Sem {ex.semester || '-'}</div>
+                                    </td>
+                                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                                      <div className="font-medium">{formatDate(ex.date)}</div>
+                                      <div className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-1">
+                                        <Clock className="w-3 h-3" />
+                                        {ex.start_time || '-'} - {ex.end_time || '-'}
+                                      </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                      <Badge variant="secondary" className="font-medium">
+                                        {ex.room || 'TBD'}
+                                      </Badge>
+                                    </td>
+
+                                    <td className="px-6 py-4 text-center">
+                                      <Badge className={`capitalize ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                                        computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                                          'bg-gray-500/10 text-gray-600 border-gray-500/20'
+                                        }`} variant="outline">
+                                        {computeStatus(ex)}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                      {ex.is_published ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
+                                      ) : (
+                                        <span className="text-xs text-muted-foreground">Draft</span>
+                                      )}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                      {!ex.is_published && (
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          onClick={() => publishExam(ex.id)}
+                                          className="h-8 text-xs font-semibold"
+                                        >
+                                          Publish
+                                        </Button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
 
                 {pagination.totalPages > 1 && (
-                  <div className="flex items-center justify-between px-6 py-4 border-t border-border mt-6">
-                    <div className="text-xs text-muted-foreground">
-                      Showing {exams.length} of {pagination.totalItems} exams
+                  <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-6 border-t border-border mt-8 gap-4">
+                    <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Showing {((pagination.currentPage - 1) * 10) + 1} to {Math.min(pagination.currentPage * 10, pagination.totalItems)} of {pagination.totalItems} exams
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-3">
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={pagination.currentPage === 1 || loading}
                         onClick={() => load(pagination.currentPage - 1)}
+                        className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
                       >
                         Previous
                       </Button>
-                      <div className="flex items-center px-4 text-sm font-medium">
-                        Page {pagination.currentPage} of {pagination.totalPages}
+                      <div className={`flex items-center justify-center min-w-[40px] h-9 px-3 text-sm font-bold rounded-lg border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                        {pagination.currentPage}
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={pagination.currentPage === pagination.totalPages || loading}
                         onClick={() => load(pagination.currentPage + 1)}
+                        className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
                       >
                         Next
                       </Button>
