@@ -103,7 +103,7 @@ const AdminHODAttendance: React.FC = () => {
   const getStatusIcon = (status: string) => {
     const s = (status || '').toLowerCase();
     if (s === 'present') return <CheckCircle className="w-5 h-5 text-green-500" />;
-    return <Clock className="w-5 h-5 text-gray-400" />;
+    return null;
   };
 
   const getStatusBadge = (status: string) => {
@@ -240,7 +240,29 @@ const AdminHODAttendance: React.FC = () => {
   };
 
   return (
-    <div className={`space-y-4 sm:space-y-6 text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .attendance-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .attendance-card { border-radius: 12px !important; }
+          .attendance-table-header { font-size: 11px !important; padding: 12px 8px !important; }
+          .attendance-table-cell { font-size: 13px !important; padding: 12px 8px !important; }
+          .attendance-pagination { flex-direction: column !important; gap: 12px !important; align-items: center !important; text-align: center !important; }
+          .faculty-name-cell { font-size: 14px !important; font-weight: 600 !important; }
+          .branch-cell { font-size: 15px !important; color: hsl(var(--muted-foreground)) !important; }
+        }
+        .custom-table-header {
+          background-color: ${theme === 'dark' ? 'rgba(255,255,255,0.03)' : '#f8fafc'} !important;
+          border-bottom: 2px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#e2e8f0'} !important;
+        }
+        .custom-header-text {
+          font-weight: 700 !important;
+          color: ${theme === 'dark' ? '#94a3b8' : '#475569'} !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+        }
+      `}</style>
+      <div className={`space-y-4 sm:space-y-6 text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Tabs */}
       <div className={`flex space-x-1 p-1 rounded-lg ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
         <button onClick={() => setActiveTab('today')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'today' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Today's Attendance</button>
@@ -285,13 +307,13 @@ const AdminHODAttendance: React.FC = () => {
               </div>
             </div>
             <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
-                  <p className={`text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
+                    <p className={`text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-gray-400" />
                 </div>
-                <Clock className="w-8 h-8 text-gray-600" />
-              </div>
             </div>
           </div>
 
@@ -323,12 +345,17 @@ const AdminHODAttendance: React.FC = () => {
                   </thead>
                   <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
                     {todayRows.map((r, idx) => (
-                      <tr key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
-                        <td className="px-3 py-4 font-medium text-gray-900 truncate">{r.branch}</td>
-                        <td className="px-3 py-4 text-gray-900 truncate">{r.hod_name}</td>
-                        <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 truncate">{r.contact || '-'}</td>
-                        <td className="px-3 py-4"><div className="flex items-center gap-2">{getStatusIcon(r.status)}<span className={getStatusBadge(r.status)}>{r.status}</span></div></td>
-                        <td className="px-3 py-4 text-sm text-gray-600 truncate">
+                      <tr key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} transition-colors`}>
+                        <td className="px-3 py-4 font-medium text-gray-900 whitespace-normal break-words branch-cell">{r.branch}</td>
+                        <td className="px-3 py-4 text-gray-900 whitespace-normal break-words faculty-name-cell">{r.hod_name}</td>
+                        <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.contact || '-'}</td>
+                        <td className="px-3 py-4">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(r.status)}
+                            <span className={getStatusBadge(r.status)}>{r.status}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">
                           {r.location ? (
                             <>
                               {r.location.inside ? 'On campus' : 'Outside campus'}
@@ -336,8 +363,8 @@ const AdminHODAttendance: React.FC = () => {
                             </>
                           ) : '-'}
                         </td>
-                        <td className="px-3 py-4 text-sm text-gray-600 truncate">{r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</td>
-                        <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 truncate">{r.notes || '-'}</td>
+                        <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">{r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</td>
+                        <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.notes || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -352,14 +379,18 @@ const AdminHODAttendance: React.FC = () => {
                   <div key={idx} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-sm text-gray-500">{r.branch}</div>
-                        <div className="font-medium text-gray-900 truncate">{r.hod_name}</div>
+                        <div className="text-sm text-gray-500 whitespace-normal break-words">{r.branch}</div>
+                        <div className="font-medium text-gray-900 whitespace-normal break-words">{r.hod_name}</div>
                       </div>
-                      <div className="text-sm text-right">
-                        <div className="mt-1">{getStatusIcon(r.status)}<span className={`ml-2 ${getStatusBadge(r.status)}`}>{r.status}</span></div>
+                      <div className="text-sm text-right shrink-0">
+                        <div className="mt-1 flex items-center justify-end gap-1">
+                          {getStatusIcon(r.status)}
+                          <span className={getStatusBadge(r.status)}>{r.status}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-2 text-sm text-gray-600">Marked: {r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</div>
+                    <div className="mt-2 text-sm text-gray-600 whitespace-normal break-words">Marked: {r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</div>
+                    {r.notes && <div className="mt-1 text-xs text-muted-foreground italic whitespace-normal break-words">Note: {r.notes}</div>}
                   </div>
                 ))
               )}
@@ -528,15 +559,15 @@ const AdminHODAttendance: React.FC = () => {
                       <TableHead className="px-6 py-3 text-left">Total Days</TableHead>
                       <TableHead className="px-6 py-3 text-left">Present</TableHead>
                       <TableHead className="px-6 py-3 text-left">Absent</TableHead>
-                      <TableHead className="px-6 py-3 text-left">Attendance %</TableHead>
+                      <TableHead className="px-6 py-3 text-left">Attendance</TableHead>
                       <TableHead className="px-6 py-3 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {facultySummary.map((s, idx) => (
-                      <TableRow key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
-                        <TableCell className="font-medium text-foreground">{s.hod_name}</TableCell>
-                        <TableCell className="text-foreground">{s.branch}</TableCell>
+                      <TableRow key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} transition-colors border-b last:border-0`}>
+                        <TableCell className="font-semibold text-foreground faculty-name-cell py-5">{s.hod_name}</TableCell>
+                        <TableCell className="text-foreground branch-cell py-5">{s.branch}</TableCell>
                         <TableCell className="text-foreground">{s.total_days}</TableCell>
                         <TableCell className="text-green-600 font-medium">{s.present_days}</TableCell>
                         <TableCell className="text-red-600 font-medium">{s.absent_days}</TableCell>
@@ -650,7 +681,8 @@ const AdminHODAttendance: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 };
 

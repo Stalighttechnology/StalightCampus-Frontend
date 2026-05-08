@@ -141,9 +141,26 @@ export const AnnouncementSections = ({
   ).length;
 
   return (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .ann-tabs-list { width: 100% !important; grid-template-columns: 1fr 1fr !important; }
+          .ann-archive-btn { width: 100% !important; margin-top: 10px !important; }
+          .ann-table-container { border: none !important; }
+          .ann-card-mobile { padding: 16px !important; margin-bottom: 12px !important; border-radius: 12px !important; border: 1px solid hsl(var(--border)) !important; }
+          .ann-card-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+          .ann-card-title { font-size: 1rem !important; font-weight: 600 !important; line-height: 1.3 !important; }
+          .ann-card-meta { display: flex; flex-direction: column; gap: 4px; }
+          .ann-card-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+          .ann-card-actions { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid hsl(var(--border)); pt: 12px; margin-top: 12px; }
+          .ann-card-actions-row { display: flex; gap: 8px; }
+          .ann-card-actions-row button { flex: 1; }
+          .ann-pagination { flex-direction: column !important; gap: 16px !important; align-items: center !important; text-align: center !important; }
+        }
+      `}</style>
+      <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <TabsList className="grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl">
+        <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl">
           <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
             <span className="text-sm font-semibold">My Announcements</span>
             {myPagination && myPagination.count > 0 && (
@@ -174,7 +191,7 @@ export const AnnouncementSections = ({
           variant="outline"
           size="sm"
           onClick={() => setShowExpired(!showExpired)}
-          className={`text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${showExpired
+          className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${showExpired
               ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
               : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
             }`}
@@ -199,8 +216,9 @@ export const AnnouncementSections = ({
             </p>
           </div>
         ) : (
-          <div className={`rounded-2xl border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'} overflow-hidden shadow-sm`}>
-            <div className="overflow-x-auto custom-scrollbar">
+          <div className={`ann-table-container rounded-2xl border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'} overflow-hidden shadow-sm`}>
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto custom-scrollbar">
               <Table>
                 <TableHeader>
                   <TableRow className={theme === 'dark' ? 'hover:bg-transparent' : 'bg-gray-50/50 hover:bg-gray-50/50'}>
@@ -325,12 +343,93 @@ export const AnnouncementSections = ({
                 </TableBody>
               </Table>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="block sm:hidden space-y-3 p-3">
+              {filteredMyAnnouncements.map((announcement) => {
+                const expired = isExpired(announcement.expires_at);
+                return (
+                  <div key={announcement.id} className={`ann-card-mobile ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'} ${expired ? 'opacity-60' : ''}`}>
+                    <div className="ann-card-header">
+                      <div className="flex justify-between items-start">
+                        <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-bold px-2 py-0.5`}>
+                          {announcement.priority}
+                        </Badge>
+                        {!announcement.is_active ? (
+                          <Badge variant="outline" className="text-[10px] text-yellow-600 border-yellow-200">Inactive</Badge>
+                        ) : expired ? (
+                          <Badge variant="outline" className="text-[10px] text-gray-500 border-gray-200">Expired</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] text-green-600 border-green-200">Active</Badge>
+                        )}
+                      </div>
+                      <div className="ann-card-title text-foreground">{announcement.title}</div>
+                      <div className="ann-card-meta">
+                        <span className="text-xs text-primary/80 font-semibold flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5" /> {announcement.created_by_name}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5" /> {formatDate(announcement.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="ann-card-badges">
+                      {announcement.target_roles.map((role) => (
+                        <Badge key={role} variant="outline" className="text-[10px] capitalize px-2 h-5 bg-background">
+                          {role}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <div className="ann-card-actions">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full h-9 text-xs font-semibold bg-background border-primary/20 text-primary"
+                        onClick={() => setViewingAnnouncement(announcement)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" /> View Content
+                      </Button>
+                      {showActions && (
+                        <div className="ann-card-actions-row">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`h-9 text-[13px] border ${announcement.is_active ? 'text-orange-500 border-orange-100 bg-orange-50/30' : 'text-green-500 border-green-100 bg-green-50/30'}`}
+                            onClick={() => onToggleActive(announcement.id)}
+                          >
+                            {announcement.is_active ? "Deactivate" : "Activate"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-9 text-[13px] border border-border"
+                            onClick={() => onEdit(announcement)}
+                          >
+                            <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-9 text-[13px] border border-destructive/20 text-destructive bg-destructive/5"
+                            onClick={() => onDelete(announcement.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
         {/* Pagination for My Announcements */}
         {myPagination && myPagination.count > 0 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4">
+          <div className="ann-pagination flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4">
             <div>
               Showing {Math.min((myPagination.page - 1) * myPagination.pageSize + 1, myPagination.count)} to {Math.min(myPagination.page * myPagination.pageSize, myPagination.count)} of {myPagination.count} announcements
             </div>
@@ -381,8 +480,9 @@ export const AnnouncementSections = ({
             </p>
           </div>
         ) : (
-          <div className={`rounded-2xl border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'} overflow-hidden shadow-sm`}>
-            <div className="overflow-x-auto custom-scrollbar">
+          <div className={`ann-table-container rounded-2xl border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'} overflow-hidden shadow-sm`}>
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto custom-scrollbar">
               <Table>
                 <TableHeader>
                   <TableRow className={theme === 'dark' ? 'hover:bg-transparent' : 'bg-gray-50/50 hover:bg-gray-50/50'}>
@@ -461,12 +561,71 @@ export const AnnouncementSections = ({
                 </TableBody>
               </Table>
             </div>
+
+            {/* Mobile Card View (Received) */}
+            <div className="block sm:hidden space-y-3 p-3">
+              {filteredReceivedAnnouncements.map((announcement) => {
+                const unread = announcement.is_read === false;
+                return (
+                  <div key={announcement.id} className={`ann-card-mobile ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'} ${unread ? 'border-primary/40 bg-primary/5' : ''}`}>
+                    <div className="ann-card-header">
+                      <div className="flex justify-between items-start">
+                        <Badge className={`${getPriorityColor(announcement.priority)} text-[10px] uppercase font-bold px-2 py-0.5`}>
+                          {announcement.priority}
+                        </Badge>
+                        {unread ? (
+                          <Badge className="bg-primary text-white text-[10px]">Unread</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] text-muted-foreground">Read</Badge>
+                        )}
+                      </div>
+                      <div className="ann-card-title text-foreground">
+                        {unread && <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 shadow-sm" />}
+                        {announcement.title}
+                      </div>
+                      <div className="ann-card-meta">
+                        <span className="text-xs text-primary/80 font-semibold flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5" /> {announcement.created_by_name}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5" /> {format(new Date(announcement.created_at), 'dd MMM, HH:mm')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="ann-card-actions">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full h-9 text-xs font-semibold bg-background border-primary/20 text-primary"
+                        onClick={() => {
+                          setViewingAnnouncement(announcement);
+                          if (unread && onMarkRead) onMarkRead(announcement.id);
+                        }}
+                      >
+                        <Eye className="w-4 h-4 mr-2" /> View Content
+                      </Button>
+                      {unread && onMarkRead && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full h-9 text-xs text-primary bg-primary/10 hover:bg-primary/20"
+                          onClick={() => onMarkRead(announcement.id)}
+                        >
+                          Mark as Read
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
         {/* Pagination for Received Announcements */}
         {receivedPagination && receivedPagination.count > 0 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4">
+          <div className="ann-pagination flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4">
             <div>
               Showing {Math.min((receivedPagination.page - 1) * receivedPagination.pageSize + 1, receivedPagination.count)} to {Math.min(receivedPagination.page * receivedPagination.pageSize, receivedPagination.count)} of {receivedPagination.count} announcements
             </div>
@@ -564,7 +723,8 @@ export const AnnouncementSections = ({
           </div>
         </DialogContent>
       </Dialog>
-    </Tabs>
+      </Tabs>
+    </>
   );
 };
 

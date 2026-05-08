@@ -122,6 +122,7 @@ const ApplyLeaveAdmin = () => {
         end_date: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(dateRange.from, "yyyy-MM-dd"),
         reason: reason.trim(),
       };
+      const response = await adminLeaveApplications(request as any, "POST");
       if (response.success && response.data) {
         fetchLeaves(1);
 
@@ -180,13 +181,37 @@ const ApplyLeaveAdmin = () => {
   };
 
   return (
-    <div className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .apply-leave-container { padding: 12px !important; }
+          .apply-leave-card { border-radius: 12px !important; }
+          .apply-leave-title { font-size: 1.25rem !important; margin-bottom: 4px !important; }
+          .apply-leave-desc { font-size: 0.8125rem !important; }
+          .apply-leave-label { font-size: 0.875rem !important; font-weight: 600 !important; }
+          .apply-leave-input { font-size: 14px !important; height: 44px !important; }
+          .apply-leave-btn { height: 44px !important; font-size: 15px !important; font-weight: 600 !important; }
+          .calendar-popover-content { 
+            width: 92vw !important; 
+            max-width: 340px !important; 
+            padding: 0 !important; 
+            margin: 0 auto !important;
+            overflow: hidden !important;
+          }
+          .rdp { margin: 0 !important; width: 100% !important; }
+          .rdp-months { width: 100% !important; }
+          .rdp-month { width: 100% !important; }
+          .rdp-table { width: 100% !important; max-width: 100% !important; }
+        }
+      `}</style>
+
+      <div className={`apply-leave-container p-4 sm:p-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Main Container with Flex Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+        <Card className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader>
-            <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+            <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Error Message */}
@@ -198,49 +223,59 @@ const ApplyLeaveAdmin = () => {
 
             {/* Leave Title */}
             <div className="space-y-2">
-              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title for Leave *</Label>
+              <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title for Leave *</Label>
               <Input
                 value={leaveTitle}
                 onChange={(e) => setLeaveTitle(e.target.value)}
                 placeholder="Enter a title for your leave"
                 disabled={loading}
-                className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}
+                className={`apply-leave-input ${theme === 'dark' ? 'w-full bg-background text-foreground border-border focus:ring-primary/30' : 'w-full bg-white text-gray-900 border-gray-300 focus:ring-primary/20'}`}
               />
             </div>
 
             {/* Date Range */}
             <div className="space-y-2">
-              <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Date Range *</Label>
+              <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}
+                    className={`apply-leave-input ${theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}`}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange?.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
-                        </>
+                    <span className="truncate">
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
+                          </>
+                        ) : (
+                          format(dateRange.from, "PPP")
+                        )
                       ) : (
-                        format(dateRange.from, "PPP")
-                      )
-                    ) : (
-                      <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
-                    )}
+                        <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
+                      )}
+                    </span>
                   </Button>
                 </PopoverTrigger>
 
                 {/* Calendar with theme support and disabled past dates */}
-                <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
+                <PopoverContent 
+                  className={cn("calendar-popover-content", theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-xl' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-xl')}
+                  align="center"
+                  side="bottom"
+                  sideOffset={4}
+                >
                   <Calendar
                     mode="range"
                     selected={dateRange}
                     onSelect={setDateRange}
                     disabled={(date) => date < today} // Disable dates before today
                     initialFocus
-                    className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'}
+                    className={cn(
+                      "rounded-lg border-none",
+                      theme === 'dark' ? 'bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'
+                    )}
                   />
                 </PopoverContent>
               </Popover>
@@ -248,13 +283,13 @@ const ApplyLeaveAdmin = () => {
 
             {/* Reason for Leave */}
             <div className="space-y-2">
-              <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason for Leave *</Label>
+              <Label htmlFor="reason" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason for Leave *</Label>
               <Textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Please provide a detailed reason for your leave request"
-                className={theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border' : 'min-h-[100px] bg-white text-gray-900 border-gray-300'}
+                className={`apply-leave-input ${theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border focus:ring-primary/30' : 'min-h-[100px] bg-white text-gray-900 border-gray-300 focus:ring-primary/20'}`}
                 disabled={loading}
               />
             </div>
@@ -262,7 +297,7 @@ const ApplyLeaveAdmin = () => {
             {/* Submit Button */}
             <Button
               onClick={handleSubmit}
-              className={theme === 'dark' ? 'w-full text-white bg-primary hover:bg-[#9147e0] border-border' : 'w-full text-white bg-primary hover:bg-[#9147e0] border-primary'}
+              className={`apply-leave-btn ${theme === 'dark' ? 'w-full text-white bg-primary hover:bg-primary/90 border-border' : 'w-full text-white bg-primary hover:bg-primary/90 border-primary'}`}
               disabled={loading}
             >
               {loading ? "Submitting..." : "Submit Request"}
@@ -271,11 +306,11 @@ const ApplyLeaveAdmin = () => {
         </Card>
 
         {/* Recent Leave Applications - Right Side */}
-        <Card className={theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}>
+        <Card className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader>
             <div>
-              <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+              <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
+              <p className={`apply-leave-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
             </div>
           </CardHeader>
           <CardContent>
@@ -409,7 +444,8 @@ const ApplyLeaveAdmin = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 };
 

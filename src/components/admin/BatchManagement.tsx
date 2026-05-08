@@ -273,21 +273,36 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
   };
 
   return (
-    <div className={` max-w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .batch-table { font-size: 13px !important; }
+          .batch-header-cell { font-size: 13px !important; padding: 12px 8px !important; text-transform: uppercase; letter-spacing: 0.025em; }
+          .batch-body-cell { padding: 12px 8px !important; }
+          .batch-card-header { padding: 16px !important; }
+          .batch-card-content { padding: 12px 16px 16px 16px !important; }
+          .batch-title { font-size: 1.35rem !important; }
+          .batch-desc { font-size: 0.8125rem !important; }
+          .batch-search-mobile { width: 100% !important; margin-top: 8px !important; }
+          .batch-add-controls { gap: 12px !important; }
+        }
+      `}</style>
+
+      <div className={` max-w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       {/* Add New Batch Card */}
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm mb-6' : 'bg-white border border-gray-200 shadow-sm mb-6'}>
-        <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <CardHeader className="batch-card-header pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="w-full">
-            <CardTitle>
+            <CardTitle className="batch-title">
               Add New Batch
             </CardTitle>
-            <p className={`block text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            <p className={`batch-desc block text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Create a batch with start and end years
             </p>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-2 mb-2">
+        <CardContent className="batch-card-content">
+          <div className="batch-add-controls flex flex-col sm:flex-row gap-2 mb-2">
             <Input
               name="start_year"
               type="number"
@@ -317,28 +332,28 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
 
       {/* Existing Batches */}
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]'}>
-        <CardHeader className="pb-2">
+        <CardHeader className="batch-card-header pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle>Existing Batches</CardTitle>
+            <CardTitle className="batch-title">Existing Batches</CardTitle>
             {totalCount > 0 && (
               <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-800'}`}>
                 Total: {totalCount}
               </span>
             )}
           </div>
-          <div className="mt-2 flex items-center justify-between gap-4">
-            <p className={`text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+          <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <p className={`batch-desc text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Manage, edit, or delete created batches
             </p>
             <Input
               placeholder="Search batches..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`h-9 w-full sm:w-64 ${theme === 'dark' ? 'bg-card border-border' : 'bg-gray-50 border-gray-200'}`}
+              className={`batch-search-mobile h-9 w-full sm:w-64 ${theme === 'dark' ? 'bg-card border-border' : 'bg-gray-50 border-gray-200'}`}
             />
           </div>
         </CardHeader>
-        <CardContent className="flex-1 overflow-hidden flex flex-col pt-0">
+        <CardContent className="batch-card-content flex-1 overflow-hidden flex flex-col pt-0">
           {loading ? (
             <SkeletonTable rows={pageSize} cols={4} />
           ) : (
@@ -354,16 +369,16 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
                   </p>
                 </div>
               ) : (
-                <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
-                  <table className="w-full text-[11px] md:text-sm text-left border-collapse table-auto align-middle">
+                <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4 overflow-x-auto">
+                  <table className="batch-table w-full text-[12px] md:text-sm text-left border-collapse table-auto align-middle whitespace-nowrap">
                     <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card border-b border-border shadow-sm' : 'bg-gray-50 border-b border-gray-200 shadow-sm'}`}>
                       <tr>
-                        <th className={`py-3 px-3 text-left font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Batch Name</th>
-                        <th className={`py-3 px-3 hidden sm:table-cell font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Start Year</th>
-                        <th className={`py-3 px-3 hidden sm:table-cell font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>End Year</th>
-                        <th className={`py-3 px-3 w-20 font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Students</th>
-                        <th className={`py-3 px-3 w-28 font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Created At</th>
-                        <th className={`py-3 px-3 w-28 text-right font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
+                        <th className={`batch-header-cell py-3 px-3 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Batch Name</th>
+                        <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Start Year</th>
+                        <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>End Year</th>
+                        <th className={`batch-header-cell py-3 px-3 w-20 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Students</th>
+                        <th className={`batch-header-cell py-3 px-3 w-28 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Created At</th>
+                        <th className={`batch-header-cell py-3 px-3 w-28 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -372,20 +387,20 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
                           key={batch.id}
                           className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}
                         >
-                          <td className="py-3 px-3 align-middle font-medium">
+                          <td className="batch-body-cell py-3 px-3 align-middle font-medium">
                             <div className="truncate">{batch.name}</div>
                           </td>
-                          <td className="py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.start_year}</td>
-                          <td className="py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.end_year}</td>
-                          <td className="py-3 px-3 w-20 text-center align-middle">
+                          <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.start_year}</td>
+                          <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.end_year}</td>
+                          <td className="batch-body-cell py-3 px-3 w-20 text-center align-middle">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${theme === 'dark' ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-600'}`}>
                               {batch.student_count}
                             </span>
                           </td>
-                          <td className="py-3 px-3 w-28 text-center align-middle text-xs opacity-70">
+                          <td className="batch-body-cell py-3 px-3 w-28 text-center align-middle text-[13px] sm:text-xs opacity-70">
                             {new Date(batch.created_at).toLocaleDateString()}
                           </td>
-                          <td className="py-3 px-3 w-28 text-right space-x-1 whitespace-nowrap align-middle">
+                          <td className="batch-body-cell py-3 px-3 w-28 text-right space-x-1 whitespace-nowrap align-middle">
                             <Button size="icon" variant="ghost" onClick={() => handleEditBatch(batch)} disabled={loading} className="h-8 w-8">
                               <Edit className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
                             </Button>
@@ -534,7 +549,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
           </DialogHeader>
           <div className="py-4">
             <p className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
-              Are you sure you want to delete <span className="font-bold text-foreground">"{batchToDelete?.name}"</span>?
+              Are you sure you want to delete <span className="font-semibold text-foreground">"{batchToDelete?.name}"</span>?
             </p>
             <p className="text-sm text-destructive font-medium mt-2">
               This action cannot be undone and will remove all associations.
@@ -560,6 +575,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 };
 

@@ -211,13 +211,40 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
   // Removed global loading return to prevent unmounting of Dialog/State
 
   return (
-    <div className={`${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .assignment-card-header { padding: 16px !important; }
+          .assignment-card-content { padding: 12px 16px 16px 16px !important; }
+          .assignment-title { font-size: 1.35rem !important; margin-bottom: 4px !important; }
+          .assignment-desc { font-size: 0.8125rem !important; }
+          .assign-btn-mobile { margin-top: 8px !important; }
+          
+          .controls-wrapper { gap: 12px !important; margin-bottom: 16px !important; }
+          .search-container { width: 100% !important; }
+          .search-input-mobile { flex: 1 !important; width: 100% !important; }
+          .filter-container { width: 100% !important; }
+          
+          .teacher-card { padding: 16px !important; gap: 12px !important; }
+          .teacher-name { font-size: 1rem !important; margin-bottom: 4px !important; }
+          .teacher-info { font-size: 0.8125rem !important; line-height: 1.5 !important; }
+          .badge-wrapper { margin-top: 4px !important; }
+          
+          .pagination-wrapper { 
+            padding-top: 16px !important; 
+            margin-top: 8px !important; 
+            border-top: 1px solid var(--border);
+          }
+        }
+      `}</style>
+
+      <div className={`${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <Card className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
-        <CardHeader>
+        <CardHeader className="assignment-card-header">
           <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty-Branch Assignments</CardTitle>
-              <p className={`block text-xs md:text-base text-gray-500 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Assign primary branches to faculty members</p>
+              <CardTitle className={`assignment-title text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty-Branch Assignments</CardTitle>
+              <p className={`assignment-desc block text-xs md:text-base text-gray-500 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Assign primary branches to faculty members</p>
             </div>
             <div className="w-full sm:w-auto">
               <Button
@@ -226,7 +253,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                   setSelectedBranch("");
                   setShowBranchDialog(true);
                 }}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white"
+                className="assign-btn-mobile w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white"
               >
                 <Building className="h-4 w-4" />
                 Assign Primary Branch
@@ -234,16 +261,16 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="assignment-card-content">
           {/* Search and Filter Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
-            <div className="flex gap-2">
+          <div className="controls-wrapper flex flex-col sm:flex-row gap-4 mb-4">
+            <div className="search-container flex gap-2">
               <Input
                 placeholder="Search teachers by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleSearchKeyPress}
-                className="w-64"
+                className="search-input-mobile w-64"
               />
               <Button
                 onClick={performSearch}
@@ -254,7 +281,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                 <Search className="h-4 w-4" />
               </Button>
             </div>
-            <div className="sm:w-48">
+            <div className="filter-container sm:w-48">
               <Select value={branchFilter || "all"} onValueChange={(value) => setBranchFilter(value === "all" ? "" : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by branch" />
@@ -275,11 +302,11 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             {loading ? (
               <SkeletonTable rows={5} cols={1} />
             ) : (
-              <div className="grid grid-cols-1 gap-2 sm:gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4">
                 {teachers.map((teacher) => (
                   <Card
                     key={teacher.id}
-                    className="p-2 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
+                    className="teacher-card p-3 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
                     onClick={() => {
                       setSelectedTeacher(teacher);
                       if (teacher.primary_branch) {
@@ -291,24 +318,26 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                     }}
                   >
                     <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
-                      <div>
-                        <h3 className="text-sm sm:text-lg font-semibold">
+                      <div className="w-full">
+                        <h3 className="teacher-name text-sm sm:text-lg font-semibold">
                           {teacher.first_name} {teacher.last_name}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{teacher.email}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="teacher-info text-sm text-gray-600 dark:text-gray-400">{teacher.email}</p>
+                        <p className="teacher-info text-sm text-gray-600 dark:text-gray-400 mt-1">
                           Branch: {teacher.primary_branch && teacher.primary_branch.name ? teacher.primary_branch.name : "Not Assigned"}
                         </p>
                       </div>
-                      {teacher.primary_branch && teacher.primary_branch.name ? (
-                        <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-xs'}>
-                          {teacher.primary_branch.name}
-                        </Badge>
-                      ) : (
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
-                          Not Assigned
-                        </span>
-                      )}
+                      <div className="badge-wrapper">
+                        {teacher.primary_branch && teacher.primary_branch.name ? (
+                          <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-[10px] sm:text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-[10px] sm:text-xs'}>
+                            {teacher.primary_branch.name}
+                          </Badge>
+                        ) : (
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
+                            Not Assigned
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 ))}
@@ -318,8 +347,8 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
 
           {/* Pagination Info - moved to bottom */}
           {!loading && (
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600 mt-0">
-              <div>
+            <div className="pagination-wrapper flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600 mt-2">
+              <div className="text-xs sm:text-sm">
                 Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} teachers
               </div>
               <div className="flex items-center gap-2">
@@ -481,7 +510,8 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 };
 

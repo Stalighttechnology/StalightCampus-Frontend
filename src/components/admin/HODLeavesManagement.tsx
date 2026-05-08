@@ -273,20 +273,34 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   }
 
   return (
-    <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .leave-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .leave-card-title { font-size: 1.25rem !important; }
+          .leave-card-desc { font-size: 0.8125rem !important; margin-top: 4px !important; }
+          .leave-month-picker { width: 100% !important; margin-top: 8px !important; }
+          .leave-item-card { padding: 16px !important; border-radius: 12px !important; }
+          .leave-actions-mobile { width: 100% !important; margin-top: 12px !important; gap: 8px !important; flex-direction: row !important; }
+          .leave-action-btn { flex: 1 !important; height: 38px !important; font-size: 12px !important; font-weight: 600 !important; }
+          .leave-view-btn { width: 100% !important; height: 38px !important; justify-content: center !important; }
+        }
+      `}</style>
+
+      <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-        <CardHeader className="pb-2">
+        <CardHeader className="leave-card-header pb-2">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Requests</CardTitle>
+                <CardTitle className={`leave-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
                 {totalCount > 0 && (
                   <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {totalCount} Total
                   </span>
                 )}
               </div>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <p className={`leave-card-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Review and approve leave requests from Heads of Departments
               </p>
             </div>
@@ -296,7 +310,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={theme === 'dark' ? 'w-full sm:w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full sm:w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}
+                    className={`leave-month-picker ${theme === 'dark' ? 'w-full sm:w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full sm:w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {selectedMonth ? (
@@ -383,29 +397,61 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                   <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <div className="font-medium">{leave.name}</div>
-                        <div className="text-xs text-muted-foreground">{leave.department}</div>
-                        <div className="text-sm mt-1">{leave.from} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.to}</div>
+                        <div className="font-semibold text-base">{leave.name}</div>
+                        <div className="text-xs text-muted-foreground font-medium">{leave.department}</div>
                       </div>
                       <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
                     </div>
-                    <div className="mt-3 flex items-center justify-between">
-                      <button
-                        onClick={() => setViewReason(leave.reason)}
-                        className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                      >
-                        View
-                      </button>
-                      <div>
-                        {leave.status === "Pending" ? (
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => handleApprove(leave.id)}>Approve</Button>
-                            <Button size="sm" variant="destructive" className="w-full sm:w-auto" onClick={() => handleReject(leave.id)}>Reject</Button>
-                          </div>
-                        ) : (
-                          <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
-                        )}
+                    
+                    <div className="mt-3 space-y-3">
+                      <div className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
+                        <CalendarIcon className="w-4 h-4 text-primary/60" />
+                        <span className="font-medium text-foreground">{leave.from}</span>
+                        <span className="text-muted-foreground">to</span>
+                        <span className="font-medium text-foreground">{leave.to}</span>
                       </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                        onClick={() => setViewReason(leave.reason)}
+                      >
+                        View Reason
+                      </Button>
+
+                      {leave.status === "Pending" ? (
+                        <div className="leave-actions-mobile flex gap-2 w-full mt-2">
+                          <Button
+                            variant="outline"
+                            className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${
+                              theme === 'dark' 
+                                ? 'text-green-400 border-green-400 hover:bg-green-900/20' 
+                                : 'text-green-700 border-green-600 hover:bg-green-100'
+                            }`}
+                            onClick={() => handleApprove(leave.id)}
+                            disabled={loading}
+                          >
+                            <CheckCircle size={15} /> Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${
+                              theme === 'dark' 
+                                ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
+                                : 'text-red-700 border-red-600 hover:bg-red-100'
+                            }`}
+                            onClick={() => handleReject(leave.id)}
+                            disabled={loading}
+                          >
+                            <XCircle size={15} /> Reject
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="pt-2 text-center border-t border-border/30">
+                          <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -568,6 +614,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 };
 

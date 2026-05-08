@@ -299,10 +299,10 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
           .dean-profile .filters-row .flex-1 { width: 100% !important; min-width: 0 !important; }
           .dean-profile .filters-row .flex-shrink-0 { width: 100% !important; margin-top: 0.25rem !important; display: flex !important; justify-content: flex-end !important; }
 
-          .dean-profile h1 { font-size: 28px !important; line-height: 1.4 !important; }
-          .dean-profile h2 { font-size: 22px !important; line-height: 1.45 !important; }
-          .dean-profile h3 { font-size: 18px !important; line-height: 1.5 !important; }
-          .dean-profile, .dean-profile p, .dean-profile label, .dean-profile input, .dean-profile button { font-size: 14px !important; }
+          .dean-profile h1 { font-size: 1.75rem !important; line-height: 1.4 !important; }
+          .dean-profile h2 { font-size: 1.375rem !important; line-height: 1.45 !important; }
+          .dean-profile h3 { font-size: 1.125rem !important; line-height: 1.5 !important; }
+          .dean-profile, .dean-profile p, .dean-profile label, .dean-profile input, .dean-profile button { font-size: 0.875rem !important; }
 
           .dean-profile .card, .dean-profile .card-content { padding-left: 12px !important; padding-right: 12px !important; }
 

@@ -311,8 +311,8 @@ const HODAnnouncementManagement = () => {
           .announcements-container { padding: 12px; }
           .announcements-card { border-radius: 8px; }
           .announcements-card-header { padding: 12px; }
-          .announcements-card-title { font-size: 18px; line-height: 1.3; }
-          .announcements-card-desc { font-size: 12px; margin-top: 4px; }
+          .announcements-card-title { font-size: 1.125rem; line-height: 1.3; }
+          .announcements-card-desc { font-size: 0.75rem; margin-top: 4px; }
           .mobile-modal { width: 90vw !important; max-width: 360px !important; padding: 12px !important; border-radius: 12px !important; }
           .delete-modal { width: 90vw !important; max-width: 320px !important; padding: 16px !important; border-radius: 12px !important; }
         }

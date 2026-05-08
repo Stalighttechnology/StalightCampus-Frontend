@@ -313,22 +313,22 @@ const AdminAnnouncementManagement = () => {
     <>
       <style>{`
         @media (max-width: 480px) {
-          .announcements-container { padding: 12px; }
-          .announcements-card { border-radius: 8px; }
-          .announcements-card-header { padding: 12px; }
-          .announcements-card-title { font-size: 18px; line-height: 1.3; }
-          .announcements-card-desc { font-size: 12px; margin-top: 4px; }
-          .announcements-card-content { padding: 12px; }
-          .announce-actions { gap: 8px; }
-          .announce-list { gap: 10px; }
-          .mobile-modal { width: 90vw !important; max-width: 360px !important; padding: 12px !important; border-radius: 12px !important; }
+          .announcements-container { padding: 12px !important; }
+          .announcements-card { border-radius: 12px !important; }
+          .announcements-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+          .announcements-card-title { font-size: 1.25rem !important; line-height: 1.2 !important; }
+          .announcements-card-desc { font-size: 0.8125rem !important; margin-top: 6px !important; }
+          .announcements-card-content { padding: 12px !important; }
+          .announce-actions { width: 100% !important; }
+          .announce-actions button { width: 100% !important; justify-content: center !important; height: 44px !important; }
+          .mobile-modal { width: 95vw !important; max-width: 95vw !important; padding: 16px !important; border-radius: 16px !important; margin: 0 auto !important; }
           .delete-modal { width: 90vw !important; max-width: 320px !important; padding: 16px !important; border-radius: 12px !important; }
         }
       `}</style>
 
-      <div className={`announcements-container text-sm sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-        <Card className={`announcements-card ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-          <CardHeader className="announcements-card-header grid grid-cols-[1fr_auto] items-center gap-4">
+      <div className={`announcements-container py-6 px-4 sm:px-6 text-sm sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+        <Card className={`announcements-card shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+          <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="min-w-0">
               <CardTitle className={`announcements-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Announcement Management</CardTitle>
               <p className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>

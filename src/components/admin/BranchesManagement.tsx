@@ -403,8 +403,53 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
   };
 
   return (
-    <div className={`mx-auto w-full max-w-[400px] sm:max-w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card className={theme === 'dark' ? 'w-full bg-card border border-border flex flex-col h-[calc(100vh-280px)] min-h-[550px]' : 'w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-280px)] min-h-[550px]'}>
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .branches-card { height: auto !important; min-height: 550px !important; }
+          .branches-table-container { 
+            overflow-x: auto !important; 
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -8px;
+            padding: 0 8px;
+          }
+          .branches-table { 
+            min-width: 500px !important; 
+            table-layout: fixed !important;
+          }
+          .branch-name-col { width: 45% !important; }
+          .hod-col { width: 35% !important; }
+          .actions-col { width: 20% !important; }
+          
+          .branches-table th, .branches-table td { 
+            padding: 10px 8px !important; 
+            font-size: 0.8125rem !important; 
+          }
+          
+          .edit-input-mobile { 
+            height: 32px !important; 
+            font-size: 0.8125rem !important;
+            padding: 4px 8px !important;
+          }
+          
+          .edit-actions-wrapper {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 4px !important;
+            align-items: flex-end !important;
+          }
+          
+          .edit-btn-mobile {
+            width: 100% !important;
+            height: 28px !important;
+            font-size: 0.75rem !important;
+            padding: 0 8px !important;
+          }
+        }
+      `}</style>
+
+      <div className={`mx-auto w-full max-w-[400px] sm:max-w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <Card className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-280px)] min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-280px)] min-h-[550px]'}>
         <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="w-full">
             <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -462,15 +507,15 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
             <SkeletonTable rows={pageSize} cols={4} />
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
-                <table className="w-full text-xs md:text-sm text-left table-auto border-collapse">
+              <div className="branches-table-container flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
+                <table className="branches-table w-full text-xs md:text-sm text-left table-auto border-collapse">
                   <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'}`}>
                     <tr>
-                      <th className="py-3 px-3 text-left font-bold">Branch Name</th>
+                      <th className="branch-name-col py-3 px-3 text-left font-bold">Branch Name</th>
                       <th className="py-3 px-3 hidden sm:table-cell font-bold">Branch Code</th>
-                      <th className="py-3 px-3 font-bold">Assigned HOD</th>
+                      <th className="hod-col py-3 px-3 font-bold">Assigned HOD</th>
                       <th className="py-3 px-3 hidden sm:table-cell font-bold">HOD Contact</th>
-                      <th className="py-3 px-3 text-right w-24 font-bold">Actions</th>
+                      <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -489,16 +534,16 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                             : 'border-gray-200 hover:bg-gray-50 text-gray-900'
                             }`}
                         >
-                          <td className="py-3 px-3 align-middle font-medium">
+                          <td className="py-3 px-3 align-middle font-medium branch-name-cell">
                             {editingId === branch.id ? (
                               <Input
                                 name="name"
                                 value={editData?.name || ""}
                                 onChange={handleEditChange}
-                                className="h-8"
+                                className="edit-input-mobile h-8"
                               />
                             ) : (
-                              <div className="truncate">{branch.name}</div>
+                              <div className="break-words">{branch.name}</div>
                             )}
                           </td>
 
@@ -515,13 +560,13 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                             )}
                           </td>
 
-                          <td className="py-3 px-3 align-middle">
+                          <td className="py-3 px-3 align-middle hod-cell">
                             {editingId === branch.id ? (
                               <Select
                                 value={editData?.hod || "none"}
                                 onValueChange={(val) => setEditData(prev => prev ? { ...prev, hod: val === "none" ? null : val } : null)}
                               >
-                                <SelectTrigger className="h-8 w-full">
+                                <SelectTrigger className="edit-input-mobile h-8 w-full">
                                   <SelectValue placeholder="Select HOD" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -534,7 +579,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                                 </SelectContent>
                               </Select>
                             ) : (
-                              <div className="truncate">{branch.hod || "--"}</div>
+                              <div className="break-words">{branch.hod || "--"}</div>
                             )}
                           </td>
 
@@ -542,11 +587,11 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                             {branch.hod_contact || "--"}
                           </td>
 
-                          <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle">
+                          <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
                             {editingId === branch.id ? (
-                              <div className="flex gap-1 justify-end">
-                                <Button size="sm" onClick={saveEdit} disabled={loading} className="h-8 px-2">Save</Button>
-                                <Button size="sm" variant="ghost" onClick={() => { setEditingId(null); setEditData(null); }} className="h-8 px-2">Cancel</Button>
+                              <div className="edit-actions-wrapper flex gap-1 justify-end">
+                                <Button size="sm" onClick={saveEdit} disabled={loading} className="edit-btn-mobile h-8 px-2">Save</Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setEditingId(null); setEditData(null); }} className="edit-btn-mobile h-8 px-2">Cancel</Button>
                               </div>
                             ) : (
                               <div className="flex items-center justify-end gap-1">
@@ -723,6 +768,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 };
 

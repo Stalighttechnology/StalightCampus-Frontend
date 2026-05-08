@@ -118,19 +118,19 @@ const DeanAttendance = () => {
               <div className="grid grid-cols-1 gap-3">
                 {hodList.length > 0 ? hodList.map((h: any) => (
                   <div key={h.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                    <div>
-                      <div className="font-medium">{h.name}</div>
+                    <div className="min-w-0 flex-1 mr-2">
+                      <div className="font-medium break-words">{h.name}</div>
                       {isMonthly ? (
-                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                           Present: {h.present_days} days • Absent: {h.absent_days} days • Branch: {h.branch}
                         </div>
                       ) : (
-                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                           {h.status === 'present' ? 'Present' : 'Absent'}{h.marked_at ? ` • ${new Date(h.marked_at).toLocaleTimeString()}` : ''}
                         </div>
                       )}
                     </div>
-                    <div>
+                    <div className="flex-shrink-0">
                       {isMonthly ? (
                         <div className="text-xs flex gap-2">
                           <span className={`px-2 py-1 rounded-full font-semibold ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>
@@ -171,11 +171,11 @@ const DeanAttendance = () => {
                   const isPresent = adminPresentList.some((p: any) => p.id === a.id);
                   return (
                   <div key={a.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                    <div>
-                      <div className="font-medium">{a.name}</div>
-                      <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
+                    <div className="min-w-0 flex-1 mr-2">
+                      <div className="font-medium break-words">{a.name}</div>
+                      <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
                     </div>
-                    <div>
+                    <div className="flex-shrink-0">
                       {isMonthly ? (
                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                           isPresent 

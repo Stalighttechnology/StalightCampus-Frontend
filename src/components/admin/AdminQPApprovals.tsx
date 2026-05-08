@@ -346,7 +346,33 @@ const AdminQPApprovals = () => {
   }
 
   return (
-    <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .qp-dialog-content { padding: 12px !important; }
+          .qp-dialog-footer { 
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 16px !important; 
+            gap: 12px !important; 
+          }
+          .action-buttons-group { gap: 10px !important; width: 100% !important; }
+          .action-btn-mobile { flex: 1 !important; height: 40px !important; font-size: 0.875rem !important; }
+          .download-btn-mobile { 
+            width: 100% !important; 
+            height: 42px !important; 
+            background-color: hsl(var(--primary)) !important; 
+            color: hsl(var(--primary-foreground)) !important; 
+            border: none !important;
+            margin-top: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+        }
+      `}</style>
+
+      <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -355,7 +381,7 @@ const AdminQPApprovals = () => {
               <div className="flex items-center gap-3">
                 <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and approve question papers pending your oversight</p>
                 {totalCount > 0 && (
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`hidden sm:inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {totalCount} Total
                   </span>
                 )}
@@ -493,7 +519,7 @@ const AdminQPApprovals = () => {
         }
         setDialogOpen(open);
       }}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90vw] mx-4 rounded-lg flex flex-col max-h-[92vh]`}> 
+        <DialogContent className={`qp-dialog-content ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90vw] mx-4 rounded-lg flex flex-col max-h-[92vh]`}> 
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type}</DialogTitle>
           </DialogHeader>
@@ -567,12 +593,12 @@ const AdminQPApprovals = () => {
               />
             </div>
           </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <div className="flex gap-2 w-full sm:w-auto">
+          <DialogFooter className="qp-dialog-footer flex flex-col sm:flex-row gap-2">
+            <div className="action-buttons-group flex gap-2 w-full sm:w-auto">
               <Button
                 onClick={() => selectedQP && handleApprove(selectedQP.id)}
                 disabled={actionLoading}
-                className={`w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}
+                className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}
               >
                 <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                 <span className="whitespace-normal">Approve</span>
@@ -580,15 +606,15 @@ const AdminQPApprovals = () => {
               <Button
                 onClick={() => selectedQP && handleReject(selectedQP.id)}
                 disabled={actionLoading}
-                className={`w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}
+                className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}
               >
                 <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
                 <span className="whitespace-normal">Reject</span>
               </Button>
             </div>
-            <div className="ml-auto">
-              <Button variant="outline" onClick={() => downloadPDF()} className="bg-transparent hover:bg-transparent w-full sm:w-auto justify-center transition-none">
-                <Download className="w-4 h-4 mr-1 hidden sm:inline-block" />
+            <div className="w-full sm:w-auto sm:ml-auto">
+              <Button variant="outline" onClick={() => downloadPDF()} className="download-btn-mobile bg-primary text-white hover:bg-primary/90 hover:text-white w-full sm:w-auto justify-center transition-none">
+                <Download className="w-4 h-4 mr-1" />
                 <span className="whitespace-normal">Download</span>
               </Button>
             </div>
@@ -596,6 +622,7 @@ const AdminQPApprovals = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 };
 

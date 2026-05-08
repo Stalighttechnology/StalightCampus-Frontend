@@ -139,6 +139,52 @@
   }
 }
 
+/* Global Root Scaling for Mobile */
+@media (max-width: 480px) {
+  html {
+    font-size: 112.5%; /* Scales 16px -> 18px */
+  }
+
+  /* Global Weight Refinement - Replace Bold with Semi-bold */
+  .font-bold, 
+  .font-extrabold,
+  .font-black,
+  b, 
+  strong,
+  th,
+  h1, h2, h3, h4,
+  .font-bold *,
+  [style*="font-weight: 700"],
+  [style*="font-weight: 800"],
+  [style*="font-weight: 900"],
+  [style*="font-weight: bold"] {
+    font-weight: 600 !important;
+  }
+
+  /* Vertical & Horizontal Spacing Refinement */
+  .p-6 { padding: 1rem !important; }
+  .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .py-6 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem !important; }
+  .gap-6 { gap: 1rem !important; }
+  .mb-6 { margin-bottom: 1rem !important; }
+
+  /* Table Specific Refinements */
+  th, td {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+  
+  .overflow-x-auto {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
 /* Global scrollbar hiding but still scrollable */
 html,
 body,
@@ -599,20 +645,20 @@ html {
 
   .mobile-timetable {
     min-width: 360px !important;
-    font-size: 10px !important;
+    font-size: 11px !important; /* Increased from 10px */
     width: auto !important;
   }
 
   .mobile-table-header {
     padding: 4px 3px !important;
-    font-size: 9px !important;
+    font-size: 11px !important; /* Increased from 9px */
     font-weight: 600 !important;
     line-height: 1.2 !important;
   }
 
   .mobile-table-cell {
     padding: 3px 2px !important;
-    font-size: 8px !important;
+    font-size: 11px !important; /* Increased from 8px */
     min-width: 60px !important;
     line-height: 1.1 !important;
   }
