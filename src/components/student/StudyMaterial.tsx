@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, AlertCircle, BookOpen, Search } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import {
   Card,
@@ -48,13 +48,13 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
       <FileText className="text-red-500" size={18} />
     </div>
     <div className="col-span-1">
-      <span className={`md:hidden text-xs font-bold mr-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Title:</span>
+      <span className={`md:hidden text-xs font-semibold mr-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Title:</span>
       <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} font-medium cursor-pointer hover:underline truncate`}>
         {material.title}
       </div>
     </div>
     <div className="col-span-1">
-      <span className={`md:hidden text-xs font-bold mr-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Course:</span>
+      <span className={`md:hidden text-xs font-semibold mr-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Course:</span>
       <div className={`truncate`}>{material.subject_name}</div>
     </div>
     <div className="col-span-1 hidden md:block">
@@ -278,9 +278,29 @@ const StudyMaterialsStudent = () => {
               {loading ? (
                 <SkeletonList items={5} />
               ) : !hasSearched ? (
-                <div className="text-center py-10 text-xs sm:text-sm text-gray-500 italic">Select branch, semester, and section to view study materials.</div>
+                <div className="flex flex-col items-center justify-center py-16 px-4 animate-in fade-in duration-700">
+                  <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-4 shadow-sm`}>
+                    <Search className="h-12 w-12 text-indigo-500/50" />
+                  </div>
+                  <div className="text-center max-w-sm">
+                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Ready to Search</h3>
+                    <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Select your branch, semester, and section to access your study materials.
+                    </p>
+                  </div>
+                </div>
               ) : materials.length === 0 ? (
-                <div className="text-center py-10 text-xs sm:text-sm text-gray-500">No study materials found for the selected criteria.</div>
+                <div className="flex flex-col items-center justify-center py-16 px-4 animate-in fade-in duration-700">
+                  <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-4 shadow-sm`}>
+                    <BookOpen className="h-12 w-12 text-indigo-500/50" />
+                  </div>
+                  <div className="text-center max-w-sm">
+                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Materials Found</h3>
+                    <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      We couldn't find any study materials matching your current criteria. Please try different filters.
+                    </p>
+                  </div>
+                </div>
               ) : (
                 materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
               )}

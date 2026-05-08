@@ -442,7 +442,7 @@ const InternalMarks = () => {
         <div className={`p-4 rounded-full mb-4 ${isRestricted ? "bg-amber-100 text-amber-600" : "bg-destructive/10 text-destructive"}`}>
           <AlertCircle className="h-10 w-10" />
         </div>
-        <h3 className="text-xl font-bold mb-2">{isRestricted ? "Access Restricted" : "Error Loading Data"}</h3>
+        <h3 className="text-xl font-semibold mb-2">{isRestricted ? "Access Restricted" : "Error Loading Data"}</h3>
         <p className={`max-w-md mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-muted-foreground'}`}>
           {errorMessage}
         </p>
@@ -466,13 +466,15 @@ const InternalMarks = () => {
         </CardHeader>
         <CardContent className={`p-0 sm:p-6 ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
           {filteredSubjects.length === 0 ? (
-            <div className="h-[350px] flex flex-col items-center justify-center space-y-4">
-              <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                <AlertCircle className="h-8 w-8 text-muted-foreground" />
+            <div className="h-[300px] flex flex-col items-center justify-center space-y-4 animate-in fade-in duration-700">
+              <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} shadow-sm`}>
+                <Filter className="h-10 w-10 text-indigo-500/50" />
               </div>
-              <div className="text-center">
-                <p className="text-sm font-medium">No subjects to display</p>
-                <p className="text-xs text-muted-foreground mt-1">Try adjusting your filters or search query</p>
+              <div className="text-center px-6">
+                <p className={`text-lg font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Data Found</p>
+                <p className={`text-sm mt-1 max-w-[240px] mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  We couldn't find any subjects matching your current criteria.
+                </p>
               </div>
             </div>
           ) : (
@@ -524,11 +526,14 @@ const InternalMarks = () => {
       {/* Table */}
       <div className={`rounded-md overflow-hidden w-full ${theme === 'dark' ? 'border-border bg-card text-card-foreground' : 'border-gray-200 bg-white text-gray-900'}`}>
         {filteredSubjects.length === 0 ? (
-          <div className={`h-96 flex items-center justify-center ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
-            <div className={`text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-              <p className="text-sm font-medium">No subjects found</p>
-              <p className="text-xs mt-1">Try adjusting your filters</p>
-            </div>
+          <div className={`h-96 flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'bg-card' : 'bg-white'} animate-in fade-in duration-700`}>
+             <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <AlertCircle className="h-10 w-10 text-muted-foreground/40" />
+              </div>
+              <div className="text-center">
+                <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Results Empty</p>
+                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Try adjusting your filters or search query</p>
+              </div>
           </div>
         ) : (
           <div
