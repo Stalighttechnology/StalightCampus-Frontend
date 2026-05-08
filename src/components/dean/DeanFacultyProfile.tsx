@@ -79,6 +79,11 @@ interface Profile {
   readonly scheduled_classes?: ScheduledClass[];
   readonly attendance?: AttendanceRecord[];
   readonly leaves?: LeaveRecord[];
+  readonly leaves_pagination?: {
+    count: number;
+    total_pages: number;
+    current_page: number;
+  };
 }
 
 interface DeanFacultyProfileProps {
@@ -186,8 +191,9 @@ const useFacultiesByBranch = (selectedBranch: string | null, search: string, pag
 };
 
 // Custom hook: Load faculty profile
-const useFacultyProfile = (facultyId: string | null, startDate: string, endDate: string, reloadKey: number, setError: (err: string | null) => void) => {
+const useFacultyProfile = (facultyId: string | null, startDate: string, endDate: string, page: number, reloadKey: number, setError: (err: string | null) => void) => {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -196,13 +202,16 @@ const useFacultyProfile = (facultyId: string | null, startDate: string, endDate:
         setProfile(null);
         return;
       }
+      setLoading(true);
       setError(null);
       try {
         let url = `${API_ENDPOINT}/dean/faculty/${facultyId}/profile/`;
         const params = new URLSearchParams();
+        params.append('compact', 'true');
+        params.append('page', String(page));
         if (startDate) params.append('start_date', startDate);
         if (endDate) params.append('end_date', endDate);
-        if (params.toString()) url += `?${params.toString()}`;
+        url += `?${params.toString()}`;
 
         const res = await fetchWithTokenRefresh(url);
         const json = await res.json();
@@ -212,13 +221,15 @@ const useFacultyProfile = (facultyId: string | null, startDate: string, endDate:
       } catch (e: unknown) {
         const msg = safeErrorMessage(e);
         setError(msg);
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
     loadProfile();
     return () => { mounted = false; };
-  }, [facultyId, startDate, endDate, reloadKey, setError]);
+  }, [facultyId, startDate, endDate, page, reloadKey, setError]);
 
-  return { profile };
+  return { profile, loading };
 };
 
 // Custom hook: Initialize dates
@@ -262,12 +273,17 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
   const [startDatePopoverOpen, setStartDatePopoverOpen] = useState(false);
   const [endDatePopoverOpen, setEndDatePopoverOpen] = useState(false);
   const { theme } = useTheme();
-  const { profile } = useFacultyProfile(selectedFaculty, startDate, endDate, reloadKey, setError);
+  const [leavesPage, setLeavesPage] = useState(1);
+  const { profile, loading: profileLoading } = useFacultyProfile(selectedFaculty, startDate, endDate, leavesPage, reloadKey, setError);
 
-  // Reset page when branch or search changes
+  // Reset page when branch or search or faculty changes
   useEffect(() => {
     setFacultyPage(1);
   }, [selectedBranch, facultySearch]);
+
+  useEffect(() => {
+    setLeavesPage(1);
+  }, [selectedFaculty]);
 
   // Update when parent passes new initial props
   useEffect(() => {
@@ -284,7 +300,7 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
     setReloadKey((k) => k + 1);
   }, [setStartDate, setEndDate]);
 
-  const isInitialLoading = branchesLoading || (selectedBranch && facultiesLoading) || (selectedFaculty && !profile);
+  const isInitialLoading = branchesLoading || (selectedBranch && facultiesLoading) || (selectedFaculty && !profile && profileLoading);
 
   return (
     <div className={`dean-profile min-h-screen ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'} p-0`}>
@@ -490,17 +506,6 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
                       <ScheduledClassesTable classesList={profile.scheduled_classes ?? []} theme={theme} />
                     </div>
 
-                    {/* Attendance History */}
-                    <div className="mb-8">
-                      <h3 className={`text-xl font-semibold mb-4 flex items-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-800'}`}>
-                        <svg className="w-6 h-6 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        Attendance History
-                      </h3>
-                      <AttendanceLogTable attendance={profile.attendance ?? []} theme={theme} />
-                    </div>
-
                     {/* Leave Requests */}
                     <div>
                       <h3 className={`text-xl font-semibold mb-4 flex items-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-800'}`}>
@@ -509,7 +514,13 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
                         </svg>
                         Leave Requests
                       </h3>
-                      <LeaveRequestsTable leaves={profile.leaves ?? []} theme={theme} />
+                      <LeaveRequestsTable 
+                        leaves={profile.leaves ?? []} 
+                        theme={theme} 
+                        pagination={profile.leaves_pagination}
+                        currentPage={leavesPage}
+                        onPageChange={setLeavesPage}
+                      />
                     </div>
                   </div>
                 </div>
@@ -703,9 +714,12 @@ function AttendanceLogTable({ attendance, theme }: AttendanceLogTableProps) {
 interface LeaveRequestsTableProps {
   readonly leaves: readonly LeaveRecord[];
   readonly theme: string;
+  readonly pagination?: { total_pages: number };
+  readonly currentPage: number;
+  readonly onPageChange: (page: number) => void;
 }
 
-function LeaveRequestsTable({ leaves, theme }: LeaveRequestsTableProps) {
+function LeaveRequestsTable({ leaves, theme, pagination, currentPage, onPageChange }: LeaveRequestsTableProps) {
   if (!leaves || leaves.length === 0) {
     return (
       <div className={`text-center py-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -746,6 +760,27 @@ function LeaveRequestsTable({ leaves, theme }: LeaveRequestsTableProps) {
           ))}
         </tbody>
       </table>
+      {pagination && pagination.total_pages > 1 && (
+        <div className="flex items-center justify-between p-4 border-t border-border bg-muted/20 text-xs">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+          >
+            Prev
+          </Button>
+          <span className="font-medium">Page {currentPage} of {pagination.total_pages}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === pagination.total_pages}
+            onClick={() => onPageChange(currentPage + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

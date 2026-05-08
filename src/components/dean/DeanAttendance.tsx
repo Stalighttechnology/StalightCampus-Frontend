@@ -13,11 +13,22 @@ const DeanAttendance = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
+  const [hodPage, setHodPage] = useState(1);
+  const [adminPage, setAdminPage] = useState(1);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
-  const fetchData = async () => {
+  const fetchData = async (hp = hodPage, ap = adminPage) => {
     setLoading(true);
     try {
-      const resSummary = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/hod-admin-attendance/`);
+      const qs = new URLSearchParams();
+      qs.append('hod_page', String(hp));
+      qs.append('admin_page', String(ap));
+      qs.append('compact', 'false');
+      if (startDate) qs.append('start_date', startDate);
+      if (endDate) qs.append('end_date', endDate);
+
+      const resSummary = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/hod-admin-attendance/?${qs.toString()}`);
       const jsonSummary = await resSummary.json();
       if (!jsonSummary.success) {
         setError(jsonSummary.message || 'Failed to load HOD/admin summary');
@@ -32,13 +43,8 @@ const DeanAttendance = () => {
   };
 
   useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      await fetchData();
-    };
-    load();
-    return () => { mounted = false; };
-  }, []);
+    fetchData(hodPage, adminPage);
+  }, [hodPage, adminPage, startDate, endDate]);
 
   const isMonthly = data?.summary?.period;
 
@@ -57,9 +63,11 @@ const DeanAttendance = () => {
   }
 
   const allAdmins = data?.summary?.admins || [];
-  const adminPresentList = data?.summary?.admin_present_list || [];
-  const adminPresentCount = data?.summary?.admin_present_count ?? adminPresentList.length;
-  const adminAbsentCount = allAdmins.length - adminPresentCount;
+  const adminPagination = data?.summary?.admin_pagination || { current_page: 1, total_pages: 1 };
+  const hodPagination = data?.summary?.hod_pagination || { current_page: 1, total_pages: 1 };
+  
+  const adminPresentCount = data?.summary?.admin_present_count ?? 0;
+  const adminAbsentCount = (data?.summary?.total_admins ?? allAdmins.length) - adminPresentCount;
 
   const statCardClass = theme === 'dark'
     ? 'rounded-lg border border-border bg-card p-4 shadow'
@@ -152,13 +160,34 @@ const DeanAttendance = () => {
                   </div>
                 ))}
               </div>
+              {hodPagination.total_pages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-border text-sm">
+                  <button
+                    disabled={hodPage === 1 || loading}
+                    onClick={() => setHodPage(p => Math.max(1, p - 1))}
+                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+                    Page {hodPage} of {hodPagination.total_pages}
+                  </span>
+                  <button
+                    disabled={hodPage === hodPagination.total_pages || loading}
+                    onClick={() => setHodPage(p => p + 1)}
+                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <div className="text-lg font-semibold mb-3">Admins — {isMonthly ? 'In Period' : 'Today'}</div>
               <div className="grid grid-cols-1 gap-3">
                 {allAdmins.length > 0 ? allAdmins.map((a: any) => {
-                  const isPresent = adminPresentList.some((p: any) => p.id === a.id);
+                  const isPresent = a.is_present || false;
                   return (
                   <div key={a.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
                     <div>
@@ -166,27 +195,38 @@ const DeanAttendance = () => {
                       <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
                     </div>
                     <div>
-                      {isMonthly ? (
-                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          isPresent 
-                            ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800') 
-                            : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
-                        }`}>
-                          {isPresent ? 'Active in Period' : 'Inactive'}
-                        </span>
-                      ) : (
-                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          isPresent 
-                            ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800') 
-                            : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
-                        }`}>
-                          {isPresent ? 'Present' : 'Absent'}
-                        </span>
-                      )}
+                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        isPresent 
+                          ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800') 
+                          : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
+                      }`}>
+                        {isPresent ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : 'Absent')}
+                      </span>
                     </div>
                   </div>
                 )}) : <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No admin users found.</div>}
               </div>
+              {adminPagination.total_pages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-border text-sm">
+                  <button
+                    disabled={adminPage === 1 || loading}
+                    onClick={() => setAdminPage(p => Math.max(1, p - 1))}
+                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+                    Page {adminPage} of {adminPagination.total_pages}
+                  </span>
+                  <button
+                    disabled={adminPage === adminPagination.total_pages || loading}
+                    onClick={() => setAdminPage(p => p + 1)}
+                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </>
