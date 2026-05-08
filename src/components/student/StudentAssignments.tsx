@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, 
   Calendar, 
@@ -235,11 +234,8 @@ const StudentAssignments = () => {
             ) : filteredAssignments.length > 0 ? (
               <div className="divide-y divide-border/50">
                 {filteredAssignments.map((assignment) => (
-                  <motion.div 
+                  <div 
                     key={assignment.id}
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
                     className="p-6 hover:bg-primary/5 transition-all duration-300 group"
                   >
                     <div className="flex flex-col lg:flex-row justify-between gap-6">
@@ -308,7 +304,7 @@ const StudentAssignments = () => {
                     </div>
 
                     {assignment.is_submitted && (
-                      <div className={`mt-5 p-5 rounded-2xl border border-dashed animate-in fade-in slide-in-from-top-2 duration-500 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/80 border-gray-200'}`}>
+                      <div className={`mt-5 p-5 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/80 border-gray-200'}`}>
                         <div className="flex flex-col md:flex-row justify-between gap-6">
                           <div className="space-y-1.5">
                             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Submission Date</p>
@@ -333,17 +329,19 @@ const StudentAssignments = () => {
                         )}
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="py-32 text-center animate-in fade-in zoom-in duration-700">
-                <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} mb-6 text-muted-foreground/30`}>
-                  <CheckCircle size={40} />
-                </div>
-                <h3 className="text-xl font-semibold">All tasks completed!</h3>
-                <p className="text-muted-foreground mt-2 max-w-xs mx-auto">You've cleared all assignments matching your current filters.</p>
+            <div className="py-24 flex flex-col items-center justify-center text-center">
+              <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
+                <FileText className="h-16 w-16 text-primary/30" />
               </div>
+              <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Assignments Found</h3>
+              <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                You're all caught up! We couldn't find any assignments matching your current search or filters.
+              </p>
+            </div>
             )}
           </div>
           
@@ -392,22 +390,15 @@ const StudentAssignments = () => {
       </Card>
 
       {/* Details Modal */}
-      <AnimatePresence>
-        {showDetailsModal && selectedAssignment && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowDetailsModal(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden ${theme === 'dark' ? 'bg-[#1c1c1e] border border-white/10' : 'bg-white'}`}
-            >
+      {showDetailsModal && selectedAssignment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            onClick={() => setShowDetailsModal(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <div 
+            className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden ${theme === 'dark' ? 'bg-[#1c1c1e] border border-white/10' : 'bg-white'}`}
+          >
               <div className="p-6 border-b border-border/50 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-semibold">Submission Details</h2>
@@ -487,28 +478,20 @@ const StudentAssignments = () => {
                   Close Details
                 </Button>
               </div>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
       {/* Submission Modal */}
-      <AnimatePresence>
-        {showSubmitModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowSubmitModal(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`relative w-full max-w-lg rounded-2xl shadow-2xl p-6 ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}
-            >
+      {showSubmitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            onClick={() => setShowSubmitModal(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <div 
+            className={`relative w-full max-w-lg rounded-2xl shadow-2xl p-6 ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}
+          >
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="text-xl font-semibold">Submit Assignment</h2>
@@ -558,10 +541,9 @@ const StudentAssignments = () => {
                   </Button>
                 </div>
               </form>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 };
