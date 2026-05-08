@@ -134,11 +134,20 @@ interface ManageAdminLeavesRequest {
 }
 
 export const manageAdminLeaves = async (
-  data?: ManageAdminLeavesRequest,
-  method: 'GET' | 'PATCH' = 'GET'
+  data?: any,
+  method: 'GET' | 'PATCH' = 'GET',
+  page?: number
 ): Promise<ManageAdminLeavesResponse> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/admin-leaves/`, {
+    let url = `${API_ENDPOINT}/dean/admin-leaves/`;
+    if (method === 'GET') {
+      const params = new URLSearchParams();
+      if (page) params.append('page', page.toString());
+      if (data?.status_type) params.append('status_type', data.status_type);
+      if (params.toString()) url += `?${params.toString()}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -194,11 +203,20 @@ interface ManageCOELeavesRequest {
 }
 
 export const manageCOELeaves = async (
-  data?: ManageCOELeavesRequest,
-  method: 'GET' | 'PATCH' = 'GET'
+  data?: any,
+  method: 'GET' | 'PATCH' = 'GET',
+  page?: number
 ): Promise<ManageCOELeavesResponse> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/coe-leaves/`, {
+    let url = `${API_ENDPOINT}/dean/coe-leaves/`;
+    if (method === 'GET') {
+      const params = new URLSearchParams();
+      if (page) params.append('page', page.toString());
+      if (data?.status_type) params.append('status_type', data.status_type);
+      if (params.toString()) url += `?${params.toString()}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -257,11 +275,20 @@ interface ManageAllLeavesRequest {
 }
 
 export const manageAllLeaves = async (
-  data?: ManageAllLeavesRequest,
-  method: 'GET' | 'PATCH' = 'GET'
+  data?: any,
+  method: 'GET' | 'PATCH' = 'GET',
+  page?: number
 ): Promise<ManageAllLeavesResponse> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/all-leaves/`, {
+    let url = `${API_ENDPOINT}/dean/all-leaves/`;
+    if (method === 'GET') {
+      const params = new URLSearchParams();
+      if (page) params.append('page', page.toString());
+      if (data?.status_type) params.append('status_type', data.status_type);
+      if (params.toString()) url += `?${params.toString()}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,

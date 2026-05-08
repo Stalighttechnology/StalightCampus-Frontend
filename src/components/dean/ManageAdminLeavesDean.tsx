@@ -15,6 +15,7 @@ import {
 } from "../ui/dialog";
 import { SkeletonTable, SkeletonList, SkeletonPageHeader } from "../ui/skeleton";
 import { Alert, AlertDescription } from "../ui/alert";
+import { normalizePaginatedResponse } from "../../utils/normalizePagination";
 
 const MySwal = withReactContent(Swal);
 
@@ -34,10 +35,21 @@ interface UnifiedLeave {
 
 const ManageAdminLeavesDean = () => {
   const { theme } = useTheme();
-  const [allLeaves, setAllLeaves] = useState<UnifiedLeave[]>([]);
+
+  // Pending leaves state
+  const [pendingLeaves, setPendingLeaves] = useState<UnifiedLeave[]>([]);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [pendingPagination, setPendingPagination] = useState({ currentPage: 1, totalPages: 1, totalItems: 0 });
+  const [pendingLoading, setPendingLoading] = useState(false);
+
+  // Recent leaves state
+  const [recentLeaves, setRecentLeaves] = useState<UnifiedLeave[]>([]);
+  const [recentPage, setRecentPage] = useState(1);
+  const [recentPagination, setRecentPagination] = useState({ currentPage: 1, totalPages: 1, totalItems: 0 });
+  const [recentLoading, setRecentLoading] = useState(false);
+
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedLeave, setSelectedLeave] = useState<UnifiedLeave | null>(null);
   const [showReasonDialog, setShowReasonDialog] = useState(false);
@@ -45,25 +57,53 @@ const ManageAdminLeavesDean = () => {
   const [showFilter, setShowFilter] = useState(false);
   const filterRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch all leaves data in one call
+  // Fetch pending leaves
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    const fetchPending = async () => {
+      setPendingLoading(true);
       try {
-        const response = await manageAllLeaves();
-        if (response.success && response.data) {
-          setAllLeaves(response.data);
-        } else {
-          setError(response.message || "Failed to fetch leaves");
+        const response = await manageAllLeaves({ status_type: 'PENDING' }, 'GET', pendingPage);
+        if (response.success) {
+          const normalized = normalizePaginatedResponse(response, 'data');
+          setPendingLeaves(normalized.items);
+          setPendingPagination({
+            currentPage: normalized.meta.currentPage || pendingPage,
+            totalPages: normalized.meta.totalPages || 1,
+            totalItems: normalized.meta.totalItems || 0
+          });
         }
       } catch (err) {
-        setError("Failed to fetch leave data");
+        setError("Failed to fetch pending leaves");
       } finally {
-        setLoading(false);
+        setPendingLoading(false);
       }
     };
-    fetchData();
-  }, []);
+    fetchPending();
+  }, [pendingPage]);
+
+  // Fetch recent leaves
+  useEffect(() => {
+    const fetchRecent = async () => {
+      setRecentLoading(true);
+      try {
+        const response = await manageAllLeaves({ status_type: 'PROCESSED' }, 'GET', recentPage);
+        if (response.success) {
+          const normalized = normalizePaginatedResponse(response, 'data');
+          setRecentLeaves(normalized.items);
+          setRecentPagination({
+            currentPage: normalized.meta.currentPage || recentPage,
+            totalPages: normalized.meta.totalPages || 1,
+            totalItems: normalized.meta.totalItems || 0
+          });
+        }
+      } catch (err) {
+        setError("Failed to fetch recent history");
+      } finally {
+        setRecentLoading(false);
+      }
+    };
+    fetchRecent();
+  }, [recentPage]);
 
   const handleAction = async (leaveId: number, action: 'APPROVED' | 'REJECTED') => {
     setActionLoading(leaveId);
@@ -74,14 +114,18 @@ const ManageAdminLeavesDean = () => {
       );
 
       if (response.success && response.updated_leave) {
-        // Update the leave status in the local state
-        setAllLeaves(prevLeaves =>
-          prevLeaves.map(leave =>
-            leave.id === leaveId
-              ? { ...leave, status: action, reviewed_at: response.updated_leave?.reviewed_at || null }
-              : leave
-          )
-        );
+        // Find the item in pending leaves to move it to recent history
+        const movedItem = pendingLeaves.find(l => l.id === leaveId);
+        
+        if (movedItem) {
+          // Update both lists locally for immediate feedback
+          setPendingLeaves(prev => prev.filter(l => l.id !== leaveId));
+          setRecentLeaves(prev => [
+            { ...movedItem, status: action, reviewed_at: response.updated_leave?.reviewed_at || null } as UnifiedLeave,
+            ...prev
+          ].slice(0, 20)); // Keep recent list manageable
+        }
+
         setSuccessMessage(`Leave ${action.toLowerCase()} successfully`);
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
@@ -93,17 +137,6 @@ const ManageAdminLeavesDean = () => {
       setActionLoading(null);
     }
   };
-
-  // Create unified arrays for pending and recent leaves
-  const allPendingLeaves: UnifiedLeave[] = allLeaves.filter(leave => leave.status === 'PENDING');
-
-  // Get leaves from past 7 days (only processed leaves, not pending)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-  const recentLeaves: UnifiedLeave[] = allLeaves
-    .filter(leave => leave.status !== 'PENDING' && new Date(leave.start_date) >= sevenDaysAgo)
-    .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()); // Sort by date descending
 
   // Filtered recent leaves according to statusFilter
   const filteredRecentLeaves: UnifiedLeave[] = recentLeaves.filter(l => {
@@ -141,20 +174,20 @@ const ManageAdminLeavesDean = () => {
       <div>
         <div className="mb-6">
           <Card className={`flex-1 ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Pending Leave Requests
+                Pending Leave Requests {pendingPagination.totalItems > 0 && `(${pendingPagination.totalItems})`}
               </CardTitle>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <div className="overflow-x-auto max-w-full custom-scrollbar">
                 {/* Mobile: stacked cards */}
                 <div className="md:hidden space-y-3">
-                  {loading ? (
+                  {pendingLoading ? (
                     <div className="space-y-3">
                       <SkeletonList items={3} />
                     </div>
-                  ) : allPendingLeaves.length === 0 ? (
+                  ) : pendingLeaves.length === 0 ? (
                     <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                       <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                         <FilterIcon className="w-8 h-8 text-primary opacity-50" />
@@ -167,7 +200,7 @@ const ManageAdminLeavesDean = () => {
                       </p>
                     </div>
                   ) : (
-                    allPendingLeaves.map((leave) => (
+                    pendingLeaves.map((leave) => (
                       <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                         <div className="flex items-start justify-between gap-3">
                           <div>
@@ -193,11 +226,10 @@ const ManageAdminLeavesDean = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                  theme === 'dark'
+                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
                                     ? 'text-green-400 border-green-400 hover:bg-green-900/20'
                                     : 'text-green-700 border-green-600 hover:bg-green-100'
-                                }`}
+                                  }`}
                                 onClick={() => handleAction(leave.id, 'APPROVED')}
                                 disabled={actionLoading === leave.id}
                               >
@@ -206,11 +238,10 @@ const ManageAdminLeavesDean = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                  theme === 'dark'
+                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
                                     ? 'text-red-400 border-red-400 hover:bg-red-900/20'
                                     : 'text-red-700 border-red-600 hover:bg-red-100'
-                                }`}
+                                  }`}
                                 onClick={() => handleAction(leave.id, 'REJECTED')}
                                 disabled={actionLoading === leave.id}
                               >
@@ -225,9 +256,9 @@ const ManageAdminLeavesDean = () => {
                 </div>
                 {/* Tablet/Laptop: table */}
                 <div className="hidden md:block">
-                  {loading ? (
+                  {pendingLoading ? (
                     <SkeletonTable rows={5} cols={6} />
-                  ) : allPendingLeaves.length === 0 ? (
+                  ) : pendingLeaves.length === 0 ? (
                     <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                       <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                         <FilterIcon className="w-8 h-8 text-primary opacity-50" />
@@ -252,7 +283,7 @@ const ManageAdminLeavesDean = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {allPendingLeaves.map((leave) => (
+                        {pendingLeaves.map((leave) => (
                           <tr key={leave.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
                             <td className="py-3 px-2 md:px-4 font-medium">{leave.faculty_name}</td>
                             <td className="py-3 px-2 md:px-4">{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</td>
@@ -274,11 +305,10 @@ const ManageAdminLeavesDean = () => {
                               <div className="flex flex-col md:flex-row gap-2">
                                 <Button
                                   variant="outline"
-                                  className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                    theme === 'dark' 
-                                      ? 'text-green-400 border-green-400 hover:bg-green-900/20' 
+                                  className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
+                                      ? 'text-green-400 border-green-400 hover:bg-green-900/20'
                                       : 'text-green-700 border-green-600 hover:bg-green-100'
-                                  }`}
+                                    }`}
                                   onClick={() => handleAction(leave.id, 'APPROVED')}
                                   disabled={actionLoading === leave.id}
                                 >
@@ -286,11 +316,10 @@ const ManageAdminLeavesDean = () => {
                                 </Button>
                                 <Button
                                   variant="outline"
-                                  className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                    theme === 'dark' 
-                                      ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
+                                  className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
+                                      ? 'text-red-400 border-red-400 hover:bg-red-900/20'
                                       : 'text-red-700 border-red-600 hover:bg-red-100'
-                                  }`}
+                                    }`}
                                   onClick={() => handleAction(leave.id, 'REJECTED')}
                                   disabled={actionLoading === leave.id}
                                 >
@@ -304,119 +333,187 @@ const ManageAdminLeavesDean = () => {
                     </table>
                   )}
                 </div>
+
+                {/* Pending Pagination Controls */}
+                {pendingPagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                    <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Showing {Math.min((pendingPage - 1) * 20 + 1, pendingPagination.totalItems)}-{Math.min(pendingPage * 20, pendingPagination.totalItems)} of {pendingPagination.totalItems}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={pendingPage === 1 || pendingLoading}
+                        onClick={() => setPendingPage(p => p - 1)}
+                        className="h-8 px-2"
+                      >
+                        Prev
+                      </Button>
+                      <span className={`text-xs font-medium px-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {pendingPage} / {pendingPagination.totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={pendingPage === pendingPagination.totalPages || pendingLoading}
+                        onClick={() => setPendingPage(p => p + 1)}
+                        className="h-8 px-2"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
-        </div>
-        <div className="flex flex-col">
-      {/* Recent Leave History (Past 7 Days) */}
-      <Card className={`flex-1 ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Recent Leave History
-            </CardTitle>
-            <div className="relative" ref={filterRef}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowFilter(v => !v)}
-                aria-label="Filter recent leaves"
-              >
-                <FilterIcon className="w-5 h-5" />
-              </Button>
-              {showFilter && (
-                <div className={`absolute right-0 mt-2 w-36 rounded shadow-lg z-10 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                  {['All', 'Approved', 'Pending', 'Rejected'].map((status) => (
+      </div>
+      <div className="flex flex-col">
+        {/* Recent Leave History (Past 7 Days) */}
+        <Card className={`flex-1 ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Recent Leave History
+              </CardTitle>
+              <div className="relative" ref={filterRef}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowFilter(v => !v)}
+                  aria-label="Filter recent leaves"
+                >
+                  <FilterIcon className="w-5 h-5" />
+                </Button>
+                {showFilter && (
+                  <div className={`absolute right-0 mt-2 w-36 rounded shadow-lg z-10 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                    {['All', 'Approved', 'Pending', 'Rejected'].map((status) => (
+                      <div
+                        key={status}
+                        onClick={() => { setStatusFilter(status as any); setShowFilter(false); }}
+                        className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'} px-4 py-2 cursor-pointer ${statusFilter === status ? 'font-semibold' : ''}`}
+                      >
+                        {status}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentLoading && recentLeaves.length === 0 ? (
+              <div className="space-y-3">
+                <SkeletonList items={3} />
+              </div>
+            ) : filteredRecentLeaves.length === 0 ? (
+              <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                  <CheckCircle className="w-8 h-8 text-primary opacity-50" />
+                </div>
+                <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  No Recent History Found
+                </h3>
+                <p className={`text-center max-w-sm text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  No processed leave requests match your current filters in the past 7 days.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="h-[420px] overflow-auto space-y-4 custom-scrollbar pr-2">
+                  {filteredRecentLeaves.map((leave) => (
                     <div
-                      key={status}
-                      onClick={() => { setStatusFilter(status as any); setShowFilter(false); }}
-                      className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'} px-4 py-2 cursor-pointer ${statusFilter === status ? 'font-semibold' : ''}`}
+                      key={`${leave.faculty_type}-${leave.id}`}
+                      className={`border rounded-md px-4 py-3 shadow-sm ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
                     >
-                      {status}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className={`font-medium ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title || 'Leave Request'}</h3>
+                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${leave.faculty_type === 'coe'
+                                    ? (theme === 'dark' ? 'bg-green-400 text-green-900' : 'bg-green-600 text-white')
+                                    : leave.faculty_type === 'principal'
+                                      ? (theme === 'dark' ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800')
+                                      : (theme === 'dark' ? 'bg-purple-100 text-purple-800' : 'bg-purple-100 text-purple-800')
+                                  }`}>{leave.faculty_type.toUpperCase()}</span>
+                              </div>
+                              <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>{leave.start_date}</p>
+                            </div>
+                          </div>
+
+                          <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>
+                            {leave.faculty_name} - {leave.faculty_type === 'principal' ? 'Administration' : leave.department}
+                          </p>
+
+                          <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                            {leave.start_date} to {leave.end_date}
+                          </p>
+
+                          <div className="mt-3">
+                            <Button
+                              onClick={() => { setSelectedLeave(leave); setShowReasonDialog(true); }}
+                              variant="outline"
+                              size="sm"
+                              className={`text-xs ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
+                            >
+                              View Reason
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="ml-4 flex-shrink-0 text-right">
+                          <div className="flex flex-col items-end">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${leave.status === 'APPROVED' ? (theme === 'dark' ? 'bg-green-700 text-green-50' : 'bg-green-100 text-green-700') :
+                                leave.status === 'REJECTED' ? (theme === 'dark' ? 'bg-red-700 text-red-50' : 'bg-red-100 text-red-700') :
+                                  (theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700')
+                              }`}>{leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}</span>
+                            <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{new Date(leave.start_date).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {filteredRecentLeaves.length === 0 ? (
-            <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                <CheckCircle className="w-8 h-8 text-primary opacity-50" />
-              </div>
-              <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                No Recent History Found
-              </h3>
-              <p className={`text-center max-w-sm text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                No processed leave requests match your current filters in the past 7 days.
-              </p>
-            </div>
-          ) : (
-            <div className="h-[420px] overflow-auto space-y-4 custom-scrollbar">
-              {filteredRecentLeaves.map((leave) => (
-                <div
-                  key={`${leave.faculty_type}-${leave.id}`}
-                  className={`border rounded-md px-4 py-3 shadow-sm ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className={`font-medium ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title || 'Leave Request'}</h3>
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                              leave.faculty_type === 'coe'
-                                ? (theme === 'dark' ? 'bg-green-400 text-green-900' : 'bg-green-600 text-white')
-                                : leave.faculty_type === 'principal'
-                                ? (theme === 'dark' ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800')
-                                : (theme === 'dark' ? 'bg-purple-100 text-purple-800' : 'bg-purple-100 text-purple-800')
-                            }`}>{leave.faculty_type.toUpperCase()}</span>
-                          </div>
-                          <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>{leave.start_date}</p>
-                        </div>
-                      </div>
 
-                      <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>
-                        {leave.faculty_name} - {leave.faculty_type === 'principal' ? 'Administration' : leave.department}
-                      </p>
-
-                      <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {leave.start_date} to {leave.end_date}
-                      </p>
-
-                      <div className="mt-3">
-                        <Button
-                          onClick={() => { setSelectedLeave(leave); setShowReasonDialog(true); }}
-                          variant="outline"
-                          size="sm"
-                          className={`text-xs ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
-                        >
-                          View Reason
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="ml-4 flex-shrink-0 text-right">
-                      <div className="flex flex-col items-end">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          leave.status === 'APPROVED' ? (theme === 'dark' ? 'bg-green-700 text-green-50' : 'bg-green-100 text-green-700') :
-                          leave.status === 'REJECTED' ? (theme === 'dark' ? 'bg-red-700 text-red-50' : 'bg-red-100 text-red-700') :
-                          (theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700')
-                        }`}>{leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}</span>
-                        <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{new Date(leave.start_date).toLocaleDateString()}</p>
-                      </div>
-                    </div>
+                {/* Recent Pagination Controls */}
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                  <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Showing {Math.min((recentPage - 1) * 20 + 1, recentPagination.totalItems)}-{Math.min(recentPage * 20, recentPagination.totalItems)} of {recentPagination.totalItems}
                   </div>
+                  {recentPagination.totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={recentPage === 1 || recentLoading}
+                        onClick={() => setRecentPage(p => p - 1)}
+                        className="h-8 px-2"
+                      >
+                        Prev
+                      </Button>
+                      <span className={`text-xs font-medium px-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {recentPage} / {recentPagination.totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={recentPage === recentPagination.totalPages || recentLoading}
+                        onClick={() => setRecentPage(p => p + 1)}
+                        className="h-8 px-2"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
       <Dialog open={showReasonDialog} onOpenChange={setShowReasonDialog}>
         <DialogContent className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>

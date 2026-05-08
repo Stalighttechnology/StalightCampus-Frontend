@@ -42,18 +42,18 @@ const DeanAttendanceFilters = () => {
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [startDatePopoverOpen, setStartDatePopoverOpen] = useState(false);
   const [endDatePopoverOpen, setEndDatePopoverOpen] = useState(false);
+  const [leavesPage, setLeavesPage] = useState(1);
 
-  const fetchData = async (start?: string, end?: string) => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      let url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/`;
-      if (start && end) {
-        url += `?start_date=${start}&end_date=${end}`;
-      }
+      // We only need the names of HODs and Admins for the dropdowns.
+      // Individual profiles are fetched separately when a person is selected.
+      const url = `${API_ENDPOINT}/dean/reports/hod-admin-attendance/?names_only=true`;
       const resSummary = await fetchWithTokenRefresh(url);
       const jsonSummary = await resSummary.json();
       if (!jsonSummary.success) {
-        setError(jsonSummary.message || "Failed to load HOD/admin summary");
+        setError(jsonSummary.message || "Failed to load HOD/admin list");
         return;
       }
       setData(jsonSummary);
@@ -76,11 +76,8 @@ const DeanAttendanceFilters = () => {
   const totalRangeDays = isMonthly ? (data?.summary?.period?.total_days || 0) : 1;
 
   const handleFilter = () => {
-    if (startDate && endDate) {
-      fetchData(startDate, endDate);
-    } else {
-      fetchData();
-    }
+    // The loadPerson useEffect will automatically trigger when startDate/endDate changes
+    // No need to re-fetch the global HOD/Admin list
   };
 
   useEffect(() => {
@@ -92,15 +89,17 @@ const DeanAttendanceFilters = () => {
         if (selectedRole === "hod") {
           let url = `${API_ENDPOINT}/dean/faculty/${selectedPersonId}/profile/`;
           const params = new URLSearchParams();
+          params.append("compact", "true");
+          params.append("page", String(leavesPage));
           if (startDate) params.append("start_date", startDate);
           if (endDate) params.append("end_date", endDate);
-          if (params.toString()) url += `?${params.toString()}`;
+          url += `?${params.toString()}`;
 
           const res = await fetchWithTokenRefresh(url);
           const json = await res.json();
           if (json.success) {
             const profile = json.data || json.profile || null;
-            setSelectedPersonSummary(profile?.attendance_summary || null);
+            setSelectedPersonSummary(profile);
           }
         } else {
           const selectedAdmin = adminList.find((admin: { id?: string; name?: string; email?: string; mobile?: string; last_login?: string | null }) => String(admin.id) === String(selectedPersonId));
@@ -141,7 +140,7 @@ const DeanAttendanceFilters = () => {
     };
 
     loadPerson();
-  }, [selectedPersonId, selectedRole, startDate, endDate, adminList, totalRangeDays, isMonthly]);
+  }, [selectedPersonId, selectedRole, startDate, endDate, adminList, totalRangeDays, isMonthly, leavesPage]);
 
 
   if (error && !data) {
@@ -247,7 +246,6 @@ const DeanAttendanceFilters = () => {
                   onClick={() => {
                     setStartDate("");
                     setEndDate("");
-                    fetchData();
                   }}
                   className="gap-2 w-full lg:w-auto"
                 >
@@ -384,36 +382,96 @@ const DeanAttendanceFilters = () => {
                 </div>
                 <div className={`text-sm text-right ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>
                   <div>Range days</div>
-                  <div className="text-lg font-semibold">{selectedPersonSummary?.total_days ?? (isMonthly ? data.summary.period.total_days : "-")}</div>
+                  <div className="text-lg font-semibold">{selectedPersonSummary?.attendance_summary?.total_days ?? (isMonthly ? data.summary.period.total_days : "-")}</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-blue-900/10 border-blue-900/20' : 'bg-blue-50 border-blue-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>Weekly Hours</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>{selectedPersonSummary?.weekly_hours ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>{selectedPersonSummary?.total_weekly_hours ?? 0}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-green-900/10 border-green-900/20' : 'bg-green-50 border-green-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>Present Days</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-green-100' : 'text-green-900'}`}>{selectedPersonSummary?.present_days ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-green-100' : 'text-green-900'}`}>{selectedPersonSummary?.attendance_summary?.present_days ?? 0}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-red-900/10 border-red-900/20' : 'bg-red-50 border-red-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Absent Days</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-red-100' : 'text-red-900'}`}>{selectedPersonSummary?.absent_days ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-red-100' : 'text-red-900'}`}>{selectedPersonSummary?.attendance_summary?.absent_days ?? 0}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-purple-900/10 border-purple-900/20' : 'bg-purple-50 border-purple-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>Attendance %</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>{selectedPersonSummary?.percent_present ?? "N/A"}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>{selectedPersonSummary?.attendance_summary?.percent_present ?? "N/A"}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-yellow-900/10 border-yellow-900/20' : 'bg-yellow-50 border-yellow-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>Leave Days</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-yellow-100' : 'text-yellow-900'}`}>{selectedPersonSummary?.leave_days ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-yellow-100' : 'text-yellow-900'}`}>{selectedPersonSummary?.attendance_summary?.leave_days ?? 0}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-amber-900/10 border-amber-900/20' : 'bg-amber-50 border-amber-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>Unmarked Days</div>
-                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-amber-100' : 'text-amber-900'}`}>{selectedPersonSummary?.unmarked_days ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-amber-100' : 'text-amber-900'}`}>{selectedPersonSummary?.attendance_summary?.unmarked_days ?? 0}</div>
                 </div>
               </div>
+
+              {/* Paginated Leaves Section */}
+              {selectedRole === "hod" && selectedPersonSummary?.leaves && (
+                <div className="mt-6 border-t border-border pt-4">
+                  <div className="text-md font-semibold mb-3">Leave History</div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className={theme === 'dark' ? 'text-muted-foreground bg-muted' : 'text-gray-500 bg-gray-50'}>
+                        <tr>
+                          <th className="px-4 py-2 font-medium">Period</th>
+                          <th className="px-4 py-2 font-medium">Status</th>
+                          <th className="px-4 py-2 font-medium">Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {selectedPersonSummary.leaves.length > 0 ? selectedPersonSummary.leaves.map((l: any) => (
+                          <tr key={l.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}>
+                            <td className="px-4 py-3">{l.start_date} to {l.end_date}</td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${l.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                  l.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                    'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                {l.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 max-w-[200px] truncate" title={l.reason}>{l.reason}</td>
+                          </tr>
+                        )) : (
+                          <tr>
+                            <td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">No leave records found in this range.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {selectedPersonSummary.leaves_pagination?.total_pages > 1 && (
+                    <div className="flex items-center justify-between mt-4 text-xs">
+                      <button
+                        disabled={leavesPage === 1}
+                        onClick={() => setLeavesPage(p => Math.max(1, p - 1))}
+                        className="px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-50"
+                      >
+                        Prev
+                      </button>
+                      <span className="text-muted-foreground">
+                        Page {leavesPage} of {selectedPersonSummary.leaves_pagination.total_pages}
+                      </span>
+                      <button
+                        disabled={leavesPage === selectedPersonSummary.leaves_pagination.total_pages}
+                        onClick={() => setLeavesPage(p => p + 1)}
+                        className="px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className={`mt-4 flex flex-col items-center justify-center py-24 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
