@@ -12,6 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format, parse } from "date-fns";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonStatsGrid, SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import { Button } from "../ui/button";
@@ -66,6 +69,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   // Form State
   const [showForm, setShowForm] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     batch_id: '',
@@ -73,8 +77,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     exam_type: '',
     exam_period: '',
     date: '',
-    start_time: '',
-    end_time: '',
+    start_time: '09:00',
+    end_time: '12:00',
     room: '',
     max_marks: '100',
     weightage: '30'
@@ -84,6 +88,28 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     totalPages: 1,
     totalItems: 0
   });
+
+  // Time conversion helpers
+  const to24h = (h: string, m: string, p: string) => {
+    let hours = parseInt(h);
+    if (p === 'PM' && hours < 12) hours += 12;
+    if (p === 'AM' && hours === 12) hours = 0;
+    return `${hours.toString().padStart(2, '0')}:${m}`;
+  };
+
+  const from24h = (time24: string) => {
+    if (!time24) return { h: '09', m: '00', p: 'AM' };
+    const [hours, minutes] = time24.split(':');
+    let h = parseInt(hours);
+    const p = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return { h: h.toString().padStart(2, '0'), m: minutes, p };
+  };
+
+  const formatTo12h = (time24: string) => {
+    const { h, m, p } = from24h(time24);
+    return `${h}:${m} ${p}`;
+  };
 
   const loadData = async (page = 1) => {
     setLoading(true);
@@ -236,7 +262,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} max-w-2xl w-[90vw] sm:w-full max-h-[80vh] overflow-y-auto rounded-xl custom-scrollbar`}>
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                 <Plus className="w-5 h-5 text-primary" />
                 Schedule New Exam
               </DialogTitle>
@@ -293,35 +319,122 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Date</label>
-                <Input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} required />
+              <div className="sm:col-span-2 space-y-2">
+                <label className="text-sm font-semibold">Exam Date</label>
+                <Popover open={dateOpen} onOpenChange={setDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start text-left font-normal h-10 lg:h-12 px-4 rounded-xl border ${!formData.date && "text-muted-foreground"} ${theme === 'dark' ? 'bg-background border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-50'}`}
+                    >
+                      <Calendar className="mr-3 h-5 w-5 text-primary" />
+                      {formData.date ? format(new Date(formData.date), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-2xl rounded-2xl' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-2xl rounded-2xl'} align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={formData.date ? new Date(formData.date) : undefined}
+                      onSelect={(date) => {
+                        setFormData({ ...formData, date: date ? format(date, "yyyy-MM-dd") : "" });
+                        setDateOpen(false);
+                      }}
+                      initialFocus
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Start Time</label>
-                  <Input type="time" value={formData.start_time} onChange={e => setFormData({ ...formData, start_time: e.target.value })} required />
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Start Time</label>
+                <div className="flex gap-2">
+                  <Select 
+                    value={from24h(formData.start_time).h} 
+                    onValueChange={v => setFormData({ ...formData, start_time: to24h(v, from24h(formData.start_time).m, from24h(formData.start_time).p) })}
+                  >
+                    <SelectTrigger className="flex-1 h-10 lg:h-12 rounded-xl px-3"><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-48">
+                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map(h => (
+                        <SelectItem key={h} value={h}>{h}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select 
+                    value={from24h(formData.start_time).m} 
+                    onValueChange={v => setFormData({ ...formData, start_time: to24h(from24h(formData.start_time).h, v, from24h(formData.start_time).p) })}
+                  >
+                    <SelectTrigger className="flex-1 h-10 lg:h-12 rounded-xl px-3"><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-48">
+                      {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(m => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select 
+                    value={from24h(formData.start_time).p} 
+                    onValueChange={v => setFormData({ ...formData, start_time: to24h(from24h(formData.start_time).h, from24h(formData.start_time).m, v) })}
+                  >
+                    <SelectTrigger className="w-[70px] h-10 lg:h-12 rounded-xl px-2"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">End Time</label>
-                  <Input type="time" value={formData.end_time} onChange={e => setFormData({ ...formData, end_time: e.target.value })} required />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">End Time</label>
+                <div className="flex gap-2">
+                  <Select 
+                    value={from24h(formData.end_time).h} 
+                    onValueChange={v => setFormData({ ...formData, end_time: to24h(v, from24h(formData.end_time).m, from24h(formData.end_time).p) })}
+                  >
+                    <SelectTrigger className="flex-1 h-10 lg:h-12 rounded-xl px-3"><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-48">
+                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map(h => (
+                        <SelectItem key={h} value={h}>{h}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select 
+                    value={from24h(formData.end_time).m} 
+                    onValueChange={v => setFormData({ ...formData, end_time: to24h(from24h(formData.end_time).h, v, from24h(formData.end_time).p) })}
+                  >
+                    <SelectTrigger className="flex-1 h-10 lg:h-12 rounded-xl px-3"><SelectValue /></SelectTrigger>
+                    <SelectContent className="max-h-48">
+                      {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(m => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select 
+                    value={from24h(formData.end_time).p} 
+                    onValueChange={v => setFormData({ ...formData, end_time: to24h(from24h(formData.end_time).h, from24h(formData.end_time).m, v) })}
+                  >
+                    <SelectTrigger className="w-[70px] h-10 lg:h-12 rounded-xl px-2"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Venue / Room</label>
-                <Input placeholder="e.g. Room 302" value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value })} />
+                <label className="text-sm font-semibold">Venue / Room</label>
+                <Input placeholder="e.g. Room 302" value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value })} className="h-10 lg:h-12 rounded-xl" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Max Marks</label>
-                <Input type="number" value={formData.max_marks} onChange={e => setFormData({ ...formData, max_marks: e.target.value })} />
+                <label className="text-sm font-semibold">Max Marks</label>
+                <Input type="number" value={formData.max_marks} onChange={e => setFormData({ ...formData, max_marks: e.target.value })} className="h-10 lg:h-12 rounded-xl" />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Weightage (%)</label>
-                <Input type="number" value={formData.weightage} onChange={e => setFormData({ ...formData, weightage: e.target.value })} />
+                <label className="text-sm font-semibold">Weightage (%)</label>
+                <Input type="number" value={formData.weightage} onChange={e => setFormData({ ...formData, weightage: e.target.value })} className="h-10 lg:h-12 rounded-xl" />
               </div>
 
               <div className="sm:col-span-2 flex justify-end gap-3 pt-6 border-t mt-4">
@@ -387,7 +500,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           <div className="font-medium">{new Date(ex.date).toLocaleDateString()}</div>
                           <div className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-1">
                             <Clock className="w-3 h-3" />
-                            {ex.start_time} - {ex.end_time}
+                            {formatTo12h(ex.start_time)} - {formatTo12h(ex.end_time)}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center">

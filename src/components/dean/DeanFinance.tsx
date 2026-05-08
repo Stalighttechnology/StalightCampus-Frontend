@@ -189,56 +189,6 @@ const DeanFinance = () => {
           </div>
         </div>
       </div>
-
-      {/* Recent Transactions Table */}
-      <div className={`rounded-lg shadow mt-5 overflow-hidden ${theme === 'dark' ? 'border border-border bg-card' : 'border border-gray-200 bg-white'}`}>
-        <div className="flex flex-row items-center justify-between p-6 border-b dark:border-slate-800">
-          <div>
-            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Transactions</h3>
-            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Last 5 successful fee collections</p>
-          </div>
-          <Button variant="ghost" size="sm" className="font-bold text-blue-500 hover:text-blue-600">
-            View All <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead>
-              <tr className={`border-b ${theme === 'dark' ? 'border-border text-foreground bg-slate-800/50' : 'border-gray-200 text-gray-900 bg-slate-50/50'}`}>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs">Student</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs">Transaction ID</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs">Method</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs">Date</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y dark:divide-slate-800">
-              {dashboardData?.recent_transactions?.map((txn: any, i: number) => (
-                <tr key={i} className={`transition-colors ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
-                  <td className="px-6 py-4">
-                    <div className="font-bold">{txn.student_name}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{txn.transaction_id}</code>
-                  </td>
-                  <td className="px-6 py-4">
-                    <Badge variant="outline" className="font-bold capitalize">{txn.method}</Badge>
-                  </td>
-                  <td className="px-6 py-4 text-slate-500">{txn.date}</td>
-                  <td className="px-6 py-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
-                    {formatCurrency(txn.amount)}
-                  </td>
-                </tr>
-              ))}
-              {!dashboardData?.recent_transactions?.length && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">No recent transactions recorded.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </motion.div>
   );
 };

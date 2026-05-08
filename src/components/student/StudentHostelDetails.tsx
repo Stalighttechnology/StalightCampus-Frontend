@@ -306,17 +306,13 @@ const StudentHostelDetails: React.FC = () => {
   // ── Empty state ────────────────────────────────────────────────────────────
   if (!hostel && !room) {
     return (
-      <div
-        className={`rounded-xl border p-10 flex flex-col items-center gap-3 text-center ${
-          theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-        }`}
-      >
-        <FaHotel className={`w-12 h-12 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-300'}`} />
-        <p className={`text-base font-semibold ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-700'}`}>
-          No Hostel Assigned
-        </p>
-        <p className={`text-xs max-w-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
-          You haven't been assigned a hostel room yet. Contact the hostel administration for assistance.
+      <div className={`py-24 flex flex-col items-center justify-center text-center rounded-3xl border-2 border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200 shadow-sm'}`}>
+        <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-white shadow-md'} mb-6`}>
+          <FaHotel className="h-16 w-16 text-primary/40" />
+        </div>
+        <h3 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Hostel Assigned</h3>
+        <p className={`text-base mt-2 max-w-sm mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+          You haven't been assigned a hostel room yet. Please contact the hostel administration or the warden's office for your room allocation.
         </p>
       </div>
     );

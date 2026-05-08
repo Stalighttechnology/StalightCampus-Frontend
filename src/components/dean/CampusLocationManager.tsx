@@ -44,6 +44,7 @@ const CampusLocationManager: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [fetchingLocation, setFetchingLocation] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -471,6 +472,7 @@ const CampusLocationManager: React.FC = () => {
       toast.error('Geolocation is not supported by this browser');
       return;
     }
+    setFetchingLocation(true);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -490,7 +492,7 @@ const CampusLocationManager: React.FC = () => {
           mapInstanceRef.current.setCenter(newPosition);
           mapInstanceRef.current.setZoom(18);
         }
-
+        setFetchingLocation(false);
         toast.success('Current location set successfully');
       },
       (error) => {
@@ -511,6 +513,7 @@ const CampusLocationManager: React.FC = () => {
             errorMessage = 'Location request timed out.';
             break;
         }
+        setFetchingLocation(false);
         toast.error(errorMessage);
       },
       {
@@ -613,11 +616,11 @@ const CampusLocationManager: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-4 w-full min-w-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full min-w-0">
                   <div>
-                    <Label htmlFor="name">Name *</Label>
+                    <Label htmlFor="name" className="font-semibold">Name *</Label>
                     <Input id="name" value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} required />
                   </div>
                   <div>
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description" className="font-semibold">Description</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
@@ -631,20 +634,20 @@ const CampusLocationManager: React.FC = () => {
 
                 <div className="flex items-center space-x-2 w-full min-w-0">
                   <Switch id="is_active" checked={formData.is_active} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))} />
-                  <Label htmlFor="is_active">Active Location</Label>
+                  <Label htmlFor="is_active" className="font-semibold">Active Location</Label>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full min-w-0">
                   <div>
-                    <Label htmlFor="center_latitude">Center Latitude *</Label>
+                    <Label htmlFor="center_latitude" className="font-semibold">Center Latitude *</Label>
                     <Input id="center_latitude" type="number" step="any" value={formData.center_latitude} onChange={(e) => setFormData(prev => ({ ...prev, center_latitude: parseFloat(e.target.value) || 0 }))} required />
                   </div>
                   <div>
-                    <Label htmlFor="center_longitude">Center Longitude *</Label>
+                    <Label htmlFor="center_longitude" className="font-semibold">Center Longitude *</Label>
                     <Input id="center_longitude" type="number" step="any" value={formData.center_longitude} onChange={(e) => setFormData(prev => ({ ...prev, center_longitude: parseFloat(e.target.value) || 0 }))} required />
                   </div>
                   <div>
-                    <Label htmlFor="radius_meters">Radius (meters) *</Label>
+                    <Label htmlFor="radius_meters" className="font-semibold">Radius (meters) *</Label>
                     <Input id="radius_meters" type="number" min="10" max="5000" value={formData.radius_meters} onChange={(e) => handleRadiusChange(e.target.value)} required />
                   </div>
                 </div>
@@ -663,7 +666,7 @@ const CampusLocationManager: React.FC = () => {
                 <div className="flex items-center justify-between mb-4 w-full min-w-0">
                   <div className="flex items-center space-x-2">
                     <Switch id="map-mode" checked={useIframe} onCheckedChange={setUseIframe} />
-                    <Label htmlFor="map-mode">Use Simple Map View (Iframe)</Label>
+                    <Label htmlFor="map-mode" className="font-semibold">Use Simple Map View (Iframe)</Label>
                   </div>
                   {useIframe && (
                     <div className="text-sm text-gray-600">Note: Iframe mode has limited interactivity. Use coordinates above to set location.</div>
@@ -680,9 +683,18 @@ const CampusLocationManager: React.FC = () => {
                         </svg>
                       </div>
                     </div>
-                    <Button type="button" variant="outline" onClick={getCurrentLocation} className="flex items-center gap-2 whitespace-nowrap">
-                      <MapPin className="w-4 h-4" />
-                      Current Location
+                    <Button type="button" variant="outline" onClick={getCurrentLocation} className="flex items-center gap-2 whitespace-nowrap" disabled={fetchingLocation}>
+                      {fetchingLocation ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Fetching...
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="w-4 h-4" />
+                          Current Location
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}
@@ -747,7 +759,17 @@ const CampusLocationManager: React.FC = () => {
                     <SkeletonList items={3} />
                   </div>
                 ) : locations.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No campus locations configured yet.</div>
+                  <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                      <MapPin className="w-10 h-10 text-primary opacity-50" />
+                    </div>
+                    <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      No Campus Locations Found
+                    </h3>
+                    <p className={`text-center max-w-sm text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      You haven't configured any campus boundaries yet. Click the "Add Location" button above to set up geolocation rules for attendance.
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-4 w-full">
                     {locations.map((location) => (

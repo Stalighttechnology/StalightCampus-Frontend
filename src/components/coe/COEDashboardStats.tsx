@@ -75,8 +75,20 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   if (!stats) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">Failed to load dashboard statistics</p>
+      <div className={`py-32 flex flex-col items-center justify-center text-center rounded-[2.5rem] border-2 border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200 shadow-sm'}`}>
+        <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-white shadow-md'} mb-6`}>
+          <AlertCircle className="h-16 w-16 text-primary/40" />
+        </div>
+        <h3 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Dashboard Data Found</h3>
+        <p className={`text-base mt-2 max-w-sm mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+          We were unable to retrieve the dashboard statistics. This might be due to a connection issue or lack of data.
+        </p>
+        <button 
+          onClick={fetchDashboardStats}
+          className="mt-8 px-8 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+        >
+          Retry Loading Data
+        </button>
       </div>
     );
   }
@@ -194,8 +206,11 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
           <p className="text-sm mb-6 text-muted-foreground">Distribution of exam application statuses</p>
           <div className="min-h-[250px] focus:outline-none">
             {totalApplications === 0 ? (
-              <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm italic">
-                No applications submitted yet
+              <div className="flex flex-col items-center justify-center h-[250px] text-center space-y-3">
+                <div className={`p-4 rounded-full bg-primary/10 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                  <FileText className="h-8 w-8 text-primary/30" />
+                </div>
+                <p className="text-sm text-muted-foreground font-semibold">No applications submitted yet</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={250}>
@@ -255,7 +270,17 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
               <tbody>
                 {(!stats.published_results_summary || stats.published_results_summary.recent_published_results.length === 0) ? (
                   <tr>
-                    <td colSpan={3} className="py-6 text-center text-muted-foreground">No recent published results</td>
+                    <td colSpan={3} className="py-24 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className={`p-6 rounded-full bg-primary/10  ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                          <CheckCircle className="h-10 w-10 text-primary/30" />
+                        </div>
+                        <p className="text-base text-muted-foreground font-semibold">No recent published results found</p>
+                        <p className="text-xs text-muted-foreground/60 max-w-[200px] mx-auto leading-relaxed">
+                          Once results are published, they will appear here for quick access.
+                        </p>
+                      </div>
+                    </td>
                   </tr>
                 ) : (
                   (stats.published_results_summary.recent_published_results || []).slice(0, 5).map((pr: any, idx) => (

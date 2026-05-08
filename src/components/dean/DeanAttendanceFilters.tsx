@@ -180,7 +180,7 @@ const DeanAttendanceFilters = () => {
               {/* Left Side: Role & Select */}
               <div className="flex gap-4 items-end flex-wrap w-full">
                 <div className="w-full lg:w-auto">
-                  <label htmlFor="dean-filter-role" className={`block text-sm font-medium mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
+                  <label htmlFor="dean-filter-role" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                     Role
                   </label>
                   <Select value={selectedRole} onValueChange={(value) => {
@@ -198,7 +198,7 @@ const DeanAttendanceFilters = () => {
                 </div>
 
                 <div className="w-full lg:w-auto">
-                  <label htmlFor="dean-filter-person" className={`block text-sm font-medium mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
+                  <label htmlFor="dean-filter-person" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                     Select
                   </label>
                   <Select value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value || null)}>
@@ -223,7 +223,7 @@ const DeanAttendanceFilters = () => {
 
               {/* Right Side: Date Range & Clear */}
               <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full lg:w-auto">
-                <label className={`text-sm font-medium whitespace-nowrap ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
+                <label className={`text-sm font-semibold whitespace-nowrap ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                   Date Range to filter
                 </label>
                 <Button
@@ -273,7 +273,7 @@ const DeanAttendanceFilters = () => {
 
               <div className="space-y-4 py-4">
                 <div>
-                  <label htmlFor="modal-start-date" className={`block text-sm font-medium mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
+                  <label htmlFor="modal-start-date" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                     Start Date
                   </label>
                   <Popover open={startDatePopoverOpen} onOpenChange={setStartDatePopoverOpen}>
@@ -308,7 +308,7 @@ const DeanAttendanceFilters = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="modal-end-date" className={`block text-sm font-medium mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
+                  <label htmlFor="modal-end-date" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                     End Date
                   </label>
                   <Popover open={endDatePopoverOpen} onOpenChange={setEndDatePopoverOpen}>
@@ -364,7 +364,7 @@ const DeanAttendanceFilters = () => {
             </DialogContent>
           </Dialog>
 
-          {selectedPersonId && selectedPersonSummary && (
+          {selectedPersonId && selectedPersonSummary ? (
             <div className={`mt-4 p-4 rounded-lg shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"}`}>
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -389,27 +389,27 @@ const DeanAttendanceFilters = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-blue-900/10 border-blue-900/20' : 'bg-blue-50 border-blue-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>Weekly Hours</div>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>{selectedPersonSummary?.total_weekly_hours ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>{selectedPersonSummary?.total_weekly_hours ?? 0}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-green-900/10 border-green-900/20' : 'bg-green-50 border-green-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>Present Days</div>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-green-100' : 'text-green-900'}`}>{selectedPersonSummary?.attendance_summary?.present_days ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-green-100' : 'text-green-900'}`}>{selectedPersonSummary?.attendance_summary?.present_days ?? 0}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-red-900/10 border-red-900/20' : 'bg-red-50 border-red-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Absent Days</div>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-red-100' : 'text-red-900'}`}>{selectedPersonSummary?.attendance_summary?.absent_days ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-red-100' : 'text-red-900'}`}>{selectedPersonSummary?.attendance_summary?.absent_days ?? 0}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-purple-900/10 border-purple-900/20' : 'bg-purple-50 border-purple-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>Attendance %</div>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>{selectedPersonSummary?.attendance_summary?.percent_present ?? "N/A"}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>{selectedPersonSummary?.attendance_summary?.percent_present ?? "N/A"}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-yellow-900/10 border-yellow-900/20' : 'bg-yellow-50 border-yellow-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>Leave Days</div>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-yellow-100' : 'text-yellow-900'}`}>{selectedPersonSummary?.attendance_summary?.leave_days ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-yellow-100' : 'text-yellow-900'}`}>{selectedPersonSummary?.attendance_summary?.leave_days ?? 0}</div>
                 </div>
                 <div className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-amber-900/10 border-amber-900/20' : 'bg-amber-50 border-amber-100'}`}>
                   <div className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>Unmarked Days</div>
-                  <div className={`text-2xl font-bold ${theme === 'dark' ? 'text-amber-100' : 'text-amber-900'}`}>{selectedPersonSummary?.attendance_summary?.unmarked_days ?? 0}</div>
+                  <div className={`text-2xl font-semibold ${theme === 'dark' ? 'text-amber-100' : 'text-amber-900'}`}>{selectedPersonSummary?.attendance_summary?.unmarked_days ?? 0}</div>
                 </div>
               </div>
 
@@ -431,11 +431,10 @@ const DeanAttendanceFilters = () => {
                           <tr key={l.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50'}>
                             <td className="px-4 py-3">{l.start_date} to {l.end_date}</td>
                             <td className="px-4 py-3">
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                l.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                l.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${l.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                  l.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                    'bg-yellow-100 text-yellow-800'
+                                }`}>
                                 {l.status}
                               </span>
                             </td>
@@ -474,6 +473,30 @@ const DeanAttendanceFilters = () => {
                 </div>
               )}
             </div>
+          ) : (
+            <div className={`mt-4 flex flex-col items-center justify-center py-24 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-5 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                <AlertCircle className="w-10 h-10 text-primary opacity-50" />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Select a {selectedRole === "hod" ? "HOD" : "Admin"} to View Report
+              </h3>
+              <p className={`text-center max-w-md ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Choose a specific {selectedRole === "hod" ? "Head of Department" : "Administrator"} from the dropdown above to generate their detailed attendance analysis and statistics.
+              </p>
+            </div>
+          ) : (
+          <div className={`mt-4 flex flex-col items-center justify-center py-24 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+            <div className={`p-5 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+              <AlertCircle className="w-10 h-10 text-primary opacity-50" />
+            </div>
+            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Select a {selectedRole === "hod" ? "HOD" : "Admin"} to View Report
+            </h3>
+            <p className={`text-center max-w-md ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Choose a specific {selectedRole === "hod" ? "Head of Department" : "Administrator"} from the dropdown above to generate their detailed attendance analysis and statistics.
+            </p>
+          </div>
           )}
         </>
       )}
