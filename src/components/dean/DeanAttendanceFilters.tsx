@@ -485,18 +485,6 @@ const DeanAttendanceFilters = () => {
                 Choose a specific {selectedRole === "hod" ? "Head of Department" : "Administrator"} from the dropdown above to generate their detailed attendance analysis and statistics.
               </p>
             </div>
-          ) : (
-          <div className={`mt-4 flex flex-col items-center justify-center py-24 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-            <div className={`p-5 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-              <AlertCircle className="w-10 h-10 text-primary opacity-50" />
-            </div>
-            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              Select a {selectedRole === "hod" ? "HOD" : "Admin"} to View Report
-            </h3>
-            <p className={`text-center max-w-md ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Choose a specific {selectedRole === "hod" ? "Head of Department" : "Administrator"} from the dropdown above to generate their detailed attendance analysis and statistics.
-            </p>
-          </div>
           )}
         </>
       )}

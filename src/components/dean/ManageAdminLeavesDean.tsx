@@ -114,12 +114,17 @@ const ManageAdminLeavesDean = () => {
       );
 
       if (response.success && response.updated_leave) {
-        // Update both lists locally for immediate feedback
-        setPendingLeaves(prev => prev.filter(l => l.id !== leaveId));
-        setRecentLeaves(prev => [
-          { ...prev.find(l => l.id === leaveId), status: action, reviewed_at: response.updated_leave?.reviewed_at || null } as UnifiedLeave,
-          ...prev
-        ].filter(l => l && l.id).slice(0, 20)); // Keep it clean
+        // Find the item in pending leaves to move it to recent history
+        const movedItem = pendingLeaves.find(l => l.id === leaveId);
+        
+        if (movedItem) {
+          // Update both lists locally for immediate feedback
+          setPendingLeaves(prev => prev.filter(l => l.id !== leaveId));
+          setRecentLeaves(prev => [
+            { ...movedItem, status: action, reviewed_at: response.updated_leave?.reviewed_at || null } as UnifiedLeave,
+            ...prev
+          ].slice(0, 20)); // Keep recent list manageable
+        }
 
         setSuccessMessage(`Leave ${action.toLowerCase()} successfully`);
         setTimeout(() => setSuccessMessage(""), 3000);
@@ -251,9 +256,9 @@ const ManageAdminLeavesDean = () => {
                 </div>
                 {/* Tablet/Laptop: table */}
                 <div className="hidden md:block">
-                  {loading ? (
+                  {pendingLoading ? (
                     <SkeletonTable rows={5} cols={6} />
-                  ) : allPendingLeaves.length === 0 ? (
+                  ) : pendingLeaves.length === 0 ? (
                     <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                       <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                         <FilterIcon className="w-8 h-8 text-primary opacity-50" />
@@ -278,7 +283,7 @@ const ManageAdminLeavesDean = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {allPendingLeaves.map((leave) => (
+                        {pendingLeaves.map((leave) => (
                           <tr key={leave.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
                             <td className="py-3 px-2 md:px-4 font-medium">{leave.faculty_name}</td>
                             <td className="py-3 px-2 md:px-4">{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</td>
@@ -328,6 +333,38 @@ const ManageAdminLeavesDean = () => {
                     </table>
                   )}
                 </div>
+
+                {/* Pending Pagination Controls */}
+                {pendingPagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                    <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Showing {Math.min((pendingPage - 1) * 20 + 1, pendingPagination.totalItems)}-{Math.min(pendingPage * 20, pendingPagination.totalItems)} of {pendingPagination.totalItems}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={pendingPage === 1 || pendingLoading}
+                        onClick={() => setPendingPage(p => p - 1)}
+                        className="h-8 px-2"
+                      >
+                        Prev
+                      </Button>
+                      <span className={`text-xs font-medium px-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {pendingPage} / {pendingPagination.totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={pendingPage === pendingPagination.totalPages || pendingLoading}
+                        onClick={() => setPendingPage(p => p + 1)}
+                        className="h-8 px-2"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
