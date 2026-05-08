@@ -150,9 +150,9 @@ const StudentAnnouncements = () => {
   }, [announcements, totalCount, unreadCount]);
 
   return (
-    <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div>
       <Card className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-        <CardHeader className="p-6 border-b">
+        <CardHeader>
           <div className="flex justify-between items-center">
             <div>
               <h2 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -165,7 +165,7 @@ const StudentAnnouncements = () => {
           </div>
         </CardHeader>
 
-        <CardContent className="p-6 space-y-8">
+        <CardContent className=" space-y-8">
           {/* Summary Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {[
@@ -187,7 +187,7 @@ const StudentAnnouncements = () => {
                     <p className={`text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       {stat.label}
                     </p>
-                    <p className={`text-2xl font-bold mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    <p className={`text-2xl font-semibold mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                       {stat.value}
                     </p>
                   </div>
@@ -255,7 +255,7 @@ const StudentAnnouncements = () => {
               <Button variant="outline" className="mt-4" onClick={loadAnnouncements}>Try Again</Button>
             </div>
           ) : (
-            <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+            <div>
               <div className="grid grid-cols-1 gap-4">
               <AnimatePresence mode="popLayout">
                 {filtered.length === 0 ? (
@@ -302,7 +302,7 @@ const StudentAnnouncements = () => {
                           </div>
                           
                           <div>
-                            <h3 className={`text-lg font-bold leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <h3 className={`text-md font-semibold leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                               {announcement.title}
                             </h3>
                             <p className={`text-sm mt-2 leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
@@ -365,22 +365,25 @@ const StudentAnnouncements = () => {
                 <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                   Showing page {currentPage} of {totalPages} ({totalCount} announcements)
                 </p>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className={theme === 'dark' ? 'border-border h-8' : 'h-8'}
+                    className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4"
                   >
                     Previous
                   </Button>
+                  <span className={`px-3 text-sm font-bold ${theme === 'dark' ? 'text-primary' : 'text-primary'}`}>
+                    {currentPage}
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    className={theme === 'dark' ? 'border-border h-8' : 'h-8'}
+                    className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4"
                   >
                     Next
                   </Button>

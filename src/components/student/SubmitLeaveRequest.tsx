@@ -329,8 +329,14 @@ const SubmitLeaveRequest = () => {
             {leavesLoading ? (
               <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Loading leave requests...</div>
             ) : filteredLeaves.length === 0 ? (
-              <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                No leave requests found.
+              <div className="py-24 flex flex-col items-center justify-center text-center">
+                <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
+                  <CalendarIcon className="h-16 w-16 text-primary/30" />
+                </div>
+                <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Leave Requests</h3>
+                <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  You haven't submitted any leave requests yet. Your future requests will appear here.
+                </p>
               </div>
             ) : (
               <>
@@ -386,22 +392,25 @@ const SubmitLeaveRequest = () => {
                     <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       Page {pagination.page} of {pagination.totalPages} ({pagination.totalItems} total)
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={!pagination.hasPrevious}
                         onClick={() => pagination.prevPage()}
-                        className={theme === 'dark' ? 'border-border h-8' : 'h-8'}
+                        className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4"
                       >
                         Previous
                       </Button>
+                      <span className={`px-3 text-sm font-bold ${theme === 'dark' ? 'text-primary' : 'text-primary'}`}>
+                        {pagination.page}
+                      </span>
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={!pagination.hasNext}
                         onClick={() => pagination.nextPage()}
-                        className={theme === 'dark' ? 'border-border h-8' : 'h-8'}
+                        className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4"
                       >
                         Next
                       </Button>

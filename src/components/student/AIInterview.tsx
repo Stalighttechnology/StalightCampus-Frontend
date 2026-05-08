@@ -14,72 +14,58 @@ const AIInterview: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4">
-      <div className={`max-w-2xl w-full rounded-2xl shadow-xl p-6 md:p-8 ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
-        <div className="text-center mb-8">
-          <div className="mx-auto bg-gradient-to-r from-purple-500 to-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-            <Mic className="w-8 h-8 text-white" />
-          </div>
-          <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            AI Interview Preparation
-          </h1>
-          <p className={`text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-            Practice your interview skills with our AI-powered platform
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
-            <Video className={`mx-auto w-8 h-8 mb-2 ${theme === 'dark' ? 'text-primary' : 'text-blue-600'}`} />
-            <h3 className={`text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Coding Interviews</h3>
-            <p className={`text-xs text-center mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              AI based coding interview
-            </p>
+    <div className="flex items-center justify-center">
+      <div className={`max-w-4xl w-full rounded-[2.5rem] shadow-2xl overflow-hidden border ${theme === 'dark' ? 'bg-[#1c1c1e]/60 backdrop-blur-xl border-white/10' : 'bg-white border-gray-100'}`}>
+        <div className="flex flex-col md:flex-row">
+          {/* Visual Side */}
+          <div className={`md:w-2/5 p-12 flex items-center justify-center bg-gradient-to-br ${theme === 'dark' ? 'from-purple-900/40 to-indigo-900/40' : 'from-indigo-400 to-purple-500'}`}>
+            <div className="p-10 rounded-full bg-white/20 backdrop-blur-md shadow-2xl border border-white/30 group hover:scale-110 transition-transform duration-500">
+              <Mic className="h-24 w-24 text-white drop-shadow-2xl" />
+            </div>
           </div>
           
-          <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
-            <Users className={`mx-auto w-8 h-8 mb-2 ${theme === 'dark' ? 'text-primary' : 'text-blue-600'}`} />
-            <h3 className={`text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Real Questions</h3>
-            <p className={`text-xs text-center mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Get industry-relevant questions
-            </p>
-          </div>
-          
-          <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
-            <Mic className={`mx-auto w-8 h-8 mb-2 ${theme === 'dark' ? 'text-primary' : 'text-blue-600'}`} />
-            <h3 className={`text-center font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Instant Feedback</h3>
-            <p className={`text-xs text-center mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Receive immediate performance feedback
-            </p>
-          </div>
-        </div>
+          {/* Content Side */}
+          <div className="md:w-3/5 p-8 md:p-14 space-y-8 flex flex-col justify-center">
+            <div className="space-y-4">
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                AI Interview <br/>
+                <span className="text-primary">Preparation</span>
+              </h1>
+              <p className={`text-lg leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                Master your next industry interview with our cutting-edge AI simulation. Get real-time feedback and detailed performance analytics.
+              </p>
+            </div>
 
-        <div className={`p-4 rounded-lg mb-6 ${theme === 'dark' ? 'bg-blue-900/20 border border-blue-800/30' : 'bg-blue-50 border border-blue-200'}`}>
-          <h3 className={`font-semibold mb-2 flex items-center ${theme === 'dark' ? 'text-primary' : 'text-blue-700'}`}>
-            <ExternalLink className="w-4 h-4 mr-2" />
-            About the AI Interview Platform
-          </h3>
-          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-            Our partner platform offers advanced AI interview simulations with personalized feedback. 
-            Click the button below to access the interview portal and start practicing today.
-          </p>
-        </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
+              {[
+                { icon: Video, title: 'Coding', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                { icon: Users, title: 'Industry', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                { icon: Mic, title: 'Feedback', color: 'text-indigo-500', bg: 'bg-indigo-500/10' }
+              ].map((item, i) => (
+                <div key={i} className={`p-4 rounded-2xl border flex flex-col items-center text-center space-y-2 ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                  <div className={`p-2.5 rounded-xl ${item.bg} ${item.color}`}>
+                    <item.icon className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-wider">{item.title}</p>
+                </div>
+              ))}
+            </div>
 
-        <div className="flex flex-col items-center">
-          <Button
-            onClick={handleTakeInterview}
-            className={`w-full max-w-xs font-bold py-3 px-6 rounded-lg text-lg transition-all duration-200 flex items-center justify-center gap-2 ${
-              theme === 'dark' 
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white'
-                : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
-            }`}
-          >
-            Take AI Interview <ExternalLink className="w-4 h-4" />
-          </Button>
-          
-          <p className={`text-xs mt-3 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            You will be redirected to our partner interview platform
-          </p>
+            <div className="flex flex-col sm:flex-row items-center gap-6 pt-4">
+              <Button
+                onClick={handleTakeInterview}
+                className={`w-full sm:w-auto font-bold py-7 px-10 rounded-2xl text-lg shadow-2xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 bg-primary text-white hover:bg-primary/90`}
+              >
+                Launch Portal <ExternalLink className="ml-2 h-5 w-5" />
+              </Button>
+              <div className="flex flex-col text-center sm:text-left">
+                <p className={`text-[10px] font-bold uppercase tracking-widest text-muted-foreground`}>Partner Platform</p>
+                <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Securely redirects to portal
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
