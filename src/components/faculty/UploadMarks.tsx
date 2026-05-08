@@ -283,7 +283,7 @@ const UploadMarks = () => {
   const studentsPerPage = 10;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [bulkUploadFile, setBulkUploadFile] = useState<File | null>(null); // New state for bulk upload
-  const [tabValue, setTabValue] = useState("manual");
+  const [tabValue, setTabValue] = useState("questionPaper");
   const [dragActive, setDragActive] = useState(false);
   const [bulkDragActive, setBulkDragActive] = useState(false); // New state for bulk upload drag
   const [errorMessage, setErrorMessage] = useState("");
@@ -315,12 +315,27 @@ const UploadMarks = () => {
   // Computed flag: treat backend-provided QP as available for display and marks entry
   const qpReady = Boolean(existingQpSummary);
   const [studentMarks, setStudentMarks] = useState<Record<string, Record<string, string>>>({});
-  const [subjectType, setSubjectType] = useState<string | null>(null);
-  // Effective subject type for rendering (prefer current state, fall back to stored selection)
-  const effectiveType = subjectType || (selected as any).subject_type || null;
 
   // New state for action button modes
   const [actionModes, setActionModes] = useState<Record<string, 'edit' | 'save' | 'view'>>({});
+
+  // Check if all dropdowns are selected
+  const areAllDropdownsSelected = () => {
+    if (!selected.subject_id || !selected.testType) return false;
+    
+    const subjIdNum = Number(selected.subject_id);
+    const filteredBySubject = assignments.filter(a => a.subject_id === subjIdNum);
+    
+    const hasBranches = filteredBySubject.some(a => a.branch_id);
+    const hasSemesters = filteredBySubject.some(a => a.semester_id);
+    const hasSections = filteredBySubject.some(a => a.section_id);
+
+    if (hasBranches && !selected.branch_id) return false;
+    if (hasSemesters && !selected.semester_id) return false;
+    if (hasSections && !selected.section_id) return false;
+
+    return true;
+  };
 
   // Update dropdown data when assignments change
   useEffect(() => {
@@ -347,13 +362,26 @@ const UploadMarks = () => {
     setTotalMarks(total);
   }, [questions]);
 
-  // Load existing QP when branch, semester, subject and testType are selected.
-  // Section is optional: if not selected, we'll try to find a QP across sections.
+  // Load existing QP when all required dropdowns are selected
   useEffect(() => {
-    if (selected.branch_id && selected.semester_id && selected.subject_id && selected.testType) {
+    if (areAllDropdownsSelected()) {
       loadExistingQP();
+    } else {
+      setQpId(null);
+      setExistingQpSummary(null);
+      setQuestions([]);
     }
-  }, [selected.branch_id, selected.semester_id, selected.subject_id, selected.testType]);
+  }, [selected.branch_id, selected.semester_id, selected.section_id, selected.subject_id, selected.testType]);
+
+  // Load students only when switching to Marks Entry tab and all criteria met
+  useEffect(() => {
+    if (tabValue === 'manual' && areAllDropdownsSelected() && existingQpSummary?.status === 'approved') {
+      fetchStudentsPage(1);
+    } else if (tabValue === 'manual') {
+      setStudents([]);
+      setStudentMarks({});
+    }
+  }, [tabValue, selected.branch_id, selected.semester_id, selected.section_id, selected.subject_id, selected.testType, existingQpSummary]);
 
   // Load full QP detail only when user opens the Question Paper tab
   useEffect(() => {
@@ -519,45 +547,56 @@ const UploadMarks = () => {
 
   // Load existing QP if available
   const loadExistingQP = async () => {
-    // Require branch, semester, subject and testType (section optional)
-    if (!selected.branch_id || !selected.semester_id || !selected.subject_id || !selected.testType) return;
+    if (!areAllDropdownsSelected()) return;
 
     try {
+      const isQuestionPaperTab = tabValue === 'questionPaper';
       const qpResponse = await getQuestionPapers({
         branch_id: selected.branch_id?.toString(),
-        semester_id: selected.semester_id?.toString(),
-        section_id: selected.section_id?.toString(),
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
-        detail: false,
+        detail: isQuestionPaperTab,
         approved_only: false,
       });
       if (qpResponse.success && qpResponse.data) {
         const existingQp = qpResponse.data.find((q: any) => {
-          // Handle branch as object {id, name} or as number
           const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
-
-          // Match depending on effective subject type
-          if (effectiveType === 'open_elective') {
-            return q.subject === selected.subject_id && q.test_type === selected.testType;
-          }
-          if (effectiveType === 'elective') {
-            return branchId === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
-          }
-          // regular: if section not selected, match across sections for the same branch+semester+subject+test_type
-          if (selected.section_id) {
-            return branchId === selected.branch_id && q.semester === selected.semester_id && q.section === selected.section_id && q.subject === selected.subject_id && q.test_type === selected.testType;
-          }
-          return branchId === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
+          return branchId === selected.branch_id && q.subject === selected.subject_id && q.test_type === selected.testType;
         });
 
-        // Set the QP summary (lightweight) and defer loading full QP detail
-        // until the user explicitly opens the Question Paper tab. This
-        // avoids eager/detail requests when the page only needs summaries
-        // (prevents duplicate `qp_id&detail=true` calls).
         if (existingQp) {
           setQpId(existingQp.id);
           setExistingQpSummary(existingQp);
+          
+          if (isQuestionPaperTab && existingQp.questions) {
+            const loadedQuestions: Question[] = [];
+            (existingQp.questions || []).forEach((q: any) => {
+              if (q.subparts && q.subparts.length > 0) {
+                q.subparts.forEach((sub: any) => {
+                  loadedQuestions.push({
+                    id: `${q.question_number}${sub.subpart_label || sub.subpart}`,
+                    number: `${q.question_number}${sub.subpart_label || sub.subpart}`,
+                    content: sub.content || '',
+                    maxMarks: String(sub.max_marks || 0),
+                    co: q.co || 'UNMAPPED',
+                    bloomsLevel: q.blooms_level || ''
+                  });
+                });
+              } else {
+                loadedQuestions.push({
+                  id: `${q.question_number}`,
+                  number: `${q.question_number}`,
+                  content: q.content || '',
+                  maxMarks: String(q.max_marks || 0),
+                  co: q.co || 'UNMAPPED',
+                  bloomsLevel: q.blooms_level || ''
+                });
+              }
+            });
+            setQuestions(loadedQuestions.length > 0 ? loadedQuestions : []);
+          } else {
+            setQuestions([]);
+          }
         } else {
           // No QP found for the selected criteria
           setQpId(null);
@@ -590,11 +629,8 @@ const UploadMarks = () => {
 
     // NOTE: SEE is supported server-side; allow SEE QP creation
 
-    // Check if QP already exists (fetch lightweight summaries)
     const qpResponse = await getQuestionPapers({
       branch_id: selected.branch_id?.toString(),
-      semester_id: selected.semester_id?.toString(),
-      section_id: selected.section_id?.toString(),
       subject_id: selected.subject_id?.toString(),
       test_type: selected.testType,
       detail: false,
@@ -603,18 +639,8 @@ const UploadMarks = () => {
     let existingQp = null;
     if (qpResponse.success && qpResponse.data) {
       existingQp = qpResponse.data.find((q: any) => {
-        // Match depending on effective subject type
-        if (effectiveType === 'open_elective') {
-          return q.subject === selected.subject_id && q.test_type === selected.testType;
-        }
-        if (effectiveType === 'elective') {
-          return q.branch === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
-        }
-        // regular: if section not selected, match across sections for same branch+semester+subject+test_type
-        if (selected.section_id) {
-          return q.branch === selected.branch_id && q.semester === selected.semester_id && q.section === selected.section_id && q.subject === selected.subject_id && q.test_type === selected.testType;
-        }
-        return q.branch === selected.branch_id && q.semester === selected.semester_id && q.subject === selected.subject_id && q.test_type === selected.testType;
+        const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
+        return branchId === selected.branch_id && q.subject === selected.subject_id && q.test_type === selected.testType;
       });
     }
 
@@ -651,9 +677,9 @@ const UploadMarks = () => {
     };
 
     // For open_elective, try to derive branch/semester/section from assignments when user didn't select them
-    qpData.branch = derivedBranchId;
-    qpData.semester = derivedSemesterId;
-    qpData.section = derivedSectionId;
+    qpData.branch = selected.branch_id || derivedBranchId;
+    qpData.semester = selected.semester_id || derivedSemesterId;
+    qpData.section = selected.section_id || derivedSectionId;
 
     // Validate that required fields for the model are present before sending
     if (!qpData.branch || !qpData.semester || !qpData.section) {
@@ -695,57 +721,19 @@ const UploadMarks = () => {
 
   const handleSubmit = async () => {
     setSavingMarks(true);
-    const { branch_id, subject_id, section_id, semester_id, testType } = selected;
-    // Validate required fields depending on effective subject type
-    if (!subject_id || !testType) {
-      MySwal.fire({ title: "Select subject and test type!", icon: "warning", confirmButtonText: "OK" });
+    if (!areAllDropdownsSelected()) {
+      MySwal.fire({ title: "Select all required fields!", icon: "warning", confirmButtonText: "OK" });
+      setSavingMarks(false);
       return;
-    }
-    if (effectiveType === 'regular') {
-      if (!branch_id || !semester_id || !section_id) {
-        MySwal.fire({ title: "Select branch, semester and section for regular subjects!", icon: "warning", confirmButtonText: "OK" });
-        return;
-      }
-    } else if (effectiveType === 'elective') {
-      if (!branch_id || !semester_id) {
-        MySwal.fire({ title: "Select branch and semester for elective subjects!", icon: "warning", confirmButtonText: "OK" });
-        return;
-      }
     }
 
-    // Find QP using summary endpoint
-    const qpResponse = await getQuestionPapers({
-      branch_id: selected.branch_id?.toString(),
-      semester_id: selected.semester_id?.toString(),
-      section_id: selected.section_id?.toString(),
-      subject_id: selected.subject_id?.toString(),
-      test_type: selected.testType,
-      detail: false,
-    });
-    if (!qpResponse.success || !qpResponse.data) {
+    if (!existingQpSummary || existingQpSummary.status !== 'approved') {
       MySwal.fire({
-        title: "Question Paper not found",
+        title: "Question Paper not found or not approved",
         icon: "error",
         confirmButtonText: "OK",
       });
-      return;
-    }
-    const qp = qpResponse.data.find((q: any) => {
-      if (effectiveType === 'open_elective') {
-        return q.subject === subject_id && q.test_type === testType;
-      }
-      if (effectiveType === 'elective') {
-        return q.branch === branch_id && q.semester === semester_id && q.subject === subject_id && q.test_type === testType;
-      }
-      return q.branch === branch_id && q.semester === semester_id && q.section === section_id && q.subject === subject_id && q.test_type === testType;
-    });
-    // Ensure the matched QP is COE-approved/finalized before proceeding
-    if (!qp || qp.status !== 'approved') {
-      MySwal.fire({
-        title: "Question Paper not found",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      setSavingMarks(false);
       return;
     }
 
@@ -1234,305 +1222,47 @@ const UploadMarks = () => {
     } else {
       updated[field] = value as string;
     }
-    setSelected(updated);
-    // If subject changed, fetch its detail to determine subject_type (regular/elective/open_elective)
-    // Use a local variable so we can use the fresh type immediately in this handler
-    // Prefer the current `subjectType` state, otherwise fall back to the stored `selected.subject_type`
-    let localSubjectType = subjectType || (updated as any).subject_type || null;
+
     if (field === 'subject_id' && value) {
-      localSubjectType = null;
-      try {
-        const res = await getSubjectDetail(String(value));
-        if (res && res.success && res.data && res.data.subject_type) {
-          localSubjectType = res.data.subject_type;
-          setSubjectType(localSubjectType);
-          // store subject type on selected so UI checks can use it immediately
-          updated.subject_type = localSubjectType;
-          setSelected(updated);
-        } else {
-          setSubjectType(null);
-          updated.subject_type = undefined;
-          setSelected(updated);
-        }
-      } catch (err) {
-        setSubjectType(null);
-        updated.subject_type = undefined;
-        setSelected(updated);
-      }
+      const subjIdNum = Number(value);
+      const filteredBySubject = assignments.filter(a => a.subject_id === subjIdNum);
+      const branches = Array.from(new Map(filteredBySubject.filter(a => a.branch_id).map(a => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
+      const semesters = Array.from(new Map(filteredBySubject.filter(a => a.semester_id).map(a => [a.semester_id, { id: a.semester_id, number: a.semester }])).values());
+      const sections = Array.from(new Map(filteredBySubject.filter(a => a.section_id).map(a => [a.section_id, { id: a.section_id, name: a.section }])).values());
+      
+      setDropdownData(prev => ({ ...prev, branch: branches, semester: semesters, section: sections }));
 
-      // Also derive branch/semester/section dropdowns from assignments for this subject
-      try {
-        const subjIdNum = Number(value);
-        if (localSubjectType === 'open_elective') {
-          // Try to derive branches from student registrations
-          const studentsResp = await getStudentsForMarks({ subject_id: subjIdNum.toString(), page: 1, page_size: 1000 });
-          let branchesFromStudents: { id: number; name: string }[] = [];
-          if (studentsResp && studentsResp.success && Array.isArray(studentsResp.data)) {
-            branchesFromStudents = Array.from(
-              new Map(
-                studentsResp.data
-                  .filter((s: any) => s.branch_id)
-                  .map((s: any) => [s.branch_id, { id: s.branch_id, name: s.branch }])
-              ).values()
-            );
-          }
-          if (branchesFromStudents.length > 0) {
-            setDropdownData(prev => ({ ...prev, branch: branchesFromStudents, semester: [], section: [], subject: [{ id: subjIdNum, name: updated.subject }] }));
-            setSelected(prev => ({ ...prev, branch: "", branch_id: undefined, semester: "", semester_id: undefined, section: "", section_id: undefined }));
-          } else {
-            // fallback to assignments-derived branches
-            const filteredBySubject = assignments.filter(a => a.subject_id === subjIdNum);
-            const branches = Array.from(new Map(filteredBySubject.map(a => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
-            setDropdownData(prev => ({ ...prev, branch: branches, semester: [], section: [], subject: [{ id: subjIdNum, name: updated.subject }] }));
-            setSelected(prev => ({ ...prev, branch: "", branch_id: undefined, semester: "", semester_id: undefined, section: "", section_id: undefined }));
-          }
-        } else {
-          // For regular/elective subjects: auto-select unique values like TakeAttendance.tsx
-          const filteredBySubject = assignments.filter(a => a.subject_id === subjIdNum);
-          const branches = Array.from(new Map(filteredBySubject.map(a => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
-          const semesters = Array.from(new Map(filteredBySubject.map(a => [a.semester_id, { id: a.semester_id, number: a.semester }])).values());
-          const sections = Array.from(new Map(filteredBySubject.map(a => [a.section_id, { id: a.section_id, name: a.section }])).values());
+      const autoBranchId = branches.length === 1 ? branches[0].id : undefined;
+      const autoSemesterId = semesters.length === 1 ? semesters[0].id : undefined;
+      const autoSectionId = sections.length === 1 ? sections[0].id : undefined;
 
-          // Keep ALL subjects in dropdown, not just filtered ones
-          const allSubjects = Array.from(new Map(assignments.map(a => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values());
-
-          setDropdownData(prev => ({ ...prev, branch: branches, semester: semesters, section: sections, subject: allSubjects }));
-
-          // Auto-select if unique values exist (similar to TakeAttendance.tsx logic)
-          const uniqBranches = Array.from(new Set(filteredBySubject.map(a => a.branch_id))).filter(Boolean);
-          const uniqSemesters = Array.from(new Set(filteredBySubject.map(a => a.semester_id))).filter(Boolean);
-          const uniqSections = Array.from(new Set(filteredBySubject.map(a => a.section_id))).filter(Boolean);
-
-          // Behavior by subject type:
-          // - elective: auto-select branch & semester if unique; do NOT auto-select section (optional)
-          // - regular/other: auto-select all unique values including section
-          if (localSubjectType === 'elective') {
-            const autoBranchId = uniqBranches.length === 1 ? uniqBranches[0] : undefined;
-            const autoSemesterId = uniqSemesters.length === 1 ? uniqSemesters[0] : undefined;
-            const autoBranchName = autoBranchId ? branches.find(b => b.id === autoBranchId)?.name || "" : "";
-            const autoSemesterNum = autoSemesterId ? semesters.find(s => s.id === autoSemesterId)?.number.toString() || "" : "";
-
-            updated.branch_id = autoBranchId;
-            updated.branch = autoBranchName;
-            updated.semester_id = autoSemesterId;
-            updated.semester = autoSemesterNum;
-            // Auto-select default test type IA1
-            updated.testType = "IA1";
-            // section remains undefined for elective
-
-            setSelected({ ...updated });
-          } else {
-            // regular or unknown subject_type: auto-select all unique values including section
-            const autoBranchId = uniqBranches.length === 1 ? uniqBranches[0] : undefined;
-            const autoSemesterId = uniqSemesters.length === 1 ? uniqSemesters[0] : undefined;
-            const autoSectionId = uniqSections.length === 1 ? uniqSections[0] : undefined;
-            const autoBranchName = autoBranchId ? branches.find(b => b.id === autoBranchId)?.name || "" : "";
-            const autoSemesterNum = autoSemesterId ? semesters.find(s => s.id === autoSemesterId)?.number.toString() || "" : "";
-            const autoSectionName = autoSectionId ? sections.find(s => s.id === autoSectionId)?.name || "" : "";
-
-            updated.branch_id = autoBranchId;
-            updated.branch = autoBranchName;
-            updated.semester_id = autoSemesterId;
-            updated.semester = autoSemesterNum;
-            updated.section_id = autoSectionId;
-            updated.section = autoSectionName;
-            // Auto-select default test type IA1
-            updated.testType = "IA1";
-
-            setSelected({ ...updated });
-          }
-        }
-      } catch (err) {
-        // ignore
-      }
-    }
-    let filtered = assignments;
-    if (updated.branch_id) filtered = filtered.filter(a => a.branch_id === updated.branch_id);
-    if (updated.semester_id) filtered = filtered.filter(a => a.semester_id === updated.semester_id);
-    if (updated.section_id) filtered = filtered.filter(a => a.section_id === updated.section_id);
-    if (field === "branch_id") {
-      const semesters = Array.from(
-        new Map(filtered.map(a => [a.semester_id, { id: a.semester_id, number: a.semester }])).values()
-      );
-      // Build subjects available under the selected branch (filtered may already include semester/section)
-      let subjectsForBranch = Array.from(new Map(filtered.map(a => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values());
-      const effectiveLocalType = subjectType || (updated as any).subject_type || null;
-      // If open_elective, ensure the currently selected subject remains available in the dropdown even if not assigned
-      if (effectiveLocalType === 'open_elective' && updated.subject_id) {
-        const hasSelected = subjectsForBranch.some(s => s.id === updated.subject_id);
-        if (!hasSelected) {
-          subjectsForBranch = [{ id: updated.subject_id, name: updated.subject }, ...subjectsForBranch];
-        }
-      }
-      setDropdownData(prev => ({ ...prev, semester: semesters, section: [], subject: subjectsForBranch }));
-      // Preserve current subject selection if it's still valid for the new branch filter or if open_elective
-      const keepSubject = updated.subject_id && (effectiveLocalType === 'open_elective' || subjectsForBranch.some(s => s.id === updated.subject_id));
-      setSelected(prev => ({ ...prev, semester: "", semester_id: undefined, section: "", section_id: undefined, subject: keepSubject ? prev.subject : "", subject_id: keepSubject ? prev.subject_id : undefined }));
+      updated.branch_id = autoBranchId;
+      updated.branch = autoBranchId ? branches[0].name : "";
+      updated.semester_id = autoSemesterId;
+      updated.semester = autoSemesterId ? semesters[0].number.toString() : "";
+      updated.section_id = autoSectionId;
+      updated.section = autoSectionId ? sections[0].name : "";
+      if (!updated.testType) updated.testType = "IA1";
+    } else if (field === "branch_id") {
+      const filtered = assignments.filter(a => a.subject_id === updated.subject_id && a.branch_id === updated.branch_id);
+      const semesters = Array.from(new Map(filtered.filter(a => a.semester_id).map(a => [a.semester_id, { id: a.semester_id, number: a.semester }])).values());
+      setDropdownData(prev => ({ ...prev, semester: semesters, section: [] }));
+      updated.semester_id = undefined;
+      updated.semester = "";
+      updated.section_id = undefined;
+      updated.section = "";
     } else if (field === "semester_id") {
-      const sections = Array.from(
-        new Map(filtered.map(a => [a.section_id, { id: a.section_id, name: a.section }])).values()
-      );
-      let subjectsForSem = Array.from(new Map(filtered.map(a => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values());
-      const effectiveLocalType = subjectType || (updated as any).subject_type || null;
-      if (effectiveLocalType === 'open_elective' && updated.subject_id) {
-        const hasSelected = subjectsForSem.some(s => s.id === updated.subject_id);
-        if (!hasSelected) {
-          subjectsForSem = [{ id: updated.subject_id, name: updated.subject }, ...subjectsForSem];
-        }
-      }
-      setDropdownData(prev => ({ ...prev, section: sections, subject: subjectsForSem }));
-      const keepSubject = updated.subject_id && (effectiveLocalType === 'open_elective' || subjectsForSem.some(s => s.id === updated.subject_id));
-      setSelected(prev => ({ ...prev, section: "", section_id: undefined, subject: keepSubject ? prev.subject : "", subject_id: keepSubject ? prev.subject_id : undefined }));
-    } else if (field === "section_id") {
-      let subjects = Array.from(
-        new Map(filtered.map(a => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values()
-      );
-      const effectiveLocalType = subjectType || (updated as any).subject_type || null;
-      if (effectiveLocalType === 'open_elective' && updated.subject_id) {
-        const hasSelected = subjects.some(s => s.id === updated.subject_id);
-        if (!hasSelected) {
-          subjects = [{ id: updated.subject_id, name: updated.subject }, ...subjects];
-        }
-      }
-      setDropdownData(prev => ({ ...prev, subject: subjects }));
-      const keepSubject = updated.subject_id && (effectiveLocalType === 'open_elective' || subjects.some(s => s.id === updated.subject_id));
-      setSelected(prev => ({ ...prev, subject: keepSubject ? prev.subject : "", subject_id: keepSubject ? prev.subject_id : undefined }));
+      const filtered = assignments.filter(a => a.subject_id === updated.subject_id && a.branch_id === updated.branch_id && a.semester_id === updated.semester_id);
+      const sections = Array.from(new Map(filtered.filter(a => a.section_id).map(a => [a.section_id, { id: a.section_id, name: a.section }])).values());
+      setDropdownData(prev => ({ ...prev, section: sections }));
+      updated.section_id = undefined;
+      updated.section = "";
     }
-    const { branch_id, semester_id, section_id, subject_id, testType } = { ...updated };
-    // Log computed selection values to diagnose why student load isn't triggered
-    console.log('UploadMarks: computed selections', { branch_id, semester_id, section_id, subject_id, testType, localSubjectType, selected });
-    // Determine whether to load students based on subject type
-    const shouldLoadForOpenElective = localSubjectType === 'open_elective' && subject_id && testType;
-    const shouldLoadForElective = localSubjectType === 'elective' && branch_id && semester_id && subject_id && testType;
-    const shouldLoadForRegular = (!localSubjectType || localSubjectType === 'regular') && branch_id && semester_id && section_id && subject_id && testType;
 
-    if (shouldLoadForOpenElective || shouldLoadForElective || shouldLoadForRegular) {
-      // Only reset QP related states and reload students if bulk upload hasn't just completed
-      if (!bulkUploadCompleted) {
-        // Reset QP related states when selections change
-        setQpId(null);
-        setStudents([]);
-        setStudentMarks({});
-        setActionModes({});
-
-        // Load existing QP
-        loadExistingQP();
-
-        setLoadingStudents(true);
-        console.log('UploadMarks: selection triggers student load', { updated, localSubjectType, shouldLoadForOpenElective, shouldLoadForElective, shouldLoadForRegular });
-        try {
-          const params: any = { subject_id: subject_id.toString(), test_type: testType };
-          // Include branch filter if present — for open_elective this narrows registrations by branch
-          if (branch_id) {
-            params.branch_id = branch_id.toString();
-          }
-          // Include semester when elective or regular (open_elective intentionally omits semester)
-          if (shouldLoadForElective || shouldLoadForRegular) {
-            if (semester_id) params.semester_id = semester_id.toString();
-          }
-          // Include section only for regular
-          if (shouldLoadForRegular && section_id) {
-            params.section_id = section_id.toString();
-          }
-          console.log('UploadMarks: fetching students with params', params);
-          const response: StudentsForMarksResponse = await getStudentsForMarks({ ...params, page: 1, page_size: studentsPerPage });
-          console.log('UploadMarks: students-for-marks response', response);
-          if (response.success && response.data) {
-            // Build a map of initial marks and determine if backend has a stored total that differs
-            const initialMarks: Record<string, Record<string, string>> = {};
-            const existingTotals: Record<number, number | null> = {};
-            response.data.forEach(s => {
-              existingTotals[s.id] = s.existing_mark ? (s.existing_mark.total_obtained || null) : null;
-              if (s.existing_mark && s.existing_mark.marks_detail) {
-                initialMarks[s.id.toString()] = {};
-                Object.keys(s.existing_mark.marks_detail).forEach(key => {
-                  initialMarks[s.id.toString()][key] = s.existing_mark!.marks_detail[key].toString();
-                });
-              }
-            });
-
-            // Create students array and set total/totalEdited based on backend existing total vs auto-calculation
-            const newStudents = response.data.map(s => {
-              const marksForStudent = initialMarks[s.id?.toString()] || {};
-              const autoTotal = calculateTotal(marksForStudent) || '';
-              const existingTotal = existingTotals[s.id];
-              const totalValue = existingTotal != null ? String(existingTotal) : String(totalMarks);
-              const isEdited = existingTotal != null ? String(existingTotal) !== String(autoTotal) : false;
-              return {
-                id: s.id,
-                name: s.name,
-                usn: s.usn,
-                marks: (s.existing_mark && s.existing_mark.total_obtained) ? String(s.existing_mark.total_obtained) : '',
-                total: totalValue,
-                isEditing: false,
-                totalEdited: isEdited,
-              };
-            });
-
-            console.log('Loaded students:', newStudents);
-            setStudents(newStudents);
-            // update pagination state from backend if present
-            // Normalize any pagination shape (AdminPagination, DRF, legacy)
-            const normalized = normalizePaginatedResponse(response, 'students');
-            if (normalized.meta && Object.keys(normalized.meta).length > 0) {
-              setPagination({
-                page: normalized.meta.currentPage || 1,
-                page_size: response.page_size || response.pageSize || studentsPerPage,
-                total: normalized.meta.totalItems || 0,
-                total_pages: normalized.meta.totalPages || Math.ceil((normalized.meta.totalItems || 0) / studentsPerPage),
-                has_next: !!normalized.meta.next,
-                has_previous: !!normalized.meta.previous,
-              } as any);
-              setCurrentPage(normalized.meta.currentPage || 1);
-            } else {
-              setPagination({ page: 1, page_size: studentsPerPage, total: newStudents.length, total_pages: Math.ceil(newStudents.length / studentsPerPage), has_next: false, has_previous: false });
-              setCurrentPage(1);
-            }
-            console.log('Setting initial marks:', initialMarks);
-            setStudentMarks(initialMarks);
-
-            // Initialize action modes
-            const initialActionModes: Record<string, 'edit' | 'save' | 'view'> = {};
-            newStudents.forEach(student => {
-              initialActionModes[student.id] = 'view';
-            });
-            setActionModes(initialActionModes);
-          } else {
-            throw new Error("Failed to fetch students/marks");
-          }
-        } catch (err: unknown) {
-          setStudents([]);
-          setActionModes({});
-          setStudentMarks({});
-          setErrorMessage((err as { message?: string })?.message || "Failed to fetch students/marks");
-        }
-        setLoadingStudents(false);
-      } else {
-        // Reset the bulk upload completed flag after handling the selection change
-        setBulkUploadCompleted(false);
-      }
-    }
+    setSelected(updated);
   };
 
-  // Check if all dropdowns are selected
-  const areAllDropdownsSelected = () => {
-    // subject and testType are always required
-    if (!selected.subject_id || !selected.testType) return false;
-    // Determine effective subject type: prefer local state, fall back to selected stored type
-    const effectiveType = subjectType || (selected as any).subject_type || null;
-    // If subject type is open_elective, subject + testType is enough
-    if (effectiveType === 'open_elective') return true;
-    // If elective, require branch + semester (section optional)
-    if (effectiveType === 'elective') {
-      return selected.branch_id !== undefined && selected.semester_id !== undefined;
-    }
-    // Regular subjects require branch + semester + section
-    return (
-      selected.branch_id !== undefined &&
-      selected.semester_id !== undefined &&
-      selected.section_id !== undefined
-    );
-  };
+  // Remove the old areAllDropdownsSelected (we've moved it up)
 
   // Add the download PDF function inside the component
   const downloadQuestionPaperPDF = () => {
@@ -1658,7 +1388,7 @@ const UploadMarks = () => {
               ))}
             </SelectContent>
           </Select>
-          <Select value={selected.semester_id?.toString()} onValueChange={value => handleSelectChange('semester_id', Number(value))} disabled={effectiveType === 'open_elective'}>
+          <Select value={selected.semester_id?.toString()} onValueChange={value => handleSelectChange('semester_id', Number(value))}>
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select Semester" />
             </SelectTrigger>
@@ -1670,7 +1400,7 @@ const UploadMarks = () => {
               ))}
             </SelectContent>
           </Select>
-          <Select value={selected.section_id?.toString()} onValueChange={value => handleSelectChange('section_id', Number(value))} disabled={effectiveType === 'elective' || effectiveType === 'open_elective'}>
+          <Select value={selected.section_id?.toString()} onValueChange={value => handleSelectChange('section_id', Number(value))}>
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select Section" />
             </SelectTrigger>
@@ -1696,11 +1426,11 @@ const UploadMarks = () => {
           </Select>
         </div>
         <Tabs value={tabValue} onValueChange={(newTab) => {
-          // Prevent switching to Marks Entry if QP is not approved
-          if (newTab === 'manual' && (!existingQpSummary || existingQpSummary.status !== 'approved')) {
+          // Prevent switching to Marks Entry or Bulk Upload if QP is not approved
+          if ((newTab === 'manual' || newTab === 'bulkUpload') && (!existingQpSummary || existingQpSummary.status !== 'approved')) {
             toast({
-              title: 'Cannot Access Marks Entry',
-              description: 'The question paper must be approved by COE before you can enter marks.',
+              title: 'Cannot Access Tab',
+              description: 'The question paper must be approved by COE before you can enter or upload marks.',
               variant: 'destructive'
             });
             return;
@@ -1708,19 +1438,6 @@ const UploadMarks = () => {
           setTabValue(newTab);
         }} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
           <TabsList className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-gray-100 border border-gray-300 text-gray-900'}>
-            <TabsTrigger
-              value="manual"
-              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved'
-                  ? theme === 'dark'
-                    ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer'
-                    : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer'
-                  : 'opacity-50 cursor-not-allowed'
-                }`}
-              disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
-              title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing marks entry' : ''}
-            >
-              Marks Entry
-            </TabsTrigger>
             { /* Question Format tab removed per UX simplification */}
             <TabsTrigger
               value="questionPaper"
@@ -1729,8 +1446,28 @@ const UploadMarks = () => {
               Question Paper
             </TabsTrigger>
             <TabsTrigger
+              value="manual"
+              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved'
+                ? theme === 'dark'
+                  ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer'
+                  : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer'
+                : 'opacity-50 cursor-not-allowed'
+                }`}
+              disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
+              title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing marks entry' : ''}
+            >
+              Marks Entry
+            </TabsTrigger>
+            <TabsTrigger
               value="bulkUpload"
-              className={`data-[state=active]:bg-primary data-[state=active]:text-white ${theme === 'dark' ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}
+              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved'
+                ? theme === 'dark'
+                  ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer'
+                  : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer'
+                : 'opacity-50 cursor-not-allowed'
+                }`}
+              disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
+              title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing bulk upload' : ''}
             >
               Bulk Upload
             </TabsTrigger>
@@ -2052,12 +1789,12 @@ const UploadMarks = () => {
                   {/* Status panel showing approval status and history */}
                   {existingQpSummary && (
                     <div className={`mb-6 p-4 rounded-md border ${existingQpSummary.status === 'approved'
-                        ? theme === 'dark'
-                          ? 'bg-green-500/10 text-green-300 border-green-500/30'
-                          : 'bg-green-50 text-green-800 border-green-200'
-                        : theme === 'dark'
-                          ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30'
-                          : 'bg-yellow-50 text-yellow-800 border-yellow-200'
+                      ? theme === 'dark'
+                        ? 'bg-green-500/10 text-green-300 border-green-500/30'
+                        : 'bg-green-50 text-green-800 border-green-200'
+                      : theme === 'dark'
+                        ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30'
+                        : 'bg-yellow-50 text-yellow-800 border-yellow-200'
                       }`}>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -2342,3 +2079,21 @@ const UploadMarks = () => {
 export default UploadMarks;
 
 
+
+
+
+
+
+
+
+// @contextScopeItemMention 
+// Subject selection: Only updates dropdowns, no API calls
+// Branch/Semester/Section/TestType selection: after selecting all only then the qp shoudl be loaded correctly when all the dropdown is selcted but qp is stored based on the branch subject and test type when uploading the qp 
+
+// but if that. subject has multiple section user has to select one then only qp shodul be loaded and api shoudl be called to load it to ui 
+// and to load the students to upload the marks the user has to 
+// Switch to "Marks Entry" tab: Students load only then only the student list api shoudl be called until it no 
+
+// and until the qp is approved the marks entry and bulk upload tab shoudl be disabled correctly 
+
+// explain in shoert what you will do no code changes onyl explain in short 
