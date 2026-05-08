@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonCard, SkeletonList } from "@/components/ui/skeleton";
 import { markFacultyAttendance, getFacultyAttendanceRecords, MarkFacultyAttendanceRequest, FacultyAttendanceRecord } from "@/utils/faculty_api";
+import { normalizePaginatedResponse } from '@/utils/normalizePagination';
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -66,10 +67,20 @@ const FacultyAttendance = () => {
       const response = await getFacultyAttendanceRecords(params);
       if (response.success && response.data) {
         setHistoryRecords(response.data);
-        if (response.pagination) {
-          setHistoryPage(response.pagination.current_page || page);
-          setHistoryTotalPages(response.pagination.total_pages || 1);
-          setHistoryTotalItems(response.pagination.total_items || 0);
+        // normalize pagination shape
+        const norm = normalizePaginatedResponse(response, 'data');
+        if (norm.meta && Object.keys(norm.meta).length > 0) {
+          const meta = norm.meta;
+          const pgSize = response.page_size || response.pageSize || historyPageSize;
+          setHistoryPage(meta.currentPage || meta.current_page || page);
+          setHistoryTotalPages(meta.totalPages || meta.total_pages || Math.ceil((meta.totalItems || meta.total_items || 0) / pgSize) || 1);
+          setHistoryTotalItems(meta.totalItems || meta.total_items || 0);
+        } else if (response.pagination) {
+          // normalize the legacy pagination object into our expected fields
+          const p = response.pagination || {};
+          setHistoryPage(p.current_page || p.page || page);
+          setHistoryTotalPages(p.total_pages || p.totalPages || 1);
+          setHistoryTotalItems(p.total_items || p.count || 0);
         }
       }
       return response;

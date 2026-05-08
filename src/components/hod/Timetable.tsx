@@ -209,16 +209,19 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
         }
 
         // Use faculty assignments from props instead of API call
+        // Debug: print diagnostics if assignment not found
+        console.debug("EditModal: looking for assignment", { subjectId: subject.id, semesterId, sectionId, subjectsCount: subjects.length, assignmentsCount: facultyAssignments.length });
         const assignment = facultyAssignments.find(
-          (a: FacultyAssignmentData) => a.subject_id === subject.id && a.semester_id === semesterId && a.section_id === sectionId
+          (a: FacultyAssignmentData) => String(a.subject_id) === String(subject.id) && String(a.semester_id) === String(semesterId) && String(a.section_id) === String(sectionId)
         );
 
         if (assignment) {
           setNewClassDetails((prev) => ({
             ...prev,
-            professor: assignment.faculty_name,
+            professor: (assignment as any).faculty_name || (assignment as any).faculty || "",
           }));
         } else {
+          console.debug("EditModal: no matching assignment found", { subject, facultyAssignments });
           setNewClassDetails((prev) => ({ ...prev, professor: "" }));
         }
       } catch (err) {
@@ -490,65 +493,83 @@ const Timetable = () => {
     fetchProfileAndSemesters();
   }, [toast]);
 
-  // Fetch sections, subjects, and faculty assignments when semester changes
+  // Fetch sections only when semester changes. Subjects and assignments are loaded lazily when editing.
   useEffect(() => {
-    const fetchSemesterData = async () => {
+    const fetchSections = async () => {
       if (!state.semesterId) {
-        updateState({ sections: [], subjects: [], facultyAssignments: [], sectionId: "" });
+        updateState({ sections: [], sectionId: "" });
         return;
       }
 
-      // Check if we have everything in cache
       const hasCachedSections = !!state.sectionsCache[state.semesterId];
-      const hasCachedSubjects = !!state.subjectsCache[state.semesterId];
-      const hasCachedAssignments = !!state.facultyAssignmentsCache[state.semesterId];
-
-      if (hasCachedSections && hasCachedSubjects && hasCachedAssignments) {
-        const cachedSections = state.sectionsCache[state.semesterId];
-        updateState({
-          sections: cachedSections,
-          subjects: state.subjectsCache[state.semesterId],
-          facultyAssignments: state.facultyAssignmentsCache[state.semesterId],
-          sectionId: cachedSections.length > 0 ? cachedSections[0].id : "",
-        });
+      if (hasCachedSections) {
+        updateState({ sections: state.sectionsCache[state.semesterId], sectionId: "" });
         return;
       }
 
       updateState({ loading: true });
       try {
-        const semesterData = await getHODTimetableSemesterData(state.semesterId);
-        if (semesterData.success && semesterData.data) {
-          const sections = semesterData.data.sections || [];
-          const subjects = semesterData.data.subjects || [];
-          const assignments = semesterData.data.faculty_assignments || [];
-
-          // Update caches
+        // Use manageSections to fetch only sections for the semester
+        const res = await manageSections({ branch_id: state.branchId, semester_id: state.semesterId });
+        if (res && res.success && res.data) {
+          const sections = res.data as SectionData[];
           const newSectionsCache = { ...state.sectionsCache, [state.semesterId]: sections };
-          const newSubjectsCache = { ...state.subjectsCache, [state.semesterId]: subjects };
-          const newAssignmentsCache = { ...state.facultyAssignmentsCache, [state.semesterId]: assignments };
-
-          updateState({
-            sections,
-            subjects,
-            facultyAssignments: assignments,
-            sectionsCache: newSectionsCache,
-            subjectsCache: newSubjectsCache,
-            facultyAssignmentsCache: newAssignmentsCache,
-            sectionId: "",
-            loading: false
-          });
+          updateState({ sections, sectionsCache: newSectionsCache, sectionId: "", loading: false });
         } else {
-          updateState({ sections: [], subjects: [], facultyAssignments: [], sectionId: "", loading: false });
+          updateState({ sections: [], sectionId: "", loading: false });
         }
       } catch (err) {
-        console.error("Error fetching semester data:", err);
-        updateState({ sections: [], subjects: [], facultyAssignments: [], sectionId: "", loading: false });
-        toast({ variant: "destructive", title: "Error", description: "Failed to load semester data" });
+        console.error("Error fetching sections:", err);
+        updateState({ sections: [], sectionId: "", loading: false });
+        toast({ variant: "destructive", title: "Error", description: "Failed to load sections" });
       }
     };
 
-    fetchSemesterData();
+    fetchSections();
   }, [state.semesterId, state.branchId]);
+
+  // When user opens Edit modal, lazily load subjects and faculty assignments for the semester if not cached
+  useEffect(() => {
+    const fetchSubjectsAndAssignments = async () => {
+      if (!state.isEditing || !state.selectedClass || !state.semesterId) return;
+
+      const hasSubjects = !!state.subjectsCache[state.semesterId];
+      const hasAssignments = !!state.facultyAssignmentsCache[state.semesterId];
+      if (hasSubjects && hasAssignments) {
+        updateState({ subjects: state.subjectsCache[state.semesterId], facultyAssignments: state.facultyAssignmentsCache[state.semesterId] });
+        return;
+      }
+
+      updateState({ loading: true });
+      try {
+        // Fetch subjects for the semester
+        const subjectsRes = await manageSubjects({ branch_id: state.branchId, semester_id: state.semesterId });
+        const assignmentsRes = await manageFacultyAssignments({ branch_id: state.branchId, semester_id: state.semesterId });
+
+        const subjects = (subjectsRes && subjectsRes.success && subjectsRes.data) ? subjectsRes.data : [];
+        // Normalize assignments: some endpoints return { data: { assignments: [...] } }
+        let assignments: any = [];
+        if (assignmentsRes && assignmentsRes.success && assignmentsRes.data) {
+          if (Array.isArray(assignmentsRes.data)) assignments = assignmentsRes.data;
+          else if ((assignmentsRes.data as any).assignments) assignments = (assignmentsRes.data as any).assignments;
+          else assignments = assignmentsRes.data;
+        } else {
+          assignments = [];
+        }
+
+        const newSubjectsCache = { ...state.subjectsCache, [state.semesterId]: subjects };
+        const newAssignmentsCache = { ...state.facultyAssignmentsCache, [state.semesterId]: assignments };
+
+        updateState({ subjects, facultyAssignments: assignments, subjectsCache: newSubjectsCache, facultyAssignmentsCache: newAssignmentsCache, loading: false });
+      } catch (err) {
+        console.error("Error fetching subjects/assignments:", err);
+        updateState({ subjects: [], facultyAssignments: [], loading: false });
+        toast({ variant: "destructive", title: "Error", description: "Failed to load subjects or faculty assignments" });
+      }
+    };
+
+    fetchSubjectsAndAssignments();
+  }, [state.isEditing, state.selectedClass, state.semesterId, state.branchId, state.subjectsCache, state.facultyAssignmentsCache]);
 
 
 

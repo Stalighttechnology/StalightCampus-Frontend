@@ -18,6 +18,7 @@ import { useToast } from "../ui/use-toast";
 import { manageProfile, manageSections, manageSubjects, getBranches, getSemesters, getAttendanceBootstrap } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable } from "../ui/skeleton";
+import { normalizePaginatedResponse } from "../../utils/normalizePagination";
 
 interface Student {
   student_id: string;
@@ -164,6 +165,8 @@ const AttendanceView = () => {
         ...(state.search && { search: state.search }),
       });
       if (response.success && response.data) {
+        // normalize pagination/meta (handles AdminPagination, DRF, and legacy shapes)
+        const normalized = normalizePaginatedResponse(response, 'students');
         updateState({
           branch: response.data.profile.branch,
           branchId: response.data.profile.branch_id,
@@ -179,12 +182,14 @@ const AttendanceView = () => {
             subject_code: s.subject_code,
             semester_id: s.semester_id.toString(),
           })),
-          students: response.data.attendance.students,
+          students: (normalized.items && normalized.items.length) ? normalized.items : (response.data.attendance.students || []),
           pagination: {
-            page: response.current_page || state.pagination.page,
+            page: normalized.meta.currentPage ?? response.current_page ?? state.pagination.page,
             page_size: state.pagination.page_size,
-            total_students: response.count || 0,
-            total_pages: response.total_pages || Math.ceil((response.count || 0) / state.pagination.page_size) || 1,
+            total_students: normalized.meta.totalItems ?? response.count ?? 0,
+            total_pages: (normalized.meta.totalPages ?? response.total_pages ?? Math.ceil((response.count || 0) / state.pagination.page_size)) || 1,
+            has_next: Boolean(normalized.meta.next ?? response.next ?? false),
+            has_prev: Boolean(normalized.meta.previous ?? response.previous ?? false),
           },
         });
       } else {

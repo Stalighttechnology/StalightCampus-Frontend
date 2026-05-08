@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Users, CheckCircle, XCircle, Clock } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import Swal from "sweetalert2";
@@ -127,18 +128,19 @@ const AdminHODAttendance: React.FC = () => {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/hod-attendance-today/?${params.toString()}`, { method: 'GET' });
       const json = await res.json();
       if (json.success) {
-        setTodayRows(json.data || []);
+        const norm = normalizePaginatedResponse(json, 'data');
+        const items = norm.items && norm.items.length ? norm.items : (json.data || []);
+        setTodayRows(items);
         setTodaySummary(json.summary || { total_hods: 0, present: 0, absent: 0, not_marked: 0 });
-        if (json.pagination) {
-          setTodayPagination({ 
-            page: json.pagination.current_page || 1, 
-            page_size: json.pagination.page_size || page_size, 
-            total_pages: json.pagination.total_pages || 1, 
-            total_items: json.pagination.total_items || 0, 
-            has_next: json.pagination.has_next || false, 
-            has_prev: json.pagination.has_prev || false 
-          });
-        }
+        const count = norm.meta.totalItems ?? json.count ?? items.length;
+        setTodayPagination({
+          page: norm.meta.currentPage ?? json.pagination?.current_page ?? 1,
+          page_size: json.pagination?.page_size || page_size,
+          total_pages: norm.meta.totalPages ?? json.pagination?.total_pages ?? Math.max(1, Math.ceil(count / page_size)),
+          total_items: count,
+          has_next: !!(norm.meta.next ?? json.pagination?.next),
+          has_prev: !!(norm.meta.previous ?? json.pagination?.previous)
+        });
       } else {
         console.error('Failed to fetch HOD attendance:', json.message);
         Swal.fire('Error', json.message || 'Failed to fetch HOD attendance', 'error');
@@ -163,18 +165,19 @@ const AdminHODAttendance: React.FC = () => {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/hod-attendance-today/?${params.toString()}`, { method: 'GET' });
       const json = await res.json();
       if (json.success) {
+        const norm = normalizePaginatedResponse(json, 'data');
+        const items = norm.items && norm.items.length ? norm.items : (json.data || []);
+        const count = norm.meta.totalItems ?? json.count ?? items.length;
         setFacultySummary(json.faculty_summary || []);
-        setRecords(json.data || []);
-        if (json.pagination) {
-          setRecordsPagination({ 
-            page: json.pagination.current_page || 1, 
-            page_size: json.pagination.page_size || page_size, 
-            total_pages: json.pagination.total_pages || 1, 
-            total_items: json.pagination.total_items || 0, 
-            has_next: json.pagination.has_next || false, 
-            has_prev: json.pagination.has_prev || false 
-          });
-        }
+        setRecords(items);
+        setRecordsPagination({
+          page: norm.meta.currentPage ?? json.pagination?.current_page ?? 1,
+          page_size: json.pagination?.page_size || page_size,
+          total_pages: norm.meta.totalPages ?? json.pagination?.total_pages ?? Math.max(1, Math.ceil(count / page_size)),
+          total_items: count,
+          has_next: !!(norm.meta.next ?? json.pagination?.next),
+          has_prev: !!(norm.meta.previous ?? json.pagination?.previous)
+        });
       } else {
         Swal.fire('Error', json.message || 'Failed to fetch records', 'error');
       }

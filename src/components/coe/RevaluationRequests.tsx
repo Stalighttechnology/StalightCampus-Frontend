@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, Clock, Download, Eye, XCircle, Search } from 'lucide-react';
 import { getRevaluationRequests, getExamRequestFilters, updateRevaluationRequestStatus, getSemesters, RevaluationRequest, ExamRequestFilters } from '@/utils/coe_api';
+import { paginationToUI } from '@/utils/paginationToUI';
 import { fetchWithTokenRefresh } from '@/utils/authService';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { SkeletonTable } from '@/components/ui/skeleton';
@@ -107,15 +108,10 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       const result = await getRevaluationRequests(params);
       if (result.success && result.data) {
         setRequests(result.data.requests || []);
-        // Update pagination state
-        if (result.data.pagination) {
-          setTotalCount(result.data.pagination.count || 0);
-          setTotalPages(Math.ceil((result.data.pagination.count || 0) / pageSize));
-        } else {
-          // Fallback for direct API response
-          setTotalCount(result.data.requests?.length || 0);
-          setTotalPages(1);
-        }
+        // Update pagination state using helper that covers multiple shapes
+        const uiPag = paginationToUI(result.data, result.data.requests || [], pageSize);
+        setTotalCount(uiPag.total_items || 0);
+        setTotalPages(uiPag.total_pages || 1);
       }
     } catch (error) {
       console.error('Error loading requests:', error);

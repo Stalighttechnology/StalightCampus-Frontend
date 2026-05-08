@@ -52,6 +52,7 @@ import {
 import { fetchWithTokenRefresh } from '../utils/authService';
 import { API_ENDPOINT } from '../utils/config';
 import { usePagination, useInfiniteScroll, useOptimisticUpdate } from './useOptimizations';
+import { normalizePaginatedResponse } from '../utils/normalizePagination';
 import { getLeaveRequests } from '../utils/student_api';
 
 // Custom hooks for data fetching
@@ -75,7 +76,20 @@ export const useProctorStudentsQuery = (enabled: boolean = true, include?: strin
         });
         if (response.success && response.data) {
           pagination.updatePagination(response);
-          return { data: response.data, pagination: response.pagination };
+          // normalize pagination for consumers
+          const norm = normalizePaginatedResponse(response, 'results');
+          const meta = norm.meta || {};
+          const page_size = response.page_size || response.pageSize || pagination.pageSize;
+          const pageNum = meta.currentPage || meta.current_page || pagination.page;
+          const pag = {
+            page: pageNum,
+            page_size,
+            total: meta.totalItems || meta.total_items || 0,
+            total_pages: meta.totalPages || meta.total_pages || Math.ceil((meta.totalItems || meta.total_items || 0) / page_size),
+            has_next: !!meta.next,
+            has_previous: !!meta.previous,
+          } as any;
+          return { data: response.data, pagination: pag };
         }
         throw new Error(response.message || 'Failed to fetch proctor students');
       },

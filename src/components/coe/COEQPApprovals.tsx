@@ -15,6 +15,7 @@ import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { useTheme } from "../../context/ThemeContext";
+import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { SkeletonList, SkeletonCard } from '../ui/skeleton';
@@ -93,30 +94,18 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         },
       });
       const data = await response.json();
-      
-      // Handle standard DRF pagination format
-      if (data.results) {
-        setPendingQPs(data.results);
-        setPendingPagination({
-          count: data.count,
-          next: data.next,
-          previous: data.previous,
-          current_page: pendingPage,
-          total_pages: Math.ceil(data.count / 10),
-          page_size: 10
-        });
-      } else {
-        // Fallback for old format
-        setPendingQPs(data.data || []);
-        setPendingPagination({
-          count: (data.data || []).length,
-          next: null,
-          previous: null,
-          current_page: pendingPage,
-          total_pages: 1,
-          page_size: 10
-        });
-      }
+      const norm = normalizePaginatedResponse(data, 'results');
+      const items = norm.items && norm.items.length ? norm.items : (data.results || data.data || []);
+      setPendingQPs(items);
+      const count = norm.meta.totalItems ?? data.count ?? items.length;
+      setPendingPagination({
+        count,
+        next: (norm.meta.next ?? data.next) ?? null,
+        previous: (norm.meta.previous ?? data.previous) ?? null,
+        current_page: norm.meta.currentPage ?? data.current_page ?? pendingPage,
+        total_pages: norm.meta.totalPages ?? data.total_pages ?? Math.max(1, Math.ceil(count / 10)),
+        page_size: 10
+      });
     } catch (error) {
       console.error("Error fetching pending QPs:", error);
     } finally {
@@ -133,33 +122,18 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       const data = await response.json();
       console.log('Finalized QPs response:', data);  // Debug log
-      
-      // Handle standard DRF pagination format
-      if (data.results) {
-        console.log('Setting finalized QPs:', data.results.length, 'items');  // Debug log
-        setFinalizedQPs(data.results);
-        setFinalizedPagination({
-          count: data.count,
-          next: data.next,
-          previous: data.previous,
-          current_page: finalizedPage,
-          total_pages: Math.ceil(data.count / 10),
-          page_size: 10
-        });
-      } else {
-        // Fallback for old format
-        const qpsData = data.data || [];
-        console.log('Setting finalized QPs (fallback):', qpsData.length, 'items');  // Debug log
-        setFinalizedQPs(qpsData);
-        setFinalizedPagination({
-          count: qpsData.length,
-          next: null,
-          previous: null,
-          current_page: finalizedPage,
-          total_pages: 1,
-          page_size: 10
-        });
-      }
+      const norm = normalizePaginatedResponse(data, 'results');
+      const items = norm.items && norm.items.length ? norm.items : (data.results || data.data || []);
+      setFinalizedQPs(items);
+      const count = norm.meta.totalItems ?? data.count ?? items.length;
+      setFinalizedPagination({
+        count,
+        next: (norm.meta.next ?? data.next) ?? null,
+        previous: (norm.meta.previous ?? data.previous) ?? null,
+        current_page: norm.meta.currentPage ?? data.current_page ?? finalizedPage,
+        total_pages: norm.meta.totalPages ?? data.total_pages ?? Math.max(1, Math.ceil(count / 10)),
+        page_size: 10
+      });
     } catch (error) {
       console.error("Error fetching finalized QPs:", error);
       setFinalizedQPs([]);

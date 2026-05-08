@@ -814,13 +814,13 @@ export interface CreateAssignmentRequest {
 
 export const manageAssignments = async (
   data?: CreateAssignmentRequest | FormData | null,
-  method: "GET" | "POST" | "PUT" = "GET",
+  method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
   assignmentId?: number | string,
   params?: { search?: string; page?: number; page_size?: number }
 ) => {
   try {
     let url = `${API_ENDPOINT}/faculty/assignments/manage/`;
-    if (method === "PUT" && assignmentId) {
+    if ((method === "PUT" || method === "DELETE") && assignmentId) {
       url = `${API_ENDPOINT}/faculty/assignments/${assignmentId}/`;
     } else if (method === "GET" && params) {
       const query = new URLSearchParams();

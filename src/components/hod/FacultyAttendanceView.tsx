@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, Users, CheckCircle, XCircle, Clock, FileDown, CalendarIcon, CalendarX, ClipboardX } from "lucide-react";
 import { getFacultyAttendanceToday, getFacultyAttendanceRecords } from "../../utils/hod_api";
+import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonCard, SkeletonTable } from "../ui/skeleton";
 import Swal from "sweetalert2";
@@ -108,8 +109,33 @@ const FacultyAttendanceView: React.FC = () => {
       const response = await getFacultyAttendanceToday({ page, page_size: pageSize });
       if (response.success && response.data) {
         setTodayAttendance(response.data);
-        if (response.pagination) {
-          setTodayPagination(response.pagination);
+        // Normalize pagination from various backend shapes
+        const norm = normalizePaginatedResponse(response, 'data');
+        if (norm.meta && Object.keys(norm.meta).length > 0) {
+          const meta = norm.meta;
+          const pgSize = response.page_size || response.pageSize || pageSize;
+          setTodayPagination({
+            page: meta.currentPage || meta.current_page || page,
+            page_size: pgSize,
+            total_pages: meta.totalPages || meta.total_pages || Math.ceil((meta.totalItems || meta.total_items || 0) / pgSize) || 1,
+            total_items: meta.totalItems || meta.total_items || 0,
+            has_next: !!meta.next,
+            has_prev: !!meta.previous,
+            next_page: meta.next ? (meta.currentPage || page) + 1 : null,
+            prev_page: meta.previous ? (meta.currentPage || page) - 1 : null
+          });
+        } else if (response.pagination) {
+          const p = response.pagination || {};
+          setTodayPagination({
+            page: p.current_page || p.page || page,
+            page_size: p.page_size || p.pageSize || pageSize,
+            total_pages: p.total_pages || p.totalPages || 1,
+            total_items: p.total_items || p.count || 0,
+            has_next: !!p.next,
+            has_prev: !!p.previous,
+            next_page: p.next ? (p.current_page || p.page || page) + 1 : null,
+            prev_page: p.previous ? (p.current_page || p.page || page) - 1 : null
+          });
         } else if (response.count !== undefined) {
           setTodayPagination({
             page: page,
@@ -182,8 +208,33 @@ const FacultyAttendanceView: React.FC = () => {
       if (response.success) {
         setAttendanceRecords(response.data || []);
         setFacultySummary(response.faculty_summary || []);
-        if (response.pagination) {
-          setRecordsPagination(response.pagination);
+        // Normalize pagination
+        const norm2 = normalizePaginatedResponse(response, 'data');
+        if (norm2.meta && Object.keys(norm2.meta).length > 0) {
+          const meta = norm2.meta;
+          const pgSize = response.page_size || response.pageSize || pageSize;
+          setRecordsPagination({
+            page: meta.currentPage || meta.current_page || page,
+            page_size: pgSize,
+            total_pages: meta.totalPages || meta.total_pages || Math.ceil((meta.totalItems || meta.total_items || 0) / pgSize) || 1,
+            total_items: meta.totalItems || meta.total_items || 0,
+            has_next: !!meta.next,
+            has_prev: !!meta.previous,
+            next_page: meta.next ? (meta.currentPage || page) + 1 : null,
+            prev_page: meta.previous ? (meta.currentPage || page) - 1 : null
+          });
+        } else if (response.pagination) {
+          const p = response.pagination || {};
+          setRecordsPagination({
+            page: p.current_page || p.page || page,
+            page_size: p.page_size || p.pageSize || pageSize,
+            total_pages: p.total_pages || p.totalPages || 1,
+            total_items: p.total_items || p.count || 0,
+            has_next: !!p.next,
+            has_prev: !!p.previous,
+            next_page: p.next ? (p.current_page || p.page || page) + 1 : null,
+            prev_page: p.previous ? (p.current_page || p.page || page) - 1 : null
+          });
         } else if (response.count !== undefined) {
           setRecordsPagination({
             page: page,

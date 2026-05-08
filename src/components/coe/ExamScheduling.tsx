@@ -33,6 +33,7 @@ import {
   Branch,
   Semester
 } from "../../utils/coe_api";
+import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 
@@ -90,14 +91,15 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
       const examRes = await getExamSchedule({ page, page_size: 10 });
 
       if (examRes.success) {
-        setExams(examRes.data || []);
-        if (examRes.pagination) {
-          setPagination({
-            currentPage: examRes.pagination.current_page,
-            totalPages: examRes.pagination.total_pages,
-            totalItems: examRes.pagination.total_items
-          });
-        }
+        const normalized = normalizePaginatedResponse(examRes, 'data');
+        setExams(normalized.items && normalized.items.length ? normalized.items : (examRes.data || []));
+        const totalItems = normalized.meta.totalItems ?? examRes.count ?? 0;
+        const totalPages = normalized.meta.totalPages ?? examRes.pagination?.total_pages ?? Math.max(1, Math.ceil((totalItems || 0) / 10));
+        setPagination({
+          currentPage: normalized.meta.currentPage ?? examRes.pagination?.current_page ?? page,
+          totalPages,
+          totalItems
+        });
       }
     } catch (e: any) {
       toast.error(e.message || "Failed to load data");

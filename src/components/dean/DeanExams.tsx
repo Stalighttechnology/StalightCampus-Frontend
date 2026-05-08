@@ -9,6 +9,7 @@ import {
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useTheme } from "../../context/ThemeContext";
+import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { SkeletonStatsGrid, SkeletonTable, SkeletonPageHeader, SkeletonCard } from "../ui/skeleton";
 import { Button } from "../ui/button";
 import { Alert, AlertDescription } from "../ui/alert";
@@ -99,15 +100,16 @@ const DeanExams: React.FC = () => {
       const json = await res.json();
       console.debug('Exams response', json);
       if (json.success) {
-        const list: ExamEntry[] = Array.isArray(json.data) ? json.data : (json.data || []);
+        const normalized = normalizePaginatedResponse(json, 'data');
+        const list: ExamEntry[] = normalized.items && normalized.items.length ? normalized.items : (Array.isArray(json.data) ? json.data : (json.data || []));
         setExams(list.map((x) => ({ ...x, id: x.id })));
-        if (json.pagination) {
-          setPagination({
-            currentPage: json.pagination.current_page,
-            totalPages: json.pagination.total_pages,
-            totalItems: json.pagination.total_items
-          });
-        }
+        const totalItems = normalized.meta.totalItems ?? json.count ?? 0;
+        const totalPages = normalized.meta.totalPages ?? json.pagination?.total_pages ?? Math.max(1, Math.ceil((totalItems || 0) / 10));
+        setPagination({
+          currentPage: normalized.meta.currentPage ?? json.pagination?.current_page ?? page,
+          totalPages,
+          totalItems
+        });
       } else {
         setExams([]);
         setError(json.message || 'Failed to load exams');

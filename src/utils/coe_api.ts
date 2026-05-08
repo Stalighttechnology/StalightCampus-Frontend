@@ -1,5 +1,6 @@
 import { API_ENDPOINT } from "./config";
 import { fetchWithTokenRefresh } from "./authService";
+import { normalizePaginatedResponse as sharedNormalizePaginatedResponse } from "./normalizePagination";
 
 // Type definitions for COE API responses
 
@@ -194,19 +195,7 @@ export const getStudentApplicationStatus = async (filters: {
     }
 
     const result = await response.json();
-
-    // Handle standard DRF pagination format
-    if (result.results) {
-      return {
-        success: true,
-        count: result.count,
-        next: result.next,
-        previous: result.previous,
-        data: result.results
-      };
-    }
-
-    return result;
+    return normalizePaginatedResponse(result, 'students');
   } catch (error) {
     console.error('Error fetching student application status:', error);
     return {
@@ -243,19 +232,7 @@ export const getCourseApplicationStats = async (filters: {
     }
 
     const result = await response.json();
-
-    // Handle standard DRF pagination format
-    if (result.results) {
-      return {
-        success: true,
-        count: result.count,
-        next: result.next,
-        previous: result.previous,
-        data: result.results
-      };
-    }
-
-    return result;
+    return normalizePaginatedResponse(result, 'courses');
   } catch (error) {
     console.error('Error fetching course application stats:', error);
     return {
@@ -351,22 +328,7 @@ export const getExamApplications = async (paramsObj: {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const result = await response.json();
-
-    // Backend uses paginator: {count,next,previous,results: {success, applications...}}
-    if ((result as any).results) {
-      const pag = result as any;
-      const payload = pag.results as any;
-      return {
-        success: payload.success,
-        data: {
-          applications: payload.applications,
-          pagination: { count: pag.count, next: pag.next, previous: pag.previous }
-        }
-      };
-    }
-
-    // Fallback
-    return result;
+    return normalizePaginatedResponse(result, 'applications');
   } catch (error) {
     console.error('Error fetching exam applications:', error);
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
@@ -406,19 +368,7 @@ export const getStudentsForUpload = async (uploadId: number, page?: number, page
     }
 
     const result = await response.json();
-    if ((result as any).results) {
-      const pag = result as any;
-      const payload = pag.results as any;
-      return {
-        success: payload.success,
-        data: {
-          students: payload.students,
-          pagination: { count: pag.count, next: pag.next, previous: pag.previous }
-        }
-      };
-    }
-
-    return result;
+    return normalizePaginatedResponse(result, 'students');
   } catch (error) {
     console.error('Error fetching students for upload:', error);
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
@@ -443,19 +393,7 @@ export const getStudentsForRevalMakeupUpload = async (uploadId: number, page?: n
     }
 
     const result = await response.json();
-    if ((result as any).results) {
-      const pag = result as any;
-      const payload = pag.results as any;
-      return {
-        success: payload.success,
-        data: {
-          students: payload.students,
-          pagination: { count: pag.count, next: pag.next, previous: pag.previous }
-        }
-      };
-    }
-
-    return result;
+    return normalizePaginatedResponse(result, 'students');
   } catch (error) {
     console.error('Error fetching students for reval/makeup upload:', error);
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
@@ -528,19 +466,7 @@ export const getPublishedResults = async (filters: {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const result = await response.json();
-    if ((result as any).results) {
-      const pag = result as any;
-      const payload = pag.results as any;
-      return {
-        success: payload.success,
-        data: {
-          published_results: payload.published_results,
-          pagination: { count: pag.count, next: pag.next, previous: pag.previous }
-        }
-      };
-    }
-
-    return result;
+    return normalizePaginatedResponse(result, 'published_results');
   } catch (error) {
     console.error('Error fetching published results:', error);
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
@@ -625,6 +551,36 @@ export interface ExamRequestFilters {
   branches: Branch[];
 }
 
+// Helper: normalize paginated responses from backend.
+// Backend may return either DRF-style {count,next,previous,results: { success, <items> }}
+// or AdminPagination-style that merges the payload at top level {count,total_pages,current_page,next,previous, success, <items>}
+function normalizePaginatedResponse(result: any, itemKey: string) {
+  if (!result) return { success: false, message: 'Empty response' };
+
+  // Delegate to shared normalizer and map to the shaped response expected by callers
+  const normalized = sharedNormalizePaginatedResponse(result, itemKey === 'data' ? 'data' : itemKey);
+  if (!normalized || !Array.isArray(normalized.items)) {
+    // If shared normalizer didn't recognize pagination, return original result
+    return result;
+  }
+
+  const meta = normalized.meta || {};
+  const pagination = {
+    count: meta.totalItems ?? null,
+    total_items: meta.totalItems ?? null,
+    total_pages: meta.totalPages ?? null,
+    current_page: meta.currentPage ?? null,
+    next: meta.next ?? null,
+    previous: meta.previous ?? null,
+  };
+
+  return {
+    success: true,
+    data: { [itemKey]: normalized.items },
+    pagination,
+  };
+}
+
 /**
  * Fetch makeup exam requests with filtering
  */
@@ -652,23 +608,7 @@ export const getMakeupRequests = async (params: {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const result = await response.json();
-
-    // Handle standard DRF pagination format
-    if (result.results) {
-      return {
-        success: true,
-        data: {
-          requests: result.results,
-          pagination: {
-            count: result.count,
-            next: result.next,
-            previous: result.previous
-          }
-        }
-      };
-    }
-
-    return result;
+    return normalizePaginatedResponse(result, 'requests');
   } catch (error) {
     console.error('Error fetching makeup requests:', error);
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
@@ -701,23 +641,7 @@ export const getRevaluationRequests = async (params: {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
     const result = await response.json();
-
-    // Handle standard DRF pagination format
-    if (result.results) {
-      return {
-        success: true,
-        data: {
-          requests: result.results,
-          pagination: {
-            count: result.count,
-            next: result.next,
-            previous: result.previous
-          }
-        }
-      };
-    }
-
-    return result;
+    return normalizePaginatedResponse(result, 'requests');
   } catch (error) {
     console.error('Error fetching revaluation requests:', error);
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
@@ -798,7 +722,8 @@ export const getExamSchedule = async (paramsObj: { page?: number; page_size?: nu
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-    return await response.json();
+    const result = await response.json();
+    return normalizePaginatedResponse(result, 'data');
   } catch (error) {
     console.error('Error fetching exam schedule:', error);
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
