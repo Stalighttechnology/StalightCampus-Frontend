@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "../ui/card";
 import { Button } from "../ui/button";
-import { CalendarDays, FileDown } from "lucide-react";
+import { CalendarDays, FileDown, Calendar } from "lucide-react";
 import { getTimetable, type TimetableEntry } from "@/utils/student_api";
 import { useTheme } from "@/context/ThemeContext";
 import jsPDF from 'jspdf';
@@ -15,6 +15,7 @@ import styles from './StudentTimetable.module.css';
 
 const StudentTimetable = () => {
   const [timetableData, setTimetableData] = useState<TimetableEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { theme } = useTheme();
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -33,9 +34,16 @@ const StudentTimetable = () => {
 
   useEffect(() => {
     const fetchTimetable = async () => {
-      const data = await getTimetable();
-      if (data.success && Array.isArray(data.data)) {
-        setTimetableData(data.data);
+      try {
+        setIsLoading(true);
+        const data = await getTimetable();
+        if (data.success && Array.isArray(data.data)) {
+          setTimetableData(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch timetable:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchTimetable();
@@ -120,100 +128,123 @@ const StudentTimetable = () => {
         <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
           Timetable
         </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          className={`${styles.exportButton} bg-primary hover:bg-primary/90 text-white border-primary`}
-          onClick={exportToPDF}
-        >
-          <FileDown className="w-4 h-4 mr-2" /> Export
-        </Button>
+        {timetableData.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className={`${styles.exportButton} bg-primary hover:bg-primary/90 text-white border-primary`}
+            onClick={exportToPDF}
+          >
+            <FileDown className="w-4 h-4 mr-2" /> Export
+          </Button>
+        )}
       </CardHeader>
 
       <CardContent className={`p-0 ${styles.card}`}>
-        <div
-          ref={tableRef}
-          className={`${styles.timetableContainer} ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}
-        >
-          <table className={styles.timetableTable}>
-            <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}>
-              <tr>
-                <th className={`${styles.timeColumn} ${theme === 'dark' ? 'border-b border-border text-card-foreground' : 'border-b border-gray-200 text-gray-900'}`}>
-                  Time
-                </th>
-                {days.map((day) => (
-                  <th
-                    key={day}
-                    className={`${styles.dayColumn} ${theme === 'dark' ? 'border-b border-border text-card-foreground' : 'border-b border-gray-200 text-gray-900'}`}
-                  >
-                    {day}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+            <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+              <Calendar className="w-12 h-12 opacity-80" />
+            </div>
+            <p className={`${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Loading schedule...</p>
+          </div>
+        ) : timetableData.length > 0 ? (
+          <div
+            ref={tableRef}
+            className={`${styles.timetableContainer} ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}
+          >
+            <table className={styles.timetableTable}>
+              <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}>
+                <tr>
+                  <th className={`${styles.timeColumn} ${theme === 'dark' ? 'border-b border-border text-card-foreground' : 'border-b border-gray-200 text-gray-900'}`}>
+                    Time
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {getTableData().map((row, idx) => {
-                const isEvenRow = idx % 2 === 0;
-                const rowBgLight = isEvenRow ? 'bg-white' : 'bg-gray-50';
-                const rowBgDark = isEvenRow ? 'bg-card' : 'bg-muted/40';
-                const rowBgClass = theme === 'dark' ? rowBgDark : rowBgLight;
-                const hoverClass = theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-blue-50';
-                const slotKey = `time-${idx}`;
+                  {days.map((day) => (
+                    <th
+                      key={day}
+                      className={`${styles.dayColumn} ${theme === 'dark' ? 'border-b border-border text-card-foreground' : 'border-b border-gray-200 text-gray-900'}`}
+                    >
+                      {day}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {getTableData().map((row, idx) => {
+                  const isEvenRow = idx % 2 === 0;
+                  const rowBgLight = isEvenRow ? 'bg-white' : 'bg-gray-50';
+                  const rowBgDark = isEvenRow ? 'bg-card' : 'bg-muted/40';
+                  const rowBgClass = theme === 'dark' ? rowBgDark : rowBgLight;
+                  const hoverClass = theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-blue-50';
+                  const slotKey = `time-${idx}`;
 
-                return (
-                  <tr
-                    key={slotKey}
-                    className={`${rowBgClass} ${hoverClass}`}
-                  >
-                    <td className={`${styles.timeColumn} ${theme === 'dark'
+                  return (
+                    <tr
+                      key={slotKey}
+                      className={`${rowBgClass} ${hoverClass}`}
+                    >
+                      <td className={`${styles.timeColumn} ${theme === 'dark'
                         ? 'text-card-foreground border-r border-border'
                         : 'text-gray-900 border-r border-gray-200'
-                      }`}>
-                      {row.time}
-                    </td>
-                    {["mon", "tue", "wed", "thu", "fri", "sat"].map((day) => {
-                      type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
-                      const entryValue = row[day as DayKey];
-                      const entry = (entryValue && typeof entryValue === 'object') ? entryValue : null;
-                      const tdTextLight = 'text-gray-900 border-b border-gray-200';
-                      const tdTextDark = 'text-card-foreground border-b border-border/50';
-                      const tdTextClass = theme === 'dark' ? tdTextDark : tdTextLight;
-                      const subjectColorLight = 'text-gray-900';
-                      const subjectColorDark = 'text-card-foreground';
-                      const subjectColor = theme === 'dark' ? subjectColorDark : subjectColorLight;
-                      const roomColorLight = 'text-gray-600';
-                      const roomColorDark = 'text-muted-foreground';
-                      const roomColor = theme === 'dark' ? roomColorDark : roomColorLight;
-                      const emptyColorLight = 'text-gray-300';
-                      const emptyColorDark = 'text-muted-foreground/50';
-                      const emptyColor = theme === 'dark' ? emptyColorDark : emptyColorLight;
+                        }`}>
+                        {row.time}
+                      </td>
+                      {["mon", "tue", "wed", "thu", "fri", "sat"].map((day) => {
+                        type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
+                        const entryValue = row[day as DayKey];
+                        const entry = (entryValue && typeof entryValue === 'object') ? entryValue : null;
+                        const tdTextLight = 'text-gray-900 border-b border-gray-200';
+                        const tdTextDark = 'text-card-foreground border-b border-border/50';
+                        const tdTextClass = theme === 'dark' ? tdTextDark : tdTextLight;
+                        const subjectColorLight = 'text-gray-900';
+                        const subjectColorDark = 'text-card-foreground';
+                        const subjectColor = theme === 'dark' ? subjectColorDark : subjectColorLight;
+                        const roomColorLight = 'text-gray-600';
+                        const roomColorDark = 'text-muted-foreground';
+                        const roomColor = theme === 'dark' ? roomColorDark : roomColorLight;
+                        const emptyColorLight = 'text-gray-300';
+                        const emptyColorDark = 'text-muted-foreground/50';
+                        const emptyColor = theme === 'dark' ? emptyColorDark : emptyColorLight;
 
-                      return (
-                        <td
-                          key={day}
-                          className={`${styles.dayColumn} ${tdTextClass}`}
-                        >
-                          {entry ? (
-                            <div className={styles.cellContent}>
-                              <div className={`${styles.subject} ${subjectColor}`}>
-                                {entry.subject}
+                        return (
+                          <td
+                            key={day}
+                            className={`${styles.dayColumn} ${tdTextClass}`}
+                          >
+                            {entry ? (
+                              <div className={styles.cellContent}>
+                                <div className={`${styles.subject} ${subjectColor}`}>
+                                  {entry.subject}
+                                </div>
+                                <div className={`${styles.room} ${roomColor}`}>
+                                  {entry.room}
+                                </div>
                               </div>
-                              <div className={`${styles.room} ${roomColor}`}>
-                                {entry.room}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className={`${styles.emptyCell} ${emptyColor}`}>—</span>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                            ) : (
+                              <span className={`${styles.emptyCell} ${emptyColor}`}>—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-6">
+            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+              <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                <Calendar className="w-12 h-12 opacity-80" />
+              </div>
+              <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Schedule Available</h3>
+              <p className="max-w-xs text-base leading-relaxed">
+                Your <span className="font-semibold text-primary">weekly timetable</span> has not been scheduled yet. Please check back later or contact your department.
+              </p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

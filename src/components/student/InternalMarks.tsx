@@ -265,49 +265,141 @@ const InternalMarks = () => {
     return averages;
   }, [filteredSubjects, marksData]);
 
-  const chartData = useMemo(() => ({
-    labels: filteredSubjects,
-    datasets: [1, 2, 3].map((testNum) => ({
-      label: `IA ${testNum}`,
-      data: filteredSubjects.map(
-        (subj) =>
-          marksData[subj].find((t) => t.test_number === testNum)?.mark ?? 0
-      ),
-      backgroundColor: testNum === 1 ? "#3b82f6" : testNum === 2 ? "#06b6d4" : "#10b981",
-    })),
-  }), [filteredSubjects, marksData]);
+  const chartData = useMemo(() => {
+    const testNums = selectedIA === "all" ? [1, 2, 3] : [parseInt(selectedIA)];
+    
+    return {
+      labels: filteredSubjects,
+      datasets: testNums.map((testNum) => {
+        const colors = {
+          1: { start: "rgba(99, 102, 241, 0.9)", end: "rgba(99, 102, 241, 0.3)", border: "#6366f1" },
+          2: { start: "rgba(6, 182, 212, 0.9)", end: "rgba(6, 182, 212, 0.3)", border: "#06b6d4" },
+          3: { start: "rgba(16, 185, 129, 0.9)", end: "rgba(16, 185, 129, 0.3)", border: "#10b981" }
+        };
+        const color = colors[testNum as keyof typeof colors] || colors[1];
+
+        return {
+          label: `IA ${testNum}`,
+          data: filteredSubjects.map(
+            (subj) => {
+              const test = marksData[subj].find((t) => t.test_number === testNum);
+              if (!test || !test.max_mark) return 0;
+              return (test.mark / test.max_mark) * 100;
+            }
+          ),
+          backgroundColor: (context: any) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return color.start;
+            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+            gradient.addColorStop(0, color.end);
+            gradient.addColorStop(1, color.start);
+            return gradient;
+          },
+          borderColor: color.border,
+          borderWidth: 2,
+          borderRadius: 10,
+          hoverBackgroundColor: color.border,
+          barThickness: selectedIA === "all" ? 18 : 50,
+          maxBarThickness: 60,
+        };
+      }),
+    };
+  }, [filteredSubjects, marksData, selectedIA]);
 
   const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "bottom" as const,
+        position: "top" as const,
+        align: 'end' as const,
         labels: {
+          usePointStyle: true,
+          pointStyle: 'circle',
+          padding: 20,
+          font: {
+            size: 12,
+            weight: '500' as const,
+            family: "'Inter', sans-serif",
+          },
           color: theme === 'dark' ? "#9ca3af" : "#6b7280",
         },
+      },
+      tooltip: {
+        backgroundColor: theme === 'dark' ? "#1f2937" : "#ffffff",
+        titleColor: theme === 'dark' ? "#f3f4f6" : "#111827",
+        bodyColor: theme === 'dark' ? "#d1d5db" : "#374151",
+        borderColor: theme === 'dark' ? "#374151" : "#e5e7eb",
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: true,
+        usePointStyle: true,
+        callbacks: {
+          label: (context: any) => {
+            const index = context.dataIndex;
+            const subj = filteredSubjects[index];
+            const datasetLabel = context.dataset.label || '';
+            const testNum = datasetLabel.split(' ')[1];
+            const test = marksData[subj].find(t => t.test_number === parseInt(testNum));
+            
+            if (test) {
+              return `${datasetLabel}: ${test.mark}/${test.max_mark} (${((test.mark / test.max_mark) * 100).toFixed(1)}%)`;
+            }
+            return `${datasetLabel}: No data`;
+          }
+        }
       },
     },
     scales: {
       y: {
         beginAtZero: true,
         max: 100,
+        border: {
+          display: false,
+          dash: [4, 4],
+        },
         ticks: {
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280"
+          stepSize: 20,
+          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          font: {
+            size: 11,
+            family: "'Inter', sans-serif",
+          },
+          callback: (value: any) => `${value}%`
         },
         grid: {
-          color: theme === 'dark' ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.1)",
+          color: theme === 'dark' ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+          drawTicks: false,
         },
       },
       x: {
+        border: {
+          display: false,
+        },
         ticks: {
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280"
+          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          maxRotation: 45,
+          minRotation: 45,
+          font: {
+            size: 11,
+            family: "'Inter', sans-serif",
+          },
         },
         grid: {
-          color: theme === 'dark' ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.1)",
+          display: false,
         },
       },
     },
+    interaction: {
+      intersect: false,
+      mode: 'index' as const,
+    },
+    animation: {
+      duration: 2000,
+      easing: 'easeOutQuart' as const,
+    }
   }), [theme]);
 
   if (isLoading) {
@@ -350,7 +442,7 @@ const InternalMarks = () => {
         <div className={`p-4 rounded-full mb-4 ${isRestricted ? "bg-amber-100 text-amber-600" : "bg-destructive/10 text-destructive"}`}>
           <AlertCircle className="h-10 w-10" />
         </div>
-        <h3 className="text-xl font-bold mb-2">{isRestricted ? "Access Restricted" : "Error Loading Data"}</h3>
+        <h3 className="text-xl font-semibold mb-2">{isRestricted ? "Access Restricted" : "Error Loading Data"}</h3>
         <p className={`max-w-md mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-muted-foreground'}`}>
           {errorMessage}
         </p>
@@ -372,12 +464,33 @@ const InternalMarks = () => {
         <CardHeader className={theme === 'dark' ? 'bg-card text-card-foreground border-b border-border' : 'bg-white text-gray-900 border-b border-gray-200'}>
           <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}> Performance Overview</CardTitle>
         </CardHeader>
-        <CardContent className={theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}>
-          <div className="flex items-center justify-center h-[200px] sm:h-[300px]">
-            <div className="w-full max-w-full sm:max-w-[600px] h-[160px] sm:h-[250px]">
-              <MemoizedBarChart data={chartData} options={chartOptions} />
+        <CardContent className={`p-0 sm:p-6 ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
+          {filteredSubjects.length === 0 ? (
+            <div className="h-[300px] flex flex-col items-center justify-center space-y-4 animate-in fade-in duration-700">
+              <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} shadow-sm`}>
+                <Filter className="h-10 w-10 text-indigo-500/50" />
+              </div>
+              <div className="text-center px-6">
+                <p className={`text-lg font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Data Found</p>
+                <p className={`text-sm mt-1 max-w-[240px] mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  We couldn't find any subjects matching your current criteria.
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="w-full overflow-x-auto custom-scrollbar-premium pb-4 px-4 sm:px-0">
+              <div 
+                style={{ 
+                  minWidth: `${Math.max(100, filteredSubjects.length * (selectedIA === "all" ? 160 : 120))}px`, 
+                  height: '300px',
+                  width: '60%' 
+                }}
+                className="mt-4 mx-auto"
+              >
+                <MemoizedBarChart data={chartData} options={chartOptions} />
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -413,11 +526,14 @@ const InternalMarks = () => {
       {/* Table */}
       <div className={`rounded-md overflow-hidden w-full ${theme === 'dark' ? 'border-border bg-card text-card-foreground' : 'border-gray-200 bg-white text-gray-900'}`}>
         {filteredSubjects.length === 0 ? (
-          <div className={`h-96 flex items-center justify-center ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
-            <div className={`text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-              <p className="text-sm font-medium">No subjects found</p>
-              <p className="text-xs mt-1">Try adjusting your filters</p>
-            </div>
+          <div className={`h-96 flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'bg-card' : 'bg-white'} animate-in fade-in duration-700`}>
+             <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <AlertCircle className="h-10 w-10 text-muted-foreground/40" />
+              </div>
+              <div className="text-center">
+                <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Results Empty</p>
+                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Try adjusting your filters or search query</p>
+              </div>
           </div>
         ) : (
           <div

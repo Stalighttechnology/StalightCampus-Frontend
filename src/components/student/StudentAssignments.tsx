@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, 
   Calendar, 
@@ -12,7 +11,8 @@ import {
   Filter,
   ExternalLink,
   Info,
-  X
+  X,
+  Eye
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
@@ -34,6 +34,7 @@ const StudentAssignments = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedAssignment, setSelectedAssignment] = useState<any | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submissionFile, setSubmissionFile] = useState<File | null>(null);
 
@@ -176,172 +177,179 @@ const StudentAssignments = () => {
       </Badge>
     );
   };
-
   return (
-    <div className={`p-6 space-y-6 min-h-screen ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Assignments</h1>
-        <p className={`${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-          View and submit your academic assignments
-        </p>
-      </div>
+    <div>
+      <Card>
+        {/* Header Section */}
+        <CardHeader className="p-6 sm:p-8 border-b border-border/50">
+            {/* Stats row integrated into header or top of content */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4 w-full md:w-auto">
+              {[
+                { label: 'Total', value: stats.total, icon: FileText, color: 'text-gray-400', bg: 'bg-gray-400/10', },
+                { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                { label: 'Submitted', value: stats.submitted, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
+                { label: 'Overdue', value: stats.overdue, icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-500/10' }
+              ].map((stat, i) => (
+                <div key={i} className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} flex items-center gap-4 border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                  <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shrink-0`}>
+                    <stat.icon size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">{stat.label}</p>
+                    <p className="text-2xl font-semibold mt-0.5">{stat.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+        </CardHeader>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Total', value: stats.total, icon: FileText, color: 'text-gray-500', bg: 'bg-gray-500/10' },
-          { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-          { label: 'Submitted', value: stats.submitted, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
-          { label: 'Overdue', value: stats.overdue, icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-500/10' }
-        ].map((stat, i) => (
-          <Card key={i} className="border-none shadow-sm">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase">{stat.label}</p>
-                <h3 className="text-xl font-bold mt-0.5">{stat.value}</h3>
-              </div>
-              <div className={`p-2 rounded-lg ${stat.bg} ${stat.color}`}>
-                <stat.icon size={20} />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Main content */}
-      <Card className="border-none shadow-md overflow-hidden">
-        <CardHeader className="border-b pb-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle>My Assignments</CardTitle>
+        <CardContent className="p-0">
+          {/* Search & Filter Toolbar */}
+          <div className={`p-6 border-b border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/50'}`}>
+            <h2 className="text-lg font-semibold">Assignment List</h2>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                 <Input 
-                  placeholder="Search..." 
-                  className="pl-10 w-full md:w-64" 
+                  placeholder="Search assignments..." 
+                  className={`pl-10 w-full md:w-72 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`} 
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
                 <Filter size={18} />
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-24 w-full bg-muted animate-pulse rounded-lg" />
-              ))}
-            </div>
-          ) : filteredAssignments.length > 0 ? (
-            <div className="divide-y divide-border">
-              {filteredAssignments.map((assignment) => (
-                <motion.div 
-                  key={assignment.id}
-                  layout
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="p-6 hover:bg-muted/30 transition-colors group"
-                >
-                  <div className="flex flex-col md:flex-row justify-between gap-6">
-                    <div className="flex gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                        <FileText size={24} />
-                      </div>
-                      <div className="space-y-1">
-                        <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors">
-                          {assignment.title}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                          <span className="font-medium text-foreground/80">{assignment.subject}</span>
-                          <span className="flex items-center gap-1.5">
-                            <Clock size={14} />
-                            Due {new Date(assignment.due_date).toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="text-sm mt-2 line-clamp-2 max-w-2xl">{assignment.description}</p>
-                      </div>
-                    </div>
 
-                    <div className="flex flex-col items-end gap-3 shrink-0">
-                      {getStatusBadge(assignment)}
-                      <div className="flex items-center gap-2">
-                        {assignment.file_url && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={assignment.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-2">
-                              <Download size={14} />
-                              Questions
-                            </a>
-                          </Button>
-                        )}
-                        {!assignment.is_submitted ? (
-                          <Button 
-                            size="sm" 
-                            className="bg-primary text-white gap-2"
-                            onClick={() => {
-                              setSelectedAssignment(assignment);
-                              setShowSubmitModal(true);
-                            }}
-                          >
-                            <Upload size={14} />
-                            Submit
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" size="sm" className="gap-2">
-                            <Info size={14} />
-                            View Submission
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {assignment.is_submitted && (
-                    <div className={`mt-4 p-4 rounded-lg border border-dashed ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50 border-gray-200'}`}>
-                      <div className="flex flex-col md:flex-row justify-between gap-4">
-                        <div className="space-y-1">
-                          <p className="text-xs font-semibold uppercase text-muted-foreground">Submission Info</p>
-                          <p className="text-sm">Submitted on {new Date(assignment.submission_date).toLocaleString()}</p>
+          {/* List Content */}
+          <div className="min-h-[400px]">
+            {loading ? (
+              <div className="p-8 space-y-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className={`h-28 w-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} animate-pulse rounded-2xl`} />
+                ))}
+              </div>
+            ) : filteredAssignments.length > 0 ? (
+              <div className="divide-y divide-border/50">
+                {filteredAssignments.map((assignment) => (
+                  <div 
+                    key={assignment.id}
+                    className="p-6 hover:bg-primary/5 transition-all duration-300 group"
+                  >
+                    <div className="flex flex-col lg:flex-row justify-between gap-6">
+                      <div className="flex gap-5">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${theme === 'dark' ? 'bg-primary/20 text-primary shadow-primary/5' : 'bg-primary/10 text-primary shadow-primary/10'}`}>
+                          <FileText size={28} />
                         </div>
-                        <div className="text-right">
-                          <p className="text-xs font-semibold uppercase text-muted-foreground">Grade</p>
-                          <p className="text-lg font-bold">
-                            {assignment.marks_obtained !== null 
-                              ? `${assignment.marks_obtained} / ${assignment.max_marks}` 
-                              : 'Pending Grading'}
+                        <div className="space-y-1.5">
+                          <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors">
+                            {assignment.title}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+                            <span className={`font-semibold px-2 py-0.5 rounded-lg ${theme === 'dark' ? 'bg-white/5 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                              {assignment.subject}
+                            </span>
+                            <span className="flex items-center gap-1.5 text-muted-foreground">
+                              <Clock size={15} />
+                              Due {new Date(assignment.due_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                            </span>
+                          </div>
+                          <p className={`text-sm mt-3 line-clamp-2 max-w-2xl leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {assignment.description}
                           </p>
                         </div>
                       </div>
-                      {assignment.feedback && (
-                        <div className="mt-3 pt-3 border-t border-border/50">
-                          <p className="text-xs font-semibold uppercase text-muted-foreground mb-1">Feedback</p>
-                          <p className="text-sm italic">"{assignment.feedback}"</p>
+
+                      <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-start gap-4 shrink-0">
+                        {getStatusBadge(assignment)}
+                        <div className="flex items-center gap-2">
+                          {assignment.file_url && (
+                            <Button variant="outline" size="sm" asChild className="rounded-xl">
+                              <a href={assignment.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-2">
+                                <Download size={14} />
+                                Questions
+                              </a>
+                            </Button>
+                          )}
+                          {!assignment.is_submitted ? (
+                            <Button 
+                              size="sm" 
+                              className="bg-primary text-white gap-2 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30"
+                              onClick={() => {
+                                setSelectedAssignment(assignment);
+                                setShowSubmitModal(true);
+                              }}
+                            >
+                              <Upload size={14} />
+                              Submit
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="gap-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                              onClick={() => {
+                                setSelectedAssignment(assignment);
+                                setShowDetailsModal(true);
+                              }}
+                            >
+                              <Info size={14} />
+                              Details
+                            </Button>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="py-20 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4 text-muted-foreground">
-                <CheckCircle size={32} />
+
+                    {assignment.is_submitted && (
+                      <div className={`mt-5 p-5 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/80 border-gray-200'}`}>
+                        <div className="flex flex-col md:flex-row justify-between gap-6">
+                          <div className="space-y-1.5">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Submission Date</p>
+                            <p className="text-sm font-medium">{new Date(assignment.submission_date).toLocaleString()}</p>
+                          </div>
+                          <div className="md:text-right">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Grade Status</p>
+                            <p className={`text-xl font-semibold ${assignment.marks_obtained !== null ? 'text-indigo-500' : 'text-amber-500'}`}>
+                              {assignment.marks_obtained !== null 
+                                ? `${assignment.marks_obtained} / ${assignment.max_marks}` 
+                                : 'Awaiting Grade'}
+                            </p>
+                          </div>
+                        </div>
+                        {assignment.feedback && (
+                          <div className="mt-4 pt-4 border-t border-border/50">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Instructor Feedback</p>
+                            <p className={`text-sm italic leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                              "{assignment.feedback}"
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-              <h3 className="text-lg font-semibold">All caught up!</h3>
-              <p className="text-muted-foreground mt-1">No assignments matching your current filters.</p>
+            ) : (
+            <div className="py-24 flex flex-col items-center justify-center text-center">
+              <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
+                <FileText className="h-16 w-16 text-primary/30" />
+              </div>
+              <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Assignments Found</h3>
+              <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                You're all caught up! We couldn't find any assignments matching your current search or filters.
+              </p>
             </div>
-          )}
+            )}
+          </div>
           
-          {/* Pagination */}
+          {/* Pagination Footer */}
           {pagination && pagination.total_pages > 1 && (
-            <div className="p-4 border-t border-border flex items-center justify-between">
+            <div className={`p-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/30'}`}>
               <p className="text-sm text-muted-foreground">
-                Showing <span className="font-medium">{(pagination.current_page - 1) * pagination.page_size + 1}</span> to <span className="font-medium">{Math.min(pagination.current_page * pagination.page_size, pagination.total_items)}</span> of <span className="font-medium">{pagination.total_items}</span> results
+                Showing <span className="font-semibold text-foreground">{(pagination.current_page - 1) * pagination.page_size + 1}</span> to <span className="font-semibold text-foreground">{Math.min(pagination.current_page * pagination.page_size, pagination.total_items)}</span> of <span className="font-semibold text-foreground">{pagination.total_items}</span> assignments
               </p>
               <div className="flex items-center gap-2">
                 <Button 
@@ -349,16 +357,17 @@ const StudentAssignments = () => {
                   size="sm" 
                   disabled={!pagination.has_previous}
                   onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="rounded-xl"
                 >
                   Previous
                 </Button>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map(p => (
                     <Button 
                       key={p} 
                       variant={pagination.current_page === p ? "default" : "outline"} 
                       size="sm" 
-                      className="w-8 h-8 p-0"
+                      className={`w-9 h-9 p-0 rounded-xl ${pagination.current_page === p ? 'shadow-lg shadow-primary/20' : ''}`}
                       onClick={() => setCurrentPage(p)}
                     >
                       {p}
@@ -370,6 +379,7 @@ const StudentAssignments = () => {
                   size="sm" 
                   disabled={!pagination.has_next}
                   onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="rounded-xl"
                 >
                   Next
                 </Button>
@@ -379,26 +389,112 @@ const StudentAssignments = () => {
         </CardContent>
       </Card>
 
+      {/* Details Modal */}
+      {showDetailsModal && selectedAssignment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            onClick={() => setShowDetailsModal(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <div 
+            className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden ${theme === 'dark' ? 'bg-[#1c1c1e] border border-white/10' : 'bg-white'}`}
+          >
+              <div className="p-6 border-b border-border/50 flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold">Submission Details</h2>
+                  <p className="text-sm text-muted-foreground">{selectedAssignment.title}</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setShowDetailsModal(false)} className="rounded-full">
+                  <X size={20} />
+                </Button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Submission Info Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Status</p>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle size={16} className="text-green-500" />
+                      <span className="font-semibold text-green-500">Submitted</span>
+                    </div>
+                  </div>
+                  <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Grade</p>
+                    <p className={`text-lg font-semibold ${selectedAssignment.marks_obtained !== null ? 'text-indigo-500' : 'text-amber-500'}`}>
+                      {selectedAssignment.marks_obtained !== null 
+                        ? `${selectedAssignment.marks_obtained} / ${selectedAssignment.max_marks}` 
+                        : 'Awaiting Grading'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Submitted on</span>
+                    <span className="font-medium">{new Date(selectedAssignment.submission_date).toLocaleString()}</span>
+                  </div>
+                  
+                  {selectedAssignment.submission_file_url && (
+                    <div className={`flex items-center justify-between p-4 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/50 border-gray-200'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
+                          <FileText size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold truncate max-w-[200px]">submitted_assignment.pdf</p>
+                          <p className="text-[10px] text-muted-foreground">Original Submission</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" asChild className="rounded-xl">
+                          <a href={selectedAssignment.submission_file_url} target="_blank" rel="noreferrer">
+                            <Eye size={14} className="mr-2" />
+                            View
+                          </a>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild className="rounded-xl">
+                          <a href={selectedAssignment.submission_file_url} download>
+                            <Download size={14} />
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedAssignment.feedback && (
+                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-indigo-500/5' : 'bg-indigo-50'} border ${theme === 'dark' ? 'border-indigo-500/10' : 'border-indigo-100'}`}>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-500 mb-1.5">Instructor Feedback</p>
+                      <p className={`text-sm italic leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                        "{selectedAssignment.feedback}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6 pt-0">
+                <Button className="w-full rounded-xl" onClick={() => setShowDetailsModal(false)}>
+                  Close Details
+                </Button>
+              </div>
+          </div>
+        </div>
+      )}
+
       {/* Submission Modal */}
-      <AnimatePresence>
-        {showSubmitModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowSubmitModal(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`relative w-full max-w-lg rounded-2xl shadow-2xl p-6 ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}
-            >
+      {showSubmitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            onClick={() => setShowSubmitModal(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <div 
+            className={`relative w-full max-w-lg rounded-2xl shadow-2xl p-6 ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}
+          >
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-xl font-bold">Submit Assignment</h2>
+                  <h2 className="text-xl font-semibold">Submit Assignment</h2>
                   <p className="text-sm text-muted-foreground">{selectedAssignment?.title}</p>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setShowSubmitModal(false)}>
@@ -445,10 +541,9 @@ const StudentAssignments = () => {
                   </Button>
                 </div>
               </form>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 };

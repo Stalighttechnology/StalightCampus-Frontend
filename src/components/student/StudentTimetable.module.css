@@ -30,6 +30,8 @@
   max-width: 100%;
   overflow-x: auto;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
 }
 
 .timetableTable {
@@ -50,8 +52,10 @@
 }
 
 .timetableTable td {
-  white-space: nowrap;
+  white-space: normal;
   font-weight: 500;
+  vertical-align: top;
+  min-width: 120px;
 }
 
 .timetableTable tbody tr {
@@ -109,7 +113,7 @@
   .timetableContainer {
     width: 100%;
     max-width: 100%;
-    max-height: 70vh;
+    max-height: 80vh;
     overflow-x: auto;
     overflow-y: auto;
   }
@@ -168,12 +172,13 @@
   .timetableContainer {
     width: 100%;
     max-width: 100%;
-    overflow: hidden !important;
+    overflow-x: auto !important;
+    overflow-y: auto;
   }
 
   .timetableTable {
     width: 100%;
-    table-layout: fixed;
+    min-width: 800px;
     border-collapse: collapse;
   }
 
@@ -251,10 +256,12 @@
     max-width: 100%;
     overflow-x: auto;
     overflow-y: visible;
+    padding-bottom: 4px;
   }
 
   .timetableTable {
     width: 100%;
+    min-width: 1000px;
     text-align: left;
     font-size: 0.875rem;
   }
@@ -270,7 +277,7 @@
   }
 
   .timetableTable td {
-    white-space: nowrap;
+    white-space: normal;
     font-weight: 500;
   }
 

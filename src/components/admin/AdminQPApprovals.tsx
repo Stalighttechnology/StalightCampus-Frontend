@@ -406,7 +406,7 @@ const AdminQPApprovals = () => {
                         </div>
 
                         {qp.last_action && (
-                          <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-muted/30' : 'bg-white border'}`}>
+                          <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
                             <p className="font-medium mb-1">Last Action: {qp.last_action.action}</p>
                             <p className="text-muted-foreground italic line-clamp-2">
                               "{qp.last_action.comment || 'No comment provided'}"
@@ -419,7 +419,7 @@ const AdminQPApprovals = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-white border-gray-300'}`}
+                          className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
                           onClick={() => { setSelectedQP(qp); setQpDetail(null); fetchQPDetail(qp.id); setDialogOpen(true); }}
                         >
                           <Eye className="w-4 h-4" />

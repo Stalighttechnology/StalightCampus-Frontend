@@ -66,6 +66,24 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   useEffect(() => {
     fetchPendingQPs();
     fetchFinalizedQPs();
+    
+    // Ensure SweetAlert appears above the dialog and is interactive
+    try {
+      const styleId = 'swal2-global-fix';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+          .swal2-container, .swal2-popup {
+            z-index: 99999 !important;
+            pointer-events: auto !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    } catch (e) {
+      // ignore when DOM not available
+    }
   }, []);
 
   const fetchPendingQPs = async () => {
@@ -154,15 +172,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       const data = await response.json();
       if (data.success) {
-        MySwal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: 'Approved',
-          text: 'QP finalized and approved for use.',
-          showConfirmButton: false,
-          timer: 3000,
-        });
+        MySwal.fire('Approved!', 'QP finalized and approved for use.', 'success');
         // remove from pending list
         setPendingQPs(pendingQPs.filter(qp => qp.id !== qpId));
         // add to finalized list so UI updates immediately without refetch
@@ -314,15 +324,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       const data = await response.json();
       if (data.success) {
-        MySwal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: 'Rejected',
-          text: data.message || 'QP rejected and sent back to Admin for review.',
-          showConfirmButton: false,
-          timer: 3000,
-        });
+        MySwal.fire('Rejected!', data.message || 'QP rejected and sent back to Admin for review.', 'success');
         setPendingQPs(pendingQPs.filter(qp => qp.id !== qpId));
         setDialogOpen(false);
         setSelectedQP(null);
