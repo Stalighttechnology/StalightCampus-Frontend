@@ -574,9 +574,16 @@ function normalizePaginatedResponse(result: any, itemKey: string) {
     previous: meta.previous ?? null,
   };
 
+  const dataContainer = (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) 
+    ? result.data 
+    : result;
+
   return {
     success: true,
-    data: { [itemKey]: normalized.items },
+    data: { 
+      ...dataContainer,
+      [itemKey]: normalized.items 
+    },
     pagination,
   };
 }

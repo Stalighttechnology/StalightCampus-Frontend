@@ -92,7 +92,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
       if (examRes.success) {
         const normalized = normalizePaginatedResponse(examRes, 'data');
-        setExams(normalized.items && normalized.items.length ? normalized.items : (examRes.data || []));
+        setExams(Array.isArray(normalized.items) ? normalized.items : []);
         const totalItems = normalized.meta.totalItems ?? examRes.count ?? 0;
         const totalPages = normalized.meta.totalPages ?? examRes.pagination?.total_pages ?? Math.max(1, Math.ceil((totalItems || 0) / 10));
         setPagination({
@@ -368,7 +368,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </tr>
                   </thead>
                   <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                    {exams.map((ex) => (
+                    {Array.isArray(exams) && exams.map((ex) => (
                       <tr key={ex.id} className={`hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
                         <td className="px-6 py-4">
                           <div className="font-semibold text-foreground">{ex.title}</div>

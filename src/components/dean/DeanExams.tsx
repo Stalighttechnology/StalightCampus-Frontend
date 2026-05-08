@@ -77,6 +77,8 @@ const DeanExams: React.FC = () => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [exams, setExams] = useState<ExamEntry[]>([]);
+  const [activeExams, setActiveExams] = useState<ExamEntry[]>([]);
+  const [counts, setCounts] = useState({ ongoing: 0, upcoming: 0, past: 0 });
   const [error, setError] = useState<string | null>(null);
   const [upcomingOnly, setUpcomingOnly] = useState<boolean>(false);
   const [pagination, setPagination] = useState({
@@ -93,7 +95,13 @@ const DeanExams: React.FC = () => {
       const qs: string[] = [];
       qs.push(`page=${page}`);
       qs.push(`page_size=10`);
-      if (upcomingOnly) qs.push(`upcoming=1`);
+      if (upcomingOnly) {
+        qs.push(`upcoming=1`);
+      } else {
+        // If we're showing everything, the main paginated list should be 'past' 
+        // since ongoing/upcoming are pinned separately
+        qs.push(`past=1`);
+      }
       const url = `${API_ENDPOINT}/dean/reports/exams/${qs.length ? `?${qs.join('&')}` : ''}`;
       console.debug('Loading exams from', url);
       const res = await fetchWithTokenRefresh(url);
@@ -103,6 +111,11 @@ const DeanExams: React.FC = () => {
         const normalized = normalizePaginatedResponse(json, 'data');
         const list: ExamEntry[] = normalized.items && normalized.items.length ? normalized.items : (Array.isArray(json.data) ? json.data : (json.data || []));
         setExams(list.map((x) => ({ ...x, id: x.id })));
+        
+        if (json.counts) {
+          setCounts(json.counts);
+        }
+
         const totalItems = normalized.meta.totalItems ?? json.count ?? 0;
         const totalPages = normalized.meta.totalPages ?? json.pagination?.total_pages ?? Math.max(1, Math.ceil((totalItems || 0) / 10));
         setPagination({
@@ -110,6 +123,17 @@ const DeanExams: React.FC = () => {
           totalPages,
           totalItems
         });
+
+        // If it's the first page and we're not in upcomingOnly mode, 
+        // also fetch all active (upcoming/ongoing) exams to pin them
+        if (page === 1 && !upcomingOnly) {
+          const activeUrl = `${API_ENDPOINT}/dean/reports/exams/?upcoming=1&page_size=100`;
+          const activeRes = await fetchWithTokenRefresh(activeUrl);
+          const activeJson = await activeRes.json();
+          if (activeJson.success) {
+            setActiveExams(activeJson.data || []);
+          }
+        }
       } else {
         setExams([]);
         setError(json.message || 'Failed to load exams');
@@ -134,6 +158,7 @@ const DeanExams: React.FC = () => {
       const json = await res.json();
       if (json.success) {
         setExams(prev => prev.map(ex => ex.id === id ? { ...ex, is_published: true } : ex));
+        setActiveExams(prev => prev.map(ex => ex.id === id ? { ...ex, is_published: true } : ex));
       } else {
         alert(json.message || 'Failed to publish');
       }
@@ -148,18 +173,34 @@ const DeanExams: React.FC = () => {
     past: [] as ExamEntry[],
     other: [] as ExamEntry[],
   };
-  exams.forEach((ex) => {
+
+  // Use activeExams for ongoing and upcoming sections
+  activeExams.forEach((ex) => {
     const s = computeStatus(ex);
     if (s === 'ongoing') grouped.ongoing.push(ex);
     else if (s === 'upcoming') grouped.upcoming.push(ex);
-    else if (s === 'past') grouped.past.push(ex);
+    else if (s === 'past') grouped.past.push(ex); // Handle exams that finished today
     else grouped.other.push(ex);
   });
 
+  // Use main exams list for past section (and avoid duplicates if some are on Page 1)
+  exams.forEach((ex) => {
+    const s = computeStatus(ex);
+    if (s === 'past') {
+      grouped.past.push(ex);
+    } else if (pagination.currentPage > 1) {
+      // If we are on page 2+, we only show past exams in the main list
+      // Ongoing/Upcoming are already covered by activeExams
+    } else {
+      // On page 1, we might have duplicates if we're not careful
+      // But grouped.ongoing/upcoming are already populated from activeExams
+    }
+  });
+
   const countCards = [
-    { key: 'ongoing', title: 'Ongoing', count: grouped.ongoing.length, color: 'green' },
-    { key: 'upcoming', title: 'Upcoming', count: grouped.upcoming.length, color: 'blue' },
-    { key: 'past', title: 'Past', count: grouped.past.length, color: 'gray' },
+    { key: 'ongoing', title: 'Ongoing', count: counts.ongoing, color: 'green' },
+    { key: 'upcoming', title: 'Upcoming', count: counts.upcoming, color: 'blue' },
+    { key: 'past', title: 'Past', count: counts.past, color: 'gray' },
   ];
 
   return (

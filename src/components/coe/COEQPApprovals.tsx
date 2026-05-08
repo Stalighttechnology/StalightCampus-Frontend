@@ -77,7 +77,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       const data = await response.json();
       const norm = normalizePaginatedResponse(data, 'results');
-      const items = norm.items && norm.items.length ? norm.items : (data.results || data.data || []);
+      const items = Array.isArray(norm.items) ? norm.items : [];
       setPendingQPs(items);
       const count = norm.meta.totalItems ?? data.count ?? items.length;
       setPendingPagination({
@@ -105,7 +105,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       const data = await response.json();
       console.log('Finalized QPs response:', data);  // Debug log
       const norm = normalizePaginatedResponse(data, 'results');
-      const items = norm.items && norm.items.length ? norm.items : (data.results || data.data || []);
+      const items = Array.isArray(norm.items) ? norm.items : [];
       setFinalizedQPs(items);
       const count = norm.meta.totalItems ?? data.count ?? items.length;
       setFinalizedPagination({
@@ -377,7 +377,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
              </Card>
           ) : (
             <div className="space-y-4">
-              {pendingQPs.map((qp) => (
+              {Array.isArray(pendingQPs) && pendingQPs.map((qp) => (
                 <Card key={qp.id} className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -475,7 +475,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
              </Card>
           ) : (
             <div className="space-y-4">
-              {finalizedQPs.map((qp) => (
+              {Array.isArray(finalizedQPs) && finalizedQPs.map((qp) => (
                 <Card key={`final-${qp.id}`} className="p-4">
                   <div className="flex justify-between items-start">
                     <div>

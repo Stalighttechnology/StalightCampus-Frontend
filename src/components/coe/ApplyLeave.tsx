@@ -53,23 +53,59 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { theme } = useTheme();
   const today = new Date();
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, total_pages: 1, total: 0, has_next: false, has_previous: false });
+  const itemsPerPage = 10;
+
   // Fetch leave history on mount
   useEffect(() => {
-    setLoading(true);
-    fetchLeaveRequests();
+    fetchLeaveRequests(1);
   }, []);
 
-  const fetchLeaveRequests = async () => {
+  const fetchLeaveRequests = async (page: number = 1) => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/leaves/`, {
+      setLoading(true);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/leaves/?page=${page}&page_size=${itemsPerPage}`, {
         method: 'GET',
       });
 
       const data = await response.json();
-      if (data.results && data.results.success && data.results.data) {
-        // Handle paginated response - data.results.data contains the leave requests
-        const leaveData = data.results.data;
-        // Transform backend data to match component structure
+      let leaveData = null;
+      let meta = { page, total_pages: 1, total: 0, has_next: false, has_previous: false };
+      
+      if (data.success && data.data && Array.isArray(data.data.results)) {
+        leaveData = data.data.results;
+        meta = {
+          page: data.data.page || page,
+          total_pages: data.data.total_pages || Math.ceil((data.data.count || 0) / itemsPerPage),
+          total: data.data.count || 0,
+          has_next: !!data.data.next,
+          has_previous: !!data.data.previous
+        };
+      } else if (data.success && Array.isArray(data.data)) {
+        leaveData = data.data;
+        meta = {
+          page: data.current_page || page,
+          total_pages: data.total_pages || Math.ceil((data.count || leaveData.length) / itemsPerPage),
+          total: data.count || leaveData.length,
+          has_next: !!data.next,
+          has_previous: !!data.previous
+        };
+      } else if (data.results && Array.isArray(data.results)) {
+        leaveData = data.results;
+        meta = {
+          page: page,
+          total_pages: Math.ceil((data.count || leaveData.length) / itemsPerPage),
+          total: data.count || leaveData.length,
+          has_next: !!data.next,
+          has_previous: !!data.previous
+        };
+      } else if (Array.isArray(data)) {
+        leaveData = data;
+      }
+
+      if (leaveData) {
         const transformedLeaves: LeaveRequestDisplay[] = leaveData.map((leave: any) => {
           const mappedStatus = (leave.status === 'PENDING' ? 'Pending' :
                               leave.status === 'APPROVED' ? 'Approved' :
@@ -86,9 +122,10 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
           };
         });
         setLeaveList(transformedLeaves);
-        setError(null); // Clear any previous errors
+        setPagination(meta);
+        setCurrentPage(page);
       } else {
-        setError('Failed to load leave requests');
+        toast.error('Failed to load leave requests');
       }
     } catch (error) {
       console.error('Failed to fetch leave requests:', error);
@@ -437,6 +474,35 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 1 && (
+              <div className="flex items-center justify-between mt-4 text-xs sm:text-sm">
+                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+                  Page {pagination.page} of {pagination.total_pages} ({pagination.total} total)
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
+                    onClick={() => fetchLeaveRequests(pagination.page - 1)}
+                    disabled={!pagination.has_previous}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
+                    onClick={() => fetchLeaveRequests(pagination.page + 1)}
+                    disabled={!pagination.has_next}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

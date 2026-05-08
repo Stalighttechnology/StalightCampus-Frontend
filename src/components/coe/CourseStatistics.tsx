@@ -227,7 +227,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data.summary.total_courses}</div>
+              <div className="text-2xl font-bold">{data?.summary?.total_courses ?? 0}</div>
             </CardContent>
           </Card>
 
@@ -237,7 +237,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Users className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{data.summary.total_applications}</div>
+              <div className="text-2xl font-bold text-blue-600">{data?.summary?.total_applications ?? 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -248,7 +248,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
         <Card className="course-statistics-table-card">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Subject-wise Application Statistics ({totalCount !== null ? totalCount : data.courses.length})</CardTitle>
+              <CardTitle>Subject-wise Application Statistics ({totalCount !== null ? totalCount : (data?.courses?.length ?? 0)})</CardTitle>
               <Button
                 size="sm"
                 onClick={handleExport}
@@ -273,7 +273,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.courses.map((course: any) => (
+                {(data?.courses || []).map((course: any) => (
                   <TableRow key={course.subject_id}>
                     <TableCell className="font-medium" data-label="Subject Code">{course.subject_code}</TableCell>
                     <TableCell data-label="Subject Name">{course.subject_name}</TableCell>
@@ -290,7 +290,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </TableBody>
               </Table>
             </div>
-            {data.courses.length === 0 && (
+            {(data?.courses?.length ?? 0) === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 No course statistics found for the selected filters.
               </div>

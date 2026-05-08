@@ -37,18 +37,18 @@ export function normalizePaginatedResponse(resp: any, itemsKey = 'results') {
 
   // Nested legacy shape: { data: { results: [], pagination: {...} } } or { data: [...], pagination: {...} }
   const container = resp.data ?? resp;
-  if (container?.pagination || container?.results || Array.isArray(container)) {
-    const items = container.results ?? container.data ?? (Array.isArray(container) ? container : []);
-    // Prefer pagination metadata from top-level resp.pagination if present (some endpoints return { data: [...], pagination: {...} })
-    const p = resp.pagination ?? container.pagination ?? {};
+  const p = resp.pagination ?? container.pagination;
+  if (p || container?.results || Array.isArray(container)) {
+    const items = container[itemsKey] ?? container.results ?? container.data ?? (Array.isArray(container) ? container : []);
+    const meta = p ?? {};
     return {
       items: Array.isArray(items) ? items : [],
       meta: {
-        totalItems: p.total_items ?? p.count ?? null,
-        totalPages: p.total_pages ?? null,
-        currentPage: p.current_page ?? p.page ?? null,
-        next: p.next ?? null,
-        previous: p.previous ?? null,
+        totalItems: meta.total_items ?? meta.count ?? meta.totalItems ?? null,
+        totalPages: meta.total_pages ?? meta.totalPages ?? null,
+        currentPage: meta.current_page ?? meta.currentPage ?? null,
+        next: meta.next ?? null,
+        previous: meta.previous ?? null,
       },
       raw: resp,
     };
