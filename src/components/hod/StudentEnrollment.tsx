@@ -11,7 +11,7 @@ import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
-import { Loader2 } from "lucide-react";
+import { Loader2, Users, UserX, UserCheck } from "lucide-react";
 
 const StudentEnrollment = () => {
   useHODBootstrap();
@@ -265,7 +265,7 @@ const StudentEnrollment = () => {
     <div className="w-full mx-auto max-w-none">
       <Card className="shadow-lg">
         <CardHeader className="pb-4 md:pb-2 lg:pb-4">
-          <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Student Enrollment (Elective / Open Elective)</CardTitle>
+          <CardTitle>Student Enrollment (Elective / Open Elective)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6">
             <div className="w-full">
@@ -406,7 +406,7 @@ const StudentEnrollment = () => {
                 {students.length === 0 ? (
                   <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                     <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                      <Loader2 className="w-12 h-12 opacity-80" />
+                      <Users className="w-12 h-12 opacity-80" />
                     </div>
                     <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Loaded</h3>
                     <p className="max-w-xs text-base leading-relaxed">
@@ -424,62 +424,74 @@ const StudentEnrollment = () => {
                     return (
                       <>
                         <div className={showEnrolledOnly ? "" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-3 md:gap-2 lg:gap-4"}>
-                          <div className="p-3 sm:p-3 md:p-3 lg:p-4 border rounded-lg">
-                            <div className="flex items-center justify-between mb-2 sm:mb-3">
-                              <strong className="text-base sm:text-lg md:text-base lg:text-lg">Enrolled</strong>
-                              <span className={`text-sm px-2 py-1 rounded-full ${
+                          <div className={`p-4 sm:p-5 border rounded-xl transition-all ${theme === 'dark' ? 'bg-card/20 border-border' : 'bg-white border-gray-100 shadow-sm'}`}>
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <UserCheck className={`w-5 h-5 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                                <strong className="text-lg font-semibold">Enrolled</strong>
+                              </div>
+                              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                                 theme === 'dark' 
-                                  ? 'bg-green-900/20 text-green-400' 
-                                  : 'bg-green-100 text-green-800'
+                                  ? 'bg-green-900/40 text-green-400 border border-green-800/50' 
+                                  : 'bg-green-100 text-green-800 border border-green-200'
                               }`}>
                                 {enrolledListFiltered.length}
                               </span>
                             </div>
-                            <div className="space-y-2 md:space-y-1 max-h-[500px] overflow-y-auto">
+                            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
                               {enrolledListFiltered.map((s: any) => (
-                                <div key={s.id} className={`flex items-center gap-3 p-2 rounded ${
+                                <div key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
                                   theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'
                                 }`}>
                                   <Checkbox checked={s.checked} onCheckedChange={() => toggleStudent(s.id)} />
                                   <div className="text-sm">
-                                    <span className="font-medium">{s.usn}</span> — {s.name}
+                                    <span className="font-semibold">{s.usn}</span>
+                                    <span className="mx-2 text-muted-foreground">•</span>
+                                    <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{s.name}</span>
                                   </div>
                                 </div>
                               ))}
                               {enrolledListFiltered.length === 0 && (
-                                <div className={`flex flex-col items-center justify-center py-8 px-4 text-center border-2 border-dashed rounded-xl mt-2 ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
-                                  <p className="text-xs font-medium">No enrolled students</p>
+                                <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
+                                  <UserX className="w-8 h-8 mb-2 opacity-20" />
+                                  <p className="text-sm font-medium">No enrolled students</p>
                                 </div>
                               )}
                             </div>
                           </div>
 
                           {!showEnrolledOnly && (
-                            <div className="p-3 sm:p-3 md:p-3 lg:p-4 border rounded-lg">
-                              <div className="flex items-center justify-between mb-2 sm:mb-3">
-                                <strong className="text-base sm:text-lg md:text-base lg:text-lg">Not Enrolled</strong>
-                                <span className={`text-sm px-2 py-1 rounded-full ${
+                            <div className={`p-4 sm:p-5 border rounded-xl custom-scrollbar transition-all ${theme === 'dark' ? 'bg-card/20 border-border' : 'bg-white border-gray-100 shadow-sm'}`}>
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                  <Users className={`w-5 h-5 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                                  <strong className="text-lg font-semibold">Not Enrolled</strong>
+                                </div>
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                                   theme === 'dark' 
-                                    ? 'bg-red-900/20 text-red-400' 
-                                    : 'bg-red-100 text-red-800'
+                                    ? 'bg-red-900/40 text-red-400 border border-red-800/50' 
+                                    : 'bg-red-100 text-red-800 border border-red-200'
                                 }`}>
                                   {notEnrolledListFiltered.length}
                                 </span>
                               </div>
-                              <div className="space-y-2 md:space-y-1 max-h-[500px] overflow-y-auto">
+                              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
                                 {notEnrolledListFiltered.map((s: any) => (
-                                  <div key={s.id} className={`flex items-center gap-3 p-2 rounded ${
+                                  <div key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
                                     theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'
                                   }`}>
                                     <Checkbox checked={s.checked} onCheckedChange={() => toggleStudent(s.id)} />
                                     <div className="text-sm">
-                                      <span className="font-medium">{s.usn}</span> — {s.name}
+                                      <span className="font-semibold">{s.usn}</span>
+                                      <span className="mx-2 text-muted-foreground">•</span>
+                                      <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{s.name}</span>
                                     </div>
                                   </div>
                                 ))}
                                 {notEnrolledListFiltered.length === 0 && (
-                                  <div className={`flex flex-col items-center justify-center py-8 px-4 text-center border-2 border-dashed rounded-xl mt-2 ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
-                                    <p className="text-xs font-medium">All students enrolled</p>
+                                  <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
+                                    <UserCheck className="w-8 h-8 mb-2 opacity-20" />
+                                    <p className="text-sm font-medium">All students enrolled</p>
                                   </div>
                                 )}
                               </div>
@@ -498,18 +510,18 @@ const StudentEnrollment = () => {
                                 variant="outline"
                                 disabled={currentPage === 1}
                                 onClick={() => loadStudents(currentPage - 1)}
-                                className="text-sm font-medium px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-700 text-white border-purple-600"
+                                className="text-sm font-medium px-4 py-2 rounded-md bg-primary hover:bg-primary/80 text-white border-primary"
                               >
                                 Previous
                               </Button>
                               <span className={`px-4 py-2 text-sm font-medium rounded-md ${theme === 'dark' ? 'text-foreground bg-accent' : 'text-gray-900 bg-gray-100'}`}>
-                                {currentPage} of {totalPages}
+                                {currentPage}
                               </span>
                               <Button
                                 variant="outline"
                                 disabled={currentPage === totalPages}
                                 onClick={() => loadStudents(currentPage + 1)}
-                                className="text-sm font-medium px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-700 text-white border-purple-600"
+                                className="text-sm font-medium px-4 py-2 rounded-md bg-primary hover:bg-primary/80 text-white border-primary"
                               >
                                 Next
                               </Button>

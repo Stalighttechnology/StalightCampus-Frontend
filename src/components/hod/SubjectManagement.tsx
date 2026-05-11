@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, BookOpen } from "lucide-react";
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Input } from "../ui/input";
@@ -443,75 +443,101 @@ const SubjectManagement = () => {
             </div>
           ) : (
             <>
-              {/* Desktop/Table for md+ */}
-              <div className="overflow-x-auto hidden md:block">
-                <table className="w-full table-auto text-sm">
-                  <thead className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-gray-100 text-gray-900'}>
-                    <tr>
-                      <th className="px-4 py-3 font-semibold text-left">COURSE CODE</th>
-                      <th className="px-4 py-3 font-semibold text-left">COURSE NAME</th>
-                      <th className="px-4 py-3 font-semibold text-left">SEMESTER</th>
-                      <th className="px-4 py-3 font-semibold text-left">COURSE TYPE</th>
-                      <th className="px-4 py-3 font-semibold text-left">COURSE CREDITS</th>
-                      <th className="px-4 py-3 font-semibold text-left">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody className={theme === 'dark' ? 'bg-background' : 'bg-white'}>
-                    {state.subjects.map((subject, index) => (
-                      <tr
-                        key={subject.id}
-                        className={
-                          index % 2 === 0 ? (theme === 'dark' ? 'bg-card' : 'bg-gray-50') : (theme === 'dark' ? 'bg-background' : 'bg-white')
-                        }
-                      >
-                        <td className="px-4 py-3">{subject.subject_code}</td>
-                        <td className="px-4 py-3">{subject.name}</td>
-                        <td className="px-4 py-3">{getSemesterNumber(subject.semester_id)}</td>
-                        <td className="px-4 py-3">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective Subjects' : 'Open Elective Subjects'}</td>
-                        <td className="px-4 py-3">{subject.credits ?? 0}</td>
-                        <td className="px-4 py-3 flex gap-5">
-                          <Pencil
-                            className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
-                            onClick={() => handleEdit(subject)}
-                          />
-                          <Trash2
-                            className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}`}
-                            onClick={() => handleDelete(subject.id)}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile: card list (only visible on small screens) */}
-              <div className="md:hidden space-y-3">
-                {state.subjects.map((subject) => (
-                  <div
-                    key={subject.id}
-                    className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 pr-3">
-                        <div className="text-xs text-gray-500 mb-1">{subject.subject_code} • {getSemesterNumber(subject.semester_id)}</div>
-                        <div className="font-medium text-sm mb-1">{subject.name}</div>
-                        <div className="text-sm text-gray-500">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective' : 'Open Elective'} • {subject.credits ?? 0} credits</div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Pencil
-                          className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
-                          onClick={() => handleEdit(subject)}
-                        />
-                        <Trash2
-                          className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}`}
-                          onClick={() => handleDelete(subject.id)}
-                        />
-                      </div>
-                    </div>
+            <>
+              {state.subjects.length > 0 ? (
+                <>
+                  {/* Desktop/Table for md+ */}
+                  <div className="overflow-x-auto hidden md:block">
+                    <table className="w-full table-auto text-sm">
+                      <thead className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-gray-100 text-gray-900'}>
+                        <tr>
+                          <th className="px-4 py-3 font-semibold text-left">COURSE CODE</th>
+                          <th className="px-4 py-3 font-semibold text-left">COURSE NAME</th>
+                          <th className="px-4 py-3 font-semibold text-left">SEMESTER</th>
+                          <th className="px-4 py-3 font-semibold text-left">COURSE TYPE</th>
+                          <th className="px-4 py-3 font-semibold text-left">COURSE CREDITS</th>
+                          <th className="px-4 py-3 font-semibold text-left">ACTIONS</th>
+                        </tr>
+                      </thead>
+                      <tbody className={theme === 'dark' ? 'bg-background' : 'bg-white'}>
+                        {state.subjects.map((subject, index) => (
+                          <tr
+                            key={subject.id}
+                            className={
+                              index % 2 === 0 ? (theme === 'dark' ? 'bg-card' : 'bg-gray-50') : (theme === 'dark' ? 'bg-background' : 'bg-white')
+                            }
+                          >
+                            <td className="px-4 py-3">{subject.subject_code}</td>
+                            <td className="px-4 py-3">{subject.name}</td>
+                            <td className="px-4 py-3">{getSemesterNumber(subject.semester_id)}</td>
+                            <td className="px-4 py-3">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective Subjects' : 'Open Elective Subjects'}</td>
+                            <td className="px-4 py-3">{subject.credits ?? 0}</td>
+                            <td className="px-4 py-3 flex gap-5">
+                              <Pencil
+                                className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
+                                onClick={() => handleEdit(subject)}
+                              />
+                              <Trash2
+                                className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}`}
+                                onClick={() => handleDelete(subject.id)}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
-              </div>
+
+                  {/* Mobile: card list (only visible on small screens) */}
+                  <div className="md:hidden space-y-3">
+                    {state.subjects.map((subject) => (
+                      <div
+                        key={subject.id}
+                        className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1 pr-3">
+                            <div className="text-xs text-gray-500 mb-1">{subject.subject_code} • {getSemesterNumber(subject.semester_id)}</div>
+                            <div className="font-medium text-sm mb-1">{subject.name}</div>
+                            <div className="text-sm text-gray-500">{subject.subject_type === 'regular' ? 'Regular' : subject.subject_type === 'elective' ? 'Elective' : 'Open Elective'} • {subject.credits ?? 0} credits</div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <Pencil
+                              className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
+                              onClick={() => handleEdit(subject)}
+                            />
+                            <Trash2
+                              className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'} }`}
+                              onClick={() => handleDelete(subject.id)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-xl border-2 border-dashed transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 hover:bg-card/50' : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-600'}`}>
+                    <BookOpen className="w-10 h-10" />
+                  </div>
+                  <h3 className={`text-xl font-bold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Courses Found</h3>
+                  <p className={`text-sm text-center max-w-xs mb-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    It looks like there are no courses matching your criteria. Try adjusting your filters or add a new course to get started.
+                  </p>
+                  <Button 
+                    onClick={() => updateState({ 
+                      showModal: "add",
+                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                      currentSubject: null,
+                    })}
+                    className="bg-primary text-white hover:bg-primary/90 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+                  >
+                    + Add Your First Course
+                  </Button>
+                </div>
+              )}
+            </>
             </>
           )}
 

@@ -883,8 +883,8 @@ const StudentManagement = () => {
                   });
                 }}
                 className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'} focus:ring-0 ${state.manualErrors?.usn
-                    ? "border-red-500"
-                    : theme === 'dark' ? 'border-border focus:border-primary' : 'border-gray-300 focus:border-blue-500'
+                  ? "border-red-500"
+                  : theme === 'dark' ? 'border-border focus:border-primary' : 'border-gray-300 focus:border-blue-500'
                   }`}
               />
               <span className="text-red-500 text-xs mt-1">
@@ -923,8 +923,8 @@ const StudentManagement = () => {
                   });
                 }}
                 className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'} focus:ring-0 ${state.manualErrors?.name
-                    ? "border-red-500"
-                    : theme === 'dark' ? 'border-border focus:border-primary' : 'border-gray-300 focus:border-blue-500'
+                  ? "border-red-500"
+                  : theme === 'dark' ? 'border-border focus:border-primary' : 'border-gray-300 focus:border-blue-500'
                   }`}
               />
               <span className="text-red-500 text-xs mt-1">
@@ -960,8 +960,8 @@ const StudentManagement = () => {
                   });
                 }}
                 className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'} focus:ring-0 ${state.manualErrors?.email
-                    ? "border-red-500"
-                    : theme === 'dark' ? 'border-border focus:border-primary' : 'border-gray-300 focus:border-blue-500'
+                  ? "border-red-500"
+                  : theme === 'dark' ? 'border-border focus:border-primary' : 'border-gray-300 focus:border-blue-500'
                   }`}
               />
               <span className="text-red-500 text-xs mt-1">
@@ -988,8 +988,8 @@ const StudentManagement = () => {
                   updateState({ manualErrors: { ...state.manualErrors, phone: error } });
                 }}
                 className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'} focus:ring-0 ${state.manualErrors?.phone
-                    ? "border-red-500"
-                    : theme === 'dark' ? 'border-border focus:border-primary' : 'border-gray-300 focus:border-blue-500'
+                  ? "border-red-500"
+                  : theme === 'dark' ? 'border-border focus:border-primary' : 'border-gray-300 focus:border-blue-500'
                   }`}
               />
               <span className="text-red-500 text-xs mt-1">{state.manualErrors?.phone}</span>
@@ -1258,12 +1258,12 @@ const StudentManagement = () => {
                   {paginatedFilteredStudents.map((student) => (
                     <tr key={student.usn} className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'} align-middle`}>
                       <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.usn}</td>
-                      <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.name}</td>
+                      <td className="py-3 px-3 md:px-4 text-sm md:text-base whitespace-nowrap">{student.name}</td>
                       <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.email}</td>
                       <td className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.phone && student.phone.trim() ? student.phone : '-'}</td>
                       <td className="hidden md:table-cell py-3 px-3 md:px-4 text-sm md:text-base">Section {student.section}</td>
                       <td className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.mode_of_admission || 'KCET'}</td>
-                      <td className="py-3 px-3 md:px-4 text-sm md:text-base">{formatSemesterDisplay(student)}</td>
+                      <td className="py-3 px-3 md:px-4 text-sm md:text-base whitespace-nowrap">{formatSemesterDisplay(student)}</td>
                       <td className="py-3 px-3 md:px-4 text-sm md:text-base flex gap-2 md:gap-3 items-center">
                         <button
                           onClick={() => openEdit(student)}

@@ -483,7 +483,7 @@ const handleApprove = async (index: number) => {
           </button>
         </div>
 
-        <div className="max-h-64 overflow-y-auto custom-scrollbar scroll-smooth"> 
+        <div className="max-h-[60vh] overflow-y-auto custom-scrollbar scroll-smooth"> 
           {/* Mobile-only card list */}
           <div className={`block md:hidden space-y-3`}> 
             {leaveRequests.length === 0 && !isLoading ? (
