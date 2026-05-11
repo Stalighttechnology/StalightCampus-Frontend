@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, ShieldAlert, CreditCard, Mail, Check, Zap, Sparkles, Rocket, Crown, ArrowUpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import UpgradePlanDialog from "@/components/common/UpgradePlanDialog";
@@ -29,107 +28,111 @@ const TrialExpired = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-6 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-6 font-sans">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-2xl w-full bg-white rounded-[2rem] shadow-2xl shadow-purple-100/50 overflow-hidden border border-slate-100"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="max-w-xl w-full bg-white border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden"
       >
-        {/* Header - Visual & Info */}
-        <div className="bg-primary p-8 md:p-10 text-white text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -ml-24 -mb-24" />
-          
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-6 border border-white/30 shadow-lg">
-              <Clock className="w-7 h-7 text-white" />
-            </div>
-            
-            <h1 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight">
-              {isSubscription ? "Subscription Expired" : "Trial Period Ended"}
-            </h1>
-            <p className="text-primary-foreground/80 text-sm md:text-base max-w-md">
-              Access to <span className="text-white font-semibold">{orgName}</span> is restricted. Upgrade your plan to resume operations.
-            </p>
+        {/* Official Header */}
+        <div className="border-b border-slate-100 p-10 text-center">
+          <div className="inline-block px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-6 rounded-sm">
+            System Notice
           </div>
+          <h1 className="text-2xl md:text-3xl font-light text-slate-900 mb-4 tracking-tight">
+            {isSubscription ? "Subscription Expired" : "Trial Period Concluded"}
+          </h1>
+          <p className="text-slate-500 text-sm leading-relaxed max-w-sm mx-auto">
+            The service period for <span className="text-slate-900 font-medium">{orgName}</span> has reached its term. Access to institutional records and modules is currently suspended.
+          </p>
         </div>
         
-        {/* Body - Plans & Action */}
-        <div className="p-8 md:p-10 bg-white">
-          <div className="grid grid-cols-1 gap-4 mb-8">
+        {/* Plan Selection Area */}
+        <div className="p-10 bg-white">
+          <div className="space-y-4 mb-10">
             <div 
-              className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-center justify-between group hover:border-primary/30 transition-all cursor-pointer" 
-              onClick={() => setIsUpgradeModalOpen(true)}
+              className={cn(
+                "p-6 border transition-all duration-300 relative",
+                isAdmin 
+                  ? "border-primary bg-primary/5 hover:bg-primary/[0.08] cursor-pointer" 
+                  : "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
+              )}
+              onClick={() => isAdmin && setIsUpgradeModalOpen(true)}
             >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                  <Rocket className="w-5 h-5 text-primary" />
-                </div>
+              <div className="absolute top-0 right-0 w-2 h-2 bg-primary" />
+              <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm">Pro Plan</h3>
-                  <p className="text-xs text-slate-500">Essential institutional tools</p>
+                  <h3 className="text-sm font-bold text-slate-900 mb-1 tracking-tight">Professional Edition</h3>
+                  <p className="text-xs text-slate-500">Core institutional management suite</p>
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-slate-900">₹99,999</p>
-                <p className="text-[10px] text-slate-400">/year</p>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-slate-900">₹99,999</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Per Annum</p>
+                </div>
               </div>
             </div>
 
             <div 
-              className="p-5 rounded-2xl border-2 border-primary bg-primary/5 flex items-center justify-between group cursor-pointer relative overflow-hidden" 
-              onClick={() => setIsUpgradeModalOpen(true)}
+              className={cn(
+                "p-6 border-2 transition-all duration-300 relative",
+                isAdmin 
+                  ? "border-primary bg-white hover:bg-primary/5 cursor-pointer" 
+                  : "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
+              )}
+              onClick={() => isAdmin && setIsUpgradeModalOpen(true)}
             >
-              <div className="absolute top-0 right-0 px-2 py-0.5 bg-primary text-white text-[9px] font-black uppercase tracking-tighter rounded-bl-lg">Popular</div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center border border-primary/10">
-                  <Crown className="w-5 h-5 text-primary" />
-                </div>
+              <div className="absolute top-0 right-0 w-2 h-2 bg-primary" />
+              <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm">Advance Plan</h3>
-                  <p className="text-xs text-slate-500">Full AI governance suite</p>
+                  <h3 className="text-sm font-bold text-slate-900 mb-1 tracking-tight">Enterprise Edition</h3>
+                  <p className="text-xs text-slate-500">Full AI governance & advanced analytics</p>
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-slate-900">₹3,00,000</p>
-                <p className="text-[10px] text-slate-400">/year</p>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-slate-900">₹3,00,000</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Per Annum</p>
+                </div>
               </div>
             </div>
           </div>
           
-          <div className="flex flex-col gap-4">
+          <div className="space-y-6">
             {isAdmin ? (
               <Button 
                 onClick={() => setIsUpgradeModalOpen(true)}
-                className="bg-primary hover:bg-primary/90 text-white w-full h-14 rounded-2xl text-lg font-bold transition-all shadow-lg shadow-purple-100 group"
+                className="bg-primary hover:bg-primary/90 text-white w-full h-12 rounded-none text-sm font-bold uppercase tracking-widest transition-all shadow-sm"
               >
-                Renew & Upgrade Now
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                Proceed to Renewal
               </Button>
             ) : (
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                 <p className="text-slate-600 font-medium text-sm">Please contact your Institution Admin to renew the subscription.</p>
+              <div className="p-4 bg-slate-50 border border-slate-100 text-center">
+                 <p className="text-slate-500 text-xs leading-relaxed">
+                   Administrative privileges are required for plan renewal. Please contact your Institution Administrator to resume operations.
+                 </p>
               </div>
             )}
             
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between pt-6 border-t border-slate-50">
               <button 
                 onClick={handleLogout}
-                className="text-slate-400 hover:text-primary text-xs font-medium transition-colors"
+                className="text-slate-400 hover:text-slate-900 text-[11px] font-bold uppercase tracking-wider transition-colors"
               >
-                Logout Account
+                Sign Out
               </button>
               
-              <Button 
-                variant="ghost"
+              <button 
                 onClick={() => window.location.href = "mailto:support@stalight.in"}
-                className="text-slate-500 hover:text-slate-900 h-8 rounded-xl text-xs font-semibold px-2"
+                className="text-slate-400 hover:text-slate-900 text-[11px] font-bold uppercase tracking-wider transition-colors"
               >
-                <Mail className="mr-2 w-3.5 h-3.5" />
-                Contact Support
-              </Button>
+                Support Desk
+              </button>
             </div>
           </div>
+        </div>
+
+        {/* Footer info */}
+        <div className="bg-slate-50 p-4 border-t border-slate-100 text-center">
+           <p className="text-[10px] text-slate-400 font-medium">Stalight Campus Security & Compliance Unit • © 2026</p>
         </div>
       </motion.div>
 
@@ -147,23 +150,5 @@ const TrialExpired = () => {
     </div>
   );
 };
-
-const ArrowRight = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M5 12h14" />
-    <path d="m12 5 7 7-7 7" />
-  </svg>
-);
 
 export default TrialExpired;
