@@ -444,7 +444,7 @@ const FacultyAssignments = () => {
                 loadSubjects();
                 setShowCreateModal(true);
               }}
-              className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center gap-2 h-11 px-6 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
+              className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center gap-2 h-11 px-6 rounded-lgl transition-all"
             >
               <Plus size={20} />
               <span className="font-semibold">Create Assignment</span>
@@ -540,7 +540,7 @@ const FacultyAssignments = () => {
                               <FileText size={20} />
                             </div>
                             <div>
-                              <p className="font-semibold">{assignment.title}</p>
+                              <p className="font-semibold whitespace-wrap">{assignment.title}</p>
                               <p className="text-xs text-muted-foreground line-clamp-1">{assignment.description}</p>
                             </div>
                           </div>

@@ -550,10 +550,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
           <DialogFooter>
             <Button
-              variant="outline"
-              className={theme === 'dark'
-                ? 'text-foreground bg-card border border-border hover:bg-accent'
-                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+              className="bg-primary hover:bg-primary/90 text-white font-semibold transition-all duration-200 shadow-lg shadow-primary/20 px-6"
               onClick={() => setViewReason(null)}
             >
               Close

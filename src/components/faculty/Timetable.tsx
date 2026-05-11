@@ -138,14 +138,14 @@ const Timetable = ({ role }: TimetableProps) => {
   return (
     <Card className={`shadow-xl ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
       <CardHeader className="flex flex-row items-center justify-between bg-card px-4 py-3 rounded-t-md">
-        <CardTitle>Timetable - {role}</CardTitle>
+        <CardTitle>Timetable</CardTitle>
         <div className="flex space-x-2">
           <Button 
             onClick={exportPDF} 
-            className="hidden md:flex items-center mr-3 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
+            className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 transition-all duration-200 ease-in-out shadow-md"
           >
             <FaDownload />
-            <span className="ml-2">Export PDF</span>
+            <span className="ml-2 hidden sm:inline">Export PDF</span>
           </Button>
         </div>
       </CardHeader>
