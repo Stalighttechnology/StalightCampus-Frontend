@@ -114,7 +114,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       const clone = response.clone();
       try {
         const result = await clone.json();
-        if (result.trial_expired) {
+        if (result.trial_expired || result.subscription_expired || result.org_inactive) {
           window.location.href = "/trial-expired";
           return response;
         }
