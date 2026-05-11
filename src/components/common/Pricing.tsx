@@ -140,7 +140,7 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="h-screen bg-[#fafafa] overflow-y-auto selection:bg-primary/10 relative scroll-smooth">
+    <div className="h-screen bg-[#fafafa] overflow-y-auto thin-scrollbar selection:bg-primary/10 relative scroll-smooth">
       {/* Background Decorations */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
@@ -334,20 +334,20 @@ const Pricing = () => {
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/20 blur-[100px] -ml-32 -mb-32" />
 
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 relative z-10">
+            <h2 className="text-4xl md:text-5xl font-semibold text-white mb-6 relative z-10">
               Ready to Transform Your Campus?
             </h2>
             <p className="text-gray-400 text-lg mb-10 max-w-2xl mx-auto relative z-10">
               Start with any plan and upgrade anytime. All plans include a 14-day free trial and full onboarding support from our expert team.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-              <Button size="lg" className="h-16 px-10 rounded-2xl bg-primary text-white font-bold text-lg hover:scale-105 transition-transform">
+              <Button size="lg" className="h-16 px-10 rounded-2xl bg-primary text-white font-semibold text-lg hover:scale-105 transition-transform">
                 Schedule a Demo Today
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="h-16 px-10 rounded-2xl border border-white/20 text-white hover:bg-white/10 font-bold text-lg bg-transparent"
+                className="h-16 px-10 rounded-2xl border border-white/20 text-white hover:bg-white/10 font-semibold text-lg bg-transparent"
               >
                 Talk to Sales
               </Button>
@@ -360,7 +360,7 @@ const Pricing = () => {
       <section className="relative z-10 py-24 px-4 pb-32">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Frequently Asked Questions</h2>
+            <h2 className="text-4xl font-semibold text-gray-900 mb-4 tracking-tight">Frequently Asked Questions</h2>
             <p className="text-gray-500 text-lg">Everything you need to know about the product and billing.</p>
           </div>
 
@@ -375,7 +375,7 @@ const Pricing = () => {
                   onClick={() => setActiveFAQ(activeFAQ === index ? null : index)}
                   className="w-full flex items-center justify-between p-6 text-left"
                 >
-                  <span className="font-bold text-gray-900 text-lg pr-8">{faq.question}</span>
+                  <span className="font-semibold text-gray-900 text-lg pr-8">{faq.question}</span>
                   {activeFAQ === index ? (
                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
                       <ChevronUp size={20} />
