@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { manageUsers, manageUserAction, manageBranches } from "../../utils/admin_api";
+import { manageUsers, manageUserAction, getBranchesWithHODs } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable, SkeletonPageHeader } from "../ui/skeleton";
@@ -25,13 +25,27 @@ interface User {
   status: string;
   username?: string; // Added to store original username
   department?: string;
-  extra?: any;
+  extra?: { usn?: string; branch?: string; branches?: string[]; };
 }
 
 interface UsersManagementProps {
   setError: (error: string | null) => void;
-  toast: (options: any) => void;
+  toast: (options: { variant?: string; title: string; description: string; }) => void;
 }
+
+// Utility to safely extract arrays from API responses
+function extractArray<T>(obj: unknown, primaryKey: keyof any, fallbackKey?: keyof any): T[] {
+  if (typeof obj !== 'object' || obj === null) return [];
+  const anyObj = obj as Record<string, unknown>;
+  const primary = anyObj[primaryKey as string];
+  if (Array.isArray(primary)) return primary as T[];
+  if (fallbackKey) {
+    const fallback = anyObj[fallbackKey as string];
+    if (Array.isArray(fallback)) return fallback as T[];
+  }
+  return [];
+}
+
 
 const getStatusBadge = (status: string, theme: string) => {
   const baseClass = "px-3 py-1 rounded-full text-xs font-medium";
@@ -50,7 +64,6 @@ const getRoleBadge = (role: string, theme: string) => {
 };
 
 const roles = ["All", "Student", "Head of Department", "Teacher", "COE", "Fees Manager", "Principal", "HMS", "Warden", "Dean"];
-const statuses = ["All", "Active", "Inactive"];
 
 const roleMap: Record<string, string> = {
   "Student": "student",
@@ -67,11 +80,10 @@ const roleMap: Record<string, string> = {
 const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [roleFilter, setRoleFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [departments, setDepartments] = useState<string[]>(["All"]);
-  const [searchQuery, setSearchQuery] = useState(""); // Input value
-  const [appliedSearch, setAppliedSearch] = useState(""); // Applied search term
+  const [searchQuery, setSearchQuery] = useState(""); // input value
+  const [appliedSearch, setAppliedSearch] = useState(""); // applied term
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<User | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -86,17 +98,17 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   // Reset current page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [roleFilter, statusFilter, departmentFilter, appliedSearch]);
+  }, [roleFilter, departmentFilter, appliedSearch]);
 
   // Fetch departments for filter
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res = await manageBranches({ page_size: 100 });
+        const res = await getBranchesWithHODs({ page_size: 100 });
         if (res.success) {
           const dataSource = res.results || res.branches || (res as any).data || [];
           const branchList = Array.isArray(dataSource) ? dataSource : [];
-          const names = branchList.map((b: any) => b.name).filter(Boolean);
+          const names = branchList.map((b: { name: string }) => b.name).filter(Boolean);
           setDepartments(["All", ...names]);
         }
       } catch (e) {
@@ -106,18 +118,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     fetchDepartments();
   }, []);
 
-  // Function to perform search
-  const performSearch = () => {
-    setAppliedSearch(searchQuery.trim());
-    setCurrentPage(1); // Reset to first page when searching
-  };
 
-  // Handle Enter key press for search
-  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      performSearch();
-    }
-  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -127,11 +128,11 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       //    - If it's a role needing a department (Student, Teacher, HOD), require department too.
       //    - If it's a role that doesn't use department (Principal, COE, etc.), fetch immediately.
       const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
-      const isAnyFilterActive = appliedSearch !== "" || (
-        roleFilter !== "All" && (
-          !rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All"
-        )
-      ) || (roleFilter === "All" && departmentFilter !== "All");
+        const isAnyFilterActive = (
+          roleFilter !== "All" && (
+            !rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All"
+          )
+        ) || (roleFilter === "All" && departmentFilter !== "All") || appliedSearch !== "";
 
       if (!isAnyFilterActive) {
         setUsers([]);
@@ -145,31 +146,26 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       setError(null);
       try {
         // Prepare filter parameters
-        const filterParams: any = {
+        const filterParams: { page: number; page_size: number; role?: string; is_active?: boolean; search?: string; department?: string; } = {
           page: currentPage,
           page_size: pageSize,
         };
+        // Debug: show filter params
+        console.log('Fetching users with params', filterParams);
         
         // Add role filter if not "All"
         if (roleFilter !== "All") {
           filterParams.role = roleMap[roleFilter];
-        }
-        
-        // Add status filter if not "All"
-        if (statusFilter !== "All") {
-          filterParams.is_active = statusFilter === "Active";
         }
 
         // Add department filter if not "All"
         if (departmentFilter !== "All") {
           filterParams.department = departmentFilter;
         }
-
-        // Add search filter if not empty
+        // Add search filter if provided
         if (appliedSearch.trim()) {
           filterParams.search = appliedSearch.trim();
         }
-
         const response = await manageUsers(filterParams);
         
         // Handle invalid page due to filter changes
@@ -182,7 +178,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         const hasResults = response && typeof response === 'object' && 'results' in response;
         const dataSource = hasResults ? (response as any).results : (response as any);
         
-        if (dataSource && dataSource.success) {
+        if (response && response.success) {
           // Handle paginated response format where data is nested under results
           const usersData = dataSource.users || [];
           const paginationData = response as any;
@@ -233,7 +229,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       }
     };
     fetchUsers();
-  }, [setError, toast, currentPage, roleFilter, statusFilter, departmentFilter, appliedSearch, pageSize]);
+  }, [setError, toast, currentPage, roleFilter, departmentFilter, pageSize, appliedSearch]);
 
 const filteredUsers = Array.isArray(users) ? users : [];
 
@@ -465,9 +461,9 @@ const filteredUsers = Array.isArray(users) ? users : [];
           <CardContent className="users-card-content">
             <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
               {/* Filters Section */}
-              <div className="flex-1">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  <div className="flex flex-col gap-2">
+              <div className="flex-1 w-full">
+                <div className="flex flex-row gap-6 w-full max-w-2xl">
+                  <div className="flex flex-col gap-2 flex-1">
                     <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
                     <SelectMenu
                       label=""
@@ -477,7 +473,7 @@ const filteredUsers = Array.isArray(users) ? users : [];
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 flex-1">
                     <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
                     <SelectMenu
                       label=""
@@ -486,20 +482,8 @@ const filteredUsers = Array.isArray(users) ? users : [];
                       options={departments}
                     />
                   </div>
-
-                                    <div className="flex flex-col gap-2">
-                    <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Account Status</span>
-                    <SelectMenu
-                      label=""
-                      value={statusFilter}
-                      onChange={setStatusFilter}
-                      options={statuses}
-                    />
-                  </div>
-                  
                 </div>
               </div>
-
               {/* Search Section */}
               <div className="w-full xl:w-auto xl:min-w-[320px]">
                 <div className="flex flex-col gap-2">
@@ -511,17 +495,13 @@ const filteredUsers = Array.isArray(users) ? users : [];
                         placeholder="Search name, email or USN..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyPress={handleSearchKeyPress}
-                        className={`search-input h-10 w-full pl-10 rounded-md shadow-sm ${theme === 'dark' 
-                          ? 'bg-card border-border text-foreground' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                        onKeyPress={(e) => { if (e.key === 'Enter') { setAppliedSearch(searchQuery.trim()); setCurrentPage(1); }}}
+                        className={`search-input h-10 w-full pl-10 rounded-md shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
                       />
                     </div>
                     <Button
-                      onClick={performSearch}
-                      className={`h-10 px-6 font-medium transition-all duration-200 ${theme === 'dark' 
-                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                        : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
+                      onClick={() => { setAppliedSearch(searchQuery.trim()); setCurrentPage(1); }}
+                      className={`h-10 px-6 font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
                     >
                       Search
                     </Button>
@@ -532,11 +512,11 @@ const filteredUsers = Array.isArray(users) ? users : [];
 
           {(() => {
             const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
-            const isAnyFilterActive = appliedSearch !== "" || (
+            const isAnyFilterActive = (
               roleFilter !== "All" && (
                 !rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All"
               )
-            ) || (roleFilter === "All" && departmentFilter !== "All");
+            ) || (roleFilter === "All" && departmentFilter !== "All") || appliedSearch !== "";
 
             if (!isAnyFilterActive) {
               const needsDept = rolesNeedingDept.includes(roleFilter) && departmentFilter === "All";
