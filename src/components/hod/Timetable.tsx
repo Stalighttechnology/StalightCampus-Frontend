@@ -876,23 +876,24 @@ const Timetable = () => {
   return (
     <div className="bg-background text-foreground">
       <Card className="shadow-xl">
-        <CardHeader className="flex flex-row items-center justify-between bg-card px-4 py-3 rounded-t-md">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-4">
           <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
-          <div className="flex space-x-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
-              className="flex items-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
               onClick={handleExportPDF}
             >
               <DownloadIcon className="w-4 h-4" />
-              <span>Export PDF</span>
+              <span className="whitespace-nowrap">Export PDF</span>
             </Button>
             <Button
               variant="outline"
-              className="flex items-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
               onClick={handleEdit}
             >
-              <EditIcon className="w-4 h-4" /> {state.isEditing ? "Save Edit" : "Edit"}
+              <EditIcon className="w-4 h-4" />
+              <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
             </Button>
           </div>
         </CardHeader>

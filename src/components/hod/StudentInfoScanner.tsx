@@ -509,7 +509,7 @@ const StudentInfoScanner = () => {
                     {studentData.student_info.email ? (
                       <a
                         href={`mailto:${studentData.student_info.email}`}
-                        className="text-primary hover:underline text-sm truncate"
+                        className="text-primary hover:underline text-sm break-words"
                       >
                         {studentData.student_info.email}
                       </a>

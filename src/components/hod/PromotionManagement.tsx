@@ -742,26 +742,31 @@ const PromotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (ta
       {state.students.length > 0 ? (
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
-            <CardTitle className={`flex items-center justify-between ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-400" />
-                Students in {state.selectedSemester} - {state.selectedSection}
+                <span className="text-xl sm:text-semibold md:text-lg">Students in {state.selectedSemester} - {state.selectedSection}</span>
               </span>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
-                  onCheckedChange={handleSelectAll}
-                  className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
-                />
-                <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Select All</span>
+              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="select-all-students"
+                    checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
+                    onCheckedChange={handleSelectAll}
+                    className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
+                  />
+                  <label htmlFor="select-all-students" className={`text-sm cursor-pointer whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Select All
+                  </label>
+                </div>
                 <Button
                   onClick={handlePromoteSelectedStudents}
                   disabled={state.isPromoting || state.selectedStudents.length === 0}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white h-9 px-4"
                   size="sm"
                 >
                   <UserCheck className="h-4 w-4 mr-2" />
-                  Promote Selected ({state.selectedStudents.length})
+                  <span className="whitespace-nowrap">Promote ({state.selectedStudents.length})</span>
                 </Button>
               </div>
             </CardTitle>
@@ -789,11 +794,11 @@ const PromotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (ta
                           className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
                         />
                       </TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.usn}</TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.name}</TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.batch}</TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.section || 'N/A'}</TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.semester}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.batch}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -1320,26 +1325,32 @@ const DemotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (tab
       {state.students.length > 0 ? (
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
-            <CardTitle className={`flex items-center justify-between ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <CardTitle className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <span className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-red-400" />
-                Students in {state.selectedSemester} - {state.selectedSection}
+                <span className="text-xl sm:text-semibold md:text-lg">Students in {state.selectedSemester} - {state.selectedSection}</span>
               </span>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
-                  onCheckedChange={handleSelectAll}
-                  className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
-                />
-                <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Select All</span>
+              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="select-all-students-demote"
+                    checked={state.selectedStudents.length === state.students.length && state.students.length > 0}
+                    onCheckedChange={handleSelectAll}
+                    className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
+                  />
+                  <label htmlFor="select-all-students-demote" className={`text-sm cursor-pointer whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Select All
+                  </label>
+                </div>
                 <Button
                   onClick={() => updateState({ showBulkDemoteDialog: true })}
                   disabled={state.selectedStudents.length === 0}
                   variant="destructive"
                   size="sm"
+                  className="flex-1 sm:flex-none h-9 px-4"
                 >
                   <UserX className="h-4 w-4 mr-2" />
-                  Demote Selected ({state.selectedStudents.length})
+                  <span className="whitespace-nowrap">Demote ({state.selectedStudents.length})</span>
                 </Button>
               </div>
             </CardTitle>
@@ -1367,11 +1378,11 @@ const DemotionPage = ({ theme, onTabChange }: { theme: string; onTabChange: (tab
                           className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
                         />
                       </TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.usn}</TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.name}</TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.batch}</TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.section || 'N/A'}</TableCell>
-                      <TableCell className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{student.semester}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.batch}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section || 'N/A'}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -306,7 +306,7 @@ const LeaveManagement = () => {
         <CardHeader className="border-b">
           <CardTitle>Leave Approvals</CardTitle>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6">
+        <CardContent className="p-2 sm:p-6">
           {/* Search Bar */}
           <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
             <Input
@@ -380,40 +380,44 @@ const LeaveManagement = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-center mb-4">
                     <button
                       onClick={() => setViewReason(row.reason)}
-                      className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                      className={`w-32 h-8 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
+                        ${theme === 'dark' 
+                          ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' 
+                          : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10'
+                        }`}
                     >
-                      View
+                      View Reason
                     </button>
                   </div>
 
                   {row.status === "Pending" ? (
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-row gap-2 mt-4">
                       <Button
                         variant="outline"
-                        className={`px-3 py-1 text-xs flex items-center justify-center gap-1 w-full ${
-                          theme === 'dark' 
-                            ? 'text-green-400 border-green-400 hover:bg-green-900/20' 
-                            : 'text-green-700 border-green-600 hover:bg-green-100'
-                        }`}
+                        className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
+                          ${theme === 'dark' 
+                            ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20' 
+                            : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                          }`}
                         onClick={() => handleApprove(index)}
                         disabled={isLoading}
                       >
-                        <CheckCircle size={16} /> Approve
+                        <CheckCircle size={14} /> Approve
                       </Button>
                       <Button
                         variant="outline"
-                        className={`px-3 py-1 text-xs flex items-center justify-center gap-1 w-full ${
-                          theme === 'dark' 
-                            ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
-                            : 'text-red-700 border-red-600 hover:bg-red-100'
-                        }`}
+                        className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
+                          ${theme === 'dark' 
+                            ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20' 
+                            : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                          }`}
                         onClick={() => handleReject(index)}
                         disabled={isLoading}
                       >
-                        <XCircle size={16} /> Reject
+                        <XCircle size={14} /> Reject
                       </Button>
                     </div>
                   ) : (
@@ -568,8 +572,8 @@ const LeaveManagement = () => {
             <Button
               variant="outline"
               className={theme === 'dark' 
-                ? 'text-foreground bg-card border border-border hover:bg-accent' 
-                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+                ? 'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white' 
+                : 'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}
               onClick={() => setViewReason(null)}
             >
               Close

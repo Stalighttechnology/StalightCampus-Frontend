@@ -368,12 +368,14 @@ const filteredUsers = Array.isArray(users) ? users : [];
     <div className="flex flex-col">
       <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{label}</label>
       <Select.Root value={value} onValueChange={onChange}>
-        <Select.Trigger className={`select-trigger inline-flex items-center justify-between px-3 py-2 rounded w-full sm:w-48 text-sm shadow-sm outline-none focus:ring-2 ${
+        <Select.Trigger className={`select-trigger inline-flex items-center justify-between px-3 py-2 rounded w-full text-sm shadow-sm outline-none focus:ring-2 ${
           theme === 'dark' 
             ? 'bg-card border border-border text-foreground focus:ring-primary' 
             : 'bg-white border border-gray-300 text-gray-900 focus:ring-blue-500'
         }`}>
-          <Select.Value />
+          <div className="truncate flex-1 text-left mr-2">
+            <Select.Value />
+          </div>
           <Select.Icon>
             <ChevronDownIcon className={theme === 'dark' ? 'text-foreground' : 'text-gray-500'} />
           </Select.Icon>
@@ -421,25 +423,25 @@ const filteredUsers = Array.isArray(users) ? users : [];
     <>
       <style>{`
         @media (max-width: 480px) {
-=          .users-card { border-radius: 8px; }
-          .users-card-header { padding: 12px; }
-          .users-card-title { font-size: 20px; line-height: 1.3; }
-          .users-card-desc { font-size: 13px; margin-top: 4px; }
-          .users-card-content { padding: 12px; }
-          .filters-search { gap: 12px; }
-          .filter-label { font-size: 13px; margin-bottom: 4px; }
-          .search-wrapper { gap: 8px; }
+          .users-card { border-radius: 12px; }
+          .users-card-header { padding: 16px; }
+          .users-card-title { font-size: 24px; font-weight: 600; line-height: 1.2; }
+          .users-card-desc { font-size: 16px; margin-top: 4px; }
+          .users-card-content { padding: 16px; }
+          .filters-search { gap: 16px; }
+          .filter-label { font-size: 16px; font-weight: 600; margin-bottom: 6px; text-transform: none; letter-spacing: normal; }
+          .search-wrapper { gap: 10px; }
           .search-input { font-size: 14px; }
           .table-wrapper { border-radius: 6px; }
-          .users-table { font-size: 13px; }
+          .users-table { font-size: 14px; }
           /* Keep table layout on small screens to avoid card-like rendering */
           .users-table { display: table !important; table-layout: auto !important; width: 100% !important; }
           .users-table thead, .users-table tbody { display: table-row-group !important; }
           .users-table tr { display: table-row !important; }
           .users-table th, .users-table td { display: table-cell !important; }
-          .table-wrapper { overflow-x: auto; }
-          .table-header th { font-size: 13px; padding: 8px 6px !important; white-space: nowrap; }
-          .table-cell { padding: 8px 6px !important; font-size: 14px; }
+          .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+          .table-header th { font-size: 16px; font-weight: 600; padding: 12px 10px !important; white-space: nowrap; }
+          .table-cell { padding: 12px 10px !important; font-size: 16px; white-space: nowrap; }
           .action-buttons { gap: 4px; }
           .pagination-container { gap: 8px; flex-direction: column; align-items: center; }
           .pagination-info { font-size: 12px; }
@@ -462,9 +464,9 @@ const filteredUsers = Array.isArray(users) ? users : [];
             <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
               {/* Filters Section */}
               <div className="flex-1 w-full">
-                <div className="flex flex-row gap-6 w-full max-w-2xl">
-                  <div className="flex flex-col gap-2 flex-1">
-                    <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
+                <div className="flex flex-row items-end gap-3 sm:gap-6 w-full max-w-4xl">
+                  <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
                     <SelectMenu
                       label=""
                       value={roleFilter}
@@ -473,8 +475,8 @@ const filteredUsers = Array.isArray(users) ? users : [];
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2 flex-1">
-                    <span className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
+                  <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
                     <SelectMenu
                       label=""
                       value={departmentFilter}
@@ -553,7 +555,7 @@ const filteredUsers = Array.isArray(users) ? users : [];
                          <th className="py-2 px-1 md:w-[120px]">Role</th>
                         <th className="py-2 px-1 md:w-[250px]">Department</th>
                         <th className="py-2 px-1 md:w-[120px]">Status</th>
-                        <th className="py-2 px-1 text-right">Actions</th>
+                        <th className="py-2 px-1 text-right md:w-[120px]">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -568,7 +570,7 @@ const filteredUsers = Array.isArray(users) ? users : [];
                                   : 'border-gray-200 hover:bg-gray-50'
                               }`}
                             >
-                              <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[200px]">
+                              <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
                                 {editingId === user.id ? (
                                   <Input
                                     name="name"
@@ -582,7 +584,7 @@ const filteredUsers = Array.isArray(users) ? users : [];
                                   user.name
                                 )}
                               </td>
-                              <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[200px]">
+                              <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
                                 {editingId === user.id ? (
                                   <Input
                                     name="email"
@@ -596,23 +598,23 @@ const filteredUsers = Array.isArray(users) ? users : [];
                                   user.email
                                 )}
                               </td>
-                               <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
-                              <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[250px]">
+                               <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
+                              <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[250px]">
                                 <span className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                   {user.department !== "N/A" ? user.department : "-"}
                                 </span>
                               </td>
-                              <td className="table-cell py-2 px-1 break-words whitespace-normal md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
+                              <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
                               <td className="table-cell py-2 px-1 text-right">
-                                <div className="action-buttons flex flex-wrap sm:flex-nowrap justify-end gap-2">
+                                <div className="action-buttons whitespace-nowrap justify-end gap-2">
                                   {editingId === user.id ? (
                                     <Button
                                       size="sm"
                                       onClick={saveEdit}
                                       disabled={loading}
                                       className={theme === 'dark' 
-                                        ? 'text-foreground bg-card border border-border w-full sm:w-auto hover:bg-accent' 
-                                        : 'text-gray-700 bg-white border border-gray-300 w-full sm:w-auto hover:bg-gray-50'}
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                        : 'bg-primary text-primary-foreground hover:bg-primary/90'}
                                     >
                                       {loading ? "Saving..." : "Save"}
                                     </Button>

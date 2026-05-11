@@ -381,23 +381,12 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     fetchInitialData();
   }, [toast, setError, updateState]);
 
-  // Fetch faculties when branch, search, or page changes
+  // Fetch faculties when branch or search changes
   useEffect(() => {
     const fetchFacultiesData = async () => {
       if (!state.selectedBranchForFaculty) {
-        updateState({ faculties: [], facultyTotalPages: 1 });
+        updateState({ faculties: [], facultyTotalPages: 1, facultyPage: 1 });
         return;
-      }
-
-      // Skip fetching if it's the first load and we're on the home branch with no search/pagination
-      if (state.isFirstLoad && state.selectedBranchForFaculty === state.branchId && !state.facultySearch && state.facultyPage === 1) {
-        updateState({ isFirstLoad: false });
-        return;
-      }
-
-      // If we change anything after first load, ensure isFirstLoad is false
-      if (state.isFirstLoad) {
-        updateState({ isFirstLoad: false });
       }
 
       updateState({ loadingFaculties: true });
@@ -405,17 +394,18 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
         const res = await manageFaculties({
           branch_id: state.selectedBranchForFaculty,
           search: state.facultySearch,
-          page: state.facultyPage,
-          page_size: 10,
+          page_size: 1000, // Fetch many for frontend pagination
         });
 
         if (res.success) {
+          const allFaculties = res.data.map((f: any) => ({
+            ...f,
+            name: `${f.first_name} ${f.last_name || ""}`.trim(),
+          }));
           updateState({
-            faculties: res.data.map((f: any) => ({
-              ...f,
-              name: `${f.first_name} ${f.last_name || ""}`.trim(),
-            })),
-            facultyTotalPages: res.total_pages || Math.ceil((res.count || 0) / 10) || 1,
+            faculties: allFaculties,
+            facultyPage: 1,
+            facultyTotalPages: Math.ceil(allFaculties.length / 10),
           });
         }
       } catch (err) {
@@ -430,7 +420,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [state.selectedBranchForFaculty, state.facultySearch, state.facultyPage, updateState]);
+  }, [state.selectedBranchForFaculty, state.facultySearch, updateState]);
 
   // Sync local search to state.facultySearch with debounce to avoid excessive re-renders
   useEffect(() => {
@@ -772,39 +762,46 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       ) : state.faculties.length === 0 ? (
                         <div className="p-4 text-center text-sm text-muted-foreground">No faculty found</div>
                       ) : (
-                        state.faculties.map((faculty) => (
-                          <SelectItem key={faculty.id} value={faculty.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                            {faculty.first_name} {faculty.last_name || ""} ({faculty.username})
-                          </SelectItem>
-                        ))
+                        state.faculties
+                          .slice((state.facultyPage - 1) * 10, state.facultyPage * 10)
+                          .map((faculty) => (
+                            <SelectItem key={faculty.id} value={faculty.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                              {faculty.first_name} {faculty.last_name || ""} ({faculty.username})
+                            </SelectItem>
+                          ))
                       )}
                     </div>
                     {state.facultyTotalPages > 1 && (
-                      <div className="px-2 py-2 border-t border-border flex items-center justify-between sticky bottom-0 bg-inherit z-10">
+                      <div className="px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 bg-inherit z-10">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (state.facultyPage > 1) updateState({ facultyPage: state.facultyPage - 1 });
                           }}
                           disabled={state.facultyPage === 1}
-                          className="h-8 w-8 p-0"
+                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
-                        <span className="text-xs text-muted-foreground">
-                          Page {state.facultyPage} of {state.facultyTotalPages}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold px-2 py-1 rounded ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                            {state.facultyPage}
+                          </span>
+                          <span className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            of {state.facultyTotalPages}
+                          </span>
+                        </div>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (state.facultyPage < state.facultyTotalPages) updateState({ facultyPage: state.facultyPage + 1 });
                           }}
                           disabled={state.facultyPage === state.facultyTotalPages}
-                          className="h-8 w-8 p-0"
+                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}
                         >
                           <ChevronRight className="h-4 w-4" />
                         </Button>

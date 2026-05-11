@@ -29,7 +29,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import {
@@ -308,7 +312,6 @@ const HODAnnouncementManagement = () => {
     <>
       <style>{`
         @media (max-width: 480px) {
-          .announcements-container { padding: 12px; }
           .announcements-card { border-radius: 8px; }
           .announcements-card-header { padding: 12px; }
           .announcements-card-title { font-size: 1.125rem; line-height: 1.3; }
@@ -318,7 +321,7 @@ const HODAnnouncementManagement = () => {
         }
       `}</style>
 
-      <div className="announcements-container w-full max-w-none mx-auto space-y-6">
+      <div className="w-full max-w-none mx-auto space-y-6">
         <Card className={`announcements-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 gap-4">
             <div className="space-y-1">
@@ -400,14 +403,31 @@ const HODAnnouncementManagement = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="expires_at">Expires At</Label>
-                    <Input
-                      id="expires_at"
-                      type="date"
-                      value={formData.expires_at}
-                      onChange={(e) =>
-                        setFormData({ ...formData, expires_at: e.target.value })
-                      }
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !formData.expires_at && "text-muted-foreground",
+                            theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.expires_at ? format(new Date(formData.expires_at), "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
+                          onSelect={(date) =>
+                            setFormData({ ...formData, expires_at: date ? format(date, "yyyy-MM-dd") : "" })
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
 

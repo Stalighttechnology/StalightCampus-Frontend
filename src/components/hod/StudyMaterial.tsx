@@ -206,27 +206,27 @@ const useUploadModal = () => {
 // Row component for each study material
 const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme: string }) => (
   <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-    <TableCell className="w-[50px]">
+    <TableCell className="w-[50px] whitespace-nowrap">
       <FileText className="text-red-500" size={20} />
     </TableCell>
-    <TableCell className="font-medium">
-      <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline truncate max-w-[150px] sm:max-w-[200px]`}>
+    <TableCell className={`font-medium whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+      <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline truncate max-w-[200px] sm:max-w-[300px]`}>
         {material.title}
       </div>
     </TableCell>
-    <TableCell className="max-w-[150px] truncate">
+    <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       {material.subject_name}
     </TableCell>
-    <TableCell className="max-w-[100px] truncate">
+    <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       {material.subject_code}
     </TableCell>
-    <TableCell>
+    <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       {material.semester || "N/A"}
     </TableCell>
-    <TableCell className="max-w-[120px] truncate">
+    <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       {material.uploaded_by}
     </TableCell>
-    <TableCell className="text-right">
+    <TableCell className="text-right whitespace-nowrap">
       <a href={material.file_url} download={material.title + ".pdf"} target="_blank" rel="noopener noreferrer">
         <Download className={`inline-block cursor-pointer ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`} size={20} />
       </a>
@@ -600,13 +600,13 @@ const StudyMaterials = () => {
             <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow className={theme === 'dark' ? 'border-border hover:bg-transparent' : 'border-gray-200 hover:bg-transparent'}>
-                  <TableHead className="w-[50px]">Type</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Course Name</TableHead>
-                  <TableHead>Course Code</TableHead>
-                  <TableHead>Sem</TableHead>
-                  <TableHead>Uploaded By</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                  <TableHead className="w-[50px] whitespace-nowrap">Type</TableHead>
+                  <TableHead className="whitespace-nowrap">Title</TableHead>
+                  <TableHead className="whitespace-nowrap">Course Name</TableHead>
+                  <TableHead className="whitespace-nowrap">Course Code</TableHead>
+                  <TableHead className="whitespace-nowrap">Sem</TableHead>
+                  <TableHead className="whitespace-nowrap">Uploaded By</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -636,8 +636,20 @@ const StudyMaterials = () => {
                   </TableRow>
                 ) : filteredMaterials.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                      No study materials found for the selected filters.
+                    <TableCell colSpan={7} className="p-0">
+                      <div className={`flex flex-col items-center justify-center py-20 px-6 text-center space-y-4 ${theme === 'dark' ? 'bg-accent/5' : 'bg-gray-50/50'}`}>
+                        <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
+                          <UploadCloud className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
+                        </div>
+                        <div className="max-w-xs mx-auto">
+                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            No Study Materials Found
+                          </h3>
+                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            We couldn't find any materials matching your current filters or search query. Try adjusting the dropdowns or uploading new content.
+                          </p>
+                        </div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (

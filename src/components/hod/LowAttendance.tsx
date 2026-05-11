@@ -136,10 +136,10 @@ const AttendanceTable = React.memo(({
               key={`${student.student_id}-${student.subject}-${idx}`} 
               className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-gray-50'}`}
             >
-              <td className="py-3 px-4 font-medium whitespace-nowrap">{student.usn}</td>
-              <td className="py-3 px-4 font-medium">{student.name}</td>
-              <td className="py-3 px-4">{student.subject}</td>
-              <td className={`py-3 px-4 text-center font-bold ${getAttendanceColorClass(student.attendance_percentage)}`}>
+              <td className="py-3 px-4 font-semibold whitespace-nowrap">{student.usn}</td>
+              <td className="py-3 px-4 font-semibold whitespace-nowrap">{student.name}</td>
+              <td className="py-3 px-4 whitespace-nowrap">{student.subject}</td>
+              <td className={`py-3 px-4 text-center font-semibold ${getAttendanceColorClass(student.attendance_percentage)}`}>
                 {formatAttendancePercentage(student.attendance_percentage)}
               </td>
               <td className="py-3 px-4 text-center">
@@ -460,9 +460,10 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
   const notifyStudent = async (student: Student) => {
     try {
-      updateState({
-        notifyingStudents: { ...state.notifyingStudents, [student.student_id]: true },
-      });
+      setState(prev => ({
+        ...prev,
+        notifyingStudents: { ...prev.notifyingStudents, [student.student_id]: true },
+      }));
 
       const response = await sendNotification({
         action: "notify",
@@ -480,10 +481,11 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
           description: `Notification sent to ${student.name}`,
         });
 
-        // ✅ mark as notified
-        updateState({
-          notifiedStudents: { ...state.notifiedStudents, [student.student_id]: true },
-        });
+        // ✅ mark as notified using functional update
+        setState(prev => ({
+          ...prev,
+          notifiedStudents: { ...prev.notifiedStudents, [student.student_id]: true },
+        }));
       } else {
         throw new Error(response.message || "Failed to send notification");
       }
@@ -491,9 +493,41 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
       const errorMessage = err instanceof Error ? err.message : "Network error";
       toast({ variant: "destructive", title: "Error", description: errorMessage });
     } finally {
-      updateState({
-        notifyingStudents: { ...state.notifyingStudents, [student.student_id]: false },
+      setState(prev => ({
+        ...prev,
+        notifyingStudents: { ...prev.notifyingStudents, [student.student_id]: false },
+      }));
+    }
+  };
+
+  const notifyAllStudents = async () => {
+    const studentsToNotify = state.students.filter(
+      (s) => !state.notifiedStudents[s.student_id] && !state.notifyingStudents[s.student_id]
+    );
+
+    if (studentsToNotify.length === 0) {
+      toast({
+        title: "Information",
+        description: "All students in the current view have already been notified.",
       });
+      return;
+    }
+
+    updateState({ loading: true });
+
+    try {
+      for (const student of studentsToNotify) {
+        await notifyStudent(student);
+      }
+      
+      toast({
+        title: "Bulk Notification Complete",
+        description: `Notifications sent to all eligible students in the current view.`,
+      });
+    } catch (error) {
+      console.error("Error in bulk notification:", error);
+    } finally {
+      updateState({ loading: false });
     }
   };
 
@@ -538,7 +572,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                 <CardHeader className="pb-2 px-3 sm:px-4">
                   <CardTitle className={`text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Students</CardTitle>
                 </CardHeader>
-                <CardContent className={`flex items-center justify-between text-3xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                <CardContent className={`flex items-center justify-between text-3xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   <span className="flex-1">{totalStudents}</span>
                 </CardContent>
                 <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-14 h-14 rounded-full ${theme === 'dark' ? 'bg-blue-900/10' : 'bg-blue-50'}`}>
@@ -550,7 +584,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                 <CardHeader className="pb-2 px-3 sm:px-4">
                   <CardTitle className={`text-base ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>Low Attendance</CardTitle>
                 </CardHeader>
-                <CardContent className={`flex items-center justify-between text-3xl font-bold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
+                <CardContent className={`flex items-center justify-between text-3xl font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
                   <span className="flex-1">{lowAttendanceCount}</span>
                 </CardContent>
                 <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-14 h-14 rounded-full ${theme === 'dark' ? 'bg-red-900/10' : 'bg-red-50'}`}>
@@ -562,7 +596,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                 <CardHeader className="pb-2 px-3 sm:px-4">
                   <CardTitle className={`text-base ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>Avg Attendance</CardTitle>
                 </CardHeader>
-                <CardContent className={`flex items-center justify-between text-3xl font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                <CardContent className={`flex items-center justify-between text-3xl font-semibold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
                   <span className="flex-1">{avgAttendance}%</span>
                 </CardContent>
                 <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-14 h-14 rounded-full ${theme === 'dark' ? 'bg-blue-900/10' : 'bg-blue-50'}`}>
@@ -650,10 +684,19 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
               </div>
             ) : state.students.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <div className="flex flex-row justify-between items-center gap-4 mb-2 ml-1">
                   <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                     Students List
                   </h2>
+                  <Button
+                    onClick={notifyAllStudents}
+                    disabled={state.loading || state.students.length === 0}
+                    variant="outline"
+                    className={`text-xs sm:text-sm font-semibold flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md transform hover:scale-105 active:scale-95`}
+                  >
+                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Notify All
+                  </Button>
                 </div>
                 <div className="border rounded-lg overflow-hidden">
                   <AttendanceTable

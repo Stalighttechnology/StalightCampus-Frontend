@@ -382,7 +382,7 @@ const SubjectManagement = () => {
 
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
-          <div className="flex justify-between items-center w-full">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Manage Courses</CardTitle>
             <Button
               onClick={() => {
@@ -392,7 +392,7 @@ const SubjectManagement = () => {
                   currentSubject: null,
                 });
               }}
-              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
+              className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
               disabled={state.loading || !state.branchId}
             >
               + Add Course
@@ -568,7 +568,7 @@ const SubjectManagement = () => {
       {/* Add/Edit Subject Modal */}
       {state.showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={() => updateState({ showModal: null })}>
-          <div className={`p-6 rounded-lg shadow-lg w-96 max-h-[70vh] overflow-y-auto md:max-h-none md:overflow-visible ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}`} onClick={(e) => e.stopPropagation()}>
+          <div className={`p-6 rounded-lg shadow-lg w-[90%] sm:w-80 max-h-[70vh] overflow-y-auto md:max-h-none md:overflow-visible ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}`} onClick={(e) => e.stopPropagation()}>
             <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               {state.showModal === "add" ? "Add New Subject" : "Edit Subject"}
             </h3>

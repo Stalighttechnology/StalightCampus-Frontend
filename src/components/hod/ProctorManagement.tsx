@@ -493,7 +493,7 @@ const ProctorStudents = () => {
                     updateState({ saving: false });
                   }}
                   disabled={state.saving || state.selectedUSNs.length === 0 || !state.selectedProctor}
-                  className="flex-1 sm:flex-none text-white bg-green-600 hover:bg-green-700 text-base font-medium shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 sm:flex-none text-white bg-green-600 hover:bg-green-700 text-base font-semibold shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   {state.saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving</> : "Save Changes"}
                 </Button>
@@ -505,7 +505,7 @@ const ProctorStudents = () => {
                   }}
                   disabled={state.cancelling}
                   variant="outline"
-                  className={`flex-1 sm:flex-none text-base font-medium px-4 py-2 ${theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}`}
+                  className={`flex-1 sm:flex-none text-base font-semibold px-4 py-2 ${theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}`}
                 >
                   {state.cancelling ? <><Loader2 className="w-4 h-4 animate-spin" /> Cancelling</> : "Cancel"}
                 </Button>
@@ -521,7 +521,7 @@ const ProctorStudents = () => {
               <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end w-full">
                 {/* Semester Filter */}
                 <div className="flex flex-col w-full sm:flex-1 lg:w-56">
-                  <label className={`text-xs sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Semester</label>
+                  <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Semester</label>
                   <Select
                     value={state.filters.semester_id}
                     onValueChange={(value) => handleFilterChange("semester_id", value)}
@@ -543,7 +543,7 @@ const ProctorStudents = () => {
 
                 {/* Section Filter */}
                 <div className="flex flex-col w-full sm:flex-1 lg:w-56">
-                  <label className={`text-xs sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Section</label>
+                  <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Section</label>
                   <Select
                     value={state.filters.section_id}
                     onValueChange={(value) => handleFilterChange("section_id", value)}
@@ -605,15 +605,15 @@ const ProctorStudents = () => {
           ) : (
             <>
               <div className="overflow-x-auto mb-4">
-                <table className={`w-full text-[13px] sm:text-sm text-left border-collapse table-auto align-middle`}>
+                <table className={`w-full text-sm sm:text-sm text-left border-collapse table-auto align-middle`}>
                   <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card border-b border-border' : 'bg-gray-50 border-b border-gray-200'}`}>
                     <tr>
-                      {state.editMode && <th className={`py-2 px-2 sm:px-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Select</th>}
-                      <th className={`py-2 px-2 sm:px-3 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
-                      <th className={`py-2 px-2 sm:px-3 font-semibold hidden sm:table-cell ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
-                      <th className={`py-2 px-2 sm:px-3 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Sem</th>
-                      <th className={`py-2 px-2 sm:px-3 font-semibold text-center hidden sm:table-cell ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</th>
-                      <th className={`py-2 px-2 sm:px-3 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor</th>
+                      {state.editMode && <th className={`py-3 px-4 w-12 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Select</th>}
+                      <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
+                      <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
+                      <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Sem</th>
+                      <th className={`py-3 px-4 font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</th>
+                      <th className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -630,8 +630,8 @@ const ProctorStudents = () => {
                           className={`border-t ${state.editMode ? (theme === 'dark' ? 'cursor-pointer hover:bg-accent' : 'cursor-pointer hover:bg-gray-50') : ''} ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}
                           onClick={() => state.editMode && handleCheckboxToggle(student.usn)}
                         >
-                          {state.editMode && (
-                            <td className="py-2 px-2 sm:px-3">
+                           {state.editMode && (
+                            <td className="py-3 px-4">
                               <input
                                 type="checkbox"
                                 checked={state.selectedUSNs.includes(student.usn)}
@@ -641,17 +641,17 @@ const ProctorStudents = () => {
                               />
                             </td>
                           )}
-                          <td className={`py-2 px-2 sm:px-3 font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
-                          <td className={`py-2 px-2 sm:px-3 hidden sm:table-cell ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
-                          <td className={`py-2 px-2 sm:px-3 text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester.split('th')[0]}</td>
-                          <td className={`py-2 px-2 sm:px-3 text-center hidden sm:table-cell ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section}</td>
-                          <td className="py-2 px-2 sm:px-3">
+                          <td className={`py-3 px-4 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
+                          <td className={`py-3 px-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
+                          <td className={`py-3 px-4 text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.semester.split('th')[0]}</td>
+                          <td className={`py-3 px-4 text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.section}</td>
+                          <td className="py-3 px-4">
                             {student.proctor ? (
-                              <span className={`text-sm sm:text-sm font-medium px-2 py-1 rounded ${theme === 'dark' ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'}`}>
+                              <span className={`text-sm sm:text-sm font-semibold px-2 py-1 rounded whitespace-nowrap ${theme === 'dark' ? 'bg-green-900/30 text-green-300' : 'bg-green-100 text-green-700'}`}>
                                 {student.proctor}
                               </span>
                             ) : (
-                              <span className={`text-sm sm:text-sm font-medium px-2 py-1 rounded ${theme === 'dark' ? 'bg-red-900/30 text-red-300' : 'bg-red-100 text-red-700'}`}>
+                              <span className={`text-sm sm:text-sm font-semibold px-2 py-1 rounded whitespace-nowrap ${theme === 'dark' ? 'bg-red-900/30 text-red-300' : 'bg-red-100 text-red-700'}`}>
                                 Unassigned
                               </span>
                             )}
@@ -673,18 +673,18 @@ const ProctorStudents = () => {
                     variant="outline"
                     disabled={state.currentPage === 1 || state.loading || state.students.length === 0}
                     onClick={() => updateState({ currentPage: Math.max(state.currentPage - 1, 1) })}
-                    className="text-base font-medium px-3 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
+                    className="text-base font-semibold px-3 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
                   >
                     Prev
                   </Button>
-                  <span className="px-3 text-base font-medium text-primary">
+                  <span className="px-3 text-base font-semibold text-primary">
                     {state.currentPage}
                   </span>
                   <Button
                     variant="outline"
                     disabled={state.currentPage === state.totalPages || state.loading || state.students.length === 0}
                     onClick={() => updateState({ currentPage: Math.min(state.currentPage + 1, state.totalPages) })}
-                    className="text-base font-medium px-3 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
+                    className="text-base font-semibold px-3 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
                   >
                     Next
                   </Button>
