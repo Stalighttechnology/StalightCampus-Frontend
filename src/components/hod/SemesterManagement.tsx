@@ -393,7 +393,7 @@ const SemesterManagement = () => {
                         <Button onClick={() => openModal(sem)} disabled={loading} className={`flex-1 text-sm ${theme === 'dark' ? 'bg-card border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-100 border bottom-2 text-black'}`}>
                           Edit
                         </Button>
-                        <Button onClick={() => openDeleteModal(sem)} disabled={loading} variant="destructive" className="flex-1 text-sm">
+                        <Button onClick={() => openDeleteModal(sem)} disabled={loading} variant="destructive" className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
                           Delete
                         </Button>
                       </div>
@@ -514,27 +514,27 @@ const SemesterManagement = () => {
 
       {/* Add/Edit Semester Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-full max-w-xs sm:max-w-lg rounded-md sm:rounded-lg mx-4`}> 
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[90%] sm:max-w-lg rounded-md sm:rounded-lg`}>
           <DialogHeader>
-        <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-          {editingSemester ? "Edit Semester" : "Add Semester"}
-        </h2>
+            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              {editingSemester ? "Edit Semester" : "Add Semester"}
+            </h2>
           </DialogHeader>
           <div className="space-y-4">
-        <div>
-          <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester Number</label>
-          <Input
-            type="number"
-            name="number"
-            value={form.number}
-            onChange={handleChange}
-            placeholder="Enter semester number (1-8)"
-            min="1"
-            max="8"
-            disabled={loading}
-            className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}
-          />
-        </div>
+            <div className="text-center">
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester Number</label>
+              <Input
+                type="number"
+                name="number"
+                value={form.number}
+                onChange={handleChange}
+                placeholder="Enter semester number (1-8)"
+                min="1"
+                max="8"
+                disabled={loading}
+                className={`text-center ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+              />
+            </div>
           </div>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
           <Button
@@ -553,32 +553,32 @@ const SemesterManagement = () => {
 
       {/* Add Section Modal */}
       <Dialog open={isSectionModalOpen} onOpenChange={setIsSectionModalOpen}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-full max-w-xs sm:max-w-lg rounded-md sm:rounded-lg mx-4`}> 
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[92%] sm:max-w-lg rounded-md sm:rounded-lg`}>
           <DialogHeader>
-        <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-          Add Section for Semester {managingSemester?.number}
-        </h2>
+            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Add Section for Semester {managingSemester?.number}
+            </h2>
           </DialogHeader>
           <div className="space-y-4">
-        <div>
-          <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section Name</label>
-          <Select
-            value={sectionForm.name}
-            onValueChange={handleSectionChange}
-            disabled={loading}
-          >
-            <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-          <SelectValue placeholder="Select Section" />
-            </SelectTrigger>
-            <CustomSelectContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} max-h-[250px]`}>
-          {["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].map((section) => (
-            <SelectItem key={section} value={section} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
-              Section {section}
-            </SelectItem>
-          ))}
-            </CustomSelectContent>
-          </Select>
-        </div>
+            <div className="text-center">
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section Name</label>
+              <Select
+                value={sectionForm.name}
+                onValueChange={handleSectionChange}
+                disabled={loading}
+              >
+                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectValue placeholder="Select Section" />
+                </SelectTrigger>
+                <CustomSelectContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} max-h-[250px]`}>
+                  {["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].map((section) => (
+                    <SelectItem key={section} value={section} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
+                      Section {section}
+                    </SelectItem>
+                  ))}
+                </CustomSelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
         <Button onClick={closeSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
@@ -593,12 +593,12 @@ const SemesterManagement = () => {
 
       {/* Delete Semester Confirmation Modal */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-full max-w-xs sm:max-w-lg rounded-md sm:rounded-lg mx-4`}> 
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[92%] sm:max-w-lg rounded-md sm:rounded-lg`}>
           <DialogHeader>
-        <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Delete Semester?</h2>
-        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-          Are you sure you want to delete {getSemesterName(deletingSemester?.number || 0)}?
-        </p>
+            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Delete Semester?</h2>
+            <p className={`text-sm text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Are you sure you want to delete {getSemesterName(deletingSemester?.number || 0)}?
+            </p>
           </DialogHeader>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
         <Button onClick={closeDeleteModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
@@ -613,12 +613,12 @@ const SemesterManagement = () => {
 
       {/* Delete Section Confirmation Modal */}
       <Dialog open={isDeleteSectionModalOpen} onOpenChange={setIsDeleteSectionModalOpen}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-full max-w-xs sm:max-w-lg rounded-md sm:rounded-lg mx-4`}> 
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[92%] sm:max-w-lg rounded-md sm:rounded-lg`}>
           <DialogHeader>
-        <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Delete Section?</h2>
-        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-          Are you sure you want to delete Section {deletingSection?.name} from Semester {semesters.find(s => s.id === deletingSection?.semester_id)?.number}?
-        </p>
+            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Delete Section?</h2>
+            <p className={`text-sm text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Are you sure you want to delete Section {deletingSection?.name} from Semester {semesters.find(s => s.id === deletingSection?.semester_id)?.number}?
+            </p>
           </DialogHeader>
           <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
         <Button onClick={closeDeleteSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
