@@ -116,7 +116,7 @@ const Onboarding = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#fcfcfd] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#fcfcfd] flex items-center justify-center p-4 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -146,11 +146,18 @@ const Onboarding = () => {
     { id: 2, name: "Admin", icon: <User size={16} /> },
     { id: 3, name: "Billing", icon: <CreditCard size={16} /> }
   ];
-
   return (
-    <div className="min-h-screen flex bg-white font-sans overflow-hidden" style={{ transform: 'translateZ(0)' }}>
+    <div className="min-h-screen w-full bg-white font-sans">
+      <style>{`
+        html, body {
+          overflow-y: auto !important;
+          height: auto !important;
+          min-height: 100vh;
+        }
+      `}</style>
+      <div className="flex flex-col lg:flex-row min-h-screen w-full">
       {/* Left Section */}
-      <div className="flex-1 flex flex-col relative bg-white overflow-hidden">
+      <div className="flex-1 flex flex-col relative bg-white min-h-full">
         <header className="p-6 md:p-8 flex items-center justify-between z-10 shrink-0">
           <button
             onClick={() => navigate("/stalightcampus")}
@@ -174,8 +181,8 @@ const Onboarding = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-12 flex items-center justify-center">
-          <div className="w-full max-w-lg">
+        <main className="p-6 md:p-12">
+          <div className="w-full max-w-lg mx-auto py-10">
             <AnimatePresence mode="wait">
               {currentStep === 1 && (
                 <motion.div
@@ -418,7 +425,7 @@ const Onboarding = () => {
       </div>
 
       {/* Right Section - Simplified Illustration */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary to-[#5b21b6] items-center justify-center p-12 relative overflow-hidden" style={{ transform: 'translateZ(0)' }}>
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary to-[#5b21b6] items-center justify-center p-12 relative">
         <div className="relative z-10 text-center text-white max-w-md">
           <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-8 border border-white/20">
             <Globe size={24} className="text-white" />
@@ -452,6 +459,7 @@ const Onboarding = () => {
             ))}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
