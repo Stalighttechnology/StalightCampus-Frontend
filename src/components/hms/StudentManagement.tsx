@@ -170,7 +170,40 @@ const StudentManagement: React.FC = () => {
 
     const response = await manageHostelStudents(formData, editingStudent.id, 'PUT');
     if (response.success) {
-      fetchStudents();
+      // Find the selected hostel and room names for the manual update
+      const selectedHostel = hostels.find(h => h.id === selectedHostelInDialog);
+      const selectedRoom = roomsForHostel.find(r => r.id === formData.room);
+      
+      const updatedStudent: HostelStudent = {
+        ...editingStudent,
+        ...formData,
+        room_name: selectedRoom?.name || (formData.room ? editingStudent.room_name : undefined),
+        room_hostel_name: selectedHostel?.name || (formData.room ? editingStudent.room_hostel_name : undefined)
+      };
+
+      // Handle room count updates if room changed
+      if (editingStudent.room !== formData.room) {
+        // Decrement old room count if it existed
+        if (editingStudent.room && editingStudent.room_hostel_name) {
+          const oldHostel = hostels.find(h => h.name === editingStudent.room_hostel_name);
+          if (oldHostel) {
+            updateRoomStudentCount(oldHostel.id, editingStudent.room, -1);
+          }
+        }
+        // Increment new room count if it exists
+        if (formData.room && selectedHostelInDialog) {
+          updateRoomStudentCount(selectedHostelInDialog, formData.room, 1);
+        }
+      }
+
+      // If room was unassigned (room: null), clear room names
+      if (formData.room === null) {
+        updatedStudent.room_name = undefined;
+        updatedStudent.room_hostel_name = undefined;
+      }
+
+      setStudents(prev => prev.map(s => s.id === editingStudent.id ? updatedStudent : s));
+      
       setIsDialogOpen(false);
       toast({ title: "Success", description: "Student details updated successfully" });
     } else {

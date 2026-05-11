@@ -36,7 +36,7 @@ const Enrollment: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { skeletonMode } = useHMSContext();
+  const { skeletonMode, setWardens, setCaretakers, setStatistics } = useHMSContext();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -79,10 +79,22 @@ const Enrollment: React.FC = () => {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        const newStaff = result.data || result;
+
         toast({
           title: "Success",
           description: `${enrollmentType === 'warden' ? 'Warden' : 'Caretaker'} enrolled successfully`,
         });
+
+        // Update local context state
+        if (enrollmentType === 'warden') {
+          setWardens(prev => [...prev, newStaff]);
+          setStatistics(prev => ({ ...prev, total_wardens: prev.total_wardens + 1 }));
+        } else {
+          setCaretakers(prev => [...prev, newStaff]);
+          setStatistics(prev => ({ ...prev, total_caretakers: prev.total_caretakers + 1 }));
+        }
         
         // Reset form
         setFormData({

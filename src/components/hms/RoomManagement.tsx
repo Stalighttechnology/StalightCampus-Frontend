@@ -34,7 +34,7 @@ interface Room {
 import { useHMSContext } from "../../context/HMSContext";
 
 const RoomManagement: React.FC = () => {
-  const { hostels, loading: isLoadingHostels, getCachedFloors, getCachedRooms, refreshData, skeletonMode } = useHMSContext();
+  const { hostels, loading: isLoadingHostels, getCachedFloors, getCachedRooms, refreshData, setStatistics, skeletonMode } = useHMSContext();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -171,11 +171,15 @@ const RoomManagement: React.FC = () => {
           setRooms(prev => prev.map(r => r.id === editingRoom.id ? updatedRoom : r));
         } else {
           setRooms(prev => [...prev, updatedRoom]);
+          // Increment total rooms in statistics
+          setStatistics(prev => ({
+            ...prev,
+            total_rooms: prev.total_rooms + 1
+          }));
         }
       }
       setIsDialogOpen(false);
       setEditingRoom(null);
-      refreshData(true);
       toast({
         title: "Success",
         description: `Room ${editingRoom ? 'updated' : 'created'} successfully`,
@@ -218,7 +222,11 @@ const RoomManagement: React.FC = () => {
       const response = await manageRooms(undefined, id, 'DELETE');
       if (response.success) {
         setRooms(prev => prev.filter(r => r.id !== id));
-        refreshData(true);
+        // Decrement total rooms in statistics
+        setStatistics(prev => ({
+          ...prev,
+          total_rooms: prev.total_rooms - 1
+        }));
         toast({
           title: "Success",
           description: "Room deleted successfully",
