@@ -1497,7 +1497,7 @@ const UploadMarks = () => {
 
                     {/* Table with new structure based on question format */}
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
+                      <table className="min-w-full divide-y divide-gray-200  dark:divide-border">
                         <thead>
                           <tr>
                             <th rowSpan={3} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider align-middle">#</th>
@@ -1559,7 +1559,7 @@ const UploadMarks = () => {
                               <tr key={student.id} className={`${theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-50'}`}>
                                 <td className="px-4 py-2 text-sm">{indexOfFirstStudent + index + 1}</td>
                                 <td className="px-4 py-2 text-sm">{student.usn}</td>
-                                <td className="px-4 py-2 text-sm">{student.name}</td>
+                                <td className="px-4 py-2 text-sm whitespace-nowrap">{student.name}</td>
 
                                 {/* Dynamic question inputs based on question format */}
                                 {questions.map((question, qIndex) => (
@@ -1774,7 +1774,7 @@ const UploadMarks = () => {
           {/* Question Paper Tab - For viewing the saved format */}
           <TabsContent value="questionPaper">
             {qpReady && areAllDropdownsSelected() ? (
-              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-gray-50 border border-gray-200'}`}>
+              <div>
                 <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white border border-gray-300'}`}>
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-semibold">Question Paper Format</h3>
@@ -1961,7 +1961,7 @@ const UploadMarks = () => {
                         <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4 flex-wrap justify-center">
                           <button
                             onClick={() => document.getElementById("bulkFileInput")?.click()}
-                            className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-md font-medium transition-all duration-200 whitespace-nowrap ${theme === 'dark' ? 'border border-border hover:bg-accent text-foreground bg-primary/70 text-white hover:bg-primary' : 'border border-gray-300 hover:bg-gray-100 text-gray-700 bg-primary/70 text-white hover:bg-primary'}`}
+                            className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-md font-medium transition-all duration-200 whitespace-nowrap ${theme === 'dark' ? 'border border-border hover:bg-accent text-foreground bg-primary text-white hover:bg-primary/90' : 'border border-gray-300 hover:bg-gray-100 text-gray-700 bg-primary text-white hover:bg-primary/90'}`}
                           >
                             Select File
                           </button>
@@ -2034,7 +2034,7 @@ const UploadMarks = () => {
                     <div className={`border-t pt-3 sm:pt-4 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                       <button
                         onClick={downloadExcelTemplate}
-                        className={`w-full text-center py-2 sm:py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary/70 text-white hover:bg-primary' : 'bg-primary/70 text-white hover:bg-primary'}`}
+                        className={`w-full text-center py-2 sm:py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-primary text-white hover:bg-primary/90'}`}
                       >
                         Download Template
                       </button>

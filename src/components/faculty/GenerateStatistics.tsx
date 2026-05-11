@@ -222,7 +222,7 @@ const GenerateStatistics: React.FC = () => {
       {/* Table */}
       <Card className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg`}>
         <CardHeader className="flex flex-row justify-between items-center gap-3 p-3 sm:p-6">
-          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students Table</CardTitle>
+          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
           <Button
             variant="outline"
             size="sm"
@@ -238,19 +238,19 @@ const GenerateStatistics: React.FC = () => {
             <table className="w-full text-xs sm:text-sm border-collapse">
               <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
                 <tr>
-                  <th className={`p-2 sm:p-3 text-left text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
-                  <th className={`p-2 sm:p-3 text-left text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
-                  <th className={`p-2 sm:p-3 text-left text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance %</th>
-                  <th className={`p-2 sm:p-3 text-left text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Avg</th>
+                  <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
+                  <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
+                  <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance</th>
+                  <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Avg</th>
                 </tr>
               </thead>
               <tbody>
                 {proctorStudents.map((student, idx) => (
                   <tr key={idx} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                    <td className={`p-2 sm:p-3 text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
-                    <td className={`p-2 sm:p-3 text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
-                    <td className={`p-2 sm:p-3 text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{formatAttendancePercentage(student.attendance)}</td>
-                    <td className={`p-2 sm:p-3 text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{((student as any).avg_mark !== undefined ? (student as any).avg_mark : (() => {
+                    <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
+                    <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
+                    <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{formatAttendancePercentage(student.attendance)}</td>
+                    <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{((student as any).avg_mark !== undefined ? (student as any).avg_mark : (() => {
                       const internalMarks = student.marks || [];
                       const iaMarks = student.ia_marks || [];
                       const allMarks = [

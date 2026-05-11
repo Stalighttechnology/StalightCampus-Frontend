@@ -463,10 +463,10 @@ const COAttainment = () => {
                         <TableBody>
                           {Object.values(coAttainment).map((co) => (
                             <TableRow key={co.co} className="hover:bg-muted/30 transition-colors">
-                              <TableCell className="text-center font-semibold text-primary">{co.co}</TableCell>
-                              <TableCell className="font-medium">{co.maxMarks}</TableCell>
-                              <TableCell className="text-muted-foreground">{co.targetMarks.toFixed(1)}</TableCell>
-                              <TableCell className="font-semibold">{co.avgMarks.toFixed(2)}</TableCell>
+                              <TableCell className="text-center font-semibold text-primary whitespace-nowrap">{co.co}</TableCell>
+                              <TableCell className="font-medium whitespace-nowrap">{co.maxMarks}</TableCell>
+                              <TableCell className="text-muted-foreground whitespace-nowrap">{co.targetMarks.toFixed(1)}</TableCell>
+                              <TableCell className="font-semibold whitespace-nowrap">{co.avgMarks.toFixed(2)}</TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-1">
                                   <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">

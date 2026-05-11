@@ -265,7 +265,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   return (
     <div ref={ref}>
       {/* Main Container with Responsive Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-6 lg:gap-8">
         {/* Leave Application Form - Left Side */}
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
@@ -381,7 +381,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
         {/* Leave Requests List - Right Side */}
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between pt-3">
+          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
             {/* Title */}
             <CardTitle
             >
@@ -448,25 +448,29 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 </p>
               </div>
             ) : (
-              <div className="max-h-[350px] sm:max-h-[450px] lg:max-h-[520px] overflow-y-auto custom-scrollbar space-y-1 sm:space-y-2 lg:space-y-3 pr-2">
+              <div className="max-h-[480px] sm:max-h-[480px] lg:max-h-[520px] overflow-y-auto custom-scrollbar space-y-4 sm:space-y-3 lg:space-y-4 pr-2">
                 {filteredLeaveList.map((leave) => {
                   return (
-                    <div key={leave.id} className={`p-1.5 sm:p-2 lg:p-3 border rounded-lg ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}>
-                      <div className="flex justify-between items-stretch gap-1.5 sm:gap-2">
-                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    <div key={leave.id} className={`p-4 sm:p-3 lg:p-4 border rounded-xl ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'} transition-all duration-200 shadow-sm hover:shadow-md`}>
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0 flex flex-col gap-2">
                           <div>
-                            <div className={`font-semibold mb-0.5 sm:mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <div className={`font-semibold mb-1 text-md sm:text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                               {leave.title}
                             </div>
-                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} truncate`}>
+                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} flex flex-col gap-1`}>
                               {leave.from && leave.to ? (
-                                <>From: {leave.from} To: {leave.to}</>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">From:</span> {leave.from} <span className="font-medium ml-1">To:</span> {leave.to}
+                                </div>
                               ) : (
-                                <>Date: {leave.date}</>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">Date:</span> {leave.date}
+                                </div>
                               )}
                             </div>
                           </div>
-                          <div className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          <div className={`text-xs mt-1 font-medium ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
                             Applied: {leave.appliedOn}
                           </div>
                         </div>

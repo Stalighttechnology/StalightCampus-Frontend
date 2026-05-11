@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
@@ -156,7 +157,7 @@ const UploadQP = () => {
       try {
         setLoading(true);
         const res = await getQuestionPapers({ branch_id: selected.branch_id?.toString(), semester_id: selected.semester_id?.toString(), section_id: selected.section_id?.toString(), subject_id: selected.subject_id?.toString(), test_type: selected.testType, detail: true });
-          if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
+        if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
           // prefer exact match on subject+test_type; do NOT fallback to first result
           const qp = res.data.find((q: QuestionPaper) => q.subject === selected.subject_id && q.test_type === selected.testType);
           if (qp) {
@@ -213,7 +214,7 @@ const UploadQP = () => {
 
   const addQuestion = () => {
     const nextId = `${Date.now()}`;
-    setQuestions(prev => [...prev, { id: nextId, number: `q${prev.length+1}`, content: `Question ${prev.length+1}`, maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' }]);
+    setQuestions(prev => [...prev, { id: nextId, number: `q${prev.length + 1}`, content: `Question ${prev.length + 1}`, maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' }]);
   };
 
   const removeQuestionById = (id: string) => {
@@ -295,8 +296,8 @@ const UploadQP = () => {
       });
       if (res?.success && Array.isArray(res.data)) {
         // Find exact match on Subject and Test Type for this section/semester
-        return res.data.find((q: QuestionPaper) => 
-          q.subject === selected.subject_id && 
+        return res.data.find((q: QuestionPaper) =>
+          q.subject === selected.subject_id &&
           q.test_type === selected.testType &&
           q.semester === selected.semester_id &&
           q.section === selected.section_id
@@ -321,7 +322,7 @@ const UploadQP = () => {
 
   const saveFormat = async () => {
     if (!validateSelection()) return;
-    
+
     const MySwal = withReactContent(Swal);
     const confirmResult = await MySwal.fire({
       title: 'Save Question Format?',
@@ -335,7 +336,7 @@ const UploadQP = () => {
     });
 
     if (!confirmResult.isConfirmed) return;
-    
+
     const assignForSubject = assignments.find(a => a.subject_id === selected.subject_id);
     const ids = getDerivedIds(assignForSubject);
 
@@ -355,14 +356,14 @@ const UploadQP = () => {
       }
 
       const res = await saveOrUpdateQP(payload, existingId || undefined);
-      
+
       if (res?.success) {
         // Update local ID and metadata after save
         if (res.data?.id) setQpId(res.data.id);
         if (res.data?.status) {
           setCurrentQPMeta({ status: res.data.status, last_action: res.data.last_action });
         }
-        
+
         setTabValue('questionPaper');
         MySwal.fire('Success!', 'Question format saved successfully!', 'success');
       } else {
@@ -424,7 +425,7 @@ const UploadQP = () => {
 
   const handleSubmitForApproval = async () => {
     if (!qpId) return;
-    
+
     try {
       setSubmitting(true);
       const result = await submitQPForApproval(qpId);
@@ -435,7 +436,7 @@ const UploadQP = () => {
           title: 'Success',
           description: toastMessage,
         });
-        
+
         // optimistically set pending status so submit button disables immediately
         setCurrentQPMeta({ status: 'pending_hod', last_action: { actor: null, role: 'faculty', action: 'submitted', comment: '' } });
         // refresh metadata from server to reflect pending status
@@ -466,7 +467,7 @@ const UploadQP = () => {
           <CardTitle>Upload QP Pattern</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
               <label htmlFor="branch-select" className="text-sm">Branch</label>
               <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {
@@ -570,32 +571,61 @@ const UploadQP = () => {
                   </div>
                 ) : (
                   <>
-                    {questions.map(q => (
-                      <div key={q.id} className="flex gap-2 items-center">
-                        <Input value={q.number} onChange={e => updateQuestion(q.id, 'number', e.target.value)} className="w-20" />
-                        <Input value={q.content} onChange={e => updateQuestion(q.id, 'content', e.target.value)} />
-                        <Input value={q.maxMarks} onChange={e => updateQuestion(q.id, 'maxMarks', e.target.value)} className="w-20" />
-                        <Input value={q.co} onChange={e => updateQuestion(q.id, 'co', e.target.value)} className="w-24" />
-                        <Input value={q.bloomsLevel} onChange={e => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="w-24" />
-                        <Button 
-                          variant="ghost" 
-                          onClick={() => removeQuestion(q.id)}
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    ))}
-                    <div className="flex gap-3 mt-4">
-                      <Button 
-                        onClick={addQuestion} 
+                    <div className="overflow-x-auto border rounded-lg mt-2 custom-scrollbar">
+                      <Table>
+                        <TableHeader className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
+                          <TableRow>
+                            <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Q No.</TableHead>
+                            <TableHead className="text-sm font-semibold whitespace-nowrap min-w-[280px]">Question Content</TableHead>
+                            <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Marks</TableHead>
+                            <TableHead className="text-sm font-semibold whitespace-nowrap w-[100px] min-w-[100px]">CO</TableHead>
+                            <TableHead className="text-sm font-semibold whitespace-nowrap w-[160px] min-w-[160px]">Blooms Level</TableHead>
+                            <TableHead className="text-sm font-semibold text-right whitespace-nowrap w-[80px]">Action</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {questions.map(q => (
+                            <TableRow key={q.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50/50'}>
+                              <TableCell className="p-2 whitespace-nowrap">
+                                <Input value={q.number} onChange={e => updateQuestion(q.id, 'number', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                              </TableCell>
+                              <TableCell className="p-2 whitespace-nowrap">
+                                <Input value={q.content} onChange={e => updateQuestion(q.id, 'content', e.target.value)} className="h-9 w-full focus-visible:ring-1" />
+                              </TableCell>
+                              <TableCell className="p-2 whitespace-nowrap">
+                                <Input value={q.maxMarks} onChange={e => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                              </TableCell>
+                              <TableCell className="p-2 whitespace-nowrap">
+                                <Input value={q.co} onChange={e => updateQuestion(q.id, 'co', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                              </TableCell>
+                              <TableCell className="p-2 whitespace-nowrap">
+                                <Input value={q.bloomsLevel} onChange={e => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                              </TableCell>
+                              <TableCell className="p-2 text-right whitespace-nowrap">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeQuestion(q.id)}
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 w-9 p-0"
+                                >
+                                  <Trash2 size={16} />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                      <Button
+                        onClick={addQuestion}
                         disabled={!selected.branch_id || !selected.subject_id || !selected.testType}
                         className="bg-primary text-white hover:bg-primary/90 transition-all duration-200"
                       >
                         <Plus size={14} className="mr-2" /> Add Question
                       </Button>
-                      <Button 
-                        onClick={saveFormat} 
+                      <Button
+                        onClick={saveFormat}
                         disabled={!selected.branch_id || !selected.subject_id || !selected.testType}
                         className="bg-primary text-white hover:bg-primary/90 transition-all duration-200"
                       >
@@ -619,54 +649,54 @@ const UploadQP = () => {
                 </div>
               ) : (
                 <div className="mb-4 space-y-4">
-                <div className="flex justify-between items-start gap-4">
-                  <h3 className="font-semibold text-lg">Question Paper Preview</h3>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button 
-                      onClick={downloadPDF} 
-                      className="bg-primary text-white hover:bg-primary/90 transition-all duration-200"
-                    >
-                      Download PDF
-                    </Button>
-                    {qpId ? (
-                      (() => {
-                        const status = currentQPMeta?.status;
-                        const isPendingOrApproved = status && (status.startsWith('pending') || status === 'approved');
-                        const buttonLabel = getSubmitButtonLabel(submitting, status);
-                        return (
-                          <Button
-                            onClick={handleSubmitForApproval}
-                            className="bg-green-600 text-white hover:bg-green-700"
-                            disabled={isPendingOrApproved || submitting}
-                          >
-                            {buttonLabel}
-                          </Button>
-                        );
-                      })()
-                    ) : null}
-                  </div>
-                </div>
-
-                {currentQPMeta?.status && (
-                  <div className={`p-3 rounded-lg border ${currentQPMeta.status === 'rejected' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'}`}>
-                    <div className={`font-semibold text-sm ${currentQPMeta.status === 'rejected' ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400'}`}>
-                      Status: {(() => {
-                        const s = currentQPMeta.status;
-                        if (s === 'rejected') return 'Rejected';
-                        if (s === 'approved') return 'Approved';
-                        if (s.startsWith('pending')) return 'Pending';
-                        return s;
-                      })()}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h3 className="font-semibold text-lg">Question Paper Preview</h3>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <Button
+                        onClick={downloadPDF}
+                        className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200"
+                      >
+                        Download PDF
+                      </Button>
+                      {qpId ? (
+                        (() => {
+                          const status = currentQPMeta?.status;
+                          const isPendingOrApproved = status && (status.startsWith('pending') || status === 'approved');
+                          const buttonLabel = getSubmitButtonLabel(submitting, status);
+                          return (
+                            <Button
+                              onClick={handleSubmitForApproval}
+                              className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
+                              disabled={isPendingOrApproved || submitting}
+                            >
+                              {buttonLabel}
+                            </Button>
+                          );
+                        })()
+                      ) : null}
                     </div>
-                    {currentQPMeta.last_action && (
-                      <div className={`text-xs mt-1 ${currentQPMeta.status === 'rejected' ? 'text-red-600 dark:text-red-300' : 'text-blue-600 dark:text-blue-300'}`}>
-                        <div>Last: {currentQPMeta.last_action?.action || 'N/A'} by {currentQPMeta.last_action?.actor || 'N/A'} ({currentQPMeta.last_action?.role || 'N/A'})</div>
-                        {currentQPMeta.last_action?.comment && <div>Comment: {currentQPMeta.last_action.comment}</div>}
-                      </div>
-                    )}
                   </div>
-                )}
-                  <div className={`border rounded-lg p-4 ${theme === 'dark' ? 'bg-gray-800 border-border' : 'bg-gray-50 border-gray-200'}`}>
+
+                  {currentQPMeta?.status && (
+                    <div className={`p-3 rounded-lg border ${currentQPMeta.status === 'rejected' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'}`}>
+                      <div className={`font-semibold text-sm ${currentQPMeta.status === 'rejected' ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400'}`}>
+                        Status: {(() => {
+                          const s = currentQPMeta.status;
+                          if (s === 'rejected') return 'Rejected';
+                          if (s === 'approved') return 'Approved';
+                          if (s.startsWith('pending')) return 'Pending';
+                          return s;
+                        })()}
+                      </div>
+                      {currentQPMeta.last_action && (
+                        <div className={`text-xs mt-1 ${currentQPMeta.status === 'rejected' ? 'text-red-600 dark:text-red-300' : 'text-blue-600 dark:text-blue-300'}`}>
+                          <div>Last: {currentQPMeta.last_action?.action || 'N/A'} by {currentQPMeta.last_action?.actor || 'N/A'} ({currentQPMeta.last_action?.role || 'N/A'})</div>
+                          {currentQPMeta.last_action?.comment && <div>Comment: {currentQPMeta.last_action.comment}</div>}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className={`border rounded-lg ${theme === 'dark' ? 'bg-gray-800 border-border' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="space-y-4">
                       {loading ? (
                         <SkeletonList items={4} />
@@ -697,8 +727,8 @@ const UploadQP = () => {
                                         <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
                                         <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
                                         {((s.content || '').length > 160) && (
-                                          <button 
-                                            onClick={() => toggleExpanded(key)} 
+                                          <button
+                                            onClick={() => toggleExpanded(key)}
                                             className={getButtonClassName()}
                                           >
                                             {isExpanded ? 'Show less' : 'Show more'}

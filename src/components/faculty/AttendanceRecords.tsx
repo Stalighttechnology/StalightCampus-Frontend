@@ -176,35 +176,35 @@ const AttendanceRecords = () => {
             </div>
           ) : (
             <div className="overflow-y-auto w-full overscroll-contain min-h-0 max-h-[60vh] md:max-h-none md:overflow-visible border rounded-md" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-              <div className="w-full overflow-x-auto">
+              <div>
                 <Table>
                   <TableHeader className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
                     <TableRow>
-                      <TableHead className={`text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date</TableHead>
-                      <TableHead className={`text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Subject</TableHead>
-                      <TableHead className={`text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</TableHead>
-                      <TableHead className={`text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester</TableHead>
-                      <TableHead className={`text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</TableHead>
-                      <TableHead className={`hidden lg:table-cell text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Present</TableHead>
-                      <TableHead className={`hidden lg:table-cell text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Absent</TableHead>
-                      <TableHead className={`text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance</TableHead>
-                      <TableHead className={`hidden lg:table-cell text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
-                      <TableHead className={`text-xs md:text-xs lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</TableHead>
+                      <TableHead className={`text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date</TableHead>
+                      <TableHead className={`text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Subject</TableHead>
+                      <TableHead className={`text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section</TableHead>
+                      <TableHead className={`text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester</TableHead>
+                      <TableHead className={`text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</TableHead>
+                      <TableHead className={`hidden lg:table-cell text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Present</TableHead>
+                      <TableHead className={`hidden lg:table-cell text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Absent</TableHead>
+                      <TableHead className={`text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance</TableHead>
+                      <TableHead className={`hidden lg:table-cell text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
+                      <TableHead className={`text-sm md:text-sm lg:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {records.map((record) => (
                       <TableRow key={record.id} className={theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-50'}>
-                        <TableCell className="text-xs md:text-xs lg:text-sm">{record.date}</TableCell>
-                        <TableCell className="text-xs md:text-xs lg:text-sm">{record.subject}</TableCell>
-                        <TableCell className="text-xs md:text-xs lg:text-sm">{record.section}</TableCell>
-                        <TableCell className="text-xs md:text-xs lg:text-sm">{record.semester}</TableCell>
-                        <TableCell className="text-xs md:text-xs lg:text-sm">{record.branch}</TableCell>
-                        <TableCell className={`hidden lg:table-cell text-xs md:text-xs lg:text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{record.summary.present_count}</TableCell>
-                        <TableCell className={`hidden lg:table-cell text-xs md:text-xs lg:text-sm font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{record.summary.absent_count}</TableCell>
-                        <TableCell className="text-xs md:text-xs lg:text-sm font-semibold">{record.summary.present_percentage}%</TableCell>
-                        <TableCell className="hidden lg:table-cell text-xs md:text-xs lg:text-sm">{record.status}</TableCell>
-                        <TableCell className="text-xs md:text-xs lg:text-sm">
+                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.date}</TableCell>
+                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.subject}</TableCell>
+                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.section}</TableCell>
+                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.semester}</TableCell>
+                        <TableCell className="text-sm md:text-sm lg:text-sm whitespace-nowrap">{record.branch}</TableCell>
+                        <TableCell className={`hidden lg:table-cell text-sm md:text-sm lg:text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{record.summary.present_count}</TableCell>
+                        <TableCell className={`hidden lg:table-cell text-sm md:text-sm lg:text-sm font-semibold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>{record.summary.absent_count}</TableCell>
+                        <TableCell className="text-sm md:text-sm lg:text-sm font-semibold">{record.summary.present_percentage}%</TableCell>
+                        <TableCell className="hidden lg:table-cell text-sm md:text-sm lg:text-sm">{record.status}</TableCell>
+                        <TableCell className="text-sm md:text-sm lg:text-sm">
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button
@@ -229,29 +229,29 @@ const AttendanceRecords = () => {
                                 {selectedRecord && (
                                   <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl border ${theme === 'dark' ? 'bg-slate-900/30 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
                                     <div className="space-y-1">
-                                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Date</p>
+                                      <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Date</p>
                                       <p className="text-sm font-semibold">{selectedRecord.date}</p>
                                     </div>
                                     <div className="space-y-1">
-                                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Subject</p>
-                                      <p className="text-sm font-semibold truncate" title={selectedRecord.subject}>{selectedRecord.subject}</p>
+                                      <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Subject</p>
+                                      <p className="text-sm font-semibold break-words" title={selectedRecord.subject}>{selectedRecord.subject}</p>
                                     </div>
                                     <div className="space-y-1">
-                                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Class</p>
+                                      <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Class</p>
                                       <p className="text-sm font-semibold">Sem {selectedRecord.semester}, {selectedRecord.branch}</p>
                                     </div>
                                     <div className="space-y-1">
-                                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Percentage</p>
-                                      <p className={`text-sm font-bold ${Number(selectedRecord.summary.present_percentage) >= 75 ? 'text-green-500' : 'text-orange-500'}`}>
+                                      <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Percentage</p>
+                                      <p className={`text-sm font-semibold ${Number(selectedRecord.summary.present_percentage) >= 75 ? 'text-green-500' : 'text-orange-500'}`}>
                                         {selectedRecord.summary.present_percentage}%
                                       </p>
                                     </div>
                                     <div className="space-y-1 pt-2 border-t border-slate-800/10 dark:border-slate-100/10 col-span-2">
-                                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Attendance Ratio</p>
+                                      <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Attendance Ratio</p>
                                       <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xs font-bold text-green-500">{selectedRecord.summary.present_count} Present</span>
+                                        <span className="text-xs font-semibold text-green-500">{selectedRecord.summary.present_count} Present</span>
                                         <span className="text-slate-300 dark:text-slate-700">|</span>
-                                        <span className="text-xs font-bold text-red-500">{selectedRecord.summary.absent_count} Absent</span>
+                                        <span className="text-xs font-semibold text-red-500">{selectedRecord.summary.absent_count} Absent</span>
                                       </div>
                                     </div>
                                   </div>
@@ -259,11 +259,11 @@ const AttendanceRecords = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                   <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                      <h4 className="text-sm font-bold flex items-center gap-2">
+                                      <h4 className="text-sm font-semibold flex items-center gap-2">
                                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                         Present Students
                                       </h4>
-                                      <span className="text-[10px] font-bold bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full">{presentList.length}</span>
+                                      <span className="text-[10px] font-semibold bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full">{presentList.length}</span>
                                     </div>
                                     <div className={`space-y-2 max-h-48 md:max-h-64 overflow-y-auto pr-2 custom-scrollbar`}>
                                       {presentList.length > 0 ? (
@@ -281,11 +281,11 @@ const AttendanceRecords = () => {
 
                                   <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                      <h4 className="text-sm font-bold flex items-center gap-2">
+                                      <h4 className="text-sm font-semibold flex items-center gap-2">
                                         <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                                         Absent Students
                                       </h4>
-                                      <span className="text-[10px] font-bold bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{absentList.length}</span>
+                                      <span className="text-[10px] font-semibold bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">{absentList.length}</span>
                                     </div>
                                     <div className={`space-y-2 max-h-48 md:max-h-64 overflow-y-auto pr-2 custom-scrollbar`}>
                                       {absentList.length > 0 ? (
@@ -310,7 +310,7 @@ const AttendanceRecords = () => {
                                 <div className="flex gap-2 w-full sm:w-auto">
                                   {selectedRecord && selectedRecord.summary && selectedRecord.summary.total_count > 0 && (
                                     <Button
-                                      className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-white font-bold px-6 shadow-lg shadow-purple-500/20 transition-all active:scale-95"
+                                      className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-white font-semibold px-6 shadow-lg shadow-purple-500/20 transition-all active:scale-95"
                                       onClick={handleExportPdf}
                                       disabled={exporting}
                                     >
@@ -354,7 +354,7 @@ const AttendanceRecords = () => {
             </Button>
 
             <div className="flex items-center justify-center min-w-[2.5rem]">
-              <span className={`text-sm font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 {pagination.page}
               </span>
             </div>
