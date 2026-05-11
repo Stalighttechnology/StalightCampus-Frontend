@@ -36,7 +36,7 @@ interface Hostel {
 }
 
 const HostelManagement: React.FC = () => {
-  const { hostels, wardens, caretakers, loading, refreshData, setHostels, skeletonMode } = useHMSContext();
+  const { hostels, wardens, caretakers, statistics, loading, refreshData, setHostels, setStatistics, skeletonMode } = useHMSContext();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingHostel, setEditingHostel] = useState<Hostel | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,7 +79,12 @@ const HostelManagement: React.FC = () => {
         const response = await manageHostels(undefined, id, 'DELETE');
         if (response.success) {
           toast({ title: 'Success', description: 'Hostel deleted successfully' });
-          refreshData(true);
+          // Update local state without re-fetching everything
+          setHostels(prev => prev.filter(h => h.id !== id));
+          setStatistics(prev => ({
+            ...prev,
+            total_hostels: prev.total_hostels - 1
+          }));
         }
       } catch (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete hostel' });
@@ -99,9 +104,27 @@ const HostelManagement: React.FC = () => {
           description: `Hostel ${editingHostel ? 'updated' : 'created'} successfully` 
         });
         setIsDialogOpen(false);
+        // Enrich response data with warden and caretaker names if missing
+        const updatedHostel = {
+          ...(response.data || {}),
+          warden_name: wardens.find(w => w.id === formData.warden)?.name || '',
+          caretaker_name: caretakers.find(c => c.id === formData.caretaker)?.name || ''
+        } as Hostel;
+
+        if (editingHostel) {
+          // Manual update in state
+          setHostels(prev => prev.map(h => h.id === editingHostel.id ? { ...h, ...updatedHostel } : h));
+        } else {
+          // Manual add to state
+          setHostels(prev => [updatedHostel, ...prev]);
+          setStatistics(prev => ({
+            ...prev,
+            total_hostels: prev.total_hostels + 1
+          }));
+        }
+
         setEditingHostel(null);
         setFormData({ name: '', gender: 'M', floor_count: 1, warden: null, caretaker: null });
-        refreshData(true);
       } else {
         toast({
           variant: "destructive",

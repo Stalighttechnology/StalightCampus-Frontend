@@ -42,7 +42,7 @@ interface Caretaker {
 
 const StaffManagementOverview: React.FC = () => {
   const { toast } = useToast();
-  const { skeletonMode } = useHMSContext();
+  const { skeletonMode, setWardens: setContextWardens, setCaretakers: setContextCaretakers, setStatistics } = useHMSContext();
   const [loading, setLoading] = useState(true);
   const [wardens, setWardens] = useState<Warden[]>([]);
   const [caretakers, setCaretakers] = useState<Caretaker[]>([]);
@@ -96,7 +96,11 @@ const StaffManagementOverview: React.FC = () => {
       if (response.success) {
         toast({ title: "Success", description: "Warden details updated." });
         setIsWardenModalOpen(false);
-        fetchStaffData();
+        
+        // Update local and context state
+        const updatedWarden = response.data || editingWarden;
+        setWardens(prev => prev.map(w => w.id === editingWarden.id ? updatedWarden : w));
+        setContextWardens(prev => prev.map(w => w.id === editingWarden.id ? { ...w, ...updatedWarden } : w));
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to save warden.", variant: "destructive" });
@@ -122,7 +126,10 @@ const StaffManagementOverview: React.FC = () => {
       const response = await manageWardens(undefined, id, "DELETE");
       if (response.success) {
         toast({ title: "Success", description: "Warden deleted." });
-        fetchStaffData();
+        setWardens(prev => prev.filter(w => w.id !== id));
+        setContextWardens(prev => prev.filter(w => w.id !== id));
+        setWardensTotal(prev => prev - 1);
+        setStatistics(prev => ({ ...prev, total_wardens: prev.total_wardens - 1 }));
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to delete warden.", variant: "destructive" });
@@ -137,7 +144,11 @@ const StaffManagementOverview: React.FC = () => {
       if (response.success) {
         toast({ title: "Success", description: "Caretaker details updated." });
         setIsCaretakerModalOpen(false);
-        fetchStaffData();
+        
+        // Update local and context state
+        const updatedCaretaker = response.data || editingCaretaker;
+        setCaretakers(prev => prev.map(c => c.id === editingCaretaker.id ? updatedCaretaker : c));
+        setContextCaretakers(prev => prev.map(c => c.id === editingCaretaker.id ? { ...c, ...updatedCaretaker } : c));
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to save caretaker.", variant: "destructive" });
@@ -163,7 +174,10 @@ const StaffManagementOverview: React.FC = () => {
       const response = await manageCaretakers(undefined, id, "DELETE");
       if (response.success) {
         toast({ title: "Success", description: "Caretaker deleted." });
-        fetchStaffData();
+        setCaretakers(prev => prev.filter(c => c.id !== id));
+        setContextCaretakers(prev => prev.filter(c => c.id !== id));
+        setCaretakersTotal(prev => prev - 1);
+        setStatistics(prev => ({ ...prev, total_caretakers: prev.total_caretakers - 1 }));
       }
     } catch (err) {
       toast({ title: "Error", description: "Failed to delete caretaker.", variant: "destructive" });

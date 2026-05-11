@@ -174,7 +174,7 @@ const MenuManagement: React.FC = () => {
   // Load menu items only when form is opened
   const loadMenuItems = async () => {
     try {
-      const itemsRes = await getMenuItems();
+      const itemsRes = await getMenuItems({ page_size: 1000 });
       if (itemsRes.success && itemsRes.results) {
         setMenuItems(itemsRes.results);
       }
@@ -193,7 +193,7 @@ const MenuManagement: React.FC = () => {
   // Reload menu items after food item changes (no menus fetch)
   const reloadMenuData = async () => {
     try {
-      const itemsRes = await getMenuItems();
+      const itemsRes = await getMenuItems({ page_size: 1000 });
       if (itemsRes.success && itemsRes.results) setMenuItems(itemsRes.results);
     } catch (error) {
       console.error('Failed to reload menu items:', error);

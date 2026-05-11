@@ -42,8 +42,12 @@ interface HMSContextType {
   setSkeletonMode: (val: boolean) => void;
   refreshData: (force?: boolean) => Promise<void>;
   setHostels: React.Dispatch<React.SetStateAction<Hostel[]>>;
+  setWardens: React.Dispatch<React.SetStateAction<Warden[]>>;
+  setCaretakers: React.Dispatch<React.SetStateAction<Caretaker[]>>;
+  setStatistics: React.Dispatch<React.SetStateAction<Stats>>;
   getCachedFloors: (hostelId: number) => Promise<number[]>;
   getCachedRooms: (hostelId: number, floor?: string) => Promise<any[]>;
+  updateRoomStudentCount: (hostelId: number, roomId: number, delta: number) => void;
 }
 
 const HMSContext = createContext<HMSContextType | undefined>(undefined);
@@ -97,6 +101,17 @@ export const HMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return [];
   };
 
+  const updateRoomStudentCount = (hostelId: number, roomId: number, delta: number) => {
+    // Update all relevant cache keys (specific floor and 'all')
+    Object.keys(roomCache.current).forEach(key => {
+      if (key.startsWith(`${hostelId}-`)) {
+        roomCache.current[key] = roomCache.current[key].map((room: any) => 
+          room.id === roomId ? { ...room, student_count: Math.max(0, (room.student_count || 0) + delta) } : room
+        );
+      }
+    });
+  };
+
   const refreshData = async (force = false) => {
     if (!force && cachedInitData) {
       return;
@@ -139,8 +154,33 @@ export const HMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
+  useEffect(() => {
+    cachedInitData = {
+      hostels,
+      wardens,
+      caretakers,
+      statistics
+    };
+  }, [hostels, wardens, caretakers, statistics]);
+
   return (
-    <HMSContext.Provider value={{ hostels, wardens, caretakers, statistics, loading, skeletonMode, setSkeletonMode, refreshData, setHostels, getCachedFloors, getCachedRooms }}>
+    <HMSContext.Provider value={{ 
+      hostels, 
+      wardens, 
+      caretakers, 
+      statistics, 
+      loading, 
+      skeletonMode, 
+      setSkeletonMode, 
+      refreshData, 
+      setHostels,
+      setWardens,
+      setCaretakers,
+      setStatistics,
+      getCachedFloors, 
+      getCachedRooms,
+      updateRoomStudentCount
+    }}>
       {children}
     </HMSContext.Provider>
   );
