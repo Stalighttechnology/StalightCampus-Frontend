@@ -309,26 +309,24 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
         </div>
 
         <div className="mb-4">
-          <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Start Time (HH:MM):</label>
+          <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Start Time:</label>
           <input
-            type="text"
+            type="time"
             name="start_time"
             value={newClassDetails.start_time}
-            readOnly
-            className={`w-full p-2 border rounded ${theme === 'dark' ? 'bg-muted cursor-not-allowed text-foreground' : 'bg-gray-100 cursor-not-allowed text-gray-900'}`}
-            placeholder="e.g., 11:00"
+            onChange={handleChange}
+            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}
           />
         </div>
 
         <div className="mb-4">
-          <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>End Time (HH:MM):</label>
+          <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>End Time:</label>
           <input
-            type="text"
+            type="time"
             name="end_time"
             value={newClassDetails.end_time}
-            readOnly
-            className={`w-full p-2 border rounded ${theme === 'dark' ? 'bg-muted cursor-not-allowed text-foreground' : 'bg-gray-100 cursor-not-allowed text-gray-900'}`}
-            placeholder="e.g., 12:00"
+            onChange={handleChange}
+            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}
           />
         </div>
 
@@ -357,7 +355,19 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
             <Button
               variant="outline"
               onClick={() => {
-                onSave({ ...newClassDetails, day: classDetails.day || "" });
+                if (!newClassDetails.start_time || !newClassDetails.end_time) {
+                  alert("Please enter both start and end times.");
+                  return;
+                }
+                if (newClassDetails.start_time >= newClassDetails.end_time) {
+                  alert("Start time must be before end time.");
+                  return;
+                }
+                onSave({ 
+                  ...newClassDetails, 
+                  day: classDetails.day || "", 
+                  timetable_id: classDetails.timetable_id 
+                });
               }}
               className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}
             >
@@ -442,15 +452,9 @@ const Timetable = () => {
   };
 
   // Predefined time slots for the grid (9:00 AM to 5:00 PM)
+  // Reference hours for the vertical axis
   const timeSlots = [
-    { start: "09:00", end: "10:00" },
-    { start: "10:00", end: "11:00" },
-    { start: "11:00", end: "12:00" },
-    { start: "12:00", end: "13:00" },
-    { start: "13:00", end: "14:00" },
-    { start: "14:00", end: "15:00" },
-    { start: "15:00", end: "16:00" },
-    { start: "16:00", end: "17:00" },
+    "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
   ];
   const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -629,21 +633,20 @@ const Timetable = () => {
   }, [state.branchId, state.semesterId, state.sectionId, toast]);
 
   // Generate table data for the grid
+  // Generate table data for the grid
   const getTableData = () => {
     const timetable = Array.isArray(state.timetable) ? state.timetable : [];
-    const tableData = timeSlots.map(({ start, end }) => {
-      const row: Record<string, string> = { time: `${start}-${end}` };
+    const tableData = timeSlots.map((hour) => {
+      const row: Record<string, any> = { time: hour };
       days.forEach((day) => {
-        const entry = timetable.find(
-          (e) => e.start_time === start && e.end_time === end && e.day === day
+        // Find entries that start within this hour (e.g., 10:00 to 10:59)
+        const entries = timetable.filter(
+          (e) => e.start_time.startsWith(hour.split(":")[0]) && e.day === day
         );
-        row[day.toLowerCase()] = entry
-          ? `${entry.faculty_assignment.subject}\n${entry.faculty_assignment.faculty}\n${entry.room}`
-          : "";
+        row[day.toLowerCase()] = entries;
       });
       return row;
     });
-    console.log("Table data:", tableData);
     return tableData;
   };
 
@@ -655,26 +658,28 @@ const Timetable = () => {
     updateState({ isEditing: !state.isEditing });
   };
 
-  const handleClassClick = (time: string, day: string) => {
+  const handleClassClick = (time: string, day: string, existingEntry?: any) => {
     if (!state.isEditing) return;
-    const [start_time, end_time] = time.split("-");
-    const entry = state.timetable.find(
-      (e) => e.start_time === start_time && e.end_time === end_time && e.day === day.toUpperCase()
-    );
-    if (entry) {
+    
+    if (existingEntry) {
       updateState({
         selectedClass: {
-          subject: entry.faculty_assignment.subject,
-          professor: entry.faculty_assignment.faculty,
-          room: entry.room,
-          start_time: entry.start_time,
-          end_time: entry.end_time,
-          day: entry.day,
-          timetable_id: entry.id,
-          assignment_id: entry.faculty_assignment.id,
+          subject: existingEntry.faculty_assignment.subject,
+          professor: existingEntry.faculty_assignment.faculty,
+          room: existingEntry.room,
+          start_time: existingEntry.start_time,
+          end_time: existingEntry.end_time,
+          day: existingEntry.day,
+          timetable_id: existingEntry.id,
+          assignment_id: existingEntry.faculty_assignment.id,
         },
       });
     } else {
+      // For new class, default to 1 hour duration starting at the clicked hour
+      const [hour, min] = time.split(":");
+      const start_time = `${hour}:${min}`;
+      const end_time = `${String(Number(hour) + 1).padStart(2, '0')}:${min}`;
+      
       updateState({
         selectedClass: {
           subject: "",
@@ -710,8 +715,8 @@ const Timetable = () => {
       const assignmentId = assignment.id;
 
       const timetableRequest: ManageTimetableRequest = {
-        action: state.selectedClass?.timetable_id ? "update" : "create",
-        timetable_id: state.selectedClass?.timetable_id,
+        action: newClassDetails.timetable_id ? "update" : "create",
+        timetable_id: newClassDetails.timetable_id,
         assignment_id: assignmentId,
         day: state.selectedClass!.day,
         start_time: newClassDetails.start_time,
@@ -830,16 +835,30 @@ const Timetable = () => {
     const headers = ["Time/Day", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const tableData = getTableData();
 
+    // Helper to format a cell's entries (array of timetable entries) into a printable string
+    const formatCell = (entries: any) => {
+      if (!entries || entries.length === 0) return "";
+      return entries
+        .map((entry: any) => {
+          const subj = entry.faculty_assignment?.subject || entry.subject || "";
+          const time = `${entry.start_time || ""} - ${entry.end_time || ""}`.trim();
+          const faculty = entry.faculty_assignment?.faculty || entry.faculty_name || "";
+          const room = entry.room ? `Room ${entry.room}` : "";
+          return [subj, time, faculty, room].filter(Boolean).join("\n");
+        })
+        .join("\n\n");
+    };
+
     autoTable(doc, {
       head: [headers],
       body: tableData.map((row) => [
         row.time,
-        row.mon || "",
-        row.tue || "",
-        row.wed || "",
-        row.thu || "",
-        row.fri || "",
-        row.sat || "",
+        formatCell(row.mon),
+        formatCell(row.tue),
+        formatCell(row.wed),
+        formatCell(row.thu),
+        formatCell(row.fri),
+        formatCell(row.sat),
       ]),
       startY: 25,
       styles: { fontSize: 8, cellPadding: 2 },
@@ -982,16 +1001,24 @@ const Timetable = () => {
                             className="py-3 px-4 whitespace-pre-line text-foreground cursor-pointer"
                             onClick={() => handleClassClick(row.time, day.toUpperCase())}
                           >
-                            {row[day] ? (
-                              <>
-                                <span className="font-semibold">{row[day].split("\n")[0]}</span>
-                                <br />
-                                {row[day].split("\n")[1]}
-                                <br />
-                                {row[day].split("\n")[2]}
-                              </>
+                            {row[day] && row[day].length > 0 ? (
+                              row[day].map((entry: any) => (
+                                <div 
+                                  key={entry.id} 
+                                  className="mb-2 p-2 rounded bg-primary/10 border-l-4 border-primary hover:bg-primary/20"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleClassClick(row.time, day.toUpperCase(), entry);
+                                  }}
+                                >
+                                  <div className="font-semibold">{entry.faculty_assignment.subject}</div>
+                                  <div className="text-xs text-muted-foreground">{entry.start_time} - {entry.end_time}</div>
+                                  <div className="text-xs">{entry.faculty_assignment.faculty}</div>
+                                  <div className="text-xs italic">Room {entry.room}</div>
+                                </div>
+                              ))
                             ) : (
-                              state.isEditing && <span className="text-muted-foreground">Click to add</span>
+                              state.isEditing && <span className="text-muted-foreground italic text-xs">Click to add</span>
                             )}
                           </td>
                         ))}
