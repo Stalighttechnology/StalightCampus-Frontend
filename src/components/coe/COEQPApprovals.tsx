@@ -380,11 +380,11 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           ) : (
             <div className="space-y-4">
               {Array.isArray(pendingQPs) && pendingQPs.map((qp) => (
-                <Card key={qp.id} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{qp.subject} - {qp.test_type}</h3>
+                <Card key={qp.id} className="p-4 sm:p-5">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="w-full">
+                      <div className="flex items-center flex-wrap gap-2 mb-2">
+                        <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type}</h3>
                         {qp.status && (
                           (() => {
                             const s = qp.status;
@@ -395,27 +395,30 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                           })()
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
-                      <p className="text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
-                      {qp.branch && (
-                        <p className="text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
-                      )}
-                      {qp.last_action ? (
-                        <div>
-                          <p className="text-sm text-muted-foreground">Last: {qp.last_action.action} by {qp.last_action.actor} ({qp.last_action.role})</p>
-                          {qp.last_action.comment ? (
-                            <p className="text-sm text-muted-foreground">Comment: {qp.last_action.comment}</p>
-                          ) : null}
-                        </div>
-                      ) : null}
+                      <div className="space-y-1 sm:space-y-0.5">
+                        <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
+                        <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
+                        {qp.branch && (
+                          <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
+                        )}
+                        {qp.last_action ? (
+                          <div className="mt-1">
+                            <p className="text-[16px] sm:text-sm text-muted-foreground">Last: {qp.last_action.action} by {qp.last_action.actor} ({qp.last_action.role})</p>
+                            {qp.last_action.comment ? (
+                              <p className="text-[16px] sm:text-sm text-muted-foreground">Comment: {qp.last_action.comment}</p>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex w-full sm:w-auto gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => { setSelectedQP(qp); setQpDetail(null); fetchQPDetail(qp.id); setDialogOpen(true); }}
+                        className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold sm:font-normal"
                       >
-                        <Eye className="w-4 h-4 mr-1" />
+                        <Eye className="w-4 h-4 mr-1 sm:mr-2" />
                         Review
                       </Button>
                     </div>
@@ -425,31 +428,33 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
           )}
           {pendingPagination && (pendingPagination.next || pendingPagination.previous) && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-4">
+              <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
                 Showing page {pendingPage} of {pendingPagination.total_pages} — {pendingPagination.count} entries
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPendingPage(prev => Math.max(1, prev - 1))}
                   disabled={pendingPage === 1 || !pendingPagination.previous}
+                  className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Prev
                 </Button>
-                <span className="text-sm">
-                  Page {pendingPage} of {pendingPagination.total_pages}
+                <span className="text-[16px] sm:text-sm font-medium px-2">
+                  {pendingPage} / {pendingPagination.total_pages}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPendingPage(prev => prev + 1)}
                   disabled={!pendingPagination.next}
+                  className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal"
                 >
                   Next
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </div>
@@ -478,11 +483,11 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           ) : (
             <div className="space-y-4">
               {Array.isArray(finalizedQPs) && finalizedQPs.map((qp) => (
-                <Card key={`final-${qp.id}`} className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{qp.subject} - {qp.test_type}</h3>
+                <Card key={`final-${qp.id}`} className="p-4 sm:p-5">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="w-full">
+                      <div className="flex items-center flex-wrap gap-2 mb-2">
+                        <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type}</h3>
                         {qp.status && (
                           (() => {
                             const s = qp.status;
@@ -493,13 +498,15 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                           })()
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
-                      <p className="text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
-                      {qp.branch && (
-                        <p className="text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
-                      )}
+                      <div className="space-y-1 sm:space-y-0.5">
+                        <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
+                        <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
+                        {qp.branch && (
+                          <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex w-full sm:w-auto gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -509,8 +516,9 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                           fetchQPDetail(qp.id);
                           setDialogOpen(true);
                         }}
+                        className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold bg-primary text-white hover:bg-primary/90 hover:text-white sm:font-semibold"
                       >
-                        <Eye className="w-4 h-4 mr-1" />
+                        <Eye className="w-4 h-4 mr-1 sm:mr-2" />
                         View
                       </Button>
                     </div>
@@ -520,31 +528,33 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
           )}
           {finalizedPagination && (finalizedPagination.next || finalizedPagination.previous) && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-4">
+              <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
                 Showing page {finalizedPage} of {finalizedPagination.total_pages} — {finalizedPagination.count} entries
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setFinalizedPage(prev => Math.max(1, prev - 1))}
                   disabled={finalizedPage === 1 || !finalizedPagination.previous}
+                  className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Prev
                 </Button>
-                <span className="text-sm">
-                  Page {finalizedPage} of {finalizedPagination.total_pages}
+                <span className="text-[16px] sm:text-sm font-medium px-2">
+                  {finalizedPage} / {finalizedPagination.total_pages}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setFinalizedPage(prev => prev + 1)}
                   disabled={!finalizedPagination.next}
+                  className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal"
                 >
                   Next
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </div>

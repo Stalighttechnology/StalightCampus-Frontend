@@ -79,8 +79,8 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
         <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-white shadow-md'} mb-6`}>
           <AlertCircle className="h-16 w-16 text-primary/40" />
         </div>
-        <h3 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Dashboard Data Found</h3>
-        <p className={`text-base mt-2 max-w-sm mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+        <h3 className={`text-[26px] sm:text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Dashboard Data Found</h3>
+        <p className={`text-[18px] sm:text-base mt-2 max-w-sm mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
           We were unable to retrieve the dashboard statistics. This might be due to a connection issue or lack of data.
         </p>
         <button 
@@ -167,8 +167,8 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
               <span className={`text-2xl ${item.color}`}>{item.icon}</span>
             </div>
             <div>
-              <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{item.title}</p>
-              <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.value}</p>
+              <p className={`text-[16px] sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{item.title}</p>
+              <p className={`text-[26px] sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.value}</p>
             </div>
           </div>
         ))}
@@ -179,9 +179,9 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
         {/* Application Trend Chart */}
         <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border`}>
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold">Application Trends</h3>
+            <h3 className="text-[20px] sm:text-lg font-semibold">Application Trends</h3>
           </div>
-          <p className="text-sm mb-6 text-muted-foreground">Weekly application submission volume</p>
+          <p className="text-[16px] sm:text-sm mb-6 text-muted-foreground">Weekly application submission volume</p>
           <div className="min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={trendData}>
@@ -201,16 +201,16 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
         {/* Status Distribution Pie Chart */}
         <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border`}>
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold">Application Status</h3>
+            <h3 className="text-[20px] sm:text-lg font-semibold">Application Status</h3>
           </div>
-          <p className="text-sm mb-6 text-muted-foreground">Distribution of exam application statuses</p>
+          <p className="text-[16px] sm:text-sm mb-6 text-muted-foreground">Distribution of exam application statuses</p>
           <div className="min-h-[250px] focus:outline-none">
             {totalApplications === 0 ? (
               <div className="flex flex-col items-center justify-center h-[250px] text-center space-y-3">
                 <div className={`p-4 rounded-full bg-primary/10 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
                   <FileText className="h-8 w-8 text-primary/30" />
                 </div>
-                <p className="text-sm text-muted-foreground font-semibold">No applications submitted yet</p>
+                <p className="text-[16px] sm:text-sm text-muted-foreground font-semibold">No applications submitted yet</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={250}>
@@ -252,74 +252,122 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
         {/* Recent Published Results Table */}
         <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border flex flex-col h-full`}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Recent Published Results</h3>
-            <a href="/coe/publish-results" className={`text-sm font-medium px-4 py-2 rounded-md transition ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>
+            <h3 className="text-[20px] sm:text-lg font-semibold">Recent Published Results</h3>
+            <a href="/coe/publish-results" className={`text-[16px] sm:text-sm font-medium border border-border px-4 py-2 rounded-md transition ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>
               View All
             </a>
           </div>
           
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full">
-              <thead className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                <tr className="text-left text-sm text-muted-foreground">
-                  <th className="py-3 px-4 font-medium">Batch / Details</th>
-                  <th className="py-3 px-4 font-medium hidden sm:table-cell">Published Date</th>
-                  <th className="py-3 px-4 font-medium text-right">Action Links</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(!stats.published_results_summary || stats.published_results_summary.recent_published_results.length === 0) ? (
-                  <tr>
-                    <td colSpan={3} className="py-24 text-center">
-                      <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className={`p-6 rounded-full bg-primary/10  ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
-                          <CheckCircle className="h-10 w-10 text-primary/30" />
-                        </div>
-                        <p className="text-base text-muted-foreground font-semibold">No recent published results found</p>
-                        <p className="text-xs text-muted-foreground/60 max-w-[200px] mx-auto leading-relaxed">
-                          Once results are published, they will appear here for quick access.
-                        </p>
-                      </div>
-                    </td>
+          <div className="flex-1">
+            {/* Mobile View: Div List */}
+            <div className="sm:hidden space-y-1">
+              <div className={`flex justify-between pb-3 border-b mb-2 ${theme === 'dark' ? 'border-border' : 'border-gray-200'} text-[16px] text-muted-foreground font-medium`}>
+                <div className="px-1">Batch / Details</div>
+                <div className="px-1 text-right">Action Links</div>
+              </div>
+
+              {(!stats.published_results_summary || stats.published_results_summary.recent_published_results.length === 0) ? (
+                <div className="py-24 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <div className={`p-6 rounded-full bg-primary/10  ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                      <CheckCircle className="h-10 w-10 text-primary/30" />
+                    </div>
+                    <p className="text-[18px] text-muted-foreground font-semibold">No recent published results found</p>
+                  </div>
+                </div>
+              ) : (
+                (stats.published_results_summary.recent_published_results || []).slice(0, 5).map((pr: any, idx) => (
+                  <div key={idx} className={`flex justify-between items-center py-4 border-b last:border-none transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-100 hover:bg-gray-50'} px-1`}>
+                    <div className="flex flex-col min-w-0 pr-4">
+                      <div className="font-bold text-[16px] text-primary truncate">{pr.batch_name}</div>
+                      <div className="text-[14px] text-muted-foreground mt-0.5">Sem {pr.semester_number} • {pr.exam_period}</div>
+                      <div className="text-[12px] text-muted-foreground mt-1 whitespace-nowrap">{pr.published_at}</div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          const url = `${window.location.origin}/results/view/${pr.token}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success('Link copied to clipboard!');
+                        }}
+                        className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[14px] font-medium transition ${theme === 'dark' ? 'bg-muted/50 hover:bg-muted text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                        title="Copy Link"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span className="hidden xs:inline">Copy Link</span>
+                        <span className="xs:hidden">Copy</span>
+                      </button>
+                      <button
+                        onClick={() => window.open(`/results/view/${pr.token}`, '_blank')}
+                        className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[14px] font-medium transition ${theme === 'dark' ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
+                        title="Open Link"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        <span className="hidden xs:inline">Open Link</span>
+                        <span className="xs:hidden">Open</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Tablet/Desktop View: Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full">
+                <thead className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                  <tr className="text-left text-sm text-muted-foreground">
+                    <th className="py-3 px-4 font-medium">Batch / Details</th>
+                    <th className="py-3 px-4 font-medium">Published Date</th>
+                    <th className="py-3 px-4 font-medium text-right">Action Links</th>
                   </tr>
-                ) : (
-                  (stats.published_results_summary.recent_published_results || []).slice(0, 5).map((pr: any, idx) => (
-                    <tr key={idx} className={`border-b last:border-none transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-100 hover:bg-gray-50'}`}>
-                      <td className="py-4 px-4">
-                        <div className="font-medium text-sm text-primary">{pr.batch_name}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">Sem {pr.semester_number} • {pr.exam_period}</div>
-                        <span className="text-[10px] text-muted-foreground sm:hidden block mt-1">{pr.published_at}</span>
-                      </td>
-                      <td className="py-4 px-4 text-sm text-muted-foreground hidden sm:table-cell whitespace-nowrap">{pr.published_at}</td>
-                      <td className="py-4 px-4 text-right">
-                        <div className="flex justify-end gap-3">
-                          <button
-                            onClick={() => {
-                              const url = `${window.location.origin}/results/view/${pr.token}`;
-                              navigator.clipboard.writeText(url);
-                              toast.success('Link copied to clipboard!');
-                            }}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-muted/50 hover:bg-muted text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
-                            title="Copy Link"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            Copy Link
-                          </button>
-                          <button
-                            onClick={() => window.open(`/results/view/${pr.token}`, '_blank')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
-                            title="Open Link"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                            Open Link
-                          </button>
-                        </div>
+                </thead>
+                <tbody>
+                  {(!stats.published_results_summary || stats.published_results_summary.recent_published_results.length === 0) ? (
+                    <tr>
+                      <td colSpan={3} className="py-24 text-center">
+                        <p className="text-base text-muted-foreground font-semibold">No recent published results found</p>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    (stats.published_results_summary.recent_published_results || []).slice(0, 5).map((pr: any, idx) => (
+                      <tr key={idx} className={`border-b last:border-none transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                        <td className="py-4 px-4">
+                          <div className="font-medium text-sm text-primary">{pr.batch_name}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Sem {pr.semester_number} • {pr.exam_period}</div>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-muted-foreground whitespace-nowrap">{pr.published_at}</td>
+                        <td className="py-4 px-4 text-right">
+                          <div className="flex justify-end gap-3">
+                            <button
+                              onClick={() => {
+                                const url = `${window.location.origin}/results/view/${pr.token}`;
+                                navigator.clipboard.writeText(url);
+                                toast.success('Link copied to clipboard!');
+                              }}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-muted/50 hover:bg-muted text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                              title="Copy Link"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                              Copy Link
+                            </button>
+                            <button
+                              onClick={() => window.open(`/results/view/${pr.token}`, '_blank')}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
+                              title="Open Link"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                              Open Link
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

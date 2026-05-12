@@ -202,15 +202,15 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <Card ref={ref} className={`w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-      <CardHeader className=" flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
         <div className="flex-1 min-w-0">
-          <CardTitle >COE Profile</CardTitle>
-          <p className={`text-xs sm:text-sm mt-1 line-clamp-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage your profile and account details</p>
+          <CardTitle className="text-xl sm:text-xl md:text-2xl font-semibold">COE Profile</CardTitle>
+          <p className={`text-[16px] sm:text-sm mt-1 line-clamp-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage your profile and account details</p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
           <Button
-            className="text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90"
+            className="text-[16px] sm:text-md px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto bg-primary text-white border-primary hover:bg-primary/90"
             onClick={() => {
               if (editing) {
                 handleUpdateProfile();
@@ -224,7 +224,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
           {editing && (
             <button
               onClick={handleCancelEdit}
-              className={`text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 border rounded-md transition-colors ${theme === 'dark' ? 'border-muted-foreground text-muted-foreground hover:border-foreground hover:text-foreground' : 'border-gray-600 text-gray-600 hover:border-gray-900 hover:text-gray-900'}`}
+              className={`text-md sm:text-xl px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto border rounded-md transition-colors ${theme === 'dark' ? 'border-muted-foreground text-muted-foreground hover:border-foreground hover:text-foreground' : 'border-gray-600 text-gray-600 hover:border-gray-900 hover:text-gray-900'}`}
             >
               Cancel
             </button>
@@ -232,7 +232,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
 
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogTrigger asChild>
-              <Button className="text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">
+              <Button className="text-[16px] sm:text-md px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto bg-primary text-white border-primary hover:bg-primary/90">
                 Change Password
               </Button>
             </DialogTrigger>
@@ -242,14 +242,14 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="current_password">Current Password</Label>
-                  <div className="relative">
+                  <Label htmlFor="current_password" className="text-[16px] sm:text-sm font-semibold">Current Password</Label>
+                  <div className="relative mt-1">
                     <Input
                       id="current_password"
                       type={showPasswords.current ? "text" : "password"}
                       value={passwordData.current_password}
                       onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                      className="pr-10"
+                      className="pr-10 h-12 text-[18px] sm:text-sm"
                     />
                     <button
                       type="button"
@@ -262,14 +262,14 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="new_password">New Password</Label>
-                  <div className="relative">
+                  <Label htmlFor="new_password" className="text-[16px] sm:text-sm font-semibold">New Password</Label>
+                  <div className="relative mt-1">
                     <Input
                       id="new_password"
                       type={showPasswords.next ? "text" : "password"}
                       value={passwordData.new_password}
                       onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                      className="pr-10"
+                      className="pr-10 h-12 text-[18px] sm:text-sm"
                     />
                     <button
                       type="button"
@@ -282,14 +282,14 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="confirm_password">Confirm New Password</Label>
-                  <div className="relative">
+                  <Label htmlFor="confirm_password" className="text-[16px] sm:text-sm font-semibold">Confirm New Password</Label>
+                  <div className="relative mt-1">
                     <Input
                       id="confirm_password"
                       type={showPasswords.confirm ? "text" : "password"}
                       value={passwordData.confirm_password}
                       onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                      className="pr-10"
+                      className="pr-10 h-12 text-[18px] sm:text-sm"
                     />
                     <button
                       type="button"
@@ -301,11 +301,11 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </button>
                   </div>
                 </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>
+                <div className="flex justify-end space-x-2 pt-2">
+                  <Button variant="outline" className="h-12 sm:h-auto text-[18px] sm:text-sm" onClick={() => setShowPasswordDialog(false)}>
                     Cancel
                   </Button>
-                  <Button className="font-medium bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={handleChangePassword}>
+                  <Button className="h-12 sm:h-auto text-[18px] sm:text-sm font-medium bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={handleChangePassword}>
                     Change Password
                   </Button>
                 </div>
@@ -321,20 +321,20 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 flex-shrink-0">
               {profile.first_name?.[0]}{profile.last_name?.[0]}
             </div>
-            <div className="text-base sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
-            <div className={`text-xs sm:text-sm mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Controller of Examinations</div>
+            <div className="text-md sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
+            <div className={`text-md sm:text-md mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Controller of Examinations</div>
 
             <div className="w-full mt-4 sm:mt-6 flex-1 flex flex-col">
-              <h4 className={`text-xs sm:text-sm font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+              <h4 className={`text-[16px] sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
               <div className={`border rounded-lg p-2.5 sm:p-4 flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5 h-full">
                   <div className="flex flex-col justify-start">
-                    <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Role</span>
-                    <span className={`text-xs sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.role || '—'}</span>
+                    <span className={`text-[16px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Role</span>
+                    <span className={`text-[18px] sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.role || '—'}</span>
                   </div>
                   <div className="flex flex-col justify-start">
-                    <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</span>
-                    <span className={`text-xs sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.designation || '—'}</span>
+                    <span className={`text-[16px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</span>
+                    <span className={`text-[18px] sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.designation || '—'}</span>
                   </div>
                 </div>
               </div>
@@ -343,8 +343,8 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
 
           <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
             <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
-              <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
-              <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
+              <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
+              <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
             </div>
 
             <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
@@ -352,29 +352,29 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <div className="space-y-4 sm:space-y-5 md:space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                     <div>
-                      <Label htmlFor="first_name" className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</Label>
+                      <Label htmlFor="first_name" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</Label>
                       <Input
                         id="first_name"
                         value={formData.first_name}
                         disabled={!editing}
                         onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                        className="text-xs sm:text-sm h-8 sm:h-9 md:h-10 w-full"
+                        className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="last_name" className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</Label>
+                      <Label htmlFor="last_name" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</Label>
                       <Input
                         id="last_name"
                         value={formData.last_name}
                         disabled={!editing}
                         onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                        className="text-xs sm:text-sm h-8 sm:h-9 md:h-10 w-full"
+                        className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="username_view" className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Username</Label>
-                    <Input id="username_view" value={profile.username} disabled className="text-xs sm:text-sm h-8 sm:h-9 md:h-10 w-full" />
+                    <Label htmlFor="username_view" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Username</Label>
+                    <Input id="username_view" value={profile.username} disabled className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full" />
                   </div>
                 </div>
               )}
@@ -382,45 +382,45 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
               {activeTab === 'contact' && (
                 <div className="space-y-4 sm:space-y-5">
                   <div>
-                    <Label htmlFor="email" className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</Label>
+                    <Label htmlFor="email" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</Label>
                     <Input
                       id="email"
                       type="email"
                       value={formData.email}
                       disabled={!editing}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="text-xs sm:text-sm h-8 sm:h-10"
+                      className="text-[18px] sm:text-sm h-12 sm:h-10"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone_number" className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Phone Number</Label>
+                    <Label htmlFor="phone_number" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Phone Number</Label>
                     <Input
                       id="phone_number"
                       value={formData.phone_number}
                       disabled={!editing}
                       onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                      className="text-xs sm:text-sm h-8 sm:h-10"
+                      className="text-[18px] sm:text-sm h-12 sm:h-10"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="address" className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</Label>
+                    <Label htmlFor="address" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</Label>
                     <Textarea
                       id="address"
                       rows={3}
                       value={formData.address}
                       disabled={!editing}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="text-xs sm:text-sm"
+                      className="text-[18px] sm:text-sm"
                     />
                   </div>
                 </div>
               )}
 
               <div className="pt-4 border-t mt-4">
-                <div className="space-y-3 text-sm text-muted-foreground">
+                <div className="space-y-3 text-[16px] sm:text-sm text-muted-foreground">
                   {profile.last_login && (
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
+                      <Calendar className="h-5 w-5 sm:h-4 sm:w-4" />
                       <span>Last Login: {new Date(profile.last_login).toLocaleString()}</span>
                     </div>
                   )}

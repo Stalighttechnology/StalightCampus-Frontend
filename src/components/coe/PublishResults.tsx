@@ -100,7 +100,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     if (stu.success) {
       const studentList = stu.data?.students || [];
       setStudents(studentList);
-      setStudentsPagination(stu.data?.pagination || null);
+      setStudentsPagination(stu.pagination || null);
       setStudentsPage(page || 1);
       // mark this page as clean when freshly loaded
       setDirtyPages(prev => ({ ...(prev || {}), [page || 1]: false }));
@@ -446,30 +446,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm text-muted-foreground">Showing {students.length} students</div>
             <div className="flex gap-3 items-center pr-1">
-              {/* page size selector */}
-              <div className="flex items-center gap-2 px-2 py-1 rounded-md">
-                <label htmlFor="publish-results-page-size" className={`text-sm leading-none ${theme === 'dark' ? 'text-muted-foreground' : ''}`}>Page size</label>
-                <Select
-                  value={String(studentsPageSize)}
-                  onValueChange={(v) => {
-                    const size = Number(v);
-                    setStudentsPageSize(size);
-                    if (upload) navigateToPage(1, size);
-                  }}
-                >
-                  <SelectTrigger id="publish-results-page-size" className={`w-20 h-9 px-3 ${theme === 'dark' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-foreground border-gray-300'}`}>
-                    <SelectValue placeholder="Size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-            
+              {/* Pagination controls will follow below the table */}
             </div>
           </div>
             {studentsLoading ? (
@@ -514,7 +491,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 }
                                 await handleToggleWithhold(s.student_id, s.name, s.published_result_id, s.is_withheld);
                               }}
-                              className="text-xs"
+                              className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
                             >
                               {s.is_withheld ? "Release Result" : "Withhold Result"}
                             </Button>
@@ -526,15 +503,15 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <table className="table-auto w-full min-w-[980px] border-collapse">
                         <thead>
                           <tr>
-                            <th className="border px-2 py-1 whitespace-nowrap">Subject Code</th>
-                            <th className="border px-2 py-1 whitespace-nowrap">Subject Title</th>
-                            <th className="border px-2 py-1 whitespace-nowrap">CIE</th>
-                            <th className="border px-2 py-1 whitespace-nowrap">SEE</th>
-                            <th className="border px-2 py-1 whitespace-nowrap">Total Marks</th>
-                            <th className="border px-2 py-1 whitespace-nowrap">Result</th>
-                            <th className="border px-2 py-1 whitespace-nowrap">Grade</th>
-                            <th className="border px-2 py-1 whitespace-nowrap">Grade Point</th>
-                            <th className="border px-2 py-1 whitespace-nowrap">Credits Assigned</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">Subject Code</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">Subject Title</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">CIE</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">SEE</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">Total Marks</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">Result</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">Grade</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">Grade Point</th>
+                            <th className="border font-semibold px-2 py-1 whitespace-nowrap">Credits Assigned</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -645,50 +622,70 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
             )}
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <div className="flex items-center gap-3 mr-auto">
-              <button className="px-3 py-1 rounded border text-sm bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50" disabled={studentsPage <= 1} onClick={() => {
-                if (!upload) return;
-                navigateToPage(Math.max(1, studentsPage - 1));
-              }}>Previous</button>
-
-              {/* page numbers (windowed) */}
-              {(() => {
-                const ui = paginationToUI(studentsPagination || {}, [], studentsPageSize);
-                const totalPages = ui.count ? Math.max(1, Math.ceil(ui.count / studentsPageSize)) : ui.total_pages || 1;
-                const maxButtons = 20;
-                let start = 1, end = totalPages;
-                if (totalPages > maxButtons) {
-                  const half = Math.floor(maxButtons / 2);
-                  start = Math.max(1, studentsPage - half);
-                  end = Math.min(totalPages, start + maxButtons - 1);
-                  if (end - start < maxButtons - 1) start = Math.max(1, end - maxButtons + 1);
-                }
-                const pages = [];
-                for (let p = start; p <= end; p++) pages.push(p);
-                return (
-                  <div className="flex gap-1">
-                      {pages.map(p => (
-                        <button
-                          key={p}
-                          className={`px-2 py-1 rounded border text-xs ${p === studentsPage ? (theme === 'dark' ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-primary text-primary') : (theme === 'dark' ? 'bg-slate-800 border-slate-700 text-muted-foreground' : 'bg-white border-gray-300 text-gray-700')}`}
-                          onClick={() => upload && navigateToPage(p)}
-                        >{p}</button>
-                    ))}
-                  </div>
-                );
-              })()}
-
-              <button className="px-3 py-1 rounded border text-sm bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50" disabled={!studentsPagination?.next} onClick={() => {
-                if (!upload) return;
-                navigateToPage(studentsPage + 1);
-              }}>Next</button>
+          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between mt-8 gap-6 border-t pt-6">
+            <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
+              {studentsPagination?.count > 0 
+                ? `Showing ${(studentsPage - 1) * studentsPageSize + 1} to ${Math.min(studentsPage * studentsPageSize, studentsPagination?.count || 0)} of ${studentsPagination?.count || 0} students` 
+                : `Showing 0 students`}
             </div>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!upload) return;
+                    navigateToPage(Math.max(1, studentsPage - 1));
+                  }}
+                  disabled={studentsPage === 1}
+                  className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50"
+                >
+                  Prev
+                </Button>
 
-            <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={handleSave} disabled={saving || upload?.is_published}>{saving ? 'Saving...' : 'Save Marks'}</Button>
-            {upload?.is_published && (
-              <Button onClick={() => setUnpublishModalOpen(true)} variant="destructive">Unpublish</Button>
-            )}
+                <div className="flex items-center">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary/5"
+                  >
+                    {studentsPage}
+                  </Button>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!upload) return;
+                    navigateToPage(studentsPage + 1);
+                  }}
+                  disabled={!studentsPagination?.next}
+                  className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50"
+                >
+                  Next
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button 
+                  className="flex-1 sm:flex-none h-12 sm:h-9 px-6 sm:px-4 text-[18px] sm:text-sm font-bold sm:font-semibold bg-primary text-white border-primary hover:bg-primary/90" 
+                  onClick={handleSave} 
+                  disabled={saving || upload?.is_published}
+                >
+                  {saving ? 'Saving...' : 'Save Marks'}
+                </Button>
+                {upload?.is_published && (
+                  <Button 
+                    onClick={() => setUnpublishModalOpen(true)} 
+                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                  >
+                    Unpublish
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
           {/* Navigation confirmation modal */}
           <Dialog open={navModalOpen} onOpenChange={setNavModalOpen}>

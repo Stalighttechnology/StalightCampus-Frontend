@@ -4,24 +4,11 @@
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    padding: 0 16px;
     overflow-x: hidden;
   }
 
-  .course-statistics-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .course-statistics-header h1 {
-    font-size: 24px;
-    line-height: 1.2;
-  }
-
   .course-statistics-filters-content {
-    padding: 12px;
-    min-width: 0;
+    padding: 16px;
   }
 
   .course-statistics-filter-grid {
@@ -30,132 +17,114 @@
   }
 
   .course-statistics-filter-grid label {
-    font-size: 13px;
-    margin-bottom: 6px;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px;
   }
 
   .course-statistics-summary {
     grid-template-columns: 1fr;
     gap: 12px;
-    min-width: 0;
   }
 
   .course-statistics-summary-card {
-    min-width: 0;
+    padding: 12px;
   }
 
   .course-statistics-table-card {
     width: 100%;
     max-width: 100%;
-    min-width: 0;
-  }
-
-  .course-statistics-table-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .course-statistics-table-header h2,
-  .course-statistics-table-header h3,
-  .course-statistics-table-header [data-slot="card-title"] {
-    font-size: 16px;
-    line-height: 1.3;
-  }
-
-  .course-statistics-export-button {
-    width: 100%;
-    justify-content: center;
-    min-height: 40px;
-  }
-
-  .course-statistics-table-wrapper {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    min-width: 0;
   }
 
   .course-statistics-table-wrapper table {
-    font-size: 13px;
-    min-width: 100%;
+    font-size: 18px !important;
   }
 
+  /* Table - convert to mobile card layout */
   .course-statistics-table-wrapper thead {
-    display: none;
+    display: none !important;
   }
 
   .course-statistics-table-wrapper tbody {
-    display: block;
+    display: block !important;
   }
 
   .course-statistics-table-wrapper tr {
-    display: block;
-    margin-bottom: 12px;
-    padding: 12px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: #fff;
+    display: block !important;
+    margin-bottom: 16px !important;
+    padding: 16px !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
 
   .course-statistics-table-wrapper td {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 6px 0;
-    border: 0;
-    text-align: left;
-    min-width: 0;
+    display: grid !important;
+    grid-template-columns: 130px 1fr !important; /* Fixed width for labels, rest for values */
+    gap: 12px !important;
+    border: 0 !important;
+    text-align: left !important;
+    align-items: start !important;
+    font-size: 18px !important;
+  }
+
+  .course-statistics-table-wrapper td[data-label="Status"] {
+    align-items: center !important;
+  }
+
+  .course-statistics-table-wrapper td[data-label="Status"] > * {
+    justify-self: start !important;
+    width: fit-content !important;
   }
 
   .course-statistics-table-wrapper td[data-label]::before {
     content: attr(data-label);
-    font-weight: 600;
-    color: #374151;
-    flex: 0 0 104px;
-    min-width: 104px;
-    font-size: 12px;
+    font-weight: 600 !important;
+    color: #1f2937 !important; /* Darker for better contrast */
+    font-size: 18px !important;
+    display: block !important;
   }
 
-  .course-statistics-pagination {
+  /* Pagination */
+  .pagination-container {
     flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    gap: 20px;
   }
 
-  .course-statistics-pagination > div:last-child {
+  .pagination-info {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    text-align: center;
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 8px;
-    align-items: center;
   }
 
-  .course-statistics-pagination > div:last-child > * {
-    margin-left: 0 !important;
-  }
-
-  .course-statistics-pagination button {
+  .pagination-controls {
     width: 100%;
-    min-height: 36px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
   }
 
-  .course-statistics-page-indicator {
-    min-width: 36px;
-    height: 36px;
-    padding: 0 8px;
-    font-size: 13px;
+  .pagination-controls button {
+    flex: 1;
+    min-height: 48px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
   }
 
-  .course-statistics-main .text-3xl {
-    font-size: 24px;
+  /* Utilities */
+  .text-3xl {
+    font-size: 28px !important;
   }
 
-  .course-statistics-main .text-2xl {
-    font-size: 18px;
+  .text-2xl {
+    font-size: 24px !important;
   }
 
-  .course-statistics-main .text-sm {
-    font-size: 13px;
+  .text-sm {
+    font-size: 18px !important;
   }
 }
+
+

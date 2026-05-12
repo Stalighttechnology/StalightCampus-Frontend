@@ -293,31 +293,31 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
         {/* Leave Application Form - Left Side */}
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
-            <CardTitle>Leave Application Form</CardTitle>
+            <CardTitle className={`text-xl sm:text-xl lg:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
             {/* Title */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label htmlFor="title" className={`text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
+              <Label htmlFor="title" className={`text-base sm:text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
               <input
                 id="title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter leave request title"
-                className={`w-full text-xs sm:text-sm h-8 sm:h-9 lg:h-10 px-3 rounded-md border ${theme === 'dark' ? 'bg-background text-foreground border-border focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]' : 'bg-white text-gray-900 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]'}`}
+                className={`w-full text-base sm:text-sm h-12 sm:h-10 px-3 rounded-md border ${theme === 'dark' ? 'bg-background text-foreground border-border focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]' : 'bg-white text-gray-900 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]'}`}
                 required
               />
             </div>
 
             {/* Date Range */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label className={`text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range <span className="text-red-500">*</span></Label>
+              <Label className={`text-base sm:text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range <span className="text-red-500">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-full justify-start text-left font-normal text-xs sm:text-sm h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}`}
+                    className={`w-full justify-start text-left font-normal text-base sm:text-sm h-12 sm:h-10 ${theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}`}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dateRange?.from ? (
@@ -355,13 +355,13 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             {/* Reason */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label htmlFor="reason" className={`text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason <span className="text-red-500">*</span></Label>
+              <Label htmlFor="reason" className={`text-base sm:text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason <span className="text-red-500">*</span></Label>
               <Textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Please provide a detailed reason for your leave request"
-                className={`min-h-[60px] sm:min-h-[80px] lg:min-h-[100px] text-xs sm:text-sm ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                className={`min-h-[100px] lg:min-h-[120px] text-base sm:text-sm ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
                 required
               />
             </div>
@@ -370,7 +370,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
             <Button
               type="submit"
               onClick={handleSubmit}
-              className={`w-full text-xs sm:text-sm h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary' : 'text-white bg-primary hover:bg-primary/90 border-primary'}`}
+              className={`w-full text-base sm:text-sm h-12 sm:h-10 font-semibold ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary shadow-md' : 'text-white bg-primary hover:bg-primary/90 border-primary shadow-md'}`}
               disabled={submitting}
             >
               {submitting ? "Submitting..." : "Submit Request"}
@@ -381,10 +381,10 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
         {/* Leave Requests List - Right Side */}
         <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
-            {/* Title */}
-            <CardTitle>
-              Leave Requests
-            </CardTitle>
+            <div>
+              <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
+              <p className={`text-sm hidden sm:block ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+            </div>
 
             {/* Filter Button */}
             <div className="flex-shrink-0">
@@ -393,16 +393,16 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-8 sm:h-9 lg:h-10 px-2 sm:px-3 lg:px-4 whitespace-nowrap"
+                    className="flex items-center gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-base sm:text-sm h-10 sm:h-9 px-3 sm:px-4 whitespace-nowrap"
                   >
-                    <Filter className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
+                    <Filter className="w-4 h-4" />
                     <span className="hidden sm:inline">Filter</span>
                   </Button>
                 </PopoverTrigger>
 
                 <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark'
-                    ? 'bg-card text-foreground border-border'
-                    : 'bg-white text-gray-900 border-gray-200'
+                  ? 'bg-card text-foreground border-border'
+                  : 'bg-white text-gray-900 border-gray-200'
                   }`}>
                   <div className="space-y-2">
 
@@ -414,12 +414,12 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                           setFilterOpen(false);
                         }}
                         className={`w-full text-left px-2 py-1 rounded text-xs sm:text-sm hover:bg-accent transition-colors ${filterStatus === status
-                            ? theme === 'dark'
-                              ? 'bg-accent text-accent-foreground'
-                              : 'bg-gray-100 text-gray-900'
-                            : theme === 'dark'
-                              ? 'text-foreground'
-                              : 'text-gray-700'
+                          ? theme === 'dark'
+                            ? 'bg-accent text-accent-foreground'
+                            : 'bg-gray-100 text-gray-900'
+                          : theme === 'dark'
+                            ? 'text-foreground'
+                            : 'text-gray-700'
                           }`}
                       >
                         {status}
@@ -442,72 +442,100 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <CalendarIcon className="h-14 w-14 text-primary/30" />
                 </div>
                 <h3 className={`text-xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                  {filterStatus === 'All' ? 'No Leave Requests' : `No ${filterStatus} Requests`}
+                  No applications
                 </h3>
                 <p className={`text-sm mt-2 max-w-xs mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                   {filterStatus === 'All'
-                    ? "You haven't submitted any leave requests yet. Your request history will appear here."
-                    : `There are no ${filterStatus.toLowerCase()} leave requests matching your current filter.`}
+                    ? "You haven't submitted any leave requests recently."
+                    : `There are no ${filterStatus.toLowerCase()} requests matching your filter.`}
                 </p>
               </div>
             ) : (
-              <div
-                className="max-h-[250px] sm:max-h-[450px] lg:max-h-[490px] overflow-y-auto custom-scrollbar space-y-1 sm:space-y-2 lg:space-y-3 border-r border-gray-200 dark:border-border"
-                style={{ scrollbarWidth: 'thin' }}
-              >
-                {filteredLeaveList.map((leave) => {
-                  console.log('Rendering leave card with status:', leave.status);
-                  return (
-                    <div key={leave.id} className={`p-1.5 sm:p-2 lg:p-3 border rounded-lg ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}>
-                      <div className="flex justify-between items-start gap-1.5 sm:gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className={`font-semibold mb-0.5 sm:mb-1 text-xs sm:text-sm truncate ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</div>
-                          <div className={`text-xs mb-0.5 sm:mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            From: {leave.start_date} To: {leave.end_date}
-                          </div>
-                          <div className="mb-0.5 sm:mb-1">
-                            <button
-                              onClick={() => setViewReason(leave.reason)}
-                              className={`text-xs font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-primary/20 text-gray-700 hover:bg-gray-50'}`}
-                            >
-                              View Reason
-                            </button>
-                          </div>
-                          <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Applied: {leave.applied_on}</div>
-                        </div>
-                        <div className="ml-1 sm:ml-2 flex-shrink-0">
-                          {renderStatus(leave.status)}
-                        </div>
+              <div className="space-y-4">
+                {/* Mobile View: Cards */}
+                <div className="sm:hidden space-y-3 max-h-[500px] overflow-y-auto thin-scrollbar">
+                  {filteredLeaveList.map((leave) => (
+                    <div key={leave.id} className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="font-semibold text-base truncate pr-2">{leave.title}</div>
+                        <div className="shrink-0">{renderStatus(leave.status)}</div>
+                      </div>
+                      <div className={`text-sm mb-3 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        {leave.start_date} to {leave.end_date}
+                      </div>
+                      <div className="flex items-center justify-between mt-auto">
+                        <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Applied: {leave.applied_on}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={`h-9 px-4 text-sm font-semibold ${theme === 'dark' ? 'bg-muted/20 text-foreground border-border' : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'}`}
+                          onClick={() => setViewReason(leave.reason)}
+                        >
+                          View Reason
+                        </Button>
                       </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+
+                {/* Tablet/Desktop View: Table */}
+                <div className="hidden sm:block overflow-x-auto thin-scrollbar">
+                  <table className="w-full text-sm text-left border-collapse">
+                    <thead className={`border-b ${theme === 'dark' ? 'border-border bg-background' : 'border-gray-200 bg-gray-50'}`}>
+                      <tr>
+                        <th className="py-3 px-4 font-semibold">Title</th>
+                        <th className="py-3 px-4 font-semibold">Period</th>
+                        <th className="py-3 px-4 font-semibold">Status</th>
+                        <th className="py-3 px-4 font-semibold text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredLeaveList.map((leave) => (
+                        <tr key={leave.id} className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/30' : 'border-gray-100 hover:bg-gray-50'}`}>
+                          <td className="py-4 px-4 font-medium max-w-[200px] truncate">{leave.title}</td>
+                          <td className="py-4 px-4 whitespace-nowrap">{leave.start_date} to {leave.end_date}</td>
+                          <td className="py-4 px-4">{renderStatus(leave.status)}</td>
+                          <td className="py-4 px-4 text-right">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className={`h-8 text-xs font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border-border' : 'bg-primary/5 text-primary border-primary/10 hover:bg-primary/10'}`}
+                              onClick={() => setViewReason(leave.reason)}
+                            >
+                              View
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
             {/* Pagination Controls */}
-            {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 1 && (
-              <div className="flex items-center justify-between mt-4 text-xs sm:text-sm">
-                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
-                  Page {pagination.page} of {pagination.total_pages} ({pagination.total} total)
+            {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-6">
+                <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Showing {(pagination.page - 1) * itemsPerPage + 1} to {Math.min(pagination.page * itemsPerPage, pagination.total)} of {pagination.total} requests
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-sm rounded-lg h-8 px-3"
+                    className="h-10 sm:h-9 px-4 sm:px-6 text-base sm:text-sm font-medium text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
                     onClick={() => fetchLeaveRequests(pagination.page - 1)}
                     disabled={!pagination.has_previous}
                   >
-                    Previous
+                    Prev
                   </Button>
-                  <span className="px-3 text-sm font-bold text-primary">
+                  <span className="px-3 text-base sm:text-sm font-semibold text-primary">
                     {pagination.page}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-sm rounded-lg h-8 px-3"
+                    className="h-10 sm:h-9 px-4 sm:px-6 text-base sm:text-sm font-medium text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
                     onClick={() => fetchLeaveRequests(pagination.page + 1)}
                     disabled={!pagination.has_next}
                   >
@@ -520,31 +548,30 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
         </Card>
       </div>
 
-      {/* View Reason Dialog */}
       <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[80%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6 shadow-2xl`}>
           <DialogHeader>
-            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
+            <DialogTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
           </DialogHeader>
 
           <div
-            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words
-                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
+            className={`p-4 text-base leading-relaxed whitespace-pre-wrap break-words mt-4
+                      max-h-72 overflow-y-auto rounded-xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}
           >
             {viewReason}
           </div>
 
-          <DialogFooter>
+          <div className="flex justify-end mt-6">
             <Button
               variant="outline"
               className={theme === 'dark'
-                ? 'bg-primary text-white border border-primary hover:bg-primary/90 hover:text-white'
-                : 'bg-primary text-white border border-primary hover:bg-primary/90 hover:text-white'}
+                ? 'bg-primary text-white border border-primary hover:bg-primary/90 hover:text-white rounded-xl px-6'
+                : 'bg-primary text-white border border-primary hover:bg-primary/90 hover:text-white rounded-xl px-6'}
               onClick={() => setViewReason(null)}
             >
               Close
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

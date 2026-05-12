@@ -151,7 +151,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
         <CardContent className="p-6 course-statistics-filters-content">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 course-statistics-filter-grid">
             <div>
-              <label className="text-sm font-medium mb-2 block">Batch</label>
+              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Batch</label>
               <Select value={filters.batch} onValueChange={(value) => setFilters({...filters, batch: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select batch" />
@@ -166,7 +166,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Exam Period</label>
+              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Exam Period</label>
               <Select value={filters.exam_period} onValueChange={(value) => setFilters({...filters, exam_period: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select exam period" />
@@ -182,7 +182,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Branch</label>
+              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Branch</label>
               <Select value={filters.branch} onValueChange={(value) => {
                 setFilters({...filters, branch: value, semester: ""});
                 fetchSemesters(value);
@@ -200,7 +200,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Semester</label>
+              <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Semester</label>
               <Select value={filters.semester} onValueChange={(value) => setFilters({...filters, semester: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select semester" />
@@ -221,23 +221,31 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       {/* Summary Cards */}
       {data && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 course-statistics-summary">
-          <Card className="course-statistics-summary-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Subjects</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{data?.summary?.total_courses ?? 0}</div>
+          <Card className="course-statistics-summary-card overflow-hidden">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-row items-center justify-between w-full h-full">
+                <div className="flex flex-col justify-center space-y-1 sm:space-y-0">
+                  <div className="text-[18px] sm:text-md font-semibold sm:font-medium mb-1 sm:mb-2">Total Subjects</div>
+                  <BookOpen className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div className="text-[26px] sm:text-2xl font-semibold sm:font-semibold self-center">
+                  {data?.summary?.total_courses ?? 0}
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          <Card className="course-statistics-summary-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-              <Users className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{data?.summary?.total_applications ?? 0}</div>
+ 
+          <Card className="course-statistics-summary-card overflow-hidden">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-row items-center justify-between w-full h-full">
+                <div className="flex flex-col justify-center space-y-1 sm:space-y-0">
+                  <div className="text-[18px] sm:text-md font-semibold sm:font-medium mb-1 sm:mb-2">Total Applications</div>
+                  <Users className="h-6 w-6 text-blue-500" />
+                </div>
+                <div className="text-[26px] sm:text-2xl font-semibold sm:font-semibold text-blue-600 self-center">
+                  {data?.summary?.total_applications ?? 0}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -247,12 +255,12 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       {data && (
         <Card className="course-statistics-table-card">
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Subject-wise Application Statistics ({totalCount !== null ? totalCount : (data?.courses?.length ?? 0)})</CardTitle>
-              <Button
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <CardTitle className="text-lg sm:text-xl font-semibold">Subject-wise Application Statistics ({totalCount !== null ? totalCount : (data?.courses?.length ?? 0)})</CardTitle>
+               <Button
                 size="sm"
                 onClick={handleExport}
-                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"
+                className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 text-[18px] sm:text-sm font-semibold sm:font-semibold"
               >
                 <Download className="mr-2 h-4 w-4" />
                 {exporting ? 'Exporting...' : 'Export PDF'}
@@ -263,28 +271,28 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="course-statistics-table-wrapper w-full overflow-x-auto">
               <Table className="min-w-full">
               <TableHeader>
-                <TableRow>
-                  <TableHead>Subject Code</TableHead>
-                  <TableHead>Subject Name</TableHead>
-                  <TableHead>Total Students</TableHead>
-                  <TableHead>Applications</TableHead>
-                  <TableHead>Application Rate</TableHead>
-                  <TableHead>Status</TableHead>
+                <TableRow className="sm:table-row">
+                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Code</TableHead>
+                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Name</TableHead>
+                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Total Students</TableHead>
+                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Applications</TableHead>
+                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Application Rate</TableHead>
+                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {(data?.courses || []).map((course: any) => (
-                  <TableRow key={course.subject_id}>
-                    <TableCell className="font-medium" data-label="Subject Code">{course.subject_code}</TableCell>
-                    <TableCell data-label="Subject Name">{course.subject_name}</TableCell>
-                    <TableCell data-label="Total Students">{course.total_students}</TableCell>
-                    <TableCell data-label="Applications">{course.applied_students}</TableCell>
-                    <TableCell data-label="Application Rate">
-                      <span className={`font-medium ${getApplicationRateColor(course.application_rate)}`}>
+                  <TableRow key={course.subject_id} className="sm:table-row">
+                    <TableCell className="font-semibold sm:font-medium text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Code">{course.subject_code}</TableCell>
+                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Name">{course.subject_name}</TableCell>
+                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Total Students">{course.total_students}</TableCell>
+                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Applications">{course.applied_students}</TableCell>
+                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Application Rate">
+                      <span className={`font-semibold ${getApplicationRateColor(course.application_rate)}`}>
                         {course.application_rate}%
                       </span>
                     </TableCell>
-                    <TableCell data-label="Status">{getApplicationRateBadge(course.application_rate)}</TableCell>
+                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Status">{getApplicationRateBadge(course.application_rate)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -296,37 +304,37 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
             )}
           {/* Pagination controls */}
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">{totalCount !== null ? `Showing page ${page} — ${totalCount} subjects` : `Page ${page}`}</div>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between mt-6 gap-4 border-t pt-4 pagination-container">
+            <div className="text-[16px] sm:text-sm text-muted-foreground pagination-info">
+              {totalCount !== null && totalCount > 0 
+                ? `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} subjects` 
+                : `Showing 0 subjects`}
+            </div>
+            <div className="flex items-center gap-2 pagination-controls">
               <Button
                 size="sm"
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
+                className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
               >
-                Previous
+                Prev
               </Button>
 
               <div className="flex items-center gap-2">
-                {visiblePages.map((pageNumber) => (
-                  <Button
-                    key={pageNumber}
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setPage(pageNumber)}
-                    className="bg-white text-black border-gray-300 hover:bg-gray-100"
-                  >
-                    {pageNumber}
-                  </Button>
-                ))}
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary"
+                >
+                  {page}
+                </Button>
               </div>
 
               <Button
                 size="sm"
                 onClick={() => setPage(p => p + 1)}
                 disabled={!pagination?.next}
-                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
+                className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
               >
                 Next
               </Button>
@@ -350,11 +358,11 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       {!data && !loading && (
         <Card className="border-dashed border-2">
           <CardContent className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="bg-primary/5 p-6 rounded-full mb-4">
-              <BookOpen className="w-12 h-12 text-primary/40" />
+             <div className="bg-primary/5 p-8 rounded-full mb-6">
+              <BookOpen className="w-14 h-14 text-primary/40" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Select filters to view stats</h3>
-            <p className="text-muted-foreground max-w-sm mx-auto">
+            <h3 className="text-xl sm:text-xl font-semibold mb-3">Select filters to view stats</h3>
+            <p className="text-[16px] sm:text-sm text-muted-foreground max-w-sm mx-auto">
               Please select a batch, exam period, branch, and semester from the dropdowns above to load the subject-wise application statistics.
             </p>
           </CardContent>
