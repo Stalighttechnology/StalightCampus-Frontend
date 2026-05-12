@@ -395,8 +395,8 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           <CardContent className="p-5">
             <div className="flex items-start gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${dashboardData.attendance_status.percentage >= 75
-                  ? (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
-                  : (theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600')
+                ? (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
+                : (theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600')
                 }`}>
                 <FaCheckCircle className="w-6 h-6" />
               </div>
@@ -449,8 +449,8 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {currentSession ? (
                 <div className={`relative group p-5 rounded-2xl border transition-all duration-500 overflow-hidden ${theme === 'dark'
-                    ? 'border-primary/40 bg-primary/10 hover:bg-primary/20'
-                    : 'border-primary bg-primary/5 hover:bg-primary/10'
+                  ? 'border-primary/40 bg-primary/10 hover:bg-primary/20'
+                  : 'border-primary bg-primary/5 hover:bg-primary/10'
                   }`}>
                   <div className="absolute -right-6 -top-6 w-24 h-24 bg-primary/20 rounded-full blur-2xl group-hover:bg-primary/40 transition-colors"></div>
 

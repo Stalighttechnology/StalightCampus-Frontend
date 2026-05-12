@@ -281,10 +281,9 @@ const SubmitLeaveRequest = () => {
               <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Your Leave Requests</CardTitle>
               <div className="relative" ref={filterRef}>
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => setShowFilter(!showFilter)}
-                  className={theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'}
+                  className="bg-primary text-white"
                 >
                   <Filter className="w-4 h-4 mr-1" />
                   Filter
@@ -343,29 +342,29 @@ const SubmitLeaveRequest = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                      <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</TableHead>
-                      <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</TableHead>
-                      <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</TableHead>
-                      <TableHead className={`font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
+                      <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</TableHead>
+                      <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</TableHead>
+                      <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</TableHead>
+                      <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredLeaves.map((item) => (
                       <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
-                        <TableCell className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
                         </TableCell>
-                        <TableCell className={`text-sm mobile-table-cell mobile-period-cell ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        <TableCell className={`text-[14px] sm:text-sm whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                           {item.start_date && item.end_date ? (
                             `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}`
                           ) : 'N/A'}
                         </TableCell>
-                        <TableCell className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        <TableCell className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => setViewReason(item.reason)}
-                            className={`h-8 px-2 ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
                           >
                             <Eye className="w-3 h-3 mr-1" />
                             View
@@ -373,7 +372,7 @@ const SubmitLeaveRequest = () => {
                         </TableCell>
                         <TableCell>
                           <Badge
-                            className={`text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}
+                            className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}
                           >
                             <div className="flex items-center gap-1">
                               {getStatusStyles(theme, item.status).icon}
@@ -389,7 +388,7 @@ const SubmitLeaveRequest = () => {
                 {/* Pagination Controls */}
                 {pagination.totalPages > 1 && (
                   <div className="flex items-center justify-between mt-6 px-2">
-                    <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    <p className={`text-[12px] sm:text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       Page {pagination.page} of {pagination.totalPages} ({pagination.totalItems} total)
                     </p>
                     <div className="flex items-center gap-2">
@@ -398,7 +397,7 @@ const SubmitLeaveRequest = () => {
                         size="sm"
                         disabled={!pagination.hasPrevious}
                         onClick={() => pagination.prevPage()}
-                        className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4"
+                        className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4 text-[13px] sm:text-sm"
                       >
                         Previous
                       </Button>
@@ -410,7 +409,7 @@ const SubmitLeaveRequest = () => {
                         size="sm"
                         disabled={!pagination.hasNext}
                         onClick={() => pagination.nextPage()}
-                        className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4"
+                        className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4 text-[13px] sm:text-sm"
                       >
                         Next
                       </Button>
@@ -439,10 +438,7 @@ const SubmitLeaveRequest = () => {
 
           <DialogFooter>
             <Button
-              variant="outline"
-              className={theme === 'dark'
-                ? 'text-foreground bg-card border border-border hover:bg-accent'
-                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+              className="bg-primary"
               onClick={() => setViewReason(null)}
             >
               Close

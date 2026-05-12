@@ -21,8 +21,8 @@ const MemoizedWavyChart = React.memo(({ data, theme }: { data: any[], theme: str
     <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
       <defs>
         <linearGradient id="colorAttendance" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#3b82f6" stopOpacity={theme === 'dark' ? 0.3 : 0.2}/>
-          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+          <stop offset="5%" stopColor="#3b82f6" stopOpacity={theme === 'dark' ? 0.3 : 0.2} />
+          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
         </linearGradient>
       </defs>
       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? "#333" : "#eee"} />
@@ -52,13 +52,13 @@ const MemoizedWavyChart = React.memo(({ data, theme }: { data: any[], theme: str
         itemStyle={{ color: "#3b82f6", fontWeight: "bold" }}
         formatter={(value: any) => [`${value}%`, 'Attendance']}
       />
-      <Area 
-        type="monotone" 
-        dataKey="Attendance" 
-        stroke="#3b82f6" 
+      <Area
+        type="monotone"
+        dataKey="Attendance"
+        stroke="#3b82f6"
         strokeWidth={3}
-        fillOpacity={1} 
-        fill="url(#colorAttendance)" 
+        fillOpacity={1}
+        fill="url(#colorAttendance)"
         animationDuration={2000}
         dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: theme === 'dark' ? "#1c1c1e" : "#fff" }}
         activeDot={{ r: 6, strokeWidth: 0 }}
@@ -84,12 +84,12 @@ interface AttendanceData {
 }
 
 // Virtualized Attendance Table Component
-const VirtualizedAttendanceTable = React.memo(({ 
-  attendanceData, 
-  theme 
-}: { 
-  attendanceData: AttendanceData; 
-  theme: string 
+const VirtualizedAttendanceTable = React.memo(({
+  attendanceData,
+  theme
+}: {
+  attendanceData: AttendanceData;
+  theme: string
 }) => {
   const parentRef = React.useRef<HTMLDivElement>(null);
   const attendanceEntries = Object.entries(attendanceData);
@@ -97,31 +97,31 @@ const VirtualizedAttendanceTable = React.memo(({
   const virtualizer = useVirtualizer({
     count: attendanceEntries.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 50, // Estimated row height
+    estimateSize: () => 60, // Increased for mobile wrapping
     overscan: 5,
   });
 
   return (
-    <div 
-      ref={parentRef} 
+    <div
+      ref={parentRef}
       className="h-64 sm:h-80 md:h-96 overflow-auto border rounded-xl"
       style={{ contain: 'strict' }}
     >
       <div className="min-w-[600px]">
         {/* Fixed Header */}
         <div className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
-          <div className={`grid grid-cols-5 gap-4 p-4 uppercase text-[10px] sm:text-xs font-bold tracking-wider ${theme === 'dark' ? 'text-muted-foreground bg-card' : 'text-gray-500 bg-white'}`}>
-            <div className="break-words">Subject</div>
-            <div>Total</div>
-            <div>Present</div>
-            <div>Percent</div>
-            <div>Status</div>
+          <div className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 p-4 uppercase text-[14px] sm:text-xs font-bold tracking-wider ${theme === 'dark' ? 'text-muted-foreground bg-card' : 'text-gray-500 bg-white'}`}>
+            <div className="pl-1">Subject</div>
+            <div className="text-center">Total</div>
+            <div className="text-center">Present</div>
+            <div className="text-center">Percent</div>
+            <div className="text-center">Status</div>
           </div>
         </div>
 
         {/* Virtualized Rows */}
-        <div 
-          style={{ 
+        <div
+          style={{
             height: `${virtualizer.getTotalSize()}px`,
             position: 'relative',
           }}
@@ -134,7 +134,7 @@ const VirtualizedAttendanceTable = React.memo(({
             return (
               <div
                 key={virtualItem.key}
-                className={`grid grid-cols-5 gap-4 p-4 text-xs sm:text-sm border-b transition-colors ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-muted/50' : 'border-gray-100 text-gray-900 hover:bg-gray-50'}`}
+                className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-4 p-4 text-[14px] sm:text-sm border-b transition-colors items-center ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-muted/50' : 'border-gray-100 text-gray-900 hover:bg-gray-50'}`}
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -144,17 +144,16 @@ const VirtualizedAttendanceTable = React.memo(({
                   transform: `translateY(${virtualItem.start}px)`,
                 }}
               >
-                <div className="font-medium truncate pr-2" title={subject}>{subject}</div>
-                <div className="tabular-nums">{data.total}</div>
-                <div className="tabular-nums">{data.present}</div>
-                <div className="font-bold tabular-nums">{percentage}%</div>
-                <div>
+                <div className="font-semibold leading-tight pr-2 break-words" title={subject}>{subject}</div>
+                <div className="tabular-nums text-center font-medium">{data.total}</div>
+                <div className="tabular-nums text-center font-medium">{data.present}</div>
+                <div className="font-bold tabular-nums text-center text-primary">{percentage}%</div>
+                <div className="flex justify-center">
                   <span
-                    className={`text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full ${
-                      status === "Good"
-                        ? (theme === 'dark' ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-50 text-emerald-600")
-                        : (theme === 'dark' ? "bg-red-500/10 text-red-400" : "bg-red-50 text-red-600")
-                    }`}
+                    className={`text-[12px] sm:text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap shadow-sm ${status === "Good"
+                        ? (theme === 'dark' ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-600 border border-emerald-100")
+                        : (theme === 'dark' ? "bg-red-500/20 text-red-400 border border-red-500/20" : "bg-red-50 text-red-600 border border-red-100")
+                      }`}
                   >
                     {status}
                   </span>
@@ -178,13 +177,13 @@ const StudentAttendance = () => {
   const generateTrendData = useMemo(() => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const backendTrend = attendanceResponse?.monthly_trend || [];
-    
+
     // Create a map for quick lookup of backend values
     const trendMap = new Map(backendTrend.map((t: any) => [t.month, t.percentage]));
 
     return months.map((month) => {
-      return { 
-        name: month, 
+      return {
+        name: month,
         Attendance: trendMap.has(month) ? Math.round(trendMap.get(month)) : 0
       };
     });
@@ -211,7 +210,7 @@ const StudentAttendance = () => {
   if (isLoading) {
     return (
       <div className={`p-4 space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card className={theme === 'dark' ? 'col-span-2 bg-card text-card-foreground border-border' : 'col-span-2 bg-white text-gray-900 border-gray-200'}>
