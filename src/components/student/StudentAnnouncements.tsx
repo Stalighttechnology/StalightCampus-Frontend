@@ -331,7 +331,7 @@ const StudentAnnouncements = () => {
                         <div className="flex md:flex-col items-center md:items-end justify-between gap-3 min-w-fit">
                           {!announcement.is_read && (
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
                               onClick={() => handleMarkRead(announcement.id)}
                               className={`h-9 px-3 gap-2 ${theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}`}

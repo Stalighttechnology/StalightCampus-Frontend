@@ -1,4 +1,4 @@
-import React, { useMemo, useState, memo, useRef , useEffect} from "react";
+import React, { useMemo, useState, memo, useRef, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -30,35 +30,34 @@ import { Filter, AlertCircle } from "lucide-react";
 import { useStudentInternalMarksQuery } from "@/hooks/useApiQueries";
 import { useMemoizedCalculation } from "@/hooks/useOptimizations";
 import { useTheme } from "@/context/ThemeContext";
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { SkeletonChart, SkeletonTable, Skeleton } from "../ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // Memoized Table Row Component
-const MemoizedTableRow = React.memo(({ 
-  subject, 
-  tests, 
+const MemoizedTableRow = React.memo(({
+  subject,
+  tests,
   theme,
-  index 
-}: { 
-  subject: string, 
-  tests: SubjectMarks[], 
+  index
+}: {
+  subject: string,
+  tests: SubjectMarks[],
   theme: string,
-  index: number 
+  index: number
 }) => {
   const t1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
   const t2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
   const ia1 = tests.find((t) => t.test_number === 3)?.mark ?? null;
   const ia2 = tests.find((t) => t.test_number === 4)?.mark ?? null;
   const ia3 = tests.find((t) => t.test_number === 5)?.mark ?? null;
-  
+
   // Calculate average using memoized calculation
   const avg = useMemoizedCalculation(() => {
     const availableMarks = [t1, t2, ia1, ia2, ia3].filter(mark => mark !== null && mark !== undefined);
-    return availableMarks.length > 0 
-      ? availableMarks.reduce((sum, mark) => sum + mark, 0) / availableMarks.length 
+    return availableMarks.length > 0
+      ? availableMarks.reduce((sum, mark) => sum + mark, 0) / availableMarks.length
       : 0;
   }, [t1, t2, ia1, ia2, ia3]);
 
@@ -90,102 +89,7 @@ const MemoizedBarChart = React.memo(({ data, options }: { data: any; options: an
   return <Bar data={data} options={options} />;
 });
 
-// Virtualized Table Component
-const VirtualizedMarksTable = memo(({ filteredSubjects, marksData, theme }: {
-  filteredSubjects: string[];
-  marksData: { [subject: string]: SubjectMarks[] };
-  theme: string;
-}) => {
-  const parentRef = useRef<HTMLDivElement>(null);
-  
-  // Pre-calculate all averages to avoid hooks in map
-  const subjectAverages = useMemo(() => {
-    const averages: { [subject: string]: number } = {};
-    
-    filteredSubjects.forEach(subject => {
-      const tests = marksData[subject] || [];
-      const ia1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
-      const ia2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
-      const ia3 = tests.find((t) => t.test_number === 3)?.mark ?? null;
-      
-      const availableMarks = [ia1, ia2, ia3].filter(mark => mark !== null && mark !== undefined);
-      averages[subject] = availableMarks.length > 0 
-        ? availableMarks.reduce((sum, mark) => sum + mark, 0) / availableMarks.length 
-        : 0;
-    });
-    
-    return averages;
-  }, [filteredSubjects, marksData]);
 
-  const virtualizer = useVirtualizer({
-    count: filteredSubjects.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 48,
-    overscan: 5,
-  });
-
-  return (
-    <div
-      ref={parentRef}
-      className={`h-96 overflow-auto ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
-      style={{ contain: 'strict' }}
-    >
-      {/* Fixed Header */}
-      <div className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-gray-300 bg-card' : 'border-gray-200 bg-white'}`}>
-        <div className={`grid grid-cols-4 p-3 font-medium text-sm ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
-          <div>Subject</div>
-          <div className="text-center">IA 1</div>
-          <div className="text-center">IA 2</div>
-          <div className="text-center">IA 3</div>
-          <div className="text-center">Average</div>
-        </div>
-      </div>
-
-      {/* Virtualized Rows */}
-      <div 
-        style={{ 
-          height: `${virtualizer.getTotalSize()}px`,
-          position: 'relative',
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualItem) => {
-          const subject = filteredSubjects[virtualItem.index];
-          const tests = marksData[subject] || [];
-          
-          const ia1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
-          const ia2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
-          const ia3 = tests.find((t) => t.test_number === 3)?.mark ?? null;
-          
-          // Use pre-calculated average
-          const avg = subjectAverages[subject] || 0;
-
-          return (
-            <div
-              key={virtualItem.key}
-              className={`grid grid-cols-4 p-3 text-sm border-b ${theme === 'dark' ? 'border-gray-300 text-card-foreground hover:bg-accent' : 'border-gray-200 text-gray-900 hover:bg-gray-50'}`}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualItem.size}px`,
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
-            >
-              <div className="truncate">{subject}</div>
-              <div className="text-center">{ia1 !== null ? ia1 : "-"}</div>
-              <div className="text-center">{ia2 !== null ? ia2 : "-"}</div>
-              <div className="text-center">{ia3 !== null ? ia3 : "-"}</div>
-              <div className="text-center font-semibold">
-                {avg > 0 ? avg.toFixed(1) : "-"}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-});
 
 const InternalMarks = () => {
   const { theme } = useTheme();
@@ -193,7 +97,7 @@ const InternalMarks = () => {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [selectedIA, setSelectedIA] = useState<string>("all");
   const [showFilter, setShowFilter] = useState(false);
-  
+
   // Use debounced search
   const { value: searchQuery, debouncedValue: debouncedSearchQuery, setValue: setSearchQuery, isDebouncing } = useDebouncedSearch('', 500);
 
@@ -224,50 +128,43 @@ const InternalMarks = () => {
     (subject) => {
       const subjectMatches = (selectedSubjects.length === 0 || selectedSubjects.includes(subject)) &&
         subject.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
-      
+
       if (selectedIA === "all") {
         return subjectMatches;
       }
-      
+
       const tests = marksData[subject] || [];
       const iaNumber = parseInt(selectedIA);
       const hasMarkInIA = tests.some(t => t.test_number === iaNumber && t.mark !== null && t.mark !== undefined);
-      
+
       return subjectMatches && hasMarkInIA;
     }
   );
 
-  const parentRef = useRef<HTMLDivElement>(null);
-  
-  const virtualizer = useVirtualizer({
-    count: filteredSubjects.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 48,
-    overscan: 5,
-  });
+
 
   // Pre-calculate all averages to avoid hooks in map
   const subjectAverages = useMemo(() => {
     const averages: { [subject: string]: number } = {};
-    
+
     filteredSubjects.forEach(subject => {
       const tests = marksData[subject] || [];
       const ia1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
       const ia2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
       const ia3 = tests.find((t) => t.test_number === 3)?.mark ?? null;
-      
+
       const availableMarks = [ia1, ia2, ia3].filter(mark => mark !== null && mark !== undefined);
-      averages[subject] = availableMarks.length > 0 
-        ? availableMarks.reduce((sum, mark) => sum + mark, 0) / availableMarks.length 
+      averages[subject] = availableMarks.length > 0
+        ? availableMarks.reduce((sum, mark) => sum + mark, 0) / availableMarks.length
         : 0;
     });
-    
+
     return averages;
   }, [filteredSubjects, marksData]);
 
   const chartData = useMemo(() => {
     const testNums = selectedIA === "all" ? [1, 2, 3] : [parseInt(selectedIA)];
-    
+
     return {
       labels: filteredSubjects,
       datasets: testNums.map((testNum) => {
@@ -298,14 +195,16 @@ const InternalMarks = () => {
           },
           borderColor: color.border,
           borderWidth: 2,
-          borderRadius: 10,
-          hoverBackgroundColor: color.border,
+          borderRadius: 8,
+          hoverBackgroundColor: theme === 'dark' ? '#fff' : color.border,
+          hoverBorderColor: theme === 'dark' ? color.border : '#000',
+          hoverBorderWidth: 2,
           barThickness: selectedIA === "all" ? 18 : 50,
           maxBarThickness: 60,
         };
       }),
     };
-  }, [filteredSubjects, marksData, selectedIA]);
+  }, [filteredSubjects, marksData, selectedIA, theme]);
 
   const chartOptions = useMemo(() => ({
     responsive: true,
@@ -320,7 +219,7 @@ const InternalMarks = () => {
           padding: 20,
           font: {
             size: 12,
-            weight: '500' as const,
+            weight: '600' as const,
             family: "'Inter', sans-serif",
           },
           color: theme === 'dark' ? "#9ca3af" : "#6b7280",
@@ -333,17 +232,18 @@ const InternalMarks = () => {
         borderColor: theme === 'dark' ? "#374151" : "#e5e7eb",
         borderWidth: 1,
         padding: 12,
-        cornerRadius: 8,
+        cornerRadius: 12,
         displayColors: true,
         usePointStyle: true,
+        boxPadding: 6,
         callbacks: {
           label: (context: any) => {
             const index = context.dataIndex;
             const subj = filteredSubjects[index];
             const datasetLabel = context.dataset.label || '';
             const testNum = datasetLabel.split(' ')[1];
-            const test = marksData[subj].find(t => t.test_number === parseInt(testNum));
-            
+            const test = marksData[subj]?.find(t => t.test_number === parseInt(testNum));
+
             if (test) {
               return `${datasetLabel}: ${test.mark}/${test.max_mark} (${((test.mark / test.max_mark) * 100).toFixed(1)}%)`;
             }
@@ -385,6 +285,7 @@ const InternalMarks = () => {
           font: {
             size: 11,
             family: "'Inter', sans-serif",
+            weight: '500' as const
           },
         },
         grid: {
@@ -393,14 +294,19 @@ const InternalMarks = () => {
       },
     },
     interaction: {
-      intersect: false,
-      mode: 'index' as const,
+      intersect: true,
+      mode: 'nearest' as const,
+      axis: 'xy' as const
+    },
+    hover: {
+      mode: 'nearest' as const,
+      intersect: true
     },
     animation: {
-      duration: 2000,
+      duration: 1500,
       easing: 'easeOutQuart' as const,
     }
-  }), [theme]);
+  }), [theme, filteredSubjects, marksData]);
 
   if (isLoading) {
     return (
@@ -446,7 +352,7 @@ const InternalMarks = () => {
         <p className={`max-w-md mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-muted-foreground'}`}>
           {errorMessage}
         </p>
-        <Button 
+        <Button
           onClick={() => window.location.reload()}
           variant="outline"
           className={theme === 'dark' ? 'border-gray-700 hover:bg-gray-800' : ''}
@@ -460,7 +366,7 @@ const InternalMarks = () => {
   return (
     <div className={`min-h-screen w-full overflow-x-hidden space-y-4 px-4 sm:px-0 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Chart Section */}
-     <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+      <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader className={theme === 'dark' ? 'bg-card text-card-foreground border-b border-border' : 'bg-white text-gray-900 border-b border-gray-200'}>
           <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}> Performance Overview</CardTitle>
         </CardHeader>
@@ -479,11 +385,11 @@ const InternalMarks = () => {
             </div>
           ) : (
             <div className="w-full overflow-x-auto custom-scrollbar-premium pb-4 px-4 sm:px-0">
-              <div 
-                style={{ 
-                  minWidth: `${Math.max(100, filteredSubjects.length * (selectedIA === "all" ? 160 : 120))}px`, 
+              <div
+                style={{
+                  minWidth: `${Math.max(100, filteredSubjects.length * (selectedIA === "all" ? 160 : 120))}px`,
                   height: '300px',
-                  width: '60%' 
+                  width: '100%'
                 }}
                 className="mt-4 mx-auto"
               >
@@ -514,8 +420,7 @@ const InternalMarks = () => {
 
         {/* Filter Button */}
         <Button
-          variant="outline"
-          className={theme === 'dark' ? 'w-full sm:w-auto text-foreground bg-muted hover:bg-accent border-border' : 'w-full sm:w-auto text-gray-700 bg-white hover:bg-gray-100 border-gray-300'}
+          className="bg-primary"
           onClick={() => setShowFilter(true)}
         >
           <Filter className="w-4 h-4 mr-2" />
@@ -524,94 +429,78 @@ const InternalMarks = () => {
       </div>
 
       {/* Table */}
-      <div className={`rounded-md overflow-hidden w-full ${theme === 'dark' ? 'border-border bg-card text-card-foreground' : 'border-gray-200 bg-white text-gray-900'}`}>
-        {filteredSubjects.length === 0 ? (
-          <div className={`h-96 flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'bg-card' : 'bg-white'} animate-in fade-in duration-700`}>
-             <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
-                <AlertCircle className="h-10 w-10 text-muted-foreground/40" />
-              </div>
-              <div className="text-center">
-                <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Results Empty</p>
-                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Try adjusting your filters or search query</p>
-              </div>
-          </div>
-        ) : (
-          <div
-            ref={parentRef}
-            className={`h-96 overflow-x-auto w-full ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
-            style={{ contain: 'strict' }}
-          >
-            {/* Fixed Header */}
-            <div className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-gray-300 bg-card' : 'border-gray-200 bg-white'}`}>
-              <div className={`grid ${selectedIA === 'all' ? 'grid-cols-5' : 'grid-cols-3'} p-2 sm:p-3 font-medium text-xs sm:text-sm ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
-                <div>Subject</div>
+      <div className={`rounded-lg border overflow-hidden w-full ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
+        <div className="w-full overflow-x-auto custom-scrollbar-premium">
+          <table className="w-full  text-left border-collapse">
+            <thead className={`sticky top-0 z-10 text-md whitespace-nowrap ${theme === 'dark' ? 'bg-[#232326] text-gray-400' : 'bg-gray-50 text-gray-600'}`}>
+              <tr>
+                <th className="px-4 py-3.5 font-semibold ">Subject</th>
                 {selectedIA === 'all' ? (
                   <>
-                    <div className="text-center">IA 1</div>
-                    <div className="text-center">IA 2</div>
-                    <div className="text-center">IA 3</div>
+                    <th className="px-4 py-3.5 font-semibold text-center">IA 1</th>
+                    <th className="px-4 py-3.5 font-semibold text-center">IA 2</th>
+                    <th className="px-4 py-3.5 font-semibold text-center">IA 3</th>
                   </>
                 ) : (
-                  <div className="text-center">IA {selectedIA}</div>
+                  <th className="px-4 py-3.5 font-semibold text-center">IA {selectedIA}</th>
                 )}
-                <div className="text-center">Average</div>
-              </div>
-            </div>
-
-            {/* Virtualized Rows */}
-            <div 
-              style={{ 
-                height: `${virtualizer.getTotalSize()}px`,
-                position: 'relative',
-              }}
-            >
-              {virtualizer.getVirtualItems().map((virtualItem) => {
-                const subject = filteredSubjects[virtualItem.index];
-                const tests = marksData[subject] || [];
-                
-                const ia1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
-                const ia2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
-                const ia3 = tests.find((t) => t.test_number === 3)?.mark ?? null;
-                
-                // Use pre-calculated average
-                const avg = subjectAverages[subject] || 0;
-                
-                // Get the selected IA value
-                const selectedIAValue = selectedIA === 'all' ? null : parseInt(selectedIA);
-                const selectedIAMark = selectedIAValue ? tests.find((t) => t.test_number === selectedIAValue)?.mark ?? null : null;
-
-                return (
-                  <div
-                    key={virtualItem.key}
-                    className={`grid ${selectedIA === 'all' ? 'grid-cols-5' : 'grid-cols-3'} p-2 sm:p-3 text-xs sm:text-sm border-b ${theme === 'dark' ? 'border-gray-300 text-card-foreground hover:bg-accent' : 'border-gray-200 text-gray-900 hover:bg-gray-50'}`}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: `${virtualItem.size}px`,
-                      transform: `translateY(${virtualItem.start}px)`,
-                    }}
-                  >
-                    <div className="break-words">{subject}</div>
-                    {selectedIA === 'all' ? (
-                      <>
-                        <div className="text-center">{ia1 !== null ? ia1 : "-"}</div>
-                        <div className="text-center">{ia2 !== null ? ia2 : "-"}</div>
-                        <div className="text-center">{ia3 !== null ? ia3 : "-"}</div>
-                      </>
-                    ) : (
-                      <div className="text-center">{selectedIAMark !== null ? selectedIAMark : "-"}</div>
-                    )}
-                    <div className="text-center font-semibold">
-                      {avg > 0 ? avg.toFixed(1) : "-"}
+                <th className="px-4 py-3.5 font-semibold text-center">Average</th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y text-sm ${theme === 'dark' ? 'divide-gray-800' : 'divide-gray-100'}`}>
+              {filteredSubjects.length === 0 ? (
+                <tr>
+                  <td colSpan={selectedIA === 'all' ? 5 : 3} className="py-20">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                        <AlertCircle className="h-10 w-10 text-muted-foreground/40" />
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Results Empty</p>
+                        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Try adjusting your filters</p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                  </td>
+                </tr>
+              ) : (
+                filteredSubjects.map((subject) => {
+                  const tests = marksData[subject] || [];
+                  const ia1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
+                  const ia2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
+                  const ia3 = tests.find((t) => t.test_number === 3)?.mark ?? null;
+                  const avg = subjectAverages[subject] || 0;
+
+                  const selectedIAValue = selectedIA === 'all' ? null : parseInt(selectedIA);
+                  const selectedIAMark = selectedIAValue ? tests.find((t) => t.test_number === selectedIAValue)?.mark ?? null : null;
+
+                  return (
+                    <tr key={subject} className={`group transition-colors ${theme === 'dark' ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'}`}>
+                      <td className="px-4 py-4 align-top">
+                        <div className="font-medium leading-relaxed max-w-[200px] sm:max-w-none break-words">
+                          {subject}
+                        </div>
+                      </td>
+                      {selectedIA === 'all' ? (
+                        <>
+                          <td className="px-4 py-4 text-center tabular-nums">{ia1 !== null ? ia1 : "-"}</td>
+                          <td className="px-4 py-4 text-center tabular-nums">{ia2 !== null ? ia2 : "-"}</td>
+                          <td className="px-4 py-4 text-center tabular-nums">{ia3 !== null ? ia3 : "-"}</td>
+                        </>
+                      ) : (
+                        <td className="px-4 py-4 text-center tabular-nums">{selectedIAMark !== null ? selectedIAMark : "-"}</td>
+                      )}
+                      <td className="px-4 py-4 text-center">
+                        <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md font-semibold tabular-nums ${theme === 'dark' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                          {avg > 0 ? avg.toFixed(1) : "-"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Filter Dialog */}
@@ -703,7 +592,7 @@ const InternalMarks = () => {
             >
               Clear
             </Button>
-            <Button 
+            <Button
               className="w-full sm:w-auto text-white bg-primary hover:bg-primary/90 border-primary text-sm"
               onClick={() => setShowFilter(false)}
             >
