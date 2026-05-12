@@ -242,6 +242,7 @@ const UploadMarks = () => {
         });
         setStudents(newStudents);
         setStudentMarks(initialMarks);
+        setOriginalStudentMarks(JSON.parse(JSON.stringify(initialMarks)));
         setActionModes(() => {
           const m: Record<string, 'edit' | 'save' | 'view'> = {};
           newStudents.forEach(st => { m[st.id] = 'view'; });
@@ -315,6 +316,7 @@ const UploadMarks = () => {
   // Computed flag: treat backend-provided QP as available for display and marks entry
   const qpReady = Boolean(existingQpSummary);
   const [studentMarks, setStudentMarks] = useState<Record<string, Record<string, string>>>({});
+  const [originalStudentMarks, setOriginalStudentMarks] = useState<Record<string, Record<string, string>>>({});
 
   // New state for action button modes
   const [actionModes, setActionModes] = useState<Record<string, 'edit' | 'save' | 'view'>>({});
@@ -553,6 +555,8 @@ const UploadMarks = () => {
       const isQuestionPaperTab = tabValue === 'questionPaper';
       const qpResponse = await getQuestionPapers({
         branch_id: selected.branch_id?.toString(),
+        semester_id: selected.semester_id?.toString(),
+        section_id: selected.section_id?.toString(),
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
         detail: isQuestionPaperTab,
@@ -561,7 +565,9 @@ const UploadMarks = () => {
       if (qpResponse.success && qpResponse.data) {
         const existingQp = qpResponse.data.find((q: any) => {
           const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
-          return branchId === selected.branch_id && q.subject === selected.subject_id && q.test_type === selected.testType;
+          return branchId === selected.branch_id && 
+                 q.subject === selected.subject_id && 
+                 q.test_type === selected.testType;
         });
 
         if (existingQp) {
@@ -739,7 +745,7 @@ const UploadMarks = () => {
 
     // Prepare marks data
     const marksData: UploadIAMarksRequest = {
-      question_paper_id: qp.id,
+      question_paper_id: existingQpSummary.id,
       marks_data: students.map(s => {
         const marksDetail = Object.fromEntries(
           Object.entries(studentMarks[s.id.toString()] || {}).map(([key, value]) => [key, parseFloat(value) || 0])
@@ -771,6 +777,14 @@ const UploadMarks = () => {
           title: "Marks uploaded!",
           icon: "success",
           confirmButtonText: "OK",
+        });
+        // Update local state to reflect saved status without a fresh GET call
+        setStudents(prev => prev.map(s => ({ ...s, totalEdited: false })));
+        setOriginalStudentMarks(JSON.parse(JSON.stringify(studentMarks)));
+        setActionModes(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(id => { updated[id] = 'view'; });
+          return updated;
         });
       } else {
         MySwal.fire({
@@ -1590,6 +1604,7 @@ const UploadMarks = () => {
                                         value={studentMarks[student.id]?.[question.number] || ""}
                                         min="0"
                                         max={question.maxMarks}
+                                        readOnly={actionModes[student.id] !== 'edit'}
                                         onChange={(e) => {
                                           const value = e.target.value;
                                           const maxMarks = parseInt(question.maxMarks);
@@ -1651,22 +1666,9 @@ const UploadMarks = () => {
                                       size="sm"
                                       variant="outline"
                                       className="border-primary text-primary hover:bg-primary hover:text-white"
+                                      disabled={JSON.stringify(studentMarks[student.id] || {}) === JSON.stringify(originalStudentMarks[student.id] || {})}
                                       onClick={() => {
-                                        setActionModes(prev => ({
-                                          ...prev,
-                                          [student.id]: 'save'
-                                        }));
-                                      }}
-                                    >
-                                      Save
-                                    </Button>
-                                  ) : actionModes[student.id] === 'save' ? (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="border-primary text-primary hover:bg-primary hover:text-white"
-                                      onClick={() => {
-                                        // Save logic would go here
+                                        // Row-level save only locks the row locally
                                         setActionModes(prev => ({
                                           ...prev,
                                           [student.id]: 'view'
