@@ -152,8 +152,8 @@ export const AnnouncementSections = ({
           .ann-card-title { font-size: 1rem !important; font-weight: 600 !important; line-height: 1.3 !important; }
           .ann-card-meta { display: flex; flex-direction: column; gap: 4px; }
           .ann-card-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-          .ann-card-actions { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid hsl(var(--border)); pt: 12px; margin-top: 12px; }
-          .ann-card-actions-row { display: flex; gap: 8px; }
+          .ann-card-actions { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid hsl(var(--border)); padding-top: 12px; margin-top: 12px; }
+          .ann-card-actions-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; }
           .ann-card-actions-row button { flex: 1; }
           .ann-pagination { flex-direction: column !important; gap: 16px !important; align-items: center !important; text-align: center !important; }
         }
@@ -396,26 +396,30 @@ export const AnnouncementSections = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={`h-9 text-[13px] border ${announcement.is_active ? 'text-orange-500 border-orange-100 bg-orange-50/30' : 'text-green-500 border-green-100 bg-green-50/30'}`}
+                            className={`h-9 text-[11px] font-semibold border flex items-center justify-center gap-1 ${announcement.is_active ? 'text-orange-500 border-orange-100 bg-orange-50/30' : 'text-green-500 border-green-100 bg-green-50/30'}`}
                             onClick={() => onToggleActive(announcement.id)}
                           >
-                            {announcement.is_active ? "Deactivate" : "Activate"}
+                            {announcement.is_active ? (
+                              <><XCircle className="h-3.5 w-3.5 shrink-0" /> Deactivate</>
+                            ) : (
+                              <><CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> Activate</>
+                            )}
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-9 text-[13px] border border-border"
+                            className="h-9 text-[11px] font-semibold border border-border flex items-center justify-center gap-1"
                             onClick={() => onEdit(announcement)}
                           >
-                            <Edit2 className="h-3.5 w-3.5 mr-1" /> Edit
+                            <Edit2 className="h-3.5 w-3.5 shrink-0" /> Edit
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-9 text-[13px] border border-destructive/20 text-destructive bg-destructive/5"
+                            className="h-9 text-[11px] font-semibold border border-destructive/20 text-destructive bg-destructive/5 flex items-center justify-center gap-1"
                             onClick={() => onDelete(announcement.id)}
                           >
-                            <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                            <Trash2 className="h-3.5 w-3.5 shrink-0" /> Delete
                           </Button>
                         </div>
                       )}

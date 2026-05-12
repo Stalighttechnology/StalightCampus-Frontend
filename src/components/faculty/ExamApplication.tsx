@@ -2,10 +2,11 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { useTheme } from "@/context/ThemeContext";
 import { API_ENDPOINT, API_BASE_URL } from "@/utils/config";
+import { manageSubjects } from "@/utils/hod_api";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useToast } from "@/hooks/use-toast";
 import { useProctorStudentsQuery } from "@/hooks/useApiQueries";
@@ -13,6 +14,7 @@ import type { ProctorStudent } from "@/utils/faculty_api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
+import { AdminPagination } from "../common/AdminPagination";
 import { FileDown, Loader2 } from "lucide-react";
 
 interface ExamApplicationProps {
@@ -39,7 +41,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
   const [existingApplications, setExistingApplications] = useState<Array<any>>([]);
   const [editingApplication, setEditingApplication] = useState<any>(null);
   const [isDirectDownload, setIsDirectDownload] = useState(false);
-  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   // Use hooks for fetching - requesting only essential fields to optimize payload
   const includeFields = 'id,user_id,name,usn,branch,semester,section';
@@ -123,21 +125,28 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
     setIsEditMode(false);
     setExistingApplications([]);
     setEditingApplication(null);
-    setIsDirectDownload(false);
     setOpen(true);
   };
 
-  const handleDirectDownload = async (student: any) => {
-    if (downloadingId) return;
-    setDownloadingId(student.id);
-    setSelectedStudent(student);
-    setStudentDetails(null);
-    setSemesterSubjects([]);
-    setAppliedSubjects({});
-    setSubjectStatuses({});
+  const handleDirectDownload = async (student: ProctorStudent) => {
+    setDownloadingId(student.usn);
     setIsDirectDownload(true);
-    setOpen(true);
+    await openFor(student);
   };
+
+  // Auto-trigger export for direct downloads
+  useEffect(() => {
+    if (isDirectDownload && open && studentDetails && semesterSubjects.length > 0) {
+      const timer = setTimeout(() => {
+        exportPdf().then(() => {
+          setIsDirectDownload(false);
+          setDownloadingId(null);
+          setOpen(false);
+        });
+      }, 1000); // Wait for content to render
+      return () => clearTimeout(timer);
+    }
+  }, [isDirectDownload, open, studentDetails, semesterSubjects]);
 
   useEffect(() => {
     if (!open || !selectedStudent) return;
@@ -249,23 +258,8 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
           setAppliedSubjects(initialApplied);
         }
 
-        if (isDirectDownload) {
-          // Trigger PDF export after a short delay for DOM rendering
-          setTimeout(async () => {
-            await exportPdf();
-            setOpen(false);
-            setIsDirectDownload(false);
-            setDownloadingId(null);
-          }, 800);
-        }
-
       } catch (err) {
         console.error('Error in fetchDetails', err);
-        if (isDirectDownload) {
-          setOpen(false);
-          setIsDirectDownload(false);
-          setDownloadingId(null);
-        }
       } finally {
         // clear the in-progress token so future opens/fetches are allowed
         fetchInProgressRef.current = null;
@@ -433,7 +427,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
       <CardHeader>
-        <CardTitle>Exam Applications</CardTitle>
+        <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Exam Applications</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-4">
@@ -490,7 +484,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                         {studentStatuses[student.usn] || 'Not Applied'}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 mb-4 text-xs">
                       <div className="px-2 py-1 bg-muted rounded">
                         <span className="text-muted-foreground mr-1">Semester:</span>
@@ -499,19 +493,15 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <Button onClick={() => openFor(student)} className="w-full bg-primary hover:bg-primary/90 text-white h-9">
-                        Open Application
-                      </Button>
                       <Button
                         onClick={() => handleDirectDownload(student)}
-                        disabled={downloadingId === student.id}
-                        variant="outline"
-                        className="w-full border-primary text-primary hover:bg-primary/5 h-9"
+                        className="w-full bg-primary hover:bg-primary/90 text-white h-9 flex items-center justify-center gap-2"
+                        disabled={downloadingId === student.usn}
                       >
-                        {downloadingId === student.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        {downloadingId === student.usn ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <FileDown className="h-4 w-4 mr-2" />
+                          <FileDown className="h-4 w-4" />
                         )}
                         Export PDF
                       </Button>
@@ -556,33 +546,30 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                           {studentStatuses[student.usn] || 'Not Applied'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-center">
-                        <div className="flex justify-center items-center gap-2">
-                          <Button onClick={() => openFor(student)} className="bg-primary hover:bg-primary/90 text-white h-8 text-xs px-3">
-                            Open Application
-                          </Button>
-                          <Button
-                            onClick={() => handleDirectDownload(student)}
-                            disabled={downloadingId === student.id}
-                            variant="outline"
-                            className="border-primary text-primary hover:bg-primary/5 h-8 text-xs px-3"
-                            title="Export PDF"
-                          >
-                            {downloadingId === student.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <FileDown className="h-4 w-4" />
-                            )}
-                          </Button>
-                          {studentStatuses[student.usn] === 'Applied' && (
-                            <Button
-                              onClick={() => downloadHallTicket(student)}
-                              className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs px-3"
-                            >
-                              Hall Ticket
-                            </Button>
+                      <td className="px-4 py-3 text-sm flex gap-2 justify-center">
+                        <Button onClick={() => openFor(student)} className="bg-primary hover:bg-primary/90 text-white h-8 px-3">
+                          Open
+                        </Button>
+                        <Button
+                          onClick={() => handleDirectDownload(student)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-3 flex items-center gap-2"
+                          disabled={downloadingId === student.usn}
+                        >
+                          {downloadingId === student.usn ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileDown className="h-4 w-4" />
                           )}
-                        </div>
+                          Export PDF
+                        </Button>
+                        {studentStatuses[student.usn] === 'Applied' && (
+                          <Button
+                            onClick={() => downloadHallTicket(student)}
+                            className="bg-green-600 hover:bg-green-700 text-white h-8 px-3"
+                          >
+                            Hall Ticket
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -600,233 +587,12 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
         </div>
 
         {/* Pagination Controls */}
-        {proctorPagination.paginationState.totalItems > 0 && (
-          <div className={`flex flex-col sm:flex-row items-center justify-between pt-6 mt-4 gap-4 border-t ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
-            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Showing <span className="font-semibold">{((proctorPagination.paginationState.page - 1) * proctorPagination.paginationState.pageSize) + 1}</span> to <span className="font-semibold">{Math.min(proctorPagination.paginationState.page * proctorPagination.paginationState.pageSize, proctorPagination.paginationState.totalItems)}</span> of <span className="font-semibold">{proctorPagination.paginationState.totalItems}</span> students
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => proctorPagination.goToPage(proctorPagination.paginationState.page - 1)}
-                disabled={proctorPagination.paginationState.page <= 1 || isProctorLoading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary hover:text-white h-9 px-4 transition-all duration-200"
-              >
-                Previous
-              </Button>
-              <div className="flex items-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled
-                  className={`h-9 w-9 p-0 font-bold ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-700'} opacity-100`}
-                >
-                  {proctorPagination.paginationState.page}
-                </Button>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => proctorPagination.goToPage(proctorPagination.paginationState.page + 1)}
-                disabled={proctorPagination.paginationState.page >= proctorPagination.paginationState.totalPages || isProctorLoading}
-                className="bg-primary hover:bg-primary/90 text-white border-primary hover:text-white h-9 px-4 transition-all duration-200"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
+        <AdminPagination
+          pagination={proctorPagination.paginationState}
+          onPageChange={proctorPagination.goToPage}
+        />
 
-        {/* Hidden Printable Container for Direct Download & Modal Preview */}
-        <div style={{ position: 'absolute', left: '-9999px', top: 0, opacity: 0, pointerEvents: 'none' }}>
-          <div ref={printRef} className="mt-4">
-            {/* Printable application form */}
-            <div id="exam-application-printable" className="p-3 md:p-4 lg:p-6 bg-white text-black" style={{ minWidth: '800px', maxWidth: '800px', width: '800px', margin: '0 auto' }}>
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <img 
-                    src={JSON.parse(localStorage.getItem('user') || '{}').org_logo || "/logo.jpeg"} 
-                    alt="Logo" 
-                    style={{ height: 96, width: 96, objectFit: 'contain', borderRadius: 6 }} 
-                  />
-                </div>
-                <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div className="font-bold text-lg uppercase" style={{ letterSpacing: '0.6px' }}>
-                    {JSON.parse(localStorage.getItem('user') || '{}').org_name || "NEURO CAMPUS"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Official Campus Portal</div>
-                </div>
-                <div style={{ width: 120, textAlign: 'right' }}>
-                  <div className="text-sm font-medium">Exam Application</div>
-                  <div className="text-xs text-muted-foreground">{new Date().toLocaleDateString()}</div>
-                </div>
-              </div>
-
-              <hr style={{ marginBottom: 12, borderColor: '#e5e7eb' }} />
-              <div className="text-center mb-4">
-                <div className="font-bold text-lg">Exam Application Form</div>
-              </div>
-
-              <div className="flex items-center gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 lg:mb-4">
-                <div>
-                  <Avatar className="w-16 md:w-16 lg:w-20 h-16 md:h-16 lg:h-20 rounded-md overflow-hidden">
-                    {(
-                        (studentDetails?.student_info && studentDetails.student_info.photo_url) ||
-                        (studentDetails?.student && (studentDetails.student.profile_picture || studentDetails.student.photo_url)) ||
-                        (selectedStudent && ((selectedStudent as any).photo || (selectedStudent as any).photo_url || (selectedStudent as any).profile_picture))
-                      ) ? (
-                        <img
-                          src={
-                            studentDetails?.student_info?.photo_url
-                              ? (studentDetails.student_info.photo_url.startsWith('http')
-                                ? studentDetails.student_info.photo_url
-                                : `${API_BASE_URL}${studentDetails.student_info.photo_url}`)
-                              : (studentDetails?.student?.profile_picture ? studentDetails.student.profile_picture
-                                : (selectedStudent as any).profile_picture || (selectedStudent as any).photo || (selectedStudent as any).photo_url)
-                          }
-                          alt={selectedStudent?.name || studentDetails?.student_info?.name || 'Student'}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                      <AvatarFallback className="text-xl md:text-lg lg:text-2xl font-medium">
-                        {(selectedStudent?.name || studentDetails?.name || 'U')[0]?.toUpperCase()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                </div>
-                <div className="flex-1 grid grid-cols-2 gap-2 md:gap-3 lg:gap-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Name</div>
-                    <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.name || studentDetails?.student_info?.name || ''}</div>
-                    <div className="text-xs text-muted-foreground">USN</div>
-                    <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.usn || ''}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">Department</div>
-                    <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.branch || ''}</div>
-                    <div className="text-xs text-muted-foreground">Semester</div>
-                    <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.semester || ''}</div>
-                  </div>
-                </div>
-              </div>
-
-              <h4 className="font-medium mb-2">Regular Courses</h4>
-              <table className="w-full border-collapse" style={{ border: '1px solid #ddd' }}>
-                <thead>
-                  <tr style={{ background: '#f3f4f6' }}>
-                    <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
-                    <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
-                    <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {semesterSubjects.length > 0 ? semesterSubjects.map((sub) => (
-                    <tr key={sub.subject_code}>
-                      <td style={{ border: '1px solid #ddd', padding: 8 }}>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[sub.subject_code] === 'Applied' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                          {subjectStatuses[sub.subject_code] || 'Not Applied'}
-                        </span>
-                      </td>
-                      <td style={{ border: '1px solid #ddd', padding: 8 }}>{sub.subject_code}</td>
-                      <td style={{ border: '1px solid #ddd', padding: 8 }}>{sub.name}</td>
-                    </tr>
-                  )) : (
-                    <tr><td colSpan={3} style={{ padding: 12 }}>No subjects available.</td></tr>
-                  )}
-                </tbody>
-              </table>
-
-              {/* registered electives */}
-              {((studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective')).length > 0 && (
-                <>
-                  <h4 className="font-medium mt-6 mb-2">Elective Courses (Registered)</h4>
-                  <table className="w-full border-collapse mb-4" style={{ border: '1px solid #ddd' }}>
-                    <thead>
-                      <tr style={{ background: '#f3f4f6' }}>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').map((r: any) => (
-                        <tr key={r.subject_code}>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>
-                             <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[r.subject_code] === 'Applied' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                               {subjectStatuses[r.subject_code] || 'Not Applied'}
-                             </span>
-                          </td>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_code}</td>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_name}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
-
-              {/* open electives */}
-              {((studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective')).length > 0 && (
-                <>
-                  <h4 className="font-medium mt-6 mb-2">Open Elective Courses (Registered)</h4>
-                  <table className="w-full border-collapse" style={{ border: '1px solid #ddd' }}>
-                    <thead>
-                      <tr style={{ background: '#f3f4f6' }}>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective').map((r: any) => (
-                        <tr key={r.subject_code}>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>
-                             <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[r.subject_code] === 'Applied' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                               {subjectStatuses[r.subject_code] || 'Not Applied'}
-                             </span>
-                          </td>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_code}</td>
-                          <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_name}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
-
-              <h4 className="font-medium mt-6 mb-2">Fees Details</h4>
-              <table className="w-full border-collapse mb-4" style={{ border: '1px solid #ddd' }}>
-                <thead>
-                  <tr style={{ background: '#f3f4f6' }}>
-                    <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Fee Type</th>
-                    <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Amount (₹)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style={{ border: '1px solid #ddd', padding: 8 }}>Registration</td>
-                    <td style={{ border: '1px solid #ddd', padding: 8 }}>100</td>
-                  </tr>
-                  <tr>
-                    <td style={{ border: '1px solid #ddd', padding: 8 }}>Exam fees for regular Courses</td>
-                    <td style={{ border: '1px solid #ddd', padding: 8 }}>2000</td>
-                  </tr>
-                  <tr>
-                    <td style={{ border: '1px solid #ddd', padding: 8 }}>Marks card fees</td>
-                    <td style={{ border: '1px solid #ddd', padding: 8 }}>300</td>
-                  </tr>
-                  <tr style={{ background: '#f3f4f6', fontWeight: 'bold' }}>
-                    <td style={{ border: '1px solid #ddd', padding: 8 }}>Total</td>
-                    <td style={{ border: '1px solid #ddd', padding: 8 }}>2400</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <Dialog open={open && !isDirectDownload} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[70vw] max-h-[90vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar">
             <div className="p-1 md:p-2 lg:p-4">
               {/* Existing Applications UI removed — statuses shown via checkboxes */}
@@ -856,110 +622,227 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                 </div>
               )}
 
-              <div className="mt-4">
-                <h4 className="font-medium mb-4">Student: {selectedStudent?.name} ({selectedStudent?.usn})</h4>
-                
-                <h4 className="font-medium mb-2">Regular Courses</h4>
-                <div className="border rounded-md overflow-hidden mb-6">
-                  <table className="w-full text-left">
-                    <thead className="bg-muted">
-                      <tr>
-                        <th className="p-3 text-sm font-medium">Select</th>
-                        <th className="p-3 text-sm font-medium">Course Code</th>
-                        <th className="p-3 text-sm font-medium">Course Name</th>
-                        <th className="p-3 text-sm font-medium">Status</th>
+              <div ref={printRef} className="mt-4">
+                {/* Printable application form */}
+                <div id="exam-application-printable" className="p-3 md:p-4 lg:p-6 bg-white text-black" style={{ minWidth: '100%', maxWidth: '800px', width: 'auto', margin: '0 auto' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <img
+                        src={JSON.parse(localStorage.getItem('user') || '{}').org_logo || "/logo.jpeg"}
+                        alt="Logo"
+                        style={{ height: 96, width: 96, objectFit: 'contain', borderRadius: 6 }}
+                      />
+                    </div>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div className="font-bold text-lg uppercase" style={{ letterSpacing: '0.6px' }}>
+                        {JSON.parse(localStorage.getItem('user') || '{}').org_name || "NEURO CAMPUS"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Official Campus Portal</div>
+                    </div>
+                    <div style={{ width: 120, textAlign: 'right' }}>
+                      <div className="text-sm font-medium">Exam Application</div>
+                      <div className="text-xs text-muted-foreground">{new Date().toLocaleDateString()}</div>
+                    </div>
+                  </div>
+
+                  <hr style={{ marginBottom: 12, borderColor: '#e5e7eb' }} />
+                  <div className="text-center mb-4">
+                    <div className="font-bold text-lg">Exam Application Form</div>
+                  </div>
+
+                  <div className="flex items-center gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 lg:mb-4">
+
+                    <div>
+                      <Avatar className="w-16 md:w-16 lg:w-20 h-16 md:h-16 lg:h-20 rounded-md overflow-hidden">
+                        {(
+                          (studentDetails?.student_info && studentDetails.student_info.photo_url) ||
+                          (studentDetails?.student && (studentDetails.student.profile_picture || studentDetails.student.photo_url)) ||
+                          (selectedStudent && ((selectedStudent as any).photo || (selectedStudent as any).photo_url || (selectedStudent as any).profile_picture))
+                        ) ? (
+                          <img
+                            src={
+                              // Priority: studentDetails.student_info.photo_url -> studentDetails.student.profile_picture -> selectedStudent.profile_picture -> legacy photo/photo_url
+                              studentDetails?.student_info?.photo_url
+                                ? (studentDetails.student_info.photo_url.startsWith('http')
+                                  ? studentDetails.student_info.photo_url
+                                  : `${API_BASE_URL}${studentDetails.student_info.photo_url}`)
+                                : (studentDetails?.student?.profile_picture ? studentDetails.student.profile_picture
+                                  : (selectedStudent as any).profile_picture || (selectedStudent as any).photo || (selectedStudent as any).photo_url)
+                            }
+                            alt={selectedStudent?.name || studentDetails?.student_info?.name || 'Student'}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <AvatarFallback className="text-xl md:text-lg lg:text-2xl font-medium\">
+                            {(selectedStudent?.name || studentDetails?.name || 'U')[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                    </div>
+                    <div className="flex-1 grid grid-cols-2 gap-2 md:gap-3 lg:gap-4">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Name</div>
+                        <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.name || studentDetails?.student_info?.name || ''}</div>
+                        <div className="text-xs text-muted-foreground">USN</div>
+                        <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.usn || ''}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Department</div>
+                        <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.branch || ''}</div>
+                        <div className="text-xs text-muted-foreground">Semester</div>
+                        <div className="font-semibold text-sm md:text-sm lg:text-base">{selectedStudent?.semester || ''}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h4 className="font-medium mb-2">Regular Courses</h4>
+                  <table className="w-full border-collapse" style={{ border: '1px solid #ddd' }}>
+                    <thead>
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Select</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {semesterSubjects.map((sub) => (
-                        <tr key={sub.subject_code} className="border-t">
-                          <td className="p-3">
+                      {semesterSubjects.length > 0 ? semesterSubjects.map((sub) => (
+                        <tr key={sub.subject_code}>
+                          <td style={{ border: '1px solid #ddd', padding: 8 }}>
                             <input
                               type="checkbox"
                               checked={appliedSubjects[sub.subject_code] || false}
                               onChange={() => handleApplyToggle(sub.subject_code)}
-                              className="w-4 h-4 cursor-pointer"
+                              className="w-4 h-4"
                             />
                           </td>
-                          <td className="p-3 text-sm">{sub.subject_code}</td>
-                          <td className="p-3 text-sm">{sub.name}</td>
-                          <td className="p-3">
-                            <span className={`px-2 py-1 rounded text-[10px] font-medium ${subjectStatuses[sub.subject_code] === 'Applied' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                          <td style={{ border: '1px solid #ddd', padding: 8 }}>{sub.subject_code}</td>
+                          <td style={{ border: '1px solid #ddd', padding: 8 }}>{sub.name}</td>
+                          <td style={{ border: '1px solid #ddd', padding: 8 }}>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[sub.subject_code] === 'Applied'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                              }`}>
                               {subjectStatuses[sub.subject_code] || 'Not Applied'}
                             </span>
                           </td>
                         </tr>
-                      ))}
+                      )) : (
+                        <tr><td colSpan={4} style={{ padding: 12 }}>No subjects available.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+
+                  <h4 className="font-medium mt-6 mb-2">Elective Courses (Registered)</h4>
+                  <table className="w-full border-collapse mb-4" style={{ border: '1px solid #ddd' }}>
+                    <thead>
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Select</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {((studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective')).length > 0 ?
+                        (studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').map((r: any) => (
+                          <tr key={r.subject_code}>
+                            <td style={{ border: '1px solid #ddd', padding: 8 }}>
+                              <input
+                                type="checkbox"
+                                checked={appliedSubjects[r.subject_code] || false}
+                                onChange={() => handleApplyToggle(r.subject_code)}
+                                className="w-4 h-4"
+                              />
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_code}</td>
+                            <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_name}</td>
+                            <td style={{ border: '1px solid #ddd', padding: 8 }}>
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[r.subject_code] === 'Applied'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                {subjectStatuses[r.subject_code] || 'Not Applied'}
+                              </span>
+                            </td>
+                          </tr>
+                        )) : (
+                          <tr><td colSpan={4} style={{ padding: 12 }}>No registered electives.</td></tr>
+                        )}
+                    </tbody>
+                  </table>
+
+                  <h4 className="font-medium mt-6 mb-2">Open Elective Courses (Registered)</h4>
+                  <table className="w-full border-collapse" style={{ border: '1px solid #ddd' }}>
+                    <thead>
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Select</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Code</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Course Name</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {((studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective')).length > 0 ?
+                        (studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective').map((r: any) => (
+                          <tr key={r.subject_code}>
+                            <td style={{ border: '1px solid #ddd', padding: 8 }}>
+                              <input
+                                type="checkbox"
+                                checked={appliedSubjects[r.subject_code] || false}
+                                onChange={() => handleApplyToggle(r.subject_code)}
+                                className="w-4 h-4"
+                              />
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_code}</td>
+                            <td style={{ border: '1px solid #ddd', padding: 8 }}>{r.subject_name}</td>
+                            <td style={{ border: '1px solid #ddd', padding: 8 }}>
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${subjectStatuses[r.subject_code] === 'Applied'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                {subjectStatuses[r.subject_code] || 'Not Applied'}
+                              </span>
+                            </td>
+                          </tr>
+                        )) : (
+                          <tr><td colSpan={4} style={{ padding: 12 }}>No registered open electives.</td></tr>
+                        )}
+                    </tbody>
+                  </table>
+
+                  <h4 className="font-medium mt-6 mb-2">Fees Details</h4>
+                  <table className="w-full border-collapse mb-4" style={{ border: '1px solid #ddd' }}>
+                    <thead>
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Fee Type</th>
+                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Amount (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Registration</td>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>100</td>
+                      </tr>
+                      <tr>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Exam fees for regular Courses</td>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>2000</td>
+                      </tr>
+                      <tr>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Marks card fees</td>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>300</td>
+                      </tr>
+                      <tr>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Arrear course fees</td>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>0</td>
+                      </tr>
+                      <tr style={{ background: '#f3f4f6', fontWeight: 'bold' }}>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Total</td>
+                        <td style={{ border: '1px solid #ddd', padding: 8 }}>2400</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
-
-                {/* Registered subjects table similarly simplified */}
-                {((studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective')).length > 0 && (
-                  <>
-                    <h4 className="font-medium mb-2">Registered Electives</h4>
-                    <div className="border rounded-md overflow-hidden mb-6">
-                      <table className="w-full text-left">
-                        <thead className="bg-muted">
-                          <tr>
-                            <th className="p-3 text-sm font-medium">Select</th>
-                            <th className="p-3 text-sm font-medium">Course Code</th>
-                            <th className="p-3 text-sm font-medium">Course Name</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'elective').map((r: any) => (
-                            <tr key={r.subject_code} className="border-t">
-                              <td className="p-3">
-                                <input
-                                  type="checkbox"
-                                  checked={appliedSubjects[r.subject_code] || false}
-                                  onChange={() => handleApplyToggle(r.subject_code)}
-                                  className="w-4 h-4 cursor-pointer"
-                                />
-                              </td>
-                              <td className="p-3 text-sm">{r.subject_code}</td>
-                              <td className="p-3 text-sm">{r.subject_name}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
-
-                {((studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective')).length > 0 && (
-                  <>
-                    <h4 className="font-medium mb-2">Registered Open Electives</h4>
-                    <div className="border rounded-md overflow-hidden mb-6">
-                      <table className="w-full text-left">
-                        <thead className="bg-muted">
-                          <tr>
-                            <th className="p-3 text-sm font-medium">Select</th>
-                            <th className="p-3 text-sm font-medium">Course Code</th>
-                            <th className="p-3 text-sm font-medium">Course Name</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(studentDetails?.subjects_registered || []).filter((x: any) => x.subject_type === 'open_elective').map((r: any) => (
-                            <tr key={r.subject_code} className="border-t">
-                              <td className="p-3">
-                                <input
-                                  type="checkbox"
-                                  checked={appliedSubjects[r.subject_code] || false}
-                                  onChange={() => handleApplyToggle(r.subject_code)}
-                                  className="w-4 h-4 cursor-pointer"
-                                />
-                              </td>
-                              <td className="p-3 text-sm">{r.subject_code}</td>
-                              <td className="p-3 text-sm">{r.subject_name}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
             <DialogFooter className="mt-4">

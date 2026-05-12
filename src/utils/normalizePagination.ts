@@ -2,17 +2,18 @@
 export function normalizePaginatedResponse(resp: any, itemsKey = 'results') {
   if (!resp) return { items: [], meta: {} };
 
-  // AdminPagination-style merged response: top-level count/total_pages/current_page
-  if (resp.count !== undefined || resp.total_pages !== undefined || resp.current_page !== undefined) {
+  // AdminPagination-style merged response: top-level count/total_pages/current_page/page
+  if (resp.count !== undefined || resp.total_pages !== undefined || resp.current_page !== undefined || resp.page !== undefined) {
     const items = resp[itemsKey] ?? resp.data ?? resp.results ?? [];
     return {
       items: Array.isArray(items) ? items : [],
       meta: {
         totalItems: resp.count ?? resp.total_items ?? null,
         totalPages: resp.total_pages ?? null,
-        currentPage: resp.current_page ?? null,
-        next: resp.next ?? null,
-        previous: resp.previous ?? null,
+        currentPage: resp.page ?? resp.current_page ?? null,
+        pageSize: resp.page_size ?? resp.pageSize ?? null,
+        next: resp.next ?? resp.has_next ?? null,
+        previous: resp.previous ?? resp.has_previous ?? null,
       },
       raw: resp,
     };
@@ -44,11 +45,12 @@ export function normalizePaginatedResponse(resp: any, itemsKey = 'results') {
     return {
       items: Array.isArray(items) ? items : [],
       meta: {
-        totalItems: meta.total_items ?? meta.count ?? meta.totalItems ?? null,
+        totalItems: meta.total_items ?? meta.total_students ?? meta.count ?? meta.totalItems ?? null,
         totalPages: meta.total_pages ?? meta.totalPages ?? null,
-        currentPage: meta.current_page ?? meta.currentPage ?? null,
-        next: meta.next ?? null,
-        previous: meta.previous ?? null,
+        currentPage: meta.page ?? meta.current_page ?? meta.currentPage ?? null,
+        pageSize: meta.page_size ?? meta.pageSize ?? null,
+        next: meta.next ?? meta.has_next ?? null,
+        previous: meta.previous ?? meta.has_previous ?? null,
       },
       raw: resp,
     };

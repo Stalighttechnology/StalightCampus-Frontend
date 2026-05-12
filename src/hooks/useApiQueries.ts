@@ -84,10 +84,10 @@ export const useProctorStudentsQuery = (enabled: boolean = true, include?: strin
           const pag = {
             page: pageNum,
             page_size,
-            total: meta.totalItems || meta.total_items || 0,
-            total_pages: meta.totalPages || meta.total_pages || Math.ceil((meta.totalItems || meta.total_items || 0) / page_size),
-            has_next: !!meta.next,
-            has_previous: !!meta.previous,
+            total: meta.totalItems || meta.total_items || meta.total_students || 0,
+            total_pages: meta.totalPages || meta.total_pages || Math.ceil((meta.totalItems || meta.total_items || meta.total_students || 0) / page_size),
+            has_next: !!meta.next || !!meta.has_next,
+            has_previous: !!meta.previous || !!meta.has_previous,
           } as any;
           return { data: response.data, pagination: pag };
         }
