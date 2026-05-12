@@ -553,6 +553,8 @@ const UploadMarks = () => {
       const isQuestionPaperTab = tabValue === 'questionPaper';
       const qpResponse = await getQuestionPapers({
         branch_id: selected.branch_id?.toString(),
+        semester_id: selected.semester_id?.toString(),
+        section_id: selected.section_id?.toString(),
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
         detail: isQuestionPaperTab,
@@ -561,7 +563,9 @@ const UploadMarks = () => {
       if (qpResponse.success && qpResponse.data) {
         const existingQp = qpResponse.data.find((q: any) => {
           const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
-          return branchId === selected.branch_id && q.subject === selected.subject_id && q.test_type === selected.testType;
+          return branchId === selected.branch_id && 
+                 q.subject === selected.subject_id && 
+                 q.test_type === selected.testType;
         });
 
         if (existingQp) {
@@ -739,7 +743,7 @@ const UploadMarks = () => {
 
     // Prepare marks data
     const marksData: UploadIAMarksRequest = {
-      question_paper_id: qp.id,
+      question_paper_id: existingQpSummary.id,
       marks_data: students.map(s => {
         const marksDetail = Object.fromEntries(
           Object.entries(studentMarks[s.id.toString()] || {}).map(([key, value]) => [key, parseFloat(value) || 0])
@@ -771,6 +775,13 @@ const UploadMarks = () => {
           title: "Marks uploaded!",
           icon: "success",
           confirmButtonText: "OK",
+        });
+        // Update local state to reflect saved status without a fresh GET call
+        setStudents(prev => prev.map(s => ({ ...s, totalEdited: false })));
+        setActionModes(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(id => { updated[id] = 'view'; });
+          return updated;
         });
       } else {
         MySwal.fire({
