@@ -244,18 +244,18 @@ const StudentProfile: React.FC = () => {
       <Card className={`w-full max-w-none mx-auto ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
         <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
-            <CardTitle className={`tracking-tight text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile</CardTitle>
-            <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
+            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile</CardTitle>
+            <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            <Button size="sm" onClick={() => { if (editing) handleSave(); else setEditing(true); }} className="text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">
+            <Button size="sm" onClick={() => { if (editing) handleSave(); else setEditing(true); }} className="text-md sm:text-xl px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">
               {editing ? (updateProfileMutation.isPending ? 'Saving...' : 'Save') : 'Edit Profile'}
             </Button>
 
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>
-                <Button className="text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
+                <Button className="text-md sm:text-md px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
               </DialogTrigger>
               <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
                 <DialogHeader>
@@ -263,23 +263,23 @@ const StudentProfile: React.FC = () => {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="current_password">Current Password</Label>
+                    <Label htmlFor="current_password" className="text-[16px] sm:text-sm">Current Password</Label>
                     <div className="relative">
-                      <Input id="current_password" type={showPasswords.current ? 'text' : 'password'} value={passwordData.current_password} onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })} className="pr-10" />
+                      <Input id="current_password" type={showPasswords.current ? 'text' : 'password'} value={passwordData.current_password} onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })} className="pr-10 text-[16px] sm:text-sm" />
                       <button type="button" onClick={() => setShowPasswords((p) => ({ ...p, current: !p.current }))} className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground" aria-label="Toggle current password visibility">{showPasswords.current ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="new_password">New Password</Label>
+                    <Label htmlFor="new_password" className="text-[16px] sm:text-sm">New Password</Label>
                     <div className="relative">
-                      <Input id="new_password" type={showPasswords.next ? 'text' : 'password'} value={passwordData.new_password} onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} className="pr-10" />
+                      <Input id="new_password" type={showPasswords.next ? 'text' : 'password'} value={passwordData.new_password} onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} className="pr-10 text-[16px] sm:text-sm" />
                       <button type="button" onClick={() => setShowPasswords((p) => ({ ...p, next: !p.next }))} className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground" aria-label="Toggle new password visibility">{showPasswords.next ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="confirm_password">Confirm New Password</Label>
+                    <Label htmlFor="confirm_password" className="text-[16px] sm:text-sm">Confirm New Password</Label>
                     <div className="relative">
-                      <Input id="confirm_password" type={showPasswords.confirm ? 'text' : 'password'} value={passwordData.confirm_password} onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })} className="pr-10" />
+                      <Input id="confirm_password" type={showPasswords.confirm ? 'text' : 'password'} value={passwordData.confirm_password} onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })} className="pr-10 text-[16px] sm:text-sm" />
                       <button type="button" onClick={() => setShowPasswords((p) => ({ ...p, confirm: !p.confirm }))} className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground" aria-label="Toggle confirm password visibility">{showPasswords.confirm ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
                     </div>
                   </div>
@@ -308,25 +308,25 @@ const StudentProfile: React.FC = () => {
                 <div className="mb-2 text-center">
                   <div className="space-y-1">
                     <Progress value={uploadProgress} className="w-full h-2" />
-                    <p className="text-xs text-gray-500">Uploading... {uploadProgress}%</p>
+                    <p className="text-[12px] sm:text-xs text-gray-500">Uploading... {uploadProgress}%</p>
                   </div>
                 </div>
               )}
 
-              <div className="text-base sm:text-lg font-semibold text-center mb-1">{form.first_name} {form.last_name}</div>
-              <div className={`text-xs sm:text-sm mb-4 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{form.username || form.email}</div>
+              <div className="text-md sm:text-lg font-semibold text-center mb-1">{form.first_name} {form.last_name}</div>
+              <div className={`text-md sm:text-md mb-4 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{form.username || form.email}</div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
-                <h4 className={`text-xs sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+                <h4 className={`text-[16px] sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
                 <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                     <div className="flex flex-col justify-start">
-                      <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Department</span>
-                      <span className={`text-xs sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 bg-purple-100 text-purple-700`}>{form.branch || '—'}</span>
+                      <span className={`text-[14px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Department</span>
+                      <span className={`text-[16px] sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 bg-purple-100 text-purple-700`}>{form.branch || '—'}</span>
                     </div>
                     <div className="flex flex-col justify-start">
-                      <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Year</span>
-                      <span className={`text-xs sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 bg-purple-100 text-purple-700`}>{form.year_of_study || '—'}</span>
+                      <span className={`text-[14px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Year</span>
+                      <span className={`text-[16px] sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 bg-purple-100 text-purple-700`}>{form.year_of_study || '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -335,10 +335,10 @@ const StudentProfile: React.FC = () => {
 
             <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
-                <button onClick={() => setActiveTab('profile')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'profile' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Profile</button>
-                <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
-                <button onClick={() => setActiveTab('academic')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'academic' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Academic</button>
-                <button onClick={() => setActiveTab('face')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'face' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Face Recognition</button>
+                <button onClick={() => setActiveTab('profile')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'profile' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Profile</button>
+                <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
+                <button onClick={() => setActiveTab('academic')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'academic' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Academic</button>
+                <button onClick={() => setActiveTab('face')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'face' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Face Recognition</button>
               </div>
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
@@ -346,35 +346,35 @@ const StudentProfile: React.FC = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>First Name</Label>
-                        <Input name="first_name" value={form.first_name} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>First Name</Label>
+                        <Input name="first_name" value={form.first_name} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                       </div>
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Last Name</Label>
-                        <Input name="last_name" value={form.last_name} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Last Name</Label>
+                        <Input name="last_name" value={form.last_name} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                       </div>
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>USN</Label>
-                        <Input name="usn" value={form.usn} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-gray-100 text-gray-500 border-gray-300'}`} />
+                        <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>USN</Label>
+                        <Input name="usn" value={form.usn} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-gray-100 text-gray-500 border-gray-300'}`} />
                       </div>
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Email</Label>
-                        <Input name="email" value={form.email} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Email</Label>
+                        <Input name="email" value={form.email} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                       </div>
                       <div>
-                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Phone</Label>
-                        <Input name="phone" value={form.phone} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Phone</Label>
+                        <Input name="phone" value={form.phone} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                       </div>
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Address</Label>
-                      <Input name="address" value={form.address} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="address" value={form.address} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>About</Label>
-                      <Textarea name="about" value={form.about} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Textarea name="about" value={form.about} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                   </div>
                 )}
@@ -383,23 +383,23 @@ const StudentProfile: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Birth</Label>
-                      <Input name="date_of_birth" type="date" value={form.date_of_birth || ''} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="date_of_birth" type="date" value={form.date_of_birth || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
-                      <Input name="blood_group" value={form.blood_group} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="blood_group" value={form.blood_group} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Parent Name</Label>
-                      <Input name="parent_name" value={form.parent_name} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="parent_name" value={form.parent_name} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Parent Contact</Label>
-                      <Input name="parent_contact" value={form.parent_contact} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="parent_contact" value={form.parent_contact} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Emergency Contact</Label>
-                      <Input name="emergency_contact" value={form.emergency_contact} onChange={handleChange} readOnly={!editing} className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="emergency_contact" value={form.emergency_contact} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                   </div>
                 )}
@@ -408,47 +408,47 @@ const StudentProfile: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Current Semester</Label>
-                      <Input value={form.current_semester} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.current_semester} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Section</Label>
-                      <Input value={form.section} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.section} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Enrollment Year</Label>
-                      <Input value={form.enrollment_year || ''} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.enrollment_year || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Expected Graduation</Label>
-                      <Input value={form.expected_graduation || ''} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.expected_graduation || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Proctor</Label>
-                      <Input value={form.proctor ? (form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '') : ''} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.proctor ? (form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '') : ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Student Status</Label>
-                      <Input value={form.student_status || ''} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.student_status || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mode of Admission</Label>
-                      <Input value={form.mode_of_admission || ''} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.mode_of_admission || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Batch</Label>
-                      <Input value={form.batch || ''} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.batch || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
 
 
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Admission</Label>
-                      <Input value={form.date_of_admission ? (form.date_of_admission.length > 10 ? form.date_of_admission.slice(0, 10) : form.date_of_admission) : ''} readOnly className={`${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.date_of_admission ? (form.date_of_admission.length > 10 ? form.date_of_admission.slice(0, 10) : form.date_of_admission) : ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                   </div>
                 )}
@@ -457,13 +457,13 @@ const StudentProfile: React.FC = () => {
                   <div className="space-y-4">
                     <div className="text-center">
                       <h3 className="text-lg font-semibold mb-2">Face Recognition Training</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Upload 3-5 clear face photos to train the AI recognition system</p>
+                      <p className="text-[16px] sm:text-sm text-gray-600 dark:text-gray-400">Upload 3-5 clear face photos to train the AI recognition system</p>
                     </div>
 
                     {hasFaceTrained && (
                       <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                         <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-green-700 dark:text-green-300">Face recognition is active for your account</span>
+                        <span className="text-[16px] sm:text-sm text-green-700 dark:text-green-300">Face recognition is active for your account</span>
                       </div>
                     )}
 
@@ -474,15 +474,15 @@ const StudentProfile: React.FC = () => {
                         <label htmlFor="face-images" className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                           <div className="text-center">
                             <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Click to upload face images</p>
-                            <p className="text-xs text-gray-500">PNG, JPG up to 5MB each</p>
+                            <p className="text-[16px] sm:text-sm text-gray-600 dark:text-gray-400">Click to upload face images</p>
+                            <p className="text-[12px] sm:text-xs text-gray-500">PNG, JPG up to 5MB each</p>
                           </div>
                         </label>
                       </div>
 
                       {faceImages.length > 0 && (
                         <div className="space-y-2">
-                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Selected Images ({faceImages.length}/5)</Label>
+                          <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Selected Images ({faceImages.length}/5)</Label>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                             {faceImages.map((image, idx) => (
                               <div key={idx} className="relative">
@@ -506,7 +506,7 @@ const StudentProfile: React.FC = () => {
                         </div>
                       )}
 
-                      <div className="flex justify-center">
+                      <div className="flex justify-center mt-2">
                         <Button onClick={trainFace} disabled={faceImages.length < 3 || faceTrainingStatus === 'training'} className="bg-primary hover:bg-primary/90 text-white">{faceTrainingStatus === 'training' ? 'Training...' : 'Train Face AI'}</Button>
                       </div>
                     </div>
@@ -517,9 +517,7 @@ const StudentProfile: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button className="mt-4 bg-primary hover:bg-primary/90 text-white" onClick={handleSave} disabled={updateProfileMutation.isPending}>{updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}</Button>
-          </div>
+
 
         </CardContent>
       </Card>
