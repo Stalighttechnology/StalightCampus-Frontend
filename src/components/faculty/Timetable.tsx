@@ -29,14 +29,7 @@ interface TimetableDay {
 }
 
 const timeSlots = [
-  "09:00-10:00",
-  "10:00-11:00",
-  "11:00-12:00",
-  "11:15-12:15",
-  "12:00-13:00",
-  "12:15-13:15",
-  "14:00-15:00",
-  "15:00-16:00"
+  "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
 ];
 
 const Timetable = ({ role }: TimetableProps) => {
@@ -107,14 +100,15 @@ const Timetable = ({ role }: TimetableProps) => {
 
     const head = [["Time/Day", ...filteredData.map((d) => d.day)]];
 
-    const body = timeSlots.map((time) => {
-      const row = [time];
+    const body = timeSlots.map((hour) => {
+      const row = [hour];
       for (const day of filteredData) {
-        const slot = day.slots.find((s) => s.time === time);
-        if (!slot) {
-          row.push("Break");
+        // Find classes starting in this hour
+        const slots = day.slots.filter((s) => s.time.startsWith(hour.split(":")[0]));
+        if (slots.length === 0) {
+          row.push("-");
         } else {
-          row.push(`${slot.subject}\n${slot.faculty}\nRoom ${slot.room}`);
+          row.push(slots.map(s => `${s.subject}\n${s.time}\nRoom ${s.room}`).join("\n\n"));
         }
       }
       return row;
@@ -179,22 +173,25 @@ const Timetable = ({ role }: TimetableProps) => {
               </tr>
             </thead>
             <tbody>
-              {timeSlots.map((time) => (
-                <tr key={time}>
-                  <td className={`border px-4 py-2 font-semibold ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-300 text-gray-900'}`}>{time}</td>
+              {timeSlots.map((hour) => (
+                <tr key={hour}>
+                  <td className={`border px-4 py-2 font-semibold ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-300 text-gray-900'}`}>{hour}</td>
                   {filteredData.map((day) => {
-                    const slot = day.slots.find((s) => s.time === time);
+                    const slots = day.slots.filter((s) => s.time.startsWith(hour.split(":")[0]));
                     
                     return (
-                      <td key={day.day + time} className={`border px-4 py-2 text-center ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>
-                        {slot ? (
-                          <>
-                            <strong className={theme === 'dark' ? 'font-semibold' : 'font-semibold text-gray-900'}>{slot.subject}</strong><br />
-                            <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{slot.faculty}</span><br />
-                            <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Room {slot.room}</span>
-                          </>
+                      <td key={day.day + hour} className={`border px-4 py-2 text-center ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>
+                        {slots.length > 0 ? (
+                          slots.map((slot, idx) => (
+                            <div key={idx} className="mb-2 p-2 rounded bg-primary/10 border-l-4 border-primary">
+                              <strong className={theme === 'dark' ? 'font-semibold' : 'font-semibold text-gray-900'}>{slot.subject}</strong><br />
+                              <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-primary' : 'text-primary'}`}>{slot.time}</span><br />
+                              <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{slot.faculty}</span><br />
+                              <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Room {slot.room}</span>
+                            </div>
+                          ))
                         ) : (
-                          <span className={ theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Break</span>
+                          <span className={ theme === 'dark' ? 'text-muted-foreground/30' : 'text-gray-300'}>-</span>
                         )}
                       </td>
                     );

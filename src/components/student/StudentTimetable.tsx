@@ -20,15 +20,9 @@ const StudentTimetable = () => {
   const tableRef = useRef<HTMLDivElement>(null);
 
   // Predefined time slots for the grid (9:00 AM to 5:00 PM)
+  // Reference hours for the vertical axis
   const timeSlots = [
-    { start: "09:00", end: "10:00" },
-    { start: "10:00", end: "11:00" },
-    { start: "11:00", end: "12:00" },
-    { start: "12:00", end: "13:00" },
-    { start: "13:00", end: "14:00" },
-    { start: "14:00", end: "15:00" },
-    { start: "15:00", end: "16:00" },
-    { start: "16:00", end: "17:00" },
+    "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
   ];
   const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -84,12 +78,19 @@ const StudentTimetable = () => {
 
   const getTableData = () => {
     const timetable = Array.isArray(timetableData) ? timetableData : [];
-    const tableData = timeSlots.map(({ start, end }) => {
-      const row: TableRow = { time: `${start} - ${end}` };
+    const tableData = timeSlots.map((hour) => {
+      const row: Record<string, any> = { time: hour };
       days.forEach((day) => {
-        const entry = findTimetableEntry(timetable, start, end, day);
-        const dayKey = day.toLowerCase() as keyof TableRow;
-        row[dayKey] = createDayEntry(entry);
+        // Find entries that start within this hour
+        const entries = timetable.filter(
+          (e) => e.start_time.startsWith(hour.split(":")[0]) && e.day === day
+        );
+        row[day.toLowerCase()] = entries.map(e => ({
+          subject: typeof e.subject === 'string' ? e.subject : (e.subject?.name || 'Unknown'),
+          room: e.room,
+          start_time: e.start_time,
+          end_time: e.end_time
+        }));
       });
       return row;
     });
@@ -172,56 +173,30 @@ const StudentTimetable = () => {
               <tbody>
                 {getTableData().map((row, idx) => {
                   const isEvenRow = idx % 2 === 0;
-                  const rowBgLight = isEvenRow ? 'bg-white' : 'bg-gray-50';
-                  const rowBgDark = isEvenRow ? 'bg-card' : 'bg-muted/40';
-                  const rowBgClass = theme === 'dark' ? rowBgDark : rowBgLight;
+                  const rowBgClass = theme === 'dark' 
+                    ? (isEvenRow ? 'bg-card' : 'bg-muted/40') 
+                    : (isEvenRow ? 'bg-white' : 'bg-gray-50');
                   const hoverClass = theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-blue-50';
-                  const slotKey = `time-${idx}`;
 
                   return (
-                    <tr
-                      key={slotKey}
-                      className={`${rowBgClass} ${hoverClass}`}
-                    >
-                      <td className={`${styles.timeColumn} ${theme === 'dark'
-                        ? 'text-card-foreground border-r border-border'
-                        : 'text-gray-900 border-r border-gray-200'
-                        }`}>
+                    <tr key={idx} className={`${rowBgClass} ${hoverClass}`}>
+                      <td className={`${styles.timeColumn} ${theme === 'dark' ? 'text-card-foreground border-r border-border' : 'text-gray-900 border-r border-gray-200'}`}>
                         {row.time}
                       </td>
                       {["mon", "tue", "wed", "thu", "fri", "sat"].map((day) => {
-                        type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
-                        const entryValue = row[day as DayKey];
-                        const entry = (entryValue && typeof entryValue === 'object') ? entryValue : null;
-                        const tdTextLight = 'text-gray-900 border-b border-gray-200';
-                        const tdTextDark = 'text-card-foreground border-b border-border/50';
-                        const tdTextClass = theme === 'dark' ? tdTextDark : tdTextLight;
-                        const subjectColorLight = 'text-gray-900';
-                        const subjectColorDark = 'text-card-foreground';
-                        const subjectColor = theme === 'dark' ? subjectColorDark : subjectColorLight;
-                        const roomColorLight = 'text-gray-600';
-                        const roomColorDark = 'text-muted-foreground';
-                        const roomColor = theme === 'dark' ? roomColorDark : roomColorLight;
-                        const emptyColorLight = 'text-gray-300';
-                        const emptyColorDark = 'text-muted-foreground/50';
-                        const emptyColor = theme === 'dark' ? emptyColorDark : emptyColorLight;
-
+                        const entries = row[day] as any[];
                         return (
-                          <td
-                            key={day}
-                            className={`${styles.dayColumn} ${tdTextClass}`}
-                          >
-                            {entry ? (
-                              <div className={styles.cellContent}>
-                                <div className={`${styles.subject} ${subjectColor}`}>
-                                  {entry.subject}
+                          <td key={day} className={`${styles.dayColumn} ${theme === 'dark' ? 'text-card-foreground border-b border-border/50' : 'text-gray-900 border-b border-gray-200'}`}>
+                            {entries && entries.length > 0 ? (
+                              entries.map((entry, eIdx) => (
+                                <div key={eIdx} className="mb-2 p-2 rounded bg-primary/10 border-l-4 border-primary">
+                                  <div className={`font-semibold ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{entry.subject}</div>
+                                  <div className="text-[10px] font-bold text-primary">{entry.start_time.substring(0,5)} - {entry.end_time.substring(0,5)}</div>
+                                  <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Room {entry.room}</div>
                                 </div>
-                                <div className={`${styles.room} ${roomColor}`}>
-                                  {entry.room}
-                                </div>
-                              </div>
+                              ))
                             ) : (
-                              <span className={`${styles.emptyCell} ${emptyColor}`}>—</span>
+                              <span className={theme === 'dark' ? 'text-muted-foreground/30' : 'text-gray-300'}>—</span>
                             )}
                           </td>
                         );
