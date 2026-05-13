@@ -54,7 +54,7 @@ const HMSContext = createContext<HMSContextType | undefined>(undefined);
 
 let cachedInitData: any = null;
 
-export const HMSProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }) => {
   const [hostels, setHostels] = useState<Hostel[]>(cachedInitData?.hostels || []);
   const [wardens, setWardens] = useState<Warden[]>(cachedInitData?.wardens || []);
   const [caretakers, setCaretakers] = useState<Caretaker[]>(cachedInitData?.caretakers || []);
@@ -75,7 +75,7 @@ export const HMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const getCachedFloors = async (hostelId: number) => {
     if (floorCache.current[hostelId]) return floorCache.current[hostelId];
-    
+
     const { getFloorsByHostel } = await import('../utils/hms_api');
     const response = await getFloorsByHostel(hostelId);
     if (response.success && response.results) {
@@ -103,10 +103,10 @@ export const HMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateRoomStudentCount = (hostelId: number, roomId: number, delta: number) => {
     // Update all relevant cache keys (specific floor and 'all')
-    Object.keys(roomCache.current).forEach(key => {
+    Object.keys(roomCache.current).forEach((key) => {
       if (key.startsWith(`${hostelId}-`)) {
-        roomCache.current[key] = roomCache.current[key].map((room: any) => 
-          room.id === roomId ? { ...room, student_count: Math.max(0, (room.student_count || 0) + delta) } : room
+        roomCache.current[key] = roomCache.current[key].map((room: any) =>
+        room.id === roomId ? { ...room, student_count: Math.max(0, (room.student_count || 0) + delta) } : room
         );
       }
     });
@@ -133,11 +133,11 @@ export const HMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         cachedInitData = rawData;
       }
     } catch (error) {
-      console.error('Failed to fetch HMS initial data:', error);
+
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to load hostel management data",
+        description: "Failed to load hostel management data"
       });
     } finally {
       setLoading(false);
@@ -147,7 +147,7 @@ export const HMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const role = localStorage.getItem('role');
     const isWardenPath = window.location.pathname.includes('/warden');
-    
+
     if (!fetchRef.current && role !== 'warden' && !isWardenPath) {
       refreshData();
       fetchRef.current = true;
@@ -164,26 +164,26 @@ export const HMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [hostels, wardens, caretakers, statistics]);
 
   return (
-    <HMSContext.Provider value={{ 
-      hostels, 
-      wardens, 
-      caretakers, 
-      statistics, 
-      loading, 
-      skeletonMode, 
-      setSkeletonMode, 
-      refreshData, 
+    <HMSContext.Provider value={{
+      hostels,
+      wardens,
+      caretakers,
+      statistics,
+      loading,
+      skeletonMode,
+      setSkeletonMode,
+      refreshData,
       setHostels,
       setWardens,
       setCaretakers,
       setStatistics,
-      getCachedFloors, 
+      getCachedFloors,
       getCachedRooms,
       updateRoomStudentCount
     }}>
       {children}
-    </HMSContext.Provider>
-  );
+    </HMSContext.Provider>);
+
 };
 
 export const useHMSContext = () => {

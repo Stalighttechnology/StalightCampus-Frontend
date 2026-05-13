@@ -176,8 +176,8 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
     typeof error === 'object' &&
     error !== null &&
     'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
-  );
+    typeof (error as Record<string, unknown>).message === 'string');
+
 }
 
 // Edit Modal Component
@@ -188,7 +188,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
     professor: classDetails.professor || "",
     room: classDetails.room || "",
     start_time: classDetails.start_time || "",
-    end_time: classDetails.end_time || "",
+    end_time: classDetails.end_time || ""
   });
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
@@ -210,7 +210,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
 
         // Use faculty assignments from props instead of API call
         // Debug: print diagnostics if assignment not found
-        console.debug("EditModal: looking for assignment", { subjectId: subject.id, semesterId, sectionId, subjectsCount: subjects.length, assignmentsCount: facultyAssignments.length });
+
         const assignment = facultyAssignments.find(
           (a: FacultyAssignmentData) => String(a.subject_id) === String(subject.id) && String(a.semester_id) === String(semesterId) && String(a.section_id) === String(sectionId)
         );
@@ -218,14 +218,14 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
         if (assignment) {
           setNewClassDetails((prev) => ({
             ...prev,
-            professor: (assignment as any).faculty_name || (assignment as any).faculty || "",
+            professor: (assignment as any).faculty_name || (assignment as any).faculty || ""
           }));
         } else {
-          console.debug("EditModal: no matching assignment found", { subject, facultyAssignments });
+
           setNewClassDetails((prev) => ({ ...prev, professor: "" }));
         }
       } catch (err) {
-        console.error("Error finding faculty assignment:", err);
+
         setNewClassDetails((prev) => ({ ...prev, professor: "" }));
       } finally {
         setIsLoadingAssignments(false);
@@ -239,18 +239,18 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
     const { name, value } = e.target;
     setNewClassDetails((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
     setNewClassDetails((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
-  const dayFullMap: Record<string,string> = {
+  const dayFullMap: Record<string, string> = {
     'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday'
   };
 
@@ -270,11 +270,11 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
               <SelectValue placeholder="Select Course" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-              {subjects.map((subject: Subject) => (
-                <SelectItem key={subject.id} value={subject.name} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+              {subjects.map((subject: Subject) =>
+              <SelectItem key={subject.id} value={subject.name} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                   {subject.name}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -284,16 +284,16 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
           <div className={`w-full p-3 border rounded-lg flex items-center gap-3 transition-all duration-200 ${theme === 'dark' ? 'bg-muted/50 text-foreground border-border' : 'bg-gray-50 text-gray-900 border-gray-200'}`}>
             <User className={`w-4 h-4 ${theme === 'dark' ? 'text-primary' : 'text-primary'}`} />
             <span className="font-medium">
-              {isLoadingAssignments ? (
-                <Skeleton className="h-4 w-32" />
-              ) : (
-                newClassDetails.professor || <span className="text-destructive/70 italic">No professor assigned</span>
-              )}
+              {isLoadingAssignments ?
+              <Skeleton className="h-4 w-32" /> :
+
+              newClassDetails.professor || <span className="text-destructive/70 italic">No professor assigned</span>
+              }
             </span>
           </div>
-          {!isLoadingAssignments && !newClassDetails.professor && newClassDetails.subject && (
-            <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
-          )}
+          {!isLoadingAssignments && !newClassDetails.professor && newClassDetails.subject &&
+          <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
+          }
         </div>
 
         <div className="mb-4">
@@ -304,8 +304,8 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
             value={newClassDetails.room}
             onChange={handleChange}
             className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border placeholder-muted-foreground' : 'text-gray-900 bg-white border-gray-300 placeholder-gray-500'}`}
-            placeholder="e.g., R103"
-          />
+            placeholder="e.g., R103" />
+          
         </div>
 
         <div className="mb-4">
@@ -315,8 +315,8 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
             name="start_time"
             value={newClassDetails.start_time}
             onChange={handleChange}
-            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}
-          />
+            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`} />
+          
         </div>
 
         <div className="mb-4">
@@ -326,8 +326,8 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
             name="end_time"
             value={newClassDetails.end_time}
             onChange={handleChange}
-            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}
-          />
+            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`} />
+          
         </div>
 
         <div className="flex justify-between items-center">
@@ -336,20 +336,20 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
               variant="destructive"
               onClick={() => setShowConfirmDelete(true)}
               disabled={!classDetails.timetable_id}
-              className={theme === 'dark' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-600 text-white hover:bg-red-700'}
-            >
+              className={theme === 'dark' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-600 text-white hover:bg-red-700'}>
+              
               Delete
             </Button>
-            {!classDetails.timetable_id && (
-              <span className="text-xs text-muted-foreground">No existing class to delete</span>
-            )}
+            {!classDetails.timetable_id &&
+            <span className="text-xs text-muted-foreground">No existing class to delete</span>
+            }
           </div>
           <div className="flex justify-end space-x-4">
             <Button
               variant="outline"
               className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}
-              onClick={onCancel}
-            >
+              onClick={onCancel}>
+              
               Cancel
             </Button>
             <Button
@@ -363,20 +363,20 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
                   alert("Start time must be before end time.");
                   return;
                 }
-                onSave({ 
-                  ...newClassDetails, 
-                  day: classDetails.day || "", 
-                  timetable_id: classDetails.timetable_id 
+                onSave({
+                  ...newClassDetails,
+                  day: classDetails.day || "",
+                  timetable_id: classDetails.timetable_id
                 });
               }}
-              className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}
-            >
+              className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}>
+              
               Save
             </Button>
           </div>
         </div>
-        {showConfirmDelete && (
-          <div className="mt-4 p-4 border rounded bg-red-50 text-red-900">
+        {showConfirmDelete &&
+        <div className="mt-4 p-4 border rounded bg-red-50 text-red-900">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div>
                 <strong>Delete class?</strong>
@@ -385,21 +385,21 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setShowConfirmDelete(false)}>Cancel</Button>
                 <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setShowConfirmDelete(false);
-                    onDelete && onDelete(classDetails.timetable_id);
-                  }}
-                >
+                variant="destructive"
+                onClick={() => {
+                  setShowConfirmDelete(false);
+                  onDelete && onDelete(classDetails.timetable_id);
+                }}>
+                
                   Confirm Delete
                 </Button>
               </div>
             </div>
           </div>
-        )}
+        }
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 // Main Timetable Component
@@ -444,7 +444,7 @@ const Timetable = () => {
       section_id: string;
       semester: number;
       semester_id: string;
-    }>>,
+    }>>
   });
 
   const updateState = (newState: Partial<typeof state>) => {
@@ -454,8 +454,8 @@ const Timetable = () => {
   // Predefined time slots for the grid (9:00 AM to 5:00 PM)
   // Reference hours for the vertical axis
   const timeSlots = [
-    "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
-  ];
+  "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
+
   const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 
@@ -476,11 +476,11 @@ const Timetable = () => {
           branchName: boot.data.profile.branch,
           semesters: boot.data.semesters.map((s: any) => ({
             id: s.id.toString(),
-            number: s.number,
+            number: s.number
           })) || [],
           sections: [],
           subjects: [],
-          facultyAssignments: [],
+          facultyAssignments: []
         });
       } catch (err) {
         if (isErrorWithMessage(err)) {
@@ -523,7 +523,7 @@ const Timetable = () => {
           updateState({ sections: [], sectionId: "", loading: false });
         }
       } catch (err) {
-        console.error("Error fetching sections:", err);
+
         updateState({ sections: [], sectionId: "", loading: false });
         toast({ variant: "destructive", title: "Error", description: "Failed to load sections" });
       }
@@ -550,13 +550,13 @@ const Timetable = () => {
         const subjectsRes = await manageSubjects({ branch_id: state.branchId, semester_id: state.semesterId });
         const assignmentsRes = await manageFacultyAssignments({ branch_id: state.branchId, semester_id: state.semesterId });
 
-        const subjects = (subjectsRes && subjectsRes.success && subjectsRes.data) ? subjectsRes.data : [];
+        const subjects = subjectsRes && subjectsRes.success && subjectsRes.data ? subjectsRes.data : [];
         // Normalize assignments: some endpoints return { data: { assignments: [...] } }
         let assignments: any = [];
         if (assignmentsRes && assignmentsRes.success && assignmentsRes.data) {
-          if (Array.isArray(assignmentsRes.data)) assignments = assignmentsRes.data;
-          else if ((assignmentsRes.data as any).assignments) assignments = (assignmentsRes.data as any).assignments;
-          else assignments = assignmentsRes.data;
+          if (Array.isArray(assignmentsRes.data)) assignments = assignmentsRes.data;else
+          if ((assignmentsRes.data as any).assignments) assignments = (assignmentsRes.data as any).assignments;else
+          assignments = assignmentsRes.data;
         } else {
           assignments = [];
         }
@@ -566,7 +566,7 @@ const Timetable = () => {
 
         updateState({ subjects, facultyAssignments: assignments, subjectsCache: newSubjectsCache, facultyAssignmentsCache: newAssignmentsCache, loading: false });
       } catch (err) {
-        console.error("Error fetching subjects/assignments:", err);
+
         updateState({ subjects: [], facultyAssignments: [], loading: false });
         toast({ variant: "destructive", title: "Error", description: "Failed to load subjects or faculty assignments" });
       }
@@ -591,30 +591,30 @@ const Timetable = () => {
           action: "GET" as const,
           branch_id: state.branchId,
           semester_id: state.semesterId,
-          section_id: state.sectionId,
+          section_id: state.sectionId
         });
         if (timetableResponse.success && timetableResponse.data) {
-          const normalizedTimetable = Array.isArray(timetableResponse.data)
-            ? timetableResponse.data.map((entry: TimetableData) => ({
-              id: entry.id,
-              faculty_assignment: {
-                id: entry.faculty_assignment.id,
-                faculty: entry.faculty_assignment.faculty,
-                subject: entry.faculty_assignment.subject,
-                semester: entry.faculty_assignment.semester,
-                section: entry.faculty_assignment.section,
-              },
-              day: entry.day.toUpperCase(),
-              start_time: entry.start_time,
-              end_time: entry.end_time,
-              room: entry.room,
-            }))
-            : [];
+          const normalizedTimetable = Array.isArray(timetableResponse.data) ?
+          timetableResponse.data.map((entry: TimetableData) => ({
+            id: entry.id,
+            faculty_assignment: {
+              id: entry.faculty_assignment.id,
+              faculty: entry.faculty_assignment.faculty,
+              subject: entry.faculty_assignment.subject,
+              semester: entry.faculty_assignment.semester,
+              section: entry.faculty_assignment.section
+            },
+            day: entry.day.toUpperCase(),
+            start_time: entry.start_time,
+            end_time: entry.end_time,
+            room: entry.room
+          })) :
+          [];
           updateState({ timetable: normalizedTimetable });
-          console.log("Fetched timetable:", normalizedTimetable);
+
         } else {
           updateState({ timetable: [] });
-          console.log("No timetable data received:", timetableResponse);
+
         }
       } catch (err) {
         if (isErrorWithMessage(err)) {
@@ -660,7 +660,7 @@ const Timetable = () => {
 
   const handleClassClick = (time: string, day: string, existingEntry?: any) => {
     if (!state.isEditing) return;
-    
+
     if (existingEntry) {
       updateState({
         selectedClass: {
@@ -671,15 +671,15 @@ const Timetable = () => {
           end_time: existingEntry.end_time,
           day: existingEntry.day,
           timetable_id: existingEntry.id,
-          assignment_id: existingEntry.faculty_assignment.id,
-        },
+          assignment_id: existingEntry.faculty_assignment.id
+        }
       });
     } else {
       // For new class, default to 1 hour duration starting at the clicked hour
       const [hour, min] = time.split(":");
       const start_time = `${hour}:${min}`;
       const end_time = `${String(Number(hour) + 1).padStart(2, '0')}:${min}`;
-      
+
       updateState({
         selectedClass: {
           subject: "",
@@ -687,8 +687,8 @@ const Timetable = () => {
           room: "",
           start_time,
           end_time,
-          day: day.toUpperCase(),
-        },
+          day: day.toUpperCase()
+        }
       });
     }
   };
@@ -724,7 +724,7 @@ const Timetable = () => {
         room: newClassDetails.room,
         branch_id: state.branchId,
         semester_id: state.semesterId,
-        section_id: state.sectionId,
+        section_id: state.sectionId
       };
 
       const response = await manageTimetable(timetableRequest);
@@ -737,16 +737,16 @@ const Timetable = () => {
         const room = timetableRequest.room || "";
 
         // Build faculty_assignment details from local cache
-        const assignment = state.facultyAssignments.find(a => a.id === timetableRequest.assignment_id);
-        const facultyAssignment = assignment
-          ? {
-              id: assignment.id,
-              faculty: assignment.faculty,
-              subject: assignment.subject,
-              semester: assignment.semester,
-              section: assignment.section,
-            }
-          : { id: timetableRequest.assignment_id || "", faculty: "", subject: "", semester: 0, section: "" };
+        const assignment = state.facultyAssignments.find((a) => a.id === timetableRequest.assignment_id);
+        const facultyAssignment = assignment ?
+        {
+          id: assignment.id,
+          faculty: assignment.faculty,
+          subject: assignment.subject,
+          semester: assignment.semester,
+          section: assignment.section
+        } :
+        { id: timetableRequest.assignment_id || "", faculty: "", subject: "", semester: 0, section: "" };
 
         if (timetableRequest.action === 'create') {
           const newEntry = {
@@ -755,16 +755,16 @@ const Timetable = () => {
             day: day.toUpperCase(),
             start_time,
             end_time,
-            room,
+            room
           };
           updateState({ timetable: [...state.timetable, newEntry], selectedClass: null });
           toast({ title: "Success", description: "Timetable created" });
         } else {
           // update
           if (timetableId) {
-            const updated = state.timetable.map((e) => (e.id === timetableId || e.id === state.selectedClass?.timetable_id)
-              ? { ...e, faculty_assignment: facultyAssignment, day: day.toUpperCase(), start_time, end_time, room }
-              : e
+            const updated = state.timetable.map((e) => e.id === timetableId || e.id === state.selectedClass?.timetable_id ?
+            { ...e, faculty_assignment: facultyAssignment, day: day.toUpperCase(), start_time, end_time, room } :
+            e
             );
             updateState({ timetable: updated, selectedClass: null });
             toast({ title: "Success", description: "Timetable updated successfully" });
@@ -778,13 +778,13 @@ const Timetable = () => {
         toast({
           variant: "destructive",
           title: "Error",
-          description: err.message,
+          description: err.message
         });
       } else {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "An unknown error occurred",
+          description: "An unknown error occurred"
         });
       }
     }
@@ -803,8 +803,8 @@ const Timetable = () => {
         throw new Error(response.message || 'Failed to delete class');
       }
     } catch (err) {
-      console.error('Delete class error:', err);
-      toast({ variant: 'destructive', title: 'Error', description: (isErrorWithMessage(err) ? err.message : 'Network error') });
+
+      toast({ variant: 'destructive', title: 'Error', description: isErrorWithMessage(err) ? err.message : 'Network error' });
     } finally {
       updateState({ loading: false });
     }
@@ -821,14 +821,14 @@ const Timetable = () => {
 
     const branchName = state.branchName || "Branch";
     const semesterNumber =
-      state.semesters.find((s) => s.id === state.semesterId)?.number || "Semester";
+    state.semesters.find((s) => s.id === state.semesterId)?.number || "Semester";
     const sectionName =
-      state.sections.find((s) => s.id === state.sectionId)?.name || "Section";
+    state.sections.find((s) => s.id === state.sectionId)?.name || "Section";
 
     const title =
-      state.semesterId && state.sectionId && state.branchId
-        ? `${branchName} - ${semesterNumber} Semester - Section ${sectionName} Timetable`
-        : "Timetable";
+    state.semesterId && state.sectionId && state.branchId ?
+    `${branchName} - ${semesterNumber} Semester - Section ${sectionName} Timetable` :
+    "Timetable";
 
     doc.text(title, 10, 15);
 
@@ -838,28 +838,28 @@ const Timetable = () => {
     // Helper to format a cell's entries (array of timetable entries) into a printable string
     const formatCell = (entries: any) => {
       if (!entries || entries.length === 0) return "";
-      return entries
-        .map((entry: any) => {
-          const subj = entry.faculty_assignment?.subject || entry.subject || "";
-          const time = `${entry.start_time || ""} - ${entry.end_time || ""}`.trim();
-          const faculty = entry.faculty_assignment?.faculty || entry.faculty_name || "";
-          const room = entry.room ? `Room ${entry.room}` : "";
-          return [subj, time, faculty, room].filter(Boolean).join("\n");
-        })
-        .join("\n\n");
+      return entries.
+      map((entry: any) => {
+        const subj = entry.faculty_assignment?.subject || entry.subject || "";
+        const time = `${entry.start_time || ""} - ${entry.end_time || ""}`.trim();
+        const faculty = entry.faculty_assignment?.faculty || entry.faculty_name || "";
+        const room = entry.room ? `Room ${entry.room}` : "";
+        return [subj, time, faculty, room].filter(Boolean).join("\n");
+      }).
+      join("\n\n");
     };
 
     autoTable(doc, {
       head: [headers],
       body: tableData.map((row) => [
-        row.time,
-        formatCell(row.mon),
-        formatCell(row.tue),
-        formatCell(row.wed),
-        formatCell(row.thu),
-        formatCell(row.fri),
-        formatCell(row.sat),
-      ]),
+      row.time,
+      formatCell(row.mon),
+      formatCell(row.tue),
+      formatCell(row.wed),
+      formatCell(row.thu),
+      formatCell(row.fri),
+      formatCell(row.sat)]
+      ),
       startY: 25,
       styles: { fontSize: 8, cellPadding: 2 },
       columnStyles: {
@@ -869,8 +869,8 @@ const Timetable = () => {
         3: { cellWidth: 25 },
         4: { cellWidth: 25 },
         5: { cellWidth: 25 },
-        6: { cellWidth: 25 },
-      },
+        6: { cellWidth: 25 }
+      }
     });
 
     // ✅ Save as (branch-semester-section).pdf
@@ -884,8 +884,8 @@ const Timetable = () => {
     return (
       <div className="bg-background text-foreground p-6">
         <SkeletonTable rows={10} cols={7} />
-      </div>
-    );
+      </div>);
+
   }
 
   if (state.error) {
@@ -901,16 +901,16 @@ const Timetable = () => {
             <Button
               variant="outline"
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
-              onClick={handleExportPDF}
-            >
+              onClick={handleExportPDF}>
+              
               <DownloadIcon className="w-4 h-4" />
               <span className="whitespace-nowrap">Export PDF</span>
             </Button>
             <Button
               variant="outline"
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
-              onClick={handleEdit}
-            >
+              onClick={handleEdit}>
+              
               <EditIcon className="w-4 h-4" />
               <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
             </Button>
@@ -925,18 +925,18 @@ const Timetable = () => {
                   <Select
                     value={state.semesterId}
                     onValueChange={(value) =>
-                      updateState({ semesterId: value, sectionId: "", timetable: [] })
-                    }
-                  >
+                    updateState({ semesterId: value, sectionId: "", timetable: [] })
+                    }>
+                    
                     <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
                       <SelectValue placeholder="Select Semester" />
                     </SelectTrigger>
                     <SelectContent className="bg-card text-foreground border-border">
-                      {state.semesters.map((semester) => (
-                        <SelectItem key={semester.id} value={semester.id} className="text-foreground">
+                      {state.semesters.map((semester) =>
+                      <SelectItem key={semester.id} value={semester.id} className="text-foreground">
                           {semester.number} Semester
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -944,31 +944,31 @@ const Timetable = () => {
                   <Select
                     value={state.sectionId}
                     onValueChange={(value) => updateState({ sectionId: value, timetable: [] })}
-                    disabled={!state.semesterId}
-                  >
+                    disabled={!state.semesterId}>
+                    
                     <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
                       <SelectValue placeholder="Select Section" />
                     </SelectTrigger>
                     <SelectContent className="bg-card text-foreground border-border">
-                      {state.sections.map((section) => (
-                        <SelectItem key={section.id} value={section.id} className="text-foreground">
+                      {state.sections.map((section) =>
+                      <SelectItem key={section.id} value={section.id} className="text-foreground">
                           Section {section.name}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="text-sm text-muted-foreground mt-2 md:mt-0 md:ml-4 md:whitespace-nowrap md:flex-none">
-                {state.semesterId && state.sectionId
-                  ? `${state.semesters.find((s) => s.id === state.semesterId)?.number} Semester - Section ${state.sections.find((s) => s.id === state.sectionId)?.name
-                  }`
-                  : "Select Semester and Section"}
+                {state.semesterId && state.sectionId ?
+                `${state.semesters.find((s) => s.id === state.semesterId)?.number} Semester - Section ${state.sections.find((s) => s.id === state.sectionId)?.name}` :
+
+                "Select Semester and Section"}
               </div>
             </div>
 
-            {(!state.semesterId || !state.sectionId) ? (
-              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+            {!state.semesterId || !state.sectionId ?
+            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
                   <Calendar className="w-12 h-12 opacity-80" />
                 </div>
@@ -976,9 +976,9 @@ const Timetable = () => {
                 <p className="max-w-xs text-base leading-relaxed">
                   Select a <span className="font-semibold text-primary">semester</span> and <span className="font-semibold text-primary">section</span> above to display the weekly schedule.
                 </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
+              </div> :
+
+            <div className="overflow-x-auto">
                 <table className="min-w-full text-sm text-left">
                   <thead className="text-foreground">
                     <tr>
@@ -992,61 +992,61 @@ const Timetable = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {getTableData().map((row, idx) => (
-                      <tr key={idx} className="border-t hover:bg-accent border-border">
+                    {getTableData().map((row, idx) =>
+                  <tr key={idx} className="border-t hover:bg-accent border-border">
                         <td className="py-3 px-4 font-medium text-foreground">{row.time}</td>
-                        {["mon", "tue", "wed", "thu", "fri", "sat"].map((day, i) => (
-                          <td
-                            key={i}
-                            className="py-3 px-4 whitespace-pre-line text-foreground cursor-pointer"
-                            onClick={() => handleClassClick(row.time, day.toUpperCase())}
-                          >
-                            {row[day] && row[day].length > 0 ? (
-                              row[day].map((entry: any) => (
-                                <div 
-                                  key={entry.id} 
-                                  className="mb-2 p-2 rounded bg-primary/10 border-l-4 border-primary hover:bg-primary/20"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleClassClick(row.time, day.toUpperCase(), entry);
-                                  }}
-                                >
+                        {["mon", "tue", "wed", "thu", "fri", "sat"].map((day, i) =>
+                    <td
+                      key={i}
+                      className="py-3 px-4 whitespace-pre-line text-foreground cursor-pointer"
+                      onClick={() => handleClassClick(row.time, day.toUpperCase())}>
+                      
+                            {row[day] && row[day].length > 0 ?
+                      row[day].map((entry: any) =>
+                      <div
+                        key={entry.id}
+                        className="mb-2 p-2 rounded bg-primary/10 border-l-4 border-primary hover:bg-primary/20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClassClick(row.time, day.toUpperCase(), entry);
+                        }}>
+                        
                                   <div className="font-semibold">{entry.faculty_assignment.subject}</div>
                                   <div className="text-xs text-muted-foreground">{entry.start_time} - {entry.end_time}</div>
                                   <div className="text-xs">{entry.faculty_assignment.faculty}</div>
                                   <div className="text-xs italic">Room {entry.room}</div>
                                 </div>
-                              ))
-                            ) : (
-                              state.isEditing && <span className="text-muted-foreground italic text-xs">Click to add</span>
-                            )}
+                      ) :
+
+                      state.isEditing && <span className="text-muted-foreground italic text-xs">Click to add</span>
+                      }
                           </td>
-                        ))}
+                    )}
                       </tr>
-                    ))}
+                  )}
                   </tbody>
                 </table>
               </div>
-            )}
+            }
           </div>
         </CardContent>
       </Card>
 
-      {state.isEditing && state.selectedClass && (
-        <EditModal
-          classDetails={state.selectedClass}
-          onSave={handleSaveClass}
-          onCancel={handleCancelEdit}
-          onDelete={handleDeleteClass}
-          subjects={state.subjects}
-          facultyAssignments={state.facultyAssignments}
-          semesterId={state.semesterId}
-          sectionId={state.sectionId}
-          branchId={state.branchId}
-        />
-      )}
-    </div>
-  );
+      {state.isEditing && state.selectedClass &&
+      <EditModal
+        classDetails={state.selectedClass}
+        onSave={handleSaveClass}
+        onCancel={handleCancelEdit}
+        onDelete={handleDeleteClass}
+        subjects={state.subjects}
+        facultyAssignments={state.facultyAssignments}
+        semesterId={state.semesterId}
+        sectionId={state.sectionId}
+        branchId={state.branchId} />
+
+      }
+    </div>);
+
 };
 
 export default Timetable;

@@ -17,7 +17,7 @@ const Monitoring = () => {
         const res = await response.json();
         setData(res);
       } catch (error) {
-        console.error("Error:", error);
+
       } finally {
         setLoading(false);
       }
@@ -34,8 +34,8 @@ const Monitoring = () => {
         <p className="text-muted-foreground mt-1">Live server health and resource usage.</p>
       </div>
       
-      {loading && !data ? <div className="h-64 flex items-center justify-center">Loading...</div> : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {loading && !data ? <div className="h-64 flex items-center justify-center">Loading...</div> :
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">CPU Usage</CardTitle>
@@ -80,8 +80,8 @@ const Monitoring = () => {
             </CardContent>
           </Card>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 export default Monitoring;

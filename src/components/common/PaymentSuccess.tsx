@@ -58,8 +58,8 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
       try {
         const response = await fetch(`http://127.0.0.1:8000/api/payments/status/${sessionId}/`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          },
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
         });
 
         if (!response.ok) {
@@ -79,12 +79,12 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
           try {
             toast({ title: 'Applied successfully', description: 'Your application has been submitted after payment confirmation.' });
           } catch (e) {
+
             // ignore toast errors
-          }
-          // redirect after short delay: if parent provided setPage, use it; otherwise navigate to dashboard
+          } // redirect after short delay: if parent provided setPage, use it; otherwise navigate to dashboard
           const redirectTimer = setTimeout(() => {
             if (setPage) {
-              try { setPage('fees'); } catch (e) { window.location.href = '/dashboard'; }
+              try {setPage('fees');} catch (e) {window.location.href = '/dashboard';}
             } else {
               window.location.href = '/dashboard';
             }
@@ -98,7 +98,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
           stopped = true;
         }
       } catch (err) {
-        console.error('Error checking payment status:', err);
+
         if (attempts >= maxAttempts) {
           setPaymentStatus('error');
           stopped = true;
@@ -126,8 +126,8 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/payments/status/${sessionId}/`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
       });
 
       if (response.ok) {
@@ -138,7 +138,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
         setPaymentStatus('error');
       }
     } catch (error) {
-      console.error('Error checking payment status:', error);
+
       setPaymentStatus('error');
     }
   };
@@ -146,7 +146,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'INR'
     }).format(amount);
   };
 
@@ -160,8 +160,8 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
             <p className={`animate-pulse ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Please wait while we confirm your payment...</p>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   if (paymentStatus === 'error') {
@@ -174,30 +174,30 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
           </CardHeader>
           <CardContent className="text-center">
             <p className={theme === 'dark' ? 'text-gray-300 mb-6' : 'text-gray-600 mb-6'}>
-              {!sessionId
-                ? "Payment session not found. Please try your payment again."
-                : "We couldn't verify your payment or you may not be properly logged in. Please log in and check your payment status from the fees page."
+              {!sessionId ?
+              "Payment session not found. Please try your payment again." :
+              "We couldn't verify your payment or you may not be properly logged in. Please log in and check your payment status from the fees page."
               }
             </p>
             <div className="space-y-3">
               <Button
                 onClick={() => window.location.href = '/'}
-                className={theme === 'dark' ? 'w-full bg-blue-600 hover:bg-blue-700 text-white' : 'w-full bg-blue-600 hover:bg-blue-700 text-white'}
-              >
+                className={theme === 'dark' ? 'w-full bg-blue-600 hover:bg-blue-700 text-white' : 'w-full bg-blue-600 hover:bg-blue-700 text-white'}>
+                
                 Go to Login
               </Button>
               <Button
                 variant="outline"
                 onClick={() => window.location.reload()}
-                className={theme === 'dark' ? 'w-full border-gray-600 text-gray-200 hover:bg-gray-800' : 'w-full border-gray-300 text-gray-700 hover:bg-gray-100'}
-              >
+                className={theme === 'dark' ? 'w-full border-gray-600 text-gray-200 hover:bg-gray-800' : 'w-full border-gray-300 text-gray-700 hover:bg-gray-100'}>
+                
                 Try Again
               </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -224,46 +224,46 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
           <div className="space-y-3">
             <Button
               onClick={handleNavigateBack}
-              className={theme === 'dark' ? 'w-full bg-blue-600 hover:bg-blue-700 text-white' : 'w-full bg-blue-600 hover:bg-blue-700 text-white'}
-            >
+              className={theme === 'dark' ? 'w-full bg-blue-600 hover:bg-blue-700 text-white' : 'w-full bg-blue-600 hover:bg-blue-700 text-white'}>
+              
               View Fee Details
             </Button>
-            {paymentDetails?.payment_id && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  // Download receipt functionality
-                  fetch(`http://127.0.0.1:8000/api/payments/receipt/${paymentDetails.payment_id}/`, {
-                    headers: {
-                      'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-                    },
-                  })
-                  .then(response => response.blob())
-                  .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `receipt_${paymentDetails.payment_id}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                  })
-                  .catch(error => {
-                    console.error('Error downloading receipt:', error);
-                    alert('Failed to download receipt. Please try from the fees page.');
-                  });
-                }}
-                className={theme === 'dark' ? 'w-full border-gray-600 text-gray-200 hover:bg-gray-800' : 'w-full border-gray-300 text-gray-700 hover:bg-gray-100'}
-              >
+            {paymentDetails?.payment_id &&
+            <Button
+              variant="outline"
+              onClick={() => {
+                // Download receipt functionality
+                fetch(`http://127.0.0.1:8000/api/payments/receipt/${paymentDetails.payment_id}/`, {
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                  }
+                }).
+                then((response) => response.blob()).
+                then((blob) => {
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `receipt_${paymentDetails.payment_id}.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                }).
+                catch((error) => {
+
+                  alert('Failed to download receipt. Please try from the fees page.');
+                });
+              }}
+              className={theme === 'dark' ? 'w-full border-gray-600 text-gray-200 hover:bg-gray-800' : 'w-full border-gray-300 text-gray-700 hover:bg-gray-100'}>
+              
                 Download Receipt
               </Button>
-            )}
+            }
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default PaymentSuccess;

@@ -7,8 +7,8 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+  DialogTitle } from
+"../ui/dialog";
 import { manageHODLeaves } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import Swal from 'sweetalert2';
@@ -75,37 +75,37 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         params.month = month;
       }
       const response = await manageHODLeaves(params);
-      console.log("Leaves API response:", response);
-      
+
+
       // Handle invalid page due to filter changes
       if (!response.success && response.message && response.message.includes("Invalid page")) {
         setCurrentPage(1);
         return;
       }
-      
+
       // Handle paginated response format where data might be nested under results
       const hasResults = response && typeof response === 'object' && 'results' in response;
-      const dataSource = hasResults ? (response as any).results : (response as any);
-      
+      const dataSource = hasResults ? (response as any).results : response as any;
+
       if (dataSource && dataSource.success) {
-        const leaveData = Array.isArray(dataSource.leaves)
-          ? dataSource.leaves.map((leave: any) => ({
-              id: leave.id,
-              name: leave.hod?.username || leave.hod_name || "N/A",
-              department: leave.branch || "N/A",
-              from: leave.start_date || "N/A",
-              to: leave.end_date || "N/A",
-              reason: leave.reason || "N/A",
-              status: leave.status === "APPROVED" ? "Approved" :
-                      leave.status === "REJECTED" ? "Rejected" :
-                      leave.status === "PENDING" ? "Pending" :
-                      (leave.status?.charAt(0).toUpperCase() + leave.status?.slice(1).toLowerCase()) || "Unknown",
-            }))
-          : [];
+        const leaveData = Array.isArray(dataSource.leaves) ?
+        dataSource.leaves.map((leave: any) => ({
+          id: leave.id,
+          name: leave.hod?.username || leave.hod_name || "N/A",
+          department: leave.branch || "N/A",
+          from: leave.start_date || "N/A",
+          to: leave.end_date || "N/A",
+          reason: leave.reason || "N/A",
+          status: leave.status === "APPROVED" ? "Approved" :
+          leave.status === "REJECTED" ? "Rejected" :
+          leave.status === "PENDING" ? "Pending" :
+          leave.status?.charAt(0).toUpperCase() + leave.status?.slice(1).toLowerCase() || "Unknown"
+        })) :
+        [];
         setLeaveRequests(leaveData);
-        
+
         // Set pagination info if available
-        const count = response.count || (dataSource && dataSource.count);
+        const count = response.count || dataSource && dataSource.count;
         if (count !== undefined) {
           setTotalPages(Math.ceil(count / 10)); // Assuming page_size is 10
           setTotalCount(count);
@@ -115,16 +115,16 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
         toast({
           variant: "destructive",
           title: "Error",
-          description: dataSource?.message || response?.message || "Failed to fetch leave requests",
+          description: dataSource?.message || response?.message || "Failed to fetch leave requests"
         });
       }
     } catch (err) {
-      console.error("Fetch leaves error:", err);
+
       setError("Network error");
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Network error",
+        description: "Network error"
       });
     } finally {
       setLoading(false);
@@ -149,7 +149,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
       cancelButtonColor: theme === 'dark' ? '#3f3f46' : '#d1d5db',
       confirmButtonText: 'Yes, Approve',
       background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-      color: theme === 'dark' ? '#E4E4E7' : '#000000',
+      color: theme === 'dark' ? '#E4E4E7' : '#000000'
     });
 
     if (!result.isConfirmed) return;
@@ -158,18 +158,18 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
     setError(null);
     try {
       const response = await manageHODLeaves({ leave_id: id, action: "APPROVED" }, "POST");
-      console.log("Approve API response:", response);
+
       if (response.success) {
         if (response.leave) {
-          setLeaveRequests(prevRequests =>
-            prevRequests.map(leave =>
-              leave.id === id
-                ? {
-                    ...leave,
-                    status: response.leave.status === "APPROVED" ? "Approved" : leave.status
-                  }
-                : leave
-            )
+          setLeaveRequests((prevRequests) =>
+          prevRequests.map((leave) =>
+          leave.id === id ?
+          {
+            ...leave,
+            status: response.leave.status === "APPROVED" ? "Approved" : leave.status
+          } :
+          leave
+          )
           );
         }
         Swal.fire({
@@ -178,23 +178,23 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           text: 'The leave request has been approved successfully.',
           background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
           color: theme === 'dark' ? '#E4E4E7' : '#000000',
-          confirmButtonColor: '#22c55e',
+          confirmButtonColor: '#22c55e'
         });
       } else {
         setError(response.message || "Failed to approve leave");
         toast({
           variant: "destructive",
           title: "Error",
-          description: response.message || "Failed to approve leave",
+          description: response.message || "Failed to approve leave"
         });
       }
     } catch (err) {
-      console.error("Approve leave error:", err);
+
       setError("Network error");
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Network error",
+        description: "Network error"
       });
     } finally {
       setLoading(false);
@@ -211,7 +211,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
       cancelButtonColor: theme === 'dark' ? '#3f3f46' : '#d1d5db',
       confirmButtonText: 'Yes, Reject',
       background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-      color: theme === 'dark' ? '#E4E4E7' : '#000000',
+      color: theme === 'dark' ? '#E4E4E7' : '#000000'
     });
 
     if (!result.isConfirmed) return;
@@ -220,18 +220,18 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
     setError(null);
     try {
       const response = await manageHODLeaves({ leave_id: id, action: "REJECTED" }, "POST");
-      console.log("Reject API response:", response);
+
       if (response.success) {
         if (response.leave) {
-          setLeaveRequests(prevRequests =>
-            prevRequests.map(leave =>
-              leave.id === id
-                ? {
-                    ...leave,
-                    status: response.leave.status === "REJECTED" ? "Rejected" : leave.status
-                  }
-                : leave
-            )
+          setLeaveRequests((prevRequests) =>
+          prevRequests.map((leave) =>
+          leave.id === id ?
+          {
+            ...leave,
+            status: response.leave.status === "REJECTED" ? "Rejected" : leave.status
+          } :
+          leave
+          )
           );
         }
         Swal.fire({
@@ -240,23 +240,23 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           text: 'The leave request has been rejected.',
           background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
           color: theme === 'dark' ? '#E4E4E7' : '#000000',
-          confirmButtonColor: '#ef4444',
+          confirmButtonColor: '#ef4444'
         });
       } else {
         setError(response.message || "Failed to reject leave");
         toast({
           variant: "destructive",
           title: "Error",
-          description: response.message || "Failed to reject leave",
+          description: response.message || "Failed to reject leave"
         });
       }
     } catch (err) {
-      console.error("Reject leave error:", err);
+
       setError("Network error");
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Network error",
+        description: "Network error"
       });
     } finally {
       setLoading(false);
@@ -268,8 +268,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
     return (
       <div className="space-y-6">
         <SkeletonTable rows={8} cols={5} />
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -294,11 +294,11 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <CardTitle className={`leave-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
-                {totalCount > 0 && (
+                {totalCount > 0 &&
                   <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {totalCount} Total
                   </span>
-                )}
+                  }
               </div>
               <p className={`leave-card-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Review and approve leave requests from Heads of Departments
@@ -309,11 +309,11 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
               <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    variant="outline"
-                    className={`leave-month-picker ${theme === 'dark' ? 'w-full sm:w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full sm:w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}
-                  >
+                      variant="outline"
+                      className={`leave-month-picker ${theme === 'dark' ? 'w-full sm:w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full sm:w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
+                      
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedMonth ? (
+                    {selectedMonth ?
                       (() => {
                         try {
                           const d = new Date(`${selectedMonth}-01`);
@@ -321,10 +321,10 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         } catch (e) {
                           return selectedMonth;
                         }
-                      })()
-                    ) : (
+                      })() :
+
                       <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select month</span>
-                    )}
+                      }
                   </Button>
                 </PopoverTrigger>
 
@@ -332,53 +332,53 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <button
-                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                        onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear() - 1, visibleMonth.getMonth(), 1))}
-                        aria-label="Previous year"
-                      >
+                          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear() - 1, visibleMonth.getMonth(), 1))}
+                          aria-label="Previous year">
+                          
                         <ChevronLeft className="w-5 h-5" />
                       </button>
 
                       <div className="text-center font-medium">{format(visibleMonth, 'yyyy')}</div>
 
                       <button
-                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                        onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear() + 1, visibleMonth.getMonth(), 1))}
-                        aria-label="Next year"
-                      >
+                          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear() + 1, visibleMonth.getMonth(), 1))}
+                          aria-label="Next year">
+                          
                         <ChevronRight className="w-5 h-5" />
                       </button>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
                       {Array.from({ length: 12 }).map((_, i) => {
-                        const monthDate = new Date(visibleMonth.getFullYear(), i, 1);
-                        const monthLabel = format(monthDate, 'MMM');
-                        const monthValue = `${visibleMonth.getFullYear()}-${String(i + 1).padStart(2, '0')}`;
-                        return (
-                          <button
-                            key={i}
-                            onClick={() => {
-                              setSelectedMonth(monthValue);
-                              setMonthPickerOpen(false);
-                            }}
-                            className={`px-3 py-2 rounded-md text-sm text-left w-full ${selectedMonth === monthValue ? 'bg-primary text-primary-foreground' : theme === 'dark' ? 'bg-card hover:bg-accent text-foreground' : 'bg-white hover:bg-gray-100 text-gray-900'} `}
-                          >
+                          const monthDate = new Date(visibleMonth.getFullYear(), i, 1);
+                          const monthLabel = format(monthDate, 'MMM');
+                          const monthValue = `${visibleMonth.getFullYear()}-${String(i + 1).padStart(2, '0')}`;
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                setSelectedMonth(monthValue);
+                                setMonthPickerOpen(false);
+                              }}
+                              className={`px-3 py-2 rounded-md text-sm text-left w-full ${selectedMonth === monthValue ? 'bg-primary text-primary-foreground' : theme === 'dark' ? 'bg-card hover:bg-accent text-foreground' : 'bg-white hover:bg-gray-100 text-gray-900'} `}>
+                              
                             {monthLabel}
-                          </button>
-                        );
-                      })}
+                          </button>);
+
+                        })}
                     </div>
 
                     <div className="mt-3 flex justify-end gap-2">
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedMonth('');
-                          setMonthPickerOpen(false);
-                        }}
-                      >
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedMonth('');
+                            setMonthPickerOpen(false);
+                          }}>
+                          
                         Clear
                       </Button>
                     </div>
@@ -392,9 +392,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           <div className="border rounded-xl overflow-hidden shadow-sm">
             {/* Mobile: stacked cards */}
             <div className="md:hidden space-y-3 p-2">
-              {Array.isArray(leaveRequests) && leaveRequests.length > 0 ? (
-                leaveRequests.map((leave) => (
-                  <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+              {Array.isArray(leaveRequests) && leaveRequests.length > 0 ?
+                leaveRequests.map((leave) =>
+                <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="font-semibold text-base">{leave.name}</div>
@@ -412,56 +412,56 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                       </div>
 
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                        onClick={() => setViewReason(leave.reason)}
-                      >
+                      variant="outline"
+                      size="sm"
+                      className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                      onClick={() => setViewReason(leave.reason)}>
+                      
                         View Reason
                       </Button>
 
-                      {leave.status === "Pending" ? (
-                        <div className="leave-actions-mobile flex gap-2 w-full mt-2">
+                      {leave.status === "Pending" ?
+                    <div className="leave-actions-mobile flex gap-2 w-full mt-2">
                           <Button
-                            variant="outline"
-                            className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${
-                              theme === 'dark' 
-                                ? 'text-green-400 border-green-400 hover:bg-green-900/20' 
-                                : 'text-green-700 border-green-600 hover:bg-green-100'
-                            }`}
-                            onClick={() => handleApprove(leave.id)}
-                            disabled={loading}
-                          >
+                        variant="outline"
+                        className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${
+                        theme === 'dark' ?
+                        'text-green-400 border-green-400 hover:bg-green-900/20' :
+                        'text-green-700 border-green-600 hover:bg-green-100'}`
+                        }
+                        onClick={() => handleApprove(leave.id)}
+                        disabled={loading}>
+                        
                             <CheckCircle size={15} /> Approve
                           </Button>
                           <Button
-                            variant="outline"
-                            className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${
-                              theme === 'dark' 
-                                ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
-                                : 'text-red-700 border-red-600 hover:bg-red-100'
-                            }`}
-                            onClick={() => handleReject(leave.id)}
-                            disabled={loading}
-                          >
+                        variant="outline"
+                        className={`leave-action-btn px-3 py-1 text-xs flex items-center gap-1 w-full justify-center ${
+                        theme === 'dark' ?
+                        'text-red-400 border-red-400 hover:bg-red-900/20' :
+                        'text-red-700 border-red-600 hover:bg-red-100'}`
+                        }
+                        onClick={() => handleReject(leave.id)}
+                        disabled={loading}>
+                        
                             <XCircle size={15} /> Reject
                           </Button>
-                        </div>
-                      ) : (
-                        <div className="pt-2 text-center border-t border-border/30">
+                        </div> :
+
+                    <div className="pt-2 text-center border-t border-border/30">
                           <span className={`text-xs font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
                         </div>
-                      )}
+                    }
                     </div>
                   </div>
-                ))
-              ) : (
+                ) :
+
                 <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
                   <CalendarIcon className="w-10 h-10 text-primary opacity-30 mb-3" />
                   <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests</h3>
                   <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no leave requests to display for this period.</p>
                 </div>
-              )}
+                }
             </div>
 
             {/* Desktop / Tablet: table */}
@@ -476,12 +476,12 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {Array.isArray(leaveRequests) && leaveRequests.length > 0 ? (
-                  leaveRequests.map((leave) => (
-                    <tr
-                      key={leave.id}
-                      className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}
-                    >
+                {Array.isArray(leaveRequests) && leaveRequests.length > 0 ?
+                  leaveRequests.map((leave) =>
+                  <tr
+                    key={leave.id}
+                    className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
+                    
                       <td className="py-4 px-2 md:px-4">
                         <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
                         <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.department}</div>
@@ -491,48 +491,48 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                       </td>
                       <td className="py-4 px-2 md:px-4 text-sm">
                         <button
-                          onClick={() => setViewReason(leave.reason)}
-                          className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                        >
+                        onClick={() => setViewReason(leave.reason)}
+                        className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                        
                           View
                         </button>
                       </td>
                       <td className="py-4 px-2 md:px-4">{getStatusBadge(leave.status, theme)}</td>
                       <td className="py-4 px-2 md:px-4">
-                        {leave.status === "Pending" ? (
-                          <div className="flex flex-col md:flex-row gap-2">
+                        {leave.status === "Pending" ?
+                      <div className="flex flex-col md:flex-row gap-2">
                             <Button
-                              variant="outline"
-                              className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                theme === 'dark' 
-                                  ? 'text-green-400 border-green-400 hover:bg-green-900/20' 
-                                  : 'text-green-700 border-green-600 hover:bg-green-100'
-                              }`}
-                              onClick={() => handleApprove(leave.id)}
-                              disabled={loading}
-                            >
+                          variant="outline"
+                          className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
+                          theme === 'dark' ?
+                          'text-green-400 border-green-400 hover:bg-green-900/20' :
+                          'text-green-700 border-green-600 hover:bg-green-100'}`
+                          }
+                          onClick={() => handleApprove(leave.id)}
+                          disabled={loading}>
+                          
                               <CheckCircle size={16} /> Approve
                             </Button>
                             <Button
-                              variant="outline"
-                              className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                theme === 'dark' 
-                                  ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
-                                  : 'text-red-700 border-red-600 hover:bg-red-100'
-                              }`}
-                              onClick={() => handleReject(leave.id)}
-                              disabled={loading}
-                            >
+                          variant="outline"
+                          className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
+                          theme === 'dark' ?
+                          'text-red-400 border-red-400 hover:bg-red-900/20' :
+                          'text-red-700 border-red-600 hover:bg-red-100'}`
+                          }
+                          onClick={() => handleReject(leave.id)}
+                          disabled={loading}>
+                          
                               <XCircle size={16} /> Reject
                             </Button>
-                          </div>
-                        ) : (
-                          <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
-                        )}
+                          </div> :
+
+                      <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                      }
                       </td>
                     </tr>
-                  ))
-                ) : (
+                  ) :
+
                   <tr>
                     <td colSpan={5} className="py-20 px-4">
                       <div className="flex flex-col items-center justify-center">
@@ -546,7 +546,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                       </div>
                     </td>
                   </tr>
-                )}
+                  }
               </tbody>
             </table>
           </div>
@@ -558,12 +558,12 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           </div>
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1 || loading}
-              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-            >
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                
               Previous
             </Button>
 
@@ -574,12 +574,12 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
             </div>
 
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages || loading}
-              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-            >
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                
               Next
             </Button>
           </div>
@@ -594,28 +594,28 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           </DialogHeader>
 
           <div
-            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
-                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
-          >
+              className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
+                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              
             {viewReason}
           </div>
 
           <DialogFooter>
             <Button
-              variant="outline"
-              className={theme === 'dark' 
-                ? 'text-foreground bg-card border border-border bg-primary hover:text-white hover:bg-primary/80' 
-                : 'border border-gray-300 hover:bg-gray-50 text bg-primary text-white hover:bg-primary/80 hover:text-white'}
-              onClick={() => setViewReason(null)}
-            >
+                variant="outline"
+                className={theme === 'dark' ?
+                'text-foreground bg-card border border-border bg-primary hover:text-white hover:bg-primary/80' :
+                'border border-gray-300 hover:bg-gray-50 text bg-primary text-white hover:bg-primary/80 hover:text-white'}
+                onClick={() => setViewReason(null)}>
+                
               Close
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-    </>
-  );
+    </>);
+
 };
 
 export default HODLeavesManagement;

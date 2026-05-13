@@ -8,7 +8,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useTheme } from '@/context/ThemeContext';
 
-type Message = { role: 'user' | 'bot'; text: string };
+type Message = {role: 'user' | 'bot';text: string;};
 
 interface ChatProps {
   role?: string;
@@ -38,13 +38,13 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
       toast({
         variant: 'destructive',
         title: 'Access Denied',
-        description: 'This feature is only available for students.',
+        description: 'This feature is only available for students.'
       });
     } else if (orgPlan !== 'advance') {
       toast({
         variant: 'destructive',
         title: 'Plan Upgrade Required',
-        description: 'AI Study Mode is only available on the Advance plan.',
+        description: 'AI Study Mode is only available on the Advance plan.'
       });
     }
   }, [role, toast]);
@@ -70,26 +70,26 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
               {isPlanRestriction ? 'Upgrade Required' : 'Access Denied'}
             </h2>
             <p className={`mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              {isPlanRestriction
-                ? 'AI Study Mode is an Enterprise feature exclusive to our Advance plan.'
-                : 'This feature is only available for students.'}
+              {isPlanRestriction ?
+              'AI Study Mode is an Enterprise feature exclusive to our Advance plan.' :
+              'This feature is only available for students.'}
             </p>
             <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              {isPlanRestriction
-                ? 'Please contact your institution administrator to upgrade your plan and unlock AI-powered learning tools.'
-                : 'Please log in with a student account to access Study Mode.'}
+              {isPlanRestriction ?
+              'Please contact your institution administrator to upgrade your plan and unlock AI-powered learning tools.' :
+              'Please log in with a student account to access Study Mode.'}
             </p>
-            {isPlanRestriction && (
-              <div className="mt-6 p-4 rounded-lg bg-primary/10 border border-primary/20">
+            {isPlanRestriction &&
+            <div className="mt-6 p-4 rounded-lg bg-primary/10 border border-primary/20">
                 <p className="text-sm font-medium text-primary">
                   Current Plan: <span className="uppercase font-bold">{orgPlan}</span>
                 </p>
               </div>
-            )}
+            }
           </div>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -103,7 +103,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
         toast({
           variant: 'destructive',
           title: 'Invalid File',
-          description: 'Only PDF files are supported.',
+          description: 'Only PDF files are supported.'
         });
       }
     }
@@ -123,14 +123,14 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/upload-pdf/`, {
         method: 'POST',
-        body: formData,
+        body: formData
       });
 
       if (response.ok) {
         setChatStarted(true);
         toast({
           title: 'Success',
-          description: 'PDF uploaded and ready for revision!',
+          description: 'PDF uploaded and ready for revision!'
         });
 
         // Scroll to input field after a brief delay to ensure UI is rendered
@@ -150,22 +150,22 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
         } else {
           // If response is HTML, it's likely a server error page
           const errorText = await response.text();
-          console.error('Server response:', errorText);
+
           throw new Error('Server error: Please check if the backend is running and the endpoint is properly configured');
         }
       }
     } catch (error) {
-      console.error('Error uploading file:', error);
+
       // Improved error handling
       const errorMessage = error instanceof Error ? error.message : 'An error occurred while uploading the PDF.';
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: errorMessage,
+        description: errorMessage
       });
       // Log more details for debugging
       if (error instanceof Error && error.message.includes('Server error')) {
-        console.log('Possible causes: Django server not restarted after URL changes, or server not running');
+
       }
     } finally {
       setLoading(false);
@@ -184,9 +184,9 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/ask-question/`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ question: input }),
+        body: JSON.stringify({ question: input })
       });
 
       if (response.ok) {
@@ -196,12 +196,12 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
           <div style="background-color: ${theme === 'dark' ? 'hsl(var(--card))' : '#f0f4ff'}; padding: 1rem; border-radius: 8px; border-left: 4px solid hsl(var(--primary)); font-family: sans-serif;">
             <h3 style="margin-top: 0; color: hsl(var(--primary));">📘 Quick Revision Note:</h3>
             <div style="color: ${theme === 'dark' ? 'hsl(var(--card-foreground))' : '#000'}">
-              ${data.answer
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n/g, '<br>')
-            .split('. ')
-            .filter(sentence => sentence)
-            .join('.<br>')}.
+              ${data.answer.
+        replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').
+        replace(/\n/g, '<br>').
+        split('. ').
+        filter((sentence) => sentence).
+        join('.<br>')}.
             </div>
           </div>
         `;
@@ -209,8 +209,8 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
 
         const botMessage: Message = { role: 'bot', text: formattedAnswer };
         setMessages((prev) => [...prev, botMessage]);
-      }
-      else {
+      } else
+      {
         // Check if response is JSON or HTML
         const contentType = response.headers.get('content-type');
         let errorData;
@@ -220,27 +220,27 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
         } else {
           // If response is HTML, it's likely a server error page
           const errorText = await response.text();
-          console.error('Server response:', errorText);
+
           throw new Error('Server error: Please check if the backend is running and the endpoint is properly configured');
         }
       }
     } catch (error) {
-      console.error('Error fetching response:', error);
+
       // Improved error handling
       const errorMessageText = error instanceof Error ? error.message : "Sorry, I couldn't fetch the answer.";
       const errorMessage: Message = {
         role: 'bot',
-        text: `**Error:** ${errorMessageText}`,
+        text: `**Error:** ${errorMessageText}`
       };
       setMessages((prev) => [...prev, errorMessage]);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: errorMessageText,
+        description: errorMessageText
       });
       // Log more details for debugging
       if (error instanceof Error && error.message.includes('Server error')) {
-        console.log('Possible causes: Django server not restarted after URL changes, or server not running');
+
       }
     } finally {
       setLoading(false);
@@ -264,7 +264,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
         scale: 3, // Increase scale for better quality
         useCORS: true,
         allowTaint: true,
-        backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff', // Match the theme background
+        backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff' // Match the theme background
       }).then((canvas) => {
         // Restore original styles
         input.style.height = originalHeight;
@@ -277,7 +277,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
         const imgWidth = 210; // A4 width in mm
         const pageHeight = 295; // A4 height in mm
         const margin = 10; // 10mm margins
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
 
         // Calculate how many pages we need
         const totalPages = Math.ceil(imgHeight / (pageHeight - 2 * margin));
@@ -289,7 +289,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
           }
 
           // Calculate the source position in the canvas
-          const usablePageHeight = pageHeight - (2 * margin); // Usable height on PDF page
+          const usablePageHeight = pageHeight - 2 * margin; // Usable height on PDF page
           const srcY = pageNum * usablePageHeight * (canvas.width / imgWidth);
           // Reduce the height slightly to avoid cutting content at the edges
           const srcHeight = Math.min(usablePageHeight * (canvas.width / imgWidth) * 0.95, canvas.height - srcY);
@@ -314,7 +314,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
 
             // Calculate the destination position and dimensions in the PDF
             const destY = margin;
-            const pageImgHeight = (srcHeight * imgWidth) / canvas.width;
+            const pageImgHeight = srcHeight * imgWidth / canvas.width;
 
             pdf.addImage(pageImgData, 'JPEG', 0, destY, imgWidth, pageImgHeight);
           }
@@ -327,11 +327,11 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
         input.style.maxHeight = originalMaxHeight;
         input.style.overflow = originalOverflow;
 
-        console.error('Error generating PDF:', error);
+
         toast({
           variant: 'destructive',
           title: 'Export Failed',
-          description: 'Failed to export chat as PDF. Please try again.',
+          description: 'Failed to export chat as PDF. Please try again.'
         });
       });
     }
@@ -353,15 +353,15 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
             }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${dragActive
-                ? theme === 'dark'
-                  ? 'border-primary bg-primary/10'
-                  : 'border-blue-400 bg-blue-50'
-                : theme === 'dark'
-                  ? 'border-border bg-card'
-                  : 'border-gray-300 bg-white'
-              }`}
-          >
+            className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${dragActive ?
+            theme === 'dark' ?
+            'border-primary bg-primary/10' :
+            'border-blue-400 bg-blue-50' :
+            theme === 'dark' ?
+            'border-border bg-card' :
+            'border-gray-300 bg-white'}`
+            }>
+            
             <CloudUpload className={`mx-auto w-8 h-8 mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`} />
             <p className={`text-xs font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Drag & drop your PDF here</p>
             <p className={`text-xs mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>or click to select (PDF only, max 50MB)</p>
@@ -370,46 +370,46 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
               accept="application/pdf"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               className="hidden"
-              id="file-upload"
-            />
+              id="file-upload" />
+            
             <label
               htmlFor="file-upload"
-              className={`cursor-pointer inline-block px-4 py-2 rounded-lg text-sm font-medium transition ${theme === 'dark'
-                  ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                }`}
-            >
+              className={`cursor-pointer inline-block px-4 py-2 rounded-lg text-sm font-medium transition ${theme === 'dark' ?
+              'bg-primary/10 text-primary hover:bg-primary/20' :
+              'bg-blue-100 text-blue-700 hover:bg-blue-200'}`
+              }>
+              
               Choose File
             </label>
-            {file && (
-              <div className={`mt-2 flex items-center justify-between rounded-md p-2 ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'
-                }`}>
-                <span className={`truncate max-w-[70%] text-xs ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'
-                  }`}>
+            {file &&
+            <div className={`mt-2 flex items-center justify-between rounded-md p-2 ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`
+            }>
+                <span className={`truncate max-w-[70%] text-xs ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`
+              }>
                   {file.name}
                 </span>
                 <button
-                  onClick={handleClearFile}
-                  className={`flex items-center gap-1 text-xs ${theme === 'dark'
-                      ? 'text-destructive hover:text-destructive/80'
-                      : 'text-red-600 hover:text-red-800'
-                    }`}
-                >
+                onClick={handleClearFile}
+                className={`flex items-center gap-1 text-xs ${theme === 'dark' ?
+                'text-destructive hover:text-destructive/80' :
+                'text-red-600 hover:text-red-800'}`
+                }>
+                
                   <Trash2 className="w-3 h-3" /> Remove
                 </button>
               </div>
-            )}
+            }
           </div>
           <Button
             onClick={handleUpload}
             disabled={!file || loading}
-            className={`w-full mt-3 font-semibold py-2 rounded-md transition disabled:opacity-50 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 ${theme === 'dark' ? 'shadow-md shadow-primary/20' : 'shadow-sm'}`}
-          >
+            className={`w-full mt-3 font-semibold py-2 rounded-md transition disabled:opacity-50 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 ${theme === 'dark' ? 'shadow-md shadow-primary/20' : 'shadow-sm'}`}>
+            
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Start Revision'}
           </Button>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -425,8 +425,8 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
         <div className="flex gap-1 ml-auto">
           <Button
             onClick={exportToPDF}
-            className={`font-medium flex items-center gap-1 text-xs px-1.5 py-0.5 h-7 ${theme === 'dark' ? 'text-foreground bg-muted hover:bg-accent border-border' : 'text-gray-900 bg-gray-200 hover:bg-gray-300 border-gray-300'}`}
-          >
+            className={`font-medium flex items-center gap-1 text-xs px-1.5 py-0.5 h-7 ${theme === 'dark' ? 'text-foreground bg-muted hover:bg-accent border-border' : 'text-gray-900 bg-gray-200 hover:bg-gray-300 border-gray-300'}`}>
+            
             <Download className="w-3 h-3" /> Export
           </Button>
           <Button
@@ -435,24 +435,24 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
               setMessages([]);
               setFile(null);
             }}
-            className={`font-medium text-xs px-1.5 py-0.5 h-7 ${theme === 'dark' ? 'text-foreground bg-muted hover:bg-accent border-border' : 'text-gray-900 bg-gray-200 hover:bg-gray-300 border-gray-300'}`}
-          >
+            className={`font-medium text-xs px-1.5 py-0.5 h-7 ${theme === 'dark' ? 'text-foreground bg-muted hover:bg-accent border-border' : 'text-gray-900 bg-gray-200 hover:bg-gray-300 border-gray-300'}`}>
+            
             New
           </Button>
         </div>
       </header>
 
       <div
-        className={`flex-1 flex flex-col p-2 rounded-md ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
-      >
+        className={`flex-1 flex flex-col p-2 rounded-md ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+        
         <div className="max-w-5xl mx-auto w-full h-[calc(100vh-12rem)] flex flex-col">
           <div
             ref={chatContainerRef}
-            className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pt-4"
-          >
+            className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pt-4">
+            
             <div className="space-y-1">
-              {messages.length === 0 && (
-                <div className={`text-center mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              {messages.length === 0 &&
+              <div className={`text-center mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Start your revision!</p>
                   <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Ask about key concepts, definitions, or specific topics from the uploaded PDF.</p>
 
@@ -463,30 +463,30 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
                     </p>
                   </div>
                 </div>
-              )}
-              {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} items-start gap-1`}
-                >
-                  {msg.role === 'bot' && (
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-200 text-gray-900'}`}>
+              }
+              {messages.map((msg, idx) =>
+              <div
+                key={idx}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} items-start gap-1`}>
+                
+                  {msg.role === 'bot' &&
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-200 text-gray-900'}`}>
                       <Bot className="w-3 h-3" />
                     </div>
-                  )}
+                }
                   <div
-                    className={`p-1.5 rounded-md max-w-[75%] text-xs shadow-sm bot-message ${msg.role === 'user' ? theme === 'dark' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-blue-600 text-white rounded-br-none' : theme === 'dark' ? 'bg-muted text-foreground border-border rounded-bl-none' : 'bg-gray-100 text-gray-900 border-gray-200 rounded-bl-none'}`}
-                    dangerouslySetInnerHTML={{ __html: msg.text }}
-                  />
-                  {msg.role === 'user' && (
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-200 text-gray-900'}`}>
+                  className={`p-1.5 rounded-md max-w-[75%] text-xs shadow-sm bot-message ${msg.role === 'user' ? theme === 'dark' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-blue-600 text-white rounded-br-none' : theme === 'dark' ? 'bg-muted text-foreground border-border rounded-bl-none' : 'bg-gray-100 text-gray-900 border-gray-200 rounded-bl-none'}`}
+                  dangerouslySetInnerHTML={{ __html: msg.text }} />
+                
+                  {msg.role === 'user' &&
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-200 text-gray-900'}`}>
                       <User className="w-3 h-3" />
                     </div>
-                  )}
+                }
                 </div>
-              ))}
-              {loading && (
-                <div className="flex items-center gap-1">
+              )}
+              {loading &&
+              <div className="flex items-center gap-1">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-600'}`}>
                     <Bot className="w-3 h-3" />
                   </div>
@@ -495,7 +495,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
                     Thinking...
                   </div>
                 </div>
-              )}
+              }
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -509,21 +509,21 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Ask about a concept, topic, or question..."
-                className={`flex-1 px-2 py-1.5 rounded-md outline-none text-sm focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${theme === 'dark' ? 'bg-background text-foreground border-2 border-primary/50 focus:border-primary' : 'bg-white text-gray-900 border-2 border-blue-400 focus:border-blue-600'}`}
-              />
+                className={`flex-1 px-2 py-1.5 rounded-md outline-none text-sm focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${theme === 'dark' ? 'bg-background text-foreground border-2 border-primary/50 focus:border-primary' : 'bg-white text-gray-900 border-2 border-blue-400 focus:border-blue-600'}`} />
+              
               <Button
                 onClick={handleSend}
                 disabled={loading || !input.trim()}
-                className={`px-3 py-1.5 font-semibold rounded-md transition disabled:opacity-50 text-sm ${theme === 'dark' ? 'text-foreground bg-muted hover:bg-accent border-border' : 'text-gray-900 bg-gray-200 hover:bg-gray-300 border-gray-300'}`}
-              >
+                className={`px-3 py-1.5 font-semibold rounded-md transition disabled:opacity-50 text-sm ${theme === 'dark' ? 'text-foreground bg-muted hover:bg-accent border-border' : 'text-gray-900 bg-gray-200 hover:bg-gray-300 border-gray-300'}`}>
+                
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ask'}
               </Button>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ChatWithPDF;

@@ -56,7 +56,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       const options = await getFilterOptions();
       setFilterOptions(options);
     } catch (error) {
-      console.error('Error fetching filter options:', error);
+
     }
   };
 
@@ -69,7 +69,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       const sems = await getSemesters(parseInt(branchId));
       setSemesters(sems);
     } catch (error) {
-      console.error('Error fetching semesters:', error);
+
       setSemesters([]);
     }
   };
@@ -88,7 +88,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
         });
       }
     } catch (error) {
-      console.error('Error fetching student status:', error);
+
     } finally {
       setLoading(false);
     }
@@ -126,12 +126,12 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       });
       const url = `${API_ENDPOINT}/coe/export-student-status/?${params.toString()}`;
       const resp = await fetchWithTokenRefresh(url, { method: 'GET' });
-      
+
       if (!resp.ok) {
         const errorData = await resp.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP ${resp.status}`);
       }
-      
+
       const blob = await resp.blob();
       const disposition = resp.headers.get('content-disposition') || '';
       const match = disposition.match(/filename\*=UTF-8''(.+)|filename="?([^";]+)"?/i);
@@ -145,10 +145,10 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(urlBlob);
-      
+
       toast.success(`Export Successful: Downloaded ${filename}`);
     } catch (err) {
-      console.error('Export error', err);
+
       toast.error(`Export Failed: ${err instanceof Error ? err.message : "An unknown error occurred"}`);
     } finally {
       setExporting(false);
@@ -164,22 +164,22 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Batch</label>
-              <Select value={filters.batch} onValueChange={(value) => setFilters({...filters, batch: value})}>
+              <Select value={filters.batch} onValueChange={(value) => setFilters({ ...filters, batch: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterOptions.batches.map((batch: any) => (
+                  {filterOptions.batches.map((batch: any) =>
                     <SelectItem key={batch.id} value={batch.id.toString()}>
                       {batch.name}
                     </SelectItem>
-                  ))}
+                    )}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Exam Period</label>
-              <Select value={filters.exam_period} onValueChange={(value) => setFilters({...filters, exam_period: value})}>
+              <Select value={filters.exam_period} onValueChange={(value) => setFilters({ ...filters, exam_period: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select exam period" />
                 </SelectTrigger>
@@ -196,33 +196,33 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Branch</label>
               <Select value={filters.branch} onValueChange={(value) => {
-                setFilters({...filters, branch: value, semester: ""});
-                fetchSemesters(value);
-              }}>
+                  setFilters({ ...filters, branch: value, semester: "" });
+                  fetchSemesters(value);
+                }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterOptions.branches.map((branch: any) => (
+                  {filterOptions.branches.map((branch: any) =>
                     <SelectItem key={branch.id} value={branch.id.toString()}>
                       {branch.name}
                     </SelectItem>
-                  ))}
+                    )}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Semester</label>
-              <Select value={filters.semester} onValueChange={(value) => setFilters({...filters, semester: value})}>
+              <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.map((semester: any) => (
+                  {semesters.map((semester: any) =>
                     <SelectItem key={semester.id} value={semester.id.toString()}>
                       Semester {semester.number}
                     </SelectItem>
-                  ))}
+                    )}
                 </SelectContent>
               </Select>
             </div>
@@ -231,7 +231,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       </Card>
 
       {/* Summary Cards */}
-      {data && (
+      {data &&
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-6 summary-cards">
           <Card className="summary-card w-full max-w-full overflow-hidden">
             <CardContent className="p-4 sm:p-6">
@@ -289,10 +289,10 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
             </CardContent>
           </Card>
         </div>
-      )}
+        }
 
       {/* Students Table */}
-      {data && (
+      {data &&
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -303,8 +303,8 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                   size="sm"
                   onClick={handleExport}
                   disabled={exporting || !(filters.batch && filters.exam_period && filters.branch && filters.semester)}
-                  className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 export-button text-[18px] sm:text-sm font-semibold sm:font-normal"
-                >
+                  className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 export-button text-[18px] sm:text-sm font-semibold sm:font-normal">
+                  
                   <Download className="mr-1 sm:mr-2 h-3 sm:h-4 w-3 sm:w-4" />
                   {exporting ? 'Exporting...' : 'Export'}
                 </Button>
@@ -324,44 +324,44 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.students.map((student: any) => (
-                    <TableRow key={student.student_id} className="sm:table-row">
+                  {data.students.map((student: any) =>
+                  <TableRow key={student.student_id} className="sm:table-row">
                       <TableCell className="font-semibold sm:font-medium text-[16px] sm:text-sm py-4 sm:py-2" data-label="Roll Number">{student.roll_number}</TableCell>
                       <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Student Name">{student.student_name}</TableCell>
                       <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Status">{getStatusBadge(student.status)}</TableCell>
                       <TableCell className="text-[16px] sm:text-sm py-4 sm:py-2" data-label="Applied Subjects">
                         <div className="max-w-xs truncate" title={student.applied_subjects.join(', ')}>
-                          {student.applied_subjects.length > 0
-                            ? student.applied_subjects.join(', ')
-                            : 'None'
-                          }
+                          {student.applied_subjects.length > 0 ?
+                        student.applied_subjects.join(', ') :
+                        'None'
+                        }
                         </div>
                       </TableCell>
                       <TableCell className="text-[16px] sm:text-sm text-center py-4 sm:py-2" data-label="Count">{student.applied_count}</TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>
-            {data.students.length === 0 && (
-              <div className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground empty-state">
+            {data.students.length === 0 &&
+            <div className="text-center py-6 sm:py-8 text-xs sm:text-sm text-muted-foreground empty-state">
                 No students found for the selected filters.
               </div>
-            )}
+            }
             {/* Pagination controls */}
             <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between mt-6 gap-4 border-t pt-4 pagination-container">
               <div className="text-sm text-muted-foreground pagination-info">
-                {totalCount !== null && totalCount > 0 
-                  ? `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} students` 
-                  : `Showing 0 students`}
+                {totalCount !== null && totalCount > 0 ?
+                `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} students` :
+                `Showing 0 students`}
               </div>
               <div className="flex items-center gap-2 pagination-controls">
                  <Button
                   size="sm"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
-                >
+                  className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
+                  
                   Prev
                 </Button>
 
@@ -369,27 +369,27 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                   <Button
                     size="sm"
                     variant="default"
-                    className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary"
-                  >
+                    className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary">
+                    
                     {page}
                   </Button>
                 </div>
 
                  <Button
                   size="sm"
-                  onClick={() => setPage(p => p + 1)}
+                  onClick={() => setPage((p) => p + 1)}
                   disabled={!pagination?.next}
-                  className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
-                >
+                  className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
+                  
                   Next
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
+        }
 
-      {loading && (
+      {loading &&
         <div className="space-y-6">
           <SkeletonStatsGrid items={4} />
           <Card>
@@ -398,9 +398,9 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
             </CardContent>
           </Card>
         </div>
-      )}
+        }
 
-      {!data && !loading && (
+      {!data && !loading &&
         <Card className="border-dashed border-2">
           <CardContent className="flex flex-col items-center justify-center py-24 text-center">
              <div className="bg-primary/5 p-8 rounded-full mb-6">
@@ -412,10 +412,10 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
             </p>
           </CardContent>
         </Card>
-      )}
+        }
       </div>
-    </div>
-  );
+    </div>);
+
 });
 
 StudentStatus.displayName = "StudentStatus";

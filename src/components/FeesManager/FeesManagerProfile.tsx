@@ -8,20 +8,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Eye, EyeOff } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
-import { 
-  getFeesManagerProfile, 
-  updateFeesManagerProfile, 
-  changeFeesManagerPassword 
-} from "../../utils/fees_manager_api";
-import { 
-  Skeleton, 
-  SkeletonStatsGrid, 
-  SkeletonTable, 
-  SkeletonList, 
+import {
+  getFeesManagerProfile,
+  updateFeesManagerProfile,
+  changeFeesManagerPassword } from
+"../../utils/fees_manager_api";
+import {
+  Skeleton,
+  SkeletonStatsGrid,
+  SkeletonTable,
+  SkeletonList,
   SkeletonPageHeader,
   SkeletonCard,
-  SkeletonForm
-} from "@/components/ui/skeleton";
+  SkeletonForm } from
+"@/components/ui/skeleton";
 
 
 const FeesManagerProfile: React.FC = () => {
@@ -54,13 +54,13 @@ const FeesManagerProfile: React.FC = () => {
           email: p.email || "",
           phone: p.phone_number || p.mobile_number || "",
           address: p.address || "",
-          bio: p.bio || "",
+          bio: p.bio || ""
         });
       } else {
         showErrorAlert("Error", res.message || "Failed to load profile");
       }
     } catch (err) {
-      console.error("FeesManager fetch error", err);
+
       showErrorAlert("Error", "Network error");
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ const FeesManagerProfile: React.FC = () => {
         showErrorAlert("Error", res.message || "Failed to save profile");
       }
     } catch (err) {
-      console.error("Save error", err);
+
       showErrorAlert("Error", "Network error");
     } finally {
       setLoading(false);
@@ -110,7 +110,7 @@ const FeesManagerProfile: React.FC = () => {
         showErrorAlert("Error", res.message || "Failed to change password");
       }
     } catch (err) {
-      console.error("Change password error", err);
+
       showErrorAlert("Error", "Network error");
     }
   };
@@ -140,8 +140,8 @@ const FeesManagerProfile: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
 
@@ -155,13 +155,13 @@ const FeesManagerProfile: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            {editing && (
-              <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setFormData({ first_name: profile.first_name || "", last_name: profile.last_name || "", email: profile.email || "", phone: profile.phone_number || profile.mobile_number || "", address: profile.address || "", bio: profile.bio || "" }); }}>
+            {editing &&
+            <Button size="sm" variant="ghost" onClick={() => {setEditing(false);setFormData({ first_name: profile.first_name || "", last_name: profile.last_name || "", email: profile.email || "", phone: profile.phone_number || profile.mobile_number || "", address: profile.address || "", bio: profile.bio || "" });}}>
                 Cancel
               </Button>
-            )}
+            }
 
-            <Button size="sm" onClick={() => { if (editing) handleSave(); else setEditing(true); }} variant="outline" className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white" disabled={loading}>
+            <Button size="sm" onClick={() => {if (editing) handleSave();else setEditing(true);}} variant="outline" className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white" disabled={loading}>
               {editing ? 'Save' : 'Edit Profile'}
             </Button>
 
@@ -279,8 +279,8 @@ const FeesManagerProfile: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default FeesManagerProfile;

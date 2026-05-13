@@ -20,8 +20,8 @@ const PaymentCancel: React.FC<PaymentCancelProps> = ({ setPage }) => {
     const role = localStorage.getItem('role');
 
     if (!token || role !== 'student') {
-      // Don't redirect immediately, just note that user needs to login
-      console.warn('User not authenticated for payment cancel page');
+
+
     }
   }, []);
 
@@ -65,23 +65,23 @@ const PaymentCancel: React.FC<PaymentCancelProps> = ({ setPage }) => {
           <div className="space-y-3">
             <Button
               onClick={handleNavigateBack}
-              className={theme === 'dark' ? 'w-full bg-blue-600 hover:bg-blue-700 text-white' : 'w-full bg-blue-600 hover:bg-blue-700 text-white'}
-            >
+              className={theme === 'dark' ? 'w-full bg-blue-600 hover:bg-blue-700 text-white' : 'w-full bg-blue-600 hover:bg-blue-700 text-white'}>
+              
               <CreditCard className="h-4 w-4 mr-2" />
               Return to Payment
             </Button>
             <Button
               variant="outline"
               onClick={handleNavigateToDashboard}
-              className={theme === 'dark' ? 'w-full border-gray-600 text-gray-200 hover:bg-gray-800' : 'w-full border-gray-300 text-gray-700 hover:bg-gray-100'}
-            >
+              className={theme === 'dark' ? 'w-full border-gray-600 text-gray-200 hover:bg-gray-800' : 'w-full border-gray-300 text-gray-700 hover:bg-gray-100'}>
+              
               Go to Dashboard
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default PaymentCancel;

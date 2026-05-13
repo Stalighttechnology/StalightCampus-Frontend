@@ -104,9 +104,9 @@ interface GetAttendanceBootstrapResponse {
       branch_id: string;
     };
     branches: Branch[];
-    semesters: Array<{ id: string; number: number }>;
-    sections: Array<{ id: string; name: string; semester_id: string }>;
-    subjects: Array<{ id: string; name: string; subject_code: string; semester_id: string }>;
+    semesters: Array<{id: string;number: number;}>;
+    sections: Array<{id: string;name: string;semester_id: string;}>;
+    subjects: Array<{id: string;name: string;subject_code: string;semester_id: string;}>;
     attendance: {
       students: Array<{
         student_id: string;
@@ -188,7 +188,7 @@ interface ManageSectionsRequest {
 interface ManageSectionsResponse {
   success: boolean;
   message?: string;
-  data?: { id: string; name: string; semester_id: string };
+  data?: {id: string;name: string;semester_id: string;};
 }
 
 interface ManageStudentsRequest {
@@ -262,7 +262,7 @@ interface ManageStudentsResponse {
   // For POST requests (actions)
   success?: boolean;
   message?: string;
-  data?: { student_id: string } | { created_count: number; updated_count: number } | { registered_count?: number; removed_count?: number; failed?: any[] };
+  data?: {student_id: string;} | {created_count: number;updated_count: number;} | {registered_count?: number;removed_count?: number;failed?: any[];};
 }
 
 interface ManageBatchesRequest {
@@ -309,7 +309,7 @@ interface ManageSubjectsRequest {
 interface ManageSubjectsResponse {
   success: boolean;
   message?: string;
-  data?: { subject_id: string; subject_code: string };
+  data?: {subject_id: string;subject_code: string;};
 }
 
 interface FacultyAssignment {
@@ -339,7 +339,7 @@ interface ManageFacultyAssignmentsRequest {
 interface ManageFacultyAssignmentsResponse {
   success: boolean;
   message?: string;
-  data?: { assignments?: FacultyAssignment[]; assignment_id?: string };
+  data?: {assignments?: FacultyAssignment[];assignment_id?: string;};
   count?: number;
   next?: string | null;
   previous?: string | null;
@@ -384,7 +384,7 @@ interface ManageTimetableResponse {
   current_page?: number;
   next?: string | null;
   previous?: string | null;
-  data?: { timetable_id?: string; created_count?: number; errors?: string[] } | TimetableEntry[];
+  data?: {timetable_id?: string;created_count?: number;errors?: string[];} | TimetableEntry[];
 }
 
 interface Leave {
@@ -419,7 +419,7 @@ interface ManageLeavesRequest {
 interface ManageLeavesResponse {
   success: boolean;
   message?: string;
-  data?: { leaves?: Leave[]; leave_id?: string; status?: string };
+  data?: {leaves?: Leave[];leave_id?: string;status?: string;};
 }
 
 interface GetAttendanceParams {
@@ -442,7 +442,7 @@ interface AttendanceRecord {
 interface GetAttendanceResponse {
   success: boolean;
   message?: string;
-  data?: { records: AttendanceRecord[] };
+  data?: {records: AttendanceRecord[];};
   count?: number;
   next?: string | null;
   previous?: string | null;
@@ -476,7 +476,7 @@ interface Mark {
 interface GetMarksResponse {
   success: boolean;
   message?: string;
-  data?: { marks: Mark[] };
+  data?: {marks: Mark[];};
 }
 
 interface CreateAnnouncementRequest {
@@ -489,7 +489,7 @@ interface CreateAnnouncementRequest {
 interface CreateAnnouncementResponse {
   success: boolean;
   message?: string;
-  data?: { announcement_id: string };
+  data?: {announcement_id: string;};
 }
 
 interface SendNotificationRequest {
@@ -519,7 +519,7 @@ interface AssignProctorRequest {
 interface AssignProctorResponse {
   success: boolean;
   message?: string;
-  data?: { student_id: string; faculty_id: string };
+  data?: {student_id: string;faculty_id: string;};
 }
 
 interface AssignProctorsBulkRequest {
@@ -558,7 +558,7 @@ interface ManageChatRequest {
 interface ManageChatResponse {
   success: boolean;
   message?: string;
-  data?: { channels?: ChatChannel[]; channel_id?: string; message_id?: string };
+  data?: {channels?: ChatChannel[];channel_id?: string;message_id?: string;};
 }
 
 interface ManageProfileRequest {
@@ -721,7 +721,7 @@ interface GetPromotionEligibilityParams {
 interface GetPromotionEligibilityResponse {
   success: boolean;
   message?: string;
-  data?: { students: PromotionEligibility[] };
+  data?: {students: PromotionEligibility[];};
 }
 
 interface ExamFailure {
@@ -746,7 +746,7 @@ interface GetExamFailuresParams {
 interface GetExamFailuresResponse {
   success: boolean;
   message?: string;
-  data?: { failures: ExamFailure[] };
+  data?: {failures: ExamFailure[];};
 }
 
 interface RecordExamFailureRequest {
@@ -760,7 +760,7 @@ interface RecordExamFailureRequest {
 interface RecordExamFailureResponse {
   success: boolean;
   message?: string;
-  data?: { failure_id: string };
+  data?: {failure_id: string;};
 }
 
 interface UploadStudyMaterialRequest {
@@ -815,8 +815,8 @@ interface StudentPerformance {
 }
 
 // Utility function for error handling
-const handleApiError = (error: unknown, response?: Response): { success: boolean; message: string } => {
-  console.error("API Error:", error);
+const handleApiError = (error: unknown, response?: Response): {success: boolean;message: string;} => {
+
   if (response?.status === 404) {
     return { success: false, message: `Resource not found: Invalid ID or endpoint (Status: 404)` };
   } else if (response?.status === 403) {
@@ -836,7 +836,7 @@ export const getBranches = async (): Promise<GetBranchesResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/branches/`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -884,8 +884,8 @@ interface GetLeaveBootstrapResponse {
 }
 
 export const getLeaveBootstrap = async (
-  params: { branch_id?: string; page?: number; status?: string; date_from?: string } = {}
-): Promise<GetLeaveBootstrapResponse> => {
+params: {branch_id?: string;page?: number;status?: string;date_from?: string;} = {})
+: Promise<GetLeaveBootstrapResponse> => {
   try {
     const queryParams = new URLSearchParams();
     if (params.branch_id) queryParams.append("branch_id", params.branch_id);
@@ -895,7 +895,7 @@ export const getLeaveBootstrap = async (
 
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/leave-bootstrap/?${queryParams.toString()}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -904,16 +904,16 @@ export const getLeaveBootstrap = async (
 };
 
 export const getFacultyLeavesBootstrap = async (
-  branch_id?: string,
-  filters?: {
-    status?: string;
-    search?: string;
-    date_from?: string;
-    date_to?: string;
-    page?: number;
-    page_size?: number;
-  }
-): Promise<GetLeaveBootstrapResponse> => {
+branch_id?: string,
+filters?: {
+  status?: string;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
+  page?: number;
+  page_size?: number;
+})
+: Promise<GetLeaveBootstrapResponse> => {
   try {
     const params: Record<string, string> = {};
     if (branch_id) params.branch_id = branch_id;
@@ -926,7 +926,7 @@ export const getFacultyLeavesBootstrap = async (
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/faculty-leaves-bootstrap/${query ? '?' + query : ''}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -966,21 +966,21 @@ interface GetProctorBootstrapResponse {
       first_name: string;
       last_name: string;
     }>;
-    semesters: Array<{ id: string; number: number }>;
-    sections: Array<{ id: string; name: string; semester_id: string }>;
+    semesters: Array<{id: string;number: number;}>;
+    sections: Array<{id: string;name: string;semester_id: string;}>;
   };
 }
 
 export const getProctorBootstrap = async (
-  branch_id?: string
-): Promise<GetProctorBootstrapResponse> => {
+branch_id?: string)
+: Promise<GetProctorBootstrapResponse> => {
   try {
     const params: Record<string, string> = {};
     if (branch_id) params.branch_id = branch_id;
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctor-bootstrap/${query ? '?' + query : ''}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -989,9 +989,9 @@ export const getProctorBootstrap = async (
 };
 
 export const getSemesterBootstrap = async (
-  include: string[] = ['profile', 'semesters', 'sections', 'subjects'],
-  branch_id?: string
-): Promise<{
+include: string[] = ['profile', 'semesters', 'sections', 'subjects'],
+branch_id?: string)
+: Promise<{
   success: boolean;
   message?: string;
   data?: {
@@ -1007,9 +1007,9 @@ export const getSemesterBootstrap = async (
       branch_id: string;
     };
     branches?: Branch[];
-    semesters?: Array<{ id: string; number: number }>;
-    sections?: Array<{ id: string; name: string; semester_id: string | null }>;
-    subjects?: Array<{ id: string; name: string; subject_code: string; semester_id: string | null }>;
+    semesters?: Array<{id: string;number: number;}>;
+    sections?: Array<{id: string;name: string;semester_id: string | null;}>;
+    subjects?: Array<{id: string;name: string;subject_code: string;semester_id: string | null;}>;
   };
 }> => {
   try {
@@ -1019,7 +1019,7 @@ export const getSemesterBootstrap = async (
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/semester-bootstrap/?${query}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -1038,8 +1038,8 @@ export const getElectiveEnrollmentBootstrap = async (): Promise<{
       branch: string;
       branch_id: string;
     };
-    semesters: Array<{ id: string; number: number }>;
-    sections: Array<{ id: string; name: string; semester_id: string | null }>;
+    semesters: Array<{id: string;number: number;}>;
+    sections: Array<{id: string;name: string;semester_id: string | null;}>;
     elective_subjects: Array<{
       id: string;
       name: string;
@@ -1053,7 +1053,7 @@ export const getElectiveEnrollmentBootstrap = async (): Promise<{
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/elective-enrollment-bootstrap/`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -1061,10 +1061,10 @@ export const getElectiveEnrollmentBootstrap = async (): Promise<{
   }
 };
 
-const hodStatsPromises: Record<string, { promise: Promise<HODStatsResponse>, timestamp: number }> = {};
+const hodStatsPromises: Record<string, {promise: Promise<HODStatsResponse>;timestamp: number;}> = {};
 
 export const getHODStats = async (branch_id: string = ''): Promise<HODStatsResponse> => {
-  
+
   const now = Date.now();
   const cached = hodStatsPromises[branch_id];
   if (cached && now - cached.timestamp < 5000) {
@@ -1075,7 +1075,7 @@ export const getHODStats = async (branch_id: string = ''): Promise<HODStatsRespo
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/dashboard-stats/?branch_id=${branch_id}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
       return await response.json();
     } catch (error: unknown) {
@@ -1089,8 +1089,8 @@ export const getHODStats = async (branch_id: string = ''): Promise<HODStatsRespo
 
 // Combined HOD dashboard (stats + leaves in one call)
 export const getHODDashboard = async (
-  branch_id: string
-): Promise<{
+branch_id: string)
+: Promise<{
   success: boolean;
   message?: string;
   data?: {
@@ -1112,7 +1112,7 @@ export const getHODDashboard = async (
     if (!branch_id) throw new Error("Branch ID is required");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/dashboard/?branch_id=${branch_id}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -1123,8 +1123,8 @@ export const getHODDashboard = async (
 
 // Combined HOD dashboard bootstrap (profile + stats + leaves in one call)
 export const getHODDashboardBootstrap = async (
-  include: string[] = ['profile', 'overview', 'attendance_trend', 'leaves', 'semesters', 'sections']
-): Promise<{
+include: string[] = ['profile', 'overview', 'attendance_trend', 'leaves', 'semesters', 'sections'])
+: Promise<{
   success: boolean;
   message?: string;
   data?: {
@@ -1139,8 +1139,8 @@ export const getHODDashboardBootstrap = async (
       branch: string;
       branch_id: string;
     };
-    semesters?: Array<{ id: string; number: number }>;
-    sections?: Array<{ id: string; name: string; semester_id: string | null }>;
+    semesters?: Array<{id: string;number: number;}>;
+    sections?: Array<{id: string;name: string;semester_id: string | null;}>;
     overview?: {
       faculty_count: number;
       student_count: number;
@@ -1177,7 +1177,7 @@ export const getHODDashboardBootstrap = async (
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/dashboard/?${query}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -1186,9 +1186,9 @@ export const getHODDashboardBootstrap = async (
 };
 
 export const getLowAttendanceBootstrap = async (
-  branch_id?: string,
-  filters: { semester_id?: string; section_id?: string; subject_id?: string; threshold?: number; page?: number; page_size?: number } = {}
-): Promise<{
+branch_id?: string,
+filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold?: number;page?: number;page_size?: number;} = {})
+: Promise<{
   success: boolean;
   message?: string;
   count?: number;
@@ -1206,9 +1206,9 @@ export const getLowAttendanceBootstrap = async (
       branch: string;
       branch_id: string;
     };
-    semesters: Array<{ id: string; number: number }>;
-    sections: Array<{ id: string; name: string; semester_id: string }>;
-    subjects: Array<{ id: string; name: string; subject_code: string; semester_id: string }>;
+    semesters: Array<{id: string;number: number;}>;
+    sections: Array<{id: string;name: string;semester_id: string;}>;
+    subjects: Array<{id: string;name: string;subject_code: string;semester_id: string;}>;
     low_attendance: {
       students: Array<{
         student_id: string;
@@ -1243,7 +1243,7 @@ export const getLowAttendanceBootstrap = async (
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/low-attendance-bootstrap/${query ? '?' + query : ''}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -1252,9 +1252,9 @@ export const getLowAttendanceBootstrap = async (
 };
 
 export const getLowAttendanceStudents = async (
-  branch_id?: string,
-  filters: { semester_id?: string; section_id?: string; subject_id?: string; threshold?: number; page?: number; page_size?: number } = {}
-): Promise<{
+branch_id?: string,
+filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold?: number;page?: number;page_size?: number;} = {})
+: Promise<{
   success: boolean;
   message?: string;
   count?: number;
@@ -1289,7 +1289,7 @@ export const getLowAttendanceStudents = async (
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/low-attendance-students/${query ? '?' + query : ''}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -1298,9 +1298,9 @@ export const getLowAttendanceStudents = async (
 };
 
 export const getAttendanceBootstrap = async (
-  branch_id?: string,
-  filters: { semester_id?: string; section_id?: string; subject_id?: string; search?: string; page?: number; page_size?: number } = {}
-): Promise<GetAttendanceBootstrapResponse> => {
+branch_id?: string,
+filters: {semester_id?: string;section_id?: string;subject_id?: string;search?: string;page?: number;page_size?: number;} = {})
+: Promise<GetAttendanceBootstrapResponse> => {
   try {
     const params: Record<string, string> = {};
     if (branch_id) params.branch_id = branch_id;
@@ -1313,7 +1313,7 @@ export const getAttendanceBootstrap = async (
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/attendance-bootstrap/${query ? '?' + query : ''}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -1322,9 +1322,9 @@ export const getAttendanceBootstrap = async (
 };
 
 export const getMarksBootstrap = async (
-  branch_id?: string,
-  filters: { semester_id?: string; section_id?: string; subject_id?: string; page?: number; page_size?: number } = {}
-): Promise<{
+branch_id?: string,
+filters: {semester_id?: string;section_id?: string;subject_id?: string;page?: number;page_size?: number;} = {})
+: Promise<{
   success: boolean;
   message?: string;
   count?: number;
@@ -1344,9 +1344,9 @@ export const getMarksBootstrap = async (
       branch: string;
       branch_id: string;
     };
-    semesters: Array<{ id: string; number: number }>;
-    sections: Array<{ id: string; name: string; semester_id: string }>;
-    subjects: Array<{ id: string; name: string; subject_code: string; semester_id: string }>;
+    semesters: Array<{id: string;number: number;}>;
+    sections: Array<{id: string;name: string;semester_id: string;}>;
+    subjects: Array<{id: string;name: string;subject_code: string;semester_id: string;}>;
     performance: Array<{
       subject: string;
       marks: number;
@@ -1385,7 +1385,7 @@ export const getMarksBootstrap = async (
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/marks-bootstrap/${query ? '?' + query : ''}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -1398,7 +1398,7 @@ export const getStudentOptions = async (branch_id: string): Promise<GetStudentOp
     if (!branch_id) throw new Error("Branch ID is required");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/student-options/?branch_id=${branch_id}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -1414,7 +1414,7 @@ export const getSemesters = async (branch_id: string, page?: number): Promise<Ge
     if (page) url += `&page=${page}`;
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     const data = await response.json();
     if (data.results && data.results.success) {
@@ -1435,7 +1435,7 @@ export const manageSemesters = async (data: ManageSemestersRequest): Promise<Man
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/semesters/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -1445,11 +1445,11 @@ export const manageSemesters = async (data: ManageSemestersRequest): Promise<Man
 };
 
 export const manageSections = async (
-  data: ManageSectionsRequest | { branch_id: string; semester_id?: string },
-  method: "GET" | "POST" = "GET"
-): Promise<GetSectionsResponse> => {
+data: ManageSectionsRequest | {branch_id: string;semester_id?: string;},
+method: "GET" | "POST" = "GET")
+: Promise<GetSectionsResponse> => {
   try {
-    const branch_id = (data as { branch_id: string }).branch_id;
+    const branch_id = (data as {branch_id: string;}).branch_id;
     if (!branch_id) throw new Error("Branch ID is required");
     let url = `${API_ENDPOINT}/hod/sections/?branch_id=${branch_id}`;
     if (method === "GET" && (data as any).semester_id) {
@@ -1471,7 +1471,7 @@ export const manageSections = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: method === "POST" ? JSON.stringify(data) : undefined,
+      body: method === "POST" ? JSON.stringify(data) : undefined
 
     });
     const dataRes = await response.json();
@@ -1489,8 +1489,8 @@ export const getHODTimetableSemesterData = async (semester_id: string): Promise<
   success: boolean;
   message?: string;
   data?: {
-    sections: Array<{ id: string; name: string; semester_id: string }>;
-    subjects: Array<{ id: string; name: string; subject_code: string; semester_id: string }>;
+    sections: Array<{id: string;name: string;semester_id: string;}>;
+    subjects: Array<{id: string;name: string;subject_code: string;semester_id: string;}>;
     faculty_assignments: Array<{
       id: string;
       faculty: string;
@@ -1509,7 +1509,7 @@ export const getHODTimetableSemesterData = async (semester_id: string): Promise<
     if (!semester_id) throw new Error("Semester ID is required");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/timetable-semester-data/?semester_id=${semester_id}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -1523,15 +1523,15 @@ export const getHODBootstrap = async (): Promise<{
   success: boolean;
   message?: string;
   data?: {
-    profile: { first_name?: string; last_name?: string; email?: string; branch?: string; branch_id: string };
-    semesters: Array<{ id: string; number: number }>;
-    sections: Array<{ id: string; name: string; semester_id: string | null }>;
+    profile: {first_name?: string;last_name?: string;email?: string;branch?: string;branch_id: string;};
+    semesters: Array<{id: string;number: number;}>;
+    sections: Array<{id: string;name: string;semester_id: string | null;}>;
   };
 }> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/bootstrap/`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -1543,20 +1543,20 @@ export const getHODBootstrap = async (): Promise<{
 // Student management bootstrap (profile + semesters + sections + batches + performance)
 // Note: Students are fetched separately via manageStudents for pagination
 export const getHODStudentBootstrap = async (
-  include: string[] = ['profile', 'semesters', 'sections', 'batches', 'performance'],
-  page?: number
-): Promise<{
+include: string[] = ['profile', 'semesters', 'sections', 'batches', 'performance'],
+page?: number)
+: Promise<{
   success: boolean;
   message?: string;
   count?: number;
   next?: string | null;
   previous?: string | null;
   data?: {
-    profile?: { branch_id: string };
-    semesters?: Array<{ id: string; number: number }>;
-    sections?: Array<{ id: string; name: string; semester_id: string | null }>;
-    batches?: Array<{ id: number; name: string; start_year: number; end_year: number }>;
-    performance?: Array<{ subject: string; attendance: number; marks: number; semester: string }>;
+    profile?: {branch_id: string;};
+    semesters?: Array<{id: string;number: number;}>;
+    sections?: Array<{id: string;name: string;semester_id: string | null;}>;
+    batches?: Array<{id: number;name: string;start_year: number;end_year: number;}>;
+    performance?: Array<{subject: string;attendance: number;marks: number;semester: string;}>;
   };
 }> => {
   try {
@@ -1566,7 +1566,7 @@ export const getHODStudentBootstrap = async (
     const query = new URLSearchParams(params).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/student-bootstrap/?${query}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -1575,11 +1575,11 @@ export const getHODStudentBootstrap = async (
   }
 };
 export const manageSubjects = async (
-  data: ManageSubjectsRequest | { branch_id: string; semester_id?: string; page?: number; page_size?: number },
-  method: "GET" | "POST" = "GET"
-): Promise<GetSubjectsResponse> => {
+data: ManageSubjectsRequest | {branch_id: string;semester_id?: string;page?: number;page_size?: number;},
+method: "GET" | "POST" = "GET")
+: Promise<GetSubjectsResponse> => {
   try {
-    const branch_id = (data as { branch_id: string }).branch_id;
+    const branch_id = (data as {branch_id: string;}).branch_id;
     if (!branch_id) throw new Error("Branch ID is required");
     let url = `${API_ENDPOINT}/hod/subjects/?branch_id=${branch_id}`;
     if (method === "GET") {
@@ -1606,7 +1606,7 @@ export const manageSubjects = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: method === "POST" ? JSON.stringify(data) : undefined,
+      body: method === "POST" ? JSON.stringify(data) : undefined
 
     });
     return await response.json();
@@ -1621,18 +1621,18 @@ export const getHODSubjectBootstrap = async (include: string[] = ['profile', 'se
   success: boolean;
   message?: string;
   data?: {
-    profile?: { branch_id: string };
-    semesters?: Array<{ id: string; number: number }>;
-    subjects?: Array<{ id: string; name: string; subject_code: string; semester_id: string | null; subject_type: string }>;
-    faculties?: Array<{ id: string; username: string; first_name: string; last_name: string | null }>;
-    assignments?: Array<{ id: string; faculty: string; subject: string; section: string; semester: number; faculty_id: string; subject_id: string; section_id: string; semester_id: string }>;
+    profile?: {branch_id: string;};
+    semesters?: Array<{id: string;number: number;}>;
+    subjects?: Array<{id: string;name: string;subject_code: string;semester_id: string | null;subject_type: string;}>;
+    faculties?: Array<{id: string;username: string;first_name: string;last_name: string | null;}>;
+    assignments?: Array<{id: string;faculty: string;subject: string;section: string;semester: number;faculty_id: string;subject_id: string;section_id: string;semester_id: string;}>;
   };
 }> => {
   try {
     const includeParam = include.join(',');
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/subject-bootstrap/?include=${includeParam}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -1641,9 +1641,9 @@ export const getHODSubjectBootstrap = async (include: string[] = ['profile', 'se
   }
 };
 export const manageStudents = async (
-  data: ManageStudentsRequest | { branch_id: string; semester_id?: string; section_id?: string; page?: number; page_size?: number },
-  method: "GET" | "POST" = "GET"
-): Promise<ManageStudentsResponse> => {
+data: ManageStudentsRequest | {branch_id: string;semester_id?: string;section_id?: string;page?: number;page_size?: number;},
+method: "GET" | "POST" = "GET")
+: Promise<ManageStudentsResponse> => {
   // Simple in-memory cache to avoid immediate GET after a recent POST
   // Keyed by query string for GET requests
   const studentsCacheKey = (paramsStr: string) => `students:${paramsStr}`;
@@ -1651,7 +1651,7 @@ export const manageStudents = async (
   const cacheStore: Map<string, any> = (manageStudents as any)._cache || new Map();
   (manageStudents as any)._cache = cacheStore;
   try {
-    const branch_id = (data as { branch_id: string }).branch_id;
+    const branch_id = (data as {branch_id: string;}).branch_id;
     if (!branch_id) throw new Error("Branch ID is required");
     let url = `${API_ENDPOINT}/hod/students/?branch_id=${branch_id}`;
     if (method === "GET") {
@@ -1685,9 +1685,9 @@ export const manageStudents = async (
               return parsed;
             }
           } catch (e) {
+
             // ignore
-          }
-        }
+          }}
       }
     }
     if (method === "POST") {
@@ -1737,11 +1737,11 @@ export const manageStudents = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: method === "POST" ? JSON.stringify(data) : undefined,
+      body: method === "POST" ? JSON.stringify(data) : undefined
 
     });
     const rawResult = await response.json();
-    const result = (rawResult.results && rawResult.results.success) ? { ...rawResult, ...rawResult.results } : rawResult;
+    const result = rawResult.results && rawResult.results.success ? { ...rawResult, ...rawResult.results } : rawResult;
 
     // Cache GET responses for students endpoint (in-memory and localStorage)
     if (method === 'GET') {
@@ -1752,18 +1752,18 @@ export const manageStudents = async (
         try {
           localStorage.setItem(`students_cache:${paramsStr}`, JSON.stringify(result));
         } catch (e) {
+
           // ignore localStorage write errors
-        }
-      } catch (e) {
+        }} catch (e) {
+
         // ignore cache errors
-      }
-    }
+      }}
 
     // Mark timestamp on successful POST to suppress immediate following GETs
     // and invalidate any cached students results so subsequent GETs fetch fresh data.
     if (method === 'POST') {
       try {
-        console.debug('manageStudents: POST completed, invalidating students cache and setting last_students_post_ts');
+
         localStorage.setItem('last_students_post_ts', Date.now().toString());
       } catch (e) {}
       try {
@@ -1778,9 +1778,9 @@ export const manageStudents = async (
           }
         } catch (e) {}
       } catch (e) {
+
         // ignore cache clear errors
-      }
-    }
+      }}
 
     return result;
   } catch (error: unknown) {
@@ -1793,14 +1793,14 @@ export const getHODTimetableBootstrap = async (): Promise<{
   success: boolean;
   message?: string;
   data?: {
-    profile: { branch_id: string; branch: string };
-    semesters: Array<{ id: string; number: number }>;
+    profile: {branch_id: string;branch: string;};
+    semesters: Array<{id: string;number: number;}>;
   };
 }> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/timetable-bootstrap/`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -1809,14 +1809,14 @@ export const getHODTimetableBootstrap = async (): Promise<{
   }
 };
 export const manageBatches = async (
-  data?: ManageBatchesRequest,
-  batch_id?: string,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<ManageBatchesResponse> => {
+data?: ManageBatchesRequest,
+batch_id?: string,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<ManageBatchesResponse> => {
   try {
-    const url = batch_id
-      ? `${API_ENDPOINT}/hod/batches/${batch_id}/`
-      : `${API_ENDPOINT}/hod/batches/`;
+    const url = batch_id ?
+    `${API_ENDPOINT}/hod/batches/${batch_id}/` :
+    `${API_ENDPOINT}/hod/batches/`;
     if (method === "POST" || method === "PUT") {
       if (!data?.start_year || !data?.end_year) {
         throw new Error("Start year and end year are required for POST/PUT requests");
@@ -1828,12 +1828,12 @@ export const manageBatches = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : undefined
 
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage Batches Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
@@ -1843,8 +1843,8 @@ export const manageBatches = async (
 };
 
 export const getStudentPerformance = async (
-  data: { branch_id: string; semester_id?: string; section_id?: string }
-): Promise<{ success: boolean; data?: StudentPerformance[]; message?: string }> => {
+data: {branch_id: string;semester_id?: string;section_id?: string;})
+: Promise<{success: boolean;data?: StudentPerformance[];message?: string;}> => {
   try {
     if (!data.branch_id) throw new Error("Branch ID is required");
     const params = new URLSearchParams({ branch_id: data.branch_id });
@@ -1852,7 +1852,7 @@ export const getStudentPerformance = async (
     if (data.section_id) params.append("section_id", data.section_id);
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/performance/?${params.toString()}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -1862,9 +1862,9 @@ export const getStudentPerformance = async (
 };
 
 export const manageFaculties = async (
-  params: { branch_id?: string; search?: string; page?: number; page_size?: number },
-  method: "GET" = "GET"
-): Promise<any> => {
+params: {branch_id?: string;search?: string;page?: number;page_size?: number;},
+method: "GET" = "GET")
+: Promise<any> => {
   try {
     const queryParams = new URLSearchParams();
     if (params.branch_id) queryParams.append("branch_id", params.branch_id);
@@ -1875,7 +1875,7 @@ export const manageFaculties = async (
     const url = `${API_ENDPOINT}/hod/faculties/?${queryParams.toString()}`;
     const response = await fetchWithTokenRefresh(url, {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     const data = await response.json();
     if (data.results && data.results.success) {
@@ -1891,7 +1891,7 @@ export const listFacultyBranches = async (): Promise<GetBranchesResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/faculty-branches/`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -1906,7 +1906,7 @@ export const getProctors = async (branch_id: string, page?: number): Promise<any
     if (page) url += `&page=${page}`;
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     const data = await response.json();
     if (data.results && data.results.success) {
@@ -1919,9 +1919,9 @@ export const getProctors = async (branch_id: string, page?: number): Promise<any
 };
 
 export const manageFacultyAssignments = async (
-  data: ManageFacultyAssignmentsRequest,
-  method: "GET" | "POST" = "GET"
-): Promise<ManageFacultyAssignmentsResponse> => {
+data: ManageFacultyAssignmentsRequest,
+method: "GET" | "POST" = "GET")
+: Promise<ManageFacultyAssignmentsResponse> => {
   try {
     if (!data.branch_id) throw new Error("Branch ID is required");
     if (method === "POST" && !data.action) {
@@ -1948,7 +1948,7 @@ export const manageFacultyAssignments = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: method === "POST" ? JSON.stringify(data) : undefined,
+      body: method === "POST" ? JSON.stringify(data) : undefined
 
     });
     return await response.json();
@@ -1966,7 +1966,7 @@ export const manageTimetable = async (data: ManageTimetableRequest): Promise<Man
       if (data.section_id) params.append("section_id", data.section_id);
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/timetable/?${params.toString()}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
 
       });
       return await response.json();
@@ -2007,7 +2007,7 @@ export const manageTimetable = async (data: ManageTimetableRequest): Promise<Man
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/timetable/`, {
       method: "POST",
       headers,
-      body,
+      body
 
     });
     return await response.json();
@@ -2017,9 +2017,9 @@ export const manageTimetable = async (data: ManageTimetableRequest): Promise<Man
 };
 
 export const manageHODLeaves = async (
-  data: ManageHODLeavesRequest,
-  method: "GET" | "POST" = "GET"
-): Promise<ManageHODLeavesResponse> => {
+data: ManageHODLeavesRequest,
+method: "GET" | "POST" = "GET")
+: Promise<ManageHODLeavesResponse> => {
   try {
     if (!data.branch_id) throw new Error("Branch ID is required");
     const url = `${API_ENDPOINT}/hod/leave-applications/?branch_id=${data.branch_id}`;
@@ -2029,7 +2029,7 @@ export const manageHODLeaves = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: method === "POST" ? JSON.stringify(data) : undefined,
+      body: method === "POST" ? JSON.stringify(data) : undefined
 
     });
     return await response.json();
@@ -2039,9 +2039,9 @@ export const manageHODLeaves = async (
 };
 
 export const manageLeaves = async (
-  data: ManageLeavesRequest,
-  method: "GET" | "PATCH" = "GET"
-): Promise<ManageLeavesResponse> => {
+data: ManageLeavesRequest,
+method: "GET" | "PATCH" = "GET")
+: Promise<ManageLeavesResponse> => {
   try {
     if (!data.branch_id) throw new Error("Branch ID is required");
     const url = `${API_ENDPOINT}/hod/leaves/?branch_id=${data.branch_id}`;
@@ -2051,7 +2051,7 @@ export const manageLeaves = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: method === "PATCH" ? JSON.stringify(data) : undefined,
+      body: method === "PATCH" ? JSON.stringify(data) : undefined
 
     });
     return await response.json();
@@ -2066,7 +2066,7 @@ export const getAttendance = async (params: GetAttendanceParams): Promise<GetAtt
     const query = new URLSearchParams(params as any).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/attendance/?${query}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     const dataRes = await response.json();
@@ -2085,7 +2085,7 @@ export const getMarks = async (params: GetMarksParams): Promise<GetMarksResponse
     const query = new URLSearchParams(params as any).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/marks/?${query}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     const dataRes = await response.json();
@@ -2106,7 +2106,7 @@ export const createAnnouncement = async (data: CreateAnnouncementRequest): Promi
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/announcements/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2126,7 +2126,7 @@ export const sendNotification = async (data: SendNotificationRequest): Promise<S
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/notifications/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2140,7 +2140,7 @@ export const getNotifications = async (branch_id: string): Promise<GetNotificati
     if (!branch_id) throw new Error("Branch ID is required");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/notifications/history/?branch_id=${branch_id}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -2154,7 +2154,7 @@ export const getSentNotifications = async (branch_id: string): Promise<GetNotifi
     if (!branch_id) throw new Error("Branch ID is required");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/notifications/sent/?branch_id=${branch_id}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -2171,7 +2171,7 @@ export const assignProctor = async (data: AssignProctorRequest): Promise<AssignP
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctors/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2190,7 +2190,7 @@ export const assignProctorsBulk = async (data: AssignProctorsBulkRequest): Promi
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctors/bulk/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2200,9 +2200,9 @@ export const assignProctorsBulk = async (data: AssignProctorsBulkRequest): Promi
 };
 
 export const manageChat = async (
-  data: ManageChatRequest,
-  method: "GET" | "POST" = "GET"
-): Promise<ManageChatResponse> => {
+data: ManageChatRequest,
+method: "GET" | "POST" = "GET")
+: Promise<ManageChatResponse> => {
   try {
     if (!data.branch_id) throw new Error("Branch ID is required");
     const url = `${API_ENDPOINT}/hod/chat/?branch_id=${data.branch_id}`;
@@ -2218,7 +2218,7 @@ export const manageChat = async (
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: method === "POST" ? JSON.stringify(data) : undefined,
+      body: method === "POST" ? JSON.stringify(data) : undefined
 
     });
     return await response.json();
@@ -2228,16 +2228,16 @@ export const manageChat = async (
 };
 
 export const manageProfile = async (
-  data: ManageProfileRequest,
-  method: "GET" | "PATCH" = "GET"
-): Promise<ManageProfileResponse> => {
+data: ManageProfileRequest,
+method: "GET" | "PATCH" = "GET")
+: Promise<ManageProfileResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/profile/`, {
       method,
       headers: { "Content-Type": "application/json" },
       // prevent conditional requests that result in 304 when we want fresh profile
       cache: method === 'GET' ? 'no-store' : undefined,
-      body: method === "PATCH" ? JSON.stringify(data) : undefined,
+      body: method === "PATCH" ? JSON.stringify(data) : undefined
     });
 
     // If server returned 304 Not Modified, try to use cached profile from localStorage
@@ -2257,7 +2257,7 @@ export const manageProfile = async (
     // For other responses, attempt to parse JSON and return
     if (!response.ok) {
       let parsed: any = null;
-      try { parsed = await response.json(); } catch (e) { /* ignore */ }
+      try {parsed = await response.json();} catch (e) {/* ignore */}
       const message = parsed?.message || `Request failed (status: ${response.status})`;
       return { success: false, message, data: parsed?.data } as ManageProfileResponse;
     }
@@ -2283,7 +2283,7 @@ export const uploadStudyMaterial = async (data: UploadStudyMaterialRequest): Pro
     formData.append("file", data.file);
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/study-materials/`, {
       method: "POST",
-      body: formData,
+      body: formData
 
     });
     return await response.json();
@@ -2293,13 +2293,13 @@ export const uploadStudyMaterial = async (data: UploadStudyMaterialRequest): Pro
 };
 
 export const getStudyMaterials = async (
-  branch_id?: string,
-  semester_id?: string,
-  section_id?: string,
-  search?: string,
-  page?: number,
-  page_size?: number
-): Promise<GetStudyMaterialsResponse> => {
+branch_id?: string,
+semester_id?: string,
+section_id?: string,
+search?: string,
+page?: number,
+page_size?: number)
+: Promise<GetStudyMaterialsResponse> => {
   try {
     const params = new URLSearchParams();
     if (branch_id) params.append('branch_id', branch_id);
@@ -2311,7 +2311,7 @@ export const getStudyMaterials = async (
     const qs = params.toString() ? `?${params.toString()}` : '';
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/study-materials/${qs}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' }
     });
     const dataRes = await response.json();
     if (dataRes.results && dataRes.results.success) {
@@ -2331,7 +2331,7 @@ export const promoteStudentsToNextSemester = async (data: PromoteStudentsRequest
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/promote-students/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2348,7 +2348,7 @@ export const promoteSelectedStudents = async (data: PromoteSelectedStudentsReque
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/promote-selected-students/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2365,7 +2365,7 @@ export const demoteStudent = async (data: DemoteStudentRequest): Promise<DemoteS
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/demote-student/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2382,7 +2382,7 @@ export const bulkDemoteStudents = async (data: BulkDemoteStudentsRequest): Promi
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/demote-students/bulk/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2399,7 +2399,7 @@ export const getPromotionEligibility = async (params: GetPromotionEligibilityPar
     const query = new URLSearchParams(params as any).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/promotion-eligibility/?${query}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -2414,7 +2414,7 @@ export const getExamFailures = async (params: GetExamFailuresParams): Promise<Ge
     const query = new URLSearchParams(params as any).toString();
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/exam-failures/?${query}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
 
     });
     return await response.json();
@@ -2431,7 +2431,7 @@ export const recordExamFailure = async (data: RecordExamFailureRequest): Promise
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/record-exam-failure/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
 
     });
     return await response.json();
@@ -2452,14 +2452,14 @@ export const getFacultyAssignmentsBootstrap = async (): Promise<{
       branch: string;
       branch_id: string;
     };
-    semesters: Array<{ id: string; number: number }>;
-    faculties: Array<{ id: string; username: string; first_name: string; last_name: string }>;
+    semesters: Array<{id: string;number: number;}>;
+    faculties: Array<{id: string;username: string;first_name: string;last_name: string;}>;
   };
 }> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/faculty-assignments-bootstrap/`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -2501,7 +2501,7 @@ export const getNotificationsBootstrap = async (): Promise<{
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/notifications-bootstrap/`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -2520,14 +2520,14 @@ export const getPromotionBootstrap = async (): Promise<{
       branch: string;
       branch_id: string;
     };
-    semesters: Array<{ id: string; number: number }>;
-    sections: Array<{ id: string; name: string; semester_id: string | null }>;
+    semesters: Array<{id: string;number: number;}>;
+    sections: Array<{id: string;name: string;semester_id: string | null;}>;
   };
 }> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/promotion-bootstrap/`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
     return await response.json();
   } catch (error: unknown) {
@@ -2622,12 +2622,12 @@ export const getFacultyAttendanceToday = async (params?: {
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      },
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Faculty Attendance Today Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -2652,12 +2652,12 @@ export const getFacultyAttendanceRecords = async (params?: {
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      },
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Faculty Attendance Records Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };

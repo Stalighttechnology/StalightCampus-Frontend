@@ -25,20 +25,20 @@ import {
   CreditCard,
   LayoutGrid,
   MousePointer2,
-  CheckCircle2 as CheckIcon
-} from 'lucide-react';
+  CheckCircle2 as CheckIcon } from
+'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 import DashboardCard from '@/components/common/DashboardCard';
 import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
-import { 
-  Skeleton, 
-  SkeletonStatsGrid, 
-  SkeletonTable, 
-  SkeletonList, 
+import {
+  Skeleton,
+  SkeletonStatsGrid,
+  SkeletonTable,
+  SkeletonList,
   SkeletonPageHeader,
-  SkeletonCard
-} from "@/components/ui/skeleton";
+  SkeletonCard } from
+"@/components/ui/skeleton";
 
 import {
   getFeesManagerFilters,
@@ -48,8 +48,8 @@ import {
   getInvoices,
   recordPayment,
   downloadInvoice as downloadInvoiceApi,
-  getInvoiceDetails
-} from "../../utils/fees_manager_api";
+  getInvoiceDetails } from
+"../../utils/fees_manager_api";
 
 interface Invoice {
   id: number;
@@ -88,8 +88,8 @@ interface Payment {
 }
 
 interface FilterData {
-  batches: { id: number; name: string }[];
-  branches: { id: number; name: string; code: string }[];
+  batches: {id: number;name: string;}[];
+  branches: {id: number;name: string;code: string;}[];
   admission_modes: string[];
 }
 
@@ -123,8 +123,8 @@ const InvoiceManagement: React.FC = () => {
   });
 
   const [filterData, setFilterData] = useState<FilterData>({ batches: [], branches: [], admission_modes: [] });
-  const [semesters, setSemesters] = useState<{ id: number; number: number; name: string }[]>([]);
-  const [sections, setSections] = useState<{ id: number; name: string }[]>([]);
+  const [semesters, setSemesters] = useState<{id: number;number: number;name: string;}[]>([]);
+  const [sections, setSections] = useState<{id: number;name: string;}[]>([]);
 
   // Initial data fetch
   useEffect(() => {
@@ -135,7 +135,7 @@ const InvoiceManagement: React.FC = () => {
           setFilterData(filterJson.data);
         }
       } catch (err) {
-        console.error("Error fetching filters:", err);
+
       }
     };
     fetchInitialData();
@@ -174,11 +174,11 @@ const InvoiceManagement: React.FC = () => {
   // Fetch invoices based on filters
   useEffect(() => {
     const allFiltersSelected =
-      selectedFilters.batchId &&
-      selectedFilters.branchId &&
-      selectedFilters.semesterId &&
-      selectedFilters.sectionId &&
-      selectedFilters.admissionMode;
+    selectedFilters.batchId &&
+    selectedFilters.branchId &&
+    selectedFilters.semesterId &&
+    selectedFilters.sectionId &&
+    selectedFilters.admissionMode;
 
     if (allFiltersSelected || selectedFilters.search.length > 2) {
       fetchInvoices(1);
@@ -192,18 +192,18 @@ const InvoiceManagement: React.FC = () => {
   // Fetch stats when filters change
   useEffect(() => {
     const allFiltersSelected =
-      selectedFilters.batchId &&
-      selectedFilters.branchId &&
-      selectedFilters.semesterId &&
-      selectedFilters.sectionId &&
-      selectedFilters.admissionMode;
+    selectedFilters.batchId &&
+    selectedFilters.branchId &&
+    selectedFilters.semesterId &&
+    selectedFilters.sectionId &&
+    selectedFilters.admissionMode;
 
     const noFiltersSelected =
-      !selectedFilters.batchId &&
-      !selectedFilters.branchId &&
-      !selectedFilters.semesterId &&
-      !selectedFilters.sectionId &&
-      !selectedFilters.admissionMode;
+    !selectedFilters.batchId &&
+    !selectedFilters.branchId &&
+    !selectedFilters.semesterId &&
+    !selectedFilters.sectionId &&
+    !selectedFilters.admissionMode;
 
     if (allFiltersSelected || noFiltersSelected) {
       fetchStats();
@@ -217,7 +217,7 @@ const InvoiceManagement: React.FC = () => {
         ...(selectedFilters.branchId && { branch_id: selectedFilters.branchId }),
         ...(selectedFilters.semesterId && { semester_id: selectedFilters.semesterId }),
         ...(selectedFilters.sectionId && { section_id: selectedFilters.sectionId }),
-        ...(selectedFilters.admissionMode && { admission_mode: selectedFilters.admissionMode }),
+        ...(selectedFilters.admissionMode && { admission_mode: selectedFilters.admissionMode })
       };
 
       const res = await getFeesManagerStats(params);
@@ -225,7 +225,7 @@ const InvoiceManagement: React.FC = () => {
         setStatsData(res.data);
       }
     } catch (e) {
-      console.error("Error fetching stats:", e);
+
     }
   };
 
@@ -256,7 +256,7 @@ const InvoiceManagement: React.FC = () => {
         ...inv,
         total_amount: (inv.total_amount_cents ?? 0) / 100,
         paid_amount: (inv.paid_amount_cents ?? 0) / 100,
-        pending_amount: (inv.pending_amount_cents ?? 0) / 100,
+        pending_amount: (inv.pending_amount_cents ?? 0) / 100
       }));
 
       setInvoices(normalized);
@@ -280,12 +280,12 @@ const InvoiceManagement: React.FC = () => {
         ...inv,
         total_amount: (inv.total_amount_cents ?? 0) / 100,
         paid_amount: (inv.paid_amount_cents ?? 0) / 100,
-        pending_amount: (inv.pending_amount_cents ?? 0) / 100,
+        pending_amount: (inv.pending_amount_cents ?? 0) / 100
       };
 
       const normalizedPayments = (inv.payments || []).map((p: any) => ({
         ...p,
-        amount: (p.amount_cents ?? 0) / 100,
+        amount: (p.amount_cents ?? 0) / 100
       }));
 
       setSelectedInvoice(normalizedInvoice);
@@ -299,7 +299,7 @@ const InvoiceManagement: React.FC = () => {
         title: "Error",
         description: msg
       });
-      console.error("fetchInvoiceDetails error:", err);
+
     }
   };
 
@@ -357,7 +357,7 @@ const InvoiceManagement: React.FC = () => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'INR'
     }).format(amount);
   };
 
@@ -395,39 +395,39 @@ const InvoiceManagement: React.FC = () => {
               title="Total Invoices"
               value={statsData?.total_invoices || 0}
               description="Generated for this session"
-              icon={<FileText className="h-5 w-5" />}
-            />
+              icon={<FileText className="h-5 w-5" />} />
+            
             <DashboardCard
               title="Collection"
               value={formatCurrency((statsData?.total_collections_cents || 0) / 100)}
               description="Total revenue collected"
-              icon={<TrendingUp className="h-5 w-5" />}
-            />
+              icon={<TrendingUp className="h-5 w-5" />} />
+            
             <DashboardCard
               title="Outstanding"
               value={formatCurrency((statsData?.outstanding_amount_cents || 0) / 100)}
               description="Pending fee balance"
-              icon={<Clock className="h-5 w-5" />}
-            />
+              icon={<Clock className="h-5 w-5" />} />
+            
             <DashboardCard
               title="Active Templates"
               value={statsData?.active_fee_structures || 0}
               description="Templates currently assigned"
-              icon={<Users className="h-5 w-5" />}
-            />
+              icon={<Users className="h-5 w-5" />} />
+            
           </div>
 
           {/* Cascading Filters Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Batch</Label>
-              <Select value={selectedFilters.batchId} onValueChange={(val) => setSelectedFilters(p => ({ ...p, batchId: val }))}>
+              <Select value={selectedFilters.batchId} onValueChange={(val) => setSelectedFilters((p) => ({ ...p, batchId: val }))}>
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="All Batches" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all_batches">All Batches</SelectItem>
-                  {filterData.batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  {filterData.batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -436,15 +436,15 @@ const InvoiceManagement: React.FC = () => {
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Branch</Label>
               <Select
                 value={selectedFilters.branchId}
-                onValueChange={(val) => setSelectedFilters(p => ({ ...p, branchId: val }))}
-                disabled={!selectedFilters.batchId}
-              >
+                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, branchId: val }))}
+                disabled={!selectedFilters.batchId}>
+                
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all_branches">All Branches</SelectItem>
-                  {filterData.branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  {filterData.branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -453,14 +453,14 @@ const InvoiceManagement: React.FC = () => {
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Semester</Label>
               <Select
                 value={selectedFilters.semesterId}
-                onValueChange={(val) => setSelectedFilters(p => ({ ...p, semesterId: val }))}
-                disabled={!selectedFilters.branchId}
-              >
+                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, semesterId: val }))}
+                disabled={!selectedFilters.branchId}>
+                
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                  {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -469,14 +469,14 @@ const InvoiceManagement: React.FC = () => {
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Section</Label>
               <Select
                 value={selectedFilters.sectionId}
-                onValueChange={(val) => setSelectedFilters(p => ({ ...p, sectionId: val }))}
-                disabled={!selectedFilters.semesterId}
-              >
+                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, sectionId: val }))}
+                disabled={!selectedFilters.semesterId}>
+                
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Section" />
                 </SelectTrigger>
                 <SelectContent className="h-60">
-                  {sections.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                  {sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -485,15 +485,15 @@ const InvoiceManagement: React.FC = () => {
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admission Mode</Label>
               <Select
                 value={selectedFilters.admissionMode}
-                onValueChange={(val) => setSelectedFilters(p => ({ ...p, admissionMode: val }))}
-                disabled={!selectedFilters.sectionId}
-              >
+                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, admissionMode: val }))}
+                disabled={!selectedFilters.sectionId}>
+                
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Admission" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all_modes">All Modes</SelectItem>
-                  {filterData.admission_modes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  {filterData.admission_modes.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -507,15 +507,15 @@ const InvoiceManagement: React.FC = () => {
                 placeholder="Search USN, Name or Invoice #..."
                 className="pl-10 h-12 bg-background border-border/50 shadow-sm transition-all focus:ring-2 focus:ring-primary/20"
                 value={selectedFilters.search}
-                onChange={(e) => setSelectedFilters(p => ({ ...p, search: e.target.value }))}
-              />
+                onChange={(e) => setSelectedFilters((p) => ({ ...p, search: e.target.value }))} />
+              
             </div>
             <div className="w-full md:w-[220px]">
-              <Select value={selectedFilters.status} onValueChange={(val) => setSelectedFilters(p => ({ ...p, status: val }))}>
+              <Select value={selectedFilters.status} onValueChange={(val) => setSelectedFilters((p) => ({ ...p, status: val }))}>
                 <SelectTrigger className="h-12 bg-background border-border/50 shadow-sm font-semibold">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
-                <SelectContent >
+                <SelectContent>
                   <SelectItem value="all">All Invoices</SelectItem>
                   <SelectItem value="paid">Fully Paid</SelectItem>
                   <SelectItem value="unpaid">Unpaid Invoices</SelectItem>
@@ -541,18 +541,18 @@ const InvoiceManagement: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow>
+                {loading ?
+                <TableRow>
                     <TableCell colSpan={7} className="p-0">
                       <SkeletonTable rows={10} cols={7} />
                     </TableCell>
-                  </TableRow>
-                ) : invoices.length === 0 ? (
+                  </TableRow> :
+                invoices.length === 0 ?
 
-                  <TableRow>
+                <TableRow>
                     <TableCell colSpan={7} className="h-80 text-center">
-                      {!(selectedFilters.batchId && selectedFilters.branchId && selectedFilters.semesterId && selectedFilters.sectionId && selectedFilters.admissionMode) && selectedFilters.search.length < 3 ? (
-                        <div className="flex flex-col items-center justify-center bg-muted/5 p-8 rounded-xl border border-dashed mx-6">
+                      {!(selectedFilters.batchId && selectedFilters.branchId && selectedFilters.semesterId && selectedFilters.sectionId && selectedFilters.admissionMode) && selectedFilters.search.length < 3 ?
+                    <div className="flex flex-col items-center justify-center bg-muted/5 p-8 rounded-xl border border-dashed mx-6">
                           <div className="relative mb-6">
                             <div className="absolute -top-4 -right-4 bg-primary/10 p-3 rounded-full animate-bounce">
                               <MousePointer2 className="h-3 w-3 text-primary" />
@@ -567,38 +567,38 @@ const InvoiceManagement: React.FC = () => {
                           </p>
                           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 w-full max-w-2xl">
                             {[
-                              { label: 'Batch', active: !!selectedFilters.batchId },
-                              { label: 'Branch', active: !!selectedFilters.branchId },
-                              { label: 'Semester', active: !!selectedFilters.semesterId },
-                              { label: 'Section', active: !!selectedFilters.sectionId },
-                              { label: 'Admission', active: !!selectedFilters.admissionMode },
-                            ].map((step, i) => (
-                              <div key={step.label} className="flex flex-col items-center gap-2">
-                                <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-all ${step.active ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-background border-muted text-muted-foreground'
-                                  }`}>
+                        { label: 'Batch', active: !!selectedFilters.batchId },
+                        { label: 'Branch', active: !!selectedFilters.branchId },
+                        { label: 'Semester', active: !!selectedFilters.semesterId },
+                        { label: 'Section', active: !!selectedFilters.sectionId },
+                        { label: 'Admission', active: !!selectedFilters.admissionMode }].
+                        map((step, i) =>
+                        <div key={step.label} className="flex flex-col items-center gap-2">
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-all ${step.active ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-background border-muted text-muted-foreground'}`
+                          }>
                                   {step.active ? <CheckIcon className="h-4 w-4" /> : i + 1}
                                 </div>
                                 <span className={`text-[13px] font-semibold uppercase tracking-wider ${step.active ? 'text-primary' : 'text-muted-foreground'}`}>
                                   {step.label}
                                 </span>
                               </div>
-                            ))}
+                        )}
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+                        </div> :
+
+                    <div className="flex flex-col items-center justify-center space-y-4 py-12">
                           <Search className="h-12 w-12 text-muted-foreground opacity-20" />
                           <div className="space-y-1">
                             <p className="text-lg font-semibold text-foreground">No Invoices Found</p>
                             <p className="text-sm text-muted-foreground italic">Try adjusting your filters or search keywords</p>
                           </div>
                         </div>
-                      )}
+                    }
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  invoices.map((inv) => (
-                    <TableRow key={inv.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                  </TableRow> :
+
+                invoices.map((inv) =>
+                <TableRow key={inv.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
                       <TableCell className="py-5 px-6 align-middle">
                         <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{inv.invoice_number}</div>
                         <div className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">
@@ -631,46 +631,46 @@ const InvoiceManagement: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-right pr-6 align-middle">
                         <div className="flex justify-end gap-1">
-                          {inv.pending_amount > 0 && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-full transition-all active:scale-95"
-                              onClick={() => openPaymentDialog(inv)}
-                              title="Record Payment"
-                            >
+                          {inv.pending_amount > 0 &&
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-full transition-all active:scale-95"
+                        onClick={() => openPaymentDialog(inv)}
+                        title="Record Payment">
+                        
                               <IndianRupee className="h-4.5 w-4.5" />
                             </Button>
-                          )}
+                      }
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
-                            onClick={() => fetchInvoiceDetails(inv.id)}
-                            title="View Details"
-                          >
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
+                        onClick={() => fetchInvoiceDetails(inv.id)}
+                        title="View Details">
+                        
                             <Eye className="h-4.5 w-4.5" />
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 text-amber-600 hover:bg-amber-50 rounded-full transition-all active:scale-95"
-                            onClick={() => downloadInvoice(inv.id)}
-                            title="Download PDF"
-                          >
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-amber-600 hover:bg-amber-50 rounded-full transition-all active:scale-95"
+                        onClick={() => downloadInvoice(inv.id)}
+                        title="Download PDF">
+                        
                             <Download className="h-4.5 w-4.5" />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                )
+                }
               </TableBody>
             </Table>
 
             {/* Pagination */}
-            {invoicesMeta && invoicesMeta.total_pages > 1 && (
-              <div className="p-5 border-t flex items-center justify-between bg-muted/10">
+            {invoicesMeta && invoicesMeta.total_pages > 1 &&
+            <div className="p-5 border-t flex items-center justify-between bg-muted/10">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                   Showing <span className="text-foreground">{(invoicesMeta.page - 1) * 50 + 1}</span> to <span className="text-foreground">{Math.min(invoicesMeta.page * 50, invoicesMeta.count)}</span> of <span className="text-foreground">{invoicesMeta.count}</span>
                 </p>
@@ -680,27 +680,27 @@ const InvoiceManagement: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 px-4 font-semibold uppercase text-[13px] tracking-widest rounded-full"
-                      disabled={!invoicesMeta.has_previous}
-                      onClick={() => fetchInvoices(invoicesMeta.page - 1)}
-                    >
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-4 font-semibold uppercase text-[13px] tracking-widest rounded-full"
+                    disabled={!invoicesMeta.has_previous}
+                    onClick={() => fetchInvoices(invoicesMeta.page - 1)}>
+                    
                       Previous
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 px-4 font-semibold uppercase text-[13px] tracking-widest rounded-full"
-                      disabled={!invoicesMeta.has_next}
-                      onClick={() => fetchInvoices(invoicesMeta.page + 1)}
-                    >
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-4 font-semibold uppercase text-[13px] tracking-widest rounded-full"
+                    disabled={!invoicesMeta.has_next}
+                    onClick={() => fetchInvoices(invoicesMeta.page + 1)}>
+                    
                       Next
                     </Button>
                   </div>
                 </div>
               </div>
-            )}
+            }
           </div>
         </CardContent>
       </Card>
@@ -786,12 +786,12 @@ const InvoiceManagement: React.FC = () => {
                 <CreditCard className="h-3.5 w-3.5 text-primary" /> Payment History
               </h4>
               <div className="border border-border/50 rounded-xl overflow-hidden bg-card">
-                {payments.length === 0 ? (
-                  <div className="p-8 text-center bg-muted/10">
+                {payments.length === 0 ?
+                <div className="p-8 text-center bg-muted/10">
                     <p className="text-xs text-muted-foreground font-medium italic">No payments recorded for this invoice</p>
-                  </div>
-                ) : (
-                  <Table>
+                  </div> :
+
+                <Table>
                     <TableHeader className="bg-muted/30">
                       <TableRow className="hover:bg-transparent">
                         <TableHead className="h-9 text-[13px] font-semibold uppercase px-4">Date</TableHead>
@@ -800,8 +800,8 @@ const InvoiceManagement: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {payments.map(p => (
-                        <TableRow key={p.id} className="hover:bg-muted/10 transition-colors border-b border-border/30 last:border-0">
+                      {payments.map((p) =>
+                    <TableRow key={p.id} className="hover:bg-muted/10 transition-colors border-b border-border/30 last:border-0">
                           <TableCell className="py-2.5 px-4 text-xs font-medium">
                             {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                           </TableCell>
@@ -812,10 +812,10 @@ const InvoiceManagement: React.FC = () => {
                             {formatCurrency(p.amount)}
                           </TableCell>
                         </TableRow>
-                      ))}
+                    )}
                     </TableBody>
                   </Table>
-                )}
+                }
               </div>
             </div>
 
@@ -823,15 +823,15 @@ const InvoiceManagement: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button
                 className="flex-1 h-10 text-xs font-semibold uppercase tracking-widest shadow-lg shadow-primary/20"
-                onClick={() => downloadInvoice(selectedInvoice?.id || 0)}
-              >
+                onClick={() => downloadInvoice(selectedInvoice?.id || 0)}>
+                
                 <Download className="h-3.5 w-3.5 mr-2" /> Download Statement
               </Button>
               <Button
                 variant="outline"
                 className="h-10 px-6 text-xs font-semibold uppercase tracking-widest"
-                onClick={() => setIsDetailsDialogOpen(false)}
-              >
+                onClick={() => setIsDetailsDialogOpen(false)}>
+                
                 Close
               </Button>
             </div>
@@ -857,8 +857,8 @@ const InvoiceManagement: React.FC = () => {
               <Input
                 value={selectedInvoice?.student.name}
                 disabled
-                className="bg-muted/30 border-none font-semibold text-foreground h-11"
-              />
+                className="bg-muted/30 border-none font-semibold text-foreground h-11" />
+              
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -870,12 +870,12 @@ const InvoiceManagement: React.FC = () => {
                   required
                   className="h-11 border-border/50 focus:ring-green-500/20"
                   value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm(p => ({ ...p, amount: e.target.value }))}
-                />
+                  onChange={(e) => setPaymentForm((p) => ({ ...p, amount: e.target.value }))} />
+                
               </div>
               <div className="space-y-2">
                 <Label className="text-[13px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Mode</Label>
-                <Select value={paymentForm.mode} onValueChange={(val) => setPaymentForm(p => ({ ...p, mode: val }))}>
+                <Select value={paymentForm.mode} onValueChange={(val) => setPaymentForm((p) => ({ ...p, mode: val }))}>
                   <SelectTrigger className="h-11 border-border/50">
                     <SelectValue />
                   </SelectTrigger>
@@ -896,8 +896,8 @@ const InvoiceManagement: React.FC = () => {
                 placeholder="e.g. Cheque # or Bank Ref"
                 className="h-11 border-border/50"
                 value={paymentForm.transactionId}
-                onChange={(e) => setPaymentForm(p => ({ ...p, transactionId: e.target.value }))}
-              />
+                onChange={(e) => setPaymentForm((p) => ({ ...p, transactionId: e.target.value }))} />
+              
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -905,23 +905,23 @@ const InvoiceManagement: React.FC = () => {
                 type="button"
                 variant="outline"
                 className="flex-1 h-11 text-xs font-semibold uppercase tracking-widest rounded-xl"
-                onClick={() => setIsPaymentDialogOpen(false)}
-              >
+                onClick={() => setIsPaymentDialogOpen(false)}>
+                
                 Cancel
               </Button>
               <Button
                 type="submit"
                 className="flex-[1.5] h-11 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold uppercase tracking-widest rounded-xl shadow-lg shadow-green-500/20"
-                disabled={isSubmittingPayment}
-              >
+                disabled={isSubmittingPayment}>
+                
                 {isSubmittingPayment ? "Recording..." : "Record Payment"}
               </Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default InvoiceManagement;

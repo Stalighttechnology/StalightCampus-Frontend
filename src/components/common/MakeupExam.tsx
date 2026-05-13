@@ -12,8 +12,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue } from
+"@/components/ui/select";
 
 
 
@@ -22,15 +22,15 @@ const MakeupExam = () => {
   const { theme } = useTheme();
   const [filters, setFilters] = useState({ batch_id: "", branch_id: "", semester_id: "", section_id: "", exam_period: "" });
   const [usn, setUsn] = useState("");
-  const [messageModal, setMessageModal] = useState<{ open: boolean; title?: string; message?: string }>({ open: false });
-  const [students, setStudents] = useState<Array<{ usn: string; name: string; student_id: number; subjects: Array<{ subject_id: number; subject_name: string; cie_marks?: number; see_marks?: number; total_marks?: number; status: string; applied: boolean; request_details?: any }> }>>([]);
+  const [messageModal, setMessageModal] = useState<{open: boolean;title?: string;message?: string;}>({ open: false });
+  const [students, setStudents] = useState<Array<{usn: string;name: string;student_id: number;subjects: Array<{subject_id: number;subject_name: string;cie_marks?: number;see_marks?: number;total_marks?: number;status: string;applied: boolean;request_details?: any;}>;}>>([]);
   const [loading, setLoading] = useState(false);
   const [selectionMap, setSelectionMap] = useState<Record<number, boolean>>({});
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
   const [reason, setReason] = useState("");
-  const [confirmMakeup, setConfirmMakeup] = useState<{ open: boolean; student_id?: number; subject_id?: number; subject_name?: string }>({ open: false });
-  const [viewModal, setViewModal] = useState<{ open: boolean; request?: any }>({ open: false });
+  const [confirmMakeup, setConfirmMakeup] = useState<{open: boolean;student_id?: number;subject_id?: number;subject_name?: string;}>({ open: false });
+  const [viewModal, setViewModal] = useState<{open: boolean;request?: any;}>({ open: false });
 
   const loadStudents = async () => {
     if (loading) return; // Prevent duplicate calls
@@ -49,9 +49,9 @@ const MakeupExam = () => {
     try {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/makeup/students/?${qs.toString()}`, { method: 'GET' });
       const json = (await res.json()) as Record<string, unknown>;
-      const payload = (json.results && typeof json.results === 'object') ? (json.results as Record<string, unknown>) : json;
+      const payload = json.results && typeof json.results === 'object' ? json.results as Record<string, unknown> : json;
       const success = payload.success as boolean | undefined;
-      const studentsData = payload.students as Array<{ usn: string; name: string; student_id: number; subjects: Array<{ subject_id: number; subject_name: string; cie_marks?: number; see_marks?: number; total_marks?: number; status: string; applied?: boolean }> }> | undefined;
+      const studentsData = payload.students as Array<{usn: string;name: string;student_id: number;subjects: Array<{subject_id: number;subject_name: string;cie_marks?: number;see_marks?: number;total_marks?: number;status: string;applied?: boolean;}>;}> | undefined;
       const message = payload.message as string | undefined;
 
       if (success) {
@@ -62,11 +62,11 @@ const MakeupExam = () => {
         setStudents(safeStudents);
       } else {
         setStudents([]);
-        console.error('Load students error response:', payload);
+
         setMessageModal({ open: true, title: 'Error', message: message || 'Failed to load students' });
       }
     } catch (err) {
-      console.error('Error loading students:', err);
+
       setStudents([]);
       setMessageModal({ open: true, title: 'Error', message: 'Failed to load students (network or auth error)' });
     }
@@ -105,7 +105,7 @@ const MakeupExam = () => {
         setMessageModal({ open: true, title: 'Error', message: message || 'Error' });
       }
     } catch (err) {
-      console.error('Error applying makeup:', err);
+
       setMessageModal({ open: true, title: 'Error', message: 'Network error' });
     }
   };
@@ -114,11 +114,11 @@ const MakeupExam = () => {
     if (applied) {
       return <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Applied</span>;
     }
-    return status === 'pass' ? (
-      <span className="text-green-600">Pass</span>
-    ) : (
-      <span className="text-red-600">Fail</span>
-    );
+    return status === 'pass' ?
+    <span className="text-green-600">Pass</span> :
+
+    <span className="text-red-600">Fail</span>;
+
   };
 
   const handleApplyClick = (studentId: number, subjectId: number, subjectName: string) => {
@@ -130,11 +130,11 @@ const MakeupExam = () => {
   const markSubjectAsApplied = (subjectId: number) => {
     const updateSubjectInStudent = (st: typeof students[0]) => {
       const newSubjects = st.subjects.map((sb) =>
-        sb.subject_id === subjectId ? { ...sb, applied: true } : sb
+      sb.subject_id === subjectId ? { ...sb, applied: true } : sb
       );
       return { ...st, subjects: newSubjects };
     };
-    setStudents(prev => prev.map(updateSubjectInStudent));
+    setStudents((prev) => prev.map(updateSubjectInStudent));
   };
 
   const handleViewRequest = (subjectId: number) => {
@@ -152,7 +152,7 @@ const MakeupExam = () => {
           processed_by_name: subject.request_details.processed_by,
           processed_at: subject.request_details.processed_at,
           reason: '', // Not available in the search results
-          response_note: subject.request_details.response_note,
+          response_note: subject.request_details.response_note
         };
         setViewModal({ open: true, request });
         return;
@@ -168,31 +168,31 @@ const MakeupExam = () => {
   };
 
   const handleSelectionChange = (subjectId: number, checked: boolean) => {
-    setSelectionMap(prev => ({ ...prev, [subjectId]: checked }));
+    setSelectionMap((prev) => ({ ...prev, [subjectId]: checked }));
   };
 
-  const renderApplyButton = (applied: boolean, studentId: number, subjectId: number, subjectName: string) => (
-    applied ? (
-      <Button
-        onClick={() => handleViewRequest(subjectId)}
-        variant="outline"
-        className="text-xs sm:text-sm h-auto px-2 py-1 border-blue-500 text-blue-600 hover:bg-blue-50"
-      >
+  const renderApplyButton = (applied: boolean, studentId: number, subjectId: number, subjectName: string) =>
+  applied ?
+  <Button
+    onClick={() => handleViewRequest(subjectId)}
+    variant="outline"
+    className="text-xs sm:text-sm h-auto px-2 py-1 border-blue-500 text-blue-600 hover:bg-blue-50">
+    
         View
-      </Button>
-    ) : (
-      <Button
-        disabled={loading}
-        onClick={() => handleApplyClick(studentId, subjectId, subjectName)}
-        variant="default"
-        className="text-xs sm:text-sm h-auto px-2 py-1 bg-primary hover:bg-primary/90 text-white"
-      >
-        Apply
-      </Button>
-    )
-  );
+      </Button> :
 
-  const renderActionCell = (sub: { subject_id: number; subject_name: string; applied: boolean; request_details?: any }, studentId: number, isStudentRole: boolean) => {
+  <Button
+    disabled={loading}
+    onClick={() => handleApplyClick(studentId, subjectId, subjectName)}
+    variant="default"
+    className="text-xs sm:text-sm h-auto px-2 py-1 bg-primary hover:bg-primary/90 text-white">
+    
+        Apply
+      </Button>;
+
+
+
+  const renderActionCell = (sub: {subject_id: number;subject_name: string;applied: boolean;request_details?: any;}, studentId: number, isStudentRole: boolean) => {
     if (!sub.subject_id) {
       return 'N/A';
     }
@@ -203,11 +203,11 @@ const MakeupExam = () => {
           <Button
             onClick={() => handleViewRequest(sub.subject_id)}
             variant="outline"
-            className="text-xs sm:text-sm h-auto px-2 py-1 border-blue-500 text-blue-600 hover:bg-blue-50"
-          >
+            className="text-xs sm:text-sm h-auto px-2 py-1 border-blue-500 text-blue-600 hover:bg-blue-50">
+            
             View
-          </Button>
-        );
+          </Button>);
+
       }
 
       // Otherwise allow selecting the subject for applying
@@ -216,11 +216,11 @@ const MakeupExam = () => {
           <input
             type="checkbox"
             checked={!!selectionMap[sub.subject_id]}
-            onChange={(e) => handleSelectionChange(sub.subject_id, e.target.checked)}
-          />
+            onChange={(e) => handleSelectionChange(sub.subject_id, e.target.checked)} />
+          
           <span>Select</span>
-        </label>
-      );
+        </label>);
+
     }
 
     return renderApplyButton(sub.applied, studentId, sub.subject_id, sub.subject_name);
@@ -244,21 +244,21 @@ const MakeupExam = () => {
                 <input
                   id="usn-input"
                   value={usn}
-                  onChange={e => setUsn(e.target.value)}
+                  onChange={(e) => setUsn(e.target.value)}
                   placeholder="Enter student USN"
-                  className={`w-full px-2 sm:px-3 py-2 text-xs sm:text-sm rounded border ${theme === 'dark'
-                      ? 'bg-input border-border text-foreground'
-                      : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                />
+                  className={`w-full px-2 sm:px-3 py-2 text-xs sm:text-sm rounded border ${theme === 'dark' ?
+                  'bg-input border-border text-foreground' :
+                  'bg-white border-gray-300 text-gray-900'}`
+                  } />
+                
               </div>
 
               <div className="sm:col-span-1">
                 <label className="text-xs sm:text-sm block mb-1 font-medium">Exam Period</label>
                 <Select
                   value={filters.exam_period}
-                  onValueChange={(value) => setFilters({ ...filters, exam_period: value })}
-                >
+                  onValueChange={(value) => setFilters({ ...filters, exam_period: value })}>
+                  
                   <SelectTrigger className={theme === 'dark' ? 'bg-input border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
                     <SelectValue placeholder="Select Exam Period" />
                   </SelectTrigger>
@@ -276,18 +276,18 @@ const MakeupExam = () => {
                 <Button
                   onClick={loadStudents}
                   disabled={loading}
-                  className="w-full px-3 py-2 text-xs sm:text-sm h-auto bg-primary hover:bg-primary/90 text-white"
-                >
+                  className="w-full px-3 py-2 text-xs sm:text-sm h-auto bg-primary hover:bg-primary/90 text-white">
+                  
                   {loading ? 'Searching...' : 'Search'}
                 </Button>
               </div>
             </div>
 
             {/* Results Section */}
-            {!loading && students.length > 0 ? (
-              <div className="space-y-6 pt-4 border-t">
-                {students.map(s => (
-                  <div key={s.student_id} className={`rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50 border-gray-200'} overflow-hidden`}>
+            {!loading && students.length > 0 ?
+            <div className="space-y-6 pt-4 border-t">
+                {students.map((s) =>
+              <div key={s.student_id} className={`rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50 border-gray-200'} overflow-hidden`}>
                     <div className="p-3 sm:p-4 lg:p-6 pb-2 sm:pb-3">
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                         <div>
@@ -315,8 +315,8 @@ const MakeupExam = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {s.subjects.map((sub) => (
-                              <tr key={sub.subject_id} className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
+                            {s.subjects.map((sub) =>
+                        <tr key={sub.subject_id} className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
                                 <td className="p-2 sm:p-3">{sub.subject_name}</td>
                                 <td className="text-right p-2 sm:p-3">{sub.cie_marks ?? '-'}</td>
                                 <td className="text-right p-2 sm:p-3">{sub.see_marks ?? '-'}</td>
@@ -328,18 +328,18 @@ const MakeupExam = () => {
                                   {renderActionCell(sub, s.student_id, role === 'student')}
                                 </td>
                               </tr>
-                            ))}
+                        )}
                           </tbody>
                         </table>
                       </div>
 
                       {/* Mobile Cards */}
                       <div className="sm:hidden space-y-2">
-                        {s.subjects.map((sub) => (
-                          <div
-                            key={sub.subject_id}
-                            className={`p-2 rounded border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-200'}`}
-                          >
+                        {s.subjects.map((sub) =>
+                    <div
+                      key={sub.subject_id}
+                      className={`p-2 rounded border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-200'}`}>
+                      
                             <div className="flex justify-between items-start mb-2">
                               <div className="flex-1">
                                 <p className="text-xs font-medium">{sub.subject_name}</p>
@@ -355,15 +355,15 @@ const MakeupExam = () => {
 
                             {renderActionCell(sub, s.student_id, role === 'student')}
                           </div>
-                        ))}
+                    )}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              !loading && (
-                <div className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center border border-dashed rounded-xl bg-muted/5 mt-4 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+              )}
+              </div> :
+
+            !loading &&
+            <div className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center border border-dashed rounded-xl bg-muted/5 mt-4 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                   <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-primary/10 ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
                     <UserX className="w-8 h-8 text-primary" />
                   </div>
@@ -372,68 +372,68 @@ const MakeupExam = () => {
                     Try different search criteria.
                   </p>
                 </div>
-              )
-            )}
+
+            }
           </CardContent>
         </Card>
 
         {/* Student Payment Section */}
-        {role === 'student' && students.length > 0 && (
-          <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        {role === 'student' && students.length > 0 &&
+        <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
             <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="text-xs sm:text-sm">
-                  <p>Selected: {Object.keys(selectionMap).filter(k => selectionMap[Number(k)]).length}</p>
+                  <p>Selected: {Object.keys(selectionMap).filter((k) => selectionMap[Number(k)]).length}</p>
                   <p className="font-semibold">
                     Total: ₹{Object.keys(selectionMap).reduce((acc, k) => acc + (selectionMap[Number(k)] ? 300 : 0), 0)}
                   </p>
                 </div>
                 <Button
-                  onClick={async () => {
-                    const items = Object.entries(selectionMap).map(([k]) => ({ subject_id: Number(k) })).filter((it) => selectionMap[it.subject_id]);
-                    if (items.length === 0) {
-                      return setMessageModal({ open: true, title: 'Error', message: 'Select at least one subject to pay' });
-                    }
-                    if (!filters.exam_period) {
-                      return setMessageModal({ open: true, title: 'Error', message: 'Select exam period' });
-                    }
+                onClick={async () => {
+                  const items = Object.entries(selectionMap).map(([k]) => ({ subject_id: Number(k) })).filter((it) => selectionMap[it.subject_id]);
+                  if (items.length === 0) {
+                    return setMessageModal({ open: true, title: 'Error', message: 'Select at least one subject to pay' });
+                  }
+                  if (!filters.exam_period) {
+                    return setMessageModal({ open: true, title: 'Error', message: 'Select exam period' });
+                  }
 
-                    setLoading(true);
-                    try {
-                      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/makeup/initiate-payment/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ items, exam_period: filters.exam_period })
-                      });
-                      const json = (await res.json()) as Record<string, unknown>;
-                      const success = json.success as boolean | undefined;
-                      const checkoutUrl = json.checkout_url as string | undefined;
-                      const message = json.message as string | undefined;
+                  setLoading(true);
+                  try {
+                    const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/makeup/initiate-payment/`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ items, exam_period: filters.exam_period })
+                    });
+                    const json = (await res.json()) as Record<string, unknown>;
+                    const success = json.success as boolean | undefined;
+                    const checkoutUrl = json.checkout_url as string | undefined;
+                    const message = json.message as string | undefined;
 
-                      if (success && checkoutUrl && globalThis.window) {
-                        globalThis.window.location.href = checkoutUrl;
-                      } else {
-                        setMessageModal({ open: true, title: 'Error', message: message || 'Failed to initiate payment' });
-                      }
-                    } catch (err) {
-                      console.error(err);
-                      setMessageModal({ open: true, title: 'Error', message: 'Network error' });
+                    if (success && checkoutUrl && globalThis.window) {
+                      globalThis.window.location.href = checkoutUrl;
+                    } else {
+                      setMessageModal({ open: true, title: 'Error', message: message || 'Failed to initiate payment' });
                     }
-                    setLoading(false);
-                  }}
-                  disabled={loading}
-                  className="text-xs sm:text-sm h-auto px-3 py-2 bg-primary hover:bg-primary/90 text-white"
-                >
+                  } catch (err) {
+
+                    setMessageModal({ open: true, title: 'Error', message: 'Network error' });
+                  }
+                  setLoading(false);
+                }}
+                disabled={loading}
+                className="text-xs sm:text-sm h-auto px-3 py-2 bg-primary hover:bg-primary/90 text-white">
+                
                   {loading ? 'Processing...' : 'Pay & Apply'}
                 </Button>
               </div>
             </CardContent>
           </Card>
-        )}
+        }
       </div>
 
       {/* Confirmation Dialog */}
-      <Dialog open={confirmMakeup.open} onOpenChange={open => !open && setConfirmMakeup({ open: false })}>
+      <Dialog open={confirmMakeup.open} onOpenChange={(open) => !open && setConfirmMakeup({ open: false })}>
         <DialogContent className={`max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-lg ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="text-sm sm:text-base">Confirm Makeup Application</DialogTitle>
@@ -445,7 +445,7 @@ const MakeupExam = () => {
             <Button variant="outline" onClick={() => setConfirmMakeup({ open: false })} className="text-xs sm:text-sm h-auto px-3 py-1">
               Cancel
             </Button>
-            <Button onClick={() => { setConfirmMakeup({ open: false }); handleApplyMakeup(); }} className="text-xs sm:text-sm h-auto px-3 py-1 bg-primary hover:bg-primary/90 text-white">
+            <Button onClick={() => {setConfirmMakeup({ open: false });handleApplyMakeup();}} className="text-xs sm:text-sm h-auto px-3 py-1 bg-primary hover:bg-primary/90 text-white">
               Confirm
             </Button>
           </DialogFooter>
@@ -453,7 +453,7 @@ const MakeupExam = () => {
       </Dialog>
 
       {/* Message Dialog */}
-      <Dialog open={messageModal.open} onOpenChange={open => !open && setMessageModal({ open: false })}>
+      <Dialog open={messageModal.open} onOpenChange={(open) => !open && setMessageModal({ open: false })}>
         <DialogContent className={`max-w-[95vw] sm:max-w-[90vw] md:max-w-md ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="text-sm sm:text-base">{messageModal.title}</DialogTitle>
@@ -468,13 +468,13 @@ const MakeupExam = () => {
       </Dialog>
 
       {/* View Request Details Dialog */}
-      <Dialog open={viewModal.open} onOpenChange={open => !open && setViewModal({ open: false })}>
+      <Dialog open={viewModal.open} onOpenChange={(open) => !open && setViewModal({ open: false })}>
         <DialogContent className={`max-w-[95vw] sm:max-w-[90vw] md:max-w-lg ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="text-sm sm:text-base">Makeup Request Details</DialogTitle>
           </DialogHeader>
-          {viewModal.request && (
-            <div className="space-y-3 text-xs sm:text-sm">
+          {viewModal.request &&
+          <div className="space-y-3 text-xs sm:text-sm">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <strong>Subject:</strong> {viewModal.request.subject_name}
@@ -482,9 +482,9 @@ const MakeupExam = () => {
                 <div>
                   <strong>Status:</strong>
                   <span className={`ml-1 px-2 py-1 rounded text-xs ${viewModal.request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      viewModal.request.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                    }`}>
+                viewModal.request.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                'bg-yellow-100 text-yellow-800'}`
+                }>
                     {viewModal.request.status}
                   </span>
                 </div>
@@ -494,31 +494,31 @@ const MakeupExam = () => {
                 <div>
                   <strong>Requested At:</strong> {new Date(viewModal.request.requested_at).toLocaleDateString()}
                 </div>
-                {viewModal.request.processed_by_name && (
-                  <div>
+                {viewModal.request.processed_by_name &&
+              <div>
                     <strong>Processed By:</strong> {viewModal.request.processed_by_name}
                   </div>
-                )}
-                {viewModal.request.processed_at && (
-                  <div>
+              }
+                {viewModal.request.processed_at &&
+              <div>
                     <strong>Processed At:</strong> {new Date(viewModal.request.processed_at).toLocaleDateString()}
                   </div>
-                )}
+              }
               </div>
-              {viewModal.request.reason && (
-                <div>
+              {viewModal.request.reason &&
+            <div>
                   <strong>Reason:</strong>
                   <p className="mt-1 text-xs">{viewModal.request.reason}</p>
                 </div>
-              )}
-              {viewModal.request.response_note && (
-                <div>
+            }
+              {viewModal.request.response_note &&
+            <div>
                   <strong>Response Note:</strong>
                   <p className="mt-1 text-xs">{viewModal.request.response_note}</p>
                 </div>
-              )}
+            }
             </div>
-          )}
+          }
           <DialogFooter>
             <Button onClick={() => setViewModal({ open: false })} className="text-xs sm:text-sm h-auto px-3 py-1 bg-primary hover:bg-primary/90 text-white">
               Close
@@ -526,8 +526,8 @@ const MakeupExam = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default MakeupExam;

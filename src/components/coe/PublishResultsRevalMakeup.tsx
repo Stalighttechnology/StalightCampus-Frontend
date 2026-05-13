@@ -22,11 +22,11 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [studentsPagination, setStudentsPagination] = useState<any>(null);
   const [dirtyPages, setDirtyPages] = useState<Record<number, boolean>>({});
   const [navModalOpen, setNavModalOpen] = useState(false);
-  const [pendingNav, setPendingNav] = useState<{ page: number; pageSize?: number } | null>(null);
+  const [pendingNav, setPendingNav] = useState<{page: number;pageSize?: number;} | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
-  const [marks, setMarks] = useState<Record<string, Record<string, { cie?: number | string | null; see?: number | string | null }>>>({});
-  const [allMarks, setAllMarks] = useState<Record<string, { usn: string; subs: Record<string, { cie?: number | string | null; see?: number | string | null }> }>>({});
+  const [marks, setMarks] = useState<Record<string, Record<string, {cie?: number | string | null;see?: number | string | null;}>>>({});
+  const [allMarks, setAllMarks] = useState<Record<string, {usn: string;subs: Record<string, {cie?: number | string | null;see?: number | string | null;}>;}>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       const sems = await getSemesters(parseInt(branchId));
       setSemesters(sems);
     } catch (error) {
-      console.error('Error fetching semesters:', error);
+
       setSemesters([]);
     }
   };
@@ -74,10 +74,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           setUpload(res.upload_batch);
         }
       } catch (e) {
+
         // ignore
-      }
-    })();
-    return () => { mounted = false; };
+      }})();
+    return () => {mounted = false;};
   }, [selected.batch, selected.branch, selected.semester, selected.exam_period, selected.request_type]);
 
   useEffect(() => {
@@ -93,8 +93,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       setStudents(studentList);
       setStudentsPagination(stu.data?.pagination || null);
       setStudentsPage(page || 1);
-      setDirtyPages(prev => ({ ...(prev || {}), [page || 1]: false }));
-      setAllMarks(prev => {
+      setDirtyPages((prev) => ({ ...(prev || {}), [page || 1]: false }));
+      setAllMarks((prev) => {
         const next = { ...prev };
         (studentList || []).forEach((s: any) => {
           const sid = String(s.student_id);
@@ -132,14 +132,14 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       return;
     }
     const val = candidate;
-    setAllMarks(prev => {
+    setAllMarks((prev) => {
       const next = { ...prev } as any;
       if (!next[sid]) next[sid] = { usn: usn, subs: {} };
       if (!next[sid].subs) next[sid].subs = {};
       next[sid].subs[subKey] = { ...(next[sid].subs[subKey] || {}), [field]: val };
       return next;
     });
-    setMarks(prev => {
+    setMarks((prev) => {
       const p = { ...prev } as any;
       const sKey = sid;
       const subKey2 = subKey;
@@ -148,7 +148,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       p[sKey][subKey2][field] = val;
       return p;
     });
-    setDirtyPages(prev => ({ ...(prev || {}), [studentsPage]: true }));
+    setDirtyPages((prev) => ({ ...(prev || {}), [studentsPage]: true }));
   };
 
   const handleSave = async () => {
@@ -163,8 +163,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       Object.entries(subs).forEach(([subId, marksObj]) => {
         const rawCie = (marksObj as any).cie;
         const rawSee = (marksObj as any).see;
-        const cieVal = (rawCie === null || rawCie === undefined || (typeof rawCie === 'string' && String(rawCie).trim() === '')) ? null : Number(rawCie);
-        const seeVal = (rawSee === null || rawSee === undefined || (typeof rawSee === 'string' && String(rawSee).trim() === '')) ? null : Number(rawSee);
+        const cieVal = rawCie === null || rawCie === undefined || typeof rawCie === 'string' && String(rawCie).trim() === '' ? null : Number(rawCie);
+        const seeVal = rawSee === null || rawSee === undefined || typeof rawSee === 'string' && String(rawSee).trim() === '' ? null : Number(rawSee);
         payload.push({ usn: usn, subject_id: Number(subId), cie_marks: Number.isNaN(cieVal) ? null : cieVal, see_marks: Number.isNaN(seeVal) ? null : seeVal });
       });
     });
@@ -174,13 +174,13 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
     if (res.success) {
       toast.success(`Saved ${res.saved_count} records`);
       setDirtyPages({});
-      setAllMarks(prev => {
+      setAllMarks((prev) => {
         const next = { ...(prev || {}) } as any;
         payload.forEach((rec: any) => {
-          const sid = Object.keys(next).find(k => next[k].usn === rec.usn) || String(rec.usn);
+          const sid = Object.keys(next).find((k) => next[k].usn === rec.usn) || String(rec.usn);
           let sidKey = sid;
           if (!next[sidKey]) {
-            const found = (students || []).find(s => s.usn === rec.usn);
+            const found = (students || []).find((s) => s.usn === rec.usn);
             if (found) sidKey = String(found.student_id);
           }
           if (!next[sidKey]) next[sidKey] = { usn: rec.usn, subs: {} };
@@ -190,10 +190,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         });
         return next;
       });
-      setMarks(prev => {
+      setMarks((prev) => {
         const next = { ...(prev || {}) } as any;
         payload.forEach((rec: any) => {
-          const sid = String(rec.student_id || Object.keys(next).find(k => k === String(rec.student_id)) || (students.find(s => s.usn === rec.usn) ? String((students.find(s => s.usn === rec.usn) as any).student_id) : String(rec.student_id || rec.usn)));
+          const sid = String(rec.student_id || Object.keys(next).find((k) => k === String(rec.student_id)) || (students.find((s) => s.usn === rec.usn) ? String((students.find((s) => s.usn === rec.usn) as any).student_id) : String(rec.student_id || rec.usn)));
           const subId = String(rec.subject_id);
           if (!next[sid]) next[sid] = {};
           if (!next[sid][subId]) next[sid][subId] = {};
@@ -229,14 +229,14 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       if (!ok) return;
     }
     if (!saveFirst) {
-      setAllMarks(prev => {
+      setAllMarks((prev) => {
         const next = { ...prev };
         (students || []).forEach((s: any) => {
           delete next[String(s.student_id)];
         });
         return next;
       });
-      setDirtyPages(prev => ({ ...(prev || {}), [studentsPage]: false }));
+      setDirtyPages((prev) => ({ ...(prev || {}), [studentsPage]: false }));
     }
     await fetchStudentsPage(upload.id, pendingNav.page, pendingNav.pageSize ?? studentsPageSize);
     setPendingNav(null);
@@ -262,7 +262,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.error('No published result found for this student');
       return;
     }
-    
+
     try {
       const res = await toggleWithholdResult(publishedResultId);
       if (res.success) {
@@ -289,7 +289,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4">
         <div>
           <label htmlFor="reval-batch" className="block text-sm mb-1">Batch</label>
-          <Select value={selected.batch} onValueChange={(v) => setSelected(s => ({ ...s, batch: v }))}>
+          <Select value={selected.batch} onValueChange={(v) => setSelected((s) => ({ ...s, batch: v }))}>
             <SelectTrigger id="reval-batch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Select batch" />
             </SelectTrigger>
@@ -301,9 +301,9 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         <div>
           <label htmlFor="reval-branch" className="block text-sm mb-1">Branch</label>
           <Select value={selected.branch} onValueChange={(v) => {
-            setSelected(s => ({ ...s, branch: v, semester: '' }));
-            fetchSemesters(v);
-          }}>
+                setSelected((s) => ({ ...s, branch: v, semester: '' }));
+                fetchSemesters(v);
+              }}>
             <SelectTrigger id="reval-branch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Select branch" />
             </SelectTrigger>
@@ -314,20 +314,20 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
         <div>
           <label htmlFor="reval-semester" className="block text-sm mb-1">Semester</label>
-          <Select value={selected.semester} onValueChange={(v) => setSelected(s => ({ ...s, semester: v }))}>
+          <Select value={selected.semester} onValueChange={(v) => setSelected((s) => ({ ...s, semester: v }))}>
             <SelectTrigger id="reval-semester" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Select semester" />
             </SelectTrigger>
             <SelectContent>
-              {semesters.map((s: any) => (
-                <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>
-              ))}
+              {semesters.map((s: any) =>
+                  <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>
+                  )}
             </SelectContent>
           </Select>
         </div>
         <div>
           <label htmlFor="reval-exam-period" className="block text-sm mb-1">Exam Period</label>
-          <Select value={selected.exam_period} onValueChange={(v) => setSelected(s => ({ ...s, exam_period: v }))}>
+          <Select value={selected.exam_period} onValueChange={(v) => setSelected((s) => ({ ...s, exam_period: v }))}>
             <SelectTrigger id="reval-exam-period" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Exam period" />
             </SelectTrigger>
@@ -342,7 +342,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
         <div>
           <label htmlFor="reval-request-type" className="block text-sm mb-1">Request Type</label>
-          <Select value={selected.request_type} onValueChange={(v) => setSelected(s => ({ ...s, request_type: v }))}>
+          <Select value={selected.request_type} onValueChange={(v) => setSelected((s) => ({ ...s, request_type: v }))}>
             <SelectTrigger id="reval-request-type" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Request type" />
             </SelectTrigger>
@@ -356,9 +356,9 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
         <div className="flex items-end">
           <Button
-            onClick={handleCreate}
-            className="w-full bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"
-          >
+                onClick={handleCreate}
+                className="w-full bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+                
             Create Upload Batch
           </Button>
         </div>
@@ -366,8 +366,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </CardContent>
       </Card>
 
-      {upload && (
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
+      {upload &&
+      <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
           <CardContent className="pt-6">
           <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
             <span>Upload ID: {upload.id}</span>
@@ -381,8 +381,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                 const url = `${window.location.origin}/results/view/${upload.token}`;
                 navigator.clipboard.writeText(url);
                 toast.success('Result link copied to clipboard');
-              }}
-            >
+              }}>
+              
               <Copy className="h-3 w-3 mr-1" /> Copy Link
             </Button>
             <Button
@@ -391,25 +391,25 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               className="h-7 px-2 text-xs"
               onClick={() => {
                 window.open(`/results/view/${upload.token}`, '_blank');
-              }}
-            >
+              }}>
+              
               <ExternalLink className="h-3 w-3 mr-1" /> Open Link
             </Button>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-4">
             <div className="text-sm">Published: <span className={`font-medium ${upload.is_published ? 'text-green-600' : 'text-red-600'}`}>{upload.is_published ? 'Yes' : 'No'}</span></div>
-            {upload.is_published ? (
-              <Button onClick={() => setUnpublishModalOpen(true)} variant="secondary">Unpublish</Button>
-            ) : (
-              <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={() => setPublishModalOpen(true)}>Publish Results</Button>
-            )}
+            {upload.is_published ?
+            <Button onClick={() => setUnpublishModalOpen(true)} variant="secondary">Unpublish</Button> :
+
+            <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={() => setPublishModalOpen(true)}>Publish Results</Button>
+            }
           </div>
           </CardContent>
         </Card>
-      )}
+      }
 
-      {!selected.batch || !selected.branch || !selected.semester || !selected.exam_period || !selected.request_type || selected.request_type === 'all' ? (
-         <Card className="border-dashed border-2 shadow-none bg-transparent">
+      {!selected.batch || !selected.branch || !selected.semester || !selected.exam_period || !selected.request_type || selected.request_type === 'all' ?
+      <Card className="border-dashed border-2 shadow-none bg-transparent">
             <CardContent className="flex flex-col items-center justify-center py-24 text-center">
               <div className="bg-primary/5 p-6 rounded-full mb-4">
                 <Search className="w-12 h-12 text-primary/40" />
@@ -419,9 +419,9 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                 Please select a batch, branch, semester, exam period, and request type from the dropdowns above to load the student list and entry form.
               </p>
             </CardContent>
-         </Card>
-      ) : students.length > 0 && (
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+         </Card> :
+      students.length > 0 &&
+      <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
           </CardHeader>
@@ -437,8 +437,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                     const v = Number(value);
                     setStudentsPageSize(v);
                     if (upload) navigateToPage(1, v);
-                  }}
-                >
+                  }}>
+                  
                   <SelectTrigger className="w-[110px]">
                     <SelectValue placeholder="Page size" />
                   </SelectTrigger>
@@ -454,9 +454,9 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
           <div className="space-y-4">
             {students.map((s) => {
-              const studentMarks = (allMarks[String(s.student_id)]?.subs) || marks[String(s.student_id)] || {};
+              const studentMarks = allMarks[String(s.student_id)]?.subs || marks[String(s.student_id)] || {};
               const meetsPassCriteria = (c: any, se: any, t: any) => {
-                return (typeof c === 'number' && typeof se === 'number' && typeof t === 'number') && (c >= 20 && se >= 18 && t >= 40);
+                return typeof c === 'number' && typeof se === 'number' && typeof t === 'number' && c >= 20 && se >= 18 && t >= 40;
               };
               const incompleteCount = (s.subjects || []).reduce((acc: number, sub: any) => {
                 const e = studentMarks[String(sub.id)];
@@ -474,49 +474,49 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <div className="text-sm text-muted-foreground">Subjects: {(s.subjects || []).length} • Incomplete Entries: {incompleteCount}</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {s.is_withheld && (
-                        <div className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded border border-amber-300">
+                      {s.is_withheld &&
+                      <div className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded border border-amber-300">
                           Withheld
                         </div>
-                      )}
-                      {upload?.is_published && (
-                        <Button
-                          size="sm"
-                          variant={s.is_withheld ? "outline" : "destructive"}
-                          onClick={async () => {
-                            let publishedResultId = s.published_result_id;
-                            let currentWithheld = s.is_withheld;
+                      }
+                      {upload?.is_published &&
+                      <Button
+                        size="sm"
+                        variant={s.is_withheld ? "outline" : "destructive"}
+                        onClick={async () => {
+                          let publishedResultId = s.published_result_id;
+                          let currentWithheld = s.is_withheld;
 
-                            // Retry once after refreshing current page if the id is not yet present.
-                            if (!publishedResultId && upload) {
-                              const refreshed = await getStudentsForRevalMakeupUpload(
-                                upload.id,
-                                studentsPage,
-                                studentsPageSize,
-                                selected.request_type === 'all' ? undefined : selected.request_type
-                              );
-                              const refreshedStudent = refreshed?.success
-                                ? (refreshed.data?.students || []).find((st: any) => st.student_id === s.student_id)
-                                : null;
-                              if (refreshedStudent?.published_result_id) {
-                                publishedResultId = refreshedStudent.published_result_id;
-                                currentWithheld = !!refreshedStudent.is_withheld;
-                                await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true);
-                              }
+                          // Retry once after refreshing current page if the id is not yet present.
+                          if (!publishedResultId && upload) {
+                            const refreshed = await getStudentsForRevalMakeupUpload(
+                              upload.id,
+                              studentsPage,
+                              studentsPageSize,
+                              selected.request_type === 'all' ? undefined : selected.request_type
+                            );
+                            const refreshedStudent = refreshed?.success ?
+                            (refreshed.data?.students || []).find((st: any) => st.student_id === s.student_id) :
+                            null;
+                            if (refreshedStudent?.published_result_id) {
+                              publishedResultId = refreshedStudent.published_result_id;
+                              currentWithheld = !!refreshedStudent.is_withheld;
+                              await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true);
                             }
+                          }
 
-                            if (!publishedResultId) {
-                              toast.error('Published result ID not found yet. Please refresh student list.');
-                              return;
-                            }
+                          if (!publishedResultId) {
+                            toast.error('Published result ID not found yet. Please refresh student list.');
+                            return;
+                          }
 
-                            await handleToggleWithhold(s.student_id, s.name, publishedResultId, currentWithheld);
-                          }}
-                          className="text-xs"
-                        >
+                          await handleToggleWithhold(s.student_id, s.name, publishedResultId, currentWithheld);
+                        }}
+                        className="text-xs">
+                        
                           {s.is_withheld ? "Release Result" : "Withhold Result"}
                         </Button>
-                      )}
+                      }
                     </div>
                   </div>
 
@@ -552,109 +552,109 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </thead>
                     <tbody>
                       {(s.subjects || []).map((sub: any) => {
-                        const entry = studentMarks[String(sub.id)];
-                        const cie = entry?.cie ?? '';
-                        const see = entry?.see ?? '';
-                        const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : '';
-                        const displayTotal = total;
-                        const result = displayTotal === '' ? 'Incomplete' : (meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail');
-                        
-                        let grade = '';
-                        let gradePoints = '';
-                        if (typeof total === 'number') {
-                          if (total >= 90) { grade = 'S'; gradePoints = '10'; }
-                          else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
-                          else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
-                          else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
-                          else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
-                          else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
-                          else { grade = 'F'; gradePoints = '0'; }
-                        }
-                        
-                        return (
-                          <tr key={sub.id}>
+                          const entry = studentMarks[String(sub.id)];
+                          const cie = entry?.cie ?? '';
+                          const see = entry?.see ?? '';
+                          const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : '';
+                          const displayTotal = total;
+                          const result = displayTotal === '' ? 'Incomplete' : meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail';
+
+                          let grade = '';
+                          let gradePoints = '';
+                          if (typeof total === 'number') {
+                            if (total >= 90) {grade = 'S';gradePoints = '10';} else
+                            if (total >= 80) {grade = 'A';gradePoints = '9';} else
+                            if (total >= 70) {grade = 'B';gradePoints = '8';} else
+                            if (total >= 60) {grade = 'C';gradePoints = '7';} else
+                            if (total >= 50) {grade = 'D';gradePoints = '6';} else
+                            if (total >= 40) {grade = 'E';gradePoints = '5';} else
+                            {grade = 'F';gradePoints = '0';}
+                          }
+
+                          return (
+                            <tr key={sub.id}>
                             <td className="border px-1.5 py-1 align-top">{sub.code}</td>
                             <td className="border px-1.5 py-1 align-top truncate" title={sub.name}>{sub.name}</td>
                             <td className="border px-1.5 py-1 align-top">{sub.request_details?.types?.join(', ') || 'N/A'}</td>
                             <td className="border px-1.5 py-1 align-top">{sub.request_details?.status || 'N/A'}</td>
-                            <td className={`border px-1.5 py-1 align-top`}><Input disabled={upload?.is_published} className="w-14 h-8 text-xs" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e:any) => e.currentTarget.blur()} /></td>
-                            <td className={`border px-1.5 py-1 align-top`}><Input disabled={upload?.is_published} className="w-14 h-8 text-xs" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e:any) => e.currentTarget.blur()} /></td>
+                            <td className={`border px-1.5 py-1 align-top`}><Input disabled={upload?.is_published} className="w-14 h-8 text-xs" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
+                            <td className={`border px-1.5 py-1 align-top`}><Input disabled={upload?.is_published} className="w-14 h-8 text-xs" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
                             <td className="border px-1.5 py-1 align-top">{displayTotal}</td>
                             <td className={`border px-1.5 py-1 align-top ${result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : 'text-yellow-600'}`}>{result}</td>
                             <td className="border px-1.5 py-1 align-top">{grade}</td>
                             <td className="border px-1.5 py-1 align-top">{gradePoints}</td>
-                            <td className="border px-1.5 py-1 align-top">{result === 'Pass' ? (sub.credits ?? 0) : (result === 'Fail' ? 0 : 'N/A')}</td>
-                          </tr>
-                        );
-                      })}
+                            <td className="border px-1.5 py-1 align-top">{result === 'Pass' ? sub.credits ?? 0 : result === 'Fail' ? 0 : 'N/A'}</td>
+                          </tr>);
+
+                        })}
                     </tbody>
                     <tfoot>
                       <tr>
                         <td colSpan={10} className="border px-2 py-1 font-semibold text-right">Total Credits Earned:</td>
                         <td className="border px-2 py-1 font-semibold">
                           {(s.subjects || []).reduce((acc: number, sub: any) => {
-                            const entry = studentMarks[String(sub.id)];
-                            const cie = entry?.cie;
-                            const see = entry?.see;
-                            const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : null;
-                            const passed = meetsPassCriteria(cie, see, total);
-                            const creditsToAdd = passed ? (sub.credits || 0) : 0;
-                            return acc + creditsToAdd;
-                          }, 0)}
+                              const entry = studentMarks[String(sub.id)];
+                              const cie = entry?.cie;
+                              const see = entry?.see;
+                              const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : null;
+                              const passed = meetsPassCriteria(cie, see, total);
+                              const creditsToAdd = passed ? sub.credits || 0 : 0;
+                              return acc + creditsToAdd;
+                            }, 0)}
                         </td>
                       </tr>
                       <tr>
                         <td colSpan={10} className="border px-2 py-1 font-semibold text-right">Total Marks Obtained:</td>
                         <td className="border px-2 py-1 font-semibold">
                           {(s.subjects || []).reduce((acc: number, sub: any) => {
-                            const entry = studentMarks[String(sub.id)];
-                            const cie = entry?.cie;
-                            const see = entry?.see;
-                            const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : 0;
-                            return acc + (typeof total === 'number' ? total : 0);
-                          }, 0)}
+                              const entry = studentMarks[String(sub.id)];
+                              const cie = entry?.cie;
+                              const see = entry?.see;
+                              const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : 0;
+                              return acc + (typeof total === 'number' ? total : 0);
+                            }, 0)}
                         </td>
                       </tr>
                       <tr>
                         <td colSpan={10} className="border px-2 py-1 font-semibold text-right">SGPA:</td>
                         <td className="border px-2 py-1 font-semibold">
                           {(() => {
-                            const subjects = s.subjects || [];
-                            let totalGradePoints = 0;
-                            let totalCredits = 0;
-                            
-                            subjects.forEach((sub: any) => {
-                              const entry = studentMarks[String(sub.id)];
-                              const cie = entry?.cie;
-                              const see = entry?.see;
-                              const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : null;
-                              const credits = sub.credits || 0;
-                              const passed = meetsPassCriteria(cie, see, total);
+                              const subjects = s.subjects || [];
+                              let totalGradePoints = 0;
+                              let totalCredits = 0;
 
-                              if (typeof total === 'number' && credits > 0 && passed) {
-                                let gradePoints = 0;
-                                if (total >= 90) gradePoints = 10;
-                                else if (total >= 80) gradePoints = 9;
-                                else if (total >= 70) gradePoints = 8;
-                                else if (total >= 60) gradePoints = 7;
-                                else if (total >= 50) gradePoints = 6;
-                                else if (total >= 40) gradePoints = 5;
-                                else gradePoints = 0;
+                              subjects.forEach((sub: any) => {
+                                const entry = studentMarks[String(sub.id)];
+                                const cie = entry?.cie;
+                                const see = entry?.see;
+                                const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : null;
+                                const credits = sub.credits || 0;
+                                const passed = meetsPassCriteria(cie, see, total);
 
-                                totalGradePoints += gradePoints * credits;
-                                totalCredits += credits;
-                              }
-                            });
-                            
-                            return totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
-                          })()}
+                                if (typeof total === 'number' && credits > 0 && passed) {
+                                  let gradePoints = 0;
+                                  if (total >= 90) gradePoints = 10;else
+                                  if (total >= 80) gradePoints = 9;else
+                                  if (total >= 70) gradePoints = 8;else
+                                  if (total >= 60) gradePoints = 7;else
+                                  if (total >= 50) gradePoints = 6;else
+                                  if (total >= 40) gradePoints = 5;else
+                                  gradePoints = 0;
+
+                                  totalGradePoints += gradePoints * credits;
+                                  totalCredits += credits;
+                                }
+                              });
+
+                              return totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
+                            })()}
                         </td>
                       </tr>
                     </tfoot>
                   </table>
                   </div>
-                </div>
-              );
+                </div>);
+
             })}
           </div>
 
@@ -665,10 +665,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                 className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
                 disabled={studentsPage <= 1}
                 onClick={() => {
-                if (!upload) return;
-                navigateToPage(Math.max(1, studentsPage - 1));
-              }}
-              >
+                  if (!upload) return;
+                  navigateToPage(Math.max(1, studentsPage - 1));
+                }}>
+                
                 Previous
               </Button>
 
@@ -676,7 +676,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                 const ui = paginationToUI(studentsPagination || {}, [], studentsPageSize);
                 const totalPages = ui.count ? Math.max(1, Math.ceil(ui.count / studentsPageSize)) : ui.total_pages || 1;
                 const maxButtons = 20;
-                let start = 1, end = totalPages;
+                let start = 1,end = totalPages;
                 if (totalPages > maxButtons) {
                   const half = Math.floor(maxButtons / 2);
                   start = Math.max(1, studentsPage - half);
@@ -687,17 +687,17 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                 for (let p = start; p <= end; p++) pages.push(p);
                 return (
                   <div className="flex gap-1">
-                      {pages.map(p => (
-                        <Button
-                          key={p}
-                          size="sm"
-                          variant="outline"
-                          className={p === studentsPage ? 'bg-white text-black border-gray-300 hover:bg-gray-100' : 'bg-white text-black border-gray-300 hover:bg-gray-100'}
-                          onClick={() => upload && navigateToPage(p)}
-                        >{p}</Button>
-                    ))}
-                  </div>
-                );
+                      {pages.map((p) =>
+                    <Button
+                      key={p}
+                      size="sm"
+                      variant="outline"
+                      className={p === studentsPage ? 'bg-white text-black border-gray-300 hover:bg-gray-100' : 'bg-white text-black border-gray-300 hover:bg-gray-100'}
+                      onClick={() => upload && navigateToPage(p)}>
+                      {p}</Button>
+                    )}
+                  </div>);
+
               })()}
 
               <Button
@@ -705,10 +705,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                 className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
                 disabled={!studentsPagination?.next}
                 onClick={() => {
-                if (!upload) return;
-                navigateToPage(studentsPage + 1);
-              }}
-              >
+                  if (!upload) return;
+                  navigateToPage(studentsPage + 1);
+                }}>
+                
                 Next
               </Button>
             </div>
@@ -717,7 +717,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
           </CardContent>
         </Card>
-      )}
+      }
 
       <Dialog open={navModalOpen} onOpenChange={setNavModalOpen}>
         <DialogContent>
@@ -745,7 +745,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPublishModalOpen(false)}>Cancel</Button>
-            <Button onClick={() => { setPublishModalOpen(false); handlePublish(); }}>Publish</Button>
+            <Button onClick={() => {setPublishModalOpen(false);handlePublish();}}>Publish</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -761,12 +761,12 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setUnpublishModalOpen(false)}>Cancel</Button>
-            <Button onClick={async () => { 
-              setUnpublishModalOpen(false); 
+            <Button onClick={async () => {
+              setUnpublishModalOpen(false);
               if (!upload) return;
               const res = await unpublishUploadBatch(upload.id);
               if (res.success) {
-                setUpload({ ...upload, is_published: false }); 
+                setUpload({ ...upload, is_published: false });
                 toast.success('Public link is now inactive.');
               } else {
                 toast.error(res.message || 'Failed to unpublish');
@@ -775,8 +775,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 });
 
 PublishResultsRevalMakeup.displayName = 'PublishResultsRevalMakeup';

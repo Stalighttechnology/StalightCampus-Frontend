@@ -58,8 +58,8 @@ export interface AnnouncementStats {
 
 // Fetch announcements visible to user (split into my/received)
 export const fetchAnnouncements = async (
-  options: any = {}
-) => {
+options: any = {}) =>
+{
   let page: any = 1;
   let pageSize: any = 20;
   let myPage: any;
@@ -90,15 +90,15 @@ export const fetchAnnouncements = async (
   }
 
   // Extra safety: ensure page and pageSize are numbers to avoid [object Object]
-  const safePage = (typeof page === 'number' || (typeof page === 'string' && !isNaN(Number(page)))) ? page : 1;
-  const safePageSize = (typeof pageSize === 'number' || (typeof pageSize === 'string' && !isNaN(Number(pageSize)))) ? pageSize : 20;
+  const safePage = typeof page === 'number' || typeof page === 'string' && !isNaN(Number(page)) ? page : 1;
+  const safePageSize = typeof pageSize === 'number' || typeof pageSize === 'string' && !isNaN(Number(pageSize)) ? pageSize : 20;
 
   try {
     const params = new URLSearchParams({
       page: String(safePage),
       page_size: String(safePageSize),
       include_inactive: String(includeInactive),
-      include_expired: String(includeExpired),
+      include_expired: String(includeExpired)
     });
 
     if (myPage !== undefined && myPage !== null) params.append("my_page", String(myPage));
@@ -107,7 +107,7 @@ export const fetchAnnouncements = async (
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/?${params.toString()}`,
       {
-        method: "GET",
+        method: "GET"
       }
     );
 
@@ -118,11 +118,11 @@ export const fetchAnnouncements = async (
     const data: SplitAnnouncementResponse = await response.json();
     return { success: true, data, message: "Announcements fetched" };
   } catch (error: any) {
-    console.error("Error fetching announcements:", error);
+
     return {
       success: false,
       data: null,
-      message: error.message || "Failed to fetch announcements",
+      message: error.message || "Failed to fetch announcements"
     };
   }
 };
@@ -135,7 +135,7 @@ export const createAnnouncement = async (payload: CreateAnnouncementRequest) => 
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       }
     );
 
@@ -147,27 +147,27 @@ export const createAnnouncement = async (payload: CreateAnnouncementRequest) => 
     const data: Announcement = await response.json();
     return { success: true, data, message: "Announcement created successfully" };
   } catch (error: any) {
-    console.error("Error creating announcement:", error);
+
     return {
       success: false,
       data: null,
-      message: error.message || "Failed to create announcement",
+      message: error.message || "Failed to create announcement"
     };
   }
 };
 
 // Update announcement
 export const updateAnnouncement = async (
-  announcementId: number,
-  payload: Partial<CreateAnnouncementRequest>
-) => {
+announcementId: number,
+payload: Partial<CreateAnnouncementRequest>) =>
+{
   try {
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/${announcementId}/`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       }
     );
 
@@ -179,11 +179,11 @@ export const updateAnnouncement = async (
     const data: Announcement = await response.json();
     return { success: true, data, message: "Announcement updated successfully" };
   } catch (error: any) {
-    console.error("Error updating announcement:", error);
+
     return {
       success: false,
       data: null,
-      message: error.message || "Failed to update announcement",
+      message: error.message || "Failed to update announcement"
     };
   }
 };
@@ -194,7 +194,7 @@ export const deleteAnnouncement = async (announcementId: number) => {
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/${announcementId}/`,
       {
-        method: "DELETE",
+        method: "DELETE"
       }
     );
 
@@ -205,10 +205,10 @@ export const deleteAnnouncement = async (announcementId: number) => {
 
     return { success: true, message: "Announcement deleted successfully" };
   } catch (error: any) {
-    console.error("Error deleting announcement:", error);
+
     return {
       success: false,
-      message: error.message || "Failed to delete announcement",
+      message: error.message || "Failed to delete announcement"
     };
   }
 };
@@ -219,7 +219,7 @@ export const toggleAnnouncementActive = async (announcementId: number) => {
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/${announcementId}/toggle-active/`,
       {
-        method: "POST",
+        method: "POST"
       }
     );
 
@@ -231,11 +231,11 @@ export const toggleAnnouncementActive = async (announcementId: number) => {
     const data: Announcement = await response.json();
     return { success: true, data, message: "Announcement status updated" };
   } catch (error: any) {
-    console.error("Error toggling announcement:", error);
+
     return {
       success: false,
       data: null,
-      message: error.message || "Failed to toggle announcement",
+      message: error.message || "Failed to toggle announcement"
     };
   }
 };
@@ -246,7 +246,7 @@ export const markAnnouncementRead = async (announcementId: number) => {
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/${announcementId}/mark-read/`,
       {
-        method: "POST",
+        method: "POST"
       }
     );
 
@@ -257,10 +257,10 @@ export const markAnnouncementRead = async (announcementId: number) => {
 
     return { success: true, message: "Marked as read" };
   } catch (error: any) {
-    console.error("Error marking announcement as read:", error);
+
     return {
       success: false,
-      message: error.message || "Failed to mark as read",
+      message: error.message || "Failed to mark as read"
     };
   }
 };
@@ -271,7 +271,7 @@ export const getAnnouncementReaders = async (announcementId: number) => {
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/${announcementId}/readers/`,
       {
-        method: "GET",
+        method: "GET"
       }
     );
 
@@ -282,11 +282,11 @@ export const getAnnouncementReaders = async (announcementId: number) => {
     const data = await response.json();
     return { success: true, data, message: "Readers fetched" };
   } catch (error: any) {
-    console.error("Error fetching readers:", error);
+
     return {
       success: false,
       data: null,
-      message: error.message || "Failed to fetch readers",
+      message: error.message || "Failed to fetch readers"
     };
   }
 };
@@ -297,7 +297,7 @@ export const getAnnouncementStats = async (branchId: number) => {
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/branches/${branchId}/announcements/stats/`,
       {
-        method: "GET",
+        method: "GET"
       }
     );
 
@@ -308,30 +308,30 @@ export const getAnnouncementStats = async (branchId: number) => {
     const data: AnnouncementStats = await response.json();
     return { success: true, data, message: "Stats fetched" };
   } catch (error: any) {
-    console.error("Error fetching stats:", error);
+
     return {
       success: false,
       data: null,
-      message: error.message || "Failed to fetch statistics",
+      message: error.message || "Failed to fetch statistics"
     };
   }
 };
 
 // Admin: Get all announcements
 export const getAllAnnouncements = async (
-  page = 1,
-  pageSize = 50,
-  filters?: {
-    is_active?: boolean;
-    is_global?: boolean;
-    branch?: number;
-    priority?: string;
-  }
-) => {
+page = 1,
+pageSize = 50,
+filters?: {
+  is_active?: boolean;
+  is_global?: boolean;
+  branch?: number;
+  priority?: string;
+}) =>
+{
   try {
     const params = new URLSearchParams({
       page: String(page),
-      page_size: String(pageSize),
+      page_size: String(pageSize)
     });
 
     if (filters) {
@@ -344,7 +344,7 @@ export const getAllAnnouncements = async (
     const response = await fetchWithTokenRefresh(
       `${API_ENDPOINT}/announcements/admin/manage/?${params.toString()}`,
       {
-        method: "GET",
+        method: "GET"
       }
     );
 
@@ -355,11 +355,11 @@ export const getAllAnnouncements = async (
     const data: AnnouncementListResponse = await response.json();
     return { success: true, data, message: "Announcements fetched" };
   } catch (error: any) {
-    console.error("Error fetching announcements:", error);
+
     return {
       success: false,
       data: null,
-      message: error.message || "Failed to fetch announcements",
+      message: error.message || "Failed to fetch announcements"
     };
   }
 };

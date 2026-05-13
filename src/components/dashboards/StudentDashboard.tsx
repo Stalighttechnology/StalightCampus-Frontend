@@ -30,13 +30,13 @@ import Revaluation from "../common/Revaluation";
 import MakeupExam from "../common/MakeupExam";
 
 // Loading fallback component
-const LoadingFallback = () => (
-  <div className="p-6 space-y-6">
+const LoadingFallback = () =>
+<div className="p-6 space-y-6">
     <SkeletonCard />
     <SkeletonCard />
     <SkeletonCard />
-  </div>
-);
+  </div>;
+
 
 interface StudentDashboardProps {
   user: any;
@@ -61,7 +61,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
 
   // Handle page changes by updating URL
   const handlePageChange = (page: string) => {
-    console.log("Changing page to:", page); // Debug log
+    // Debug log
     const path = page === 'dashboard' ? '/dashboard' : `/${page}`;
     navigate(path);
   };
@@ -71,7 +71,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
       await logoutUser();
       navigate("/", { replace: true });
     } catch (error) {
-      console.error("Logout error:", error);
+
       setError("Failed to log out. Please try again.");
     }
   };
@@ -86,7 +86,7 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
 
   const renderContent = () => {
     const orgPlan = (user as any)?.org_plan || "basic";
-    
+
     if (!activePage.includes('dashboard') && !isPageAllowed(activePage, orgPlan)) {
       return <UpgradeRequired featureName={activePage} role={user.role} onBack={() => handlePageChange('dashboard')} />;
     }
@@ -146,18 +146,18 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
       activePage={activePage}
       onPageChange={handlePageChange}
       onNotificationClick={handleNotificationClick}
-      pageTitle="Student Dashboard"
-    >
-      {error && (
-        <div className={`p-3 rounded-lg mb-4 shadow ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+      pageTitle="Student Dashboard">
+      
+      {error &&
+      <div className={`p-3 rounded-lg mb-4 shadow ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
           {error}
         </div>
-      )}
+      }
       <Suspense fallback={<LoadingFallback />}>
         <div className="grid gap-6">{renderContent()}</div>
       </Suspense>
-    </DashboardLayout>
-  );
+    </DashboardLayout>);
+
 };
 
 export default StudentDashboard;

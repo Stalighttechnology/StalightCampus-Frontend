@@ -19,7 +19,7 @@ const UserAnalytics = () => {
         const res = await response.json();
         setData(res);
       } catch (error) {
-        console.error("Error:", error);
+
       } finally {
         setLoading(false);
       }
@@ -34,8 +34,8 @@ const UserAnalytics = () => {
         <p className="text-muted-foreground mt-1">Cross-tenant demographic and role distribution.</p>
       </div>
       
-      {loading ? <div className="h-64 flex items-center justify-center">Loading...</div> : (
-        <>
+      {loading ? <div className="h-64 flex items-center justify-center">Loading...</div> :
+      <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle></CardHeader>
@@ -56,26 +56,26 @@ const UserAnalytics = () => {
               <CardTitle>Role Distribution</CardTitle>
             </CardHeader>
             <CardContent className="h-80 mx-2 mb-6">
-              {data?.roles_distribution && data.roles_distribution.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+              {data?.roles_distribution && data.roles_distribution.length > 0 ?
+            <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={data.roles_distribution} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="value" stroke="none">
-                      {data.roles_distribution.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
+                      {data.roles_distribution.map((entry: any, index: number) =>
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  )}
                     </Pie>
-                    <RechartsTooltip contentStyle={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', borderRadius: '8px', border: 'none' }}/>
+                    <RechartsTooltip contentStyle={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#fff', borderRadius: '8px', border: 'none' }} />
                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
                   </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">No role data available</div>
-              )}
+                </ResponsiveContainer> :
+
+            <div className="h-full flex items-center justify-center text-muted-foreground">No role data available</div>
+            }
             </CardContent>
           </Card>
         </>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 export default UserAnalytics;

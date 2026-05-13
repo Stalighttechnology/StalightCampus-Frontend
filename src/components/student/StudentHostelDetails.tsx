@@ -19,8 +19,8 @@ import {
   FaLeaf,
   FaDrumstickBite,
   FaCheckCircle,
-  FaExclamationTriangle,
-} from 'react-icons/fa';
+  FaExclamationTriangle } from
+'react-icons/fa';
 import { SkeletonCard, SkeletonList } from '../ui/skeleton';
 
 type Warden = {
@@ -63,7 +63,7 @@ const ROOM_TYPE_COLORS: Record<string, string> = {
   S: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   D: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   P: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  B: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  B: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
 };
 
 // ── Meal Type Display Mapping ────────────────────────────────────────────────
@@ -71,7 +71,7 @@ const MEAL_TYPE_DISPLAY = {
   'BR': { label: 'Breakfast', time_from: '07:30', time_to: '09:00' },
   'LN': { label: 'Lunch', time_from: '12:00', time_to: '14:00' },
   'SN': { label: 'Snacks', time_from: '16:00', time_to: '17:30' },
-  'DN': { label: 'Dinner', time_from: '19:00', time_to: '21:00' },
+  'DN': { label: 'Dinner', time_from: '19:00', time_to: '21:00' }
 };
 
 const getMealTypeLabel = (code: string) => {
@@ -84,8 +84,8 @@ const InfoRow: React.FC<{
   label: string;
   value?: string | number | null;
   theme: string;
-}> = ({ icon, label, value, theme }) => (
-  <div className="flex items-start gap-3">
+}> = ({ icon, label, value, theme }) =>
+<div className="flex items-start gap-3">
     <span className={`mt-0.5 flex-shrink-0 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
       {icon}
     </span>
@@ -97,16 +97,16 @@ const InfoRow: React.FC<{
         {value ?? '—'}
       </p>
     </div>
-  </div>
-);
+  </div>;
+
 
 // ── Occupancy bar ────────────────────────────────────────────────────────────
-const OccupancyBar: React.FC<{ current: number; capacity: number; theme: string }> = ({
+const OccupancyBar: React.FC<{current: number;capacity: number;theme: string;}> = ({
   current,
   capacity,
-  theme,
+  theme
 }) => {
-  const pct = capacity > 0 ? Math.min(Math.round((current / capacity) * 100), 100) : 0;
+  const pct = capacity > 0 ? Math.min(Math.round(current / capacity * 100), 100) : 0;
   const full = current >= capacity;
   return (
     <div>
@@ -114,21 +114,21 @@ const OccupancyBar: React.FC<{ current: number; capacity: number; theme: string 
         <span className={`text-[10px] uppercase tracking-wide font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
           Occupancy
         </span>
-        <span className={`text-xs font-bold ${full ? 'text-red-500' : (theme === 'dark' ? 'text-green-400' : 'text-green-600')}`}>
+        <span className={`text-xs font-bold ${full ? 'text-red-500' : theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
           {current}/{capacity}
         </span>
       </div>
       <div className={`h-2 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
         <div
           className={`h-full rounded-full transition-all duration-700 ${full ? 'bg-red-500' : 'bg-green-500'}`}
-          style={{ width: `${pct}%` }}
-        />
+          style={{ width: `${pct}%` }} />
+        
       </div>
       <p className={`text-[10px] mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
         {pct}% occupied
       </p>
-    </div>
-  );
+    </div>);
+
 };
 
 // ── Staff card (warden / caretaker) ─────────────────────────────────────────
@@ -137,12 +137,12 @@ const StaffCard: React.FC<{
   person: Warden | Caretaker | null;
   color: string;
   theme: string;
-}> = ({ role, person, color, theme }) => (
-  <div
-    className={`rounded-xl border p-4 flex flex-col gap-3 shadow-sm transition-shadow hover:shadow-md ${
-      theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-    }`}
-  >
+}> = ({ role, person, color, theme }) =>
+<div
+  className={`rounded-xl border p-4 flex flex-col gap-3 shadow-sm transition-shadow hover:shadow-md ${
+  theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`
+  }>
+  
     {/* header */}
     <div className="flex items-center gap-3">
       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${color}`}>
@@ -158,28 +158,28 @@ const StaffCard: React.FC<{
       </div>
     </div>
 
-    {person ? (
-      <div className="space-y-2 pt-1">
-        {person.email && (
-          <InfoRow icon={<FaEnvelope size={12} />} label="Email" value={person.email} theme={theme} />
-        )}
-        {person.phone && (
-          <InfoRow icon={<FaPhone size={12} />} label="Phone" value={person.phone} theme={theme} />
-        )}
-        {(person as Warden).designation && (
-          <InfoRow icon={<FaIdBadge size={12} />} label="Designation" value={(person as Warden).designation} theme={theme} />
-        )}
-        {(person.experience ?? 0) > 0 && (
-          <InfoRow icon={<FaCheckCircle size={12} />} label="Experience" value={`${person.experience} year${person.experience !== 1 ? 's' : ''}`} theme={theme} />
-        )}
-      </div>
-    ) : (
-      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+    {person ?
+  <div className="space-y-2 pt-1">
+        {person.email &&
+    <InfoRow icon={<FaEnvelope size={12} />} label="Email" value={person.email} theme={theme} />
+    }
+        {person.phone &&
+    <InfoRow icon={<FaPhone size={12} />} label="Phone" value={person.phone} theme={theme} />
+    }
+        {(person as Warden).designation &&
+    <InfoRow icon={<FaIdBadge size={12} />} label="Designation" value={(person as Warden).designation} theme={theme} />
+    }
+        {(person.experience ?? 0) > 0 &&
+    <InfoRow icon={<FaCheckCircle size={12} />} label="Experience" value={`${person.experience} year${person.experience !== 1 ? 's' : ''}`} theme={theme} />
+    }
+      </div> :
+
+  <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
         No staff assigned to this hostel.
       </p>
-    )}
-  </div>
-);
+  }
+  </div>;
+
 
 // ── Main component ───────────────────────────────────────────────────────────
 const StudentHostelDetails: React.FC = () => {
@@ -211,7 +211,7 @@ const StudentHostelDetails: React.FC = () => {
       setWarden(data.warden ?? null);
       setCaretaker(data.caretaker ?? null);
     } catch (err: any) {
-      console.error('Failed to load hostel details', err);
+
       setError(err.message ?? 'Failed to load');
     } finally {
       setLoading(false);
@@ -236,7 +236,7 @@ const StudentHostelDetails: React.FC = () => {
           setTodayMenus([]);
         }
       } catch (e) {
-        console.error('Failed to load today menu summary', e);
+
         setTodayMenus([]);
       }
     };
@@ -257,7 +257,7 @@ const StudentHostelDetails: React.FC = () => {
           setMyIssues([]);
         }
       } catch (e) {
-        console.error('Failed to load my issues', e);
+
         setMyIssues([]);
       } finally {
         setLoadingIssues(false);
@@ -275,8 +275,8 @@ const StudentHostelDetails: React.FC = () => {
         <SkeletonCard className="h-28" />
         <SkeletonCard className="h-28" />
         <SkeletonCard className="h-28" />
-      </div>
-    );
+      </div>);
+
   }
 
   // ── Error state ────────────────────────────────────────────────────────────
@@ -284,23 +284,23 @@ const StudentHostelDetails: React.FC = () => {
     return (
       <div
         className={`rounded-xl border p-6 flex flex-col items-center gap-3 ${
-          theme === 'dark' ? 'bg-destructive/10 border-destructive text-destructive-foreground' : 'bg-red-50 border-red-200 text-red-700'
-        }`}
-      >
+        theme === 'dark' ? 'bg-destructive/10 border-destructive text-destructive-foreground' : 'bg-red-50 border-red-200 text-red-700'}`
+        }>
+        
         <FaExclamationCircle className="w-10 h-10 opacity-80" />
         <p className="font-semibold text-center">{error}</p>
         <button
           onClick={load}
           className={`mt-2 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            theme === 'dark'
-              ? 'bg-destructive/20 hover:bg-destructive/40 text-destructive-foreground'
-              : 'bg-red-100 hover:bg-red-200 text-red-700'
-          }`}
-        >
+          theme === 'dark' ?
+          'bg-destructive/20 hover:bg-destructive/40 text-destructive-foreground' :
+          'bg-red-100 hover:bg-red-200 text-red-700'}`
+          }>
+          
           <FaSyncAlt className="w-3 h-3" /> Retry
         </button>
-      </div>
-    );
+      </div>);
+
   }
 
   // ── Empty state ────────────────────────────────────────────────────────────
@@ -314,8 +314,8 @@ const StudentHostelDetails: React.FC = () => {
         <p className={`text-base mt-2 max-w-sm mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
           You haven't been assigned a hostel room yet. Please contact the hostel administration or the warden's office for your room allocation.
         </p>
-      </div>
-    );
+      </div>);
+
   }
 
   const roomTypeBadge = ROOM_TYPE_COLORS[room?.room_type ?? ''] ?? 'bg-gray-100 text-gray-600';
@@ -344,12 +344,12 @@ const StudentHostelDetails: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         {/* Hostel card */}
-        {hostel && (
-          <div
-            className={`rounded-xl border p-4 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden ${
-              theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-            }`}
-          >
+        {hostel &&
+        <div
+          className={`rounded-xl border p-4 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden ${
+          theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`
+          }>
+          
             {/* accent stripe */}
             <div className="absolute top-0 left-0 h-full w-1 rounded-l-xl bg-blue-500" />
             <div className="pl-3">
@@ -367,32 +367,32 @@ const StudentHostelDetails: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                {hostel.gender && (
-                  <InfoRow
-                    icon={<FaUsers size={12} />}
-                    label="Gender"
-                    value={hostel.gender === 'M' ? 'Male Hostel' : 'Female Hostel'}
-                    theme={theme}
-                  />
-                )}
-                {hostel.address && (
-                  <InfoRow icon={<FaMapMarkerAlt size={12} />} label="Address" value={hostel.address} theme={theme} />
-                )}
-                {hostel.contact && (
-                  <InfoRow icon={<FaPhone size={12} />} label="Contact" value={hostel.contact} theme={theme} />
-                )}
+                {hostel.gender &&
+              <InfoRow
+                icon={<FaUsers size={12} />}
+                label="Gender"
+                value={hostel.gender === 'M' ? 'Male Hostel' : 'Female Hostel'}
+                theme={theme} />
+
+              }
+                {hostel.address &&
+              <InfoRow icon={<FaMapMarkerAlt size={12} />} label="Address" value={hostel.address} theme={theme} />
+              }
+                {hostel.contact &&
+              <InfoRow icon={<FaPhone size={12} />} label="Contact" value={hostel.contact} theme={theme} />
+              }
               </div>
             </div>
           </div>
-        )}
+        }
 
         {/* Room card */}
-        {room && (
-          <div
-            className={`rounded-xl border p-4 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden ${
-              theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
-            }`}
-          >
+        {room &&
+        <div
+          className={`rounded-xl border p-4 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden ${
+          theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`
+          }>
+          
             {/* accent stripe */}
             <div className="absolute top-0 left-0 h-full w-1 rounded-l-xl bg-indigo-500" />
             <div className="pl-3">
@@ -410,30 +410,30 @@ const StudentHostelDetails: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                {room.room_type && (
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${roomTypeBadge}`}>
+                {room.room_type &&
+              <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${roomTypeBadge}`}>
                     {room.room_type_display ?? room.room_type}
                   </span>
-                )}
+              }
               </div>
               <div className="space-y-2">
                 <InfoRow
-                  icon={<FaLayerGroup size={12} />}
-                  label="Floor"
-                  value={room.floor !== 'N/A' ? room.floor : 'Ground Floor'}
-                  theme={theme}
-                />
-                {(room.capacity != null && room.current_occupancy != null) && (
-                  <OccupancyBar
-                    current={room.current_occupancy!}
-                    capacity={room.capacity!}
-                    theme={theme}
-                  />
-                )}
+                icon={<FaLayerGroup size={12} />}
+                label="Floor"
+                value={room.floor !== 'N/A' ? room.floor : 'Ground Floor'}
+                theme={theme} />
+              
+                {room.capacity != null && room.current_occupancy != null &&
+              <OccupancyBar
+                current={room.current_occupancy!}
+                capacity={room.capacity!}
+                theme={theme} />
+
+              }
               </div>
             </div>
           </div>
-        )}
+        }
       </div>
 
       {/* ── Staff cards row ──────────────────────────────────────────────── */}
@@ -442,19 +442,19 @@ const StudentHostelDetails: React.FC = () => {
           role="Hostel Warden"
           person={warden}
           color={theme === 'dark' ? 'bg-emerald-900/40 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}
-          theme={theme}
-        />
+          theme={theme} />
+        
         <StaffCard
           role="Caretaker"
           person={caretaker}
           color={theme === 'dark' ? 'bg-orange-900/40 text-orange-400' : 'bg-orange-50 text-orange-600'}
-          theme={theme}
-        />
+          theme={theme} />
+        
       </div>
 
       {/* ── Issue Management Card (Combined) ──────────────────────────── */}
-      {room && (
-        <div className={`rounded-xl border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+      {room &&
+      <div className={`rounded-xl border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
           
           {/* Section 1: Report an Issue */}
           <div className={`p-6 bg-gradient-to-r ${theme === 'dark' ? 'from-amber-900/20 to-amber-900/10' : 'from-amber-50 to-amber-25'}`}>
@@ -470,13 +470,13 @@ const StudentHostelDetails: React.FC = () => {
                   Have a maintenance problem, leak, or facility issue? Let us know and our team will resolve it within 2 days.
                 </p>
                 <button
-                  onClick={() => setIsRaiseIssueModalOpen(true)}
-                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                    theme === 'dark'
-                      ? 'bg-amber-600 hover:bg-amber-500 text-white'
-                      : 'bg-amber-600 hover:bg-amber-700 text-white'
-                  }`}
-                >
+                onClick={() => setIsRaiseIssueModalOpen(true)}
+                className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                theme === 'dark' ?
+                'bg-amber-600 hover:bg-amber-500 text-white' :
+                'bg-amber-600 hover:bg-amber-700 text-white'}`
+                }>
+                
                   Raise an Issue
                 </button>
               </div>
@@ -500,10 +500,10 @@ const StudentHostelDetails: React.FC = () => {
               </div>
             </div>
 
-            {loadingIssues ? (
-              <SkeletonList items={3} />
-            ) : myIssues.length === 0 ? (
-              <div className={`py-8 text-center rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-slate-900/30' : 'border-gray-200 bg-gray-50'}`}>
+            {loadingIssues ?
+          <SkeletonList items={3} /> :
+          myIssues.length === 0 ?
+          <div className={`py-8 text-center rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-slate-900/30' : 'border-gray-200 bg-gray-50'}`}>
                 <FaExclamationCircle className={`w-10 h-10 mx-auto mb-2 opacity-50 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
                 <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                   No issues raised yet
@@ -511,40 +511,40 @@ const StudentHostelDetails: React.FC = () => {
                 <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-600' : 'text-gray-500'}`}>
                   Use the "Raise an Issue" button above to report your first issue
                 </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
+              </div> :
+
+          <div className="space-y-3">
                 {myIssues.map((issue) => {
-                  const statusColors: Record<string, string> = {
-                    pending: theme === 'dark' ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700' : 'bg-yellow-50 text-yellow-800 border-yellow-200',
-                    in_progress: theme === 'dark' ? 'bg-blue-900/30 text-blue-300 border-blue-700' : 'bg-blue-50 text-blue-800 border-blue-200',
-                    waiting_for_workers: theme === 'dark' ? 'bg-orange-900/30 text-orange-300 border-orange-700' : 'bg-orange-50 text-orange-800 border-orange-200',
-                    completed: theme === 'dark' ? 'bg-green-900/30 text-green-300 border-green-700' : 'bg-green-50 text-green-800 border-green-200',
-                  };
+              const statusColors: Record<string, string> = {
+                pending: theme === 'dark' ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700' : 'bg-yellow-50 text-yellow-800 border-yellow-200',
+                in_progress: theme === 'dark' ? 'bg-blue-900/30 text-blue-300 border-blue-700' : 'bg-blue-50 text-blue-800 border-blue-200',
+                waiting_for_workers: theme === 'dark' ? 'bg-orange-900/30 text-orange-300 border-orange-700' : 'bg-orange-50 text-orange-800 border-orange-200',
+                completed: theme === 'dark' ? 'bg-green-900/30 text-green-300 border-green-700' : 'bg-green-50 text-green-800 border-green-200'
+              };
 
-                  const statusIcons: Record<string, React.ReactNode> = {
-                    pending: '⏳',
-                    in_progress: '⚙️',
-                    waiting_for_workers: '👷',
-                    completed: '✅',
-                  };
+              const statusIcons: Record<string, React.ReactNode> = {
+                pending: '⏳',
+                in_progress: '⚙️',
+                waiting_for_workers: '👷',
+                completed: '✅'
+              };
 
-                  const statusLabels: Record<string, string> = {
-                    pending: 'Pending',
-                    in_progress: 'In Progress',
-                    waiting_for_workers: 'Waiting for Workers',
-                    completed: 'Completed',
-                  };
+              const statusLabels: Record<string, string> = {
+                pending: 'Pending',
+                in_progress: 'In Progress',
+                waiting_for_workers: 'Waiting for Workers',
+                completed: 'Completed'
+              };
 
-                  const colorClass = statusColors[issue.status] || statusColors.pending;
-                  const statusLabel = statusLabels[issue.status] || issue.status;
-                  const statusIcon = statusIcons[issue.status];
+              const colorClass = statusColors[issue.status] || statusColors.pending;
+              const statusLabel = statusLabels[issue.status] || issue.status;
+              const statusIcon = statusIcons[issue.status];
 
-                  return (
-                    <div
-                      key={issue.id}
-                      className={`rounded-lg border p-4 transition-all hover:shadow-md ${theme === 'dark' ? 'bg-slate-900/50 border-slate-700 hover:border-slate-600' : 'bg-gray-50/50 border-gray-200 hover:border-gray-300'}`}
-                    >
+              return (
+                <div
+                  key={issue.id}
+                  className={`rounded-lg border p-4 transition-all hover:shadow-md ${theme === 'dark' ? 'bg-slate-900/50 border-slate-700 hover:border-slate-600' : 'bg-gray-50/50 border-gray-200 hover:border-gray-300'}`}>
+                  
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
@@ -567,20 +567,20 @@ const StudentHostelDetails: React.FC = () => {
                         <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
                           📅 {new Date(issue.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(issue.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </p>
-                        {issue.update_count && issue.update_count > 0 && (
-                          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
+                        {issue.update_count && issue.update_count > 0 &&
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
                             {issue.update_count} update{issue.update_count !== 1 ? 's' : ''}
                           </span>
-                        )}
+                    }
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>);
+
+            })}
               </div>
-            )}
+          }
           </div>
         </div>
-      )}
+      }
 
       {/* ── Meal Management Section ──────────────────────────────────────── */}
       <div className="mt-6">
@@ -592,17 +592,17 @@ const StudentHostelDetails: React.FC = () => {
             </div>
           </div>
 
-          {todayMenus.length === 0 ? (
-            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No menus available for today.</p>
-          ) : (
-            <div className="space-y-4">
+          {todayMenus.length === 0 ?
+          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No menus available for today.</p> :
+
+          <div className="space-y-4">
               {todayMenus.map((m) => {
 
-                return (
-                  <div key={m.id}>
+              return (
+                <div key={m.id}>
                     <div
-                      className={`rounded-lg border p-4 ${theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-gray-50 border-gray-200'}`}
-                    >
+                    className={`rounded-lg border p-4 ${theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-gray-50 border-gray-200'}`}>
+                    
                       <div className="mb-3 flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -621,41 +621,41 @@ const StudentHostelDetails: React.FC = () => {
                       </div>
 
                       {/* Menu Items */}
-                      {m.items && m.items.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
+                      {m.items && m.items.length > 0 &&
+                    <div className="flex flex-wrap gap-2">
                           {m.items.map((item: any, idx: number) => {
-                            const isVeg = typeof item === 'object' ? item.vegetarian : true;
-                            const name = typeof item === 'object' ? item.name : item;
-                            return (
-                              <div
-                                key={idx}
-                                className={`rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1 ${
-                                  isVeg
-                                    ? theme === 'dark'
-                                      ? 'bg-green-900/30 text-green-300'
-                                      : 'bg-green-100 text-green-700'
-                                    : theme === 'dark'
-                                    ? 'bg-red-900/30 text-red-300'
-                                    : 'bg-red-100 text-red-700'
-                                }`}
-                              >
-                                {isVeg ? (
-                                  <FaLeaf className="h-3 w-3" />
-                                ) : (
-                                  <FaDrumstickBite className="h-3 w-3" />
-                                )}
+                        const isVeg = typeof item === 'object' ? item.vegetarian : true;
+                        const name = typeof item === 'object' ? item.name : item;
+                        return (
+                          <div
+                            key={idx}
+                            className={`rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1 ${
+                            isVeg ?
+                            theme === 'dark' ?
+                            'bg-green-900/30 text-green-300' :
+                            'bg-green-100 text-green-700' :
+                            theme === 'dark' ?
+                            'bg-red-900/30 text-red-300' :
+                            'bg-red-100 text-red-700'}`
+                            }>
+                            
+                                {isVeg ?
+                            <FaLeaf className="h-3 w-3" /> :
+
+                            <FaDrumstickBite className="h-3 w-3" />
+                            }
                                 {name}
-                              </div>
-                            );
-                          })}
+                              </div>);
+
+                      })}
                         </div>
-                      )}
+                    }
                     </div>
-                  </div>
-                );
-              })}
+                  </div>);
+
+            })}
             </div>
-          )}
+          }
         </div>
       </div>
 
@@ -676,20 +676,20 @@ const StudentHostelDetails: React.FC = () => {
                 setMyIssues(res.data);
               }
             } catch (e) {
-              console.error('Failed to reload issues', e);
+
             }
           };
           loadIssues();
-          
+
           toast({
             title: 'Issue Raised',
             description: 'Your issue has been successfully reported to the hostel management.',
             variant: 'default'
           });
-        }}
-      />
-    </div>
-  );
+        }} />
+      
+    </div>);
+
 };
 
 export default StudentHostelDetails;

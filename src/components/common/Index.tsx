@@ -21,36 +21,36 @@ const Index = () => {
     const checkAuthAndRedirect = () => {
       const token = localStorage.getItem("access_token");
       const storedUser = localStorage.getItem("user");
-      
+
       if (token && storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           setRole(parsedUser.role);
-          
+
           // Only redirect if we're not already on a dashboard route
           const currentPath = window.location.pathname;
-          const isOnDashboard = currentPath.startsWith('/admin') || 
-                               currentPath.startsWith('/hod') || 
-                               currentPath.startsWith('/faculty') || 
-                               currentPath.startsWith('/fees-manager') ||
-                               currentPath.startsWith('/hms') ||
-                               currentPath.startsWith('/warden') ||
-                               currentPath.startsWith('/dashboard') ||
-                               currentPath.startsWith('/timetable') ||
-                               currentPath.startsWith('/attendance') ||
-                               currentPath.startsWith('/marks') ||
-                               currentPath.startsWith('/leave-request') ||
-                               currentPath.startsWith('/leave-status') ||
-                               currentPath.startsWith('/fees') ||
-                               currentPath.startsWith('/profile') ||
-                               currentPath.startsWith('/announcements') ||
-                               currentPath.startsWith('/chat') ||
-                               currentPath.startsWith('/notifications') ||
-                               currentPath.startsWith('/face-recognition') ||
-                               currentPath.startsWith('/student-study-material') ||
-                               currentPath.startsWith('/student-assignment');
-          
+          const isOnDashboard = currentPath.startsWith('/admin') ||
+          currentPath.startsWith('/hod') ||
+          currentPath.startsWith('/faculty') ||
+          currentPath.startsWith('/fees-manager') ||
+          currentPath.startsWith('/hms') ||
+          currentPath.startsWith('/warden') ||
+          currentPath.startsWith('/dashboard') ||
+          currentPath.startsWith('/timetable') ||
+          currentPath.startsWith('/attendance') ||
+          currentPath.startsWith('/marks') ||
+          currentPath.startsWith('/leave-request') ||
+          currentPath.startsWith('/leave-status') ||
+          currentPath.startsWith('/fees') ||
+          currentPath.startsWith('/profile') ||
+          currentPath.startsWith('/announcements') ||
+          currentPath.startsWith('/chat') ||
+          currentPath.startsWith('/notifications') ||
+          currentPath.startsWith('/face-recognition') ||
+          currentPath.startsWith('/student-study-material') ||
+          currentPath.startsWith('/student-assignment');
+
           if (!isOnDashboard) {
             // Redirect to appropriate dashboard based on role
             switch (parsedUser.role) {
@@ -86,7 +86,7 @@ const Index = () => {
             setIsLoading(false);
           }
         } catch (error) {
-          console.error("Error parsing user data:", error);
+
           localStorage.clear();
           stopTokenRefresh();
           setPage("login");
@@ -107,19 +107,19 @@ const Index = () => {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-2xl font-semibold">Loading...</div>
-      </div>
-    );
+      </div>);
+
   }
 
   // Authentication pages
   if (page === "login") return <LoginWrapper setRole={setRole} setPage={setPage} setUser={setUser} />;
   if (page === "otp") return <OTPPage setRole={setRole} setPage={setPage} setUser={setUser} />;
   if (page === "forgot-password") {
-    return isMobile ? (
-      <ForgotPasswordMobile setPage={setPage} />
-    ) : (
-      <ForgotPasswordFlow setPage={setPage} />
-    );
+    return isMobile ?
+    <ForgotPasswordMobile setPage={setPage} /> :
+
+    <ForgotPasswordFlow setPage={setPage} />;
+
   }
   if (page === "reset-password") return <ResetPassword setPage={setPage} />;
 
@@ -127,8 +127,8 @@ const Index = () => {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-2xl font-semibold">Loading...</div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;

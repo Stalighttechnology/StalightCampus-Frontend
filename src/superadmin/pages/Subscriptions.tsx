@@ -17,7 +17,7 @@ const Subscriptions = () => {
         const res = await response.json();
         setData(res.subscriptions || []);
       } catch (error) {
-        console.error("Error:", error);
+
       } finally {
         setLoading(false);
       }
@@ -26,19 +26,19 @@ const Subscriptions = () => {
   }, []);
 
   const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'Active': return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Active</Badge>;
-      case 'Trial': return <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">Trial</Badge>;
-      case 'Expired': return <Badge variant="destructive">Expired</Badge>;
-      default: return <Badge variant="secondary">{status}</Badge>;
+    switch (status) {
+      case 'Active':return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Active</Badge>;
+      case 'Trial':return <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">Trial</Badge>;
+      case 'Expired':return <Badge variant="destructive">Expired</Badge>;
+      default:return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
   const getPlanBadge = (plan: string) => {
-    switch(plan.toLowerCase()) {
-      case 'advance': return <Badge variant="outline" className="border-purple-500 text-purple-600">Advance</Badge>;
-      case 'pro': return <Badge variant="outline" className="border-blue-500 text-blue-600">Pro</Badge>;
-      default: return <Badge variant="outline" className="border-gray-400 text-gray-600">Basic</Badge>;
+    switch (plan.toLowerCase()) {
+      case 'advance':return <Badge variant="outline" className="border-purple-500 text-purple-600">Advance</Badge>;
+      case 'pro':return <Badge variant="outline" className="border-blue-500 text-blue-600">Pro</Badge>;
+      default:return <Badge variant="outline" className="border-gray-400 text-gray-600">Basic</Badge>;
     }
   };
 
@@ -60,25 +60,25 @@ const Subscriptions = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading...</TableCell></TableRow> : data.map((item) => (
-              <TableRow key={item.id}>
+            {loading ? <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading...</TableCell></TableRow> : data.map((item) =>
+            <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.org_name}</TableCell>
                 <TableCell>{getPlanBadge(item.plan)}</TableCell>
                 <TableCell>{getStatusBadge(item.status)}</TableCell>
                 <TableCell className="text-muted-foreground">{item.expires_at}</TableCell>
                 <TableCell>
-                  {item.auto_renew ? (
-                    <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">Yes</Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-gray-200 text-gray-500 bg-gray-50">No</Badge>
-                  )}
+                  {item.auto_renew ?
+                <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">Yes</Badge> :
+
+                <Badge variant="outline" className="border-gray-200 text-gray-500 bg-gray-50">No</Badge>
+                }
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 export default Subscriptions;

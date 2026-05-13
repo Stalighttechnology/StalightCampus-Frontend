@@ -53,16 +53,16 @@ interface BulkUploadFacultyResponse {
   updated_count?: number;
   uploaded_count?: number;
   errors?: string[];
-  created?: Array<{name: string; email: string; username: string}>;
-  updated?: Array<{name: string; email: string; username: string}>;
+  created?: Array<{name: string;email: string;username: string;}>;
+  updated?: Array<{name: string;email: string;username: string;}>;
 }
 
 interface Branch {
   id: number;
   name: string;
-  hod?: { id: string; first_name: string; last_name: string };
+  hod?: {id: string;first_name: string;last_name: string;};
   semesters: number[];
-  sections: { name: string; semester: number }[];
+  sections: {name: string;semester: number;}[];
 }
 
 interface ManageBranchesResponse {
@@ -128,8 +128,8 @@ interface ManageNotificationsResponse {
 
 interface HODLeave {
   id: number;
-  faculty: { id: string; first_name: string; last_name: string };
-  branch: { id: number; name: string };
+  faculty: {id: string;first_name: string;last_name: string;};
+  branch: {id: number;name: string;};
   start_date: string;
   end_date: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
@@ -149,7 +149,7 @@ interface ManageHODLeavesResponse {
     status: string;
     submitted_at: string;
   };
-  calendar?: { date: string; leaves: { id: number; hod: string; status: string }[] }[];
+  calendar?: {date: string;leaves: {id: number;hod: string;status: string;}[];}[];
 }
 
 interface User {
@@ -218,21 +218,21 @@ export const getAdminStats = async (): Promise<AdminStatsResponse> => {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
-        },
+          "Content-Type": "application/json"
+        }
       });
       const result = await response.json();
       if (!response.ok) {
-        console.error("Get Admin Stats Failed:", { status: response.status, result });
+
         return { success: false, message: result.message || `HTTP ${response.status}` };
       }
       return result;
     } catch (error) {
-      console.error("Get Admin Stats Error:", error);
+
       return { success: false, message: "Network error" };
     }
   })();
-  
+
   adminStatsTimestamp = now;
   return adminStatsPromise;
 };
@@ -243,18 +243,18 @@ export const enrollUser = async (data: EnrollUserRequest): Promise<EnrollUserRes
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Enroll User Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Enroll User Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -266,32 +266,32 @@ export const bulkUploadFaculty = async (file: File): Promise<BulkUploadFacultyRe
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/bulk-upload-faculty/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`
       },
-      body: formData,
+      body: formData
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Bulk Upload Faculty Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Bulk Upload Faculty Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const manageBranches = async (
-  data?: { page?: number; page_size?: number; name?: string; hod_id?: string },
-  branch_id?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<ManageBranchesResponse> => {
+data?: {page?: number;page_size?: number;name?: string;hod_id?: string;},
+branch_id?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<ManageBranchesResponse> => {
   try {
-    let url = branch_id
-      ? `${API_ENDPOINT}/admin/branches/${branch_id}/`
-      : `${API_ENDPOINT}/admin/branches/`;
-    
+    let url = branch_id ?
+    `${API_ENDPOINT}/admin/branches/${branch_id}/` :
+    `${API_ENDPOINT}/admin/branches/`;
+
     // Add pagination parameters for GET requests
     if (method === "GET" && data && !branch_id) {
       const params = new URLSearchParams();
@@ -300,26 +300,26 @@ export const manageBranches = async (
       if ((data as any).search) params.append('search', (data as any).search);
       if (params.toString()) url += `?${params.toString()}`;
     }
-    
+
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`
     };
-    const bodyPayload = (method !== "GET" && data) ? JSON.stringify(data) : undefined;
+    const bodyPayload = method !== "GET" && data ? JSON.stringify(data) : undefined;
     if (bodyPayload) headers['Content-Type'] = 'application/json';
 
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers,
-      body: bodyPayload,
+      body: bodyPayload
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage Branches Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Manage Branches Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -344,8 +344,8 @@ interface BranchesWithHODsResponse {
 }
 
 export const getBranchesWithHODs = async (
-  data?: { page?: number; page_size?: number; search?: string }
-): Promise<BranchesWithHODsResponse> => {
+data?: {page?: number;page_size?: number;search?: string;})
+: Promise<BranchesWithHODsResponse> => {
   try {
     let url = `${API_ENDPOINT}/admin/branches-with-hods/`;
 
@@ -364,31 +364,31 @@ export const getBranchesWithHODs = async (
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Get Branches with HODs Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Get Branches with HODs Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const manageBatches = async (
-  data?: ManageBatchesRequest,
-  batch_id?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<ManageBatchesResponse> => {
+data?: ManageBatchesRequest,
+batch_id?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<ManageBatchesResponse> => {
   try {
-    let url = batch_id
-      ? `${API_ENDPOINT}/admin/batches/${batch_id}/`
-      : `${API_ENDPOINT}/admin/batches/`;
-    
+    let url = batch_id ?
+    `${API_ENDPOINT}/admin/batches/${batch_id}/` :
+    `${API_ENDPOINT}/admin/batches/`;
+
     // Add pagination and filter parameters for GET requests
     if (method === "GET" && data && !batch_id) {
       const params = new URLSearchParams();
@@ -399,34 +399,34 @@ export const manageBatches = async (
       if (data.search) params.append('search', data.search);
       if (params.toString()) url += `?${params.toString()}`;
     }
-    
+
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: (method !== "GET" && data) ? JSON.stringify(data) : undefined,
+      body: method !== "GET" && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage Batches Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Manage Batches Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const manageNotifications = async (
-  data?: { page?: number; page_size?: number },
-  method: "GET" | "POST" = "GET"
-): Promise<ManageNotificationsResponse> => {
+data?: {page?: number;page_size?: number;},
+method: "GET" | "POST" = "GET")
+: Promise<ManageNotificationsResponse> => {
   try {
     let url = `${API_ENDPOINT}/admin/notifications/`;
-    
+
     // Add pagination parameters for GET requests
     if (method === "GET" && data) {
       const params = new URLSearchParams();
@@ -434,72 +434,72 @@ export const manageNotifications = async (
       if (data.page_size) params.append('page_size', data.page_size.toString());
       if (params.toString()) url += `?${params.toString()}`;
     }
-    
+
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: (method === "POST" && data) ? JSON.stringify(data) : undefined,
+      body: method === "POST" && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage Notifications Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Manage Notifications Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const manageHODLeaves = async (
-  data?: any,
-  method: "GET" | "POST" = "GET"
-): Promise<ManageHODLeavesResponse> => {
+data?: any,
+method: "GET" | "POST" = "GET")
+: Promise<ManageHODLeavesResponse> => {
   try {
     let url = `${API_ENDPOINT}/admin/hod-leaves/`;
-    
+
     // Add query parameters for GET requests
     if (method === "GET" && data) {
       const params = new URLSearchParams();
-      Object.keys(data).forEach(key => {
+      Object.keys(data).forEach((key) => {
         if (data[key] !== undefined && data[key] !== null) {
           params.append(key, data[key].toString());
         }
       });
       if (params.toString()) url += `?${params.toString()}`;
     }
-    
+
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: (method === "POST" && data) ? JSON.stringify(data) : undefined,
+      body: method === "POST" && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage HOD Leaves Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Manage HOD Leaves Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const manageUsers = async (
-  data?: { page?: number; page_size?: number; role?: string; is_active?: boolean; search?: string },
-  method: "GET" | "POST" = "GET"
-): Promise<ManageUsersResponse> => {
+data?: {page?: number;page_size?: number;role?: string;is_active?: boolean;search?: string;},
+method: "GET" | "POST" = "GET")
+: Promise<ManageUsersResponse> => {
   try {
     let url = `${API_ENDPOINT}/admin/users/`;
-    
+
     // Add pagination and filter parameters for GET requests
     if (method === "GET" && data) {
       const params = new URLSearchParams();
@@ -511,23 +511,23 @@ export const manageUsers = async (
       if ((data as any).department) params.append('department', (data as any).department);
       if (params.toString()) url += `?${params.toString()}`;
     }
-    
+
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: (method === "POST" && data) ? JSON.stringify(data) : undefined,
+      body: method === "POST" && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage Users Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Manage Users Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -568,36 +568,36 @@ export const manageUserAction = async (data: ManageUserActionRequest): Promise<M
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage User Action Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Manage User Action Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const manageAdminProfile = async (
-  data: ManageAdminProfileRequest,
-  method: "GET" | "POST" = "POST"
-): Promise<ManageAdminProfileResponse> => {
+data: ManageAdminProfileRequest,
+method: "GET" | "POST" = "POST")
+: Promise<ManageAdminProfileResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/profile/${data.user_id}/`, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       // avoid conditional requests for profile GETs in production
       cache: method === 'GET' ? 'no-store' : undefined,
-      body: method === "POST" ? JSON.stringify(data) : undefined,
+      body: method === "POST" ? JSON.stringify(data) : undefined
     });
 
     // Handle 304 Not Modified: return cached profile if available
@@ -610,7 +610,7 @@ export const manageAdminProfile = async (
         }
         return { success: false, message: 'Profile not modified and no cached profile available' } as ManageAdminProfileResponse;
       } catch (e) {
-        console.error('Error reading cached admin profile', e);
+
         return { success: false, message: 'Profile not modified and failed to read cache' } as ManageAdminProfileResponse;
       }
     }
@@ -619,17 +619,17 @@ export const manageAdminProfile = async (
     try {
       result = await response.json();
     } catch (e) {
-      console.warn('manageAdminProfile: response had no JSON body', e);
+
     }
 
     if (!response.ok) {
-      console.error("Manage Admin Profile Failed:", { status: response.status, result });
-      return { success: false, message: (result && result.message) || `HTTP ${response.status}` };
+
+      return { success: false, message: result && result.message || `HTTP ${response.status}` };
     }
 
     return result;
   } catch (error) {
-    console.error("Manage Admin Profile Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -671,18 +671,18 @@ export const bulkUserActions = async (data: BulkUserActionsRequest): Promise<Bul
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Bulk User Actions Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Bulk User Actions Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -718,18 +718,18 @@ export const bulkProcessHODLeaves = async (data: BulkHODLeaveActionsRequest): Pr
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Bulk HOD Leave Processing Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Bulk HOD Leave Processing Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -769,9 +769,9 @@ interface AdminLeaveApplicationsRequest {
 
 // Admin Leave Functions
 export const adminLeaveApplications = async (
-  data?: AdminLeaveApplicationsRequest,
-  method: "GET" | "POST" = "GET"
-): Promise<AdminLeaveApplicationsResponse> => {
+data?: AdminLeaveApplicationsRequest,
+method: "GET" | "POST" = "GET")
+: Promise<AdminLeaveApplicationsResponse> => {
   try {
     let url = `${API_ENDPOINT}/admin/leave-applications/`;
     if (method === "GET" && data) {
@@ -786,18 +786,18 @@ export const adminLeaveApplications = async (
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: method === "POST" && data ? JSON.stringify(data) : undefined,
+      body: method === "POST" && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Admin Leave Applications Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Admin Leave Applications Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -834,18 +834,18 @@ export const manageAdminProfilePatch = async (data: ManageAdminProfilePatchReque
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage Admin Profile PATCH Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Manage Admin Profile PATCH Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -878,27 +878,27 @@ interface ManageCampusLocationResponse {
 }
 
 export const manageCampusLocation = async (
-  data?: {
-    name?: string;
-    description?: string;
-    is_active?: boolean;
-    center_latitude?: number;
-    center_longitude?: number;
-    radius_meters?: number;
-    min_latitude?: number;
-    max_latitude?: number;
-    min_longitude?: number;
-    max_longitude?: number;
-    page?: number;
-    page_size?: number;
-  },
-  location_id?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<ManageCampusLocationResponse> => {
+data?: {
+  name?: string;
+  description?: string;
+  is_active?: boolean;
+  center_latitude?: number;
+  center_longitude?: number;
+  radius_meters?: number;
+  min_latitude?: number;
+  max_latitude?: number;
+  min_longitude?: number;
+  max_longitude?: number;
+  page?: number;
+  page_size?: number;
+},
+location_id?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<ManageCampusLocationResponse> => {
   try {
-    let url = location_id
-      ? `${API_ENDPOINT}/admin/campus-locations/${location_id}/`
-      : `${API_ENDPOINT}/admin/campus-locations/`;
+    let url = location_id ?
+    `${API_ENDPOINT}/admin/campus-locations/${location_id}/` :
+    `${API_ENDPOINT}/admin/campus-locations/`;
 
     // Add pagination parameters for GET requests
     if (method === "GET" && data && !location_id) {
@@ -912,18 +912,18 @@ export const manageCampusLocation = async (
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: (method !== "GET" && data) ? JSON.stringify(data) : undefined,
+      body: method !== "GET" && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error("Manage Campus Location Failed:", { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error("Manage Campus Location Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };

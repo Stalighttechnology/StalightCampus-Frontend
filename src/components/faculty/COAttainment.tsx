@@ -7,8 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+  SelectItem } from
+"@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
 import { getUploadMarksBootstrap, GetUploadMarksBootstrapResponse, getQuestionPapers, getCOAttainment } from "../../utils/faculty_api";
@@ -22,11 +22,11 @@ import autoTable from "jspdf-autotable";
 const COAttainment = () => {
   const { data: assignments = [], isLoading: assignmentsLoading } = useFacultyAssignmentsQuery();
   const [dropdownData, setDropdownData] = useState({
-    branch: [] as { id: number; name: string }[],
-    semester: [] as { id: number; number: number }[],
-    section: [] as { id: number; name: string }[],
-    subject: [] as { id: number; name: string }[],
-    testType: ["IA1", "IA2", "IA3", "SEE"],
+    branch: [] as {id: number;name: string;}[],
+    semester: [] as {id: number;number: number;}[],
+    section: [] as {id: number;name: string;}[],
+    subject: [] as {id: number;name: string;}[],
+    testType: ["IA1", "IA2", "IA3", "SEE"]
   });
   const [selected, setSelected] = useState({
     branch: "",
@@ -38,7 +38,7 @@ const COAttainment = () => {
     semester: "",
     semester_id: undefined as number | undefined,
     testType: "",
-    question_paper_id: undefined as number | undefined,
+    question_paper_id: undefined as number | undefined
   });
   // per-student marks removed: UI shows aggregated CO data from server
   const [errorMessage, setErrorMessage] = useState("");
@@ -77,9 +77,9 @@ const COAttainment = () => {
   // Update dropdown data when assignments change
   useEffect(() => {
     const subjects = Array.from(
-      new Map(assignments.map(a => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values()
+      new Map(assignments.map((a) => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values()
     );
-    setDropdownData(prev => ({ ...prev, subject: subjects }));
+    setDropdownData((prev) => ({ ...prev, subject: subjects }));
   }, [assignments]);
 
   const handleSelectChange = async (field: string, value: string | number) => {
@@ -88,16 +88,16 @@ const COAttainment = () => {
     if (field.endsWith('_id')) {
       updated[field] = value as number;
       if (field === 'branch_id') {
-        const branchObj = dropdownData.branch.find(b => b.id === value);
+        const branchObj = dropdownData.branch.find((b) => b.id === value);
         updated.branch = branchObj ? branchObj.name : "";
       } else if (field === 'semester_id') {
-        const semObj = dropdownData.semester.find(s => s.id === value);
+        const semObj = dropdownData.semester.find((s) => s.id === value);
         updated.semester = semObj ? semObj.number.toString() : "";
       } else if (field === 'section_id') {
-        const secObj = dropdownData.section.find(s => s.id === value);
+        const secObj = dropdownData.section.find((s) => s.id === value);
         updated.section = secObj ? secObj.name : "";
       } else if (field === 'subject_id') {
-        const subjObj = dropdownData.subject.find(s => s.id === value);
+        const subjObj = dropdownData.subject.find((s) => s.id === value);
         updated.subject = subjObj ? subjObj.name : "";
       }
     } else {
@@ -134,14 +134,14 @@ const COAttainment = () => {
             totalStudents: result.total_students,
             // Levels: use the explicit backend-provided fields
             attainmentLevel: result.direct_attainment_level_by_avg ?? result.direct_attainment_level,
-            method2Level: result.direct_attainment_level_by_students ?? result.direct_attainment_level,
+            method2Level: result.direct_attainment_level_by_students ?? result.direct_attainment_level
           };
 
           finalAttainmentData[result.co] = {
             direct: result.direct_attainment_level_by_avg ?? result.direct_attainment_level,
             indirect: result.indirect_attainment_level,
             final: result.final_attainment_level,
-            level: result.final_attainment_level,
+            level: result.final_attainment_level
           };
 
           initialIndirect[result.co] = 0;
@@ -152,7 +152,7 @@ const COAttainment = () => {
         setIndirectAttainment(initialIndirect);
         setOverallAttainment(data.course_attainment_level);
       } catch (err: unknown) {
-        setErrorMessage((err as { message?: string })?.message || "Failed to fetch CO attainment");
+        setErrorMessage((err as {message?: string;})?.message || "Failed to fetch CO attainment");
       }
     }
   };
@@ -163,7 +163,7 @@ const COAttainment = () => {
     const numValue = parseFloat(value) || 0;
     // Validate indirect attainment values (should be 0-3)
     if (numValue >= 0 && numValue <= 3) {
-      setIndirectAttainment(prev => ({
+      setIndirectAttainment((prev) => ({
         ...prev,
         [co]: numValue
       }));
@@ -197,7 +197,7 @@ const COAttainment = () => {
           totalStudents: result.total_students,
           attainmentLevel: result.direct_attainment_level_by_avg ?? result.direct_attainment_level,
           method2Percentage: result.pct_students_above_target,
-          method2Level: result.direct_attainment_level_by_students ?? result.direct_attainment_level,
+          method2Level: result.direct_attainment_level_by_students ?? result.direct_attainment_level
         };
       });
       setCoAttainment(attainmentData);
@@ -209,7 +209,7 @@ const COAttainment = () => {
           direct: result.direct_attainment_level_by_avg ?? result.direct_attainment_level,
           indirect: result.indirect_attainment_level,
           final: result.final_attainment_level,
-          level: result.final_attainment_level,
+          level: result.final_attainment_level
         };
       });
       setFinalAttainment(finalAttainmentData);
@@ -217,7 +217,7 @@ const COAttainment = () => {
       // Update overall attainment
       setOverallAttainment(data.course_attainment_level);
     } catch (error) {
-      console.error('Error calculating final attainment:', error);
+
       setErrorMessage('Failed to calculate final attainment');
     }
   };
@@ -233,24 +233,24 @@ const COAttainment = () => {
   // CSV Export Function
   const handleExportCSV = () => {
     const csvData = [
-      ['CO', 'Max Marks', 'Target Marks', 'Avg Marks', 'Students ≥ Target', 'Method 1 %', 'Method 1 Level', 'Method 2 %', 'Method 2 Level', 'Indirect', 'Final', 'Level'],
-      ...Object.values(coAttainment).map(co => [
-        co.co,
-        co.maxMarks,
-        co.targetMarks.toFixed(1),
-        co.avgMarks.toFixed(2),
-        `${co.studentsAboveTarget}/${co.totalStudents} (${co.totalStudents > 0 ? ((co.studentsAboveTarget / co.totalStudents) * 100).toFixed(1) : 0}%)`,
-        `${co.percentage.toFixed(1)}%`,
-        `Level ${co.attainmentLevel}`,
-        `${co.method2Percentage.toFixed(1)}%`,
-        `Level ${co.method2Level}`,
-        indirectAttainment[co.co] || 0,
-        finalAttainment[co.co] ? finalAttainment[co.co].final.toFixed(2) : "N/A",
-        finalAttainment[co.co] ? `Level ${finalAttainment[co.co].level}` : "N/A"
-      ])
-    ];
+    ['CO', 'Max Marks', 'Target Marks', 'Avg Marks', 'Students ≥ Target', 'Method 1 %', 'Method 1 Level', 'Method 2 %', 'Method 2 Level', 'Indirect', 'Final', 'Level'],
+    ...Object.values(coAttainment).map((co) => [
+    co.co,
+    co.maxMarks,
+    co.targetMarks.toFixed(1),
+    co.avgMarks.toFixed(2),
+    `${co.studentsAboveTarget}/${co.totalStudents} (${co.totalStudents > 0 ? (co.studentsAboveTarget / co.totalStudents * 100).toFixed(1) : 0}%)`,
+    `${co.percentage.toFixed(1)}%`,
+    `Level ${co.attainmentLevel}`,
+    `${co.method2Percentage.toFixed(1)}%`,
+    `Level ${co.method2Level}`,
+    indirectAttainment[co.co] || 0,
+    finalAttainment[co.co] ? finalAttainment[co.co].final.toFixed(2) : "N/A",
+    finalAttainment[co.co] ? `Level ${finalAttainment[co.co].level}` : "N/A"]
+    )];
 
-    const csvContent = csvData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+    const csvContent = csvData.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -264,7 +264,7 @@ const COAttainment = () => {
 
   // PDF Export Function
   const handleExportPDF = () => {
-    const doc = new jsPDF('p', 'mm', 'a4') as jsPDF & { lastAutoTable?: { finalY: number } };
+    const doc = new jsPDF('p', 'mm', 'a4') as jsPDF & {lastAutoTable?: {finalY: number;};};
 
     // Add title
     doc.setFontSize(18);
@@ -279,22 +279,22 @@ const COAttainment = () => {
     autoTable(doc, {
       startY: 70,
       head: [['CO', 'Max Marks', 'Target Marks', 'Avg Marks', 'Students ≥ Target', 'Method 1 %', 'Method 1 Level', 'Method 2 %', 'Method 2 Level', 'Indirect', 'Final', 'Level']],
-      body: Object.values(coAttainment).map(co => [
-        co.co,
-        co.maxMarks,
-        co.targetMarks.toFixed(1),
-        co.avgMarks.toFixed(2),
-        `${co.studentsAboveTarget}/${co.totalStudents} (${co.totalStudents > 0 ? ((co.studentsAboveTarget / co.totalStudents) * 100).toFixed(1) : 0}%)`,
-        `${co.percentage.toFixed(1)}%`,
-        `Level ${co.attainmentLevel}`,
-        `${co.method2Percentage.toFixed(1)}%`,
-        `Level ${co.method2Level}`,
-        indirectAttainment[co.co] || 0,
-        finalAttainment[co.co] ? finalAttainment[co.co].final.toFixed(2) : "N/A",
-        finalAttainment[co.co] ? `Level ${finalAttainment[co.co].level}` : "N/A"
-      ]),
+      body: Object.values(coAttainment).map((co) => [
+      co.co,
+      co.maxMarks,
+      co.targetMarks.toFixed(1),
+      co.avgMarks.toFixed(2),
+      `${co.studentsAboveTarget}/${co.totalStudents} (${co.totalStudents > 0 ? (co.studentsAboveTarget / co.totalStudents * 100).toFixed(1) : 0}%)`,
+      `${co.percentage.toFixed(1)}%`,
+      `Level ${co.attainmentLevel}`,
+      `${co.method2Percentage.toFixed(1)}%`,
+      `Level ${co.method2Level}`,
+      indirectAttainment[co.co] || 0,
+      finalAttainment[co.co] ? finalAttainment[co.co].final.toFixed(2) : "N/A",
+      finalAttainment[co.co] ? `Level ${finalAttainment[co.co].level}` : "N/A"]
+      ),
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [162, 89, 255] }, // Purple color to match theme
+      headStyles: { fillColor: [162, 89, 255] } // Purple color to match theme
     });
 
     // Add Overall Course Attainment with highlighting
@@ -332,22 +332,22 @@ const COAttainment = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50">
             <div className="space-y-2">
               <label className="text-sm font-medium">Subject</label>
-              {assignmentsLoading ? (
-                <div className="h-11 bg-muted animate-pulse rounded-md" />
-              ) : (
-                <Select onValueChange={value => handleSelectChange('subject_id', Number(value))}>
+              {assignmentsLoading ?
+              <div className="h-11 bg-muted animate-pulse rounded-md" /> :
+
+              <Select onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
                   <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
                     <SelectValue placeholder="Select Subject" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
-                    {dropdownData.subject.map((item) => (
-                      <SelectItem key={item.id} value={item.id.toString()}>
+                    {dropdownData.subject.map((item) =>
+                  <SelectItem key={item.id} value={item.id.toString()}>
                         {item.name}
                       </SelectItem>
-                    ))}
+                  )}
                   </SelectContent>
                 </Select>
-              )}
+              }
             </div>
 
             <div className="space-y-2">
@@ -359,40 +359,40 @@ const COAttainment = () => {
                   max="100"
                   value={targetThreshold}
                   onChange={(e) => handleTargetThresholdChange(e.target.value)}
-                  className={`h-11 pr-8 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
-                />
+                  className={`h-11 pr-8 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`} />
+                
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
               </div>
             </div>
 
-            {selected.subject_id && (
-              <div className="lg:col-span-2 flex items-end gap-3 h-full">
+            {selected.subject_id &&
+            <div className="lg:col-span-2 flex items-end gap-3 h-full">
                 <Button
-                  onClick={handleExportPDF}
-                  className="flex-1 h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200"
-                >
+                onClick={handleExportPDF}
+                className="flex-1 h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200">
+                
                   Download PDF Report
                 </Button>
                 <Button
-                  onClick={handleExportCSV}
-                  variant="outline"
-                  className="flex-1 h-11 border-primary text-primary hover:bg-primary/10 shadow-sm"
-                >
+                onClick={handleExportCSV}
+                variant="outline"
+                className="flex-1 h-11 border-primary text-primary hover:bg-primary/10 shadow-sm">
+                
                   Export CSV
                 </Button>
               </div>
-            )}
+            }
           </div>
 
-          {errorMessage && (
-            <div className={`p-4 rounded-xl flex items-center gap-3 border ${theme === 'dark' ? 'bg-destructive/10 border-destructive/20 text-destructive-foreground' : 'bg-red-50 border-red-100 text-red-700'}`}>
+          {errorMessage &&
+          <div className={`p-4 rounded-xl flex items-center gap-3 border ${theme === 'dark' ? 'bg-destructive/10 border-destructive/20 text-destructive-foreground' : 'bg-red-50 border-red-100 text-red-700'}`}>
               <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
               <p className="text-sm font-medium">{errorMessage}</p>
             </div>
-          )}
+          }
 
-          {areAllDropdownsSelected() ? (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+          {areAllDropdownsSelected() ?
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Statistics Overview Card */}
                 <Card className="xl:col-span-1 border border-border/50 shadow-sm overflow-hidden bg-muted/20">
@@ -431,9 +431,9 @@ const COAttainment = () => {
                     </div>
 
                     <Button
-                      onClick={handleCalculateFinalAttainment}
-                      className="w-full h-12 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 font-semibold tracking-wide"
-                    >
+                    onClick={handleCalculateFinalAttainment}
+                    className="w-full h-12 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 font-semibold tracking-wide">
+                    
                       Recalculate Final Attainment
                     </Button>
                   </CardContent>
@@ -461,8 +461,8 @@ const COAttainment = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {Object.values(coAttainment).map((co) => (
-                            <TableRow key={co.co} className="hover:bg-muted/30 transition-colors">
+                          {Object.values(coAttainment).map((co) =>
+                        <TableRow key={co.co} className="hover:bg-muted/30 transition-colors">
                               <TableCell className="text-center font-semibold text-primary whitespace-nowrap">{co.co}</TableCell>
                               <TableCell className="font-medium whitespace-nowrap">{co.maxMarks}</TableCell>
                               <TableCell className="text-muted-foreground whitespace-nowrap">{co.targetMarks.toFixed(1)}</TableCell>
@@ -471,12 +471,12 @@ const COAttainment = () => {
                                 <div className="flex flex-col gap-1">
                                   <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                                     <div
-                                      className={`h-full rounded-full ${co.totalStudents > 0 && (co.studentsAboveTarget / co.totalStudents) >= 0.6 ? 'bg-green-500' : 'bg-amber-500'}`}
-                                      style={{ width: `${co.totalStudents > 0 ? (co.studentsAboveTarget / co.totalStudents) * 100 : 0}%` }}
-                                    />
+                                  className={`h-full rounded-full ${co.totalStudents > 0 && co.studentsAboveTarget / co.totalStudents >= 0.6 ? 'bg-green-500' : 'bg-amber-500'}`}
+                                  style={{ width: `${co.totalStudents > 0 ? co.studentsAboveTarget / co.totalStudents * 100 : 0}%` }} />
+                                
                                   </div>
                                   <span className="text-[10px] font-semibold text-muted-foreground">
-                                    {co.totalStudents > 0 ? ((co.studentsAboveTarget / co.totalStudents) * 100).toFixed(0) : 0}%
+                                    {co.totalStudents > 0 ? (co.studentsAboveTarget / co.totalStudents * 100).toFixed(0) : 0}%
                                   </span>
                                 </div>
                               </TableCell>
@@ -494,23 +494,23 @@ const COAttainment = () => {
                               </TableCell>
                               <TableCell className="text-center">
                                 <Input
-                                  type="number"
-                                  min="0"
-                                  max="3"
-                                  step="0.1"
-                                  value={indirectAttainment[co.co] || 0}
-                                  onChange={(e) => handleIndirectAttainmentChange(co.co, e.target.value)}
-                                  className="w-16 h-8 text-center mx-auto text-xs font-semibold bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
-                                />
+                              type="number"
+                              min="0"
+                              max="3"
+                              step="0.1"
+                              value={indirectAttainment[co.co] || 0}
+                              onChange={(e) => handleIndirectAttainmentChange(co.co, e.target.value)}
+                              className="w-16 h-8 text-center mx-auto text-xs font-semibold bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary" />
+                            
                               </TableCell>
                               <TableCell className="text-right pr-6">
                                 <div className="flex flex-col items-end">
-                                  <span className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-tight ${finalAttainment[co.co]?.level === 3
-                                    ? 'bg-green-500/10 text-green-600'
-                                    : finalAttainment[co.co]?.level === 2
-                                      ? 'bg-amber-500/10 text-amber-600'
-                                      : 'bg-red-500/10 text-red-600'
-                                    }`}>
+                                  <span className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-tight ${finalAttainment[co.co]?.level === 3 ?
+                              'bg-green-500/10 text-green-600' :
+                              finalAttainment[co.co]?.level === 2 ?
+                              'bg-amber-500/10 text-amber-600' :
+                              'bg-red-500/10 text-red-600'}`
+                              }>
                                     Level {finalAttainment[co.co]?.level ?? "N/A"}
                                   </span>
                                   <span className="text-[10px] font-medium text-muted-foreground mt-1">
@@ -519,16 +519,16 @@ const COAttainment = () => {
                                 </div>
                               </TableCell>
                             </TableRow>
-                          ))}
+                        )}
                         </TableBody>
                       </Table>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            </div>
-          ) : (
-            <div className={`p-12 text-center rounded-3xl border-2 border-dashed ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50 border-gray-200'}`}>
+            </div> :
+
+          <div className={`p-12 text-center rounded-3xl border-2 border-dashed ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50 border-gray-200'}`}>
               <div className="mx-auto w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4 bg-primary/20">
                 <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -539,11 +539,11 @@ const COAttainment = () => {
                 Choose a subject from the dropdown above to start calculating CO attainment
               </p>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default COAttainment;

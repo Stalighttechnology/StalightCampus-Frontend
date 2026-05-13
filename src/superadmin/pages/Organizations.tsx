@@ -12,8 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
+  DropdownMenuTrigger } from
+"../../components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,23 +22,23 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
+  AlertDialogTitle } from
+"../../components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog";
+  DialogTitle } from
+"../../components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
+  SelectValue } from
+"../../components/ui/select";
 
 const Organizations = () => {
   const [orgs, setOrgs] = useState<any[]>([]);
@@ -63,7 +63,7 @@ const Organizations = () => {
       const data = await response.json();
       setOrgs(data.organizations || []);
     } catch (error) {
-      console.error("Error fetching organizations:", error);
+
     } finally {
       setLoading(false);
     }
@@ -84,11 +84,11 @@ const Organizations = () => {
         }
       });
       if (response.ok) {
-        setOrgs(orgs.filter(o => o.id !== deleteOrg.id));
+        setOrgs(orgs.filter((o) => o.id !== deleteOrg.id));
         setDeleteOrg(null);
       }
     } catch (error) {
-      console.error("Error deleting organization:", error);
+
     } finally {
       setActionLoading(false);
     }
@@ -111,13 +111,13 @@ const Organizations = () => {
         setPlanOrg(null);
       }
     } catch (error) {
-      console.error("Error updating organization:", error);
+
     } finally {
       setActionLoading(false);
     }
   };
 
-  const filteredOrgs = orgs.filter(o => o.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredOrgs = orgs.filter((o) => o.name.toLowerCase().includes(search.toLowerCase()));
 
   const getStatusBadge = (org: any) => {
     if (!org.is_active) {
@@ -133,8 +133,8 @@ const Organizations = () => {
             <span className="text-[10px] text-muted-foreground">
               {new Date(org.trial_ends_at).toLocaleString()}
             </span>
-          </div>
-        );
+          </div>);
+
       }
       return (
         <div className="flex flex-col gap-1 items-start">
@@ -142,29 +142,29 @@ const Organizations = () => {
           <span className="text-[10px] text-muted-foreground">
             Ends: {new Date(org.trial_ends_at).toLocaleString()}
           </span>
-        </div>
-      );
+        </div>);
+
     }
 
     return (
       <div className="flex flex-col gap-1 items-start">
         <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Active</Badge>
-        {org.subscription_expires_at ? (
-          <span className="text-[10px] text-muted-foreground">
+        {org.subscription_expires_at ?
+        <span className="text-[10px] text-muted-foreground">
             Expires: {new Date(org.subscription_expires_at).toLocaleString()}
-          </span>
-        ) : (
-          <span className="text-[10px] text-muted-foreground">No Expiry</span>
-        )}
-      </div>
-    );
+          </span> :
+
+        <span className="text-[10px] text-muted-foreground">No Expiry</span>
+        }
+      </div>);
+
   };
 
   const getPlanBadge = (plan: string) => {
     switch (plan) {
-      case 'advance': return <Badge variant="outline" className="border-purple-500 text-purple-600">Advance</Badge>;
-      case 'pro': return <Badge variant="outline" className="border-blue-500 text-blue-600">Pro</Badge>;
-      default: return <Badge variant="outline" className="border-gray-400 text-gray-600">Basic</Badge>;
+      case 'advance':return <Badge variant="outline" className="border-purple-500 text-purple-600">Advance</Badge>;
+      case 'pro':return <Badge variant="outline" className="border-blue-500 text-blue-600">Pro</Badge>;
+      default:return <Badge variant="outline" className="border-gray-400 text-gray-600">Basic</Badge>;
     }
   };
 
@@ -188,8 +188,8 @@ const Organizations = () => {
             placeholder="Search organizations..."
             className="pl-8 bg-background shadow-sm"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+            onChange={(e) => setSearch(e.target.value)} />
+          
         </div>
       </div>
 
@@ -206,17 +206,17 @@ const Organizations = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
-              <TableRow>
+            {loading ?
+            <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell>
-              </TableRow>
-            ) : filteredOrgs.length === 0 ? (
-              <TableRow>
+              </TableRow> :
+            filteredOrgs.length === 0 ?
+            <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No organizations found.</TableCell>
-              </TableRow>
-            ) : (
-              filteredOrgs.map((org) => (
-                <TableRow key={org.id} className="hover:bg-muted/50">
+              </TableRow> :
+
+            filteredOrgs.map((org) =>
+            <TableRow key={org.id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -240,23 +240,23 @@ const Organizations = () => {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => {
-                          setPlanOrg(org);
-                          setNewPlan(org.plan_type);
-                        }}>
+                      setPlanOrg(org);
+                      setNewPlan(org.plan_type);
+                    }}>
                           <Edit className="w-4 h-4 mr-2 text-blue-500" /> Change Plan
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="text-red-600 focus:text-red-600"
-                          onClick={() => setDeleteOrg(org)}
-                        >
+                      className="text-red-600 focus:text-red-600"
+                      onClick={() => setDeleteOrg(org)}>
+                      
                           <Trash2 className="w-4 h-4 mr-2" /> Delete Organization
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+            )
+            }
           </TableBody>
         </Table>
       </div>
@@ -280,8 +280,8 @@ const Organizations = () => {
                 handleDelete();
               }}
               className="bg-red-600 hover:bg-red-700"
-              disabled={actionLoading}
-            >
+              disabled={actionLoading}>
+              
               {actionLoading ? "Deleting..." : "Delete Organization"}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -317,8 +317,8 @@ const Organizations = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Organizations;

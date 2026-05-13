@@ -9,16 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+  SelectItem } from
+"@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger } from
+"@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -27,8 +27,8 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle } from
+"@/components/ui/alert-dialog";
 import { Loader2, Plus, CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -44,8 +44,8 @@ import {
   toggleAnnouncementActive,
   markAnnouncementRead,
   Announcement,
-  CreateAnnouncementRequest,
-} from "@/utils/announcements_api";
+  CreateAnnouncementRequest } from
+"@/utils/announcements_api";
 import AnnouncementSections from "@/components/common/AnnouncementSections";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -69,7 +69,7 @@ const HODAnnouncementManagement = () => {
     target_roles: ["student", "faculty"],
     is_global: false,
     expires_at: "",
-    priority: "normal",
+    priority: "normal"
   });
 
   const [myPage, setMyPage] = useState(1);
@@ -83,9 +83,9 @@ const HODAnnouncementManagement = () => {
   const loadAnnouncements = async () => {
     setLoading(true);
     setError(null);
-    const response = await fetchAnnouncements({ 
-      myPage, 
-      receivedPage, 
+    const response = await fetchAnnouncements({
+      myPage,
+      receivedPage,
       pageSize,
       includeInactive: true,
       includeExpired: true
@@ -125,7 +125,7 @@ const HODAnnouncementManagement = () => {
         text: "Please fill all required fields",
         icon: "warning",
         confirmButtonColor: "#9147e0",
-        target: document.body,
+        target: document.body
       });
       return;
     }
@@ -136,7 +136,7 @@ const HODAnnouncementManagement = () => {
         text: "Please select at least one target role",
         icon: "warning",
         confirmButtonColor: "#9147e0",
-        target: document.body,
+        target: document.body
       });
       return;
     }
@@ -145,21 +145,21 @@ const HODAnnouncementManagement = () => {
       // HOD announcements are always branch-specific and not global
       const payload: CreateAnnouncementRequest = {
         ...formData,
-        is_global: false,
+        is_global: false
       };
 
       if (editingId) {
         const response = await updateAnnouncement(editingId, payload);
         if (response.success) {
           setMyAnnouncements((prev) =>
-            prev.map((a) => (a.id === editingId ? response.data : a))
+          prev.map((a) => a.id === editingId ? response.data : a)
           );
           MySwal.fire({
             title: "Updated",
             text: "Announcement updated successfully",
             icon: "success",
             confirmButtonColor: "#9147e0",
-            target: document.body,
+            target: document.body
           });
           setShowCreateDialog(false);
           resetForm();
@@ -169,7 +169,7 @@ const HODAnnouncementManagement = () => {
             text: response.message || "Failed to update announcement",
             icon: "error",
             confirmButtonColor: "#9147e0",
-            target: document.body,
+            target: document.body
           });
         }
       } else {
@@ -181,7 +181,7 @@ const HODAnnouncementManagement = () => {
             text: "Announcement created successfully",
             icon: "success",
             confirmButtonColor: "#9147e0",
-            target: document.body,
+            target: document.body
           });
           setShowCreateDialog(false);
           resetForm();
@@ -191,7 +191,7 @@ const HODAnnouncementManagement = () => {
             text: response.message || "Failed to create announcement",
             icon: "error",
             confirmButtonColor: "#9147e0",
-            target: document.body,
+            target: document.body
           });
         }
       }
@@ -201,7 +201,7 @@ const HODAnnouncementManagement = () => {
         text: error.message || "An error occurred",
         icon: "error",
         confirmButtonColor: "#9147e0",
-        target: document.body,
+        target: document.body
       });
     }
   };
@@ -215,7 +215,7 @@ const HODAnnouncementManagement = () => {
       is_global: false,
       branch: announcement.branch,
       expires_at: announcement.expires_at?.split("T")[0] || "",
-      priority: announcement.priority,
+      priority: announcement.priority
     });
     setShowCreateDialog(true);
   };
@@ -231,14 +231,14 @@ const HODAnnouncementManagement = () => {
           title: "Deleted",
           text: "Announcement deleted successfully",
           icon: "success",
-          confirmButtonColor: "#9147e0",
+          confirmButtonColor: "#9147e0"
         });
       } else {
         MySwal.fire({
           title: "Error",
           text: response.message || "Failed to delete announcement",
           icon: "error",
-          confirmButtonColor: "#9147e0",
+          confirmButtonColor: "#9147e0"
         });
       }
       setDeletingId(null);
@@ -247,7 +247,7 @@ const HODAnnouncementManagement = () => {
         title: "Error",
         text: error.message || "An error occurred",
         icon: "error",
-        confirmButtonColor: "#9147e0",
+        confirmButtonColor: "#9147e0"
       });
     }
   };
@@ -257,14 +257,14 @@ const HODAnnouncementManagement = () => {
       const response = await toggleAnnouncementActive(announcementId);
       if (response.success) {
         setMyAnnouncements((prev) =>
-          prev.map((a) => (a.id === announcementId ? response.data : a))
+        prev.map((a) => a.id === announcementId ? response.data : a)
         );
       } else {
         MySwal.fire({
           title: "Error",
           text: response.message || "Failed to toggle announcement",
           icon: "error",
-          confirmButtonColor: "#9147e0",
+          confirmButtonColor: "#9147e0"
         });
       }
     } catch (error: any) {
@@ -272,7 +272,7 @@ const HODAnnouncementManagement = () => {
         title: "Error",
         text: error.message || "An error occurred",
         icon: "error",
-        confirmButtonColor: "#9147e0",
+        confirmButtonColor: "#9147e0"
       });
     }
   };
@@ -282,15 +282,15 @@ const HODAnnouncementManagement = () => {
       const response = await markAnnouncementRead(announcementId);
       if (response.success) {
         setReceivedAnnouncements((prev) =>
-          prev.map((a) => (a.id === announcementId ? { ...a, is_read: true } : a))
+        prev.map((a) => a.id === announcementId ? { ...a, is_read: true } : a)
         );
         // Optimistically update local unread count for real-time feel
-        setUnreadReceivedCount(prev => Math.max(0, prev - 1));
+        setUnreadReceivedCount((prev) => Math.max(0, prev - 1));
         // Trigger global unread count refresh
         window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: 1 } }));
       }
     } catch (error: any) {
-      console.error("Failed to mark as read:", error);
+
     }
   };
 
@@ -302,7 +302,7 @@ const HODAnnouncementManagement = () => {
       target_roles: ["student", "faculty"],
       is_global: false,
       expires_at: "",
-      priority: "normal",
+      priority: "normal"
     });
   };
 
@@ -334,23 +334,23 @@ const HODAnnouncementManagement = () => {
               <DialogTrigger asChild>
                 <Button
                   onClick={() => resetForm()}
-                  className="w-full sm:w-auto gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200 shadow-md"
-                >
+                  className="w-full sm:w-auto gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200 shadow-md">
+                  
                   <Plus className="w-4 h-4" />
                   New Announcement
                 </Button>
               </DialogTrigger>
-              <DialogContent 
-                className="mobile-modal w-[90%] sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl custom-scrollbar"
-              >
+              <DialogContent
+                className="mobile-modal w-[90%] sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl custom-scrollbar">
+                
               <DialogHeader>
                 <DialogTitle>
                   {editingId ? "Edit Announcement" : "Create Announcement"}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingId
-                    ? "Update the announcement details below"
-                    : "Create a new announcement for your branch"}
+                  {editingId ?
+                    "Update the announcement details below" :
+                    "Create a new announcement for your branch"}
                 </DialogDescription>
               </DialogHeader>
 
@@ -358,37 +358,37 @@ const HODAnnouncementManagement = () => {
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
                   <Input
-                    id="title"
-                    placeholder="Announcement title"
-                    value={formData.title}
-                    onChange={(e) =>
+                      id="title"
+                      placeholder="Announcement title"
+                      value={formData.title}
+                      onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
-                    }
-                  />
+                      } />
+                    
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="message">Message *</Label>
                   <Textarea
-                    id="message"
-                    placeholder="Announcement message"
-                    value={formData.message}
-                    onChange={(e) =>
+                      id="message"
+                      placeholder="Announcement message"
+                      value={formData.message}
+                      onChange={(e) =>
                       setFormData({ ...formData, message: e.target.value })
-                    }
-                    className={`h-20 resize-none overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`}
-                  />
+                      }
+                      className={`h-20 resize-none overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`} />
+                    
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="priority">Priority</Label>
                     <Select
-                      value={formData.priority}
-                      onValueChange={(value: any) =>
+                        value={formData.priority}
+                        onValueChange={(value: any) =>
                         setFormData({ ...formData, priority: value })
-                      }
-                    >
+                        }>
+                        
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -406,26 +406,26 @@ const HODAnnouncementManagement = () => {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !formData.expires_at && "text-muted-foreground",
-                            theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'
-                          )}
-                        >
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !formData.expires_at && "text-muted-foreground",
+                              theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'
+                            )}>
+                            
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {formData.expires_at ? format(new Date(formData.expires_at), "PPP") : <span>Pick a date</span>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode="single"
-                          selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
-                          onSelect={(date) =>
+                            mode="single"
+                            selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
+                            onSelect={(date) =>
                             setFormData({ ...formData, expires_at: date ? format(date, "yyyy-MM-dd") : "" })
-                          }
-                          initialFocus
-                        />
+                            }
+                            initialFocus />
+                          
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -440,7 +440,7 @@ const HODAnnouncementManagement = () => {
                 <div className="space-y-2">
                   <Label>Target Roles *</Label>
                   <div className="grid grid-cols-2 gap-3">
-                    {roles.map((role) => (
+                    {roles.map((role) =>
                       <div key={role} className="flex items-center gap-2">
                         <Checkbox
                           id={role}
@@ -450,39 +450,39 @@ const HODAnnouncementManagement = () => {
                               setFormData({
                                 ...formData,
                                 target_roles: [
-                                  ...(formData.target_roles || []),
-                                  role,
-                                ],
+                                ...(formData.target_roles || []),
+                                role]
+
                               });
                             } else {
                               setFormData({
                                 ...formData,
                                 target_roles: (formData.target_roles || []).filter(
                                   (r) => r !== role
-                                ),
+                                )
                               });
                             }
-                          }}
-                        />
+                          }} />
+                        
                         <Label htmlFor={role} className="font-normal capitalize">
                           {role}
                         </Label>
                       </div>
-                    ))}
+                      )}
                   </div>
                 </div>
 
                 <div className="flex gap-3 justify-end pt-4">
                   <Button
-                    variant="outline"
-                    onClick={() => setShowCreateDialog(false)}
-                  >
+                      variant="outline"
+                      onClick={() => setShowCreateDialog(false)}>
+                      
                     Cancel
                   </Button>
                   <Button
-                    onClick={handleCreateOrUpdate}
-                    className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200"
-                  >
+                      onClick={handleCreateOrUpdate}
+                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200">
+                      
                     {editingId ? "Update" : "Create"} Announcement
                   </Button>
                 </div>
@@ -493,24 +493,24 @@ const HODAnnouncementManagement = () => {
       </Card>
 
       {/* Loading State */}
-      {loading && (
+      {loading &&
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
         </div>
-      )}
+        }
 
       {/* Error State */}
-      {error && (
+      {error &&
         <div className="p-4 rounded-lg bg-destructive/10 text-destructive">
           <p className="font-medium">{error}</p>
         </div>
-      )}
+        }
 
       {/* Announcement Sections */}
-      {!loading && !error && (
+      {!loading && !error &&
         <AnnouncementSections
           myAnnouncements={myAnnouncements}
           receivedAnnouncements={receivedAnnouncements}
@@ -521,17 +521,17 @@ const HODAnnouncementManagement = () => {
           loading={loading}
           showActions={true}
           myPagination={{ count: totalMyCount, page: myPage, pageSize }}
-          receivedPagination={{ 
-            count: totalReceivedCount, 
-            page: receivedPage, 
+          receivedPagination={{
+            count: totalReceivedCount,
+            page: receivedPage,
             pageSize,
             unreadCount: unreadReceivedCount
           }}
           onPageChange={handlePageChange}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-      )}
+          onTabChange={setActiveTab} />
+
+        }
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
@@ -546,17 +546,17 @@ const HODAnnouncementManagement = () => {
           <div className="flex gap-3 justify-end">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                
               Delete
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-    </>
-  );
+    </>);
+
 };
 
 export default HODAnnouncementManagement;

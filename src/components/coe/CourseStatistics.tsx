@@ -54,7 +54,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       const options = await getFilterOptions();
       setFilterOptions(options);
     } catch (error) {
-      console.error('Error fetching filter options:', error);
+
     }
   };
 
@@ -67,7 +67,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       const sems = await getSemesters(parseInt(branchId));
       setSemesters(sems);
     } catch (error) {
-      console.error('Error fetching semesters:', error);
+
       setSemesters([]);
     }
   };
@@ -86,7 +86,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
         });
       }
     } catch (error) {
-      console.error('Error fetching course statistics:', error);
+
     } finally {
       setLoading(false);
     }
@@ -112,12 +112,12 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       // Generate PDF
       const doc = new jsPDF('p', 'mm', 'a4');
       const head = [['Subject Code', 'Subject Name', 'Total Students', 'Applications', 'Application Rate', 'Faculty']];
-      const body = allCourses.map(c => [c.subject_code || '', c.subject_name || '', c.total_students || 0, c.applied_students || 0, `${c.application_rate || 0}%`, c.faculty_name || '']);
+      const body = allCourses.map((c) => [c.subject_code || '', c.subject_name || '', c.total_students || 0, c.applied_students || 0, `${c.application_rate || 0}%`, c.faculty_name || '']);
       autoTable(doc, { head, body, startY: 20, styles: { fontSize: 9 } });
       const fileName = `course_statistics_${filters.branch}_${filters.semester}.pdf`;
       doc.save(fileName);
     } catch (e) {
-      console.error('Export error', e);
+
     } finally {
       setExporting(false);
     }
@@ -152,22 +152,22 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 course-statistics-filter-grid">
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Batch</label>
-              <Select value={filters.batch} onValueChange={(value) => setFilters({...filters, batch: value})}>
+              <Select value={filters.batch} onValueChange={(value) => setFilters({ ...filters, batch: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterOptions.batches.map((batch: any) => (
-                    <SelectItem key={batch.id} value={batch.id.toString()}>
+                  {filterOptions.batches.map((batch: any) =>
+                  <SelectItem key={batch.id} value={batch.id.toString()}>
                       {batch.name}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Exam Period</label>
-              <Select value={filters.exam_period} onValueChange={(value) => setFilters({...filters, exam_period: value})}>
+              <Select value={filters.exam_period} onValueChange={(value) => setFilters({ ...filters, exam_period: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select exam period" />
                 </SelectTrigger>
@@ -184,33 +184,33 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Branch</label>
               <Select value={filters.branch} onValueChange={(value) => {
-                setFilters({...filters, branch: value, semester: ""});
+                setFilters({ ...filters, branch: value, semester: "" });
                 fetchSemesters(value);
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterOptions.branches.map((branch: any) => (
-                    <SelectItem key={branch.id} value={branch.id.toString()}>
+                  {filterOptions.branches.map((branch: any) =>
+                  <SelectItem key={branch.id} value={branch.id.toString()}>
                       {branch.name}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Semester</label>
-              <Select value={filters.semester} onValueChange={(value) => setFilters({...filters, semester: value})}>
+              <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.map((semester: any) => (
-                    <SelectItem key={semester.id} value={semester.id.toString()}>
+                  {semesters.map((semester: any) =>
+                  <SelectItem key={semester.id} value={semester.id.toString()}>
                       Semester {semester.number}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -219,8 +219,8 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       </Card>
 
       {/* Summary Cards */}
-      {data && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 course-statistics-summary">
+      {data &&
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 course-statistics-summary">
           <Card className="course-statistics-summary-card overflow-hidden">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row items-center justify-between w-full h-full">
@@ -249,19 +249,19 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
             </CardContent>
           </Card>
         </div>
-      )}
+      }
 
       {/* Course Statistics Table */}
-      {data && (
-        <Card className="course-statistics-table-card">
+      {data &&
+      <Card className="course-statistics-table-card">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <CardTitle className="text-lg sm:text-xl font-semibold">Subject-wise Application Statistics ({totalCount !== null ? totalCount : (data?.courses?.length ?? 0)})</CardTitle>
+              <CardTitle className="text-lg sm:text-xl font-semibold">Subject-wise Application Statistics ({totalCount !== null ? totalCount : data?.courses?.length ?? 0})</CardTitle>
                <Button
-                size="sm"
-                onClick={handleExport}
-                className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 text-[18px] sm:text-sm font-semibold sm:font-semibold"
-              >
+              size="sm"
+              onClick={handleExport}
+              className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 text-[18px] sm:text-sm font-semibold sm:font-semibold">
+              
                 <Download className="mr-2 h-4 w-4" />
                 {exporting ? 'Exporting...' : 'Export PDF'}
               </Button>
@@ -281,8 +281,8 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(data?.courses || []).map((course: any) => (
-                  <TableRow key={course.subject_id} className="sm:table-row">
+                {(data?.courses || []).map((course: any) =>
+                <TableRow key={course.subject_id} className="sm:table-row">
                     <TableCell className="font-semibold sm:font-medium text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Code">{course.subject_code}</TableCell>
                     <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Name">{course.subject_name}</TableCell>
                     <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Total Students">{course.total_students}</TableCell>
@@ -294,29 +294,29 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </TableCell>
                     <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Status">{getApplicationRateBadge(course.application_rate)}</TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
               </Table>
             </div>
-            {(data?.courses?.length ?? 0) === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
+            {(data?.courses?.length ?? 0) === 0 &&
+          <div className="text-center py-8 text-muted-foreground">
                 No course statistics found for the selected filters.
               </div>
-            )}
+          }
           {/* Pagination controls */}
           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between mt-6 gap-4 border-t pt-4 pagination-container">
             <div className="text-[16px] sm:text-sm text-muted-foreground pagination-info">
-              {totalCount !== null && totalCount > 0 
-                ? `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} subjects` 
-                : `Showing 0 subjects`}
+              {totalCount !== null && totalCount > 0 ?
+              `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} subjects` :
+              `Showing 0 subjects`}
             </div>
             <div className="flex items-center gap-2 pagination-controls">
               <Button
                 size="sm"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
-              >
+                className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
+                
                 Prev
               </Button>
 
@@ -324,28 +324,28 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <Button
                   size="sm"
                   variant="default"
-                  className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary"
-                >
+                  className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary">
+                  
                   {page}
                 </Button>
               </div>
 
               <Button
                 size="sm"
-                onClick={() => setPage(p => p + 1)}
+                onClick={() => setPage((p) => p + 1)}
                 disabled={!pagination?.next}
-                className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
-              >
+                className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
+                
                 Next
               </Button>
             </div>
           </div>
           </CardContent>
         </Card>
-      )}
+      }
 
-      {loading && (
-        <div className="space-y-6">
+      {loading &&
+      <div className="space-y-6">
           <SkeletonStatsGrid items={2} columns={2} />
           <Card>
             <CardContent className="p-6">
@@ -353,10 +353,10 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
             </CardContent>
           </Card>
         </div>
-      )}
+      }
 
-      {!data && !loading && (
-        <Card className="border-dashed border-2">
+      {!data && !loading &&
+      <Card className="border-dashed border-2">
           <CardContent className="flex flex-col items-center justify-center py-24 text-center">
              <div className="bg-primary/5 p-8 rounded-full mb-6">
               <BookOpen className="w-14 h-14 text-primary/40" />
@@ -367,9 +367,9 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
             </p>
           </CardContent>
         </Card>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 });
 
 CourseStatistics.displayName = 'CourseStatistics';

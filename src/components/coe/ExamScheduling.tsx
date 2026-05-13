@@ -4,14 +4,14 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue } from
+"@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DialogTitle } from
+"@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, parse } from "date-fns";
@@ -34,28 +34,28 @@ import {
   getSemesters,
   Batch,
   Branch,
-  Semester
-} from "../../utils/coe_api";
+  Semester } from
+"../../utils/coe_api";
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 
 const EXAM_TYPES = [
-  { value: 'internal_1', label: '1st Internal Assessment' },
-  { value: 'internal_2', label: '2nd Internal Assessment' },
-  { value: 'internal_3', label: '3rd Internal Assessment' },
-  { value: 'semester_exam', label: 'Semester End Exam' },
-  { value: 'revaluation', label: 'Revaluation Exam' },
-  { value: 'makeup', label: 'Makeup Exam' },
-  { value: 'supplementary', label: 'Supplementary Exam' },
-];
+{ value: 'internal_1', label: '1st Internal Assessment' },
+{ value: 'internal_2', label: '2nd Internal Assessment' },
+{ value: 'internal_3', label: '3rd Internal Assessment' },
+{ value: 'semester_exam', label: 'Semester End Exam' },
+{ value: 'revaluation', label: 'Revaluation Exam' },
+{ value: 'makeup', label: 'Makeup Exam' },
+{ value: 'supplementary', label: 'Supplementary Exam' }];
+
 
 const EXAM_PERIODS = [
-  { value: 'june_july', label: 'June/July' },
-  { value: 'nov_dec', label: 'November/December' },
-  { value: 'jan_feb', label: 'January/February' },
-  { value: 'apr_may', label: 'April/May' },
-];
+{ value: 'june_july', label: 'June/July' },
+{ value: 'nov_dec', label: 'November/December' },
+{ value: 'jan_feb', label: 'January/February' },
+{ value: 'apr_may', label: 'April/May' }];
+
 
 const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { theme } = useTheme();
@@ -138,9 +138,9 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     if (batches.length > 0 && semesters.length > 0) return; // already loaded
     try {
       const [filters, semRes] = await Promise.all([
-        getFilterOptions(),
-        fetchWithTokenRefresh(`${API_ENDPOINT}/coe/semesters/`)
-      ]);
+      getFilterOptions(),
+      fetchWithTokenRefresh(`${API_ENDPOINT}/coe/semesters/`)]
+      );
 
       setBatches(filters.batches || []);
       setBranches(filters.branches || []);
@@ -150,7 +150,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
         setSemesters(semJson.data.semesters || []);
       }
     } catch (e) {
-      console.error("Failed to load filters", e);
+
     }
   };
 
@@ -169,8 +169,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
         // Update state locally to avoid extra GET call
         const newExam = res.data; // Backend should return the created exam object
         if (newExam) {
-          setExams(prev => [newExam, ...prev].slice(0, 10)); // Add to top and keep page size
-          setPagination(prev => ({
+          setExams((prev) => [newExam, ...prev].slice(0, 10)); // Add to top and keep page size
+          setPagination((prev) => ({
             ...prev,
             totalItems: prev.totalItems + 1,
             totalPages: Math.ceil((prev.totalItems + 1) / 10)
@@ -203,7 +203,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!',
       background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-      color: theme === 'dark' ? '#ffffff' : '#000000',
+      color: theme === 'dark' ? '#ffffff' : '#000000'
     });
 
     if (!result.isConfirmed) return;
@@ -212,8 +212,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     try {
       const res = await deleteExam(id);
       if (res.success) {
-        setExams(prev => prev.filter(ex => ex.id !== id));
-        setPagination(prev => ({
+        setExams((prev) => prev.filter((ex) => ex.id !== id));
+        setPagination((prev) => ({
           ...prev,
           totalItems: prev.totalItems - 1
         }));
@@ -252,8 +252,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               loadFilters();
               setShowForm(true);
             }}
-            className="flex items-center gap-2"
-          >
+            className="flex items-center gap-2">
+            
             <Plus className="w-4 h-4" />
             Schedule New Exam
           </Button>
@@ -274,48 +274,48 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <Input
                   placeholder="e.g. 1st Internal Assessment - Mathematics"
                   value={formData.title}
-                  onChange={e => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
-                  className="h-12 sm:h-10 text-[18px] sm:text-sm"
-                />
+                  className="h-12 sm:h-10 text-[18px] sm:text-sm" />
+                
               </div>
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Batch</label>
-                <Select value={formData.batch_id} onValueChange={v => setFormData({ ...formData, batch_id: v })}>
+                <Select value={formData.batch_id} onValueChange={(v) => setFormData({ ...formData, batch_id: v })}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Batch" /></SelectTrigger>
                   <SelectContent>
-                    {batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                    {batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Semester</label>
-                <Select value={formData.semester_id} onValueChange={v => setFormData({ ...formData, semester_id: v })}>
+                <Select value={formData.semester_id} onValueChange={(v) => setFormData({ ...formData, semester_id: v })}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Semester" /></SelectTrigger>
                   <SelectContent>
-                    {semesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)}
+                    {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Exam Type</label>
-                <Select value={formData.exam_type} onValueChange={v => setFormData({ ...formData, exam_type: v })}>
+                <Select value={formData.exam_type} onValueChange={(v) => setFormData({ ...formData, exam_type: v })}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Type" /></SelectTrigger>
                   <SelectContent>
-                    {EXAM_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    {EXAM_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Exam Period</label>
-                <Select value={formData.exam_period} onValueChange={v => setFormData({ ...formData, exam_period: v })}>
+                <Select value={formData.exam_period} onValueChange={(v) => setFormData({ ...formData, exam_period: v })}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Period" /></SelectTrigger>
                   <SelectContent>
-                    {EXAM_PERIODS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                    {EXAM_PERIODS.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -326,8 +326,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`w-full justify-start text-left font-normal h-12 px-4 rounded-xl border ${!formData.date && "text-muted-foreground"} ${theme === 'dark' ? 'bg-background border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-50'}`}
-                    >
+                      className={`w-full justify-start text-left font-normal h-12 px-4 rounded-xl border ${!formData.date && "text-muted-foreground"} ${theme === 'dark' ? 'bg-background border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
+                      
                       <Calendar className="mr-3 h-5 w-5 text-primary" />
                       <span className="text-[18px] sm:text-sm">{formData.date ? format(new Date(formData.date), "PPP") : "Pick a date"}</span>
                     </Button>
@@ -341,8 +341,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                         setDateOpen(false);
                       }}
                       initialFocus
-                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                    />
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
+                    
                   </PopoverContent>
                 </Popover>
               </div>
@@ -350,32 +350,32 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-semibold">Start Time</label>
                 <div className="flex gap-2">
-                  <Select 
-                    value={from24h(formData.start_time).h} 
-                    onValueChange={v => setFormData({ ...formData, start_time: to24h(v, from24h(formData.start_time).m, from24h(formData.start_time).p) })}
-                  >
+                  <Select
+                    value={from24h(formData.start_time).h}
+                    onValueChange={(v) => setFormData({ ...formData, start_time: to24h(v, from24h(formData.start_time).m, from24h(formData.start_time).p) })}>
+                    
                     <SelectTrigger className="flex-1 h-12 rounded-xl px-3 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent className="max-h-48">
-                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map(h => (
-                        <SelectItem key={h} value={h}>{h}</SelectItem>
-                      ))}
+                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map((h) =>
+                      <SelectItem key={h} value={h}>{h}</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
-                  <Select 
-                    value={from24h(formData.start_time).m} 
-                    onValueChange={v => setFormData({ ...formData, start_time: to24h(from24h(formData.start_time).h, v, from24h(formData.start_time).p) })}
-                  >
+                  <Select
+                    value={from24h(formData.start_time).m}
+                    onValueChange={(v) => setFormData({ ...formData, start_time: to24h(from24h(formData.start_time).h, v, from24h(formData.start_time).p) })}>
+                    
                     <SelectTrigger className="flex-1 h-12 rounded-xl px-3 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent className="max-h-48">
-                      {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(m => (
-                        <SelectItem key={m} value={m}>{m}</SelectItem>
-                      ))}
+                      {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((m) =>
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
-                  <Select 
-                    value={from24h(formData.start_time).p} 
-                    onValueChange={v => setFormData({ ...formData, start_time: to24h(from24h(formData.start_time).h, from24h(formData.start_time).m, v) })}
-                  >
+                  <Select
+                    value={from24h(formData.start_time).p}
+                    onValueChange={(v) => setFormData({ ...formData, start_time: to24h(from24h(formData.start_time).h, from24h(formData.start_time).m, v) })}>
+                    
                     <SelectTrigger className="w-[75px] sm:w-[70px] h-12 rounded-xl px-2 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="AM">AM</SelectItem>
@@ -388,32 +388,32 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-semibold">End Time</label>
                 <div className="flex gap-2">
-                  <Select 
-                    value={from24h(formData.end_time).h} 
-                    onValueChange={v => setFormData({ ...formData, end_time: to24h(v, from24h(formData.end_time).m, from24h(formData.end_time).p) })}
-                  >
+                  <Select
+                    value={from24h(formData.end_time).h}
+                    onValueChange={(v) => setFormData({ ...formData, end_time: to24h(v, from24h(formData.end_time).m, from24h(formData.end_time).p) })}>
+                    
                     <SelectTrigger className="flex-1 h-12 rounded-xl px-3 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent className="max-h-48">
-                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map(h => (
-                        <SelectItem key={h} value={h}>{h}</SelectItem>
-                      ))}
+                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map((h) =>
+                      <SelectItem key={h} value={h}>{h}</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
-                  <Select 
-                    value={from24h(formData.end_time).m} 
-                    onValueChange={v => setFormData({ ...formData, end_time: to24h(from24h(formData.end_time).h, v, from24h(formData.end_time).p) })}
-                  >
+                  <Select
+                    value={from24h(formData.end_time).m}
+                    onValueChange={(v) => setFormData({ ...formData, end_time: to24h(from24h(formData.end_time).h, v, from24h(formData.end_time).p) })}>
+                    
                     <SelectTrigger className="flex-1 h-12 rounded-xl px-3 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent className="max-h-48">
-                      {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map(m => (
-                        <SelectItem key={m} value={m}>{m}</SelectItem>
-                      ))}
+                      {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((m) =>
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
-                  <Select 
-                    value={from24h(formData.end_time).p} 
-                    onValueChange={v => setFormData({ ...formData, end_time: to24h(from24h(formData.end_time).h, from24h(formData.end_time).m, v) })}
-                  >
+                  <Select
+                    value={from24h(formData.end_time).p}
+                    onValueChange={(v) => setFormData({ ...formData, end_time: to24h(from24h(formData.end_time).h, from24h(formData.end_time).m, v) })}>
+                    
                     <SelectTrigger className="w-[75px] sm:w-[70px] h-12 rounded-xl px-2 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="AM">AM</SelectItem>
@@ -425,17 +425,17 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-semibold">Venue / Room</label>
-                <Input placeholder="e.g. Room 302" value={formData.room} onChange={e => setFormData({ ...formData, room: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+                <Input placeholder="e.g. Room 302" value={formData.room} onChange={(e) => setFormData({ ...formData, room: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-semibold">Max Marks</label>
-                <Input type="number" value={formData.max_marks} onChange={e => setFormData({ ...formData, max_marks: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+                <Input type="number" value={formData.max_marks} onChange={(e) => setFormData({ ...formData, max_marks: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-semibold">Weightage (%)</label>
-                <Input type="number" value={formData.weightage} onChange={e => setFormData({ ...formData, weightage: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+                <Input type="number" value={formData.weightage} onChange={(e) => setFormData({ ...formData, weightage: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
               </div>
 
               <div className="sm:col-span-2 flex justify-end gap-3 pt-6 border-t mt-4">
@@ -450,12 +450,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
         <CardContent className="p-0">
           <div className="space-y-4">
-            {loading ? (
-              <div className="p-6">
+            {loading ?
+            <div className="p-6">
                 <SkeletonTable rows={10} cols={6} />
-              </div>
-            ) : exams.length === 0 ? (
-               <div className="px-6 py-12">
+              </div> :
+            exams.length === 0 ?
+            <div className="px-6 py-12">
                  <Card className="border-dashed border-2 shadow-none bg-transparent">
                     <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                       <div className="bg-primary/5 p-6 rounded-full mb-4">
@@ -467,8 +467,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                       </p>
                     </CardContent>
                  </Card>
-               </div>
-            ) : (
+               </div> :
+
             <>
               <div className="space-y-4">
                 <div className="hidden sm:block overflow-x-auto">
@@ -484,8 +484,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                       </tr>
                     </thead>
                     <tbody className={`whitespace-nowrap divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                      {Array.isArray(exams) && exams.map((ex) => (
-                        <tr key={ex.id} className={`hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
+                      {Array.isArray(exams) && exams.map((ex) =>
+                      <tr key={ex.id} className={`hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
                           <td className="px-6 py-4">
                             <div className="font-semibold text-foreground">{ex.title}</div>
                             <div className="text-xs text-muted-foreground mt-1">
@@ -511,40 +511,40 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                           </td>
                           <td className="px-6 py-4 text-center">
                             <Badge className={`capitalize ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                              computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                                'bg-gray-500/10 text-gray-600 border-gray-500/20'
-                              }`} variant="outline">
+                          computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                          'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
+                          } variant="outline">
                               {computeStatus(ex)}
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDelete(ex.id)}
-                            >
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDelete(ex.id)}>
+                            
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
 
                 {/* Mobile Card List */}
                 <div className="sm:hidden space-y-4 px-4 py-2">
-                  {Array.isArray(exams) && exams.map((ex) => (
-                    <Card key={ex.id} className="p-4 sm:p-5">
+                  {Array.isArray(exams) && exams.map((ex) =>
+                  <Card key={ex.id} className="p-4 sm:p-5">
                       <div className="flex flex-col gap-4">
                         <div className="w-full">
                           <div className="flex items-center flex-wrap gap-2 mb-2">
                             <h3 className="font-semibold text-[18px] sm:text-base">{ex.title}</h3>
                             <Badge className={`capitalize ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                              computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                                'bg-gray-500/10 text-gray-600 border-gray-500/20'
-                              }`} variant="outline">
+                          computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                          'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
+                          } variant="outline">
                               {computeStatus(ex)}
                             </Badge>
                           </div>
@@ -576,27 +576,27 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                         </div>
                         <div className="flex w-full gap-2">
                           <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(ex.id)}
-                            className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(ex.id)}
+                          className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
 
-                          >
+                          
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete Schedule
                           </Button>
                         </div>
                       </div>
                     </Card>
-                  ))}
+                  )}
                 </div>
               </div>
               
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between px-6 py-6 gap-4 border-t border-border">
                 <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
-                  {pagination.totalItems > 0 
-                    ? `Showing ${(pagination.currentPage - 1) * 10 + 1} to ${Math.min(pagination.currentPage * 10, pagination.totalItems)} of ${pagination.totalItems} exams`
-                    : `Showing 0 exams`}
+                  {pagination.totalItems > 0 ?
+                  `Showing ${(pagination.currentPage - 1) * 10 + 1} to ${Math.min(pagination.currentPage * 10, pagination.totalItems)} of ${pagination.totalItems} exams` :
+                  `Showing 0 exams`}
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                   <Button
@@ -604,16 +604,16 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     size="sm"
                     disabled={pagination.currentPage === 1 || loading}
                     onClick={() => loadData(pagination.currentPage - 1)}
-                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
-                  >
+                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
+                    
                     Prev
                   </Button>
                   <div className="flex items-center">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default"
-                    >
+                      className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default">
+                      
                       {pagination.currentPage}
                     </Button>
                   </div>
@@ -622,19 +622,19 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     size="sm"
                     disabled={pagination.currentPage === pagination.totalPages || loading}
                     onClick={() => loadData(pagination.currentPage + 1)}
-                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
-                  >
+                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
+                    
                     Next
                   </Button>
                 </div>
               </div>
             </>
-            )}
+            }
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 });
 
 ExamScheduling.displayName = 'ExamScheduling';

@@ -25,7 +25,7 @@ type LeaveStatus = 'Pending' | 'Approved' | 'Rejected';
 const statusStyles = {
   Pending: 'text-yellow-700 bg-yellow-100',
   Approved: 'text-green-700 bg-green-100',
-  Rejected: 'text-red-700 bg-red-100',
+  Rejected: 'text-red-700 bg-red-100'
 };
 
 // Interface to match the backend data structure
@@ -67,7 +67,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
     try {
       setLoading(true);
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/leaves/?page=${page}&page_size=${itemsPerPage}`, {
-        method: 'GET',
+        method: 'GET'
       });
 
       const data = await response.json();
@@ -108,8 +108,8 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
       if (leaveData) {
         const transformedLeaves: LeaveRequestDisplay[] = leaveData.map((leave: any) => {
           const mappedStatus = (leave.status === 'PENDING' ? 'Pending' :
-            leave.status === 'APPROVED' ? 'Approved' :
-              leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as 'Pending' | 'Approved' | 'Rejected';
+          leave.status === 'APPROVED' ? 'Approved' :
+          leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as 'Pending' | 'Approved' | 'Rejected';
 
           return {
             id: leave.id,
@@ -118,7 +118,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
             end_date: leave.end_date,
             reason: leave.reason,
             status: mappedStatus,
-            applied_on: leave.applied_on,
+            applied_on: leave.applied_on
           };
         });
         setLeaveList(transformedLeaves);
@@ -128,7 +128,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
         toast.error('Failed to load leave requests');
       }
     } catch (error) {
-      console.error('Failed to fetch leave requests:', error);
+
       toast.error('Failed to load leave requests');
     } finally {
       setLoading(false);
@@ -140,7 +140,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
     if (filterStatus === 'All') {
       setFilteredLeaveList(leaveList);
     } else {
-      setFilteredLeaveList(leaveList.filter(leave => leave.status === filterStatus));
+      setFilteredLeaveList(leaveList.filter((leave) => leave.status === filterStatus));
     }
   }, [leaveList, filterStatus]);
 
@@ -155,7 +155,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
     const endDateStr = format(dateRange.to, "yyyy-MM-dd");
 
     // Check for overlaps in local state (excluding Rejected leaves)
-    const hasOverlap = leaveList.some(l => {
+    const hasOverlap = leaveList.some((l) => {
       if (l.status === 'Rejected') return false;
       return startDateStr <= l.end_date && endDateStr >= l.start_date;
     });
@@ -169,19 +169,19 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
       title: title.trim(),
       start_date: startDateStr,
       end_date: endDateStr,
-      reason: reason.trim(),
+      reason: reason.trim()
     };
 
-    console.log("Submitting COE leave request with data:", requestData);
+
 
     try {
       setSubmitting(true);
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/leaves/apply/`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify(requestData)
       });
 
       const res = await response.json();
@@ -197,7 +197,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
           confirmButtonText: 'OK',
           confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-          color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
         });
 
         // Reset form
@@ -214,14 +214,14 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
           end_date: format(dateRange.to, "yyyy-MM-dd"),
           reason: reason.trim(),
           status: 'Pending',
-          applied_on: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}, ${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}`,
+          applied_on: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}, ${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}`
         };
-        setLeaveList(prev => [newLeave, ...prev]);
+        setLeaveList((prev) => [newLeave, ...prev]);
       } else {
         throw new Error(res.message || 'Failed to apply for leave');
       }
     } catch (error) {
-      console.error("Failed to submit leave request:", error);
+
       const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again.";
 
       // Show error alert with theme-aware styling
@@ -234,7 +234,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
         confirmButtonText: 'OK',
         confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
         background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-        color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000'
       });
     } finally {
       setSubmitting(false);
@@ -251,7 +251,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const renderStatus = (status: LeaveStatus) => {
-    console.log('Rendering status:', status);
+
     const baseClass = 'flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap';
     switch (status) {
       case 'Pending':
@@ -259,30 +259,30 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className={`${baseClass} ${theme === 'dark' ? 'bg-yellow-900/30 text-yellow-500' : 'bg-yellow-100 text-yellow-800'}`}>
             <Circle className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${theme === 'dark' ? 'text-yellow-500' : 'text-yellow-500'}`} fill="currentColor" />
             <span>Pending</span>
-          </div>
-        );
+          </div>);
+
       case 'Approved':
         return (
           <div className={`${baseClass} ${theme === 'dark' ? 'bg-green-900/30 text-green-500' : 'bg-green-100 text-green-700'}`}>
             <CalendarCheck2 className={`w-3 h-3 sm:w-4 sm:h-4 ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`} />
             <span>Approved</span>
-          </div>
-        );
+          </div>);
+
       case 'Rejected':
         return (
           <div className={`${baseClass} ${theme === 'dark' ? 'bg-red-900/30 text-red-500' : 'bg-red-100 text-red-700'}`}>
             <CalendarX2 className={`w-3 h-3 sm:w-4 sm:h-4 ${theme === 'dark' ? 'text-red-500' : 'text-red-600'}`} />
             <span>Rejected</span>
-          </div>
-        );
+          </div>);
+
       default:
-        console.log('Unknown status:', status);
+
         return (
           <div className={`${baseClass} ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
             <Circle className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`} fill="currentColor" />
             <span>{status || 'Unknown'}</span>
-          </div>
-        );
+          </div>);
+
     }
   };
 
@@ -306,8 +306,8 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter leave request title"
                 className={`w-full text-base sm:text-sm h-12 sm:h-10 px-3 rounded-md border ${theme === 'dark' ? 'bg-background text-foreground border-border focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]' : 'bg-white text-gray-900 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]'}`}
-                required
-              />
+                required />
+              
             </div>
 
             {/* Date Range */}
@@ -317,25 +317,25 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-full justify-start text-left font-normal text-base sm:text-sm h-12 sm:h-10 ${theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}`}
-                  >
+                    className={`w-full justify-start text-left font-normal text-base sm:text-sm h-12 sm:h-10 ${theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}`}>
+                    
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange?.from ? (
-                      dateRange.from.getTime() === dateRange.to?.getTime() ? (
-                        // Single date (same from and to)
-                        format(dateRange.from, "PPP")
-                      ) : dateRange.to ? (
-                        // Date range
-                        <>
+                    {dateRange?.from ?
+                    dateRange.from.getTime() === dateRange.to?.getTime() ?
+                    // Single date (same from and to)
+                    format(dateRange.from, "PPP") :
+                    dateRange.to ?
+                    // Date range
+                    <>
                           {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
-                        </>
-                      ) : (
-                        // Only from date selected
-                        format(dateRange.from, "PPP")
-                      )
-                    ) : (
-                      <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
-                    )}
+                        </> :
+
+                    // Only from date selected
+                    format(dateRange.from, "PPP") :
+
+
+                    <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
+                    }
                   </Button>
                 </PopoverTrigger>
 
@@ -347,8 +347,8 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                     onSelect={handleDateRangeChange}
                     disabled={(date) => date < today}
                     initialFocus
-                    className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'}
-                  />
+                    className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'} />
+                  
                 </PopoverContent>
               </Popover>
             </div>
@@ -362,8 +362,8 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Please provide a detailed reason for your leave request"
                 className={`min-h-[100px] lg:min-h-[120px] text-base sm:text-sm ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
-                required
-              />
+                required />
+              
             </div>
 
             {/* Submit Button */}
@@ -371,8 +371,8 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
               type="submit"
               onClick={handleSubmit}
               className={`w-full text-base sm:text-sm h-12 sm:h-10 font-semibold ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary shadow-md' : 'text-white bg-primary hover:bg-primary/90 border-primary shadow-md'}`}
-              disabled={submitting}
-            >
+              disabled={submitting}>
+              
               {submitting ? "Submitting..." : "Submit Request"}
             </Button>
           </CardContent>
@@ -393,38 +393,38 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-base sm:text-sm h-10 sm:h-9 px-3 sm:px-4 whitespace-nowrap"
-                  >
+                    className="flex items-center gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-base sm:text-sm h-10 sm:h-9 px-3 sm:px-4 whitespace-nowrap">
+                    
                     <Filter className="w-4 h-4" />
                     <span className="hidden sm:inline">Filter</span>
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark'
-                  ? 'bg-card text-foreground border-border'
-                  : 'bg-white text-gray-900 border-gray-200'
-                  }`}>
+                <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark' ?
+                'bg-card text-foreground border-border' :
+                'bg-white text-gray-900 border-gray-200'}`
+                }>
                   <div className="space-y-2">
 
-                    {(['All', 'Pending', 'Approved', 'Rejected'] as const).map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => {
-                          setFilterStatus(status);
-                          setFilterOpen(false);
-                        }}
-                        className={`w-full text-left px-2 py-1 rounded text-xs sm:text-sm hover:bg-accent transition-colors ${filterStatus === status
-                          ? theme === 'dark'
-                            ? 'bg-accent text-accent-foreground'
-                            : 'bg-gray-100 text-gray-900'
-                          : theme === 'dark'
-                            ? 'text-foreground'
-                            : 'text-gray-700'
-                          }`}
-                      >
+                    {(['All', 'Pending', 'Approved', 'Rejected'] as const).map((status) =>
+                    <button
+                      key={status}
+                      onClick={() => {
+                        setFilterStatus(status);
+                        setFilterOpen(false);
+                      }}
+                      className={`w-full text-left px-2 py-1 rounded text-xs sm:text-sm hover:bg-accent transition-colors ${filterStatus === status ?
+                      theme === 'dark' ?
+                      'bg-accent text-accent-foreground' :
+                      'bg-gray-100 text-gray-900' :
+                      theme === 'dark' ?
+                      'text-foreground' :
+                      'text-gray-700'}`
+                      }>
+                      
                         {status}
                       </button>
-                    ))}
+                    )}
                   </div>
                 </PopoverContent>
               </Popover>
@@ -432,12 +432,12 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
 
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6">
-            {loading ? (
-              <div className="space-y-4">
+            {loading ?
+            <div className="space-y-4">
                 <SkeletonList items={5} />
-              </div>
-            ) : filteredLeaveList.length === 0 ? (
-              <div className="py-24 flex flex-col items-center justify-center text-center">
+              </div> :
+            filteredLeaveList.length === 0 ?
+            <div className="py-24 flex flex-col items-center justify-center text-center">
                 <div className={`p-8 rounded-full bg-primary/20 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
                   <CalendarIcon className="h-14 w-14 text-primary/30" />
                 </div>
@@ -445,17 +445,17 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                   No applications
                 </h3>
                 <p className={`text-sm mt-2 max-w-xs mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {filterStatus === 'All'
-                    ? "You haven't submitted any leave requests recently."
-                    : `There are no ${filterStatus.toLowerCase()} requests matching your filter.`}
+                  {filterStatus === 'All' ?
+                "You haven't submitted any leave requests recently." :
+                `There are no ${filterStatus.toLowerCase()} requests matching your filter.`}
                 </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
+              </div> :
+
+            <div className="space-y-4">
                 {/* Mobile View: Cards */}
                 <div className="sm:hidden space-y-3 max-h-[500px] overflow-y-auto thin-scrollbar">
-                  {filteredLeaveList.map((leave) => (
-                    <div key={leave.id} className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                  {filteredLeaveList.map((leave) =>
+                <div key={leave.id} className={`p-4 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
                       <div className="flex justify-between items-start mb-2">
                         <div className="font-semibold text-base truncate pr-2">{leave.title}</div>
                         <div className="shrink-0">{renderStatus(leave.status)}</div>
@@ -466,16 +466,16 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <div className="flex items-center justify-between mt-auto">
                         <span className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>Applied: {leave.applied_on}</span>
                         <Button
-                          size="sm"
-                          variant="outline"
-                          className={`h-9 px-4 text-sm font-semibold ${theme === 'dark' ? 'bg-muted/20 text-foreground border-border' : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'}`}
-                          onClick={() => setViewReason(leave.reason)}
-                        >
+                      size="sm"
+                      variant="outline"
+                      className={`h-9 px-4 text-sm font-semibold ${theme === 'dark' ? 'bg-muted/20 text-foreground border-border' : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'}`}
+                      onClick={() => setViewReason(leave.reason)}>
+                      
                           View Reason
                         </Button>
                       </div>
                     </div>
-                  ))}
+                )}
                 </div>
 
                 {/* Tablet/Desktop View: Table */}
@@ -490,60 +490,60 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredLeaveList.map((leave) => (
-                        <tr key={leave.id} className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/30' : 'border-gray-100 hover:bg-gray-50'}`}>
+                      {filteredLeaveList.map((leave) =>
+                    <tr key={leave.id} className={`border-b transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/30' : 'border-gray-100 hover:bg-gray-50'}`}>
                           <td className="py-4 px-4 font-medium max-w-[200px] truncate">{leave.title}</td>
                           <td className="py-4 px-4 whitespace-nowrap">{leave.start_date} to {leave.end_date}</td>
                           <td className="py-4 px-4">{renderStatus(leave.status)}</td>
                           <td className="py-4 px-4 text-right">
                             <Button
-                              size="sm"
-                              variant="outline"
-                              className={`h-8 text-xs font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border-border' : 'bg-primary/5 text-primary border-primary/10 hover:bg-primary/10'}`}
-                              onClick={() => setViewReason(leave.reason)}
-                            >
+                          size="sm"
+                          variant="outline"
+                          className={`h-8 text-xs font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border-border' : 'bg-primary/5 text-primary border-primary/10 hover:bg-primary/10'}`}
+                          onClick={() => setViewReason(leave.reason)}>
+                          
                               View
                             </Button>
                           </td>
                         </tr>
-                      ))}
+                    )}
                     </tbody>
                   </table>
                 </div>
               </div>
-            )}
+            }
 
             {/* Pagination Controls */}
-            {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-6">
+            {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 0 &&
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-6">
                 <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                   Showing {(pagination.page - 1) * itemsPerPage + 1} to {Math.min(pagination.page * itemsPerPage, pagination.total)} of {pagination.total} requests
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-10 sm:h-9 px-4 sm:px-6 text-base sm:text-sm font-medium text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                    onClick={() => fetchLeaveRequests(pagination.page - 1)}
-                    disabled={!pagination.has_previous}
-                  >
+                  variant="outline"
+                  size="sm"
+                  className="h-10 sm:h-9 px-4 sm:px-6 text-base sm:text-sm font-medium text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
+                  onClick={() => fetchLeaveRequests(pagination.page - 1)}
+                  disabled={!pagination.has_previous}>
+                  
                     Prev
                   </Button>
                   <span className="px-3 text-base sm:text-sm font-semibold text-primary">
                     {pagination.page}
                   </span>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-10 sm:h-9 px-4 sm:px-6 text-base sm:text-sm font-medium text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                    onClick={() => fetchLeaveRequests(pagination.page + 1)}
-                    disabled={!pagination.has_next}
-                  >
+                  variant="outline"
+                  size="sm"
+                  className="h-10 sm:h-9 px-4 sm:px-6 text-base sm:text-sm font-medium text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
+                  onClick={() => fetchLeaveRequests(pagination.page + 1)}
+                  disabled={!pagination.has_next}>
+                  
                     Next
                   </Button>
                 </div>
               </div>
-            )}
+            }
           </CardContent>
         </Card>
       </div>
@@ -556,26 +556,26 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
 
           <div
             className={`p-4 text-base leading-relaxed whitespace-pre-wrap break-words mt-4
-                      max-h-72 overflow-y-auto rounded-xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}
-          >
+                      max-h-72 overflow-y-auto rounded-xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+            
             {viewReason}
           </div>
 
           <div className="flex justify-end mt-6">
             <Button
               variant="outline"
-              className={theme === 'dark'
-                ? 'bg-primary text-white border border-primary hover:bg-primary/90 hover:text-white rounded-xl px-6'
-                : 'bg-primary text-white border border-primary hover:bg-primary/90 hover:text-white rounded-xl px-6'}
-              onClick={() => setViewReason(null)}
-            >
+              className={theme === 'dark' ?
+              'bg-primary text-white border border-primary hover:bg-primary/90 hover:text-white rounded-xl px-6' :
+              'bg-primary text-white border border-primary hover:bg-primary/90 hover:text-white rounded-xl px-6'}
+              onClick={() => setViewReason(null)}>
+              
               Close
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 });
 
 COEApplyLeave.displayName = 'COEApplyLeave';

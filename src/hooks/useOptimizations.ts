@@ -29,12 +29,12 @@ export const usePagination = (options: PaginationOptions) => {
     hasNext: false,
     hasPrev: false,
     totalPages: 0,
-    totalItems: 0,
+    totalItems: 0
   });
 
   const updatePagination = useCallback((data: any) => {
     if (!data) return;
-    
+
     // Use shared normalizer to support AdminPagination, DRF, and legacy shapes
     const normalized = normalizePaginatedResponse(data, 'results');
     const meta = normalized.meta || {};
@@ -51,7 +51,7 @@ export const usePagination = (options: PaginationOptions) => {
       hasNext,
       hasPrev,
       totalPages,
-      totalItems,
+      totalItems
     });
     setPage(currentPage);
   }, [page, pageSize]);
@@ -62,13 +62,13 @@ export const usePagination = (options: PaginationOptions) => {
 
   const nextPage = useCallback(() => {
     if (paginationState.hasNext) {
-      setPage(prev => prev + 1);
+      setPage((prev) => prev + 1);
     }
   }, [paginationState.hasNext]);
 
   const prevPage = useCallback(() => {
     if (paginationState.hasPrev) {
-      setPage(prev => prev - 1);
+      setPage((prev) => prev - 1);
     }
   }, [paginationState.hasPrev]);
 
@@ -80,7 +80,7 @@ export const usePagination = (options: PaginationOptions) => {
     goToPage,
     nextPage,
     prevPage,
-    queryKey: [...(queryKey || []), page, pageSize],
+    queryKey: [...(queryKey || []), page, pageSize]
   };
 };
 
@@ -158,17 +158,17 @@ export const useInfiniteScroll = (queryKey: string[], fetchMore: () => void) => 
     isLoading,
     hasMore,
     setHasMore,
-    loadMore,
+    loadMore
   };
 };
 
 // Optimistic Update Hook
 export const useOptimisticUpdate = <T,>(
-  mutationFn: (data: T) => Promise<any>,
-  queryKey: string[],
-  optimisticUpdate: (oldData: any, newData: T) => any,
-  options?: { refetchOnSettled?: boolean; onSuccess?: (data: any, variables: T) => void }
-) => {
+mutationFn: (data: T) => Promise<any>,
+queryKey: string[],
+optimisticUpdate: (oldData: any, newData: T) => any,
+options?: {refetchOnSettled?: boolean;onSuccess?: (data: any, variables: T) => void;}) =>
+{
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -182,7 +182,7 @@ export const useOptimisticUpdate = <T,>(
 
       // Optimistically update to the new value
       queryClient.setQueryData(queryKey, (oldData: any) =>
-        optimisticUpdate(oldData, newData)
+      optimisticUpdate(oldData, newData)
       );
 
       // Return a context object with the snapshotted value
@@ -205,7 +205,7 @@ export const useOptimisticUpdate = <T,>(
       if (shouldRefetch) {
         queryClient.invalidateQueries({ queryKey });
       }
-    },
+    }
   });
 };
 
@@ -217,9 +217,9 @@ export interface VirtualScrollOptions {
 }
 
 export const useVirtualScroll = (
-  totalItems: number,
-  options: VirtualScrollOptions
-) => {
+totalItems: number,
+options: VirtualScrollOptions) =>
+{
   const { itemHeight, containerHeight, overscan = 5 } = options;
   const [scrollTop, setScrollTop] = useState(0);
 
@@ -237,8 +237,8 @@ export const useVirtualScroll = (
         position: 'absolute' as const,
         top: i * itemHeight,
         height: itemHeight,
-        width: '100%',
-      },
+        width: '100%'
+      }
     });
   }
 
@@ -249,7 +249,7 @@ export const useVirtualScroll = (
     totalHeight,
     onScroll: (event: React.UIEvent<HTMLDivElement>) => {
       setScrollTop(event.currentTarget.scrollTop);
-    },
+    }
   };
 };
 
@@ -281,7 +281,7 @@ export const useProgressiveLoading = () => {
     loadingPhase,
     isCriticalLoading: loadingPhase === 'critical',
     isSecondaryLoading: loadingPhase === 'secondary',
-    isComplete: loadingPhase === 'complete',
+    isComplete: loadingPhase === 'complete'
   };
 };
 
@@ -304,15 +304,15 @@ export const useDebouncedSearch = (initialValue: string = '', delay: number = 30
     value,
     debouncedValue,
     setValue,
-    isDebouncing: value !== debouncedValue,
+    isDebouncing: value !== debouncedValue
   };
 };
 
 // Memoization Hook for expensive calculations
 export const useMemoizedCalculation = <T,>(
-  calculation: () => T,
-  dependencies: any[]
-) => {
+calculation: () => T,
+dependencies: any[]) =>
+{
   const [result, setResult] = useState<T>(() => calculation());
 
   useEffect(() => {
@@ -347,7 +347,7 @@ const convertImageToPNG = async (file: File): Promise<File> => {
           }
           const pngFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.png', {
             type: 'image/png',
-            lastModified: file.lastModified,
+            lastModified: file.lastModified
           });
           resolve(pngFile);
         }, 'image/png', 0.95); // 95% quality for PNG
@@ -373,7 +373,7 @@ export const useFileUpload = (options: {
     useWebWorker = true,
     compressImages = true,
     allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'],
-    maxFileSize = 10 * 1024 * 1024, // 10MB default
+    maxFileSize = 10 * 1024 * 1024 // 10MB default
   } = options;
 
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -395,11 +395,11 @@ export const useFileUpload = (options: {
         fileType: 'image/png', // Force PNG format
         onProgress: (progress) => {
           setUploadProgress(Math.round(progress * 0.5)); // Compression is 50% of total progress
-        },
+        }
       });
       return compressedFile;
     } catch (error) {
-      console.warn('Image compression failed, using original file:', error);
+
       return file;
     }
   };
@@ -422,10 +422,10 @@ export const useFileUpload = (options: {
 
   // Upload file with progress tracking
   const uploadFile = async (
-    file: File,
-    uploadUrl: string,
-    additionalData?: Record<string, any>
-  ): Promise<any> => {
+  file: File,
+  uploadUrl: string,
+  additionalData?: Record<string, any>)
+  : Promise<any> => {
     setIsUploading(true);
     setError(null);
     setUploadProgress(0);
@@ -460,7 +460,7 @@ export const useFileUpload = (options: {
       // Upload with progress tracking
       const response = await fetchWithTokenRefresh(uploadUrl, {
         method: 'POST',
-        body: formData,
+        body: formData
       });
 
       if (!response.ok) {
@@ -491,7 +491,7 @@ export const useFileUpload = (options: {
     reset: () => {
       setUploadProgress(0);
       setError(null);
-    },
+    }
   };
 };
 
@@ -523,12 +523,12 @@ export const useFormValidation = (rules: ValidationRules) => {
     if (!rule) return null;
 
     // Required validation
-    if (rule.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
+    if (rule.required && (!value || typeof value === 'string' && value.trim() === '')) {
       return rule.message || `${fieldName} is required`;
     }
 
     // Skip other validations if field is empty and not required
-    if (!value || (typeof value === 'string' && value.trim() === '')) {
+    if (!value || typeof value === 'string' && value.trim() === '') {
       return null;
     }
 
@@ -558,7 +558,7 @@ export const useFormValidation = (rules: ValidationRules) => {
   const validateForm = useCallback((data: Record<string, any>): ValidationResult => {
     const newErrors: Record<string, string> = {};
 
-    Object.keys(rules).forEach(fieldName => {
+    Object.keys(rules).forEach((fieldName) => {
       const error = validateField(fieldName, data[fieldName]);
       if (error) {
         newErrors[fieldName] = error;
@@ -568,23 +568,23 @@ export const useFormValidation = (rules: ValidationRules) => {
     setErrors(newErrors);
     return {
       isValid: Object.keys(newErrors).length === 0,
-      errors: newErrors,
+      errors: newErrors
     };
   }, [rules, validateField]);
 
   const validateSingleField = useCallback((fieldName: string, value: any) => {
     const error = validateField(fieldName, value);
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
-      [fieldName]: error || '',
+      [fieldName]: error || ''
     }));
     return !error;
   }, [validateField]);
 
   const setFieldTouched = useCallback((fieldName: string) => {
-    setTouched(prev => ({
+    setTouched((prev) => ({
       ...prev,
-      [fieldName]: true,
+      [fieldName]: true
     }));
   }, []);
 
@@ -601,7 +601,7 @@ export const useFormValidation = (rules: ValidationRules) => {
     setFieldTouched,
     clearErrors,
     isFieldValid: (fieldName: string) => !errors[fieldName],
-    hasFieldError: (fieldName: string) => !!(errors[fieldName] && touched[fieldName]),
+    hasFieldError: (fieldName: string) => !!(errors[fieldName] && touched[fieldName])
   };
 };
 
@@ -610,40 +610,40 @@ export const validationRules = {
   email: {
     required: true,
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    message: 'Please enter a valid email address',
+    message: 'Please enter a valid email address'
   },
   password: {
     required: true,
     minLength: 8,
     pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-    message: 'Password must be at least 8 characters with uppercase, lowercase, and number',
+    message: 'Password must be at least 8 characters with uppercase, lowercase, and number'
   },
   name: {
     required: true,
     minLength: 2,
     maxLength: 50,
-    message: 'Name must be between 2 and 50 characters',
+    message: 'Name must be between 2 and 50 characters'
   },
   phone: {
     required: true,
     pattern: /^\+?[\d\s\-\(\)]+$/,
-    message: 'Please enter a valid phone number',
+    message: 'Please enter a valid phone number'
   },
   required: {
-    required: true,
+    required: true
   },
   positiveNumber: {
     required: true,
     custom: (value: any) => {
       const num = Number(value);
       return isNaN(num) || num <= 0 ? 'Must be a positive number' : null;
-    },
+    }
   },
   date: {
     required: true,
     custom: (value: any) => {
       const date = new Date(value);
       return isNaN(date.getTime()) ? 'Please enter a valid date' : null;
-    },
-  },
+    }
+  }
 };

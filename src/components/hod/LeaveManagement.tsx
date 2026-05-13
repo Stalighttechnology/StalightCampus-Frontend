@@ -13,8 +13,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue } from
+"@/components/ui/select";
 
 interface LeaveRequest {
   id: string;
@@ -92,7 +92,7 @@ const LeaveManagement = () => {
         setErrors(["Failed to fetch branch ID: No branch assigned"]);
       }
     } catch (err) {
-      console.error("Error fetching branch ID:", err);
+
       setErrors(["Failed to connect to backend for branch ID"]);
     }
   };
@@ -102,15 +102,15 @@ const LeaveManagement = () => {
     setIsLoading(true);
     try {
       const filters = {
-        status: filterStatus !== "All" ? 
-          (filterStatus === "Pending" ? "PENDING" : 
-           filterStatus === "Approved" ? "APPROVED" : 
-           filterStatus === "Rejected" ? "REJECTED" : undefined) : undefined,
+        status: filterStatus !== "All" ?
+        filterStatus === "Pending" ? "PENDING" :
+        filterStatus === "Approved" ? "APPROVED" :
+        filterStatus === "Rejected" ? "REJECTED" : undefined : undefined,
         search: search || undefined,
         date_from: dateFrom ? `${dateFrom}T00:00:00Z` : undefined,
         date_to: dateTo ? `${dateTo}T23:59:59Z` : undefined,
         page,
-        page_size: 50, // Match backend AdminPagination default
+        page_size: 50 // Match backend AdminPagination default
       };
 
       const response = await getFacultyLeavesBootstrap(undefined, filters); // No branch_id needed
@@ -130,58 +130,58 @@ const LeaveManagement = () => {
       const sevenDaysAgo = new Date(todayDateOnly);
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const processed = data.leaves
-        .map((req: FacultyLeaveData) => ({
-          raw: req,
-          mapped: {
-            id: req.id.toString(),
-            name: req.faculty_name || "Unknown",
-            dept: req.department || "Unknown",
-            period: formatPeriod(req.start_date, req.end_date),
-            reason: req.reason || "No reason provided",
-            status: req.status === "APPROVED" ? "Approved" : req.status === "REJECTED" ? "Rejected" : "Pending",
-          } as LeaveRequest
-        }))
-        .filter(item => {
-          const r = item.raw;
-          const status = (r.status || '').toUpperCase();
+      const processed = data.leaves.
+      map((req: FacultyLeaveData) => ({
+        raw: req,
+        mapped: {
+          id: req.id.toString(),
+          name: req.faculty_name || "Unknown",
+          dept: req.department || "Unknown",
+          period: formatPeriod(req.start_date, req.end_date),
+          reason: req.reason || "No reason provided",
+          status: req.status === "APPROVED" ? "Approved" : req.status === "REJECTED" ? "Rejected" : "Pending"
+        } as LeaveRequest
+      })).
+      filter((item) => {
+        const r = item.raw;
+        const status = (r.status || '').toUpperCase();
 
-          // If user has chosen a specific date range (e.g. via Month filter), skip the "7-day/pending active" rule
-          if (filters?.date_from || filters?.date_to) return true;
+        // If user has chosen a specific date range (e.g. via Month filter), skip the "7-day/pending active" rule
+        if (filters?.date_from || filters?.date_to) return true;
 
-          if (status === 'PENDING') {
-            try {
-              const end = new Date(r.end_date);
-              const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-              return endDateOnly >= todayDateOnly; // show only active/future pending
-            } catch {
-              return false;
-            }
+        if (status === 'PENDING') {
+          try {
+            const end = new Date(r.end_date);
+            const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+            return endDateOnly >= todayDateOnly; // show only active/future pending
+          } catch {
+            return false;
           }
+        }
 
-          if (status === 'APPROVED' || status === 'REJECTED') {
-            // Use reviewed_at if available else submitted_at
-            const refDateStr = r.reviewed_at || r.submitted_at;
-            if (!refDateStr) return false;
-            const ref = new Date(refDateStr);
-            const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-            return refDateOnly >= sevenDaysAgo; // only recent approvals/rejections
-          }
+        if (status === 'APPROVED' || status === 'REJECTED') {
+          // Use reviewed_at if available else submitted_at
+          const refDateStr = r.reviewed_at || r.submitted_at;
+          if (!refDateStr) return false;
+          const ref = new Date(refDateStr);
+          const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
+          return refDateOnly >= sevenDaysAgo; // only recent approvals/rejections
+        }
 
-          return false;
-        })
+        return false;
+      }).
 
-        .map(item => item.mapped) as LeaveRequest[];
+      map((item) => item.mapped) as LeaveRequest[];
 
       setLeaveRequests(processed);
       setTotalCount(response.count || 0);
       setTotalPages(response.total_pages || Math.ceil((response.count || 0) / 50));
       setCurrentPage(response.current_page || page);
       setErrors([]);
-      console.log("Processed leave requests:", processed);
+
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch data";
-      console.error("Error fetching data:", err);
+
       setErrors([errorMessage]);
       setLeaveRequests([]);
     } finally {
@@ -197,21 +197,21 @@ const LeaveManagement = () => {
       action: "update" as const,
       branch_id: branchId,
       leave_id: leave.id,
-      status: "APPROVED" as const,
+      status: "APPROVED" as const
     };
-    console.log("Approve payload:", payload); // Debug log
+    // Debug log
     try {
       const res = await manageLeaves(payload, "PATCH");
       if (res.success) {
         // Update local list without re-fetching
-        setLeaveRequests(prev => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Approved' } : item));
+        setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Approved' } : item));
         Swal.fire('Approved!', 'The leave request has been approved.', 'success');
       } else {
         setErrors([res.message || "Failed to approve leave"]);
         Swal.fire('Error!', res.message || 'Failed to approve the leave request.', 'error');
       }
     } catch (err) {
-      console.error("Error approving leave:", err);
+
       setErrors(["Failed to approve leave"]);
       Swal.fire('Error!', 'Failed to approve the leave request.', 'error');
     }
@@ -224,9 +224,9 @@ const LeaveManagement = () => {
       action: "update" as const,
       branch_id: branchId,
       leave_id: leave.id,
-      status: "REJECTED" as const,
+      status: "REJECTED" as const
     };
-    console.log("Reject payload:", payload); // Debug log
+    // Debug log
     Swal.fire({
       title: 'Are you sure?',
       text: 'You are about to reject this leave request. Are you sure you want to proceed?',
@@ -237,21 +237,21 @@ const LeaveManagement = () => {
       customClass: {
         confirmButton: 'bg-red-600 text-white',
         cancelButton: 'bg-gray-300 text-black'
-      },
+      }
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           const res = await manageLeaves(payload, "PATCH");
           if (res.success) {
             // Update local list without re-fetching
-            setLeaveRequests(prev => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Rejected' } : item));
+            setLeaveRequests((prev) => prev.map((item, idx) => item.id === leave.id ? { ...item, status: 'Rejected' } : item));
             Swal.fire('Rejected!', 'The leave request has been rejected.', 'success');
           } else {
             setErrors([res.message || "Failed to reject leave"]);
             Swal.fire('Error!', res.message || 'Failed to reject the leave request.', 'error');
           }
         } catch (err) {
-          console.error("Error rejecting leave:", err);
+
           setErrors(["Failed to reject leave"]);
           Swal.fire('Error!', 'Failed to reject the leave request.', 'error');
         }
@@ -270,7 +270,7 @@ const LeaveManagement = () => {
 
   useEffect(() => {
     if (initialLoadRef.current) return; // Don't search on initial load
-    
+
     isSilentOperationRef.current = true;
     setCurrentPage(1);
     fetchLeaveRequests(1);
@@ -313,14 +313,14 @@ const LeaveManagement = () => {
               placeholder="Search faculty..."
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
-            />
+              className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`} />
+            
             <Select
               value={filterStatus}
               onValueChange={(value) => {
                 setFilterStatus(value as "All" | "Pending" | "Approved" | "Rejected");
-              }}
-            >
+              }}>
+              
               <SelectTrigger className={`w-full sm:w-auto min-w-[140px] text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
@@ -334,31 +334,31 @@ const LeaveManagement = () => {
           </div>
 
           {/* Errors */}
-          {errors.length > 0 && (
-            <div className={`mb-4 p-3 rounded-md ${theme === 'dark' ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
+          {errors.length > 0 &&
+          <div className={`mb-4 p-3 rounded-md ${theme === 'dark' ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
               <ul className={`text-sm list-disc list-inside ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
-                {errors.map((err, idx) => (
-                  <li key={idx}>{err}</li>
-                ))}
+                {errors.map((err, idx) =>
+              <li key={idx}>{err}</li>
+              )}
               </ul>
             </div>
-          )}
+          }
 
           {/* Mobile: Stacked Cards View */}
           <div className="md:hidden space-y-3">
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, i) => (
-          <SkeletonCard key={i} className="h-[200px]" />
-        ))}
-      </div>
-            ) : leaveRequests.length === 0 ? (
-              <div className={`text-center py-6 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            {isLoading ?
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) =>
+              <SkeletonCard key={i} className="h-[200px]" />
+              )}
+      </div> :
+            leaveRequests.length === 0 ?
+            <div className={`text-center py-6 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 No leave requests found
-              </div>
-            ) : (
-              leaveRequests.map((row, index) => (
-                <div key={row.id} className={`p-3 sm:p-4 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+              </div> :
+
+            leaveRequests.map((row, index) =>
+            <div key={row.id} className={`p-3 sm:p-4 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
                       <div className="font-medium">{row.name}</div>
@@ -367,14 +367,14 @@ const LeaveManagement = () => {
                     </div>
                     <div className="shrink-0">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          row.status === "Pending"
-                            ? theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'
-                            : row.status === "Approved"
-                            ? theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700'
-                            : theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'
-                        }`}
-                      >
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    row.status === "Pending" ?
+                    theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
+                    row.status === "Approved" ?
+                    theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
+                    theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
+                    }>
+                    
                         {row.status}
                       </span>
                     </div>
@@ -382,59 +382,59 @@ const LeaveManagement = () => {
 
                   <div className="flex items-center justify-center mb-4">
                     <button
-                      onClick={() => setViewReason(row.reason)}
-                      className={`w-32 h-8 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
-                        ${theme === 'dark' 
-                          ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' 
-                          : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10'
-                        }`}
-                    >
+                  onClick={() => setViewReason(row.reason)}
+                  className={`w-32 h-8 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
+                        ${theme === 'dark' ?
+                  'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' :
+                  'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10'}`
+                  }>
+                  
                       View Reason
                     </button>
                   </div>
 
-                  {row.status === "Pending" ? (
-                    <div className="flex flex-row gap-2 mt-4">
+                  {row.status === "Pending" ?
+              <div className="flex flex-row gap-2 mt-4">
                       <Button
-                        variant="outline"
-                        className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
-                          ${theme === 'dark' 
-                            ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20' 
-                            : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
-                          }`}
-                        onClick={() => handleApprove(index)}
-                        disabled={isLoading}
-                      >
+                  variant="outline"
+                  className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
+                          ${theme === 'dark' ?
+                  'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20' :
+                  'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'}`
+                  }
+                  onClick={() => handleApprove(index)}
+                  disabled={isLoading}>
+                  
                         <CheckCircle size={14} /> Approve
                       </Button>
                       <Button
-                        variant="outline"
-                        className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
-                          ${theme === 'dark' 
-                            ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20' 
-                            : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
-                          }`}
-                        onClick={() => handleReject(index)}
-                        disabled={isLoading}
-                      >
+                  variant="outline"
+                  className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
+                          ${theme === 'dark' ?
+                  'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20' :
+                  'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'}`
+                  }
+                  onClick={() => handleReject(index)}
+                  disabled={isLoading}>
+                  
                         <XCircle size={14} /> Reject
                       </Button>
-                    </div>
-                  ) : (
-                    <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
-                  )}
+                    </div> :
+
+              <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+              }
                 </div>
-              ))
-            )}
+            )
+            }
           </div>
 
           <div className={`hidden md:block overflow-x-auto border rounded-lg ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-            {isLoading ? (
-              <div className="p-4">
+            {isLoading ?
+            <div className="p-4">
                 <SkeletonTable rows={10} cols={5} />
-              </div>
-            ) : (
-              <table className="w-full text-sm">
+              </div> :
+
+            <table className="w-full text-sm">
                 <thead className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-gray-50 text-gray-900'}`}>
                   <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                     <th className="px-4 py-3 text-left font-semibold">Faculty</th>
@@ -445,15 +445,15 @@ const LeaveManagement = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {leaveRequests.length === 0 ? (
-                    <tr>
+                  {leaveRequests.length === 0 ?
+                <tr>
                       <td colSpan={5} className={`px-4 py-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                         No leave requests found
                       </td>
-                    </tr>
-                  ) : (
-                    leaveRequests.map((row, index) => (
-                      <tr key={row.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+                    </tr> :
+
+                leaveRequests.map((row, index) =>
+                <tr key={row.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
                         <td className={`px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           <div>
                             <p className="font-medium">{row.name}</p>
@@ -463,94 +463,94 @@ const LeaveManagement = () => {
                         <td className={`px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.period}</td>
                         <td className="px-4 py-3">
                           <button
-                            onClick={() => setViewReason(row.reason)}
-                            className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                          >
+                      onClick={() => setViewReason(row.reason)}
+                      className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                      
                             View
                           </button>
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              row.status === "Pending"
-                                ? theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'
-                                : row.status === "Approved"
-                                ? theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700'
-                                : theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'
-                            }`}
-                          >
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      row.status === "Pending" ?
+                      theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800' :
+                      row.status === "Approved" ?
+                      theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' :
+                      theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`
+                      }>
+                      
                             {row.status}
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          {row.status === "Pending" ? (
-                            <div className="flex flex-col md:flex-row gap-2">
+                          {row.status === "Pending" ?
+                    <div className="flex flex-col md:flex-row gap-2">
                               <Button
-                                variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                  theme === 'dark' 
-                                    ? 'text-green-400 border-green-400 hover:bg-green-900/20' 
-                                    : 'text-green-700 border-green-600 hover:bg-green-100'
-                                }`}
-                                onClick={() => handleApprove(index)}
-                                disabled={isLoading}
-                              >
+                        variant="outline"
+                        className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
+                        theme === 'dark' ?
+                        'text-green-400 border-green-400 hover:bg-green-900/20' :
+                        'text-green-700 border-green-600 hover:bg-green-100'}`
+                        }
+                        onClick={() => handleApprove(index)}
+                        disabled={isLoading}>
+                        
                                 <CheckCircle size={16} /> Approve
                               </Button>
                               <Button
-                                variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
-                                  theme === 'dark' 
-                                    ? 'text-red-400 border-red-400 hover:bg-red-900/20' 
-                                    : 'text-red-700 border-red-600 hover:bg-red-100'
-                                }`}
-                                onClick={() => handleReject(index)}
-                                disabled={isLoading}
-                              >
+                        variant="outline"
+                        className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${
+                        theme === 'dark' ?
+                        'text-red-400 border-red-400 hover:bg-red-900/20' :
+                        'text-red-700 border-red-600 hover:bg-red-100'}`
+                        }
+                        onClick={() => handleReject(index)}
+                        disabled={isLoading}>
+                        
                                 <XCircle size={16} /> Reject
                               </Button>
-                            </div>
-                          ) : (
-                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
-                          )}
+                            </div> :
+
+                    <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                    }
                         </td>
                       </tr>
-                    ))
-                  )}
+                )
+                }
                 </tbody>
               </table>
-            )}
+            }
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6 pt-6 border-t">
+          {totalPages > 1 &&
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6 pt-6 border-t">
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                 Showing {Math.min((currentPage - 1) * 50 + 1, totalCount)} to {Math.min(currentPage * 50, totalCount)} of {totalCount}
               </div>
               <div className="flex gap-2 items-center justify-center sm:justify-end">
                 <Button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1 || isLoading}
-                  variant="outline"
-                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                >
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || isLoading}
+                variant="outline"
+                className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+                
                   Prev
                 </Button>
                 <span className="px-3 text-base font-medium text-primary">
                   {currentPage}
                 </span>
                 <Button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages || isLoading}
-                  variant="outline"
-                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                >
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || isLoading}
+                variant="outline"
+                className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+                
                   Next
                 </Button>
               </div>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
 
@@ -563,26 +563,26 @@ const LeaveManagement = () => {
 
           <div
             className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
-                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
-          >
+                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            
             {viewReason}
           </div>
 
           <DialogFooter>
             <Button
               variant="outline"
-              className={theme === 'dark' 
-                ? 'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white' 
-                : 'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}
-              onClick={() => setViewReason(null)}
-            >
+              className={theme === 'dark' ?
+              'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white' :
+              'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}
+              onClick={() => setViewReason(null)}>
+              
               Close
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default LeaveManagement;

@@ -7,57 +7,57 @@ import { Badge } from "../../components/ui/badge";
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const REPORTS = [
-  {
-    type: 'organizations',
-    title: 'Organizations Report',
-    description: 'Complete list of all tenant institutions with plan, status, user count, and subscription expiry.',
-    icon: Building2,
-    color: 'text-purple-600',
-    bg: 'bg-purple-50 dark:bg-purple-900/20',
-    border: 'border-purple-200 dark:border-purple-800',
-    columns: ['Organization Name', 'Plan', 'Status', 'Total Users', 'Created At', 'Subscription Expiry'],
-  },
-  {
-    type: 'billing',
-    title: 'Revenue & Billing Report',
-    description: 'Per-organization yearly revenue, MRR breakdown, and cumulative financial summary.',
-    icon: CreditCard,
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    border: 'border-emerald-200 dark:border-emerald-800',
-    columns: ['Organization', 'Plan', 'Yearly Price', 'MRR', 'Status'],
-  },
-  {
-    type: 'subscriptions',
-    title: 'Subscriptions Report',
-    description: 'Trial and subscription status for all organizations including expiry dates and auto-renew info.',
-    icon: BadgeCheck,
-    color: 'text-blue-600',
-    bg: 'bg-blue-50 dark:bg-blue-900/20',
-    border: 'border-blue-200 dark:border-blue-800',
-    columns: ['Organization', 'Plan', 'Status', 'Expires At', 'Trial Ends At', 'Auto Renew'],
-  },
-  {
-    type: 'users',
-    title: 'User Analytics Report',
-    description: 'Role-wise user distribution across all tenant organizations — Admins, Faculty, HODs, COEs, Students.',
-    icon: Users,
-    color: 'text-amber-600',
-    bg: 'bg-amber-50 dark:bg-amber-900/20',
-    border: 'border-amber-200 dark:border-amber-800',
-    columns: ['Organization', 'Plan', 'Total Users', 'Admins', 'Faculty', 'Students', 'HODs', 'COEs'],
-  },
-  {
-    type: 'support',
-    title: 'Support Tickets Report',
-    description: 'Full log of all support tickets across every organization with status, priority, and HQ responses.',
-    icon: Ticket,
-    color: 'text-red-600',
-    bg: 'bg-red-50 dark:bg-red-900/20',
-    border: 'border-red-200 dark:border-red-800',
-    columns: ['Ticket ID', 'Organization', 'Subject', 'Priority', 'Status', 'Date', 'HQ Response'],
-  },
-];
+{
+  type: 'organizations',
+  title: 'Organizations Report',
+  description: 'Complete list of all tenant institutions with plan, status, user count, and subscription expiry.',
+  icon: Building2,
+  color: 'text-purple-600',
+  bg: 'bg-purple-50 dark:bg-purple-900/20',
+  border: 'border-purple-200 dark:border-purple-800',
+  columns: ['Organization Name', 'Plan', 'Status', 'Total Users', 'Created At', 'Subscription Expiry']
+},
+{
+  type: 'billing',
+  title: 'Revenue & Billing Report',
+  description: 'Per-organization yearly revenue, MRR breakdown, and cumulative financial summary.',
+  icon: CreditCard,
+  color: 'text-emerald-600',
+  bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+  border: 'border-emerald-200 dark:border-emerald-800',
+  columns: ['Organization', 'Plan', 'Yearly Price', 'MRR', 'Status']
+},
+{
+  type: 'subscriptions',
+  title: 'Subscriptions Report',
+  description: 'Trial and subscription status for all organizations including expiry dates and auto-renew info.',
+  icon: BadgeCheck,
+  color: 'text-blue-600',
+  bg: 'bg-blue-50 dark:bg-blue-900/20',
+  border: 'border-blue-200 dark:border-blue-800',
+  columns: ['Organization', 'Plan', 'Status', 'Expires At', 'Trial Ends At', 'Auto Renew']
+},
+{
+  type: 'users',
+  title: 'User Analytics Report',
+  description: 'Role-wise user distribution across all tenant organizations — Admins, Faculty, HODs, COEs, Students.',
+  icon: Users,
+  color: 'text-amber-600',
+  bg: 'bg-amber-50 dark:bg-amber-900/20',
+  border: 'border-amber-200 dark:border-amber-800',
+  columns: ['Organization', 'Plan', 'Total Users', 'Admins', 'Faculty', 'Students', 'HODs', 'COEs']
+},
+{
+  type: 'support',
+  title: 'Support Tickets Report',
+  description: 'Full log of all support tickets across every organization with status, priority, and HQ responses.',
+  icon: Ticket,
+  color: 'text-red-600',
+  bg: 'bg-red-50 dark:bg-red-900/20',
+  border: 'border-red-200 dark:border-red-800',
+  columns: ['Ticket ID', 'Organization', 'Subject', 'Priority', 'Status', 'Date', 'HQ Response']
+}];
+
 
 const Reports = () => {
   const { theme } = useTheme();
@@ -79,7 +79,7 @@ const Reports = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      console.error('Download failed', e);
+
     } finally {
       setDownloading(null);
     }
@@ -103,8 +103,8 @@ const Reports = () => {
           return (
             <div
               key={report.type}
-              className={`rounded-xl border p-6 flex flex-col gap-4 transition-all ${report.border} ${theme === 'dark' ? 'bg-zinc-900/60' : 'bg-white'} hover:shadow-md`}
-            >
+              className={`rounded-xl border p-6 flex flex-col gap-4 transition-all ${report.border} ${theme === 'dark' ? 'bg-zinc-900/60' : 'bg-white'} hover:shadow-md`}>
+              
               <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-xl ${report.bg} flex items-center justify-center flex-shrink-0`}>
                   <Icon className={`w-6 h-6 ${report.color}`} />
@@ -117,26 +117,26 @@ const Reports = () => {
 
               {/* Column preview */}
               <div className="flex flex-wrap gap-1.5">
-                {report.columns.map((col) => (
-                  <Badge key={col} variant="secondary" className="text-xs font-normal">
+                {report.columns.map((col) =>
+                <Badge key={col} variant="secondary" className="text-xs font-normal">
                     {col}
                   </Badge>
-                ))}
+                )}
               </div>
 
               <Button
                 className={`w-full gap-2 mt-auto ${isLoading ? 'opacity-80' : ''}`}
                 onClick={() => handleDownload(report.type, report.title)}
-                disabled={!!downloading}
-              >
-                {isLoading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
-                ) : (
-                  <><Download className="w-4 h-4" /> Download CSV</>
-                )}
+                disabled={!!downloading}>
+                
+                {isLoading ?
+                <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</> :
+
+                <><Download className="w-4 h-4" /> Download CSV</>
+                }
               </Button>
-            </div>
-          );
+            </div>);
+
         })}
       </div>
 
@@ -145,7 +145,7 @@ const Reports = () => {
         Resolved/Closed support tickets older than 2 days are automatically excluded from the Support Tickets report.
         Revenue figures are based on active subscriptions at their yearly plan rates.
       </div>
-    </div>
-  );
+    </div>);
+
 };
 export default Reports;

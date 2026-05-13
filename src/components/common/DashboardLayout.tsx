@@ -41,7 +41,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   onNotificationClick,
   children,
   pageTitle,
-  headerActions,
+  headerActions
 }) => {
   const isMobile = useIsMobile();
   const { theme } = useTheme();
@@ -78,7 +78,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     enabled: role === 'student',
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000
   });
 
   const facultyQuery = useQuery({
@@ -87,7 +87,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     enabled: role === 'faculty',
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000
   });
 
   const hodQuery = useQuery({
@@ -96,7 +96,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     enabled: role === 'hod',
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000
   });
 
   const adminQuery = useQuery({
@@ -105,7 +105,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     enabled: role === 'admin' || role === 'principal',
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000
   });
 
   // Derive unreadCount from whichever query is active for the role
@@ -123,7 +123,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       }
       setUnreadCount(count);
     } catch (e) {
-      console.error("Error deriving unread count:", e);
+
     }
   }, [role, studentQuery.data, facultyQuery.data, hodQuery.data, adminQuery.data]);
 
@@ -131,7 +131,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   useEffect(() => {
     const handleRefresh = (e: any) => {
       if (e.detail?.decrement) {
-        setUnreadCount(prev => Math.max(0, prev - (e.detail.decrement || 1)));
+        setUnreadCount((prev) => Math.max(0, prev - (e.detail.decrement || 1)));
         return;
       }
       // Invalidate all dashboard queries so they refetch according to React Query rules
@@ -170,7 +170,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     try {
       await logoutUser();
     } catch (err) {
-      console.error("Logout backend error:", err);
+
     } finally {
       localStorage.clear();
       stopTokenRefresh();
@@ -187,24 +187,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   // Format page title
   const formatTitle = (title: string) => {
     if (title === "dashboard") return `${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`;
-    return title
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+    return title.
+    split("-").
+    map((word) => word.charAt(0).toUpperCase() + word.slice(1)).
+    join(" ");
   };
 
   const isNoAnimation = role === 'admin' || role === 'principal' || role === 'hms' || role === 'warden';
 
   return (
     <motion.div
-      className={`flex h-screen h-[100dvh] overflow-hidden ${theme === "dark"
-          ? "dark bg-background text-foreground"
-          : "bg-gray-50 text-gray-900"
-        }`}
+      className={`flex h-screen h-[100dvh] overflow-hidden ${theme === "dark" ?
+      "dark bg-background text-foreground" :
+      "bg-gray-50 text-gray-900"}`
+      }
       initial={isNoAnimation ? false : { opacity: 0 }}
       animate={isNoAnimation ? false : { opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+      transition={{ duration: 0.5 }}>
+      
       {/* Sidebar */}
       <Sidebar
         role={role}
@@ -212,18 +212,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         activePage={activePage}
         logout={handleLogout}
         collapsed={sidebarCollapsed}
-        toggleCollapse={toggleSidebar}
-      />
+        toggleCollapse={toggleSidebar} />
+      
 
       {/* Main Content Area */}
       <div
-        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-64'
-          }`}
-      >
+        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-64'}`
+        }>
+        
         {/* Navbar */}
         <div
-          className={`z-10 shadow-sm transition-all duration-300 w-full`}
-        >
+          className={`z-10 shadow-sm transition-all duration-300 w-full`}>
+          
           <Navbar
             role={role}
             user={user}
@@ -231,58 +231,58 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             setPage={handlePageChange}
             showHamburger={sidebarCollapsed && window.innerWidth < 1024}
             onHamburgerClick={toggleSidebar}
-            unreadCount={unreadCount}
-          />
+            unreadCount={unreadCount} />
+          
         </div>
 
         {/* Page Content */}
         <motion.main
           ref={mainContentRef}
-          className={`flex-1 min-w-0 p-4 pb-32 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${theme === "dark" ? "bg-background" : "bg-gray-50"
-            }`}
+          className={`flex-1 min-w-0 p-4 pb-32 md:pb-8 overflow-y-auto overflow-x-hidden thin-scrollbar ${theme === "dark" ? "bg-background" : "bg-gray-50"}`
+          }
           initial={isNoAnimation ? false : { opacity: 0, y: 20 }}
           animate={isNoAnimation ? false : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-        >
+          transition={{ duration: 0.2 }}>
+          
           {/* Page Header */}
 
 
           {/* Error Message */}
-          {error && (
-            <motion.div
-              className={`p-3 rounded-lg mb-4 ${theme === "dark"
-                  ? "bg-destructive/10 border border-destructive/20 text-destructive-foreground"
-                  : "bg-red-100 border border-red-200 text-red-700"
-                }`}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-              onAnimationComplete={() => setTimeout(() => setError(null), 3000)}
-            >
+          {error &&
+          <motion.div
+            className={`p-3 rounded-lg mb-4 ${theme === "dark" ?
+            "bg-destructive/10 border border-destructive/20 text-destructive-foreground" :
+            "bg-red-100 border border-red-200 text-red-700"}`
+            }
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            onAnimationComplete={() => setTimeout(() => setError(null), 3000)}>
+            
               {error}
             </motion.div>
-          )}
+          }
 
-          {isNoAnimation ? (
-            <div className="w-full">{children}</div>
-          ) : (
-            <AnimatePresence mode="popLayout">
+          {isNoAnimation ?
+          <div className="w-full">{children}</div> :
+
+          <AnimatePresence mode="popLayout">
               <motion.div
-                key={activePage}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="w-full"
-              >
+              key={activePage}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full">
+              
                 {children}
               </motion.div>
             </AnimatePresence>
-          )}
+          }
         </motion.main>
       </div>
-    </motion.div>
-  );
+    </motion.div>);
+
 };
 
 export default DashboardLayout;

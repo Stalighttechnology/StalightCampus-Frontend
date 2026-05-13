@@ -16,21 +16,21 @@ import {
   Settings,
 
   TrendingUp,
-  Activity,
-} from "lucide-react";
+  Activity } from
+"lucide-react";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  CardTitle } from
+"@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+  SelectValue } from
+"../ui/select";
 import { Button } from "@/components/ui/button";
 import {
   LineChart,
@@ -42,8 +42,8 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  LabelList,
-} from "recharts";
+  LabelList } from
+"recharts";
 import { motion } from "framer-motion";
 import DashboardCard from "../common/DashboardCard";
 import { FaUserGraduate, FaChalkboardTeacher, FaUserCheck } from "react-icons/fa";
@@ -84,7 +84,7 @@ interface FacultyStatsProps {
 const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setActivePage }, ref) => {
   const [stats, setStats] = useState<Stat[]>([]);
   const [proctorStudentsCount, setProctorStudentsCount] = useState<number>(0);
-  const [performanceTrends, setPerformanceTrends] = useState<{ avg_attendance_percent_30d?: number; avg_ia_mark?: number }>({});
+  const [performanceTrends, setPerformanceTrends] = useState<{avg_attendance_percent_30d?: number;avg_ia_mark?: number;}>({});
   const [subjectPerformanceTrends, setSubjectPerformanceTrends] = useState<SubjectPerformanceTrend[]>([]);
   const [todayClasses, setTodayClasses] = useState<TodayClass[]>([]);
   const [ongoingClass, setOngoingClass] = useState<TodayClass | null>(null);
@@ -97,26 +97,26 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
 
   // class/section filters removed; use per-subject trends instead
   const subjectOptions = [
-    { value: "all", label: "All Subjects" },
-    ...Array.from(new Set(subjectPerformanceTrends.map(t => t.subject_id))).map(id => {
-      const trend = subjectPerformanceTrends.find(t => t.subject_id === id)!;
-      return {
-        value: id.toString(),
-        label: `${trend.subject_name} (${trend.subject_code})`
-      };
-    })
-  ];
+  { value: "all", label: "All Subjects" },
+  ...Array.from(new Set(subjectPerformanceTrends.map((t) => t.subject_id))).map((id) => {
+    const trend = subjectPerformanceTrends.find((t) => t.subject_id === id)!;
+    return {
+      value: id.toString(),
+      label: `${trend.subject_name} (${trend.subject_code})`
+    };
+  })];
+
 
   // Get filtered performance trends based on selected subject
   const getFilteredTrends = () => {
     if (selectedSubject === "all") {
       return subjectPerformanceTrends;
     }
-    return subjectPerformanceTrends.filter(trend => trend.subject_id.toString() === selectedSubject);
+    return subjectPerformanceTrends.filter((trend) => trend.subject_id.toString() === selectedSubject);
   };
 
   // Prepare chart data
-  const chartData = getFilteredTrends().map(trend => ({
+  const chartData = getFilteredTrends().map((trend) => ({
     subject: trend.subject_code || trend.subject_name,
     attendance: trend.avg_attendance_percent_30d,
     iaMarks: trend.avg_ia_mark
@@ -140,7 +140,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
       if (currentTime >= startMinutes && currentTime <= endMinutes) {
         ongoing = cls;
       } else if (currentTime < startMinutes) {
-        if (!earliestFuture || startMinutes < (earliestFuture.start_time.split(':').map(Number)[0] * 60 + earliestFuture.start_time.split(':').map(Number)[1])) {
+        if (!earliestFuture || startMinutes < earliestFuture.start_time.split(':').map(Number)[0] * 60 + earliestFuture.start_time.split(':').map(Number)[1]) {
           earliestFuture = cls;
         }
       }
@@ -177,12 +177,12 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      console.log('Starting to fetch faculty dashboard data...');
+
       try {
         // Fetch bootstrap data (proctor students, performance trends)
-        console.log('Fetching bootstrap data...');
+
         const bootstrapRes = await getFacultyDashboardBootstrap();
-        console.log('Bootstrap response:', bootstrapRes);
+
         if (bootstrapRes.success && bootstrapRes.data) {
           const { proctor_students_count, performance_trends, subject_performance_trends } = bootstrapRes.data;
           setProctorStudentsCount(proctor_students_count || 0);
@@ -191,39 +191,39 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
 
           // Set stats after data is loaded (use local response values safely)
           setStats([
-            {
-              label: "Total Proctor Students",
-              value: proctor_students_count || 0,
-              icon: <Users className="text-green-600 w-5 h-5" />,
-              color: "green",
-            },
-            {
-              label: "Attendance (30d)",
-              value: bootstrapRes.data?.attendance_snapshot ?? (performance_trends?.avg_attendance_percent_30d ?? 0),
-              icon: <CheckSquare className="text-indigo-600 w-5 h-5" />,
-              color: "indigo",
-            },
-            {
-              label: "Avg IA Marks",
-              value: performance_trends?.avg_ia_mark ?? bootstrapRes.data?.avg_ia_mark ?? 0.0,
-              icon: <GraduationCap className="text-purple-600 w-5 h-5" />,
-              color: "purple",
-            },
-          ]);
+          {
+            label: "Total Proctor Students",
+            value: proctor_students_count || 0,
+            icon: <Users className="text-green-600 w-5 h-5" />,
+            color: "green"
+          },
+          {
+            label: "Attendance (30d)",
+            value: bootstrapRes.data?.attendance_snapshot ?? performance_trends?.avg_attendance_percent_30d ?? 0,
+            icon: <CheckSquare className="text-indigo-600 w-5 h-5" />,
+            color: "indigo"
+          },
+          {
+            label: "Avg IA Marks",
+            value: performance_trends?.avg_ia_mark ?? bootstrapRes.data?.avg_ia_mark ?? 0.0,
+            icon: <GraduationCap className="text-purple-600 w-5 h-5" />,
+            color: "purple"
+          }]
+          );
         } else {
           setError(bootstrapRes.message || "Failed to load dashboard data");
         }
 
         // Use today's classes from bootstrap response (single-call dashboard)
         const todayClassesFromBootstrap = bootstrapRes.data?.today_classes || [];
-        console.log('Today classes (from bootstrap):', todayClassesFromBootstrap);
+
         setTodayClasses(todayClassesFromBootstrap);
         determineClassStatus(todayClassesFromBootstrap);
 
 
       } catch (err) {
         setError("Network error occurred while fetching data");
-        console.error("Fetch error:", err);
+
       } finally {
         setLoading(false);
       }
@@ -244,8 +244,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
           <SkeletonCard />
           <SkeletonCard />
         </div>
-      </div>
-    );
+      </div>);
+
   }
   if (error) {
     return <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground' : 'bg-red-100 text-red-700'}`}>{error}</div>;
@@ -261,8 +261,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
             value={proctorStudentsCount || 0}
             description="Students under your proctoring"
             icon={<FaUserGraduate className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />}
-            className="h-full"
-          />
+            className="h-full" />
+          
         </motion.div>
 
         <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
@@ -271,8 +271,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
             value={`${Math.round((performanceTrends?.avg_attendance_percent_30d ?? 0) * 10) / 10}%`}
             description="Average attendance (last 30 days)"
             icon={<FaChalkboardTeacher className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />}
-            className="h-full"
-          />
+            className="h-full" />
+          
         </motion.div>
 
         <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -281,8 +281,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
             value={performanceTrends?.avg_ia_mark ?? 0}
             description="Average internal assessment"
             icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />}
-            className="h-full"
-          />
+            className="h-full" />
+          
         </motion.div>
       </motion.div>
 
@@ -301,9 +301,9 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                   <SelectValue placeholder="All Subjects" />
                 </SelectTrigger>
                 <SelectContent>
-                  {subjectOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
+                  {subjectOptions.map((opt) =>
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -351,8 +351,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                 <CardTitle>Current & Next Session</CardTitle>
                 <div className="flex items-center gap-2 text-xs md:text-xs">
                   <Clock className="w-4 h-4" />
-                  <span className={`flex items-center gap-2 px-3 py-1 rounded-full font-medium shadow-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-900'
-                    }`}>
+                  <span className={`flex items-center gap-2 px-3 py-1 rounded-full font-medium shadow-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-900'}`
+                  }>
                     <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                     Live: {nowDate.toLocaleTimeString('en-US', { hour12: false })}
                   </span>
@@ -361,10 +361,10 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
             </CardHeader>
 
             <CardContent className="w-full flex-1 flex flex-col gap-3 md:gap-4 p-3 md:p-4">
-              {ongoingClass ? (
-                <>
-                  <div className={`border-2 border-blue-500 rounded-md p-3 md:p-4 w-full shadow-md flex flex-col items-center sm:items-start gap-2 ${theme === 'dark' ? 'bg-blue-900/20' : 'bg-blue-50'
-                    }`}>
+              {ongoingClass ?
+              <>
+                  <div className={`border-2 border-blue-500 rounded-md p-3 md:p-4 w-full shadow-md flex flex-col items-center sm:items-start gap-2 ${theme === 'dark' ? 'bg-blue-900/20' : 'bg-blue-50'}`
+                }>
                     <h4 className={`font-semibold text-sm mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                       {ongoingClass.subject}
                     </h4>
@@ -379,13 +379,13 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                     </p>
                     <p className={`text-xs mt-1 font-medium ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>Currently Running</p>
                   </div>
-                  {nextClass && (
-                    <div className={`border rounded-md p-3 w-full shadow-md ${getClassStatus(nextClass).status === 'starting-soon'
-                        ? (theme === 'dark' ? 'border-orange-500 bg-orange-900/20' : 'border-orange-500 bg-orange-50')
-                        : getClassStatus(nextClass).status === 'upcoming'
-                          ? (theme === 'dark' ? 'border-yellow-500 bg-yellow-900/20' : 'border-yellow-500 bg-yellow-50')
-                          : (theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-gray-50')
-                      }`}>
+                  {nextClass &&
+                <div className={`border rounded-md p-3 w-full shadow-md ${getClassStatus(nextClass).status === 'starting-soon' ?
+                theme === 'dark' ? 'border-orange-500 bg-orange-900/20' : 'border-orange-500 bg-orange-50' :
+                getClassStatus(nextClass).status === 'upcoming' ?
+                theme === 'dark' ? 'border-yellow-500 bg-yellow-900/20' : 'border-yellow-500 bg-yellow-50' :
+                theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-gray-50'}`
+                }>
                       <h4 className={`font-semibold text-sm mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                         {nextClass.subject}
                       </h4>
@@ -399,12 +399,12 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                         {getClassStatus(nextClass).message || `Starts at ${nextClass.start_time}`}
                       </p>
                     </div>
-                  )}
-                </>
-              ) : (
-                <div className="w-full">
-                  <div className={`flex flex-col items-center justify-center py-7 px-3 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-                    }`}>
+                }
+                </> :
+
+              <div className="w-full">
+                  <div className={`flex flex-col items-center justify-center py-7 px-3 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
+                }>
                     <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-accent/20 text-primary/80' : 'bg-primary/10 text-primary/80'}`}>
                       <Activity className="w-8 h-8 opacity-60" />
                     </div>
@@ -416,13 +416,13 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                     </p>
                   </div>
 
-                  {nextClass && (
-                    <div className={`border rounded-md p-3 mt-4 shadow-md text-center ${getClassStatus(nextClass).status === 'starting-soon'
-                        ? (theme === 'dark' ? 'border-orange-500 bg-orange-900/20' : 'border-orange-500 bg-orange-50')
-                        : getClassStatus(nextClass).status === 'upcoming'
-                          ? (theme === 'dark' ? 'border-yellow-500 bg-yellow-900/20' : 'border-yellow-500 bg-yellow-50')
-                          : (theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-gray-50')
-                      }`}>
+                  {nextClass &&
+                <div className={`border rounded-md p-3 mt-4 shadow-md text-center ${getClassStatus(nextClass).status === 'starting-soon' ?
+                theme === 'dark' ? 'border-orange-500 bg-orange-900/20' : 'border-orange-500 bg-orange-50' :
+                getClassStatus(nextClass).status === 'upcoming' ?
+                theme === 'dark' ? 'border-yellow-500 bg-yellow-900/20' : 'border-yellow-500 bg-yellow-50' :
+                theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-gray-50'}`
+                }>
                       <h4 className={`font-semibold text-sm mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                         Next: {nextClass.subject}
                       </h4>
@@ -435,16 +435,16 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                       <p className={`text-[10px] mt-1 font-medium line-clamp-2 ${getClassStatus(nextClass).color || (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
                         {getClassStatus(nextClass).message || `Starts at ${nextClass.start_time}`}
                       </p>
-                      {getClassStatus(nextClass).status === 'starting-soon' && (
-                        <div className="flex items-center gap-2 mt-2">
+                      {getClassStatus(nextClass).status === 'starting-soon' &&
+                  <div className="flex items-center gap-2 mt-2">
                           <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
                           <span className={`text-xs font-medium ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`}>Get ready!</span>
                         </div>
-                      )}
+                  }
                     </div>
-                  )}
+                }
                 </div>
-              )}
+              }
             </CardContent>
           </Card>
         </section>
@@ -456,38 +456,38 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
         className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
+        transition={{ duration: 0.5, delay: 0.2 }}>
+        
         <DashboardCard
           title="Take Attendance"
           description="Quickly mark attendance"
           icon={<CheckSquare size={20} />}
-          onClick={() => setActivePage("take-attendance")}
-        />
+          onClick={() => setActivePage("take-attendance")} />
+        
 
         <DashboardCard
           title="Schedule Class"
           description="Create or edit class schedule"
           icon={<PlusCircle size={20} />}
-          onClick={() => setActivePage("timetable")}
-        />
+          onClick={() => setActivePage("timetable")} />
+        
 
         <DashboardCard
           title="Mentoring"
           description="Open mentoring / proctor students"
           icon={<GraduationCap size={20} />}
-          onClick={() => setActivePage("proctor-students")}
-        />
+          onClick={() => setActivePage("proctor-students")} />
+        
 
         <DashboardCard
           title="View Reports"
           description="Open performance and attendance reports"
           icon={<FileBarChart size={20} />}
-          onClick={() => setActivePage("statistics")}
-        />
+          onClick={() => setActivePage("statistics")} />
+        
       </motion.div>
-    </div>
-  );
+    </div>);
+
 });
 
 export default FacultyStats;

@@ -125,7 +125,7 @@ const CampusLocationManager: React.FC = () => {
   const reloadGoogleMaps = () => {
     // Remove existing maps script and retry loading
     const existing = document.querySelectorAll('script[src*="maps.googleapis.com"]');
-    existing.forEach(s => s.remove());
+    existing.forEach((s) => s.remove());
     setMapLoaded(false);
     setMapError(null);
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -170,7 +170,7 @@ const CampusLocationManager: React.FC = () => {
         mapTypeId: window.google.maps.MapTypeId.ROADMAP,
         mapTypeControl: true,
         streetViewControl: true,
-        fullscreenControl: true,
+        fullscreenControl: true
       });
 
       // Create marker
@@ -216,7 +216,7 @@ const CampusLocationManager: React.FC = () => {
             try {
               searchBoxInstance.setBounds(mapInstanceRef.current.getBounds());
             } catch (error) {
-              console.warn('Error setting search bounds:', error);
+
             }
           });
 
@@ -225,13 +225,13 @@ const CampusLocationManager: React.FC = () => {
             try {
               const places = searchBoxInstance.getPlaces();
               if (!places || places.length === 0) {
-                console.warn('No places found');
+
                 return;
               }
 
               const place = places[0];
               if (!place.geometry || !place.geometry.location) {
-                console.warn('Place has no geometry');
+
                 return;
               }
 
@@ -252,7 +252,7 @@ const CampusLocationManager: React.FC = () => {
               mapInstanceRef.current.setZoom(18);
 
               // Update form data
-              setFormData(prev => ({
+              setFormData((prev) => ({
                 ...prev,
                 center_latitude: newPosition.lat,
                 center_longitude: newPosition.lng
@@ -263,26 +263,26 @@ const CampusLocationManager: React.FC = () => {
 
               toast.success(`Location set to: ${place.formatted_address || place.name}`);
             } catch (error) {
-              console.error('Error handling place selection:', error);
+
               toast.error('Error setting location from search');
             }
           });
 
-          console.log('Search box initialized successfully');
+
         } catch (error) {
-          console.error('Error initializing search box:', error);
+
           toast.error('Search functionality is not available. Places API may not be enabled.');
         }
       } else {
-        console.warn('Places API not available - search functionality disabled');
-        // Don't show error toast here as it might be annoying, just log it
+
+
       }
 
       // Add event listeners
       markerRef.current.addListener('dragend', handleMarkerDrag);
       mapInstanceRef.current.addListener('click', handleMapClick);
     } catch (error) {
-      console.error('Error initializing Google Maps:', error);
+
       setMapError('Failed to initialize Google Maps. Please check your API key and try again.');
     }
   };
@@ -303,7 +303,7 @@ const CampusLocationManager: React.FC = () => {
 
   const handleMarkerDrag = (event: any) => {
     const position = event.latLng;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       center_latitude: position.lat(),
       center_longitude: position.lng()
@@ -312,7 +312,7 @@ const CampusLocationManager: React.FC = () => {
 
   const handleMapClick = (event: any) => {
     const position = event.latLng;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       center_latitude: position.lat(),
       center_longitude: position.lng()
@@ -322,7 +322,7 @@ const CampusLocationManager: React.FC = () => {
   const handleRadiusChange = (value: string) => {
     const radius = parseInt(value);
     if (!isNaN(radius) && radius > 0 && radius <= 5000) {
-      setFormData(prev => ({ ...prev, radius_meters: radius }));
+      setFormData((prev) => ({ ...prev, radius_meters: radius }));
     }
   };
 
@@ -370,9 +370,9 @@ const CampusLocationManager: React.FC = () => {
         max_longitude: formData.max_longitude ? parseFloat(formData.max_longitude) : undefined
       };
 
-      const response = editingLocation
-        ? await manageCampusLocation(data, editingLocation.id, 'PUT')
-        : await manageCampusLocation(data, undefined, 'POST');
+      const response = editingLocation ?
+      await manageCampusLocation(data, editingLocation.id, 'PUT') :
+      await manageCampusLocation(data, undefined, 'POST');
 
       if (response.success) {
         toast.success(`Campus location ${editingLocation ? 'updated' : 'created'} successfully`);
@@ -453,7 +453,7 @@ const CampusLocationManager: React.FC = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           center_latitude: latitude,
           center_longitude: longitude
@@ -471,7 +471,7 @@ const CampusLocationManager: React.FC = () => {
         toast.success('Current location set successfully');
       },
       (error) => {
-        console.error('Error getting current location:', error);
+
         let errorMessage = 'Unable to get current location';
         switch (error.code) {
           case error.PERMISSION_DENIED:
@@ -485,7 +485,7 @@ const CampusLocationManager: React.FC = () => {
             break;
         }
         // Also show a persistent hint in the map area
-        setMapError(prev => prev || errorMessage);
+        setMapError((prev) => prev || errorMessage);
         toast.error(errorMessage);
       },
       {
@@ -547,27 +547,27 @@ const CampusLocationManager: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full min-w-0">
                   <div>
                     <Label htmlFor="name">Name *</Label>
-                    <Input id="name" value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} required />
+                    <Input id="name" value={formData.name} onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} required />
                   </div>
                   <div>
                     <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} rows={2} />
+                    <Textarea id="description" value={formData.description} onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))} rows={2} />
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2 w-full min-w-0">
-                  <Switch id="is_active" checked={formData.is_active} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))} />
+                  <Switch id="is_active" checked={formData.is_active} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked }))} />
                   <Label htmlFor="is_active">Active Location</Label>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full min-w-0">
                   <div>
                     <Label htmlFor="center_latitude">Center Latitude *</Label>
-                    <Input id="center_latitude" type="number" step="any" value={formData.center_latitude} onChange={(e) => setFormData(prev => ({ ...prev, center_latitude: parseFloat(e.target.value) || 0 }))} required />
+                    <Input id="center_latitude" type="number" step="any" value={formData.center_latitude} onChange={(e) => setFormData((prev) => ({ ...prev, center_latitude: parseFloat(e.target.value) || 0 }))} required />
                   </div>
                   <div>
                     <Label htmlFor="center_longitude">Center Longitude *</Label>
-                    <Input id="center_longitude" type="number" step="any" value={formData.center_longitude} onChange={(e) => setFormData(prev => ({ ...prev, center_longitude: parseFloat(e.target.value) || 0 }))} required />
+                    <Input id="center_longitude" type="number" step="any" value={formData.center_longitude} onChange={(e) => setFormData((prev) => ({ ...prev, center_longitude: parseFloat(e.target.value) || 0 }))} required />
                   </div>
                   <div>
                     <Label htmlFor="radius_meters">Radius (meters) *</Label>
@@ -578,11 +578,11 @@ const CampusLocationManager: React.FC = () => {
                 <Alert>
                   <MapPin className="h-4 w-4" />
                   <AlertDescription>
-                    {useIframe ? (
-                      "Use the coordinate fields above to set the campus center location. The map shows the current location."
-                    ) : (
-                      "Use the map below to set the campus center location. Click on the map or drag the marker to position it. The red circle shows the attendance boundary area."
-                    )}
+                    {useIframe ?
+                    "Use the coordinate fields above to set the campus center location. The map shows the current location." :
+
+                    "Use the map below to set the campus center location. Click on the map or drag the marker to position it. The red circle shows the attendance boundary area."
+                    }
                   </AlertDescription>
                 </Alert>
 
@@ -591,13 +591,13 @@ const CampusLocationManager: React.FC = () => {
                     <Switch id="map-mode" checked={useIframe} onCheckedChange={setUseIframe} />
                     <Label htmlFor="map-mode">Use Simple Map View (Iframe)</Label>
                   </div>
-                  {useIframe && (
-                    <div className="text-sm text-gray-600">Note: Iframe mode has limited interactivity. Use coordinates above to set location.</div>
-                  )}
+                  {useIframe &&
+                  <div className="text-sm text-gray-600">Note: Iframe mode has limited interactivity. Use coordinates above to set location.</div>
+                  }
                 </div>
 
-                {!useIframe && (
-                  <div className="flex gap-2 mb-4 w-full min-w-0">
+                {!useIframe &&
+                <div className="flex gap-2 mb-4 w-full min-w-0">
                     <div className="flex-1 relative min-w-0">
                       <Input ref={searchBoxRef} type="text" placeholder="Search for a location (e.g., 'Bangalore University')..." className="w-full pr-10" />
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -611,13 +611,13 @@ const CampusLocationManager: React.FC = () => {
                       Current Location
                     </Button>
                   </div>
-                )}
+                }
 
                 <div className="w-full h-[180px] sm:h-[260px] md:h-[360px] border rounded-lg overflow-hidden relative min-w-0">
-                  {useIframe ? (
-                    <iframe src={iframeUrl} className="absolute inset-0 w-full h-full" style={{ border: 0, objectFit: 'cover' }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Campus Location Map" />
-                  ) : mapError ? (
-                    <div className="absolute inset-0 bg-red-50 border-2 border-red-200 rounded-lg p-2">
+                  {useIframe ?
+                  <iframe src={iframeUrl} className="absolute inset-0 w-full h-full" style={{ border: 0, objectFit: 'cover' }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Campus Location Map" /> :
+                  mapError ?
+                  <div className="absolute inset-0 bg-red-50 border-2 border-red-200 rounded-lg p-2">
                       <div className="h-full w-full overflow-auto flex flex-col items-center justify-center text-center gap-3 p-3">
                         <MapPin className="w-12 h-12 mb-2 text-red-600" />
                         <h3 className="text-lg font-semibold">Google Maps Error</h3>
@@ -631,20 +631,20 @@ const CampusLocationManager: React.FC = () => {
                           <p>If you have an adblocker or privacy extension, try disabling it for this site. Ensure the Maps API key has the Maps JavaScript API and Places API enabled and allows localhost in referer restrictions while testing.</p>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <>
+                    </div> :
+
+                  <>
                       <div ref={mapRef} className="absolute inset-0 w-full h-full" />
-                      {!mapLoaded && !mapError && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-zinc-900">
+                      {!mapLoaded && !mapError &&
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-zinc-900">
                           <Skeleton className="w-full h-full rounded-none" />
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <span className="text-sm font-medium text-muted-foreground">Loading Google Maps...</span>
                           </div>
                         </div>
-                      )}
+                    }
                     </>
-                  )}
+                  }
                 </div>
 
                 <div className="flex justify-end space-x-2">
@@ -670,14 +670,14 @@ const CampusLocationManager: React.FC = () => {
           <CardContent className="h-[50vh] sm:h-auto">{/* mobile: constrained height; desktop/tablet keep auto */}
             <div className="flex flex-col h-full w-full min-h-0">
               <div className="flex-1 overflow-auto w-full min-w-0 min-h-0 overflow-y-auto overscroll-contain thin-scrollbar">
-                {loading ? (
-                  <SkeletonList items={3} />
-                ) : locations.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No campus locations configured yet.</div>
-                ) : (
-                  <div className="space-y-4 w-full">
-                    {locations.map((location) => (
-                      <div key={location.id} className="border rounded-lg p-4 w-full">
+                {loading ?
+                <SkeletonList items={3} /> :
+                locations.length === 0 ?
+                <div className="text-center py-8 text-gray-500">No campus locations configured yet.</div> :
+
+                <div className="space-y-4 w-full">
+                    {locations.map((location) =>
+                  <div key={location.id} className="border rounded-lg p-4 w-full">
                         <div className="flex justify-between items-start">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2">
@@ -697,16 +697,16 @@ const CampusLocationManager: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                    ))}
+                  )}
                   </div>
-                )}
+                }
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default CampusLocationManager;

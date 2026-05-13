@@ -40,7 +40,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
     const lastPart = pathParts[pathParts.length - 1] || '';
 
     // Map URL paths to page names
-    const pathMap: { [key: string]: string } = {
+    const pathMap: {[key: string]: string;} = {
       'dashboard': 'dashboard',
       'student-status': 'student-status',
       'course-statistics': 'course-statistics',
@@ -51,7 +51,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'exam-scheduling': 'exam-scheduling',
       'qp-approvals': 'qp-approvals',
       'apply-leave': 'apply-leave',
-      'profile': 'profile',
+      'profile': 'profile'
     };
 
     return pathMap[lastPart] || 'dashboard';
@@ -75,7 +75,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
     setError(null);
 
     // Navigate to the corresponding URL path
-    const pathMap: { [key: string]: string } = {
+    const pathMap: {[key: string]: string;} = {
       'dashboard': '/coe/dashboard',
       'student-status': '/coe/student-status',
       'course-statistics': '/coe/course-statistics',
@@ -86,7 +86,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'exam-scheduling': '/coe/exam-scheduling',
       'qp-approvals': '/coe/qp-approvals',
       'apply-leave': '/coe/apply-leave',
-      'profile': '/coe/profile',
+      'profile': '/coe/profile'
     };
 
     navigate(pathMap[page] || '/coe/dashboard');
@@ -99,13 +99,13 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       await logoutUser();
       navigate('/', { replace: true });
     } catch (error) {
-      console.error('Logout failed:', error);
+
     }
   };
 
   const renderContent = () => {
     const orgPlan = (user as any)?.org_plan || "basic";
-    
+
     if (!activePage.includes('dashboard') && !isPageAllowed(activePage, orgPlan)) {
       return <UpgradeRequired featureName={activePage} role={user.role} onBack={() => handlePageChange('dashboard')} />;
     }
@@ -144,16 +144,16 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       user={currentUser}
       activePage={activePage}
       onPageChange={handlePageChange}
-      pageTitle="COE Dashboard"
-    >
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+      pageTitle="COE Dashboard">
+      
+      {error &&
+      <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
         </div>
-      )}
+      }
       {renderContent()}
-    </DashboardLayout>
-  );
+    </DashboardLayout>);
+
 };
 
 export default COEDashboard;

@@ -52,7 +52,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
     const lastPart = pathParts[pathParts.length - 1] || '';
 
     // Map URL paths to page names
-    const pathMap: { [key: string]: string } = {
+    const pathMap: {[key: string]: string;} = {
       'dashboard': 'dashboard',
       'take-attendance': 'take-attendance',
       'upload-marks': 'upload-marks',
@@ -100,7 +100,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
     setError(null);
 
     // Navigate to the corresponding URL path
-    const pathMap: { [key: string]: string } = {
+    const pathMap: {[key: string]: string;} = {
       'dashboard': '/faculty/dashboard',
       'take-attendance': '/faculty/take-attendance',
       'upload-marks': '/faculty/upload-marks',
@@ -139,7 +139,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       localStorage.clear();
       navigate("/", { replace: true });
     } catch (error) {
-      console.error("Logout error:", error);
+
       setError("Failed to log out. Please try again.");
     }
   };
@@ -150,7 +150,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
 
   const renderContent = () => {
     const orgPlan = (user as any)?.org_plan || "basic";
-    
+
     if (!activePage.includes('dashboard') && !isPageAllowed(activePage, orgPlan)) {
       return <UpgradeRequired featureName={activePage} role={user.role} onBack={() => handlePageChange('dashboard')} />;
     }
@@ -211,16 +211,16 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       activePage={activePage}
       onPageChange={handlePageChange}
       onNotificationClick={handleNotificationClick}
-      pageTitle="Faculty Dashboard"
-    >
-      {error && (
-        <div className={`p-3 rounded-lg mb-4 ${theme === 'dark' ? 'bg-destructive/10 border border-destructive/20 text-destructive-foreground' : 'bg-red-100 border border-red-200 text-red-700'}`}>
+      pageTitle="Faculty Dashboard">
+      
+      {error &&
+      <div className={`p-3 rounded-lg mb-4 ${theme === 'dark' ? 'bg-destructive/10 border border-destructive/20 text-destructive-foreground' : 'bg-red-100 border border-red-200 text-red-700'}`}>
           {error}
         </div>
-      )}
+      }
       {renderContent()}
-    </DashboardLayout>
-  );
+    </DashboardLayout>);
+
 };
 
 export default FacultyDashboard;

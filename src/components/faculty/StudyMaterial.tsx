@@ -8,8 +8,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue } from
+"@/components/ui/select";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { usePagination, useDebouncedSearch } from "@/hooks/useOptimizations";
 import { AdminPagination } from "../common/AdminPagination";
@@ -42,8 +42,8 @@ interface AssignedSection {
   branch_id: string;
 }
 
-const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme: string }) => (
-  <div className={`grid md:grid-cols-6 gap-2 md:gap-3 items-start md:items-center text-xs sm:text-sm py-2 md:py-3 border-b md:border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'} last:border-b-0`}>
+const StudyMaterialRow = ({ material, theme }: {material: StudyMaterial;theme: string;}) =>
+<div className={`grid md:grid-cols-6 gap-2 md:gap-3 items-start md:items-center text-xs sm:text-sm py-2 md:py-3 border-b md:border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'} last:border-b-0`}>
     <div className="hidden md:flex items-center">
       <FileText className="text-red-500" size={18} />
     </div>
@@ -76,8 +76,8 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
         <Download className={`cursor-pointer text-gray-500 hover:text-gray-700 flex-shrink-0`} size={18} />
       </a>
     </div>
-  </div>
-);
+  </div>;
+
 
 const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const { theme } = useTheme();
@@ -96,9 +96,9 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   const [uploadSection, setUploadSection] = useState<string>("");
   const [uploadTitle, setUploadTitle] = useState<string>("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
-  const [semesters, setSemesters] = useState<{ id: string; number: number }[]>([]);
-  const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
+  const [branches, setBranches] = useState<{id: string;name: string;}[]>([]);
+  const [semesters, setSemesters] = useState<{id: string;number: number;}[]>([]);
+  const [sections, setSections] = useState<{id: string;name: string;}[]>([]);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -106,7 +106,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
 
   const pagination = usePagination({
     queryKey: ['facultyStudyMaterials', selectedBranch, selectedSemester, selectedSection, debouncedSearch],
-    pageSize: 20,
+    pageSize: 20
   });
 
   useEffect(() => {
@@ -225,41 +225,41 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Branches">All Branches</SelectItem>
-                  {branches.map((b) => (
-                    <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
-                  ))}
+                  {branches.map((b) =>
+                  <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
 
               <Select
                 value={selectedSemester}
                 onValueChange={(value) => setSelectedSemester(value)}
-                disabled={semesters.length === 0}
-              >
+                disabled={semesters.length === 0}>
+                
                 <SelectTrigger className={`${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Semesters" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Semesters">All Semesters</SelectItem>
-                  {semesters.map((s) => (
-                    <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
-                  ))}
+                  {semesters.map((s) =>
+                  <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
 
               <Select
                 value={selectedSection}
                 onValueChange={(value) => setSelectedSection(value)}
-                disabled={sections.length === 0}
-              >
+                disabled={sections.length === 0}>
+                
                 <SelectTrigger className={`${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Sections" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Sections">All Sections</SelectItem>
-                  {sections.map((sec) => (
-                    <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
-                  ))}
+                  {sections.map((sec) =>
+                  <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -271,11 +271,11 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 placeholder="Search by title, course name, course code, semester, or uploaded by..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-xs sm:text-sm transition-all outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark'
-                    ? 'border-border bg-background text-foreground focus:border-primary'
-                    : 'border-gray-200 bg-white text-gray-900 focus:border-primary'
-                  }`}
-              />
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-xs sm:text-sm transition-all outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark' ?
+                'border-border bg-background text-foreground focus:border-primary' :
+                'border-gray-200 bg-white text-gray-900 focus:border-primary'}`
+                } />
+              
             </div>
           </div>
 
@@ -290,12 +290,12 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               <div>Action</div>
             </div>
             <div className="space-y-1">
-              {loading ? (
-                <div className="py-4">
+              {loading ?
+              <div className="py-4">
                   <SkeletonList items={5} />
-                </div>
-              ) : materials.length === 0 ? (
-                <div className={`flex flex-col items-center justify-center py-12 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                </div> :
+              materials.length === 0 ?
+              <div className={`flex flex-col items-center justify-center py-12 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
                   <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <BookOpen className="w-10 h-10" />
                   </div>
@@ -303,33 +303,33 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                     No Materials Found
                   </h3>
                   <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    {search 
-                      ? `We couldn't find any materials matching "${search}". Please try a different search term or criteria.` 
-                      : "No study materials have been uploaded for the selected filters yet."}
+                    {search ?
+                  `We couldn't find any materials matching "${search}". Please try a different search term or criteria.` :
+                  "No study materials have been uploaded for the selected filters yet."}
                   </p>
-                </div>
-              ) : (
-                materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
-              )}
+                </div> :
+
+              materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
+              }
             </div>
           </div>
 
           <AdminPagination
             pagination={pagination.paginationState}
-            onPageChange={pagination.goToPage}
-          />
+            onPageChange={pagination.goToPage} />
+          
         </CardContent>
       </Card>
 
-      {showUploadModal && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200"
-          onClick={() => setShowUploadModal(false)}
-        >
-          <div 
-            className={`p-4 sm:p-6 rounded-2xl shadow-2xl max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-md w-full border animate-in zoom-in-95 duration-200 ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}
-            onClick={(e) => e.stopPropagation()}
-          >
+      {showUploadModal &&
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200"
+        onClick={() => setShowUploadModal(false)}>
+        
+          <div
+          className={`p-4 sm:p-6 rounded-2xl shadow-2xl max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-md w-full border animate-in zoom-in-95 duration-200 ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}
+          onClick={(e) => e.stopPropagation()}>
+          
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h2 className="text-base sm:text-lg font-semibold">Upload Study Material</h2>
               <button onClick={() => setShowUploadModal(false)} className="text-gray-500 hover:text-gray-700">
@@ -338,100 +338,100 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
             </div>
             <div className="space-y-3 sm:space-y-4">
               <Select
-                value={uploadSubject}
-                onValueChange={(subjId) => {
-                  setUploadSubject(subjId);
-                  const subj = grouped.find(g => String(g.subject_id) === subjId);
-                  if (subj && subj.sections.length > 0) {
-                    const s = subj.sections[0];
-                    setUploadBranch(String(s.branch_id));
-                    setUploadSemester(String(s.semester_id));
-                    setUploadSection(String(s.section_id));
-                  }
-                }}
-              >
+              value={uploadSubject}
+              onValueChange={(subjId) => {
+                setUploadSubject(subjId);
+                const subj = grouped.find((g) => String(g.subject_id) === subjId);
+                if (subj && subj.sections.length > 0) {
+                  const s = subj.sections[0];
+                  setUploadBranch(String(s.branch_id));
+                  setUploadSemester(String(s.semester_id));
+                  setUploadSection(String(s.section_id));
+                }
+              }}>
+              
                 <SelectTrigger className={theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}>
                   <SelectValue placeholder="Select Subject" />
                 </SelectTrigger>
                 <SelectContent>
-                  {grouped.map(g => (
-                    <SelectItem key={g.subject_id} value={String(g.subject_id)}>{g.subject_name} ({g.subject_code})</SelectItem>
-                  ))}
+                  {grouped.map((g) =>
+                <SelectItem key={g.subject_id} value={String(g.subject_id)}>{g.subject_name} ({g.subject_code})</SelectItem>
+                )}
                 </SelectContent>
               </Select>
               <div className={`px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                Branch: {uploadBranch ? grouped.find(g => String(g.subject_id) === uploadSubject)?.sections.find(s => String(s.branch_id) === uploadBranch)?.branch : 'N/A'}
+                Branch: {uploadBranch ? grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.branch_id) === uploadBranch)?.branch : 'N/A'}
               </div>
               <div className={`px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                Semester: {uploadSemester ? `Semester ${grouped.find(g => String(g.subject_id) === uploadSubject)?.sections.find(s => String(s.semester_id) === uploadSemester)?.semester}` : 'N/A'}
+                Semester: {uploadSemester ? `Semester ${grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.semester_id) === uploadSemester)?.semester}` : 'N/A'}
               </div>
               <div className={`px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                Section: {uploadSection ? grouped.find(g => String(g.subject_id) === uploadSubject)?.sections.find(s => String(s.section_id) === uploadSection)?.section : 'N/A'}
+                Section: {uploadSection ? grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.section_id) === uploadSection)?.section : 'N/A'}
               </div>
               <input
-                type="text"
-                placeholder="Title"
-                value={uploadTitle}
-                onChange={(e) => setUploadTitle(e.target.value)}
-                className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}
-              />
+              type="text"
+              placeholder="Title"
+              value={uploadTitle}
+              onChange={(e) => setUploadTitle(e.target.value)}
+              className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} />
+            
               <input
-                type="file"
-                accept=".pdf,.doc,.docx,.ppt,.pptx"
-                onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
-                className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}
-              />
+              type="file"
+              accept=".pdf,.doc,.docx,.ppt,.pptx"
+              onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
+              className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} />
+            
               <button
-                onClick={async () => {
-                  if (!uploadFile || !uploadTitle || !uploadSubject) {
-                    alert("Please fill all fields");
-                    return;
+              onClick={async () => {
+                if (!uploadFile || !uploadTitle || !uploadSubject) {
+                  alert("Please fill all fields");
+                  return;
+                }
+                setUploading(true);
+                try {
+                  const subj = grouped.find((g) => String(g.subject_id) === uploadSubject);
+                  const resp = await uploadStudyMaterial({
+                    title: uploadTitle,
+                    subject_id: uploadSubject,
+                    subject_name: subj ? subj.subject_name : '',
+                    subject_code: subj ? subj.subject_code : '',
+                    semester_id: uploadSemester,
+                    branch_id: uploadBranch,
+                    section_id: uploadSection,
+                    file: uploadFile
+                  });
+                  if (resp && resp.success) {
+                    alert('Uploaded successfully');
+                    setShowUploadModal(false);
+                    setUploadSubject('');
+                    setUploadBranch('');
+                    setUploadSemester('');
+                    setUploadSection('');
+                    setUploadTitle('');
+                    setUploadFile(null);
+                    // Materials will automatically reload since filters are already selected
+                  } else {
+                    alert(resp?.message || 'Upload failed');
                   }
-                  setUploading(true);
-                  try {
-                    const subj = grouped.find(g => String(g.subject_id) === uploadSubject);
-                    const resp = await uploadStudyMaterial({
-                      title: uploadTitle,
-                      subject_id: uploadSubject,
-                      subject_name: subj ? subj.subject_name : '',
-                      subject_code: subj ? subj.subject_code : '',
-                      semester_id: uploadSemester,
-                      branch_id: uploadBranch,
-                      section_id: uploadSection,
-                      file: uploadFile,
-                    });
-                    if (resp && resp.success) {
-                      alert('Uploaded successfully');
-                      setShowUploadModal(false);
-                      setUploadSubject('');
-                      setUploadBranch('');
-                      setUploadSemester('');
-                      setUploadSection('');
-                      setUploadTitle('');
-                      setUploadFile(null);
-                      // Materials will automatically reload since filters are already selected
-                    } else {
-                      alert(resp?.message || 'Upload failed');
-                    }
-                  } catch (e) {
-                    console.error(e);
-                    alert('Upload error');
-                  } finally {
-                    setUploading(false);
-                  }
-                }}
-                disabled={uploading}
-                className={`w-full px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-bold text-white ${uploading ? 'bg-gray-500' : 'bg-primary hover:bg-primary/90'}`}
-              >
+                } catch (e) {
+
+                  alert('Upload error');
+                } finally {
+                  setUploading(false);
+                }
+              }}
+              disabled={uploading}
+              className={`w-full px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-bold text-white ${uploading ? 'bg-gray-500' : 'bg-primary hover:bg-primary/90'}`}>
+              
                 {uploading ? 'Uploading...' : 'Upload'}
               </button>
             </div>
           </div>
         </div>
-      )}
+      }
 
-    </div>
-  );
+    </div>);
+
 });
 
 export default StudyMaterialsFaculty;

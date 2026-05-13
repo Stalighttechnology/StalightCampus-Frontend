@@ -10,8 +10,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "../ui/dialog";
+  DialogFooter } from
+"../ui/dialog";
 import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar as ShadcnCalendar } from "../ui/calendar";
@@ -25,8 +25,8 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "../ui/table";
+  TableRow } from
+"../ui/table";
 
 interface TodayRow {
   branch: string;
@@ -121,15 +121,15 @@ const AdminHODAttendance: React.FC = () => {
   const fetchToday = async (page = 1, page_size = 10) => {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams({ 
-        page: String(page), 
-        page_size: String(page_size) 
+      const params = new URLSearchParams({
+        page: String(page),
+        page_size: String(page_size)
       });
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/hod-attendance-today/?${params.toString()}`, { method: 'GET' });
       const json = await res.json();
       if (json.success) {
         const norm = normalizePaginatedResponse(json, 'data');
-        const items = norm.items && norm.items.length ? norm.items : (json.data || []);
+        const items = norm.items && norm.items.length ? norm.items : json.data || [];
         setTodayRows(items);
         setTodaySummary(json.summary || { total_hods: 0, present: 0, absent: 0, not_marked: 0 });
         const count = norm.meta.totalItems ?? json.count ?? items.length;
@@ -142,11 +142,11 @@ const AdminHODAttendance: React.FC = () => {
           has_prev: !!(norm.meta.previous ?? json.pagination?.previous)
         });
       } else {
-        console.error('Failed to fetch HOD attendance:', json.message);
+
         Swal.fire('Error', json.message || 'Failed to fetch HOD attendance', 'error');
       }
     } catch (err) {
-      console.error('Error fetching HOD attendance:', err);
+
       Swal.fire('Error', 'Failed to load HOD attendance', 'error');
     } finally {
       setIsLoading(false);
@@ -156,17 +156,17 @@ const AdminHODAttendance: React.FC = () => {
   const fetchRecords = async (page = 1, page_size = 50) => {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams({ 
-        start_date: dateRange.start_date, 
-        end_date: dateRange.end_date, 
-        page: String(page), 
-        page_size: String(page_size) 
+      const params = new URLSearchParams({
+        start_date: dateRange.start_date,
+        end_date: dateRange.end_date,
+        page: String(page),
+        page_size: String(page_size)
       });
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/hod-attendance-today/?${params.toString()}`, { method: 'GET' });
       const json = await res.json();
       if (json.success) {
         const norm = normalizePaginatedResponse(json, 'data');
-        const items = norm.items && norm.items.length ? norm.items : (json.data || []);
+        const items = norm.items && norm.items.length ? norm.items : json.data || [];
         const count = norm.meta.totalItems ?? json.count ?? items.length;
         setFacultySummary(json.faculty_summary || []);
         setRecords(items);
@@ -192,11 +192,11 @@ const AdminHODAttendance: React.FC = () => {
     setIsDetailLoading(true);
     setSelectedHOD(hod);
     try {
-      const params = new URLSearchParams({ 
+      const params = new URLSearchParams({
         faculty_id: hod.hod_id,
-        start_date: dateRange.start_date, 
+        start_date: dateRange.start_date,
         end_date: dateRange.end_date,
-        page_size: '1000' 
+        page_size: '1000'
       });
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/hod-attendance-today/?${params.toString()}`, { method: 'GET' });
       const json = await res.json();
@@ -221,21 +221,21 @@ const AdminHODAttendance: React.FC = () => {
   }, [activeTab, hasSearched, recordsPagination.page, recordsPagination.page_size]);
 
   const formatDate = (dateString: string) => {
-    try { return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); } catch { return dateString; }
+    try {return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });} catch {return dateString;}
   };
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return 'Not marked';
-    try { 
-      const d = new Date(dateString); 
-      if (isNaN(d.getTime())) return 'Not marked'; 
-      return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); 
-    } catch { return 'Not marked'; }
+    try {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return 'Not marked';
+      return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } catch {return 'Not marked';}
   };
 
-  const handleRecordsPageChange = (newPage: number) => setRecordsPagination(prev => ({ ...prev, page: newPage }));
+  const handleRecordsPageChange = (newPage: number) => setRecordsPagination((prev) => ({ ...prev, page: newPage }));
   const handleTodayPageChange = (newPage: number) => {
-    setTodayPagination(prev => ({ ...prev, page: newPage }));
+    setTodayPagination((prev) => ({ ...prev, page: newPage }));
     fetchToday(newPage, todayPagination.page_size);
   };
 
@@ -269,14 +269,14 @@ const AdminHODAttendance: React.FC = () => {
         <button onClick={() => setActiveTab('records')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'records' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Attendance Records</button>
       </div>
 
-      {isLoading && (
+      {isLoading &&
         <div className="space-y-6">
           <SkeletonStatsGrid items={4} />
           <SkeletonTable rows={10} cols={6} />
         </div>
-      )}
+        }
 
-      {activeTab === 'today' && !isLoading && (
+      {activeTab === 'today' && !isLoading &&
         <>
           <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4`}>
             <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
@@ -320,8 +320,8 @@ const AdminHODAttendance: React.FC = () => {
           <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
             <div className="px-6 py-4 border-b border-gray-200"><h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Today's HOD Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</h3></div>
             <div className="hidden md:block overflow-x-auto">
-              {todayRows.length === 0 ? (
-                <div className={`flex flex-col items-center justify-center py-20 px-4 ${theme === 'dark' ? 'bg-card/30' : 'bg-white'}`}>
+              {todayRows.length === 0 ?
+              <div className={`flex flex-col items-center justify-center py-20 px-4 ${theme === 'dark' ? 'bg-card/30' : 'bg-white'}`}>
                   <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                     <Users className="w-10 h-10 text-primary opacity-50" />
                   </div>
@@ -329,9 +329,9 @@ const AdminHODAttendance: React.FC = () => {
                   <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     There are no HOD attendance records marked for today yet.
                   </p>
-                </div>
-              ) : (
-                <table className="w-full table-fixed">
+                </div> :
+
+              <table className="w-full table-fixed">
                   <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
                     <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                       <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Branch</th>
@@ -344,8 +344,8 @@ const AdminHODAttendance: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                    {todayRows.map((r, idx) => (
-                      <tr key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} transition-colors`}>
+                    {todayRows.map((r, idx) =>
+                  <tr key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} transition-colors`}>
                         <td className="px-3 py-4 font-medium text-gray-900 whitespace-normal break-words branch-cell">{r.branch}</td>
                         <td className="px-3 py-4 text-gray-900 whitespace-normal break-words faculty-name-cell">{r.hod_name}</td>
                         <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.contact || '-'}</td>
@@ -356,27 +356,27 @@ const AdminHODAttendance: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">
-                          {r.location ? (
-                            <>
+                          {r.location ?
+                      <>
                               {r.location.inside ? 'On campus' : 'Outside campus'}
                               {r.location.distance_meters ? ` • ${Math.round(r.location.distance_meters)} m` : ''}
-                            </>
-                          ) : '-'}
+                            </> :
+                      '-'}
                         </td>
                         <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">{r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</td>
                         <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.notes || '-'}</td>
                       </tr>
-                    ))}
+                  )}
                   </tbody>
                 </table>
-              )}
+              }
             </div>
             <div className="md:hidden p-4 space-y-3">
-              {todayRows.length === 0 ? (
-                <div className={`text-center py-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No attendance records today</div>
-              ) : (
-                todayRows.map((r, idx) => (
-                  <div key={idx} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
+              {todayRows.length === 0 ?
+              <div className={`text-center py-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No attendance records today</div> :
+
+              todayRows.map((r, idx) =>
+              <div key={idx} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm text-gray-500 whitespace-normal break-words">{r.branch}</div>
@@ -392,55 +392,55 @@ const AdminHODAttendance: React.FC = () => {
                     <div className="mt-2 text-sm text-gray-600 whitespace-normal break-words">Marked: {r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</div>
                     {r.notes && <div className="mt-1 text-xs text-muted-foreground italic whitespace-normal break-words">Note: {r.notes}</div>}
                   </div>
-                ))
-              )}
+              )
+              }
             </div>
 
             {/* Pagination for Today */}
-            {todayPagination.total_pages > 1 && (
-              <div className={`px-6 py-4 border-t flex items-center justify-between ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
+            {todayPagination.total_pages > 1 &&
+            <div className={`px-6 py-4 border-t flex items-center justify-between ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
                 <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                   Showing <span className="font-medium">{(todayPagination.page - 1) * todayPagination.page_size + 1}</span> to <span className="font-medium">{Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)}</span> of <span className="font-medium">{todayPagination.total_items}</span> HODs
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleTodayPageChange(todayPagination.page - 1)}
-                    disabled={!todayPagination.has_prev}
-                    className={`px-3 py-1 rounded border text-sm font-medium transition-colors ${!todayPagination.has_prev ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-accent border-border' : 'hover:bg-gray-50 border-gray-200'}`}
-                  >
+                  onClick={() => handleTodayPageChange(todayPagination.page - 1)}
+                  disabled={!todayPagination.has_prev}
+                  className={`px-3 py-1 rounded border text-sm font-medium transition-colors ${!todayPagination.has_prev ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-accent border-border' : 'hover:bg-gray-50 border-gray-200'}`}>
+                  
                     Previous
                   </button>
                   <div className="flex gap-1">
-                    {Array.from({ length: todayPagination.total_pages }, (_, i) => i + 1)
-                      .filter(p => p === 1 || p === todayPagination.total_pages || Math.abs(p - todayPagination.page) <= 1)
-                      .map((p, i, arr) => (
-                        <React.Fragment key={p}>
-                          {i > 0 && arr[i-1] !== p - 1 && <span className="px-1 opacity-50">...</span>}
+                    {Array.from({ length: todayPagination.total_pages }, (_, i) => i + 1).
+                  filter((p) => p === 1 || p === todayPagination.total_pages || Math.abs(p - todayPagination.page) <= 1).
+                  map((p, i, arr) =>
+                  <React.Fragment key={p}>
+                          {i > 0 && arr[i - 1] !== p - 1 && <span className="px-1 opacity-50">...</span>}
                           <button
-                            onClick={() => handleTodayPageChange(p)}
-                            className={`w-8 h-8 rounded text-sm font-medium transition-colors ${todayPagination.page === p ? 'bg-primary text-white' : theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'}`}
-                          >
+                      onClick={() => handleTodayPageChange(p)}
+                      className={`w-8 h-8 rounded text-sm font-medium transition-colors ${todayPagination.page === p ? 'bg-primary text-white' : theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'}`}>
+                      
                             {p}
                           </button>
                         </React.Fragment>
-                      ))
-                    }
+                  )
+                  }
                   </div>
                   <button
-                    onClick={() => handleTodayPageChange(todayPagination.page + 1)}
-                    disabled={!todayPagination.has_next}
-                    className={`px-3 py-1 rounded border text-sm font-medium transition-colors ${!todayPagination.has_next ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-accent border-border' : 'hover:bg-gray-50 border-gray-200'}`}
-                  >
+                  onClick={() => handleTodayPageChange(todayPagination.page + 1)}
+                  disabled={!todayPagination.has_next}
+                  className={`px-3 py-1 rounded border text-sm font-medium transition-colors ${!todayPagination.has_next ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-accent border-border' : 'hover:bg-gray-50 border-gray-200'}`}>
+                  
                     Next
                   </button>
                 </div>
               </div>
-            )}
+            }
           </div>
         </>
-      )}
+        }
 
-      {activeTab === 'records' && !isLoading && (
+      {activeTab === 'records' && !isLoading &&
         <>
           {/* Filters */}
           <div className={`p-4 rounded-lg shadow-sm mb-6 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
@@ -455,8 +455,8 @@ const AdminHODAttendance: React.FC = () => {
                         "w-full sm:w-[240px] justify-start text-left font-normal",
                         !dateRange.start_date && "text-muted-foreground",
                         theme === 'dark' ? "bg-background border-border text-foreground" : "bg-white border-gray-300 text-gray-900"
-                      )}
-                    >
+                      )}>
+                      
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
                     </Button>
@@ -467,12 +467,12 @@ const AdminHODAttendance: React.FC = () => {
                       selected={new Date(dateRange.start_date)}
                       onSelect={(date) => {
                         if (date) {
-                          setDateRange(prev => ({ ...prev, start_date: format(date, "yyyy-MM-dd") }));
+                          setDateRange((prev) => ({ ...prev, start_date: format(date, "yyyy-MM-dd") }));
                           setStartDateOpen(false);
                         }
                       }}
-                      initialFocus
-                    />
+                      initialFocus />
+                    
                   </PopoverContent>
                 </Popover>
               </div>
@@ -486,8 +486,8 @@ const AdminHODAttendance: React.FC = () => {
                         "w-full sm:w-[240px] justify-start text-left font-normal",
                         !dateRange.end_date && "text-muted-foreground",
                         theme === 'dark' ? "bg-background border-border text-foreground" : "bg-white border-gray-300 text-gray-900"
-                      )}
-                    >
+                      )}>
+                      
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
                     </Button>
@@ -498,7 +498,7 @@ const AdminHODAttendance: React.FC = () => {
                       selected={new Date(dateRange.end_date)}
                       onSelect={(date) => {
                         if (date) {
-                          setDateRange(prev => ({ ...prev, end_date: format(date, "yyyy-MM-dd") }));
+                          setDateRange((prev) => ({ ...prev, end_date: format(date, "yyyy-MM-dd") }));
                           setEndDateOpen(false);
                         }
                       }}
@@ -507,26 +507,26 @@ const AdminHODAttendance: React.FC = () => {
                         start.setHours(0, 0, 0, 0);
                         return date <= start;
                       }}
-                      initialFocus
-                    />
+                      initialFocus />
+                    
                   </PopoverContent>
                 </Popover>
               </div>
-              <Button 
-                onClick={() => { 
+              <Button
+                onClick={() => {
                   setHasSearched(true);
-                  setRecordsPagination(p => ({ ...p, page: 1 })); 
-                  fetchRecords(1); 
-                }} 
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white"
-              >
+                  setRecordsPagination((p) => ({ ...p, page: 1 }));
+                  fetchRecords(1);
+                }}
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white">
+                
                 Apply Filter
               </Button>
             </div>
           </div>
 
-          {!hasSearched ? (
-            <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
+          {!hasSearched ?
+          <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
               <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                 <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
               </div>
@@ -534,9 +534,9 @@ const AdminHODAttendance: React.FC = () => {
               <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Select a start and end date above, then click <strong>Apply Filter</strong> to view HOD attendance records.
               </p>
-            </div>
-          ) : facultySummary.length === 0 ? (
-            <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
+            </div> :
+          facultySummary.length === 0 ?
+          <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
               <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                 <Users className="w-10 h-10 text-primary opacity-50" />
               </div>
@@ -544,9 +544,9 @@ const AdminHODAttendance: React.FC = () => {
               <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 We couldn't find any attendance history for the selected date range. Try adjusting your dates.
               </p>
-            </div>
-          ) : (
-            <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
+            </div> :
+
+          <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>HOD Attendance Summary</h3>
               </div>
@@ -564,8 +564,8 @@ const AdminHODAttendance: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {facultySummary.map((s, idx) => (
-                      <TableRow key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} transition-colors border-b last:border-0`}>
+                    {facultySummary.map((s, idx) =>
+                  <TableRow key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} transition-colors border-b last:border-0`}>
                         <TableCell className="font-semibold text-foreground faculty-name-cell py-5">{s.hod_name}</TableCell>
                         <TableCell className="text-foreground branch-cell py-5">{s.branch}</TableCell>
                         <TableCell className="text-foreground">{s.total_days}</TableCell>
@@ -578,24 +578,24 @@ const AdminHODAttendance: React.FC = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
-                            onClick={() => fetchHODDetails(s)}
-                            variant="ghost"
-                            size="sm"
-                            className={`h-8 gap-2 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20 hover:text-white' : 'bg-primary text-white hover:bg-primary/90 hover:text-white'}`}
-                          >
+                        onClick={() => fetchHODDetails(s)}
+                        variant="ghost"
+                        size="sm"
+                        className={`h-8 gap-2 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20 hover:text-white' : 'bg-primary text-white hover:bg-primary/90 hover:text-white'}`}>
+                        
                             <CalendarIcon className="w-3.5 h-3.5" />
                             View Grid
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
+                  )}
                   </TableBody>
                 </Table>
               </div>
             </div>
-          )}
+          }
         </>
-      )}
+        }
 
       {/* Attendance Grid Dialog */}
       <Dialog open={!!selectedHOD} onOpenChange={(open) => !open && setSelectedHOD(null)}>
@@ -626,12 +626,12 @@ const AdminHODAttendance: React.FC = () => {
             </DialogHeader>
 
             <div className={`p-4 sm:p-6 rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-muted/20 border border-white/5' : 'bg-gray-50 border border-gray-100'}`}>
-              {isDetailLoading ? (
+              {isDetailLoading ?
                 <div className="flex flex-col items-center justify-center py-20 gap-3">
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                   <p className="text-sm font-semibold animate-pulse text-muted-foreground">Syncing attendance data...</p>
-                </div>
-              ) : (
+                </div> :
+
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
                   {(() => {
                     const start = new Date(dateRange.start_date);
@@ -642,34 +642,34 @@ const AdminHODAttendance: React.FC = () => {
                     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                       days.push(new Date(d));
                     }
-                    
+
                     return days.map((date) => {
                       const dateStr = date.toLocaleDateString('sv-SE');
-                      const record = hodAttendanceDetails.find(r => r.date === dateStr);
+                      const record = hodAttendanceDetails.find((r) => r.date === dateStr);
                       const isFuture = date > today;
                       const isPresent = record?.status?.toLowerCase() === 'present';
-                      const isAbsent = record?.status?.toLowerCase() === 'absent' || (!record && !isFuture);
-                      
+                      const isAbsent = record?.status?.toLowerCase() === 'absent' || !record && !isFuture;
+
                       return (
                         <div key={dateStr} className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent ? 'bg-green-500/10 border-green-500/30 text-green-600' : isAbsent ? 'bg-red-500/10 border-red-500/30 text-red-600' : theme === 'dark' ? 'bg-white/5 border-white/5 text-muted-foreground/30' : 'bg-gray-100 border-gray-200 text-gray-300'}`}>
                           <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                           <span className="text-xl font-black leading-tight">{date.getDate()}</span>
                           <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
-                          {record ? (
-                            <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`}>{record.status[0]}</div>
-                          ) : (!isFuture && <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">A</div>)}
+                          {record ?
+                          <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`}>{record.status[0]}</div> :
+                          !isFuture && <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">A</div>}
                           
                           <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
                             <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
                             {!record && !isFuture && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
                             {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
                           </div>
-                        </div>
-                      );
+                        </div>);
+
                     });
                   })()}
                 </div>
-              )}
+                }
             </div>
             
             <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
@@ -682,8 +682,8 @@ const AdminHODAttendance: React.FC = () => {
         </DialogContent>
       </Dialog>
       </div>
-    </>
-  );
+    </>);
+
 };
 
 export default AdminHODAttendance;

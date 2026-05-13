@@ -34,7 +34,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     office_location: "",
     office_hours: "",
     date_of_birth: "",
-    gender: "",
+    gender: ""
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,41 +49,41 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
   useEffect(() => {
     setLoading(true);
-    getFacultyProfile()
-      .then((res) => {
-        // Backend now returns { success: true, profile: { ... } }
-        const payload = res.profile || res.data || null;
-        if (res.success && payload) {
-          setFormData({
-            firstName: payload.first_name || "",
-            lastName: payload.last_name || "",
-            email: payload.email || "",
-            mobile: payload.mobile_number || payload.mobile || "",
-            address: payload.address || "",
-            bio: payload.bio || "",
-            profile_picture: payload.profile_picture || payload.profile_picture_url || "",
-            department: payload.department || "",
-            designation: payload.designation || "",
-            qualification: payload.qualification || "",
-            branch: payload.branch || "",
-            experience_years: payload.experience_years ? String(payload.experience_years) : "",
-            office_location: payload.office_location || "",
-            office_hours: payload.office_hours || "",
-            date_of_birth: payload.date_of_birth || "",
-            gender: payload.gender || "",
-          });
-        } else {
-          setError(res.message || "Failed to load profile");
-        }
-      })
-      .catch(() => setError("Failed to load profile"))
-      .finally(() => setLoading(false));
+    getFacultyProfile().
+    then((res) => {
+      // Backend now returns { success: true, profile: { ... } }
+      const payload = res.profile || res.data || null;
+      if (res.success && payload) {
+        setFormData({
+          firstName: payload.first_name || "",
+          lastName: payload.last_name || "",
+          email: payload.email || "",
+          mobile: payload.mobile_number || payload.mobile || "",
+          address: payload.address || "",
+          bio: payload.bio || "",
+          profile_picture: payload.profile_picture || payload.profile_picture_url || "",
+          department: payload.department || "",
+          designation: payload.designation || "",
+          qualification: payload.qualification || "",
+          branch: payload.branch || "",
+          experience_years: payload.experience_years ? String(payload.experience_years) : "",
+          office_location: payload.office_location || "",
+          office_hours: payload.office_hours || "",
+          date_of_birth: payload.date_of_birth || "",
+          gender: payload.gender || ""
+        });
+      } else {
+        setError(res.message || "Failed to load profile");
+      }
+    }).
+    catch(() => setError("Failed to load profile")).
+    finally(() => setLoading(false));
   }, []);
 
   const handleChange = (
-    field: string,
-    value: string
-  ) => {
+  field: string,
+  value: string) =>
+  {
     let newValue = value;
     let errorMessage = "";
 
@@ -97,10 +97,10 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
       case "email":
         if (
-          !/^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/.test(
-            newValue
-          )
-        ) {
+        !/^[a-zA-Z0-9._%+-]+@[a-zA-Z][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/.test(
+          newValue
+        ))
+        {
           errorMessage = "Invalid email format";
         }
         break;
@@ -153,7 +153,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         mobile: formData.mobile,
         address: formData.address,
         bio: formData.bio,
-        profile_picture: (formData.profile_picture as any) || undefined,
+        profile_picture: formData.profile_picture as any || undefined,
         // faculty specific
         department: formData.department || undefined,
         designation: formData.designation || undefined,
@@ -163,7 +163,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         office_location: formData.office_location || undefined,
         office_hours: formData.office_hours || undefined,
         date_of_birth: formData.date_of_birth || undefined,
-        gender: formData.gender || undefined,
+        gender: formData.gender || undefined
       });
 
       // Backend may return updated profile under `profile` or `data`
@@ -189,7 +189,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             office_location: payload.office_location || prev.office_location,
             office_hours: payload.office_hours || prev.office_hours,
             date_of_birth: payload.date_of_birth || prev.date_of_birth,
-            gender: payload.gender || prev.gender,
+            gender: payload.gender || prev.gender
           }));
         }
         setIsEditing(false);
@@ -223,8 +223,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         body: JSON.stringify({
           current_password: passwordData.current_password,
           new_password: passwordData.new_password,
-          confirm_password: passwordData.confirm_password,
-        }),
+          confirm_password: passwordData.confirm_password
+        })
       });
       const result = await response.json();
       if (result.success) {
@@ -235,7 +235,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         showErrorAlert('Unable to change password', result.message || 'Failed to change password');
       }
     } catch (err) {
-      console.error('Error changing password:', err);
+
       showErrorAlert('Unable to change password', 'Failed to change password');
     }
   };
@@ -272,8 +272,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Gender</label>
               <Input value={formData.gender} onChange={(e) => handleChange("gender", e.target.value)} disabled={!isEditing} placeholder="Gender" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
             </div>
-          </div>
-        );
+          </div>);
+
 
       case "academic":
         return (
@@ -310,8 +310,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 <Input value={formData.office_location} onChange={(e) => handleChange("office_location", e.target.value)} disabled={!isEditing} placeholder="Office" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
             </div>
-          </div>
-        );
+          </div>);
+
 
       case "contact":
         return (
@@ -339,8 +339,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               <Textarea value={formData.bio} onChange={(e) => handleChange("bio", e.target.value)} disabled={!isEditing} placeholder="Tell us about yourself" rows={4} className="text-sm" />
               {localErrors.bio && <p className={`text-sm mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.bio}</p>}
             </div>
-          </div>
-        );
+          </div>);
+
 
       default:
         return null;
@@ -356,15 +356,15 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-          <Button className="text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90" onClick={() => { if (isEditing) { handleSave(); } else { setIsEditing(true); } }}>
-            {isEditing ? (
-              updateProfileMutation?.isPending ? (
-                <div className="flex items-center gap-2">
+          <Button className="text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90" onClick={() => {if (isEditing) {handleSave();} else {setIsEditing(true);}}}>
+            {isEditing ?
+            updateProfileMutation?.isPending ?
+            <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-white/40 animate-pulse" />
                   Saving...
-                </div>
-              ) : 'Save'
-            ) : 'Edit Profile'}
+                </div> :
+            'Save' :
+            'Edit Profile'}
           </Button>
           {isEditing && <button onClick={() => setIsEditing(false)} className={`text-sm px-3 sm:px-4 py-1.5 sm:py-2 border rounded-md transition-colors ${theme === 'dark' ? 'border-muted-foreground text-muted-foreground hover:border-foreground hover:text-foreground' : 'border-gray-600 text-gray-600 hover:border-gray-900 hover:text-gray-900'}`}>Cancel</button>}
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -384,14 +384,14 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       type={showPasswords.current ? 'text' : 'password'}
                       value={passwordData.current_password}
                       onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                      className="pr-10"
-                    />
+                      className="pr-10" />
+                    
                     <button
                       type="button"
                       onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                      aria-label={showPasswords.current ? 'Hide current password' : 'Show current password'}
-                    >
+                      aria-label={showPasswords.current ? 'Hide current password' : 'Show current password'}>
+                      
                       {showPasswords.current ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </button>
                   </div>
@@ -404,14 +404,14 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       type={showPasswords.next ? 'text' : 'password'}
                       value={passwordData.new_password}
                       onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                      className="pr-10"
-                    />
+                      className="pr-10" />
+                    
                     <button
                       type="button"
                       onClick={() => setShowPasswords((prev) => ({ ...prev, next: !prev.next }))}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                      aria-label={showPasswords.next ? 'Hide new password' : 'Show new password'}
-                    >
+                      aria-label={showPasswords.next ? 'Hide new password' : 'Show new password'}>
+                      
                       {showPasswords.next ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </button>
                   </div>
@@ -424,14 +424,14 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                       type={showPasswords.confirm ? 'text' : 'password'}
                       value={passwordData.confirm_password}
                       onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                      className="pr-10"
-                    />
+                      className="pr-10" />
+                    
                     <button
                       type="button"
                       onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                      aria-label={showPasswords.confirm ? 'Hide confirm password' : 'Show confirm password'}
-                    >
+                      aria-label={showPasswords.confirm ? 'Hide confirm password' : 'Show confirm password'}>
+                      
                       {showPasswords.confirm ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </button>
                   </div>
@@ -452,7 +452,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           {/* Left column: avatar and basic */}
           <div className="col-span-1 flex flex-col items-center h-full">
             <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4 flex-shrink-0`}>
-              {(formData.firstName && formData.firstName[0]) || ""}{(formData.lastName && formData.lastName[0]) || ""}
+              {formData.firstName && formData.firstName[0] || ""}{formData.lastName && formData.lastName[0] || ""}
             </div>
             <div className="text-base sm:text-lg font-semibold text-center mb-1">{formData.firstName} {formData.lastName}</div>
             <div className={`text-sm mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</div>
@@ -492,8 +492,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 });
 
 export default FacultyProfile;

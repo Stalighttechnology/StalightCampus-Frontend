@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue } from
+"@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { SkeletonCard, SkeletonTable } from "../ui/skeleton";
 import { manageSections, sendNotification, getLowAttendanceStudents, getHODDashboardBootstrap } from "../../utils/hod_api";
@@ -74,8 +74,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         <div className="text-center py-6 text-red-500">
           <h2>Error: {this.state.errorMessage}</h2>
           <p>Please try refreshing the page or contact support.</p>
-        </div>
-      );
+        </div>);
+
     }
     return this.props.children;
   }
@@ -88,13 +88,13 @@ const AttendanceTable = React.memo(({
   notifyingStudents,
   notifiedStudents,
   onNotifyStudent
-}: {
-  students: Student[];
-  theme: string;
-  notifyingStudents: Record<string, boolean>;
-  notifiedStudents: Record<string, boolean>;
-  onNotifyStudent: (student: Student) => void;
-}) => {
+
+
+
+
+
+
+}: {students: Student[];theme: string;notifyingStudents: Record<string, boolean>;notifiedStudents: Record<string, boolean>;onNotifyStudent: (student: Student) => void;}) => {
   const getAttendanceColorClass = (attendance: number | string): string => {
     if (attendance === "NA" || attendance === null || attendance === undefined) {
       return "text-gray-400";
@@ -131,11 +131,11 @@ const AttendanceTable = React.memo(({
           </tr>
         </thead>
         <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-          {students.map((student, idx) => (
-            <tr 
-              key={`${student.student_id}-${student.subject}-${idx}`} 
-              className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-gray-50'}`}
-            >
+          {students.map((student, idx) =>
+          <tr
+            key={`${student.student_id}-${student.subject}-${idx}`}
+            className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-gray-50'}`}>
+            
               <td className="py-3 px-4 font-semibold whitespace-nowrap">{student.usn}</td>
               <td className="py-3 px-4 font-semibold whitespace-nowrap">{student.name}</td>
               <td className="py-3 px-4 whitespace-nowrap">{student.subject}</td>
@@ -144,36 +144,36 @@ const AttendanceTable = React.memo(({
               </td>
               <td className="py-3 px-4 text-center">
                 <Button
-                  size="sm"
-                  onClick={() => onNotifyStudent(student)}
-                  className={`px-4 py-1 text-xs min-w-[90px] flex items-center justify-center gap-1 mx-auto rounded-md shadow-sm border transition-all duration-200 ease-in-out transform hover:scale-105
-                    ${notifiedStudents?.[student.student_id]
-                      ? "bg-green-700 border-green-600 text-white cursor-default"
-                      : "bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-                    }`}
-                  disabled={
-                    notifyingStudents?.[student.student_id] ||
-                    notifiedStudents?.[student.student_id]
-                  }
-                >
-                  {notifyingStudents?.[student.student_id] ? (
-                    <>
+                size="sm"
+                onClick={() => onNotifyStudent(student)}
+                className={`px-4 py-1 text-xs min-w-[90px] flex items-center justify-center gap-1 mx-auto rounded-md shadow-sm border transition-all duration-200 ease-in-out transform hover:scale-105
+                    ${notifiedStudents?.[student.student_id] ?
+                "bg-green-700 border-green-600 text-white cursor-default" :
+                "bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"}`
+                }
+                disabled={
+                notifyingStudents?.[student.student_id] ||
+                notifiedStudents?.[student.student_id]
+                }>
+                
+                  {notifyingStudents?.[student.student_id] ?
+                <>
                       <Loader2 className="w-3 h-3 animate-spin" />
                       Sending...
-                    </>
-                  ) : notifiedStudents?.[student.student_id] ? (
-                    <><CheckCircle className="w-3 h-3" /> Notified</>
-                  ) : (
-                    "Notify"
-                  )}
+                    </> :
+                notifiedStudents?.[student.student_id] ?
+                <><CheckCircle className="w-3 h-3" /> Notified</> :
+
+                "Notify"
+                }
                 </Button>
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
-    </div>
-  );
+    </div>);
+
 });
 
 const LowAttendance = ({ setError }: LowAttendanceProps) => {
@@ -205,7 +205,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     selectedSemester: "",
     selectedSection: "",
     students: [] as Student[],
-    semesters: (bootstrap?.semesters as Semester[]) || [] as Semester[],
+    semesters: bootstrap?.semesters as Semester[] || [] as Semester[],
     sections: [] as Section[],
     loading: !bootstrap?.branch_id, // Only load if we don't have bootstrap data
     branchId: bootstrap?.branch_id || "",
@@ -216,7 +216,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     totalCount: 0,
     pageSize: 50,
     next: null as string | null,
-    previous: null as string | null,
+    previous: null as string | null
   });
 
   // Sync with bootstrap context if data arrives after mount
@@ -224,7 +224,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     if (bootstrap?.branch_id && !state.branchId) {
       updateState({
         branchId: bootstrap.branch_id,
-        semesters: (bootstrap.semesters as Semester[]) || [],
+        semesters: bootstrap.semesters as Semester[] || [],
         loading: false
       });
     }
@@ -232,7 +232,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
   // Helper to update state
   const updateState = (newState: Partial<typeof state>) => {
-    setState(prev => ({ ...prev, ...newState }));
+    setState((prev) => ({ ...prev, ...newState }));
   };
 
   // Pagination functions
@@ -283,7 +283,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
       if (bootstrap?.branch_id && bootstrap?.semesters) {
         return;
       }
-      
+
       updateState({ loading: true });
       try {
         // Get branch ID and semesters from bootstrap endpoint
@@ -340,7 +340,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
           subject: student.subject,
           section: student.section || "Section A",
           semester: student.semester || 0,
-          attendance_percentage: student.attendance_percentage,
+          attendance_percentage: student.attendance_percentage
         }));
 
         updateState({
@@ -349,7 +349,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
           notifiedStudents: {},
           totalCount: studentsResponse.count || 0,
           next: studentsResponse.next,
-          previous: studentsResponse.previous,
+          previous: studentsResponse.previous
         });
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch students";
@@ -407,8 +407,8 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     }
 
     // Get semester and section info for the title
-    const semesterNumber = state.semesters.find(s => s.id === state.selectedSemester)?.number;
-    const sectionName = state.sections.find(s => s.id === state.selectedSection)?.name;
+    const semesterNumber = state.semesters.find((s) => s.id === state.selectedSemester)?.number;
+    const sectionName = state.sections.find((s) => s.id === state.selectedSection)?.name;
 
     doc.setFontSize(16);
     doc.text(`Low Attendance Students - Semester ${semesterNumber} Section ${sectionName}`, margin, 14);
@@ -416,7 +416,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     doc.text(`Generated on ${new Date().toLocaleDateString()}`, 180, 14);
 
     const studentChunks = [];
-    for (let i = 0; i < studentsToExport.length; i += 40) { // 40 items per page for better readability
+    for (let i = 0; i < studentsToExport.length; i += 40) {// 40 items per page for better readability
       studentChunks.push(studentsToExport.slice(i, i + 40));
     }
 
@@ -434,12 +434,12 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
         startY: 20,
         head: [["USN", "Name", "Subject", "Section", "Attendance %"]],
         body: chunk.map((student) => [
-          student.usn,
-          student.name,
-          student.subject,
-          student.section,
-          formatAttendancePercentage(student.attendance_percentage),
-        ]),
+        student.usn,
+        student.name,
+        student.subject,
+        student.section,
+        formatAttendancePercentage(student.attendance_percentage)]
+        ),
         theme: "striped",
         headStyles: { fillColor: [200, 200, 200], textColor: "black" },
         bodyStyles: { fontSize: 10 },
@@ -451,7 +451,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
             margin,
             pageHeight - 10
           );
-        },
+        }
       });
     });
 
@@ -460,9 +460,9 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
   const notifyStudent = async (student: Student) => {
     try {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        notifyingStudents: { ...prev.notifyingStudents, [student.student_id]: true },
+        notifyingStudents: { ...prev.notifyingStudents, [student.student_id]: true }
       }));
 
       const response = await sendNotification({
@@ -472,19 +472,19 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
         message: `Dear ${student.name}, your attendance in ${student.subject} is ${formatAttendancePercentage(
           student.attendance_percentage
         )}. Please improve.`,
-        branch_id: state.branchId,
+        branch_id: state.branchId
       });
 
       if (response.success) {
         toast({
           title: "Success",
-          description: `Notification sent to ${student.name}`,
+          description: `Notification sent to ${student.name}`
         });
 
         // ✅ mark as notified using functional update
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
-          notifiedStudents: { ...prev.notifiedStudents, [student.student_id]: true },
+          notifiedStudents: { ...prev.notifiedStudents, [student.student_id]: true }
         }));
       } else {
         throw new Error(response.message || "Failed to send notification");
@@ -493,9 +493,9 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
       const errorMessage = err instanceof Error ? err.message : "Network error";
       toast({ variant: "destructive", title: "Error", description: errorMessage });
     } finally {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        notifyingStudents: { ...prev.notifyingStudents, [student.student_id]: false },
+        notifyingStudents: { ...prev.notifyingStudents, [student.student_id]: false }
       }));
     }
   };
@@ -508,7 +508,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     if (studentsToNotify.length === 0) {
       toast({
         title: "Information",
-        description: "All students in the current view have already been notified.",
+        description: "All students in the current view have already been notified."
       });
       return;
     }
@@ -519,13 +519,13 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
       for (const student of studentsToNotify) {
         await notifyStudent(student);
       }
-      
+
       toast({
         title: "Bulk Notification Complete",
-        description: `Notifications sent to all eligible students in the current view.`,
+        description: `Notifications sent to all eligible students in the current view.`
       });
     } catch (error) {
-      console.error("Error in bulk notification:", error);
+
     } finally {
       updateState({ loading: false });
     }
@@ -551,23 +551,23 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
   // Calculate stats
   const totalStudents = state.totalCount;
   const lowAttendanceCount = state.students.length;
-  const avgAttendance = state.students.length > 0
-    ? Math.round(state.students.reduce((sum, s) => sum + (typeof s.attendance_percentage === 'number' ? s.attendance_percentage : 0), 0) / state.students.filter(s => typeof s.attendance_percentage === 'number').length)
-    : 0;
+  const avgAttendance = state.students.length > 0 ?
+  Math.round(state.students.reduce((sum, s) => sum + (typeof s.attendance_percentage === 'number' ? s.attendance_percentage : 0), 0) / state.students.filter((s) => typeof s.attendance_percentage === 'number').length) :
+  0;
 
   return (
     <ErrorBoundary>
       <div className={`text-base w-full max-w-none mx-auto sm:px-0 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-          {state.loading && state.students.length === 0 ? (
-            <>
+          {state.loading && state.students.length === 0 ?
+          <>
               <SkeletonCard className="h-32" />
               <SkeletonCard className="h-32" />
               <SkeletonCard className="h-32" />
-            </>
-          ) : (
-            <>
+            </> :
+
+          <>
               <Card className={`${theme === 'dark' ? 'bg-card border border-border shadow-sm' : 'bg-white border border-gray-200 shadow-sm'} w-full relative`}>
                 <CardHeader className="pb-2 px-3 sm:px-4">
                   <CardTitle className={`text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Students</CardTitle>
@@ -604,7 +604,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                 </div>
               </Card>
             </>
-          )}
+          }
         </div>
 
         {/* Main Management Card */}
@@ -621,8 +621,8 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
             <Button
               onClick={exportPDF}
               disabled={state.loading || state.students.length === 0}
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto"
-            >
+              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto">
+              
               <FileDown className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
@@ -637,17 +637,17 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Semester</label>
                   <Select
                     value={state.selectedSemester}
-                    onValueChange={handleSemesterChange}
-                  >
+                    onValueChange={handleSemesterChange}>
+                    
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder="Select Semester" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                      {state.semesters.map((semester) => (
-                        <SelectItem key={semester.id} value={semester.id}>
+                      {state.semesters.map((semester) =>
+                      <SelectItem key={semester.id} value={semester.id}>
                           Sem {semester.number}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -658,17 +658,17 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   <Select
                     value={state.selectedSection}
                     onValueChange={handleSectionChange}
-                    disabled={!state.selectedSemester}
-                  >
+                    disabled={!state.selectedSemester}>
+                    
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder="Select Section" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                      {state.sections.map((section) => (
-                        <SelectItem key={section.id} value={section.id}>
+                      {state.sections.map((section) =>
+                      <SelectItem key={section.id} value={section.id}>
                           {section.name}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -678,92 +678,92 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
           <CardContent className="pt-4">
             {/* Students Table */}
-            {state.loading ? (
-              <div className="py-4">
+            {state.loading ?
+            <div className="py-4">
                 <SkeletonTable rows={10} cols={5} />
-              </div>
-            ) : state.students.length > 0 ? (
-              <div className="space-y-4">
+              </div> :
+            state.students.length > 0 ?
+            <div className="space-y-4">
                 <div className="flex flex-row justify-between items-center gap-4 mb-2 ml-1">
                   <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                     Students List
                   </h2>
                   <Button
-                    onClick={notifyAllStudents}
-                    disabled={state.loading || state.students.length === 0}
-                    variant="outline"
-                    className={`text-xs sm:text-sm font-semibold flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md transform hover:scale-105 active:scale-95`}
-                  >
+                  onClick={notifyAllStudents}
+                  disabled={state.loading || state.students.length === 0}
+                  variant="outline"
+                  className={`text-xs sm:text-sm font-semibold flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md transform hover:scale-105 active:scale-95`}>
+                  
                     <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                     Notify All
                   </Button>
                 </div>
                 <div className="border rounded-lg overflow-hidden">
                   <AttendanceTable
-                    students={state.students}
-                    theme={theme}
-                    notifyingStudents={state.notifyingStudents}
-                    notifiedStudents={state.notifiedStudents}
-                    onNotifyStudent={notifyStudent}
-                  />
+                  students={state.students}
+                  theme={theme}
+                  notifyingStudents={state.notifyingStudents}
+                  notifiedStudents={state.notifiedStudents}
+                  onNotifyStudent={notifyStudent} />
+                
                 </div>
 
                 {/* Pagination Controls */}
-                {state.totalCount > state.pageSize && (
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                {state.totalCount > state.pageSize &&
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
                     <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Showing {state.students.length} of {state.totalCount} students
                     </div>
                     <div className="flex gap-2 items-center justify-center sm:justify-end flex-wrap">
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={goToPreviousPage}
-                        disabled={!state.previous || state.loading}
-                        className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}
-                      >
+                    variant="outline"
+                    size="sm"
+                    onClick={goToPreviousPage}
+                    disabled={!state.previous || state.loading}
+                    className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
+                    
                         <ChevronLeft className="w-3 h-3 mr-1" />
                         Prev
                       </Button>
 
                       <div className="flex items-center space-x-1">
                         {Array.from(
-                          { length: Math.min(5, Math.ceil(state.totalCount / state.pageSize)) },
-                          (_, i) => {
-                            const pageNum = Math.max(1, state.currentPage - 2) + i;
-                            if (pageNum > Math.ceil(state.totalCount / state.pageSize)) return null;
-                            return (
-                              <Button
-                                key={pageNum}
-                                variant={pageNum === state.currentPage ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => goToPage(pageNum)}
-                                disabled={state.loading}
-                                className="text-sm"
-                              >
+                      { length: Math.min(5, Math.ceil(state.totalCount / state.pageSize)) },
+                      (_, i) => {
+                        const pageNum = Math.max(1, state.currentPage - 2) + i;
+                        if (pageNum > Math.ceil(state.totalCount / state.pageSize)) return null;
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={pageNum === state.currentPage ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => goToPage(pageNum)}
+                            disabled={state.loading}
+                            className="text-sm">
+                            
                                 {pageNum}
-                              </Button>
-                            );
-                          }
-                        )}
+                              </Button>);
+
+                      }
+                    )}
                       </div>
 
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={goToNextPage}
-                        disabled={!state.next || state.loading}
-                        className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}
-                      >
+                    variant="outline"
+                    size="sm"
+                    onClick={goToNextPage}
+                    disabled={!state.next || state.loading}
+                    className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
+                    
                         Next
                         <ChevronRight className="w-3 h-3 ml-1" />
                       </Button>
                     </div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+              }
+              </div> :
+
+            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
                   <AlertTriangle className="w-12 h-12 opacity-80" />
                 </div>
@@ -771,17 +771,17 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   {state.selectedSemester && state.selectedSection ? "No Low Attendance" : "View Attendance Reports"}
                 </h3>
                 <p className="max-w-xs text-base leading-relaxed">
-                  {state.selectedSemester && state.selectedSection 
-                    ? "Great! No students have low attendance in the selected section." 
-                    : "Select a semester and section above to identify students who may require attendance interventions."}
+                  {state.selectedSemester && state.selectedSection ?
+                "Great! No students have low attendance in the selected section." :
+                "Select a semester and section above to identify students who may require attendance interventions."}
                 </p>
               </div>
-            )}
+            }
           </CardContent>
         </Card>
       </div>
-    </ErrorBoundary>
-  );
+    </ErrorBoundary>);
+
 };
 
 export default LowAttendance;

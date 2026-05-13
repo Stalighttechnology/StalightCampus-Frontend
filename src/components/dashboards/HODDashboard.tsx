@@ -1,5 +1,5 @@
 //HODDashboard.tsx
- 
+
 import { useState, useEffect, Component, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
@@ -91,8 +91,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         <div className="text-center py-6 text-red-500">
           <h2>Error: {this.state.errorMessage}</h2>
           <p>Please try refreshing the page or contact support.</p>
-        </div>
-      );
+        </div>);
+
     }
     return this.props.children;
   }
@@ -105,13 +105,13 @@ const validateUser = (user: HODUser): boolean => {
 const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const getActivePageFromPath = (pathname: string): string => {
     const pathParts = pathname.split('/');
     const lastPart = pathParts[pathParts.length - 1];
-    
+
     // Map URL paths to page names
-    const pathMap: { [key: string]: string } = {
+    const pathMap: {[key: string]: string;} = {
       'dashboard': 'dashboard',
       'promotion-management': 'promotion-management',
       'low-attendance': 'low-attendance',
@@ -136,7 +136,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'qp-approvals': 'qp-approvals',
       'hod-announcement-management': 'hod-announcement-management'
     };
-    
+
     return pathMap[lastPart] || 'dashboard';
   };
 
@@ -161,9 +161,9 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
   const handlePageChange = (page: string) => {
     setActivePage(page);
     setError(null);
-    
+
     // Navigate to the corresponding URL path
-    const pathMap: { [key: string]: string } = {
+    const pathMap: {[key: string]: string;} = {
       'dashboard': '/hod/dashboard',
       'promotion-management': '/hod/promotion-management',
       'low-attendance': '/hod/low-attendance',
@@ -188,7 +188,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'qp-approvals': '/hod/qp-approvals',
       'hod-announcement-management': '/hod/hod-announcement-management'
     };
-    
+
     const path = pathMap[page] || '/hod/dashboard';
     navigate(path);
   };
@@ -207,17 +207,17 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         setError(response.message || "Failed to log out. Please try again.");
       }
     } catch (error) {
-      console.error("Logout error:", error);
+
       setError("Failed to log out. Please try again.");
     }
   };
 
 
 
-// ... (inside HODDashboard component)
+  // ... (inside HODDashboard component)
   const renderContent = () => {
     const orgPlan = (user as any)?.org_plan || "basic";
-    
+
     // Plan Gating Check
     if (!activePage.includes('dashboard') && !isPageAllowed(activePage, orgPlan)) {
       return <UpgradeRequired featureName={activePage} role={user.role} onBack={() => handlePageChange('dashboard')} />;
@@ -271,7 +271,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       case "qp-approvals":
         return <QPApprovals />;
       default:
-      return <HODStats setError={setError} setPage={handlePageChange} />;
+        return <HODStats setError={setError} setPage={handlePageChange} />;
     }
   };
 
@@ -283,19 +283,19 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         activePage={activePage}
         onPageChange={handlePageChange}
         onNotificationClick={handleNotificationClick}
-        pageTitle="HOD Dashboard"
-      >
-        {error && (
-          <div className={`p-3 rounded-lg mb-4 ${theme === 'dark' ? 'bg-destructive/10 border border-destructive/20 text-destructive-foreground' : 'bg-red-100 border border-red-200 text-red-700'}`}>
+        pageTitle="HOD Dashboard">
+        
+        {error &&
+        <div className={`p-3 rounded-lg mb-4 ${theme === 'dark' ? 'bg-destructive/10 border border-destructive/20 text-destructive-foreground' : 'bg-red-100 border border-red-200 text-red-700'}`}>
             {error}
           </div>
-        )}
+        }
         <ErrorBoundary>
           {renderContent()}
         </ErrorBoundary>
       </DashboardLayout>
-    </HODBootstrapProvider>
-  );
+    </HODBootstrapProvider>);
+
 };
 
 export default HODDashboard;

@@ -9,16 +9,16 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+  SelectValue } from
+"../ui/select";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "../ui/table";
+  TableRow } from
+"../ui/table";
 import { Download, FileText, UploadCloud, X } from "lucide-react";
 import { uploadStudyMaterial, getStudyMaterials, getBranches, manageSections, getSemesters, manageSubjects } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
@@ -90,7 +90,7 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
             section_id: m.section_id || null,
             uploaded_by: m.uploaded_by || '',
             uploaded_at: m.uploaded_at || '',
-            file_url: m.drive_web_view_link || m.file_url,
+            file_url: m.drive_web_view_link || m.file_url
           }));
           setStudyMaterials(mapped);
           setTotalPages(resp.total_pages || Math.ceil((resp.count || 0) / 20) || 1);
@@ -101,7 +101,7 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
           setTotalCount(0);
         }
       } catch (error) {
-        console.error("Error fetching study materials:", error);
+
         setStudyMaterials([]);
         setTotalPages(1);
         setTotalCount(0);
@@ -199,13 +199,13 @@ const useUploadModal = () => {
     setSemesterId,
     setBranchId,
     setSectionId,
-    resetForm,
+    resetForm
   };
 };
 
 // Row component for each study material
-const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme: string }) => (
-  <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+const StudyMaterialRow = ({ material, theme }: {material: StudyMaterial;theme: string;}) =>
+<TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
     <TableCell className="w-[50px] whitespace-nowrap">
       <FileText className="text-red-500" size={20} />
     </TableCell>
@@ -231,29 +231,29 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
         <Download className={`inline-block cursor-pointer ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`} size={20} />
       </a>
     </TableCell>
-  </TableRow>
-);
+  </TableRow>;
+
 
 // Main component
 const StudyMaterials = () => {
   const { theme } = useTheme();
   const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("All Branches");
   const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>("All Sections");
-  const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
-  const [sections, setSections] = useState<Array<{ id: string; name: string }>>([]);
+  const [branches, setBranches] = useState<Array<{id: string;name: string;}>>([]);
+  const [sections, setSections] = useState<Array<{id: string;name: string;}>>([]);
   const [pageSectionsLoaded, setPageSectionsLoaded] = useState<boolean>(false);
-  const [pageSemesters, setPageSemesters] = useState<Array<{ id: string; number: number }>>([]);
+  const [pageSemesters, setPageSemesters] = useState<Array<{id: string;number: number;}>>([]);
   // Modal-specific lists
-  const [modalSemesters, setModalSemesters] = useState<Array<{ id: string; number: number }>>([]);
-  const [modalSections, setModalSections] = useState<Array<{ id: string; name: string }>>([]);
-  const [modalSubjects, setModalSubjects] = useState<Array<{ id: string; name: string; subject_code: string }>>([]);
+  const [modalSemesters, setModalSemesters] = useState<Array<{id: string;number: number;}>>([]);
+  const [modalSections, setModalSections] = useState<Array<{id: string;name: string;}>>([]);
+  const [modalSubjects, setModalSubjects] = useState<Array<{id: string;name: string;subject_code: string;}>>([]);
 
   // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
   const [searchQuery, setSearchQuery] = useState("");
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("All Semesters");
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Debounce sync local search to searchQuery
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -291,10 +291,10 @@ const StudyMaterials = () => {
     setSemesterId,
     setBranchId,
     setSectionId,
-    resetForm,
+    resetForm
   } = useUploadModal();
 
-  
+
 
   // Load branches on mount
   useEffect(() => {
@@ -305,7 +305,7 @@ const StudyMaterials = () => {
           setBranches(resp.data);
         }
       } catch (e) {
-        console.error("Failed to load branches", e);
+
       }
     };
     load();
@@ -328,7 +328,7 @@ const StudyMaterials = () => {
           setPageSemesters([]);
         }
       } catch (e) {
-        console.error("Failed to load semesters for branch", e);
+
         setPageSemesters([]);
       }
       setSemesterFilter("All Semesters");
@@ -357,7 +357,7 @@ const StudyMaterials = () => {
           setSections([]);
         }
       } catch (e) {
-        console.error("Failed to load sections", e);
+
         setSections([]);
       }
       setSelectedSectionFilter("All Sections");
@@ -386,7 +386,7 @@ const StudyMaterials = () => {
           setModalSemesters([]);
         }
       } catch (e) {
-        console.error("Failed to load semesters for branch (modal)", e);
+
         setModalSemesters([]);
       }
     };
@@ -411,7 +411,7 @@ const StudyMaterials = () => {
           setModalSections([]);
         }
       } catch (e) {
-        console.error("Failed to load modal sections", e);
+
         setModalSections([]);
       }
 
@@ -423,7 +423,7 @@ const StudyMaterials = () => {
           setModalSubjects([]);
         }
       } catch (e) {
-        console.error("Failed to load modal subjects", e);
+
         setModalSubjects([]);
       }
     };
@@ -431,7 +431,7 @@ const StudyMaterials = () => {
   }, [branchId, semesterId]);
 
   const handleUpload = async () => {
-    console.log('handleUpload invoked', { title, branchId, semesterId, sectionId, subjectId, subjectName, subjectCode, file });
+
     if (!file || !title) {
       alert("Please provide a title and select a file.");
       return;
@@ -463,7 +463,7 @@ const StudyMaterials = () => {
         semester_id: semesterId,
         branch_id: branchId,
         section_id: sectionId,
-        file,
+        file
       });
 
       if (response.success && response.data) {
@@ -473,12 +473,12 @@ const StudyMaterials = () => {
           title: apiMaterial.title,
           subject_name: apiMaterial.subject_name,
           subject_code: apiMaterial.subject_code,
-          semester: (apiMaterial.semester_id ? parseInt(apiMaterial.semester_id) || null : (apiMaterial.semester ? parseInt(apiMaterial.semester as any) || null : null)),
+          semester: apiMaterial.semester_id ? parseInt(apiMaterial.semester_id) || null : apiMaterial.semester ? parseInt(apiMaterial.semester as any) || null : null,
           branch: apiMaterial.branch_id || apiMaterial.branch || null,
           uploaded_by: apiMaterial.uploaded_by,
           uploaded_at: apiMaterial.uploaded_at,
           // Prefer Drive web view link when available
-          file_url: apiMaterial.drive_web_view_link || apiMaterial.file_url,
+          file_url: apiMaterial.drive_web_view_link || apiMaterial.file_url
         };
         addStudyMaterial(newMaterial);
         resetForm();
@@ -488,7 +488,7 @@ const StudyMaterials = () => {
       }
     } catch (error) {
       alert("Error uploading material");
-      console.error(error);
+
     } finally {
       setUploading(false);
     }
@@ -507,8 +507,8 @@ const StudyMaterials = () => {
             <Button
               onClick={() => setShowUploadModal(true)}
               className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1 transition-all duration-200 ease-in-out transform hover:scale-105 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white ${theme === 'dark' ? 'shadow-lg shadow-primary/20' : 'shadow-md'}`}
-              disabled={uploading}
-            >
+              disabled={uploading}>
+              
               <UploadCloud size={16} />
               Upload
             </Button>
@@ -521,44 +521,17 @@ const StudyMaterials = () => {
               <div>
                 <Select
                   value={selectedBranchFilter}
-                  onValueChange={(value) => setSelectedBranchFilter(value)}
-                >
+                  onValueChange={(value) => setSelectedBranchFilter(value)}>
+                  
                   <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                     <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectItem value="All Branches">All Branches</SelectItem>
-                    {branches.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>
+                    {branches.map((b) =>
+                    <SelectItem key={b.id} value={b.id}>
                         {b.name}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Select
-                  value={semesterFilter}
-                  onValueChange={(value) => setSemesterFilter(value)}
-                >
-                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                    <SelectValue placeholder="All Semesters" />
-                  </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectItem value="All Semesters">All Semesters</SelectItem>
-                    {pageSemesters && pageSemesters.length > 0 ? (
-                      pageSemesters.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {`Semester ${s.number}`}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      ["1","2","3","4","5","6","7","8"].map((semester) => (
-                        <SelectItem key={semester} value={semester}>
-                          {semester}
-                        </SelectItem>
-                      ))
                     )}
                   </SelectContent>
                 </Select>
@@ -566,19 +539,46 @@ const StudyMaterials = () => {
 
               <div>
                 <Select
+                  value={semesterFilter}
+                  onValueChange={(value) => setSemesterFilter(value)}>
+                  
+                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                    <SelectValue placeholder="All Semesters" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                    <SelectItem value="All Semesters">All Semesters</SelectItem>
+                    {pageSemesters && pageSemesters.length > 0 ?
+                    pageSemesters.map((s) =>
+                    <SelectItem key={s.id} value={s.id}>
+                          {`Semester ${s.number}`}
+                        </SelectItem>
+                    ) :
+
+                    ["1", "2", "3", "4", "5", "6", "7", "8"].map((semester) =>
+                    <SelectItem key={semester} value={semester}>
+                          {semester}
+                        </SelectItem>
+                    )
+                    }
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Select
                   value={selectedSectionFilter}
-                  onValueChange={(value) => setSelectedSectionFilter(value)}
-                >
+                  onValueChange={(value) => setSelectedSectionFilter(value)}>
+                  
                   <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                     <SelectValue placeholder="All Sections" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectItem value="All Sections">All Sections</SelectItem>
-                    {sections.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
+                    {sections.map((s) =>
+                    <SelectItem key={s.id} value={s.id}>
                         {s.name}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -590,8 +590,8 @@ const StudyMaterials = () => {
                 placeholder="Search by title, course name, course code, semester, or uploaded by..."
                 className={`w-full ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
                 value={localSearchQuery}
-                onChange={(e) => setLocalSearchQuery(e.target.value)}
-              />
+                onChange={(e) => setLocalSearchQuery(e.target.value)} />
+              
             </div>
           </div>
 
@@ -610,14 +610,14 @@ const StudyMaterials = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow>
+                {loading ?
+                <TableRow>
                     <TableCell colSpan={7} className="p-4">
                       <SkeletonTable rows={10} cols={7} />
                     </TableCell>
-                  </TableRow>
-                ) : selectedBranchFilter === "All Branches" ? (
-                  <TableRow>
+                  </TableRow> :
+                selectedBranchFilter === "All Branches" ?
+                <TableRow>
                     <TableCell colSpan={7} className="p-0">
                       <div className={`flex flex-col items-center justify-center py-20 px-6 text-center space-y-4 ${theme === 'dark' ? 'bg-accent/5' : 'bg-gray-50/50'}`}>
                         <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
@@ -633,9 +633,9 @@ const StudyMaterials = () => {
                         </div>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ) : filteredMaterials.length === 0 ? (
-                  <TableRow>
+                  </TableRow> :
+                filteredMaterials.length === 0 ?
+                <TableRow>
                     <TableCell colSpan={7} className="p-0">
                       <div className={`flex flex-col items-center justify-center py-20 px-6 text-center space-y-4 ${theme === 'dark' ? 'bg-accent/5' : 'bg-gray-50/50'}`}>
                         <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
@@ -651,26 +651,26 @@ const StudyMaterials = () => {
                         </div>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredMaterials.map((material) => (
-                    <StudyMaterialRow key={material.id} material={material} theme={theme} />
-                  ))
-                )}
+                  </TableRow> :
+
+                filteredMaterials.map((material) =>
+                <StudyMaterialRow key={material.id} material={material} theme={theme} />
+                )
+                }
               </TableBody>
             </Table>
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mt-6">
+          {totalPages > 1 &&
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mt-6">
               <Button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
-                variant="outline"
-                size="sm"
-                className={`w-full sm:w-auto ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}`}
-              >
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1 || loading}
+              variant="outline"
+              size="sm"
+              className={`w-full sm:w-auto ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}`}>
+              
                 Previous
               </Button>
 
@@ -679,16 +679,16 @@ const StudyMaterials = () => {
               </span>
 
               <Button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
-                variant="outline"
-                size="sm"
-                className={`w-full sm:w-auto ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}`}
-              >
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages || loading}
+              variant="outline"
+              size="sm"
+              className={`w-full sm:w-auto ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}`}>
+              
                 Next
               </Button>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
 
@@ -714,8 +714,8 @@ const StudyMaterials = () => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}
-                  disabled={uploading}
-                />
+                  disabled={uploading} />
+                
               </div>
 
               <div className="space-y-2">
@@ -723,17 +723,17 @@ const StudyMaterials = () => {
                 <Select
                   value={branchId}
                   onValueChange={(value) => setBranchId(value)}
-                  disabled={uploading}
-                >
+                  disabled={uploading}>
+                  
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select Branch" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                    {branches.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>
+                    {branches.map((b) =>
+                    <SelectItem key={b.id} value={b.id}>
                         {b.name}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -744,17 +744,17 @@ const StudyMaterials = () => {
                   <Select
                     value={semesterId}
                     onValueChange={(value) => setSemesterId(value)}
-                    disabled={uploading || !branchId}
-                  >
+                    disabled={uploading || !branchId}>
+                    
                     <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                       <SelectValue placeholder="Select Sem" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                      {modalSemesters.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
+                      {modalSemesters.map((s) =>
+                      <SelectItem key={s.id} value={s.id}>
                           Sem {s.number}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -763,17 +763,17 @@ const StudyMaterials = () => {
                   <Select
                     value={sectionId}
                     onValueChange={(value) => setSectionId(value)}
-                    disabled={uploading || !semesterId}
-                  >
+                    disabled={uploading || !semesterId}>
+                    
                     <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                       <SelectValue placeholder="Optional" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                      {modalSections.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
+                      {modalSections.map((s) =>
+                      <SelectItem key={s.id} value={s.id}>
                           Sec {s.name}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -794,17 +794,17 @@ const StudyMaterials = () => {
                       setSubjectCode("");
                     }
                   }}
-                  disabled={uploading || !semesterId}
-                >
+                  disabled={uploading || !semesterId}>
+                  
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select Course" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                    {modalSubjects.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
+                    {modalSubjects.map((s) =>
+                    <SelectItem key={s.id} value={s.id}>
                         {s.name} ({s.subject_code})
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -820,56 +820,56 @@ const StudyMaterials = () => {
                 onDrop={handleDrop}
                 className={`
                   relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200
-                  ${dragActive 
-                    ? 'border-primary bg-primary/10 scale-[1.02]' 
-                    : theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-300 bg-gray-50'
-                  }
-                  ${file ? 'border-green-500 bg-green-500/5' : ''}
-                `}
-              >
-                <UploadCloud 
-                  className={`mx-auto mb-4 ${file ? 'text-green-500' : theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} 
-                  size={48} 
-                />
+                  ${dragActive ?
+                'border-primary bg-primary/10 scale-[1.02]' :
+                theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-300 bg-gray-50'}
+                  ${
+                file ? 'border-green-500 bg-green-500/5' : ''}
+                `}>
                 
-                {file ? (
-                  <div className="space-y-2">
+                <UploadCloud
+                  className={`mx-auto mb-4 ${file ? 'text-green-500' : theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}
+                  size={48} />
+                
+                
+                {file ?
+                <div className="space-y-2">
                     <p className="text-sm font-medium truncate px-4">{file.name}</p>
                     <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setFile(null)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFile(null)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                    
                       <X size={14} className="mr-1" /> Remove
                     </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
+                  </div> :
+
+                <div className="space-y-2">
                     <p className="text-sm font-medium">Click or drag to upload</p>
                     <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       PDF, DOCX, etc. (Max 50MB)
                     </p>
                     <Input
-                      type="file"
-                      className="hidden"
-                      id="file-upload"
-                      onChange={handleFileChange}
-                      disabled={uploading}
-                    />
+                    type="file"
+                    className="hidden"
+                    id="file-upload"
+                    onChange={handleFileChange}
+                    disabled={uploading} />
+                  
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => document.getElementById('file-upload')?.click()}
-                    >
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => document.getElementById('file-upload')?.click()}>
+                    
                       Browse Files
                     </Button>
                   </div>
-                )}
+                }
               </div>
             </div>
           </div>
@@ -881,28 +881,28 @@ const StudyMaterials = () => {
                 resetForm();
                 setShowUploadModal(false);
               }}
-              disabled={uploading}
-            >
+              disabled={uploading}>
+              
               Cancel
             </Button>
             <Button
               onClick={handleUpload}
-              disabled={uploading || !file || !title || !branchId || !semesterId || (!subjectId && !subjectName)}
-            >
-              {uploading ? (
-                <>
+              disabled={uploading || !file || !title || !branchId || !semesterId || !subjectId && !subjectName}>
+              
+              {uploading ?
+              <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Uploading...
-                </>
-              ) : (
-                "Upload Material"
-              )}
+                </> :
+
+              "Upload Material"
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default StudyMaterials;

@@ -53,7 +53,7 @@ const StudentProfile: React.FC = () => {
     parent_contact: "",
     emergency_contact: "",
     blood_group: "",
-    proctor: {},
+    proctor: {}
   });
 
   const [editing, setEditing] = useState(false);
@@ -77,13 +77,13 @@ const StudentProfile: React.FC = () => {
     uploadFile: uploadProfilePicture,
     uploadProgress,
     isUploading: isUploadingPicture,
-    reset: resetUpload,
+    reset: resetUpload
   } = useFileUpload({
     maxSizeMB: 0.5,
     maxWidthOrHeight: 400,
     compressImages: true,
     allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-    maxFileSize: 2 * 1024 * 1024,
+    maxFileSize: 2 * 1024 * 1024
   });
 
   useEffect(() => {
@@ -128,7 +128,7 @@ const StudentProfile: React.FC = () => {
           setForm(newForm);
         }
       } catch (err) {
-        console.error('Failed to fetch student profile', err);
+
       }
 
       // check face status
@@ -137,7 +137,7 @@ const StudentProfile: React.FC = () => {
         const j = await resp.json();
         if (j.success) setHasFaceTrained(Boolean(j.has_face));
       } catch (err) {
-        console.error('Failed to check face status', err);
+
       }
     };
 
@@ -163,7 +163,7 @@ const StudentProfile: React.FC = () => {
         showSuccessAlert('Success', 'Profile picture uploaded successfully!');
       }
     } catch (err) {
-      console.error('Upload failed', err);
+
       showErrorAlert('Error', 'Failed to upload profile picture');
     } finally {
       resetUpload();
@@ -183,12 +183,12 @@ const StudentProfile: React.FC = () => {
         email: form.email,
         mobile_number: form.phone,
         address: form.address,
-        bio: form.about,
+        bio: form.about
       });
       showSuccessAlert('Profile Updated', 'Your profile has been successfully updated.');
       setEditing(false);
     } catch (err) {
-      console.error(err);
+
       showErrorAlert('Error', 'Failed to update profile');
     }
   };
@@ -197,46 +197,46 @@ const StudentProfile: React.FC = () => {
     const files = e.target.files;
     if (!files) return;
     const arr = Array.from(files);
-    if (faceImages.length + arr.length > 5) { showErrorAlert('Error', 'Maximum 5 images allowed'); return; }
+    if (faceImages.length + arr.length > 5) {showErrorAlert('Error', 'Maximum 5 images allowed');return;}
     setFaceImages((p) => [...p, ...arr]);
   };
 
   const removeFaceImage = (index: number) => setFaceImages((p) => p.filter((_, i) => i !== index));
 
   const trainFace = async () => {
-    if (faceImages.length < 3) { showErrorAlert('Error', 'Please upload at least 3 face images'); return; }
-    setFaceTrainingStatus('training'); setFaceTrainingProgress(0); setFaceTrainingMessage('Preparing images...');
+    if (faceImages.length < 3) {showErrorAlert('Error', 'Please upload at least 3 face images');return;}
+    setFaceTrainingStatus('training');setFaceTrainingProgress(0);setFaceTrainingMessage('Preparing images...');
     try {
       const fd = new FormData();
       faceImages.forEach((f) => fd.append('images', f));
-      setFaceTrainingProgress(25); setFaceTrainingMessage('Uploading images...');
+      setFaceTrainingProgress(25);setFaceTrainingMessage('Uploading images...');
       const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/student/train-face/`, { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }, body: fd });
       const j = await resp.json();
-      setFaceTrainingProgress(75); setFaceTrainingMessage('Training face recognition...');
-      if (j.success) { setFaceTrainingProgress(100); setFaceTrainingStatus('success'); setHasFaceTrained(true); setFaceImages([]); showSuccessAlert('Success', 'Face updated successfully!'); }
-      else { setFaceTrainingStatus('error'); setFaceTrainingMessage(j.message || 'Face training failed'); showErrorAlert('Error', j.message || 'Face training failed'); }
+      setFaceTrainingProgress(75);setFaceTrainingMessage('Training face recognition...');
+      if (j.success) {setFaceTrainingProgress(100);setFaceTrainingStatus('success');setHasFaceTrained(true);setFaceImages([]);showSuccessAlert('Success', 'Face updated successfully!');} else
+      {setFaceTrainingStatus('error');setFaceTrainingMessage(j.message || 'Face training failed');showErrorAlert('Error', j.message || 'Face training failed');}
     } catch (err) {
-      console.error(err); setFaceTrainingStatus('error'); setFaceTrainingMessage('Network error occurred'); showErrorAlert('Error', 'Network error occurred');
+      setFaceTrainingStatus('error');setFaceTrainingMessage('Network error occurred');showErrorAlert('Error', 'Network error occurred');
     }
   };
 
   const handleChangePassword = async () => {
-    if (!passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password) { showErrorAlert('Missing fields', 'Please fill all password fields'); return; }
-    if (passwordData.new_password !== passwordData.confirm_password) { showErrorAlert('Password mismatch', 'New passwords do not match'); return; }
+    if (!passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password) {showErrorAlert('Missing fields', 'Please fill all password fields');return;}
+    if (passwordData.new_password !== passwordData.confirm_password) {showErrorAlert('Password mismatch', 'New passwords do not match');return;}
     try {
       const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/change-password/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(passwordData) });
       const j = await resp.json();
-      if (j.success) { setShowPasswordDialog(false); setPasswordData({ current_password: '', new_password: '', confirm_password: '' }); showSuccessAlert('Password changed', 'Your password has been updated successfully.'); }
-      else showErrorAlert('Unable to change password', j.message || 'Failed to change password');
-    } catch (err) { console.error(err); showErrorAlert('Unable to change password', 'Network error'); }
+      if (j.success) {setShowPasswordDialog(false);setPasswordData({ current_password: '', new_password: '', confirm_password: '' });showSuccessAlert('Password changed', 'Your password has been updated successfully.');} else
+      showErrorAlert('Unable to change password', j.message || 'Failed to change password');
+    } catch (err) {showErrorAlert('Unable to change password', 'Network error');}
   };
 
   if (loading) {
     return (
       <div className={`min-h-screen p-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50'}`}>
         <SkeletonForm />
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -249,8 +249,8 @@ const StudentProfile: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            <Button size="sm" onClick={() => { if (editing) handleSave(); else setEditing(true); }} className="text-md sm:text-xl px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">
-              {editing ? (updateProfileMutation.isPending ? 'Saving...' : 'Save') : 'Edit Profile'}
+            <Button size="sm" onClick={() => {if (editing) handleSave();else setEditing(true);}} className="text-md sm:text-xl px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">
+              {editing ? updateProfileMutation.isPending ? 'Saving...' : 'Save' : 'Edit Profile'}
             </Button>
 
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -304,14 +304,14 @@ const StudentProfile: React.FC = () => {
                 <input id="profile-picture-upload" type="file" accept="image/*" onChange={handleProfilePictureSelect} className="hidden" />
               </div>
 
-              {isUploadingPicture && (
-                <div className="mb-2 text-center">
+              {isUploadingPicture &&
+              <div className="mb-2 text-center">
                   <div className="space-y-1">
                     <Progress value={uploadProgress} className="w-full h-2" />
                     <p className="text-[12px] sm:text-xs text-gray-500">Uploading... {uploadProgress}%</p>
                   </div>
                 </div>
-              )}
+              }
 
               <div className="text-md sm:text-lg font-semibold text-center mb-1">{form.first_name} {form.last_name}</div>
               <div className={`text-md sm:text-md mb-4 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{form.username || form.email}</div>
@@ -342,8 +342,8 @@ const StudentProfile: React.FC = () => {
               </div>
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
-                {activeTab === 'profile' && (
-                  <div className="space-y-4">
+                {activeTab === 'profile' &&
+                <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>First Name</Label>
@@ -377,10 +377,10 @@ const StudentProfile: React.FC = () => {
                       <Textarea name="about" value={form.about} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                   </div>
-                )}
+                }
 
-                {activeTab === 'personal' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {activeTab === 'personal' &&
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Birth</Label>
                       <Input name="date_of_birth" type="date" value={form.date_of_birth || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
@@ -402,10 +402,10 @@ const StudentProfile: React.FC = () => {
                       <Input name="emergency_contact" value={form.emergency_contact} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                   </div>
-                )}
+                }
 
-                {activeTab === 'academic' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {activeTab === 'academic' &&
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Current Semester</Label>
                       <Input value={form.current_semester} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
@@ -426,7 +426,7 @@ const StudentProfile: React.FC = () => {
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Proctor</Label>
-                      <Input value={form.proctor ? (form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '') : ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.proctor ? form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '' : ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
 
                     <div>
@@ -448,24 +448,24 @@ const StudentProfile: React.FC = () => {
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Admission</Label>
-                      <Input value={form.date_of_admission ? (form.date_of_admission.length > 10 ? form.date_of_admission.slice(0, 10) : form.date_of_admission) : ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.date_of_admission ? form.date_of_admission.length > 10 ? form.date_of_admission.slice(0, 10) : form.date_of_admission : ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                   </div>
-                )}
+                }
 
-                {activeTab === 'face' && (
-                  <div className="space-y-4">
+                {activeTab === 'face' &&
+                <div className="space-y-4">
                     <div className="text-center">
                       <h3 className="text-lg font-semibold mb-2">Face Recognition Training</h3>
                       <p className="text-[16px] sm:text-sm text-gray-600 dark:text-gray-400">Upload 3-5 clear face photos to train the AI recognition system</p>
                     </div>
 
-                    {hasFaceTrained && (
-                      <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    {hasFaceTrained &&
+                  <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="text-[16px] sm:text-sm text-green-700 dark:text-green-300">Face recognition is active for your account</span>
                       </div>
-                    )}
+                  }
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Upload Face Images</Label>
@@ -480,22 +480,22 @@ const StudentProfile: React.FC = () => {
                         </label>
                       </div>
 
-                      {faceImages.length > 0 && (
-                        <div className="space-y-2">
+                      {faceImages.length > 0 &&
+                    <div className="space-y-2">
                           <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Selected Images ({faceImages.length}/5)</Label>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {faceImages.map((image, idx) => (
-                              <div key={idx} className="relative">
+                            {faceImages.map((image, idx) =>
+                        <div key={idx} className="relative">
                                 <img src={URL.createObjectURL(image)} alt={`Face ${idx + 1}`} className="w-full h-20 object-cover rounded-lg" />
                                 <button onClick={() => removeFaceImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600">×</button>
                               </div>
-                            ))}
+                        )}
                           </div>
                         </div>
-                      )}
+                    }
 
-                      {faceTrainingStatus !== 'idle' && (
-                        <div className="space-y-2">
+                      {faceTrainingStatus !== 'idle' &&
+                    <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             {faceTrainingStatus === 'training' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>}
                             {faceTrainingStatus === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
@@ -504,14 +504,14 @@ const StudentProfile: React.FC = () => {
                           </div>
                           {faceTrainingStatus === 'training' && <Progress value={faceTrainingProgress} className="w-full h-2" />}
                         </div>
-                      )}
+                    }
 
                       <div className="flex justify-center mt-2">
                         <Button onClick={trainFace} disabled={faceImages.length < 3 || faceTrainingStatus === 'training'} className="bg-primary hover:bg-primary/90 text-white">{faceTrainingStatus === 'training' ? 'Training...' : 'Train Face AI'}</Button>
                       </div>
                     </div>
                   </div>
-                )}
+                }
 
               </div>
             </div>
@@ -521,8 +521,8 @@ const StudentProfile: React.FC = () => {
 
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default StudentProfile;

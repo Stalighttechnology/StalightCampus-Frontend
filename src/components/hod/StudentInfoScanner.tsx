@@ -39,7 +39,7 @@ interface AttendanceData {
   overall_percentage: number;
   total_classes: number;
   present_classes: number;
-  by_subject: { [key: string]: { present: number; total: number; percentage: number } };
+  by_subject: {[key: string]: {present: number;total: number;percentage: number;};};
 }
 
 interface CurrentClass {
@@ -58,7 +58,7 @@ interface StudentData {
   current_class: CurrentClass | null;
   next_class: CurrentClass | null;
   attendance: AttendanceData;
-  internal_marks: { [key: string]: any[] };
+  internal_marks: {[key: string]: any[];};
   subjects_registered: any[];
   fee_summary: any;
 }
@@ -110,7 +110,7 @@ const StudentInfoScanner = () => {
     setError(null);
 
     try {
-      console.debug('Fetching student data for USN:', usnValue.toUpperCase(), 'using API_ENDPOINT:', API_ENDPOINT);
+
       const url = `${API_ENDPOINT}/public/student-data/?usn=${usnValue.toUpperCase()}`;
       const response = await fetchWithTokenRefresh(url);
       if (!response.ok) {
@@ -127,7 +127,7 @@ const StudentInfoScanner = () => {
         showErrorAlert("Error", data.message || "Student not found");
       }
     } catch (err: any) {
-      console.error('Error fetching student data:', err);
+
       setError(err.message || "Network error occurred");
       showErrorAlert("Error", err.message || "Network error occurred");
     } finally {
@@ -162,7 +162,7 @@ const StudentInfoScanner = () => {
       } else {
         setScanError("Scanning failed. Please try again.");
       }
-      console.error("Barcode scan error:", err);
+
     } finally {
       setScanning(false);
     }
@@ -211,7 +211,7 @@ const StudentInfoScanner = () => {
     setFaceScanError(null);
     if (faceVideoRef.current && faceVideoRef.current.srcObject) {
       const stream = faceVideoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
     }
   };
 
@@ -236,10 +236,10 @@ const StudentInfoScanner = () => {
 
       try {
         const url = `${API_ENDPOINT}/recognize-face/`;
-        console.debug('Posting face blob to:', url);
+
         const response = await fetchWithTokenRefresh(url, {
           method: 'POST',
-          body: formData,
+          body: formData
         });
 
         const data = await response.json();
@@ -308,41 +308,41 @@ const StudentInfoScanner = () => {
                 value={usn}
                 onChange={(e) => setUsn(e.target.value.toUpperCase())}
                 onKeyPress={handleKeyPress}
-                className={`pl-10 h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`}
-              />
+                className={`pl-10 h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
+              
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={toggleScanner}
                 variant="outline"
                 size="sm"
-                className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
-              >
+                className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
+                
                 <QrCode className="h-4 w-4" />
               </Button>
               <Button
                 onClick={toggleFaceScanner}
                 variant="outline"
                 size="sm"
-                className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
-              >
+                className={`h-11 ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
+                
                 <Camera className="h-4 w-4" />
               </Button>
               <Button
                 onClick={() => fetchStudentData()}
                 disabled={loading}
-                className="h-11 bg-primary hover:bg-[#9147e0] text-white px-6 sm:px-8"
-              >
-                {loading ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  >
+                className="h-11 bg-primary hover:bg-[#9147e0] text-white px-6 sm:px-8">
+                
+                {loading ?
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+                  
                     <Search className="h-4 w-4" />
-                  </motion.div>
-                ) : (
-                  "Search"
-                )}
+                  </motion.div> :
+
+                "Search"
+                }
               </Button>
             </div>
           </div>
@@ -350,8 +350,8 @@ const StudentInfoScanner = () => {
       </Card>
 
       {/* Initial Empty State */}
-      {!loading && !studentData && !error && (
-        <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+      {!loading && !studentData && !error &&
+      <Card className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
           <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
             <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
           </div>
@@ -364,49 +364,49 @@ const StudentInfoScanner = () => {
             </p>
           </div>
         </Card>
-      )}
+      }
 
       {/* Error Message */}
-      {error && (
-        <div className={`p-4 rounded-lg border mb-6 ${
-          theme === 'dark'
-            ? 'bg-destructive/10 border-destructive/20 text-destructive-foreground'
-            : 'bg-red-50 border-red-200 text-red-700'
-        }`}>
+      {error &&
+      <div className={`p-4 rounded-lg border mb-6 ${
+      theme === 'dark' ?
+      'bg-destructive/10 border-destructive/20 text-destructive-foreground' :
+      'bg-red-50 border-red-200 text-red-700'}`
+      }>
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             {error}
           </div>
         </div>
-      )}
+      }
 
       {/* Barcode Scanner Modal */}
       <AnimatePresence>
-        {showScanner && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-            onClick={() => setShowScanner(false)}
-          >
+        {showScanner &&
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowScanner(false)}>
+          
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className={`relative ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl shadow-xl p-4 sm:p-6`}
-              onClick={(e) => e.stopPropagation()}
-            >
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className={`relative ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl shadow-xl p-4 sm:p-6`}
+            onClick={(e) => e.stopPropagation()}>
+            
               <div className="flex items-center justify-between mb-4">
                 <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Scan Student Barcode
                 </h3>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowScanner(false)}
-                  className="h-8 w-8 p-0"
-                >
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowScanner(false)}
+                className="h-8 w-8 p-0">
+                
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -416,48 +416,48 @@ const StudentInfoScanner = () => {
                 </div>
                 <div className="relative bg-black rounded-lg overflow-hidden">
                   <video
-                    ref={videoRef}
-                    className="w-full h-64 object-cover"
-                    playsInline
-                    muted
-                  />
-                  {!scanning && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  ref={videoRef}
+                  className="w-full h-64 object-cover"
+                  playsInline
+                  muted />
+                
+                  {!scanning &&
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                       <div className="text-center text-white">
                         <Camera className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">Click "Start Scanning" to begin</p>
                       </div>
                     </div>
-                  )}
+                }
                 </div>
-                {scanError && (
-                  <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                {scanError &&
+              <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                     <p className="text-sm text-red-700 dark:text-red-300">{scanError}</p>
                   </div>
-                )}
+              }
                 <div className="flex gap-2">
-                  {!scanning ? (
-                    <Button
-                      onClick={startScanning}
-                      className="flex-1 bg-primary hover:bg-primary/90 text-white"
-                    >
+                  {!scanning ?
+                <Button
+                  onClick={startScanning}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white">
+                  
                       <Camera className="h-4 w-4 mr-2" />
                       Start Scanning
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={stopScanning}
-                      variant="outline"
-                      className="flex-1"
-                    >
+                    </Button> :
+
+                <Button
+                  onClick={stopScanning}
+                  variant="outline"
+                  className="flex-1">
+                  
                       Stop Scanning
                     </Button>
-                  )}
+                }
                   <Button
-                    onClick={() => setShowScanner(false)}
-                    variant="outline"
-                  >
+                  onClick={() => setShowScanner(false)}
+                  variant="outline">
+                  
                     Close
                   </Button>
                 </div>
@@ -467,21 +467,21 @@ const StudentInfoScanner = () => {
               </div>
             </motion.div>
           </motion.div>
-        )}
+        }
       </AnimatePresence>
 
       {/* Loading Skeletons */}
-      {loading && !studentData && (
-        <div className="space-y-6">
+      {loading && !studentData &&
+      <div className="space-y-6">
           <SkeletonCard className="h-64" />
           <SkeletonCard className="h-32" />
           <SkeletonCard className="h-64" />
         </div>
-      )}
+      }
 
       {/* Student Data Display */}
-      {studentData && studentData.success && (
-        <div className="space-y-6">
+      {studentData && studentData.success &&
+      <div className="space-y-6">
           {/* Basic Information */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader className="pb-4">
@@ -506,30 +506,30 @@ const StudentInfoScanner = () => {
                   <div className="flex items-center gap-3">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-semibold w-24">Email:</span>
-                    {studentData.student_info.email ? (
-                      <a
-                        href={`mailto:${studentData.student_info.email}`}
-                        className="text-primary hover:underline text-sm break-words"
-                      >
+                    {studentData.student_info.email ?
+                  <a
+                    href={`mailto:${studentData.student_info.email}`}
+                    className="text-primary hover:underline text-sm break-words">
+                    
                         {studentData.student_info.email}
-                      </a>
-                    ) : (
-                      <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    )}
+                      </a> :
+
+                  <span className="text-sm text-muted-foreground italic">Not provided</span>
+                  }
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-semibold w-24">Mobile:</span>
-                    {studentData.student_info.mobile_number ? (
-                      <a
-                        href={`tel:${studentData.student_info.mobile_number}`}
-                        className="text-primary hover:underline text-sm"
-                      >
+                    {studentData.student_info.mobile_number ?
+                  <a
+                    href={`tel:${studentData.student_info.mobile_number}`}
+                    className="text-primary hover:underline text-sm">
+                    
                         {studentData.student_info.mobile_number}
-                      </a>
-                    ) : (
-                      <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    )}
+                      </a> :
+
+                  <span className="text-sm text-muted-foreground italic">Not provided</span>
+                  }
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -587,14 +587,14 @@ const StudentInfoScanner = () => {
                     <span className="text-sm font-semibold w-24">Proctor:</span>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{studentData.student_info.proctor?.name || 'Not assigned'}</span>
-                      {studentData.student_info.proctor?.email && (
-                        <a
-                          href={`mailto:${studentData.student_info.proctor.email}`}
-                          className="text-primary hover:underline text-xs"
-                        >
+                      {studentData.student_info.proctor?.email &&
+                    <a
+                      href={`mailto:${studentData.student_info.proctor.email}`}
+                      className="text-primary hover:underline text-xs">
+                      
                           {studentData.student_info.proctor.email}
                         </a>
-                      )}
+                    }
                     </div>
                   </div>
                 </div>
@@ -621,32 +621,32 @@ const StudentInfoScanner = () => {
                   <div className="flex items-center gap-3">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-semibold w-32">Parent Contact:</span>
-                    {studentData.student_info.parent_contact ? (
-                      <a
-                        href={`tel:${studentData.student_info.parent_contact}`}
-                        className="text-primary hover:underline text-sm"
-                      >
+                    {studentData.student_info.parent_contact ?
+                  <a
+                    href={`tel:${studentData.student_info.parent_contact}`}
+                    className="text-primary hover:underline text-sm">
+                    
                         {studentData.student_info.parent_contact}
-                      </a>
-                    ) : (
-                      <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    )}
+                      </a> :
+
+                  <span className="text-sm text-muted-foreground italic">Not provided</span>
+                  }
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <AlertCircle className="h-4 w-4 text-destructive" />
                     <span className="text-sm font-semibold w-32">Emergency Contact:</span>
-                    {studentData.student_info.emergency_contact ? (
-                      <a
-                        href={`tel:${studentData.student_info.emergency_contact}`}
-                        className="text-destructive hover:underline text-sm font-medium"
-                      >
+                    {studentData.student_info.emergency_contact ?
+                  <a
+                    href={`tel:${studentData.student_info.emergency_contact}`}
+                    className="text-destructive hover:underline text-sm font-medium">
+                    
                         {studentData.student_info.emergency_contact}
-                      </a>
-                    ) : (
-                      <span className="text-sm text-muted-foreground italic">Not provided</span>
-                    )}
+                      </a> :
+
+                  <span className="text-sm text-muted-foreground italic">Not provided</span>
+                  }
                   </div>
                 </div>
               </div>
@@ -669,8 +669,8 @@ const StudentInfoScanner = () => {
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <h3 className="font-semibold text-green-600 text-sm">Current Class</h3>
                   </div>
-                  {studentData.current_class ? (
-                    <div className="space-y-3 p-4 rounded-xl bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50">
+                  {studentData.current_class ?
+                <div className="space-y-3 p-4 rounded-xl bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50">
                       <div className="flex items-start justify-between gap-4">
                         <span className="font-semibold text-green-700 dark:text-green-300 leading-tight">{studentData.current_class.subject}</span>
                         <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-800 whitespace-nowrap">
@@ -693,13 +693,13 @@ const StudentInfoScanner = () => {
                           </span>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-dashed border-gray-200 dark:border-gray-700">
+                    </div> :
+
+                <div className="flex flex-col items-center justify-center py-8 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-dashed border-gray-200 dark:border-gray-700">
                       <Clock className="h-8 w-8 text-muted-foreground/30 mb-2" />
                       <p className="text-sm text-muted-foreground italic">No ongoing class</p>
                     </div>
-                  )}
+                }
                 </div>
 
                 {/* Next Class */}
@@ -708,8 +708,8 @@ const StudentInfoScanner = () => {
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <h3 className="font-semibold text-blue-600 text-sm">Next Class</h3>
                   </div>
-                  {studentData.next_class ? (
-                    <div className="space-y-3 p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/50">
+                  {studentData.next_class ?
+                <div className="space-y-3 p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/50">
                       <div className="flex items-start justify-between gap-4">
                         <span className="font-semibold text-blue-700 dark:text-blue-300 leading-tight">{studentData.next_class.subject}</span>
                         <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-800 whitespace-nowrap">
@@ -732,13 +732,13 @@ const StudentInfoScanner = () => {
                           </span>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-dashed border-gray-200 dark:border-gray-700">
+                    </div> :
+
+                <div className="flex flex-col items-center justify-center py-8 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-dashed border-gray-200 dark:border-gray-700">
                       <Clock className="h-8 w-8 text-muted-foreground/30 mb-2" />
                       <p className="text-sm text-muted-foreground italic">No upcoming class</p>
                     </div>
-                  )}
+                }
                 </div>
               </div>
 
@@ -764,9 +764,9 @@ const StudentInfoScanner = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-accent/5 border border-border/50">
                   <div className={`text-4xl font-black ${
-                    studentData.attendance.overall_percentage >= 75 ? 'text-green-500' :
-                    studentData.attendance.overall_percentage >= 60 ? 'text-yellow-500' : 'text-red-500'
-                  }`}>
+                studentData.attendance.overall_percentage >= 75 ? 'text-green-500' :
+                studentData.attendance.overall_percentage >= 60 ? 'text-yellow-500' : 'text-red-500'}`
+                }>
                     {studentData.attendance.overall_percentage}%
                   </div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">Overall</div>
@@ -791,20 +791,20 @@ const StudentInfoScanner = () => {
                   Subject-wise Attendance
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.entries(studentData.attendance.by_subject).map(([subject, data]) => (
-                    <div key={subject} className="flex items-center justify-between p-3 rounded-xl bg-accent/5 border border-border/50 hover:bg-accent/10 transition-colors">
+                  {Object.entries(studentData.attendance.by_subject).map(([subject, data]) =>
+                <div key={subject} className="flex items-center justify-between p-3 rounded-xl bg-accent/5 border border-border/50 hover:bg-accent/10 transition-colors">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-sm font-semibold">{subject}</span>
                         <span className="text-xs text-muted-foreground font-medium">{data.present} / {data.total} attended</span>
                       </div>
                       <Badge
-                        variant={data.percentage >= 75 ? "default" : data.percentage >= 60 ? "secondary" : "destructive"}
-                        className="text-xs font-semibold min-w-[50px] justify-center"
-                      >
+                    variant={data.percentage >= 75 ? "default" : data.percentage >= 60 ? "secondary" : "destructive"}
+                    className="text-xs font-semibold min-w-[50px] justify-center">
+                    
                         {data.percentage}%
                       </Badge>
                     </div>
-                  ))}
+                )}
                 </div>
               </div>
             </CardContent>
@@ -819,8 +819,8 @@ const StudentInfoScanner = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {studentData.fee_summary && !studentData.fee_summary.error ? (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {studentData.fee_summary && !studentData.fee_summary.error ?
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div className="text-center">
                         <div className="text-xl font-semibold text-blue-500">
                           ₹{studentData.fee_summary.total_fees?.toLocaleString() || 'N/A'}
@@ -841,27 +841,27 @@ const StudentInfoScanner = () => {
                       </div>
                       <div className="text-center">
                         <Badge
-                          variant={
-                            studentData.fee_summary.payment_status === 'paid' ? 'default' :
-                            studentData.fee_summary.payment_status === 'partial' ? 'secondary' : 'destructive'
-                          }
-                          className="text-sm px-3 py-1"
-                        >
+                  variant={
+                  studentData.fee_summary.payment_status === 'paid' ? 'default' :
+                  studentData.fee_summary.payment_status === 'partial' ? 'secondary' : 'destructive'
+                  }
+                  className="text-sm px-3 py-1">
+                  
                           {studentData.fee_summary.payment_status?.toUpperCase() || 'UNKNOWN'}
                         </Badge>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-500">
+                    </div> :
+
+            <div className="text-center text-gray-500">
                       Fee data not available
                     </div>
-                  )}
+            }
                 </CardContent>
               </Card>
 
           {/* Internal Marks */}
-          {Object.keys(studentData.internal_marks).length > 0 && (
-            <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+          {Object.keys(studentData.internal_marks).length > 0 &&
+        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <BookOpen className="h-5 w-5 text-primary" />
@@ -870,12 +870,12 @@ const StudentInfoScanner = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {Object.entries(studentData.internal_marks).map(([subject, marks]) => (
-                        <div key={subject} className="space-y-2">
+                      {Object.entries(studentData.internal_marks).map(([subject, marks]) =>
+              <div key={subject} className="space-y-2">
                           <h4 className="font-medium text-lg">{subject}</h4>
                           <div className="space-y-2">
-                            {marks.map((mark: any, index: number) => (
-                              <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                            {marks.map((mark: any, index: number) =>
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                                 <div className="flex items-center gap-4">
                                   <Badge variant="outline">Test {mark.test_number}</Badge>
                                   <span className="font-medium">{mark.mark}/{mark.max_mark}</span>
@@ -885,18 +885,18 @@ const StudentInfoScanner = () => {
                                   {mark.faculty}
                                 </div>
                               </div>
-                            ))}
+                  )}
                           </div>
                         </div>
-                      ))}
+              )}
                     </div>
                   </CardContent>
                 </Card>
-            )}
+        }
 
             {/* Registered Subjects */}
-            {studentData.subjects_registered.length > 0 && (
-              <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+            {studentData.subjects_registered.length > 0 &&
+        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-primary" />
@@ -905,8 +905,8 @@ const StudentInfoScanner = () => {
                 </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {studentData.subjects_registered.map((subject, index) => (
-                        <div key={index} className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-2">
+                      {studentData.subjects_registered.map((subject, index) =>
+              <div key={index} className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-medium">{subject.subject_name}</span>
                             <Badge variant="outline">{subject.subject_code}</Badge>
@@ -919,47 +919,47 @@ const StudentInfoScanner = () => {
                             {subject.status}
                           </Badge>
                         </div>
-                      ))}
+              )}
                     </div>
                   </CardContent>
                 </Card>
-            )}
+        }
         </div>
-      )}
+      }
 
       {/* Face Scanner Modal */}
       <AnimatePresence>
-        {showFaceScanner && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-            onClick={() => {
-              setShowFaceScanner(false);
-              stopFaceScanning();
-            }}
-          >
+        {showFaceScanner &&
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => {
+            setShowFaceScanner(false);
+            stopFaceScanning();
+          }}>
+          
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className={`relative ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl shadow-xl p-4 sm:p-6`}
-              onClick={(e) => e.stopPropagation()}
-            >
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className={`relative ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-3xl shadow-xl p-4 sm:p-6`}
+            onClick={(e) => e.stopPropagation()}>
+            
               <div className="flex items-center justify-between mb-4">
                 <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Face Recognition Scan
                 </h3>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowFaceScanner(false);
-                    stopFaceScanning();
-                  }}
-                  className="h-8 w-8 p-0"
-                >
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowFaceScanner(false);
+                  stopFaceScanning();
+                }}
+                className="h-8 w-8 p-0">
+                
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -969,54 +969,54 @@ const StudentInfoScanner = () => {
                 </div>
                 <div className="relative bg-black rounded-lg overflow-hidden">
                   <video
-                    ref={faceVideoRef}
-                    className="w-full h-64 object-cover"
-                    playsInline
-                    muted
-                  />
+                  ref={faceVideoRef}
+                  className="w-full h-64 object-cover"
+                  playsInline
+                  muted />
+                
                   <canvas
-                    ref={faceCanvasRef}
-                    className="hidden"
-                  />
-                  {!faceScanning && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  ref={faceCanvasRef}
+                  className="hidden" />
+                
+                  {!faceScanning &&
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                       <div className="text-center text-white">
                         <Camera className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">Click "Start Scanning" to begin</p>
                       </div>
                     </div>
-                  )}
+                }
                 </div>
-                {faceScanError && (
-                  <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                {faceScanError &&
+              <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                     <p className="text-sm text-red-700 dark:text-red-300">{faceScanError}</p>
                   </div>
-                )}
+              }
                 <div className="flex gap-2">
-                  {!faceScanning ? (
-                    <Button
-                      onClick={startFaceScanning}
-                      className="flex-1 bg-primary hover:bg-primary/90 text-white"
-                    >
+                  {!faceScanning ?
+                <Button
+                  onClick={startFaceScanning}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white">
+                  
                       <Camera className="h-4 w-4 mr-2" />
                       Start Scanning
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={captureAndRecognizeFace}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                    >
+                    </Button> :
+
+                <Button
+                  onClick={captureAndRecognizeFace}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+                  
                       Capture & Recognize
                     </Button>
-                  )}
+                }
                   <Button
-                    onClick={() => {
-                      setShowFaceScanner(false);
-                      stopFaceScanning();
-                    }}
-                    variant="outline"
-                  >
+                  onClick={() => {
+                    setShowFaceScanner(false);
+                    stopFaceScanning();
+                  }}
+                  variant="outline">
+                  
                     Close
                   </Button>
                 </div>
@@ -1026,10 +1026,10 @@ const StudentInfoScanner = () => {
               </div>
             </motion.div>
           </motion.div>
-        )}
+        }
       </AnimatePresence>
-    </div>
-  );
+    </div>);
+
 };
 
 export default StudentInfoScanner;

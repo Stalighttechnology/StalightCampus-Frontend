@@ -30,27 +30,27 @@ interface ManageCampusLocationResponse {
 }
 
 export const manageCampusLocation = async (
-  data?: {
-    name?: string;
-    description?: string;
-    is_active?: boolean;
-    center_latitude?: number;
-    center_longitude?: number;
-    radius_meters?: number;
-    min_latitude?: number;
-    max_latitude?: number;
-    min_longitude?: number;
-    max_longitude?: number;
-    page?: number;
-    page_size?: number;
-  },
-  location_id?: number,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET'
-): Promise<ManageCampusLocationResponse> => {
+data?: {
+  name?: string;
+  description?: string;
+  is_active?: boolean;
+  center_latitude?: number;
+  center_longitude?: number;
+  radius_meters?: number;
+  min_latitude?: number;
+  max_latitude?: number;
+  min_longitude?: number;
+  max_longitude?: number;
+  page?: number;
+  page_size?: number;
+},
+location_id?: number,
+method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET')
+: Promise<ManageCampusLocationResponse> => {
   try {
-    let url = location_id
-      ? `${API_ENDPOINT}/dean/campus-locations/${location_id}/`
-      : `${API_ENDPOINT}/dean/campus-locations/`;
+    let url = location_id ?
+    `${API_ENDPOINT}/dean/campus-locations/${location_id}/` :
+    `${API_ENDPOINT}/dean/campus-locations/`;
 
     // Add pagination parameters for GET requests
     if (method === 'GET' && data && !location_id) {
@@ -64,13 +64,13 @@ export const manageCampusLocation = async (
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: method !== 'GET' && data ? JSON.stringify(data) : undefined,
+      body: method !== 'GET' && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error('Manage Campus Location Failed:', { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}`, errors: result.errors };
     }
 
@@ -83,7 +83,7 @@ export const manageCampusLocation = async (
           ...result.results,
           count: result.count,
           next: result.next,
-          previous: result.previous,
+          previous: result.previous
         } as unknown as ManageCampusLocationResponse;
       }
 
@@ -93,7 +93,7 @@ export const manageCampusLocation = async (
 
     return result;
   } catch (error) {
-    console.error('Manage Campus Location Error:', error);
+
     return { success: false, message: 'Network error' };
   }
 };
@@ -134,10 +134,10 @@ interface ManageAdminLeavesRequest {
 }
 
 export const manageAdminLeaves = async (
-  data?: any,
-  method: 'GET' | 'PATCH' = 'GET',
-  page?: number
-): Promise<ManageAdminLeavesResponse> => {
+data?: any,
+method: 'GET' | 'PATCH' = 'GET',
+page?: number)
+: Promise<ManageAdminLeavesResponse> => {
   try {
     let url = `${API_ENDPOINT}/dean/admin-leaves/`;
     if (method === 'GET') {
@@ -151,18 +151,18 @@ export const manageAdminLeaves = async (
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: method === 'PATCH' && data ? JSON.stringify(data) : undefined,
+      body: method === 'PATCH' && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error('Manage Admin Leaves Failed:', { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error('Manage Admin Leaves Error:', error);
+
     return { success: false, message: 'Network error' };
   }
 };
@@ -203,10 +203,10 @@ interface ManageCOELeavesRequest {
 }
 
 export const manageCOELeaves = async (
-  data?: any,
-  method: 'GET' | 'PATCH' = 'GET',
-  page?: number
-): Promise<ManageCOELeavesResponse> => {
+data?: any,
+method: 'GET' | 'PATCH' = 'GET',
+page?: number)
+: Promise<ManageCOELeavesResponse> => {
   try {
     let url = `${API_ENDPOINT}/dean/coe-leaves/`;
     if (method === 'GET') {
@@ -220,18 +220,18 @@ export const manageCOELeaves = async (
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: method === 'PATCH' && data ? JSON.stringify(data) : undefined,
+      body: method === 'PATCH' && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error('Manage COE Leaves Failed:', { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error('Manage COE Leaves Error:', error);
+
     return { success: false, message: 'Network error' };
   }
 };
@@ -275,10 +275,10 @@ interface ManageAllLeavesRequest {
 }
 
 export const manageAllLeaves = async (
-  data?: any,
-  method: 'GET' | 'PATCH' = 'GET',
-  page?: number
-): Promise<ManageAllLeavesResponse> => {
+data?: any,
+method: 'GET' | 'PATCH' = 'GET',
+page?: number)
+: Promise<ManageAllLeavesResponse> => {
   try {
     let url = `${API_ENDPOINT}/dean/all-leaves/`;
     if (method === 'GET') {
@@ -292,18 +292,18 @@ export const manageAllLeaves = async (
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: method === 'PATCH' && data ? JSON.stringify(data) : undefined,
+      body: method === 'PATCH' && data ? JSON.stringify(data) : undefined
     });
     const result = await response.json();
     if (!response.ok) {
-      console.error('Manage All Leaves Failed:', { status: response.status, result });
+
       return { success: false, message: result.message || `HTTP ${response.status}` };
     }
     return result;
   } catch (error) {
-    console.error('Manage All Leaves Error:', error);
+
     return { success: false, message: 'Network error' };
   }
 };

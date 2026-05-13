@@ -14,8 +14,8 @@ import {
   MoreVertical,
   History,
   CheckCircle,
-  AlertTriangle
-} from 'lucide-react';
+  AlertTriangle } from
+'lucide-react';
 import { getWardenIssues, updateWardenIssue } from '../../utils/warden_api';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { API_ENDPOINT } from '../../utils/config';
@@ -117,7 +117,7 @@ const WardenIssueManagement = () => {
       const data = await response.json();
       setSelectedIssue(data);
     } catch (error) {
-      console.error('Error fetching issue details:', error);
+
     }
   };
 
@@ -128,12 +128,12 @@ const WardenIssueManagement = () => {
 
       toast({
         title: 'Success',
-        description: 'Issue status updated',
+        description: 'Issue status updated'
       });
 
       // Update local issues state silently
-      setIssues(prev => prev.map(issue =>
-        issue.id === issueId ? { ...issue, status: data.status, status_display: data.status_display } : issue
+      setIssues((prev) => prev.map((issue) =>
+      issue.id === issueId ? { ...issue, status: data.status, status_display: data.status_display } : issue
       ));
 
       if (selectedIssue?.id === issueId) {
@@ -164,26 +164,26 @@ const WardenIssueManagement = () => {
           title="Total Issues"
           value={totalCount}
           description="Managed by you"
-          icon={<MessageSquare className="w-5 h-5 text-purple-500" />}
-        />
+          icon={<MessageSquare className="w-5 h-5 text-purple-500" />} />
+        
         <DashboardCard
           title="Pending"
-          value={issues.filter(i => i.status === 'pending').length}
+          value={issues.filter((i) => i.status === 'pending').length}
           description="New requests"
-          icon={<AlertTriangle className="w-5 h-5 text-amber-500" />}
-        />
+          icon={<AlertTriangle className="w-5 h-5 text-amber-500" />} />
+        
         <DashboardCard
           title="In Progress"
-          value={issues.filter(i => i.status === 'in_progress').length}
+          value={issues.filter((i) => i.status === 'in_progress').length}
           description="Being resolved"
-          icon={<Clock className="w-5 h-5 text-blue-500" />}
-        />
+          icon={<Clock className="w-5 h-5 text-blue-500" />} />
+        
         <DashboardCard
           title="Completed"
-          value={issues.filter(i => i.status === 'completed').length}
+          value={issues.filter((i) => i.status === 'completed').length}
           description="Resolved cases"
-          icon={<CheckCircle className="w-5 h-5 text-green-500" />}
-        />
+          icon={<CheckCircle className="w-5 h-5 text-green-500" />} />
+        
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6">
@@ -208,27 +208,27 @@ const WardenIssueManagement = () => {
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="h-[calc(100vh-28rem)] min-h-[400px]">
-                {loading && issues.length === 0 ? (
-                  <div className="p-4 space-y-4">
-                    {[1, 2, 3].map(i => <div key={i} className="h-20 bg-muted/40 animate-pulse rounded-lg" />)}
-                  </div>
-                ) : issues.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
+                {loading && issues.length === 0 ?
+                <div className="p-4 space-y-4">
+                    {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-muted/40 animate-pulse rounded-lg" />)}
+                  </div> :
+                issues.length === 0 ?
+                <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
                     <CheckCircle className="w-12 h-12 mb-4" />
                     <p className="font-semibold">No issues found</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border/30">
+                  </div> :
+
+                <div className="divide-y divide-border/30">
                     {issues.map((issue) => {
-                      const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
-                      const isSelected = selectedIssue?.id === issue.id;
-                      return (
-                        <div
-                          key={issue.id}
-                          onClick={() => handleIssueClick(issue)}
-                          className={`p-4 transition-all cursor-pointer hover:bg-muted/70 relative ${isSelected ? "bg-primary/10" : ""
-                            }`}
-                        >
+                    const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+                    const isSelected = selectedIssue?.id === issue.id;
+                    return (
+                      <div
+                        key={issue.id}
+                        onClick={() => handleIssueClick(issue)}
+                        className={`p-4 transition-all cursor-pointer hover:bg-muted/70 relative ${isSelected ? "bg-primary/10" : ""}`
+                        }>
+                        
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">#{issue.id}</span>
@@ -242,11 +242,11 @@ const WardenIssueManagement = () => {
                             <span>{issue.student_name} • Room {issue.room_name}</span>
                             <span>{formatDate(issue.created_at)}</span>
                           </div>
-                        </div>
-                      );
-                    })}
+                        </div>);
+
+                  })}
                   </div>
-                )}
+                }
               </ScrollArea>
             </CardContent>
           </Card>
@@ -255,13 +255,13 @@ const WardenIssueManagement = () => {
         {/* Issue Details */}
         <div className="lg:col-span-7">
           <AnimatePresence mode="wait">
-            {selectedIssue ? (
-              <motion.div
-                key={selectedIssue.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-6"
-              >
+            {selectedIssue ?
+            <motion.div
+              key={selectedIssue.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6">
+              
                 <Card className="border-border/40 shadow-md">
                   <CardHeader className="pb-4 border-b bg-muted/10">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -307,47 +307,47 @@ const WardenIssueManagement = () => {
                       <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground/80">Update Status</h4>
                       <div className="flex flex-wrap gap-2">
                         {Object.keys(STATUS_CONFIG).map((status) => {
-                          const currentOrder = STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.order ?? 0;
-                          const targetOrder = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.order ?? 0;
-                          const isCurrent = selectedIssue.status === status;
-                          const isPast = targetOrder < currentOrder;
+                        const currentOrder = STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.order ?? 0;
+                        const targetOrder = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.order ?? 0;
+                        const isCurrent = selectedIssue.status === status;
+                        const isPast = targetOrder < currentOrder;
 
-                          return (
-                            <Button
-                              key={status}
-                              size="sm"
-                              variant={isCurrent ? "default" : "outline"}
-                              onClick={() => handleStatusChange(selectedIssue.id, status)}
-                              disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
-                              className={`h-8 text-xs font-semibold transition-all ${isCurrent
-                                  ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105"
-                                  : isPast
-                                    ? "opacity-50 grayscale-[0.5] cursor-not-allowed bg-muted/20"
-                                    : "hover:border-primary/60 opacity-100"
-                                }`}
-                            >
+                        return (
+                          <Button
+                            key={status}
+                            size="sm"
+                            variant={isCurrent ? "default" : "outline"}
+                            onClick={() => handleStatusChange(selectedIssue.id, status)}
+                            disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
+                            className={`h-8 text-xs font-semibold transition-all ${isCurrent ?
+                            "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105" :
+                            isPast ?
+                            "opacity-50 grayscale-[0.5] cursor-not-allowed bg-muted/20" :
+                            "hover:border-primary/60 opacity-100"}`
+                            }>
+                            
                               {STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.label}
-                            </Button>
-                          );
-                        })}
+                            </Button>);
+
+                      })}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border/40 rounded-2xl bg-muted/5 opacity-50">
+              </motion.div> :
+
+            <div className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-border/40 rounded-2xl bg-muted/5 opacity-50">
                 <div className="bg-muted p-6 rounded-full mb-4">
                   <ChevronRight className="w-10 h-10 text-muted-foreground" />
                 </div>
                 <h3 className="text-lg font-semibold">Select an issue to resolve</h3>
               </div>
-            )}
+            }
           </AnimatePresence>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default WardenIssueManagement;

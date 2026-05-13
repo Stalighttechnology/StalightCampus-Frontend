@@ -12,16 +12,16 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const getPriorityClass = (p: string) =>
-  p === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
-  p === 'High'     ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-900/10' :
-  p === 'Medium'   ? 'border-yellow-500 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/10' :
-                     'border-blue-400 text-blue-600 bg-blue-50 dark:bg-blue-900/10';
+p === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
+p === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-900/10' :
+p === 'Medium' ? 'border-yellow-500 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/10' :
+'border-blue-400 text-blue-600 bg-blue-50 dark:bg-blue-900/10';
 
 const getStatusClass = (s: string) =>
-  s === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-  s === 'Closed'   ? 'bg-gray-100 text-gray-600 border-gray-300' :
-  s === 'Pending'  ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                     'bg-blue-100 text-blue-800 border-blue-200';
+s === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+s === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
+s === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+'bg-blue-100 text-blue-800 border-blue-200';
 
 const Support = () => {
   const [data, setData] = useState<any[]>([]);
@@ -42,7 +42,7 @@ const Support = () => {
         page: String(page),
         page_size: String(pageSize),
         ...(priorityFilter !== 'All' && { priority: priorityFilter }),
-        ...(statusFilter !== 'All' && { status: statusFilter }),
+        ...(statusFilter !== 'All' && { status: statusFilter })
       });
       const response = await fetch(`${API_BASE}/api/superadmin/support/tickets/?${params}`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
@@ -51,16 +51,16 @@ const Support = () => {
       setData(res.tickets || []);
       setTotal(res.total || 0);
     } catch (error) {
-      console.error("Error:", error);
+
     } finally {
       setLoading(false);
     }
   }, [page, priorityFilter, statusFilter]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {fetchData();}, [fetchData]);
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [priorityFilter, statusFilter]);
+  useEffect(() => {setPage(1);}, [priorityFilter, statusFilter]);
 
   const handleUpdate = async () => {
     try {
@@ -101,11 +101,11 @@ const Support = () => {
           <select
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             value={priorityFilter}
-            onChange={e => setPriorityFilter(e.target.value)}
-          >
-            {['All', 'Critical', 'High', 'Medium', 'Low'].map(v => (
-              <option key={v} value={v}>{v}</option>
-            ))}
+            onChange={(e) => setPriorityFilter(e.target.value)}>
+            
+            {['All', 'Critical', 'High', 'Medium', 'Low'].map((v) =>
+            <option key={v} value={v}>{v}</option>
+            )}
           </select>
         </div>
         <div className="flex items-center gap-2">
@@ -113,11 +113,11 @@ const Support = () => {
           <select
             className="h-9 rounded-md border border-input bg-background px-3 text-sm"
             value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-          >
-            {['All', 'Open', 'Pending', 'Resolved', 'Closed'].map(v => (
-              <option key={v} value={v}>{v}</option>
-            ))}
+            onChange={(e) => setStatusFilter(e.target.value)}>
+            
+            {['All', 'Open', 'Pending', 'Resolved', 'Closed'].map((v) =>
+            <option key={v} value={v}>{v}</option>
+            )}
           </select>
         </div>
         <div className="ml-auto text-sm text-muted-foreground">
@@ -138,16 +138,16 @@ const Support = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
-              <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell></TableRow>
-            ) : data.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No tickets found.</TableCell></TableRow>
-            ) : data.map((item) => (
-              <TableRow
-                key={item.id}
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => { setSelectedTicket(item); setUpdateForm({ status: item.status, response: item.response || '' }); }}
-              >
+            {loading ?
+            <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell></TableRow> :
+            data.length === 0 ?
+            <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No tickets found.</TableCell></TableRow> :
+            data.map((item) =>
+            <TableRow
+              key={item.id}
+              className="cursor-pointer hover:bg-muted/50 transition-colors"
+              onClick={() => {setSelectedTicket(item);setUpdateForm({ status: item.status, response: item.response || '' });}}>
+              
                 <TableCell className="font-medium text-primary">{item.id}</TableCell>
                 <TableCell>{item.org_name}</TableCell>
                 <TableCell>
@@ -162,35 +162,35 @@ const Support = () => {
                 </TableCell>
                 <TableCell className="text-muted-foreground whitespace-nowrap">{item.date}</TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+      {totalPages > 1 &&
+      <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Page {page} of {totalPages}
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
-              return (
-                <Button key={p} variant={p === page ? "default" : "outline"} size="sm" onClick={() => setPage(p)}>
+            const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
+            return (
+              <Button key={p} variant={p === page ? "default" : "outline"} size="sm" onClick={() => setPage(p)}>
                   {p}
-                </Button>
-              );
-            })}
-            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                </Button>);
+
+          })}
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      )}
+      }
 
       {/* Ticket Detail Dialog */}
       <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
@@ -230,11 +230,11 @@ const Support = () => {
               <select
                 className="w-full mt-1 flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={updateForm.status}
-                onChange={e => setUpdateForm({ ...updateForm, status: e.target.value })}
-              >
-                {['Open', 'Pending', 'Resolved', 'Closed'].map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
+                onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}>
+                
+                {['Open', 'Pending', 'Resolved', 'Closed'].map((s) =>
+                <option key={s} value={s}>{s}</option>
+                )}
               </select>
             </div>
 
@@ -245,8 +245,8 @@ const Support = () => {
                 placeholder="Enter response to the organization..."
                 rows={4}
                 value={updateForm.response}
-                onChange={e => setUpdateForm({ ...updateForm, response: e.target.value })}
-              />
+                onChange={(e) => setUpdateForm({ ...updateForm, response: e.target.value })} />
+              
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -256,7 +256,7 @@ const Support = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 export default Support;

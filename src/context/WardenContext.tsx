@@ -20,7 +20,7 @@ interface WardenContextType {
 
 const WardenContext = createContext<WardenContextType | undefined>(undefined);
 
-export const WardenProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const WardenProvider: React.FC<{children: React.ReactNode;}> = ({ children }) => {
   const [managedHostels, setManagedHostels] = useState<Hostel[]>([]);
   const [wardenFloorsMap, setWardenFloorsMap] = useState<Record<number, number[]>>({});
   const [wardenName, setWardenName] = useState("");
@@ -40,7 +40,7 @@ export const WardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setStats(result.statistics);
       }
     } catch (error) {
-      console.error("Error fetching warden data in context:", error);
+
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export const WardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Only fetch if the user is actually a warden
     const role = localStorage.getItem('role');
     const isWardenPath = window.location.pathname.includes('/warden');
-    
+
     if (!fetchRef.current && (role === 'warden' || isWardenPath)) {
       fetchRef.current = true;
       refreshWardenData();
@@ -62,8 +62,8 @@ export const WardenProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <WardenContext.Provider value={{ managedHostels, wardenFloorsMap, wardenName, stats, loading, refreshWardenData }}>
       {children}
-    </WardenContext.Provider>
-  );
+    </WardenContext.Provider>);
+
 };
 
 export const useWardenContext = () => {

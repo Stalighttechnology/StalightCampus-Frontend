@@ -4,26 +4,26 @@ import { Building2, Users, Grid3X3, AlertCircle, ClipboardList, Eye } from "luci
 import { useWardenContext } from "../../context/WardenContext";
 import { useToast } from "../../hooks/use-toast";
 import DashboardCard from "../common/DashboardCard";
-import { 
-  SkeletonPageHeader, 
-  SkeletonStatsGrid, 
-  SkeletonCard 
-} from "../ui/skeleton";
+import {
+  SkeletonPageHeader,
+  SkeletonStatsGrid,
+  SkeletonCard } from
+"../ui/skeleton";
 
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue } from
+"@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription } from
+"@/components/ui/dialog";
 import { getWardenRooms } from "../../utils/warden_api";
 import { getRoomDetail } from "../../utils/hms_api";
 
@@ -56,12 +56,12 @@ interface Room {
 
 const WardenDashboard = () => {
   const { toast } = useToast();
-  const { 
-    managedHostels: hostels, 
-    wardenFloorsMap, 
-    wardenName, 
-    stats, 
-    loading: contextLoading 
+  const {
+    managedHostels: hostels,
+    wardenFloorsMap,
+    wardenName,
+    stats,
+    loading: contextLoading
   } = useWardenContext();
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
   const [selectedFloor, setSelectedFloor] = useState<string>("");
@@ -103,7 +103,7 @@ const WardenDashboard = () => {
         setRooms(result.rooms);
       }
     } catch (error) {
-      console.error("Error fetching rooms:", error);
+
     } finally {
       setLoadingRooms(false);
     }
@@ -120,14 +120,14 @@ const WardenDashboard = () => {
         setSelectedRoom(result.data);
       }
     } catch (error) {
-      console.error("Error fetching room details:", error);
+
     } finally {
       setLoadingRoomDetails(false);
     }
   };
 
   const getRoomColor = (occupied: number, capacity: number) => {
-    const occupancyPercent = (occupied / capacity) * 100;
+    const occupancyPercent = occupied / capacity * 100;
     if (occupancyPercent === 100) return "bg-red-500/10 border-red-500/50 text-red-600 dark:text-red-400";
     if (occupancyPercent >= 50) return "bg-yellow-500/10 border-yellow-500/50 text-yellow-600 dark:text-yellow-400";
     return "bg-green-500/10 border-green-500/50 text-green-600 dark:text-green-400";
@@ -146,9 +146,9 @@ const WardenDashboard = () => {
       y: 0,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
+        delayChildren: 0.2
+      }
+    }
   };
 
   if (contextLoading) {
@@ -157,8 +157,8 @@ const WardenDashboard = () => {
         <SkeletonPageHeader />
         <SkeletonStatsGrid items={4} />
         <SkeletonCard className="h-[400px]" />
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -166,20 +166,20 @@ const WardenDashboard = () => {
       className="space-y-6"
       initial="hidden"
       animate="visible"
-      variants={containerVariants}
-    >
+      variants={containerVariants}>
+      
       {/* Overview & Hostels Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Hostel Selection Cards */}
-        {hostels.map((hostel) => (
-          <motion.div
-            key={hostel.id}
-            whileHover={{ y: -5 }}
-            onClick={() => setSelectedHostel(hostel.id)}
-            className={`p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-pointer ${
-              selectedHostel === hostel.id ? "border-primary ring-1 ring-primary/20" : "border-border/40"
-            }`}
-          >
+        {hostels.map((hostel) =>
+        <motion.div
+          key={hostel.id}
+          whileHover={{ y: -5 }}
+          onClick={() => setSelectedHostel(hostel.id)}
+          className={`p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all cursor-pointer ${
+          selectedHostel === hostel.id ? "border-primary ring-1 ring-primary/20" : "border-border/40"}`
+          }>
+          
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
                 <Building2 size={20} />
@@ -203,20 +203,20 @@ const WardenDashboard = () => {
               </div>
             </div>
           </motion.div>
-        ))}
+        )}
         {/* Global Stats Cards */}
         <DashboardCard
           title="Pending Issues"
           value={stats?.pending_issues || 0}
           description="Awaiting resolution"
-          icon={<AlertCircle size={20} className="text-amber-500" />}
-        />
+          icon={<AlertCircle size={20} className="text-amber-500" />} />
+        
         <DashboardCard
           title="Occupancy Rate"
           value={`${stats?.occupancy_rate || 0}%`}
           description="Room utilization"
-          icon={<ClipboardList size={20} className="text-green-500" />}
-        />
+          icon={<ClipboardList size={20} className="text-green-500" />} />
+        
       </div>
 
       {/* Room Matrix Visualization (Mirroring HMS Admin) */}
@@ -233,20 +233,20 @@ const WardenDashboard = () => {
               <div className="w-full sm:w-40 md:w-48">
                 <Select
                   value={selectedFloor}
-                  onValueChange={setSelectedFloor}
-                >
+                  onValueChange={setSelectedFloor}>
+                  
                   <SelectTrigger>
                     <SelectValue placeholder="Choose Floor" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Floors</SelectItem>
-                    {availableFloors
-                      .sort((a, b) => a - b)
-                      .map((floor) => (
-                        <SelectItem key={floor} value={floor.toString()}>
+                    {availableFloors.
+                    sort((a, b) => a - b).
+                    map((floor) =>
+                    <SelectItem key={floor} value={floor.toString()}>
                           Floor {floor === 0 ? 'Ground' : floor}
                         </SelectItem>
-                      ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -271,41 +271,41 @@ const WardenDashboard = () => {
         </div>
 
         <div className="p-6">
-          {loadingRooms ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-20 rounded-lg border bg-muted animate-pulse" />
-              ))}
-            </div>
-          ) : selectedHostel ? (
-            !selectedFloor ? (
-              <div className="text-center py-12 text-muted-foreground">
+          {loadingRooms ?
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+              {Array.from({ length: 8 }).map((_, i) =>
+            <div key={i} className="h-20 rounded-lg border bg-muted animate-pulse" />
+            )}
+            </div> :
+          selectedHostel ?
+          !selectedFloor ?
+          <div className="text-center py-12 text-muted-foreground">
                 <Grid3X3 size={48} className="mx-auto mb-4 opacity-10" />
                 <p>Select a floor to view the room occupancy matrix.</p>
-              </div>
-            ) : Object.keys(roomsByFloor).length > 0 ? (
-              <div className="space-y-8">
-                {Object.keys(roomsByFloor)
-                  .map((k) => Number(k))
-                  .sort((a, b) => a - b)
-                  .filter((f) => selectedFloor === "all" || f.toString() === selectedFloor)
-                  .map((floorNum) => (
-                    <div key={floorNum}>
+              </div> :
+          Object.keys(roomsByFloor).length > 0 ?
+          <div className="space-y-8">
+                {Object.keys(roomsByFloor).
+            map((k) => Number(k)).
+            sort((a, b) => a - b).
+            filter((f) => selectedFloor === "all" || f.toString() === selectedFloor).
+            map((floorNum) =>
+            <div key={floorNum}>
                       <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
                         Floor {floorNum === 0 ? 'Ground' : floorNum}
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                        {roomsByFloor[floorNum].map((room) => (
-                          <motion.div
-                            key={room.id}
-                            whileHover={{ scale: 1.05 }}
-                            onClick={() => handleRoomClick(room)}
-                            className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${getRoomColor(
-                              room.student_count,
-                              room.capacity
-                            )} font-medium shadow-sm hover:shadow-md`}
-                            title={`${room.room_number}: ${room.student_count}/${room.capacity} students. Click to view.`}
-                          >
+                        {roomsByFloor[floorNum].map((room) =>
+                <motion.div
+                  key={room.id}
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => handleRoomClick(room)}
+                  className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${getRoomColor(
+                    room.student_count,
+                    room.capacity
+                  )} font-medium shadow-sm hover:shadow-md`}
+                  title={`${room.room_number}: ${room.student_count}/${room.capacity} students. Click to view.`}>
+                  
                             <div className="text-[10px] opacity-70 mb-1">ROOM</div>
                             <div className="text-sm font-bold">{room.room_number}</div>
                             <div className="text-[10px] mt-1 font-bold">
@@ -316,21 +316,21 @@ const WardenDashboard = () => {
                               <span>View</span>
                             </div>
                           </motion.div>
-                        ))}
+                )}
                       </div>
                     </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
+            )}
+              </div> :
+
+          <div className="text-center py-12 text-muted-foreground">
                 No rooms available for this hostel.
-              </div>
-            )
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
+              </div> :
+
+
+          <div className="text-center py-12 text-muted-foreground">
               Select a hostel card above to view room occupancy.
             </div>
-          )}
+          }
         </div>
       </div>
 
@@ -348,18 +348,18 @@ const WardenDashboard = () => {
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-            {loadingRoomDetails ? (
-              <div className="space-y-3">
+            {loadingRoomDetails ?
+            <div className="space-y-3">
                 <div className="h-16 w-full rounded-xl bg-muted animate-pulse" />
                 <div className="h-16 w-full rounded-xl bg-muted animate-pulse" />
-              </div>
-            ) : selectedRoom?.residents && selectedRoom.residents.length > 0 ? (
-              <div className="grid gap-3">
-                {selectedRoom.residents.map((resident) => (
-                  <div 
-                    key={resident.id} 
-                    className="flex items-center justify-between p-3 rounded-xl border bg-muted/30"
-                  >
+              </div> :
+            selectedRoom?.residents && selectedRoom.residents.length > 0 ?
+            <div className="grid gap-3">
+                {selectedRoom.residents.map((resident) =>
+              <div
+                key={resident.id}
+                className="flex items-center justify-between p-3 rounded-xl border bg-muted/30">
+                
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                         {resident.name.charAt(0)}
@@ -375,19 +375,19 @@ const WardenDashboard = () => {
                       {resident.usn}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
+              )}
+              </div> :
+
+            <div className="text-center py-8 text-muted-foreground">
                 <Users size={32} className="mx-auto mb-2 opacity-20" />
                 <p>No residents assigned to this room.</p>
               </div>
-            )}
+            }
           </div>
         </DialogContent>
       </Dialog>
-    </motion.div>
-  );
+    </motion.div>);
+
 };
 
 export default WardenDashboard;

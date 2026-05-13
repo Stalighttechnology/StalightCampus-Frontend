@@ -27,8 +27,8 @@ import {
   ClipboardList,
   Bell,
   GitBranch,
-  UserCheck,
-} from "lucide-react";
+  UserCheck } from
+"lucide-react";
 import { logoutUser } from "../../utils/authService";
 import { useRef, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
@@ -71,12 +71,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
       await logoutUser();
       navigate("/", { replace: true });
     } catch (error) {
-      console.error("Logout error:", error);
+
       setError("Failed to log out. Please try again.");
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to log out. Please try again.",
+        description: "Failed to log out. Please try again."
       });
     }
   };
@@ -85,7 +85,7 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
 
   const renderContent = () => {
     const orgPlan = (user as any)?.org_plan || "basic";
-    
+
     if (!activePage.includes('dashboard') && !isPageAllowed(activePage, orgPlan)) {
       return <UpgradeRequired featureName={activePage} role={user.role} onBack={() => handlePageChange('dashboard')} />;
     }
@@ -95,94 +95,94 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div className="space-y-6">
             <AdminStats setError={setError} onNavigate={handlePageChange} />
-          </div>
-        );
+          </div>);
+
       case "enroll-user":
         return (
           <div>
             <EnrollUser setError={setError} toast={toast} />
-          </div>
-        );
+          </div>);
+
       case "bulk-upload":
         return (
           <div>
             <BulkUpload setError={setError} toast={toast} />
-          </div>
-        );
+          </div>);
+
       case "branches":
         return (
           <div>
             <BranchesManagement setError={setError} toast={toast} />
-          </div>
-        );
+          </div>);
+
       case "teacher-assignments":
         return (
           <div>
             <TeacherBranchAssignment setError={setError} toast={toast} />
-          </div>
-        );
+          </div>);
+
       case "batches":
         return (
           <div>
             <BatchManagement setError={setError} toast={toast} />
-          </div>
-        );
+          </div>);
+
       case "notifications":
         return (
           <div>
             <NotificationsManagement setError={setError} toast={toast} />
-          </div>
-        );
+          </div>);
+
       case "hod-leaves":
         return (
           <div>
             <HODLeavesManagement setError={setError} toast={toast} />
-          </div>
-        );
+          </div>);
+
       case "hod-attendance":
         return (
           <div>
             <AdminHODAttendance setError={setError} />
-          </div>
-        );
+          </div>);
+
       case "my-attendance":
-        return(
+        return (
           <div>
             <AdminAttendance />
-          </div> 
-        )
+          </div>);
+
       case "apply-leave":
         return (
           <div>
             <ApplyLeaveAdmin />
-          </div>
-        );
+          </div>);
+
       case "users":
         return (
           <div>
             <UsersManagement setError={setError} toast={toast} />
-          </div>
-        );
+          </div>);
+
       case "qp-approvals":
         return (
           <div>
             <AdminQPApprovals />
-          </div>
-        );
-      
+          </div>);
+
+
       case "announcement-management":
         return (
           <div>
             <AnnouncementManagement />
-          </div>
-        );
-      
+          </div>);
+
+
       case "profile":
         return (
           <div>
             <AdminProfile user={user} setError={setError} />
-          </div>
-        );
+          </div>);
+
       default:
         return <AdminStats setError={setError} />;
     }
@@ -195,13 +195,13 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
       activePage={activePage}
       onPageChange={handlePageChange}
       onNotificationClick={handleNotificationClick}
-      pageTitle="Principal Dashboard"
-    >
+      pageTitle="Principal Dashboard">
+      
       <div key={activePage}>
         {renderContent()}
       </div>
-    </DashboardLayout>
-  );
+    </DashboardLayout>);
+
 };
 
 export default AdminDashboard;

@@ -81,8 +81,8 @@ export type { DashboardOverviewResponse, TimetableEntry };
 
 interface TimetableEntry {
   id: string;
-  faculty: { id: string; first_name: string; last_name: string };
-  subject: { id: string; name: string };
+  faculty: {id: string;first_name: string;last_name: string;};
+  subject: {id: string;name: string;};
   day: string;
   start_time: string;
   end_time: string;
@@ -97,13 +97,13 @@ interface GetTimetableResponse {
 
 interface AttendanceRecord {
   id: string;
-  subject: { id: string; name: string };
+  subject: {id: string;name: string;};
   date: string;
   status: string;
 }
 
 interface SubjectAttendance {
-  records: { date: string; status: "Present" | "Absent" }[];
+  records: {date: string;status: "Present" | "Absent";}[];
   present: number;
   total: number;
   percentage: number;
@@ -121,7 +121,7 @@ interface GetStudentAttendanceResponse {
 
 interface Mark {
   id: string;
-  subject: { id: string; name: string };
+  subject: {id: string;name: string;};
   test_number: number;
   mark: number;
   max_mark: number;
@@ -262,8 +262,8 @@ interface GetAnnouncementsResponse {
 
 interface ChatMessage {
   id: string;
-  channel: { id: string; name: string };
-  sender: { id: string; first_name: string; last_name: string };
+  channel: {id: string;name: string;};
+  sender: {id: string;first_name: string;last_name: string;};
   content: string;
   sent_at: string;
 }
@@ -312,17 +312,17 @@ export const getDashboardOverview = async (): Promise<DashboardOverviewResponse>
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
-        },
+          "Content-Type": "application/json"
+        }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error("Get Dashboard Overview Error:", error);
+
       const errorMessage = error instanceof Error ? error.message : "Network error";
       return { success: false, message: errorMessage };
     }
@@ -338,12 +338,12 @@ export const getTimetable = async (): Promise<GetTimetableResponse> => {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Timetable Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -354,161 +354,161 @@ export const getStudentAttendance = async (): Promise<GetStudentAttendanceRespon
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
-    console.error("Get Student Attendance Error:", error);
+
     const errorMessage = error instanceof Error ? error.message : "Network error";
     return { success: false, message: errorMessage };
   }
 };
 
 export const getInternalMarks = async (): Promise<GetInternalMarksResponse> => {
-  console.log("Fetching internal marks...");
+
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/internal-marks/`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Internal Marks Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const submitLeaveRequest = async (
-  data: SubmitLeaveRequestRequest
-): Promise<SubmitLeaveRequestResponse> => {
+data: SubmitLeaveRequestRequest)
+: Promise<SubmitLeaveRequestResponse> => {
   try {
-    console.log("=== SUBMIT LEAVE REQUEST START ==="); // Debug log
-    console.log("Submitting leave request with data:", data); // Debug log
-    console.log("API Base URL:", API_ENDPOINT); // Debug log
-    console.log("Auth token exists:", !!localStorage.getItem("access_token")); // Debug log
-    
+    // Debug log
+    // Debug log
+    // Debug log
+    // Debug log
+
     const token = localStorage.getItem("access_token");
     if (!token) {
-      console.error("No auth token found!");
+
       return { success: false, message: "No authentication token found" };
     }
-    
+
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/submit-leave-request/`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
-    
-    console.log("Submit leave request API response status:", response.status); // Debug log
-    console.log("Submit leave request API response headers:", [...response.headers.entries()]); // Debug log
-    
+
+    // Debug log
+    // Debug log
+
     if (!response.ok) {
-      console.error("API response not ok:", response.status, response.statusText); // Debug log
+      // Debug log
       const errorText = await response.text();
-      console.error("API error response body:", errorText); // Debug log
+      // Debug log
       return { success: false, message: `HTTP error! status: ${response.status}, body: ${errorText}` };
     }
-    
+
     const contentType = response.headers.get("content-type");
-    console.log("Response content type:", contentType); // Debug log
-    
+    // Debug log
+
     if (!contentType || !contentType.includes("application/json")) {
       const textResponse = await response.text();
-      console.error("Non-JSON response:", textResponse); // Debug log
+      // Debug log
       return { success: false, message: "Invalid response format" };
     }
-    
+
     const responseData = await response.json();
-    console.log("Submit leave request API response data:", responseData); // Debug log
-    
+    // Debug log
+
     // Check if the response has the expected structure
     if (!responseData.hasOwnProperty('success')) {
-      console.warn("Unexpected API response structure:", responseData);
+
       return { success: false, message: "Unexpected API response structure" };
     }
-    
-    console.log("=== SUBMIT LEAVE REQUEST END ==="); // Debug log
+
+    // Debug log
     return responseData;
   } catch (error) {
-    console.error("Submit Leave Request Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const getLeaveRequests = async (page = 1, pageSize = 20): Promise<GetLeaveRequestsResponse> => {
   try {
-    console.log("=== GET LEAVE REQUESTS START ==="); // Debug log
+    // Debug log
     const params = new URLSearchParams({
       page: String(page),
-      page_size: String(pageSize),
+      page_size: String(pageSize)
     });
     const token = localStorage.getItem("access_token");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/leave-requests/?${params.toString()}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
-    
-    console.log("Leave requests API response status:", response.status); // Debug log
-    console.log("Leave requests API response headers:", [...response.headers.entries()]); // Debug log
-    
+
+    // Debug log
+    // Debug log
+
     if (!response.ok) {
-      console.error("API response not ok:", response.status, response.statusText); // Debug log
+      // Debug log
       const errorText = await response.text();
-      console.error("API error response body:", errorText); // Debug log
+      // Debug log
       return { success: false, message: `HTTP error! status: ${response.status}, body: ${errorText}` };
     }
-    
+
     const contentType = response.headers.get("content-type");
-    console.log("Response content type:", contentType); // Debug log
-    
+    // Debug log
+
     if (!contentType || !contentType.includes("application/json")) {
       const textResponse = await response.text();
-      console.error("Non-JSON response:", textResponse); // Debug log
+      // Debug log
       return { success: false, message: "Invalid response format" };
     }
-    
+
     const responseData = await response.json();
-    console.log("Leave requests API response data:", responseData); // Debug log
-    
+    // Debug log
+
     // Check if the response has the expected structure
     if (!responseData.hasOwnProperty('success')) {
-      console.warn("Unexpected API response structure:", responseData);
+
       return { success: false, message: "Unexpected API response structure" };
     }
-    
+
     // Additional validation for leave requests
     if (responseData.success && responseData.leave_requests) {
-      console.log("Leave requests count:", responseData.leave_requests.length);
+
       if (responseData.leave_requests.length > 0) {
-        console.log("First leave request:", responseData.leave_requests[0]);
+
       }
     }
-    
-    console.log("=== GET LEAVE REQUESTS END ==="); // Debug log
+
+    // Debug log
     return responseData;
   } catch (error) {
-    console.error("Get Leave Requests Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 // Helper function to add a delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Enhanced version with retry mechanism
 export const getLeaveRequestsWithRetry = async (maxRetries = 3): Promise<GetLeaveRequestsResponse> => {
@@ -526,8 +526,8 @@ export const getLeaveRequestsWithRetry = async (maxRetries = 3): Promise<GetLeav
 };
 
 export const uploadCertificate = async (
-  data: UploadCertificateRequest
-): Promise<UploadCertificateResponse> => {
+data: UploadCertificateRequest)
+: Promise<UploadCertificateResponse> => {
   try {
     const formData = new FormData();
     formData.append("file", data.file);
@@ -535,13 +535,13 @@ export const uploadCertificate = async (
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/upload-certificate/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`
       },
-      body: formData,
+      body: formData
     });
     return await response.json();
   } catch (error) {
-    console.error("Upload Certificate Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -552,50 +552,50 @@ export const getCertificates = async (): Promise<GetCertificatesResponse> => {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Certificates Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const deleteCertificate = async (
-  data: DeleteCertificateRequest
-): Promise<DeleteCertificateResponse> => {
+data: DeleteCertificateRequest)
+: Promise<DeleteCertificateResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/delete-certificate/`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     return await response.json();
   } catch (error) {
-    console.error("Delete Certificate Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const updateProfile = async (
-  data: UpdateProfileRequest
-): Promise<UpdateProfileResponse> => {
+data: UpdateProfileRequest)
+: Promise<UpdateProfileResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/update-profile/`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     return await response.json();
   } catch (error) {
-    console.error("Update Profile Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -606,32 +606,32 @@ export const getAnnouncements = async (): Promise<GetAnnouncementsResponse> => {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Announcements Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const manageChat = async (
-  data: any,
-  method: "GET" | "POST" = "GET"
-): Promise<ManageChatResponse> => {
+data: any,
+method: "GET" | "POST" = "GET")
+: Promise<ManageChatResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/chat/`, {
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: method === "POST" ? JSON.stringify(data) : undefined,
+      body: method === "POST" ? JSON.stringify(data) : undefined
     });
     return await response.json();
   } catch (error) {
-    console.error("Manage Chat Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -642,31 +642,31 @@ export const getNotifications = async (): Promise<GetNotificationsResponse> => {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Notifications Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const uploadFaceEncodings = async (
-  data: UploadFaceEncodingsRequest
-): Promise<UploadFaceEncodingsResponse> => {
+data: UploadFaceEncodingsRequest)
+: Promise<UploadFaceEncodingsResponse> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/upload-face-encodings/`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     });
     return await response.json();
   } catch (error) {
-    console.error("Upload Face Encodings Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -677,34 +677,34 @@ export const getFullStudentProfile = async () => {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Full Student Profile Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
-export const getStudentAssignments = async (params?: { search?: string; page?: number; page_size?: number }) => {
+export const getStudentAssignments = async (params?: {search?: string;page?: number;page_size?: number;}) => {
   try {
     const query = new URLSearchParams();
     if (params?.search) query.append('search', params.search);
     if (params?.page) query.append('page', params.page.toString());
     if (params?.page_size) query.append('page_size', params.page_size.toString());
-    
+
     const qs = query.toString() ? `?${query.toString()}` : '';
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/assignments/${qs}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Student Assignments Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -716,13 +716,13 @@ export const submitAssignment = async (assignmentId: number, file: File) => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/assignments/${assignmentId}/submit/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`
       },
-      body: formData,
+      body: formData
     });
     return await response.json();
   } catch (error) {
-    console.error("Submit Assignment Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -733,24 +733,24 @@ export const getStudentStudyMaterials = async () => {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Student Study Materials Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const getAllStudyMaterials = async (
-  branchId?: string,
-  semesterId?: string,
-  sectionId?: string,
-  search?: string,
-  page = 1,
-  pageSize = 50
-) => {
+branchId?: string,
+semesterId?: string,
+sectionId?: string,
+search?: string,
+page = 1,
+pageSize = 50) =>
+{
   try {
     const params = new URLSearchParams();
     if (branchId) params.append('branch_id', branchId);
@@ -764,29 +764,29 @@ export const getAllStudyMaterials = async (
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get All Study Materials Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 export const getBranches = async () => {
-  console.log("Fetching student branches...");
+
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/branches/`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Branches Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -797,12 +797,12 @@ export const getSemesters = async (branchId: string) => {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Semesters Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };
@@ -813,12 +813,12 @@ export const getSections = async (branchId: string, semesterId: string) => {
       method: "GET",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     return await response.json();
   } catch (error) {
-    console.error("Get Sections Error:", error);
+
     return { success: false, message: "Network error" };
   }
 };

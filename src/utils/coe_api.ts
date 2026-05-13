@@ -160,7 +160,7 @@ export const getCOEDashboardStats = async (): Promise<DashboardStatsResponse> =>
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching COE dashboard stats:', error);
+
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -197,7 +197,7 @@ export const getStudentApplicationStatus = async (filters: {
     const result = await response.json();
     return normalizePaginatedResponse(result, 'students');
   } catch (error) {
-    console.error('Error fetching student application status:', error);
+
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -234,7 +234,7 @@ export const getCourseApplicationStats = async (filters: {
     const result = await response.json();
     return normalizePaginatedResponse(result, 'courses');
   } catch (error) {
-    console.error('Error fetching course application stats:', error);
+
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -270,7 +270,7 @@ export const getFilterOptions = async (): Promise<{
 
     throw new Error(result.message || 'Failed to fetch filter options');
   } catch (error) {
-    console.error('Error fetching filter options:', error);
+
     return {
       batches: [],
       branches: []
@@ -300,7 +300,7 @@ export const getSemesters = async (branchId: number): Promise<Semester[]> => {
       throw new Error(result.message || 'Failed to fetch semesters');
     }
   } catch (error) {
-    console.error('Error fetching semesters:', error);
+
     return [];
   }
 };
@@ -313,7 +313,7 @@ export const getExamApplications = async (paramsObj: {
   search?: string;
   page?: number;
   page_size?: number;
-}): Promise<{ success: boolean; message?: string; data?: { applications: any[]; pagination?: any } }> => {
+}): Promise<{success: boolean;message?: string;data?: {applications: any[];pagination?: any;};}> => {
   try {
     const params = new URLSearchParams();
     Object.entries(paramsObj).forEach(([k, v]) => {
@@ -330,13 +330,13 @@ export const getExamApplications = async (paramsObj: {
     const result = await response.json();
     return normalizePaginatedResponse(result, 'applications');
   } catch (error) {
-    console.error('Error fetching exam applications:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
 
 // Create result upload batch
-export const createResultUploadBatch = async (payload: { batch: string; branch: string; semester: string; exam_period: string }) => {
+export const createResultUploadBatch = async (payload: {batch: string;branch: string;semester: string;exam_period: string;}) => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/result-upload/`, {
       method: 'POST',
@@ -345,7 +345,7 @@ export const createResultUploadBatch = async (payload: { batch: string; branch: 
     });
     return await response.json();
   } catch (error) {
-    console.error('Error creating result upload batch:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -370,7 +370,7 @@ export const getStudentsForUpload = async (uploadId: number, page?: number, page
     const result = await response.json();
     return normalizePaginatedResponse(result, 'students');
   } catch (error) {
-    console.error('Error fetching students for upload:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -395,7 +395,7 @@ export const getStudentsForRevalMakeupUpload = async (uploadId: number, page?: n
     const result = await response.json();
     return normalizePaginatedResponse(result, 'students');
   } catch (error) {
-    console.error('Error fetching students for reval/makeup upload:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -409,7 +409,7 @@ export const saveMarksForUpload = async (uploadId: number, marks: any[]) => {
     });
     return await response.json();
   } catch (error) {
-    console.error('Error saving marks for upload:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -422,7 +422,7 @@ export const publishUploadBatch = async (uploadId: number) => {
     });
     return await response.json();
   } catch (error) {
-    console.error('Error publishing upload batch:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -435,7 +435,7 @@ export const unpublishUploadBatch = async (uploadId: number) => {
     });
     return await response.json();
   } catch (error) {
-    console.error('Error unpublishing upload batch:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -468,7 +468,7 @@ export const getPublishedResults = async (filters: {
     const result = await response.json();
     return normalizePaginatedResponse(result, 'published_results');
   } catch (error) {
-    console.error('Error fetching published results:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -482,7 +482,7 @@ export const publicViewResultByToken = async (token: string, usn: string) => {
     });
     return await response.json();
   } catch (error) {
-    console.error('Error fetching public result by token:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -498,7 +498,7 @@ export const toggleWithholdResult = async (resultId: number) => {
     });
     return await response.json();
   } catch (error) {
-    console.error('Error toggling withhold status:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -571,20 +571,20 @@ function normalizePaginatedResponse(result: any, itemKey: string) {
     total_pages: meta.totalPages ?? null,
     current_page: meta.currentPage ?? null,
     next: meta.next ?? null,
-    previous: meta.previous ?? null,
+    previous: meta.previous ?? null
   };
 
-  const dataContainer = (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) 
-    ? result.data 
-    : result;
+  const dataContainer = result.data && typeof result.data === 'object' && !Array.isArray(result.data) ?
+  result.data :
+  result;
 
   return {
     success: true,
-    data: { 
+    data: {
       ...dataContainer,
-      [itemKey]: normalized.items 
+      [itemKey]: normalized.items
     },
-    pagination,
+    pagination
   };
 }
 
@@ -600,7 +600,7 @@ export const getMakeupRequests = async (params: {
   search?: string;
   page?: number;
   page_size?: number;
-}): Promise<{ success: boolean; message?: string; data?: { requests: MakeupRequest[]; pagination?: any } }> => {
+}): Promise<{success: boolean;message?: string;data?: {requests: MakeupRequest[];pagination?: any;};}> => {
   try {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -617,7 +617,7 @@ export const getMakeupRequests = async (params: {
     const result = await response.json();
     return normalizePaginatedResponse(result, 'requests');
   } catch (error) {
-    console.error('Error fetching makeup requests:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -633,7 +633,7 @@ export const getRevaluationRequests = async (params: {
   search?: string;
   page?: number;
   page_size?: number;
-}): Promise<{ success: boolean; message?: string; data?: { requests: RevaluationRequest[]; pagination?: any } }> => {
+}): Promise<{success: boolean;message?: string;data?: {requests: RevaluationRequest[];pagination?: any;};}> => {
   try {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -650,7 +650,7 @@ export const getRevaluationRequests = async (params: {
     const result = await response.json();
     return normalizePaginatedResponse(result, 'requests');
   } catch (error) {
-    console.error('Error fetching revaluation requests:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -658,7 +658,7 @@ export const getRevaluationRequests = async (params: {
 /**
  * Fetch exam request filter options
  */
-export const getExamRequestFilters = async (): Promise<{ success: boolean; message?: string; data?: ExamRequestFilters }> => {
+export const getExamRequestFilters = async (): Promise<{success: boolean;message?: string;data?: ExamRequestFilters;}> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/exam-request-filters/`, {
       method: 'GET',
@@ -673,7 +673,7 @@ export const getExamRequestFilters = async (): Promise<{ success: boolean; messa
       data: result
     };
   } catch (error) {
-    console.error('Error fetching exam request filters:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -690,7 +690,7 @@ export const updateMakeupRequestStatus = async (requestId: number, status: 'pend
     });
     return await response.json();
   } catch (error) {
-    console.error('Error updating makeup request status:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -707,7 +707,7 @@ export const updateRevaluationRequestStatus = async (requestId: number, status: 
     });
     return await response.json();
   } catch (error) {
-    console.error('Error updating revaluation request status:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -715,7 +715,7 @@ export const updateRevaluationRequestStatus = async (requestId: number, status: 
 /**
  * Fetch exam schedule
  */
-export const getExamSchedule = async (paramsObj: { page?: number; page_size?: number } = {}): Promise<{ success: boolean; message?: string; data?: any[]; pagination?: any }> => {
+export const getExamSchedule = async (paramsObj: {page?: number;page_size?: number;} = {}): Promise<{success: boolean;message?: string;data?: any[];pagination?: any;}> => {
   try {
     const params = new URLSearchParams();
     Object.entries(paramsObj).forEach(([k, v]) => {
@@ -732,7 +732,7 @@ export const getExamSchedule = async (paramsObj: { page?: number; page_size?: nu
     const result = await response.json();
     return normalizePaginatedResponse(result, 'data');
   } catch (error) {
-    console.error('Error fetching exam schedule:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -740,7 +740,7 @@ export const getExamSchedule = async (paramsObj: { page?: number; page_size?: nu
 /**
  * Schedule a new exam
  */
-export const scheduleExam = async (payload: any): Promise<{ success: boolean; message?: string; id?: number }> => {
+export const scheduleExam = async (payload: any): Promise<{success: boolean;message?: string;id?: number;}> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/exam-schedule/`, {
       method: 'POST',
@@ -752,7 +752,7 @@ export const scheduleExam = async (payload: any): Promise<{ success: boolean; me
 
     return await response.json();
   } catch (error) {
-    console.error('Error scheduling exam:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -760,7 +760,7 @@ export const scheduleExam = async (payload: any): Promise<{ success: boolean; me
 /**
  * Delete a scheduled exam
  */
-export const deleteExam = async (examId: number): Promise<{ success: boolean; message?: string }> => {
+export const deleteExam = async (examId: number): Promise<{success: boolean;message?: string;}> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/exam-schedule/`, {
       method: 'DELETE',
@@ -772,7 +772,7 @@ export const deleteExam = async (examId: number): Promise<{ success: boolean; me
 
     return await response.json();
   } catch (error) {
-    console.error('Error deleting exam:', error);
+
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };

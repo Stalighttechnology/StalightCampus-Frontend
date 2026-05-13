@@ -6,8 +6,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "../ui/dialog";
+  DialogFooter } from
+"../ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Eye, Download, ChevronLeft, ChevronRight } from "lucide-react";
@@ -26,10 +26,10 @@ interface QPPending {
   test_type: string;
   faculty: string;
   submitted_at: string;
-  branch?: { id: number | null; name: string | null };
+  branch?: {id: number | null;name: string | null;};
   status?: string;
   current_holder?: string | null;
-  last_action?: { actor?: string; role?: string; action?: string; comment?: string } | null;
+  last_action?: {actor?: string;role?: string;action?: string;comment?: string;} | null;
 }
 
 interface PaginationInfo {
@@ -66,7 +66,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   useEffect(() => {
     fetchPendingQPs();
     fetchFinalizedQPs();
-    
+
     // Ensure SweetAlert appears above the dialog and is interactive
     try {
       const styleId = 'swal2-global-fix';
@@ -82,16 +82,16 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         document.head.appendChild(style);
       }
     } catch (e) {
+
       // ignore when DOM not available
-    }
-  }, []);
+    }}, []);
 
   const fetchPendingQPs = async () => {
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/coe-pending/?page=${pendingPage}&page_size=10`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        }
       });
       const data = await response.json();
       const norm = normalizePaginatedResponse(data, 'results');
@@ -100,14 +100,14 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       const count = norm.meta.totalItems ?? data.count ?? items.length;
       setPendingPagination({
         count,
-        next: (norm.meta.next ?? data.next) ?? null,
-        previous: (norm.meta.previous ?? data.previous) ?? null,
+        next: norm.meta.next ?? data.next ?? null,
+        previous: norm.meta.previous ?? data.previous ?? null,
         current_page: norm.meta.currentPage ?? data.current_page ?? pendingPage,
         total_pages: norm.meta.totalPages ?? data.total_pages ?? Math.max(1, Math.ceil(count / 10)),
         page_size: 10
       });
     } catch (error) {
-      console.error("Error fetching pending QPs:", error);
+
     } finally {
       setLoading(false);
     }
@@ -117,25 +117,25 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/coe-finalized/?page=${finalizedPage}&page_size=10`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        }
       });
       const data = await response.json();
-      console.log('Finalized QPs response:', data);  // Debug log
+      // Debug log
       const norm = normalizePaginatedResponse(data, 'results');
       const items = Array.isArray(norm.items) ? norm.items : [];
       setFinalizedQPs(items);
       const count = norm.meta.totalItems ?? data.count ?? items.length;
       setFinalizedPagination({
         count,
-        next: (norm.meta.next ?? data.next) ?? null,
-        previous: (norm.meta.previous ?? data.previous) ?? null,
+        next: norm.meta.next ?? data.next ?? null,
+        previous: norm.meta.previous ?? data.previous ?? null,
         current_page: norm.meta.currentPage ?? data.current_page ?? finalizedPage,
         total_pages: norm.meta.totalPages ?? data.total_pages ?? Math.max(1, Math.ceil(count / 10)),
         page_size: 10
       });
     } catch (error) {
-      console.error("Error fetching finalized QPs:", error);
+
       setFinalizedQPs([]);
     }
   };
@@ -152,7 +152,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       reverseButtons: true,
       confirmButtonText: 'Yes, approve',
       cancelButtonText: 'Cancel',
-      target: dialogContentRef.current ?? document.body,
+      target: dialogContentRef.current ?? document.body
     });
 
     if (!result || result.isDismissed || !result.isConfirmed) {
@@ -166,19 +166,19 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ comment }),
+        body: JSON.stringify({ comment })
       });
       const data = await response.json();
       if (data.success) {
         MySwal.fire('Approved!', 'QP finalized and approved for use.', 'success');
         // remove from pending list
-        setPendingQPs(pendingQPs.filter(qp => qp.id !== qpId));
+        setPendingQPs(pendingQPs.filter((qp) => qp.id !== qpId));
         // add to finalized list so UI updates immediately without refetch
         if (selectedQP) {
           const finalizedItem = { ...selectedQP, status: 'approved' };
-          setFinalizedQPs(prev => [finalizedItem, ...prev.filter(q => q.id !== finalizedItem.id)]);
+          setFinalizedQPs((prev) => [finalizedItem, ...prev.filter((q) => q.id !== finalizedItem.id)]);
         }
         setDialogOpen(false);
         setSelectedQP(null);
@@ -190,7 +190,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         MySwal.fire('Error', data.message || 'Failed to finalize QP.', 'error');
       }
     } catch (error) {
-      console.error("Error finalizing QP:", error);
+
       MySwal.fire('Network error', 'Network error while finalizing QP.', 'error');
     } finally {
       setActionLoading(false);
@@ -216,7 +216,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             }
           }
         } catch (e) {
-          console.error('Authenticated HOD fallback failed', e);
+
         }
 
         // try a public fetch (no auth) as a last resort — some finalized QPs may be publicly viewable
@@ -231,7 +231,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             }
           }
         } catch (e) {
-          console.error('Public fallback failed', e);
+
         }
 
         MySwal.fire('Forbidden', 'You do not have permission to view this QP detail (401/403).', 'error');
@@ -245,12 +245,12 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         MySwal.fire('Error', data.message, 'error');
       }
     } catch (err) {
-      console.error('Error fetching QP detail:', err);
+
       MySwal.fire('Error', 'Failed to load QP detail', 'error');
     } finally {
       setDetailLoading(false);
     }
-  }
+  };
 
   const printQP = (qp: any) => {
     if (!qp) return;
@@ -285,7 +285,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
     win.document.close();
     // give browser a bit of time to render before printing
     setTimeout(() => {
-      try { win.focus(); win.print(); } catch (e) { console.error('Print failed', e); }
+      try {win.focus();win.print();} catch (e) {}
     }, 300);
   };
 
@@ -304,7 +304,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       confirmButtonText: 'Yes, reject',
       cancelButtonText: 'Cancel',
       // Render at document.body so it's not trapped under portal layers.
-      target: dialogContentRef.current ?? document.body,
+      target: dialogContentRef.current ?? document.body
     });
 
     if (!result || result.isDismissed || !result.isConfirmed) {
@@ -318,14 +318,14 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ comment }),
+        body: JSON.stringify({ comment })
       });
       const data = await response.json();
       if (data.success) {
         MySwal.fire('Rejected!', data.message || 'QP rejected and sent back to Admin for review.', 'success');
-        setPendingQPs(pendingQPs.filter(qp => qp.id !== qpId));
+        setPendingQPs(pendingQPs.filter((qp) => qp.id !== qpId));
         setDialogOpen(false);
         setSelectedQP(null);
         setQpDetail(null);
@@ -336,12 +336,12 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         MySwal.fire('Error', data.message || 'Failed to reject QP.', 'error');
       }
     } catch (error) {
-      console.error("Error rejecting QP:", error);
+
       MySwal.fire('Network error', 'Network error while rejecting QP.', 'error');
     } finally {
       setActionLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -354,8 +354,8 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             <SkeletonList items={5} />
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -365,8 +365,8 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           <CardTitle>Question Paper Final Approvals</CardTitle>
         </CardHeader>
         <CardContent>
-          {pendingQPs.length === 0 ? (
-             <Card className="border-dashed border-2 shadow-none bg-transparent">
+          {pendingQPs.length === 0 ?
+          <Card className="border-dashed border-2 shadow-none bg-transparent">
                 <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                   <div className="bg-primary/5 p-6 rounded-full mb-4">
                     <CheckCircle className="w-12 h-12 text-primary/40" />
@@ -376,70 +376,70 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     All question papers have been processed. New submissions will appear here for your final review and approval.
                   </p>
                 </CardContent>
-             </Card>
-          ) : (
-            <div className="space-y-4">
-              {Array.isArray(pendingQPs) && pendingQPs.map((qp) => (
-                <Card key={qp.id} className="p-4 sm:p-5">
+             </Card> :
+
+          <div className="space-y-4">
+              {Array.isArray(pendingQPs) && pendingQPs.map((qp) =>
+            <Card key={qp.id} className="p-4 sm:p-5">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="w-full">
                       <div className="flex items-center flex-wrap gap-2 mb-2">
                         <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type}</h3>
-                        {qp.status && (
-                          (() => {
-                            const s = qp.status;
-                            if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-                            if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
-                            if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-                            return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
-                          })()
-                        )}
+                        {qp.status &&
+                    (() => {
+                      const s = qp.status;
+                      if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+                      if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+                      if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+                      return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
+                    })()
+                    }
                       </div>
                       <div className="space-y-1 sm:space-y-0.5">
                         <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
                         <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
-                        {qp.branch && (
-                          <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
-                        )}
-                        {qp.last_action ? (
-                          <div className="mt-1">
+                        {qp.branch &&
+                    <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
+                    }
+                        {qp.last_action ?
+                    <div className="mt-1">
                             <p className="text-[16px] sm:text-sm text-muted-foreground">Last: {qp.last_action.action} by {qp.last_action.actor} ({qp.last_action.role})</p>
-                            {qp.last_action.comment ? (
-                              <p className="text-[16px] sm:text-sm text-muted-foreground">Comment: {qp.last_action.comment}</p>
-                            ) : null}
-                          </div>
-                        ) : null}
+                            {qp.last_action.comment ?
+                      <p className="text-[16px] sm:text-sm text-muted-foreground">Comment: {qp.last_action.comment}</p> :
+                      null}
+                          </div> :
+                    null}
                       </div>
                     </div>
                     <div className="flex w-full sm:w-auto gap-2">
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => { setSelectedQP(qp); setQpDetail(null); fetchQPDetail(qp.id); setDialogOpen(true); }}
-                        className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold sm:font-normal"
-                      >
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {setSelectedQP(qp);setQpDetail(null);fetchQPDetail(qp.id);setDialogOpen(true);}}
+                    className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold sm:font-normal">
+                    
                         <Eye className="w-4 h-4 mr-1 sm:mr-2" />
                         Review
                       </Button>
                     </div>
                   </div>
                 </Card>
-              ))}
+            )}
             </div>
-          )}
-          {pendingPagination && (pendingPagination.next || pendingPagination.previous) && (
-            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-4">
+          }
+          {pendingPagination && (pendingPagination.next || pendingPagination.previous) &&
+          <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-4">
               <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
                 Showing page {pendingPage} of {pendingPagination.total_pages} — {pendingPagination.count} entries
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPendingPage(prev => Math.max(1, prev - 1))}
-                  disabled={pendingPage === 1 || !pendingPagination.previous}
-                  className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal"
-                >
+                variant="outline"
+                size="sm"
+                onClick={() => setPendingPage((prev) => Math.max(1, prev - 1))}
+                disabled={pendingPage === 1 || !pendingPagination.previous}
+                className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal">
+                
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Prev
                 </Button>
@@ -447,18 +447,18 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                   {pendingPage} / {pendingPagination.total_pages}
                 </span>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPendingPage(prev => prev + 1)}
-                  disabled={!pendingPagination.next}
-                  className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal"
-                >
+                variant="outline"
+                size="sm"
+                onClick={() => setPendingPage((prev) => prev + 1)}
+                disabled={!pendingPagination.next}
+                className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal">
+                
                   Next
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
 
@@ -468,8 +468,8 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           <CardTitle>Finalized Question Papers</CardTitle>
         </CardHeader>
         <CardContent>
-          {finalizedQPs.length === 0 ? (
-             <Card className="border-dashed border-2 shadow-none bg-transparent">
+          {finalizedQPs.length === 0 ?
+          <Card className="border-dashed border-2 shadow-none bg-transparent">
                 <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                   <div className="bg-primary/5 p-6 rounded-full mb-4">
                     <Eye className="w-12 h-12 text-primary/40" />
@@ -479,67 +479,67 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     Approved and finalized question papers will be archived here for your reference.
                   </p>
                 </CardContent>
-             </Card>
-          ) : (
-            <div className="space-y-4">
-              {Array.isArray(finalizedQPs) && finalizedQPs.map((qp) => (
-                <Card key={`final-${qp.id}`} className="p-4 sm:p-5">
+             </Card> :
+
+          <div className="space-y-4">
+              {Array.isArray(finalizedQPs) && finalizedQPs.map((qp) =>
+            <Card key={`final-${qp.id}`} className="p-4 sm:p-5">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="w-full">
                       <div className="flex items-center flex-wrap gap-2 mb-2">
                         <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type}</h3>
-                        {qp.status && (
-                          (() => {
-                            const s = qp.status;
-                            if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-                            if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
-                            if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-                            return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
-                          })()
-                        )}
+                        {qp.status &&
+                    (() => {
+                      const s = qp.status;
+                      if (s === 'rejected') return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+                      if (s === 'approved') return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+                      if (s.startsWith('pending')) return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+                      return <Badge className="bg-gray-100 text-gray-800">{s}</Badge>;
+                    })()
+                    }
                       </div>
                       <div className="space-y-1 sm:space-y-0.5">
                         <p className="text-[16px] sm:text-sm text-muted-foreground">Faculty: {qp.faculty}</p>
                         <p className="text-[16px] sm:text-sm text-muted-foreground">Submitted: {new Date(qp.submitted_at).toLocaleDateString()}</p>
-                        {qp.branch && (
-                          <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
-                        )}
+                        {qp.branch &&
+                    <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
+                    }
                       </div>
                     </div>
                     <div className="flex w-full sm:w-auto gap-2">
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedQP(qp);
-                          setQpDetail(null);
-                          fetchQPDetail(qp.id);
-                          setDialogOpen(true);
-                        }}
-                        className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold bg-primary text-white hover:bg-primary/90 hover:text-white sm:font-semibold"
-                      >
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedQP(qp);
+                      setQpDetail(null);
+                      fetchQPDetail(qp.id);
+                      setDialogOpen(true);
+                    }}
+                    className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold bg-primary text-white hover:bg-primary/90 hover:text-white sm:font-semibold">
+                    
                         <Eye className="w-4 h-4 mr-1 sm:mr-2" />
                         View
                       </Button>
                     </div>
                   </div>
                 </Card>
-              ))}
+            )}
             </div>
-          )}
-          {finalizedPagination && (finalizedPagination.next || finalizedPagination.previous) && (
-            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-4">
+          }
+          {finalizedPagination && (finalizedPagination.next || finalizedPagination.previous) &&
+          <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-4">
               <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
                 Showing page {finalizedPage} of {finalizedPagination.total_pages} — {finalizedPagination.count} entries
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFinalizedPage(prev => Math.max(1, prev - 1))}
-                  disabled={finalizedPage === 1 || !finalizedPagination.previous}
-                  className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal"
-                >
+                variant="outline"
+                size="sm"
+                onClick={() => setFinalizedPage((prev) => Math.max(1, prev - 1))}
+                disabled={finalizedPage === 1 || !finalizedPagination.previous}
+                className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal">
+                
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Prev
                 </Button>
@@ -547,18 +547,18 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                   {finalizedPage} / {finalizedPagination.total_pages}
                 </span>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFinalizedPage(prev => prev + 1)}
-                  disabled={!finalizedPagination.next}
-                  className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal"
-                >
+                variant="outline"
+                size="sm"
+                onClick={() => setFinalizedPage((prev) => prev + 1)}
+                disabled={!finalizedPagination.next}
+                className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal">
+                
                   Next
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
       <Dialog
@@ -570,12 +570,12 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             setComment("");
           }
           setDialogOpen(open);
-        }}
-      >
+        }}>
+        
         <DialogContent
           ref={dialogContentRef}
-          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[calc(100vw-1.5rem)] sm:w-[calc(100vw-2rem)] md:w-[90vw] rounded-lg flex flex-col max-h-[92vh]`}
-        >
+          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[calc(100vw-1.5rem)] sm:w-[calc(100vw-2rem)] md:w-[90vw] rounded-lg flex flex-col max-h-[92vh]`}>
+          
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
               Review QP: {selectedQP?.subject} - {selectedQP?.test_type}
@@ -583,25 +583,25 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           </DialogHeader>
 
           <div className="overflow-auto px-4 py-2 space-y-4 flex-1">
-            {detailLoading ? (
-              <div className="space-y-4">
+            {detailLoading ?
+            <div className="space-y-4">
                 <SkeletonCard className="h-40 w-full" />
                 <SkeletonList items={3} />
-              </div>
-            ) : qpDetail ? (
-              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+              </div> :
+            qpDetail ?
+            <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
                 <h4 className="font-semibold mb-4">Question Paper Preview</h4>
                 <div className="space-y-4">
-                  {qpDetail.questions.map((q: any, qIndex: number) => (
-                    <div key={qIndex} className="space-y-3">
+                  {qpDetail.questions.map((q: any, qIndex: number) =>
+                <div key={qIndex} className="space-y-3">
                       {q.subparts.map((s: any, sIndex: number) => {
-                        const key = `${qIndex}-${sIndex}`;
-                        const isExpanded = !!expanded[key];
-                        const content = s.content || '';
-                        const shortContent = content.length > 160 ? content.slice(0, 160) + '...' : content;
+                    const key = `${qIndex}-${sIndex}`;
+                    const isExpanded = !!expanded[key];
+                    const content = s.content || '';
+                    const shortContent = content.length > 160 ? content.slice(0, 160) + '...' : content;
 
-                        return (
-                          <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
+                    return (
+                      <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
                                 {q.question_number}{s.subpart_label}
@@ -619,144 +619,144 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 <div className="flex flex-wrap items-center gap-2 mt-2">
                                   <Badge className="text-black bg-transparent">CO: {q.co}</Badge>
                                   <Badge className="text-black bg-transparent">{q.blooms_level}</Badge>
-                                  {content.length > 160 && (
-                                    <button
-                                      onClick={() => toggleExpanded(key)}
-                                      className="text-sm text-primary-600 dark:text-primary-400 ml-2"
-                                    >
+                                  {content.length > 160 &&
+                              <button
+                                onClick={() => toggleExpanded(key)}
+                                className="text-sm text-primary-600 dark:text-primary-400 ml-2">
+                                
                                       {isExpanded ? 'Show less' : 'Show more'}
                                     </button>
-                                  )}
+                              }
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          </div>);
+
+                  })}
                     </div>
-                  ))}
+                )}
 
                   <div className="font-semibold pt-2 border-t">
                     Total Marks: {qpDetail.questions.reduce((total: number, q: any) =>
-                      total + q.subparts.reduce((subTotal: number, s: any) => subTotal + s.max_marks, 0), 0
-                    )}
+                  total + q.subparts.reduce((subTotal: number, s: any) => subTotal + s.max_marks, 0), 0
+                  )}
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">Failed to load QP details</div>
-            )}
+              </div> :
 
-            {selectedQP?.status !== 'approved' && (
-              <div>
+            <div className="text-center py-4 text-muted-foreground">Failed to load QP details</div>
+            }
+
+            {selectedQP?.status !== 'approved' &&
+            <div>
                 <label className="block text-sm font-medium mb-2">Comment (optional)</label>
                 <Textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add a final comment..."
-                  rows={3}
-                />
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Add a final comment..."
+                rows={3} />
+              
               </div>
-            )}
+            }
           </div>
 
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            {selectedQP?.status === 'approved' ? (
-              <>
+            {selectedQP?.status === 'approved' ?
+            <>
                 <Button
-                  onClick={() => qpDetail && printQP(qpDetail)}
-                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"
-                >
+                onClick={() => qpDetail && printQP(qpDetail)}
+                className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+                
                   Print
                 </Button>
                 <Button
-                  onClick={() => {
-                    if (!qpDetail) return;
-                    const doc = new jsPDF();
-                    let y = 10;
-                    doc.setFontSize(14);
-                    doc.text('Question Paper', 14, y);
-                    y += 10;
-                    doc.setFontSize(12);
-                    doc.text(`Subject: ${qpDetail.subject}`, 14, y); y += 6;
-                    doc.text(`Test Type: ${qpDetail.test_type}`, 14, y); y += 6;
-                    doc.text(`Faculty: ${qpDetail.faculty}`, 14, y); y += 8;
-                    qpDetail.questions.forEach((q: any) => {
-                      q.subparts.forEach((s: any) => {
-                        doc.setFontSize(12);
-                        doc.text(`${q.question_number}${s.subpart_label}. ${s.content}`, 14, y);
-                        y += 6;
-                        doc.setFontSize(10);
-                        doc.text(`(${s.max_marks} marks)`, 14, y);
-                        y += 6;
-                        doc.text(`CO: ${q.co}`, 14, y);
-                        y += 6;
-                        doc.text(`Blooms: ${q.blooms_level}`, 14, y);
-                        y += 8;
-                        if (y > 270) { doc.addPage(); y = 10; }
-                      });
+                onClick={() => {
+                  if (!qpDetail) return;
+                  const doc = new jsPDF();
+                  let y = 10;
+                  doc.setFontSize(14);
+                  doc.text('Question Paper', 14, y);
+                  y += 10;
+                  doc.setFontSize(12);
+                  doc.text(`Subject: ${qpDetail.subject}`, 14, y);y += 6;
+                  doc.text(`Test Type: ${qpDetail.test_type}`, 14, y);y += 6;
+                  doc.text(`Faculty: ${qpDetail.faculty}`, 14, y);y += 8;
+                  qpDetail.questions.forEach((q: any) => {
+                    q.subparts.forEach((s: any) => {
+                      doc.setFontSize(12);
+                      doc.text(`${q.question_number}${s.subpart_label}. ${s.content}`, 14, y);
+                      y += 6;
+                      doc.setFontSize(10);
+                      doc.text(`(${s.max_marks} marks)`, 14, y);
+                      y += 6;
+                      doc.text(`CO: ${q.co}`, 14, y);
+                      y += 6;
+                      doc.text(`Blooms: ${q.blooms_level}`, 14, y);
+                      y += 8;
+                      if (y > 270) {doc.addPage();y = 10;}
                     });
-                    doc.save(`qp-${qpDetail.subject}-${qpDetail.test_type}.pdf`);
-                  }}
-                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"
-                >
+                  });
+                  doc.save(`qp-${qpDetail.subject}-${qpDetail.test_type}.pdf`);
+                }}
+                className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+                
                   <Download className="w-4 h-4 mr-1" />
                   Download PDF
                 </Button>
                 <Button
-                  variant="outline"
-                  onClick={() => {
-                    setDialogOpen(false);
-                    setSelectedQP(null);
-                    setQpDetail(null);
-                    setComment("");
-                  }}
-                  className="w-full sm:w-auto justify-center whitespace-normal text-center"
-                >
+                variant="outline"
+                onClick={() => {
+                  setDialogOpen(false);
+                  setSelectedQP(null);
+                  setQpDetail(null);
+                  setComment("");
+                }}
+                className="w-full sm:w-auto justify-center whitespace-normal text-center">
+                
                   Close
                 </Button>
-              </>
-            ) : (
-              <>
+              </> :
+
+            <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto">
                   <Button
-                    onClick={() => selectedQP && handleFinalize(selectedQP.id)}
-                    disabled={actionLoading}
-                    className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}
-                  >
+                  onClick={() => selectedQP && handleFinalize(selectedQP.id)}
+                  disabled={actionLoading}
+                  className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}>
+                  
                     <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                     Finalize & Approve
                   </Button>
                   <Button
-                    onClick={() => selectedQP && handleReject(selectedQP.id)}
-                    disabled={actionLoading}
-                    className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}
-                  >
+                  onClick={() => selectedQP && handleReject(selectedQP.id)}
+                  disabled={actionLoading}
+                  className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}>
+                  
                     <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
                     Reject & Send Back
                   </Button>
                 </div>
                 <div className="w-full sm:w-auto sm:ml-auto">
                   <Button
-                    variant="outline"
-                    onClick={() => {
-                      setDialogOpen(false);
-                      setSelectedQP(null);
-                      setComment("");
-                      setQpDetail(null);
-                    }}
-                    className="w-full sm:w-auto justify-center whitespace-normal text-center"
-                  >
+                  variant="outline"
+                  onClick={() => {
+                    setDialogOpen(false);
+                    setSelectedQP(null);
+                    setComment("");
+                    setQpDetail(null);
+                  }}
+                  className="w-full sm:w-auto justify-center whitespace-normal text-center">
+                  
                     Cancel
                   </Button>
                 </div>
               </>
-            )}
+            }
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 });
 
 COEQPApprovals.displayName = 'COEQPApprovals';

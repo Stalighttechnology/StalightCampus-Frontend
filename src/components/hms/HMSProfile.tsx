@@ -36,7 +36,7 @@ interface Profile {
   designation: string;
 }
 
-const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (error: string | null) => void }) => {
+const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error: string | null) => void;}) => {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile>({
@@ -46,7 +46,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
     mobile_number: "",
     address: "",
     bio: "",
-    designation: "",
+    designation: ""
   });
   const { theme } = useTheme();
   const { skeletonMode } = useHMSContext();
@@ -67,7 +67,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       try {
         const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/`);
@@ -82,13 +82,13 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
             mobile_number: payload.mobile_number || "",
             address: payload.address || "",
             bio: payload.bio || "",
-            designation: payload.designation || "HMS Manager",
+            designation: payload.designation || "HMS Manager"
           });
         } else {
           showErrorAlert("Error", result.message || "Failed to fetch profile");
         }
       } catch (err) {
-        console.error("Fetch Profile Error:", err);
+
         showErrorAlert("Error", "Network error");
       } finally {
         setLoading(false);
@@ -100,7 +100,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProfile(prev => ({ ...prev, [name]: value }));
+    setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSaveProfile = async () => {
@@ -112,7 +112,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/update/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profile),
+        body: JSON.stringify(profile)
       });
       const result = await response.json();
 
@@ -145,7 +145,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/change-password/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(passwordData),
+        body: JSON.stringify(passwordData)
       });
       const result = await response.json();
       if (result.success) {
@@ -160,7 +160,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
     }
   };
 
-  const isSkeleton = (loading && !profile.first_name) || skeletonMode;
+  const isSkeleton = loading && !profile.first_name || skeletonMode;
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -170,72 +170,72 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
-                {isSkeleton ? (
-                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Input name="first_name" value={profile.first_name} onChange={handleChange} disabled={!editing} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
-                )}
+                {isSkeleton ?
+                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+
+                <Input name="first_name" value={profile.first_name} onChange={handleChange} disabled={!editing} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
+                }
               </div>
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
-                {isSkeleton ? (
-                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Input name="last_name" value={profile.last_name} onChange={handleChange} disabled={!editing} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
-                )}
+                {isSkeleton ?
+                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+
+                <Input name="last_name" value={profile.last_name} onChange={handleChange} disabled={!editing} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
+                }
               </div>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
-                {isSkeleton ? (
-                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Input name="email" value={profile.email} onChange={handleChange} disabled={!editing} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
-                )}
+                {isSkeleton ?
+                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+
+                <Input name="email" value={profile.email} onChange={handleChange} disabled={!editing} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
+                }
               </div>
               <div>
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
-                {isSkeleton ? (
-                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Input name="mobile_number" value={profile.mobile_number} onChange={handleChange} disabled={!editing} maxLength={10} placeholder="10-digit mobile" className="text-sm h-9 sm:h-10 w-full" />
-                )}
+                {isSkeleton ?
+                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+
+                <Input name="mobile_number" value={profile.mobile_number} onChange={handleChange} disabled={!editing} maxLength={10} placeholder="10-digit mobile" className="text-sm h-9 sm:h-10 w-full" />
+                }
               </div>
             </div>
 
             <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</label>
-                {isSkeleton ? (
-                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Input name="designation" value={profile.designation} onChange={handleChange} disabled={!editing} placeholder="Designation" className="text-sm h-9 sm:h-10 w-full" />
-                )}
+                {isSkeleton ?
+              <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+
+              <Input name="designation" value={profile.designation} onChange={handleChange} disabled={!editing} placeholder="Designation" className="text-sm h-9 sm:h-10 w-full" />
+              }
             </div>
-          </div>
-        );
+          </div>);
+
       case 'contact':
         return (
           <div className="space-y-4 sm:space-y-5">
             <div>
               <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</label>
-              {isSkeleton ? (
-                <div className="h-20 w-full rounded-md bg-muted animate-pulse border" />
-              ) : (
-                <Textarea name="address" value={profile.address} onChange={handleChange} disabled={!editing} rows={3} className="text-sm w-full" />
-              )}
+              {isSkeleton ?
+              <div className="h-20 w-full rounded-md bg-muted animate-pulse border" /> :
+
+              <Textarea name="address" value={profile.address} onChange={handleChange} disabled={!editing} rows={3} className="text-sm w-full" />
+              }
             </div>
             <div>
               <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bio</label>
-              {isSkeleton ? (
-                <div className="h-24 w-full rounded-md bg-muted animate-pulse border" />
-              ) : (
-                <Textarea name="bio" value={profile.bio} onChange={handleChange} disabled={!editing} rows={4} className="text-sm w-full" />
-              )}
+              {isSkeleton ?
+              <div className="h-24 w-full rounded-md bg-muted animate-pulse border" /> :
+
+              <Textarea name="bio" value={profile.bio} onChange={handleChange} disabled={!editing} rows={4} className="text-sm w-full" />
+              }
             </div>
-          </div>
-        );
+          </div>);
+
       default:
         return null;
     }
@@ -251,15 +251,15 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            {editing && (
-              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
-            )}
+            {editing &&
+            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+            }
             <Button
               size="sm"
               onClick={() => editing ? handleSaveProfile() : setEditing(true)}
               variant="outline"
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-            >
+              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+              
               {editing ? "Save" : "Edit Profile"}
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -278,8 +278,8 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                         type={showPasswords.current ? 'text' : 'password'}
                         value={passwordData.current_password}
                         onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button type="button" onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))} className="absolute inset-y-0 right-0 px-3 text-muted-foreground">
                         {showPasswords.current ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
@@ -292,8 +292,8 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                         type={showPasswords.next ? 'text' : 'password'}
                         value={passwordData.new_password}
                         onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button type="button" onClick={() => setShowPasswords((prev) => ({ ...prev, next: !prev.next }))} className="absolute inset-y-0 right-0 px-3 text-muted-foreground">
                         {showPasswords.next ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
@@ -306,8 +306,8 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                         type={showPasswords.confirm ? 'text' : 'password'}
                         value={passwordData.confirm_password}
                         onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button type="button" onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))} className="absolute inset-y-0 right-0 px-3 text-muted-foreground">
                         {showPasswords.confirm ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
@@ -361,8 +361,8 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default HMSProfile;

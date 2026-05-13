@@ -9,16 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+  SelectItem } from
+"@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger } from
+"@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -27,8 +27,8 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTitle } from
+"@/components/ui/alert-dialog";
 import { Loader2, Plus, Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -43,8 +43,8 @@ import {
   toggleAnnouncementActive,
   markAnnouncementRead,
   Announcement,
-  CreateAnnouncementRequest,
-} from "@/utils/announcements_api";
+  CreateAnnouncementRequest } from
+"@/utils/announcements_api";
 import AnnouncementSections from "@/components/common/AnnouncementSections";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -59,7 +59,7 @@ const AdminAnnouncementManagement = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  
+
   // Pagination state
   const [myPage, setMyPage] = useState(1);
   const [receivedPage, setReceivedPage] = useState(1);
@@ -78,7 +78,7 @@ const AdminAnnouncementManagement = () => {
     target_roles: [],
     is_global: true,
     expires_at: "",
-    priority: "normal",
+    priority: "normal"
   });
   const [expiresOpen, setExpiresOpen] = useState(false);
 
@@ -128,7 +128,7 @@ const AdminAnnouncementManagement = () => {
         text: "Please fill all required fields",
         icon: "warning",
         confirmButtonColor: "#9147e0",
-        target: document.body,
+        target: document.body
       });
       return;
     }
@@ -139,7 +139,7 @@ const AdminAnnouncementManagement = () => {
         text: "Please select at least one target role",
         icon: "warning",
         confirmButtonColor: "#9147e0",
-        target: document.body,
+        target: document.body
       });
       return;
     }
@@ -149,14 +149,14 @@ const AdminAnnouncementManagement = () => {
         const response = await updateAnnouncement(editingId, formData);
         if (response.success) {
           setMyAnnouncements((prev) =>
-            prev.map((a) => (a.id === editingId ? response.data : a))
+          prev.map((a) => a.id === editingId ? response.data : a)
           );
           MySwal.fire({
             title: "Updated",
             text: "Announcement updated successfully",
             icon: "success",
             confirmButtonColor: "#9147e0",
-            target: document.body,
+            target: document.body
           });
           setShowCreateDialog(false);
           resetForm();
@@ -166,7 +166,7 @@ const AdminAnnouncementManagement = () => {
             text: response.message || "Failed to update announcement",
             icon: "error",
             confirmButtonColor: "#9147e0",
-            target: document.body,
+            target: document.body
           });
         }
       } else {
@@ -178,7 +178,7 @@ const AdminAnnouncementManagement = () => {
             text: "Announcement created successfully",
             icon: "success",
             confirmButtonColor: "#9147e0",
-            target: document.body,
+            target: document.body
           });
           setShowCreateDialog(false);
           resetForm();
@@ -188,7 +188,7 @@ const AdminAnnouncementManagement = () => {
             text: response.message || "Failed to create announcement",
             icon: "error",
             confirmButtonColor: "#9147e0",
-            target: document.body,
+            target: document.body
           });
         }
       }
@@ -198,7 +198,7 @@ const AdminAnnouncementManagement = () => {
         text: error.message || "An error occurred",
         icon: "error",
         confirmButtonColor: "#9147e0",
-        target: document.body,
+        target: document.body
       });
     }
   };
@@ -212,7 +212,7 @@ const AdminAnnouncementManagement = () => {
       is_global: announcement.is_global,
       branch: announcement.branch,
       expires_at: announcement.expires_at?.split("T")[0] || "",
-      priority: announcement.priority,
+      priority: announcement.priority
     });
     setShowCreateDialog(true);
   };
@@ -229,14 +229,14 @@ const AdminAnnouncementManagement = () => {
           title: "Deleted",
           text: "Announcement deleted successfully",
           icon: "success",
-          confirmButtonColor: "#9147e0",
+          confirmButtonColor: "#9147e0"
         });
       } else {
         MySwal.fire({
           title: "Error",
           text: response.message || "Failed to delete announcement",
           icon: "error",
-          confirmButtonColor: "#9147e0",
+          confirmButtonColor: "#9147e0"
         });
       }
       setDeletingId(null);
@@ -245,7 +245,7 @@ const AdminAnnouncementManagement = () => {
         title: "Error",
         text: error.message || "An error occurred",
         icon: "error",
-        confirmButtonColor: "#9147e0",
+        confirmButtonColor: "#9147e0"
       });
     }
   };
@@ -255,17 +255,17 @@ const AdminAnnouncementManagement = () => {
       const response = await toggleAnnouncementActive(announcementId);
       if (response.success) {
         setMyAnnouncements((prev) =>
-          prev.map((a) => (a.id === announcementId ? response.data : a))
+        prev.map((a) => a.id === announcementId ? response.data : a)
         );
         setReceivedAnnouncements((prev) =>
-          prev.map((a) => (a.id === announcementId ? response.data : a))
+        prev.map((a) => a.id === announcementId ? response.data : a)
         );
       } else {
         MySwal.fire({
           title: "Error",
           text: response.message || "Failed to toggle announcement",
           icon: "error",
-          confirmButtonColor: "#9147e0",
+          confirmButtonColor: "#9147e0"
         });
       }
     } catch (error: any) {
@@ -273,7 +273,7 @@ const AdminAnnouncementManagement = () => {
         title: "Error",
         text: error.message || "An error occurred",
         icon: "error",
-        confirmButtonColor: "#9147e0",
+        confirmButtonColor: "#9147e0"
       });
     }
   };
@@ -283,15 +283,15 @@ const AdminAnnouncementManagement = () => {
       const response = await markAnnouncementRead(announcementId);
       if (response.success) {
         setReceivedAnnouncements((prev) =>
-          prev.map((a) => (a.id === announcementId ? { ...a, is_read: true } : a))
+        prev.map((a) => a.id === announcementId ? { ...a, is_read: true } : a)
         );
         // Optimistically update local unread count for real-time feel
-        setUnreadReceivedCount(prev => Math.max(0, prev - 1));
+        setUnreadReceivedCount((prev) => Math.max(0, prev - 1));
         // Trigger global unread count refresh
         window.dispatchEvent(new CustomEvent('refresh-unread-count', { detail: { decrement: 1 } }));
       }
     } catch (error: any) {
-      console.error("Failed to mark as read:", error);
+
     }
   };
 
@@ -303,7 +303,7 @@ const AdminAnnouncementManagement = () => {
       target_roles: [],
       is_global: true,
       expires_at: "",
-      priority: "normal",
+      priority: "normal"
     });
   };
 
@@ -338,23 +338,23 @@ const AdminAnnouncementManagement = () => {
                 <DialogTrigger asChild>
                   <Button
                     onClick={() => resetForm()}
-                    className={`gap-2 ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}
-                  >
+                    className={`gap-2 ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
+                    
                     <Plus className="w-4 h-4" />
                     New Announcement
                   </Button>
                 </DialogTrigger>
-                <DialogContent 
-                className="mobile-modal max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar"
-              >
+                <DialogContent
+                  className="mobile-modal max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                  
                   <DialogHeader>
                     <DialogTitle>
                       {editingId ? "Edit Announcement" : "Create Announcement"}
                     </DialogTitle>
                     <DialogDescription>
-                      {editingId
-                        ? "Update the announcement details below"
-                        : "Create a new announcement visible to selected roles"}
+                      {editingId ?
+                      "Update the announcement details below" :
+                      "Create a new announcement visible to selected roles"}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -366,9 +366,9 @@ const AdminAnnouncementManagement = () => {
                         placeholder="Announcement title"
                         value={formData.title}
                         onChange={(e) =>
-                          setFormData({ ...formData, title: e.target.value })
-                        }
-                      />
+                        setFormData({ ...formData, title: e.target.value })
+                        } />
+                      
                     </div>
 
                     <div className="space-y-2">
@@ -378,11 +378,11 @@ const AdminAnnouncementManagement = () => {
                         placeholder="Announcement message"
                         value={formData.message}
                         onChange={(e) =>
-                          setFormData({ ...formData, message: e.target.value })
+                        setFormData({ ...formData, message: e.target.value })
                         }
                         rows={6}
-                        className="resize-none max-h-24 overflow-auto custom-scrollbar"
-                      />
+                        className="resize-none max-h-24 overflow-auto custom-scrollbar" />
+                      
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -391,9 +391,9 @@ const AdminAnnouncementManagement = () => {
                         <Select
                           value={formData.priority}
                           onValueChange={(value: any) =>
-                            setFormData({ ...formData, priority: value })
-                          }
-                        >
+                          setFormData({ ...formData, priority: value })
+                          }>
+                          
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -412,20 +412,20 @@ const AdminAnnouncementManagement = () => {
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
-                              className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}
-                            >
+                              className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}>
+                              
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {formData.expires_at ? (
-                                (() => {
-                                  try {
-                                    return format(new Date(formData.expires_at), 'PPP');
-                                  } catch (e) {
-                                    return formData.expires_at;
-                                  }
-                                })()
-                              ) : (
-                                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select date</span>
-                              )}
+                              {formData.expires_at ?
+                              (() => {
+                                try {
+                                  return format(new Date(formData.expires_at), 'PPP');
+                                } catch (e) {
+                                  return formData.expires_at;
+                                }
+                              })() :
+
+                              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select date</span>
+                              }
                             </Button>
                           </PopoverTrigger>
 
@@ -442,8 +442,8 @@ const AdminAnnouncementManagement = () => {
                                   }
                                   setExpiresOpen(false);
                                 }}
-                                className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'}
-                              />
+                                className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'} />
+                              
                             </div>
                           </PopoverContent>
                         </Popover>
@@ -458,12 +458,12 @@ const AdminAnnouncementManagement = () => {
                             id="is_global"
                             checked={formData.is_global}
                             onCheckedChange={(checked) =>
-                              setFormData({
-                                ...formData,
-                                is_global: checked as boolean,
-                              })
-                            }
-                          />
+                            setFormData({
+                              ...formData,
+                              is_global: checked as boolean
+                            })
+                            } />
+                          
                           <Label htmlFor="is_global" className="font-normal">
                             Global (All branches)
                           </Label>
@@ -474,49 +474,49 @@ const AdminAnnouncementManagement = () => {
                     <div className="space-y-2">
                       <Label>Target Roles *</Label>
                       <div className="grid grid-cols-2 gap-3">
-                        {roles.map((role) => (
-                          <div key={role} className="flex items-center gap-2">
+                        {roles.map((role) =>
+                        <div key={role} className="flex items-center gap-2">
                             <Checkbox
-                              id={role}
-                              checked={formData.target_roles?.includes(role) || false}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setFormData({
-                                    ...formData,
-                                    target_roles: [
-                                      ...(formData.target_roles || []),
-                                      role,
-                                    ],
-                                  });
-                                } else {
-                                  setFormData({
-                                    ...formData,
-                                    target_roles: (formData.target_roles || []).filter(
-                                      (r) => r !== role
-                                    ),
-                                  });
-                                }
-                              }}
-                            />
+                            id={role}
+                            checked={formData.target_roles?.includes(role) || false}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setFormData({
+                                  ...formData,
+                                  target_roles: [
+                                  ...(formData.target_roles || []),
+                                  role]
+
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  target_roles: (formData.target_roles || []).filter(
+                                    (r) => r !== role
+                                  )
+                                });
+                              }
+                            }} />
+                          
                             <Label htmlFor={role} className="font-normal capitalize">
                               {role}
                             </Label>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
 
                     <div className="flex gap-3 justify-end pt-4">
                       <Button
                         variant="outline"
-                        onClick={() => setShowCreateDialog(false)}
-                      >
+                        onClick={() => setShowCreateDialog(false)}>
+                        
                         Cancel
                       </Button>
                       <Button
                         onClick={handleCreateOrUpdate}
-                        className={`${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}
-                      >
+                        className={`${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
+                        
                         {editingId ? "Update" : "Create"} Announcement
                       </Button>
                     </div>
@@ -527,34 +527,34 @@ const AdminAnnouncementManagement = () => {
           </CardHeader>
           <CardContent className="announcements-card-content">
             <div className="space-y-6">
-              {loading ? (
-                <SkeletonTable rows={5} cols={6} />
-              ) : error ? (
-                <div className="p-4 rounded-lg bg-destructive/10 text-destructive">
+              {loading ?
+              <SkeletonTable rows={5} cols={6} /> :
+              error ?
+              <div className="p-4 rounded-lg bg-destructive/10 text-destructive">
                   <p className="font-medium">{error}</p>
-                </div>
-              ) : (
-                <AnnouncementSections
-                  myAnnouncements={myAnnouncements}
-                  receivedAnnouncements={receivedAnnouncements}
-                  onEdit={handleEdit}
-                  onDelete={(id) => setDeletingId(id)}
-                  onToggleActive={handleToggleActive}
-                  onMarkRead={handleMarkRead}
-                  loading={loading}
-                  showActions={true}
-                  myPagination={{ count: totalMyCount, page: myPage, pageSize }}
-                  receivedPagination={{ 
-                    count: totalReceivedCount, 
-                    page: receivedPage, 
-                    pageSize,
-                    unreadCount: unreadReceivedCount
-                  }}
-                  onPageChange={handlePageChange}
-                  activeTab={activeTab}
-                  onTabChange={setActiveTab}
-                />
-              )}
+                </div> :
+
+              <AnnouncementSections
+                myAnnouncements={myAnnouncements}
+                receivedAnnouncements={receivedAnnouncements}
+                onEdit={handleEdit}
+                onDelete={(id) => setDeletingId(id)}
+                onToggleActive={handleToggleActive}
+                onMarkRead={handleMarkRead}
+                loading={loading}
+                showActions={true}
+                myPagination={{ count: totalMyCount, page: myPage, pageSize }}
+                receivedPagination={{
+                  count: totalReceivedCount,
+                  page: receivedPage,
+                  pageSize,
+                  unreadCount: unreadReceivedCount
+                }}
+                onPageChange={handlePageChange}
+                activeTab={activeTab}
+                onTabChange={setActiveTab} />
+
+              }
             </div>
           </CardContent>
         </Card>
@@ -576,15 +576,15 @@ const AdminAnnouncementManagement = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              
               Delete
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
       </AlertDialog>
-    </>
-  );
+    </>);
+
 };
 
 export default AdminAnnouncementManagement;

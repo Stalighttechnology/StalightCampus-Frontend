@@ -5,8 +5,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+  SelectValue } from
+"../ui/select";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "../../lib/utils";
 import { Building, Search, ChevronLeft, ChevronRight } from "lucide-react";
@@ -17,8 +17,8 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+  DialogTitle } from
+"../ui/dialog";
 import { Badge } from "../ui/badge";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
@@ -29,33 +29,33 @@ import { SkeletonTable } from "../ui/skeleton";
 // Custom SelectContent components without scroll arrows
 const CustomSelectContent = forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & { header?: React.ReactNode }
->(({ className, children, position = "popper", header, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & {header?: React.ReactNode;}>(
+  ({ className, children, position = "popper", header, ...props }, ref) =>
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
         "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         className
       )}
       position={position}
-      {...props}
-    >
+      {...props}>
+      
       {header && <div className="z-20 bg-popover border-b">{header}</div>}
       <SelectPrimitive.Viewport
         className={cn(
           "p-1 max-h-[calc(100%-8px)] overflow-y-auto custom-scrollbar",
           position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
-        )}
-      >
+          "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}>
+        
         {children}
       </SelectPrimitive.Viewport>
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
-));
+);
 CustomSelectContent.displayName = SelectPrimitive.Content.displayName;
 
 
@@ -78,7 +78,7 @@ interface Branch {
 
 interface TeacherBranchAssignmentProps {
   setError: (error: string | null) => void;
-  toast: (options: { title?: string; description?: string; variant?: string }) => void;
+  toast: (options: {title?: string;description?: string;variant?: string;}) => void;
 }
 
 
@@ -130,8 +130,8 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
-        },
+          "Content-Type": "application/json"
+        }
       });
       const result = await response.json();
 
@@ -147,7 +147,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       if (dataSource && dataSource.success) {
         setTeachers(dataSource.teachers || []);
         setBranches(dataSource.branches || []);
-        const count = result.count || (dataSource && dataSource.count);
+        const count = result.count || dataSource && dataSource.count;
         if (count !== undefined) {
           setTotalPages(Math.ceil(count / 10));
           setTotalCount(count);
@@ -156,7 +156,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
         setError(dataSource?.message || result.message || "Failed to fetch Faculty assignments");
       }
     } catch (error) {
-      console.error("Error fetching Faculty assignments:", error);
+
       setError("Failed to fetch Faculty assignments");
     } finally {
       setLoading(false);
@@ -171,7 +171,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           teacher_id: selectedTeacher.id,
@@ -184,16 +184,16 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
         toast({
           title: "Success",
           description: result.message,
-          variant: "default",
+          variant: "default"
         });
         // Update local state using returned teacher payload to avoid extra GET
         if (result.teacher) {
           setTeachers((prev) =>
-            prev.map((t) =>
-              t.id === result.teacher.id
-                ? { ...t, primary_branch: result.teacher.primary_branch }
-                : t
-            )
+          prev.map((t) =>
+          t.id === result.teacher.id ?
+          { ...t, primary_branch: result.teacher.primary_branch } :
+          t
+          )
           );
         }
         setShowBranchDialog(false);
@@ -203,7 +203,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
         setError(result.message || "Failed to assign branch");
       }
     } catch (error) {
-      console.error("Error assigning branch:", error);
+
       setError("Failed to assign branch");
     }
   };
@@ -248,13 +248,13 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             </div>
             <div className="w-full sm:w-auto">
               <Button
-                onClick={() => {
-                  setSelectedTeacher(null);
-                  setSelectedBranch("");
-                  setShowBranchDialog(true);
-                }}
-                className="assign-btn-mobile w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white"
-              >
+                  onClick={() => {
+                    setSelectedTeacher(null);
+                    setSelectedBranch("");
+                    setShowBranchDialog(true);
+                  }}
+                  className="assign-btn-mobile w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white">
+                  
                 <Building className="h-4 w-4" />
                 Assign Primary Branch
               </Button>
@@ -266,18 +266,18 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
           <div className="controls-wrapper flex flex-col sm:flex-row gap-4 mb-4">
             <div className="search-container flex gap-2">
               <Input
-                placeholder="Search teachers by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={handleSearchKeyPress}
-                className="search-input-mobile w-64"
-              />
+                  placeholder="Search teachers by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                  className="search-input-mobile w-64" />
+                
               <Button
-                onClick={performSearch}
-                variant="outline"
-                size="sm"
-                className="px-3"
-              >
+                  onClick={performSearch}
+                  variant="outline"
+                  size="sm"
+                  className="px-3">
+                  
                 <Search className="h-4 w-4" />
               </Button>
             </div>
@@ -288,35 +288,35 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Branches</SelectItem>
-                  {branches.map((branch) => (
+                  {branches.map((branch) =>
                     <SelectItem key={branch.id} value={branch.id.toString()}>
                       {branch.name}
                     </SelectItem>
-                  ))}
+                    )}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div>
-            {loading ? (
-              <SkeletonTable rows={5} cols={1} />
-            ) : (
+            {loading ?
+              <SkeletonTable rows={5} cols={1} /> :
+
               <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                {teachers.map((teacher) => (
-                  <Card
-                    key={teacher.id}
-                    className="teacher-card p-3 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
-                    onClick={() => {
-                      setSelectedTeacher(teacher);
-                      if (teacher.primary_branch) {
-                        setSelectedBranch(teacher.primary_branch.id.toString());
-                      } else {
-                        setSelectedBranch("");
-                      }
-                      setShowBranchDialog(true);
-                    }}
-                  >
+                {teachers.map((teacher) =>
+                <Card
+                  key={teacher.id}
+                  className="teacher-card p-3 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => {
+                    setSelectedTeacher(teacher);
+                    if (teacher.primary_branch) {
+                      setSelectedBranch(teacher.primary_branch.id.toString());
+                    } else {
+                      setSelectedBranch("");
+                    }
+                    setShowBranchDialog(true);
+                  }}>
+                  
                     <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
                       <div className="w-full">
                         <h3 className="teacher-name text-sm sm:text-lg font-semibold">
@@ -328,25 +328,25 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                         </p>
                       </div>
                       <div className="badge-wrapper">
-                        {teacher.primary_branch && teacher.primary_branch.name ? (
-                          <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-[10px] sm:text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-[10px] sm:text-xs'}>
+                        {teacher.primary_branch && teacher.primary_branch.name ?
+                      <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-[10px] sm:text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-[10px] sm:text-xs'}>
                             {teacher.primary_branch.name}
-                          </Badge>
-                        ) : (
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
+                          </Badge> :
+
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
                             Not Assigned
                           </span>
-                        )}
+                      }
                       </div>
                     </div>
                   </Card>
-                ))}
+                )}
               </div>
-            )}
+              }
           </div>
 
           {/* Pagination Info - moved to bottom */}
-          {!loading && (
+          {!loading &&
             <div className="pagination-wrapper flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600 mt-2">
               <div className="text-xs sm:text-sm">
                 Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} teachers
@@ -357,8 +357,8 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                   size="sm"
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary"
-                >
+                  className="bg-primary hover:bg-primary/90 text-white border-primary">
+                  
                   Previous
                 </Button>
 
@@ -374,13 +374,13 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                   size="sm"
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary"
-                >
+                  className="bg-primary hover:bg-primary/90 text-white border-primary">
+                  
                   Next
                 </Button>
               </div>
             </div>
-          )}
+            }
         </CardContent>
       </Card>
 
@@ -394,20 +394,20 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             <div>
               <label className="text-sm font-medium">Select Faculty</label>
               <Select value={selectedTeacher?.id.toString() || ""} onValueChange={(value) => {
-                const teacher = teachers.find(t => t.id.toString() === value);
-                setSelectedTeacher(teacher || null);
-                if (teacher?.primary_branch) {
-                  setSelectedBranch(teacher.primary_branch.id.toString());
-                } else {
-                  setSelectedBranch("");
-                }
-              }}>
+                  const teacher = teachers.find((t) => t.id.toString() === value);
+                  setSelectedTeacher(teacher || null);
+                  if (teacher?.primary_branch) {
+                    setSelectedBranch(teacher.primary_branch.id.toString());
+                  } else {
+                    setSelectedBranch("");
+                  }
+                }}>
                 <SelectTrigger className="w-full mt-1">
                   <SelectValue placeholder="Choose a faculty" />
                 </SelectTrigger>
-                <CustomSelectContent 
-                  className="max-h-[250px]"
-                  header={
+                <CustomSelectContent
+                    className="max-h-[250px]"
+                    header={
                     <div className="p-2 space-y-2">
                       <div className="relative">
                         <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
@@ -423,8 +423,8 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                             e.stopPropagation();
                           }}
                           onPointerDown={(e) => e.stopPropagation()}
-                          className="h-8 pl-8 text-xs bg-muted/50 border-none ring-1 focus-visible:ring-primary"
-                        />
+                          className="h-8 pl-8 text-xs bg-muted/50 border-none ring-1 focus-visible:ring-primary" />
+                        
                       </div>
                       <div className="flex items-center justify-between px-1">
                         <Button
@@ -435,10 +435,10 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setCurrentPage(prev => Math.max(1, prev - 1));
+                            setCurrentPage((prev) => Math.max(1, prev - 1));
                           }}
-                          disabled={currentPage === 1 || loading}
-                        >
+                          disabled={currentPage === 1 || loading}>
+                          
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
                         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -452,29 +452,29 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                            setCurrentPage((prev) => Math.min(totalPages, prev + 1));
                           }}
-                          disabled={currentPage === totalPages || loading}
-                        >
+                          disabled={currentPage === totalPages || loading}>
+                          
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  }
-                >
+                    }>
+                    
                   <div className="pt-1">
-                    {loading ? (
+                    {loading ?
                       <div className="p-4 flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                         <span className="text-[10px] text-muted-foreground">Loading...</span>
-                      </div>
-                    ) : (
-                      teachers.map((teacher) => (
-                        <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                      </div> :
+
+                      teachers.map((teacher) =>
+                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
                           {teacher.first_name} {teacher.last_name}
                         </SelectItem>
-                      ))
-                    )}
+                      )
+                      }
                   </div>
                 </CustomSelectContent>
               </Select>
@@ -487,11 +487,11 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                   <SelectValue placeholder="Choose a branch" />
                 </SelectTrigger>
                 <CustomSelectContent className="max-h-[180px]">
-                  {branches.map((branch) => (
+                  {branches.map((branch) =>
                     <SelectItem key={branch.id} value={branch.id.toString()}>
                       {branch.name}
                     </SelectItem>
-                  ))}
+                    )}
                 </CustomSelectContent>
               </Select>
             </div>
@@ -501,18 +501,18 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
               Cancel
             </Button>
             <Button
-              onClick={handleAssignPrimaryBranch}
-              disabled={!selectedTeacher || !selectedBranch}
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
+                onClick={handleAssignPrimaryBranch}
+                disabled={!selectedTeacher || !selectedBranch}
+                className="bg-primary hover:bg-primary/90 text-white">
+                
               Assign Branch
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       </div>
-    </>
-  );
+    </>);
+
 };
 
 export default TeacherBranchAssignment;

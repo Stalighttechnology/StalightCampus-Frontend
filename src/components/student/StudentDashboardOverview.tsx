@@ -4,8 +4,8 @@ import {
   FaExclamationTriangle,
   FaClock,
   FaGraduationCap,
-  FaCalendarAlt,
-} from "react-icons/fa";
+  FaCalendarAlt } from
+"react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Bar } from "react-chartjs-2";
@@ -15,8 +15,8 @@ import {
   LinearScale,
   BarElement,
   Tooltip,
-  Legend,
-} from "chart.js";
+  Legend } from
+"chart.js";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getDashboardOverview } from "../../utils/student_api";
 import { useTheme } from "@/context/ThemeContext";
@@ -175,9 +175,9 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
 
         if (response.success && response.data) {
           if (response.data.student_profile?.profile_picture &&
-            response.data.student_profile.profile_picture.startsWith('/media/')) {
+          response.data.student_profile.profile_picture.startsWith('/media/')) {
             response.data.student_profile.profile_picture =
-              `http://127.0.0.1:8000${response.data.student_profile.profile_picture}`;
+            `http://127.0.0.1:8000${response.data.student_profile.profile_picture}`;
           }
 
           setDashboardData(response.data);
@@ -187,7 +187,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
         }
       } catch (err) {
         setError('Network error occurred');
-        console.error('Dashboard fetch error:', err);
+
       } finally {
         setIsLoading(false);
       }
@@ -203,7 +203,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
     const handleResize = () => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        setViewportTrigger(prev => prev + 1);
+        setViewportTrigger((prev) => prev + 1);
       }, 250);
     };
     window.addEventListener('resize', handleResize);
@@ -221,27 +221,27 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
     const subjects = dashboardData.performance_overview.subject_performance;
 
     return {
-      labels: subjects.map(subject => subject.subject),
+      labels: subjects.map((subject) => subject.subject),
       datasets: [
-        {
-          label: 'Attendance %',
-          data: subjects.map(subject => subject.attendance_percentage),
-          backgroundColor: theme === 'dark' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(37, 99, 235, 0.8)',
-          borderColor: theme === 'dark' ? 'rgba(59, 130, 246, 1)' : 'rgba(37, 99, 235, 1)',
-          borderWidth: 0,
-          borderRadius: 4,
-          yAxisID: 'y',
-        },
-        {
-          label: 'Average Marks',
-          data: subjects.map(subject => subject.average_mark),
-          backgroundColor: theme === 'dark' ? 'rgba(16, 185, 129, 0.8)' : 'rgba(5, 150, 105, 0.8)',
-          borderColor: theme === 'dark' ? 'rgba(16, 185, 129, 1)' : 'rgba(5, 150, 105, 1)',
-          borderWidth: 0,
-          borderRadius: 4,
-          yAxisID: 'y1',
-        }
-      ]
+      {
+        label: 'Attendance %',
+        data: subjects.map((subject) => subject.attendance_percentage),
+        backgroundColor: theme === 'dark' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(37, 99, 235, 0.8)',
+        borderColor: theme === 'dark' ? 'rgba(59, 130, 246, 1)' : 'rgba(37, 99, 235, 1)',
+        borderWidth: 0,
+        borderRadius: 4,
+        yAxisID: 'y'
+      },
+      {
+        label: 'Average Marks',
+        data: subjects.map((subject) => subject.average_mark),
+        backgroundColor: theme === 'dark' ? 'rgba(16, 185, 129, 0.8)' : 'rgba(5, 150, 105, 0.8)',
+        borderColor: theme === 'dark' ? 'rgba(16, 185, 129, 1)' : 'rgba(5, 150, 105, 1)',
+        borderWidth: 0,
+        borderRadius: 4,
+        yAxisID: 'y1'
+      }]
+
     };
   }, [dashboardData, theme]);
 
@@ -250,7 +250,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
     maintainAspectRatio: false,
     interaction: {
       mode: 'index' as const,
-      intersect: false,
+      intersect: false
     },
     plugins: {
       legend: {
@@ -261,7 +261,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           padding: 20,
           color: theme === 'dark' ? "#9ca3af" : "#6b7280",
           font: { size: 11 }
-        },
+        }
       },
       tooltip: {
         backgroundColor: theme === 'dark' ? "rgba(31, 31, 33, 0.95)" : "rgba(255, 255, 255, 0.95)",
@@ -271,8 +271,8 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
         borderWidth: 1,
         padding: 12,
         boxPadding: 6,
-        usePointStyle: true,
-      },
+        usePointStyle: true
+      }
     },
     scales: {
       x: {
@@ -281,7 +281,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           maxRotation: 45,
           font: { size: 10 }
         },
-        grid: { display: false },
+        grid: { display: false }
       },
       y: {
         type: 'linear' as const,
@@ -297,7 +297,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           color: theme === 'dark' ? "#9ca3af" : "#6b7280",
           font: { size: 10 }
         },
-        grid: { color: theme === 'dark' ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)" },
+        grid: { color: theme === 'dark' ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)" }
       },
       y1: {
         type: 'linear' as const,
@@ -313,9 +313,9 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
         ticks: {
           color: theme === 'dark' ? "#9ca3af" : "#6b7280",
           font: { size: 10 }
-        },
-      },
-    },
+        }
+      }
+    }
   }), [theme]);
 
   if (isLoading) {
@@ -327,8 +327,8 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           <SkeletonChart className="h-[300px]" />
           <SkeletonChart className="h-[300px]" />
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (error) {
@@ -342,13 +342,13 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           <p className={`max-w-md mx-auto mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{error}</p>
           <Button
             onClick={() => window.location.reload()}
-            className="rounded-full px-8 shadow-lg hover:scale-105 transition-transform"
-          >
+            className="rounded-full px-8 shadow-lg hover:scale-105 transition-transform">
+            
             Reconnect
           </Button>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (!dashboardData) return null;
@@ -357,12 +357,12 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
       {/* Top Cards Row */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Today's Lectures Card */}
-        <Card className={`group relative overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'
-          } shadow-sm hover:shadow-md`}>
+        <Card className={`group relative overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm hover:shadow-md`
+        }>
           <CardContent className="p-5">
             <div className="flex items-start gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
-                }`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`
+              }>
                 <FaCalendarAlt className="w-6 h-6" />
               </div>
               <div className="flex-1 space-y-1">
@@ -371,18 +371,18 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                   <span className="text-2xl font-semibold">{dashboardData.today_lectures.count}</span>
                   <span className="text-sm font-medium text-muted-foreground">Lectures</span>
                 </div>
-                <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg ${theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'
-                  }`}>
+                <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg ${theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}`
+                }>
                   <div className={`w-1.5 h-1.5 rounded-full ${dashboardData.today_lectures.next_lecture ? 'bg-blue-500 animate-pulse' : 'bg-gray-400'}`}></div>
                   <p className="font-medium truncate max-w-[200px]">
-                    {dashboardData.today_lectures.next_lecture
-                      ? `Next: ${dashboardData.today_lectures.next_lecture.subject}`
-                      : "No more lectures today"
+                    {dashboardData.today_lectures.next_lecture ?
+                    `Next: ${dashboardData.today_lectures.next_lecture.subject}` :
+                    "No more lectures today"
                     }
                   </p>
-                  {dashboardData.today_lectures.next_lecture && (
-                    <span className="ml-auto opacity-70 font-semibold">{dashboardData.today_lectures.next_lecture.start_time}</span>
-                  )}
+                  {dashboardData.today_lectures.next_lecture &&
+                  <span className="ml-auto opacity-70 font-semibold">{dashboardData.today_lectures.next_lecture.start_time}</span>
+                  }
                 </div>
               </div>
             </div>
@@ -390,34 +390,34 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
         </Card>
 
         {/* Attendance Status Card */}
-        <Card className={`group relative overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'
-          } shadow-sm hover:shadow-md`}>
+        <Card className={`group relative overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm hover:shadow-md`
+        }>
           <CardContent className="p-5">
             <div className="flex items-start gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${dashboardData.attendance_status.percentage >= 75
-                ? (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
-                : (theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600')
-                }`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${dashboardData.attendance_status.percentage >= 75 ?
+              theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600' :
+              theme === 'dark' ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'}`
+              }>
                 <FaCheckCircle className="w-6 h-6" />
               </div>
               <div className="flex-1 space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Attendance Rating</p>
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-2xl font-semibold ${dashboardData.attendance_status.percentage >= 75 ? 'text-emerald-500' : 'text-amber-500'
-                    }`}>{dashboardData.attendance_status.percentage}%</span>
+                  <span className={`text-2xl font-semibold ${dashboardData.attendance_status.percentage >= 75 ? 'text-emerald-500' : 'text-amber-500'}`
+                  }>{dashboardData.attendance_status.percentage}%</span>
                   <span className="text-sm font-medium text-muted-foreground">Overall</span>
                 </div>
-                <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg ${theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'
-                  }`}>
+                <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg ${theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}`
+                }>
                   <p className="font-medium truncate">
-                    {dashboardData.attendance_status.warnings.length > 0
-                      ? `Action required: ${dashboardData.attendance_status.warnings[0].subject}`
-                      : "Excellent consistency across all units"
+                    {dashboardData.attendance_status.warnings.length > 0 ?
+                    `Action required: ${dashboardData.attendance_status.warnings[0].subject}` :
+                    "Excellent consistency across all units"
                     }
                   </p>
-                  {dashboardData.attendance_status.warnings.length > 0 && (
-                    <span className="ml-auto font-semibold text-destructive">{dashboardData.attendance_status.warnings[0].percentage}%</span>
-                  )}
+                  {dashboardData.attendance_status.warnings.length > 0 &&
+                  <span className="ml-auto font-semibold text-destructive">{dashboardData.attendance_status.warnings[0].percentage}%</span>
+                  }
                 </div>
               </div>
             </div>
@@ -427,16 +427,16 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
 
       {/* Current & Next Session */}
       <section className="w-full">
-        <Card className={`overflow-hidden border border-border shadow-sm ${theme === 'dark' ? 'bg-card' : 'bg-white'
-          }`}>
+        <Card className={`overflow-hidden border border-border shadow-sm ${theme === 'dark' ? 'bg-card' : 'bg-white'}`
+        }>
           <CardHeader className="p-5 border-b border-border/50">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-6 bg-primary rounded-full"></div>
                 <CardTitle className="text-lg font-semibold">Active Timeline</CardTitle>
               </div>
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold shadow-inner ${theme === 'dark' ? 'bg-white/5 text-primary' : 'bg-primary/10 text-primary'
-                }`}>
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold shadow-inner ${theme === 'dark' ? 'bg-white/5 text-primary' : 'bg-primary/10 text-primary'}`
+              }>
                 <FaClock className="w-4 h-4 animate-pulse" />
                 <span className="text-sm">
                   {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
@@ -447,11 +447,11 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
 
           <CardContent className="p-5">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {currentSession ? (
-                <div className={`relative group p-5 rounded-2xl border transition-all duration-500 overflow-hidden ${theme === 'dark'
-                  ? 'border-primary/40 bg-primary/10 hover:bg-primary/20'
-                  : 'border-primary bg-primary/5 hover:bg-primary/10'
-                  }`}>
+              {currentSession ?
+              <div className={`relative group p-5 rounded-2xl border transition-all duration-500 overflow-hidden ${theme === 'dark' ?
+              'border-primary/40 bg-primary/10 hover:bg-primary/20' :
+              'border-primary bg-primary/5 hover:bg-primary/10'}`
+              }>
                   <div className="absolute -right-6 -top-6 w-24 h-24 bg-primary/20 rounded-full blur-2xl group-hover:bg-primary/40 transition-colors"></div>
 
                   <div className="relative flex justify-between items-start mb-4">
@@ -479,25 +479,25 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                       <p className="font-semibold text-sm">{currentSession.start_time} - {currentSession.end_time}</p>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className={`p-8 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-gray-200 bg-gray-50'
-                  }`}>
+                </div> :
+
+              <div className={`p-8 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-gray-200 bg-gray-50'}`
+              }>
                   <FaClock className={`w-8 h-8 mb-3 ${theme === 'dark' ? 'text-primary/60' : 'text-primary/60'}`} />
                   <div className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     <p className="text-lg font-semibold">No Active Session</p>
                     <p className="text-sm">There are no academic sessions currently in progress.</p>
                   </div>
                 </div>
-              )}
+              }
 
-              {nextSession ? (
-                <div className={`relative p-5 rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-muted/30 border-border hover:border-primary/50' : 'bg-gray-50 border-gray-100 hover:border-gray-300'
-                  }`}>
+              {nextSession ?
+              <div className={`relative p-5 rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-muted/30 border-border hover:border-primary/50' : 'bg-gray-50 border-gray-100 hover:border-gray-300'}`
+              }>
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-widest mb-2 ${getSessionStatus(nextSession)?.status === 'starting-soon' ? 'bg-orange-500 text-white animate-bounce' : 'bg-muted-foreground/20'
-                        }`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-widest mb-2 ${getSessionStatus(nextSession)?.status === 'starting-soon' ? 'bg-orange-500 text-white animate-bounce' : 'bg-muted-foreground/20'}`
+                    }>
                         Next Up
                       </span>
                       <h4 className="font-semibold text-lg leading-tight">
@@ -524,17 +524,17 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                       <p className="font-semibold text-sm truncate">{nextSession.teacher}</p>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className={`p-8 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-gray-200 bg-gray-50'
-                  }`}>
+                </div> :
+
+              <div className={`p-8 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center ${theme === 'dark' ? 'border-border bg-muted/20' : 'border-gray-200 bg-gray-50'}`
+              }>
                   <FaCalendarAlt className={`w-8 h-8 mb-3 ${theme === 'dark' ? 'text-primary/60' : 'text-primary/60'}`} />
                   <div className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     <p className="text-lg font-semibold">No Upcoming Sessions</p>
                     <p className="text-sm">No more lectures are scheduled for today.</p>
                   </div>
                 </div>
-              )}
+              }
             </div>
           </CardContent>
         </Card>
@@ -542,8 +542,8 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
 
       {/* Performance Overview */}
       <section>
-        <Card className={`overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'
-          } shadow-sm`}>
+        <Card className={`overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`
+        }>
           <CardHeader className="p-5 pb-0">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
@@ -557,10 +557,10 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           </CardHeader>
           <CardContent className="p-5 pt-6">
             <div className="w-full h-[250px] md:h-[320px]">
-              {dashboardData.performance_overview.subject_performance.length > 0 ? (
-                <Bar key={`chart-${viewportTrigger}`} data={generateChartData} options={chartOptions} />
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center">
+              {dashboardData.performance_overview.subject_performance.length > 0 ?
+              <Bar key={`chart-${viewportTrigger}`} data={generateChartData} options={chartOptions} /> :
+
+              <div className="h-full flex flex-col items-center justify-center">
                   <div className={`p-10 w-full h-full border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-2 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
                     <FaBookOpen className={`w-12 h-12 mb-2 ${theme === 'dark' ? 'text-primary/60' : 'text-primary/60'}`} />
                     <div className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -569,13 +569,13 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
                     </div>
                   </div>
                 </div>
-              )}
+              }
             </div>
           </CardContent>
         </Card>
       </section>
-    </div>
-  );
+    </div>);
+
 };
 
 export default React.memo(StudentDashboardOverview);

@@ -8,8 +8,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+  SelectValue } from
+"../ui/select";
 import { manageNotifications } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
@@ -49,7 +49,7 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
     setError(null);
     try {
       const response = await manageNotifications({ page, page_size: pageSize });
-      console.log("Fetch Notifications Response:", response); // Debug log
+      // Debug log
 
       const hasResults = response && typeof response === 'object' && 'results' in response;
       const paginationData = response as any;
@@ -59,11 +59,11 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
         setNotifications(
           (dataSource.notifications || []).map((note: any) => ({
             ...note,
-            color: getBadgeColor(note.notification_type, theme),
+            color: getBadgeColor(note.notification_type, theme)
           }))
         );
 
-        const count = paginationData.count || (dataSource && dataSource.count);
+        const count = paginationData.count || dataSource && dataSource.count;
         if (count !== undefined) {
           setTotalCount(count);
           setTotalPages(Math.ceil(count / pageSize));
@@ -78,7 +78,7 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
         toast({
           variant: "destructive",
           title: "Error",
-          description: dataSource?.message || "Failed to fetch notifications",
+          description: dataSource?.message || "Failed to fetch notifications"
         });
       }
     } catch (err) {
@@ -86,7 +86,7 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Network error",
+        description: "Network error"
       });
     } finally {
       setLoading(false);
@@ -98,7 +98,7 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
   }, [setError, toast]);
 
   const handleSendNotification = async () => {
-  // Regex: At least one alphanumeric character required
+    // Regex: At least one alphanumeric character required
     const isValidInput = (text: string) => /\w/.test(text.trim());
 
     if (!isValidInput(title) || !isValidInput(message) || !targetRole) {
@@ -106,7 +106,7 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Title and Message must contain meaningful text.",
+        description: "Title and Message must contain meaningful text."
       });
       return;
     }
@@ -116,20 +116,20 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
     setError(null);
 
     // Map frontend role to backend expected role
-    const roleMap: { [key: string]: string } = {
+    const roleMap: {[key: string]: string;} = {
       "All Users": "all",
       "Student": "student",
       "Teacher": "teacher",
-      "Head of Department": "hod",
+      "Head of Department": "hod"
     };
     const backendRole = roleMap[targetRole] || targetRole;
 
     try {
       const payload = { title: title.trim(), message: message.trim(), target_role: backendRole };
-      console.log("Send Notification Payload:", payload);
+
 
       const response = await manageNotifications(payload, "POST");
-      console.log("Send Notification Response:", response);
+
 
       if (response.success) {
         // Refetch notifications to get the new notification with its ID
@@ -143,16 +143,16 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
         toast({
           variant: "destructive",
           title: "Error",
-          description: response.message || "Failed to send notification",
+          description: response.message || "Failed to send notification"
         });
       }
     } catch (err) {
-      console.error("Send Notification Error:", err);
+
       setError("Network error while sending notification");
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Network error while sending notification",
+        description: "Network error while sending notification"
       });
     } finally {
       setLoading(false);
@@ -191,10 +191,10 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
           <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>List of all notifications sent to users</p>
         </CardHeader>
         <CardContent className="overflow-auto max-h-[400px] md:max-h-[500px] thin-scrollbar">
-          {loading && notifications.length === 0 ? (
-            <SkeletonTable rows={5} cols={2} />
-          ) : (
-            <table className="w-full text-left text-sm border-collapse">
+          {loading && notifications.length === 0 ?
+          <SkeletonTable rows={5} cols={2} /> :
+
+          <table className="w-full text-left text-sm border-collapse">
               <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
                 <tr>
                   <th className={`pb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Message</th>
@@ -202,8 +202,8 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
                 </tr>
               </thead>
               <tbody>
-                {notifications.map((note) => (
-                  <tr key={note.id} className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                {notifications.map((note) =>
+              <tr key={note.id} className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                     <td className="py-3">
                       <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{note.title}</div>
                       <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{note.message}</div>
@@ -214,30 +214,30 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
                       </span>
                     </td>
                   </tr>
-                ))}
+              )}
               </tbody>
             </table>
-          )}
+          }
         </CardContent>
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+        {totalPages > 1 &&
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border">
             <div className="flex-1 flex justify-between sm:hidden">
               <Button
-                onClick={() => fetchNotifications(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
-                variant="outline"
-                size="sm"
-              >
+              onClick={() => fetchNotifications(currentPage - 1)}
+              disabled={currentPage === 1 || loading}
+              variant="outline"
+              size="sm">
+              
                 Previous
               </Button>
               <Button
-                onClick={() => fetchNotifications(currentPage + 1)}
-                disabled={currentPage === totalPages || loading}
-                variant="outline"
-                size="sm"
-              >
+              onClick={() => fetchNotifications(currentPage + 1)}
+              disabled={currentPage === totalPages || loading}
+              variant="outline"
+              size="sm">
+              
                 Next
               </Button>
             </div>
@@ -253,41 +253,41 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
               </div>
               <div className="flex gap-2">
                 <Button
-                  onClick={() => fetchNotifications(currentPage - 1)}
-                  disabled={currentPage === 1 || loading}
-                  variant="outline"
-                  size="sm"
-                  className="h-8"
-                >
+                onClick={() => fetchNotifications(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+                variant="outline"
+                size="sm"
+                className="h-8">
+                
                   Previous
                 </Button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <Button
-                      key={p}
-                      onClick={() => fetchNotifications(p)}
-                      variant={currentPage === p ? "default" : "outline"}
-                      size="sm"
-                      className={`h-8 w-8 p-0 ${currentPage === p ? 'bg-primary text-white shadow-sm' : ''}`}
-                      disabled={loading}
-                    >
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) =>
+                <Button
+                  key={p}
+                  onClick={() => fetchNotifications(p)}
+                  variant={currentPage === p ? "default" : "outline"}
+                  size="sm"
+                  className={`h-8 w-8 p-0 ${currentPage === p ? 'bg-primary text-white shadow-sm' : ''}`}
+                  disabled={loading}>
+                  
                       {p}
                     </Button>
-                  ))}
+                )}
                 </div>
                 <Button
-                  onClick={() => fetchNotifications(currentPage + 1)}
-                  disabled={currentPage === totalPages || loading}
-                  variant="outline"
-                  size="sm"
-                  className="h-8"
-                >
+                onClick={() => fetchNotifications(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+                variant="outline"
+                size="sm"
+                className="h-8">
+                
                   Next
                 </Button>
               </div>
             </div>
           </div>
-        )}
+        }
       </Card>
 
       {/* Create Notification */}
@@ -306,8 +306,8 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
               onChange={(e) => {
                 setTitle(e.target.value);
                 setValidationError("");
-              }}
-            />
+              }} />
+            
           </div>
           <div>
             <label className={`block text-sm mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Message</label>
@@ -319,8 +319,8 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
               onChange={(e) => {
                 setMessage(e.target.value);
                 setValidationError("");
-              }}
-            />
+              }} />
+            
           </div>
           <div>
             <label className={`block text-sm mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Target Role</label>
@@ -329,8 +329,8 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
               onValueChange={(val) => {
                 setTargetRole(val);
                 setValidationError("");
-              }}
-            >
+              }}>
+              
               <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                 <SelectValue placeholder="Select a target role" />
               </SelectTrigger>
@@ -342,21 +342,21 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
               </SelectContent>
             </Select>
           </div>
-          {validationError && (
-            <div className="text-red-600 text-sm font-medium">{validationError}</div>
-          )}
+          {validationError &&
+          <div className="text-red-600 text-sm font-medium">{validationError}</div>
+          }
           <Button
             className="w-full text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
             onClick={handleSendNotification}
-            disabled={loading}
-          >
+            disabled={loading}>
+            
             {loading ? "Sending..." : "Send Notification"}
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </div>);
 
-  );
+
 };
 
 export default NotificationsManagement;

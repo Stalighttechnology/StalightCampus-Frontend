@@ -38,7 +38,7 @@ const convertImageToPNG = async (file: File): Promise<File> => {
           }
           const pngFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.png', {
             type: 'image/png',
-            lastModified: file.lastModified,
+            lastModified: file.lastModified
           });
           resolve(pngFile);
         }, 'image/png', 0.95); // 95% quality for PNG
@@ -53,7 +53,7 @@ const Profile = ({ role, user }: ProfileProps) => {
   const [formData, setFormData] = useState({
     email: user?.email || "",
     first_name: user?.first_name || "",
-    last_name: user?.last_name || "",
+    last_name: user?.last_name || ""
   });
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(user?.profile_image || null);
@@ -69,16 +69,16 @@ const Profile = ({ role, user }: ProfileProps) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
-      
+
       // Convert to PNG if not already PNG
       if (selectedFile.type !== 'image/png') {
-        convertImageToPNG(selectedFile).then(pngFile => {
+        convertImageToPNG(selectedFile).then((pngFile) => {
           setProfilePicture(pngFile);
           const objectUrl = URL.createObjectURL(pngFile);
           setPreviewUrl(objectUrl);
           return () => URL.revokeObjectURL(objectUrl);
-        }).catch(error => {
-          console.error('Failed to convert image to PNG:', error);
+        }).catch((error) => {
+
           setProfilePicture(selectedFile);
           const objectUrl = URL.createObjectURL(selectedFile);
           setPreviewUrl(objectUrl);
@@ -108,19 +108,19 @@ const Profile = ({ role, user }: ProfileProps) => {
       }
 
       const endpoint =
-        role === "admin" || role === "principal"
-          ? `${API_BASE_URL}admin/users/`
-          : role === "student"
-          ? `${API_BASE_URL}student/update-profile/`
-          : `${API_BASE_URL}${role}/profile/`;
+      role === "admin" || role === "principal" ?
+      `${API_BASE_URL}admin/users/` :
+      role === "student" ?
+      `${API_BASE_URL}student/update-profile/` :
+      `${API_BASE_URL}${role}/profile/`;
 
-      const method = (role === "admin" || role === "principal") ? "POST" : role === "student" ? "POST" : "PATCH";
-      const body = (role === "admin" || role === "principal") ? { user_id: user.user_id, action: "edit", updates: Object.fromEntries(formDataObj) } : formDataObj;
+      const method = role === "admin" || role === "principal" ? "POST" : role === "student" ? "POST" : "PATCH";
+      const body = role === "admin" || role === "principal" ? { user_id: user.user_id, action: "edit", updates: Object.fromEntries(formDataObj) } : formDataObj;
 
       const response = await fetchWithTokenRefresh(endpoint, {
         method,
-        headers: (role === "admin" || role === "principal") ? { "Content-Type": "application/json" } : {},
-        body: (role === "admin" || role === "principal") ? JSON.stringify(body) : formDataObj,
+        headers: role === "admin" || role === "principal" ? { "Content-Type": "application/json" } : {},
+        body: role === "admin" || role === "principal" ? JSON.stringify(body) : formDataObj
       });
 
       const data = await response.json();
@@ -164,11 +164,11 @@ const Profile = ({ role, user }: ProfileProps) => {
         <div className="space-y-6">
           <div className="flex justify-center">
             <Avatar className="w-24 h-24">
-              {previewUrl ? (
-                <AvatarImage src={previewUrl} alt="Profile" />
-              ) : (
-                <AvatarFallback>{getInitials()}</AvatarFallback>
-              )}
+              {previewUrl ?
+              <AvatarImage src={previewUrl} alt="Profile" /> :
+
+              <AvatarFallback>{getInitials()}</AvatarFallback>
+              }
             </Avatar>
           </div>
 
@@ -180,8 +180,8 @@ const Profile = ({ role, user }: ProfileProps) => {
               id="profile_image"
               type="file"
               accept="image/*"
-              onChange={handleFileChange}
-            />
+              onChange={handleFileChange} />
+            
           </div>
 
           <div className="space-y-1">
@@ -193,8 +193,8 @@ const Profile = ({ role, user }: ProfileProps) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="email@example.com"
-            />
+              placeholder="email@example.com" />
+            
           </div>
 
           <div className="space-y-1">
@@ -206,8 +206,8 @@ const Profile = ({ role, user }: ProfileProps) => {
               name="first_name"
               value={formData.first_name}
               onChange={handleInputChange}
-              placeholder="First Name"
-            />
+              placeholder="First Name" />
+            
           </div>
 
           <div className="space-y-1">
@@ -219,8 +219,8 @@ const Profile = ({ role, user }: ProfileProps) => {
               name="last_name"
               value={formData.last_name}
               onChange={handleInputChange}
-              placeholder="Last Name"
-            />
+              placeholder="Last Name" />
+            
           </div>
 
           <Button className="w-full" onClick={handleSubmit} disabled={loading}>
@@ -228,8 +228,8 @@ const Profile = ({ role, user }: ProfileProps) => {
           </Button>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 };
 
 export default Profile;

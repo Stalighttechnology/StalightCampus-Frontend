@@ -30,8 +30,8 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
     typeof error === 'object' &&
     error !== null &&
     'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
-  );
+    typeof (error as Record<string, unknown>).message === 'string');
+
 }
 
 interface ManageHODLeavesRequest {
@@ -85,7 +85,7 @@ interface LeaveBootstrapResponse {
 const statusColors = {
   APPROVED: "text-green-700 bg-green-100",
   REJECTED: "text-red-700 bg-red-100",
-  PENDING: "text-yellow-700 bg-yellow-100",
+  PENDING: "text-yellow-700 bg-yellow-100"
 };
 
 const ApplyLeave = () => {
@@ -117,13 +117,13 @@ const ApplyLeave = () => {
       if (!response.success && !response.data) {
         // Handle DRF wrapped response if applicable
         if ((response as any).results?.success) {
-           const res = (response as any);
-           setBranchId(res.results.data.profile.branch_id);
-           processLeaves(res.results.data.leaves, page);
-           setTotalPages(res.total_pages || 1);
-           setTotalCount(res.count || 0);
-           setCurrentPage(res.current_page || page);
-           return;
+          const res = response as any;
+          setBranchId(res.results.data.profile.branch_id);
+          processLeaves(res.results.data.leaves, page);
+          setTotalPages(res.total_pages || 1);
+          setTotalCount(res.count || 0);
+          setCurrentPage(res.current_page || page);
+          return;
         }
         throw new Error(response.message || "Failed to fetch data");
       }
@@ -131,15 +131,15 @@ const ApplyLeave = () => {
       const data: any = response.data;
       setBranchId(data.profile.branch_id);
       processLeaves(data.leaves, page);
-      
+
       // Handle pagination metadata from standardized response
       setTotalPages((response as any).total_pages || 1);
       setTotalCount((response as any).count || 0);
       setCurrentPage((response as any).current_page || page);
-      
+
       setError("");
     } catch (err) {
-      console.error("Error fetching data:", err);
+
       setError(isErrorWithMessage(err) ? err.message : "Failed to fetch data");
       setLeaves([]);
     } finally {
@@ -153,46 +153,46 @@ const ApplyLeave = () => {
     const sevenDaysAgo = new Date(todayDateOnly);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const processed = rawLeaves
-      .map((leave: LeaveData) => ({
-        raw: leave,
-        mapped: {
-          id: leave.id.toString(),
-          title: leave.title || leave.faculty_name || "Leave Application",
-          start_date: leave.start_date,
-          end_date: leave.end_date,
-          reason: leave.reason,
-          status: leave.status
-        } as Leave
-      }))
-      .filter(item => {
-        const r = item.raw;
-        const status = (r.status || '').toUpperCase();
-        
-        // Tuned Rule: If user is on Page 1, apply "recency" filters to keep view clean.
-        // If user is on Page 2+, they are explicitly looking for history, so show everything.
-        if (page > 1) return true;
-        
-        if (status === 'PENDING') {
-          try {
-            const end = new Date(r.end_date);
-            const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-            return endDateOnly >= todayDateOnly;
-          } catch {
-            return false;
-          }
-        }
+    const processed = rawLeaves.
+    map((leave: LeaveData) => ({
+      raw: leave,
+      mapped: {
+        id: leave.id.toString(),
+        title: leave.title || leave.faculty_name || "Leave Application",
+        start_date: leave.start_date,
+        end_date: leave.end_date,
+        reason: leave.reason,
+        status: leave.status
+      } as Leave
+    })).
+    filter((item) => {
+      const r = item.raw;
+      const status = (r.status || '').toUpperCase();
 
-        if (status === 'APPROVED' || status === 'REJECTED') {
-          const refStr = r.reviewed_at || r.submitted_at;
-          if (!refStr) return false;
-          const ref = new Date(refStr);
-          const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-          return refDateOnly >= sevenDaysAgo;
+      // Tuned Rule: If user is on Page 1, apply "recency" filters to keep view clean.
+      // If user is on Page 2+, they are explicitly looking for history, so show everything.
+      if (page > 1) return true;
+
+      if (status === 'PENDING') {
+        try {
+          const end = new Date(r.end_date);
+          const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+          return endDateOnly >= todayDateOnly;
+        } catch {
+          return false;
         }
-        return false;
-      })
-      .map(item => item.mapped) as Leave[];
+      }
+
+      if (status === 'APPROVED' || status === 'REJECTED') {
+        const refStr = r.reviewed_at || r.submitted_at;
+        if (!refStr) return false;
+        const ref = new Date(refStr);
+        const refDateOnly = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
+        return refDateOnly >= sevenDaysAgo;
+      }
+      return false;
+    }).
+    map((item) => item.mapped) as Leave[];
 
     setLeaves(processed);
   };
@@ -230,7 +230,7 @@ const ApplyLeave = () => {
     const endDateStr = dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : startDateStr;
 
     // Check for overlaps in local state (excluding REJECTED leaves)
-    const hasOverlap = leaves.some(l => {
+    const hasOverlap = leaves.some((l) => {
       if (l.status === 'REJECTED') return false;
       return startDateStr <= l.end_date && endDateStr >= l.start_date;
     });
@@ -247,7 +247,7 @@ const ApplyLeave = () => {
         title: leaveTitle,
         start_date: startDateStr,
         end_date: endDateStr,
-        reason: reason.trim(),
+        reason: reason.trim()
       };
       const response = await manageHODLeaves(request, "POST");
       if (response.success && response.data) {
@@ -259,10 +259,10 @@ const ApplyLeave = () => {
           reason: reason.trim(),
           status: "PENDING"
         } as Leave, ...leaves]);
-        
+
         // Show success alert with theme-aware styling
         const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        
+
         await MySwal.fire({
           title: 'Leave Request Submitted!',
           text: 'Your leave request has been successfully submitted.',
@@ -270,19 +270,19 @@ const ApplyLeave = () => {
           confirmButtonText: 'OK',
           confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-          color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
         });
-        
+
         setError("");
         setLeaveTitle("");
         setDateRange(undefined);
         setReason("");
       } else {
         setError(response.message || "Failed to submit leave");
-        
+
         // Show error alert
         const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        
+
         await MySwal.fire({
           title: 'Error!',
           text: response.message || 'Failed to submit leave',
@@ -290,16 +290,16 @@ const ApplyLeave = () => {
           confirmButtonText: 'OK',
           confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
           background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-          color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+          color: currentTheme === 'dark' ? '#ffffff' : '#000000'
         });
       }
     } catch (err) {
       const errorMessage = "Network error occurred";
       setError(errorMessage);
-      
+
       // Show error alert
       const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-      
+
       await MySwal.fire({
         title: 'Error!',
         text: 'Network error occurred',
@@ -307,7 +307,7 @@ const ApplyLeave = () => {
         confirmButtonText: 'OK',
         confirmButtonColor: currentTheme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
         background: currentTheme === 'dark' ? '#1c1c1e' : '#ffffff',
-        color: currentTheme === 'dark' ? '#ffffff' : '#000000',
+        color: currentTheme === 'dark' ? '#ffffff' : '#000000'
       });
     } finally {
       setLoading(false);
@@ -333,22 +333,22 @@ const ApplyLeave = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Error Message */}
-          {error && (
+          {error &&
             <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
               {error}
             </div>
-          )}
+            }
           
           {/* Leave Title */}
           <div className="space-y-2">
             <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Title for Leave *</Label>
             <Input
-              value={leaveTitle}
-              onChange={(e) => setLeaveTitle(e.target.value)}
-              placeholder="Enter a title for your leave"
-              disabled={loading}
-              className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}
-            />
+                value={leaveTitle}
+                onChange={(e) => setLeaveTitle(e.target.value)}
+                placeholder="Enter a title for your leave"
+                disabled={loading}
+                className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'} />
+              
           </div>
 
           {/* Date Range */}
@@ -357,47 +357,47 @@ const ApplyLeave = () => {
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
-                  onClick={() => setIsCalendarOpen(true)}
-                  className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}
-                >
+                    variant="outline"
+                    onClick={() => setIsCalendarOpen(true)}
+                    className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}>
+                    
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
+                  {dateRange?.from ?
+                    dateRange.to ?
+                    <>
                         {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
-                      </>
-                    ) : (
-                      format(dateRange.from, "PPP")
-                    )
-                  ) : (
+                      </> :
+
+                    format(dateRange.from, "PPP") :
+
+
                     <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
-                  )}
+                    }
                 </Button>
               </PopoverTrigger>
 
               {/* Calendar with theme support and disabled past dates */}
               <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
                 <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={(range) => {
-                    if (!range && dateRange?.from) {
-                      // If user clicks the same date again, treat it as a single-day range and close
-                      setDateRange({ from: dateRange.from, to: dateRange.from });
-                      setIsCalendarOpen(false);
-                    } else {
-                      setDateRange(range);
-                      // If both from and to are selected, close the popover
-                      if (range?.from && range?.to) {
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={(range) => {
+                      if (!range && dateRange?.from) {
+                        // If user clicks the same date again, treat it as a single-day range and close
+                        setDateRange({ from: dateRange.from, to: dateRange.from });
                         setIsCalendarOpen(false);
+                      } else {
+                        setDateRange(range);
+                        // If both from and to are selected, close the popover
+                        if (range?.from && range?.to) {
+                          setIsCalendarOpen(false);
+                        }
                       }
-                    }
-                  }}
-                  disabled={(date) => date < today} // Disable dates before today
-                  initialFocus
-                  className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'}
-                />
+                    }}
+                    disabled={(date) => date < today} // Disable dates before today
+                    initialFocus
+                    className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'} />
+                  
               </PopoverContent>
             </Popover>
           </div>
@@ -406,21 +406,21 @@ const ApplyLeave = () => {
           <div className="space-y-2">
             <Label htmlFor="reason" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Reason for Leave *</Label>
             <Textarea
-              id="reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Please provide a detailed reason for your leave request"
-              className={theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border' : 'min-h-[100px] bg-white text-gray-900 border-gray-300'}
-              disabled={loading}
-            />
+                id="reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Please provide a detailed reason for your leave request"
+                className={theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border' : 'min-h-[100px] bg-white text-gray-900 border-gray-300'}
+                disabled={loading} />
+              
           </div>
 
           {/* Submit Button */}
-          <Button 
-            onClick={handleSubmit} 
-            className={theme === 'dark' ? 'w-full text-white bg-primary hover:bg-[#9147e0] border-border' : 'w-full text-white bg-primary hover:bg-[#9147e0] border-primary'} 
-            disabled={loading || !branchId}
-          >
+          <Button
+              onClick={handleSubmit}
+              className={theme === 'dark' ? 'w-full text-white bg-primary hover:bg-[#9147e0] border-border' : 'w-full text-white bg-primary hover:bg-[#9147e0] border-primary'}
+              disabled={loading || !branchId}>
+              
             {loading ? "Submitting..." : "Submit Request"}
           </Button>
         </CardContent>
@@ -436,31 +436,31 @@ const ApplyLeave = () => {
             </div>
             <div className="relative" ref={filterRef}>
               <button
-                onClick={() => setShowFilter((prev) => !prev)}
-                className={theme === 'dark' ? 'text-foreground hover:text-muted-foreground' : 'text-gray-900 hover:text-gray-500'}
-              >
+                  onClick={() => setShowFilter((prev) => !prev)}
+                  className={theme === 'dark' ? 'text-foreground hover:text-muted-foreground' : 'text-gray-900 hover:text-gray-500'}>
+                  
                 <FilterIcon className="w-6 h-6" />
               </button>
-              {showFilter && (
+              {showFilter &&
                 <div className={`absolute right-0 mt-2 w-36 rounded shadow-lg z-10 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                  {["All", "Approved", "Pending", "Rejected"].map((status) => (
-                    <div
-                      key={status}
-                      onClick={() => {
-                        setStatusFilter(status);
-                        setShowFilter(false);
-                      }}
-                      className={cn(
-                        "px-4 py-2 cursor-pointer",
-                        theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100',
-                        statusFilter === status && "font-semibold"
-                      )}
-                    >
+                  {["All", "Approved", "Pending", "Rejected"].map((status) =>
+                  <div
+                    key={status}
+                    onClick={() => {
+                      setStatusFilter(status);
+                      setShowFilter(false);
+                    }}
+                    className={cn(
+                      "px-4 py-2 cursor-pointer",
+                      theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100',
+                      statusFilter === status && "font-semibold"
+                    )}>
+                    
                       {status}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+                }
             </div>
           </div>
         </CardHeader>
@@ -469,13 +469,13 @@ const ApplyLeave = () => {
           <div className="overflow-x-auto thin-scrollbar">
             {/* Mobile: stacked cards */}
             <div className="md:hidden space-y-3">
-              {loading ? (
+              {loading ?
                 <div className="space-y-3">
                   <SkeletonCard />
                   <SkeletonCard />
                   <SkeletonCard />
-                </div>
-              ) : filteredLeaves.length === 0 ? (
+                </div> :
+                filteredLeaves.length === 0 ?
                 <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                   <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                     <CalendarIcon className="w-8 h-8 text-primary opacity-50" />
@@ -484,10 +484,10 @@ const ApplyLeave = () => {
                   <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     You haven't submitted any leave requests recently.
                   </p>
-                </div>
-              ) : (
-                filteredLeaves.map((leave) => (
-                  <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                </div> :
+
+                filteredLeaves.map((leave) =>
+                <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="font-medium">{leave.title}</div>
@@ -501,17 +501,17 @@ const ApplyLeave = () => {
                     </div>
                     <div className="mt-3 flex gap-2">
                       <Button
-                        size="sm"
-                        variant="outline"
-                        className={`flex-1 ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                        onClick={() => setSelectedReason(leave.reason)}
-                      >
+                      size="sm"
+                      variant="outline"
+                      className={`flex-1 ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                      onClick={() => setSelectedReason(leave.reason)}>
+                      
                         View Reason
                       </Button>
                     </div>
                   </div>
-                ))
-              )}
+                )
+                }
             </div>
 
             {/* Desktop / Tablet: table */}
@@ -525,13 +525,13 @@ const ApplyLeave = () => {
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
+                {loading ?
                   <tr>
                     <td colSpan={4} className="p-4">
                       <SkeletonTable rows={5} cols={4} />
                     </td>
-                  </tr>
-                ) : filteredLeaves.length === 0 ? (
+                  </tr> :
+                  filteredLeaves.length === 0 ?
                   <tr>
                     <td colSpan={4} className="py-20 px-4">
                       <div className="flex flex-col items-center justify-center">
@@ -544,24 +544,24 @@ const ApplyLeave = () => {
                         </p>
                       </div>
                     </td>
-                  </tr>
-                ) : (
-                  filteredLeaves.map((leave) => (
-                    <tr
-                      key={leave.id}
-                      className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}
-                    >
+                  </tr> :
+
+                  filteredLeaves.map((leave) =>
+                  <tr
+                    key={leave.id}
+                    className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+                    
                       <td className={`py-3 px-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</td>
                       <td className={`py-3 px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         {leave.start_date} to {leave.end_date}
                       </td>
                       <td className="py-3 px-4 text-sm">
                         <Button
-                          size="sm"
-                          variant="outline"
-                          className={`${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                          onClick={() => setSelectedReason(leave.reason)}
-                        >
+                        size="sm"
+                        variant="outline"
+                        className={`${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                        onClick={() => setSelectedReason(leave.reason)}>
+                        
                           View
                         </Button>
                       </td>
@@ -571,41 +571,41 @@ const ApplyLeave = () => {
                         </span>
                       </td>
                     </tr>
-                  ))
-                )}
+                  )
+                  }
               </tbody>
             </table>
           </div>
           
           {/* Pagination Footer */}
-          {totalPages > 1 && (
+          {totalPages > 1 &&
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6 pt-6 border-t border-border">
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                 Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount}
               </div>
               <div className="flex gap-2 items-center justify-center sm:justify-end">
                 <Button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1 || loading}
                   variant="outline"
-                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                >
+                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+                  
                   Prev
                 </Button>
                 <span className="px-3 text-base font-medium text-primary">
                   {currentPage}
                 </span>
                 <Button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages || loading}
                   variant="outline"
-                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                >
+                  className="text-base font-medium px-4 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200">
+                  
                   Next
                 </Button>
               </div>
             </div>
-          )}
+            }
         </CardContent>
 
         {/* Popup Modal */}
@@ -617,20 +617,20 @@ const ApplyLeave = () => {
 
             {/* Scrollable reason */}
             <div
-              className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
-                        max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
-            >
+                className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
+                        max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                
               {selectedReason}
             </div>
 
             <div className="flex justify-end mt-4">
               <Button
-                variant="outline"
-                onClick={() => setSelectedReason(null)}
-                className={theme === 'dark' 
-                  ? 'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white'
-                  : 'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}
-              >
+                  variant="outline"
+                  onClick={() => setSelectedReason(null)}
+                  className={theme === 'dark' ?
+                  'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white' :
+                  'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}>
+                  
                 Close
               </Button>
             </div>
@@ -638,8 +638,8 @@ const ApplyLeave = () => {
         </Dialog>
       </Card>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ApplyLeave;

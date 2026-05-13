@@ -45,8 +45,8 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
     typeof error === 'object' &&
     error !== null &&
     'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
-  );
+    typeof (error as Record<string, unknown>).message === 'string');
+
 }
 
 // Define the state type to include all properties
@@ -56,7 +56,7 @@ interface SubjectManagementState {
   deleteConfirmation: string | null;
   showModal: "add" | "edit" | null;
   currentSubject: Subject | null;
-  newSubject: { code: string; name: string; semester_id: string; subject_type: string; credits: number };
+  newSubject: {code: string;name: string;semester_id: string;subject_type: string;credits: number;};
   error: string | null;
   success: string | null;
   loading: boolean;
@@ -92,8 +92,8 @@ const SubjectManagement = () => {
     modalError: null,
     filters: {
       semester_id: "all",
-      subject_type: "all",
-    },
+      subject_type: "all"
+    }
   });
 
   const totalPages = state.totalPages;
@@ -127,7 +127,7 @@ const SubjectManagement = () => {
       const semestersRes = boot.data.semesters ? { success: true, data: boot.data.semesters } : await getSemesters(branchId);
 
       if (semestersRes.success) {
-        console.log("Semesters fetched:", semestersRes.data);
+
         updateState({ semesters: semestersRes.data || [] });
         if (!semestersRes.data?.length) {
           updateState({ error: "No semesters found for this branch" });
@@ -156,11 +156,11 @@ const SubjectManagement = () => {
         page,
         page_size: pageSize,
         semester_id: filters.semester_id === "all" ? undefined : filters.semester_id,
-        subject_type: filters.subject_type === "all" ? undefined : filters.subject_type,
+        subject_type: filters.subject_type === "all" ? undefined : filters.subject_type
       }, "GET");
 
       if (subjectsRes.success) {
-        console.log("Subjects fetched:", subjectsRes.data);
+
         updateState({
           subjects: subjectsRes.data || [],
           totalCount: subjectsRes.count || 0,
@@ -216,7 +216,7 @@ const SubjectManagement = () => {
       semester_id: state.newSubject.semester_id,
       subject_type: state.newSubject.subject_type,
       credits: Number(state.newSubject.credits),
-      ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {}),
+      ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {})
     };
 
     updateState({ loading: true });
@@ -227,12 +227,12 @@ const SubjectManagement = () => {
         const isCreate = data.action === 'create';
         const createdId = response.data?.subject_id as unknown as string;
         const updatedSubject: Subject = {
-          id: isCreate ? (createdId || `${Date.now()}`) : (state.currentSubject ? state.currentSubject.id : createdId || `${Date.now()}`),
+          id: isCreate ? createdId || `${Date.now()}` : state.currentSubject ? state.currentSubject.id : createdId || `${Date.now()}`,
           name: state.newSubject.name,
           subject_code: state.newSubject.code,
           semester_id: state.newSubject.semester_id,
           subject_type: state.newSubject.subject_type,
-          credits: state.newSubject.credits,
+          credits: state.newSubject.credits
         };
 
         if (isCreate) {
@@ -247,17 +247,17 @@ const SubjectManagement = () => {
             success: "Course added successfully",
             showModal: null,
             newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-            currentSubject: null,
+            currentSubject: null
           });
         } else {
           // Update in-place
-          const newSubjects = state.subjects.map((s) => (s.id === updatedSubject.id ? updatedSubject : s));
+          const newSubjects = state.subjects.map((s) => s.id === updatedSubject.id ? updatedSubject : s);
           updateState({
             subjects: newSubjects,
             success: "Course updated successfully",
             showModal: null,
             newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-            currentSubject: null,
+            currentSubject: null
           });
         }
       } else {
@@ -282,9 +282,9 @@ const SubjectManagement = () => {
         name: subject.name,
         semester_id: subject.semester_id,
         subject_type: subject.subject_type,
-        credits: subject.credits || 3,
+        credits: subject.credits || 3
       },
-      showModal: "edit",
+      showModal: "edit"
     });
   };
 
@@ -301,7 +301,7 @@ const SubjectManagement = () => {
       cancelButtonText: "Cancel",
       background: theme === 'dark' ? '#1f2937' : '#ffffff',
       color: theme === 'dark' ? '#f3f4f6' : '#111827',
-      iconColor: "#ef4444",
+      iconColor: "#ef4444"
     }).then((result) => {
       if (result.isConfirmed) {
         executeDelete(subjectId);
@@ -313,7 +313,7 @@ const SubjectManagement = () => {
     const data: ManageSubjectsRequest = {
       action: "delete",
       branch_id: state.branchId,
-      subject_id: subjectId,
+      subject_id: subjectId
     };
 
     updateState({ loading: true });
@@ -333,7 +333,7 @@ const SubjectManagement = () => {
         } else {
           updateState({ subjects: newSubjectsList, totalCount: newTotalCount, totalPages: newTotalPages, success: "Course deleted successfully" });
         }
-        
+
         Swal.fire({
           title: "Deleted!",
           text: "The course has been deleted.",
@@ -341,7 +341,7 @@ const SubjectManagement = () => {
           timer: 1500,
           showConfirmButton: false,
           background: theme === 'dark' ? '#1f2937' : '#ffffff',
-          color: theme === 'dark' ? '#f3f4f6' : '#111827',
+          color: theme === 'dark' ? '#f3f4f6' : '#111827'
         });
       } else {
         updateState({ error: response.message });
@@ -350,7 +350,7 @@ const SubjectManagement = () => {
           text: response.message || "Failed to delete subject",
           icon: "error",
           background: theme === 'dark' ? '#1f2937' : '#ffffff',
-          color: theme === 'dark' ? '#f3f4f6' : '#111827',
+          color: theme === 'dark' ? '#f3f4f6' : '#111827'
         });
       }
     } catch (err) {
@@ -361,7 +361,7 @@ const SubjectManagement = () => {
         text: msg,
         icon: "error",
         background: theme === 'dark' ? '#1f2937' : '#ffffff',
-        color: theme === 'dark' ? '#f3f4f6' : '#111827',
+        color: theme === 'dark' ? '#f3f4f6' : '#111827'
       });
     } finally {
       updateState({ loading: false });
@@ -389,12 +389,12 @@ const SubjectManagement = () => {
                 updateState({
                   showModal: "add",
                   newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                  currentSubject: null,
+                  currentSubject: null
                 });
               }}
               className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-              disabled={state.loading || !state.branchId}
-            >
+              disabled={state.loading || !state.branchId}>
+              
               + Add Course
             </Button>
           </div>
@@ -405,16 +405,16 @@ const SubjectManagement = () => {
               <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Semester</label>
               <Select
                 value={state.filters.semester_id}
-                onValueChange={(val) => updateState({ filters: { ...state.filters, semester_id: val }, currentPage: 1 })}
-              >
+                onValueChange={(val) => updateState({ filters: { ...state.filters, semester_id: val }, currentPage: 1 })}>
+                
                 <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
                   <SelectValue placeholder="All Semesters" />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
                   <SelectItem value="all">All Semesters</SelectItem>
-                  {state.semesters.map((sem) => (
-                    <SelectItem key={sem.id} value={sem.id}>Semester {sem.number}</SelectItem>
-                  ))}
+                  {state.semesters.map((sem) =>
+                  <SelectItem key={sem.id} value={sem.id}>Semester {sem.number}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -422,8 +422,8 @@ const SubjectManagement = () => {
               <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Type</label>
               <Select
                 value={state.filters.subject_type}
-                onValueChange={(val) => updateState({ filters: { ...state.filters, subject_type: val }, currentPage: 1 })}
-              >
+                onValueChange={(val) => updateState({ filters: { ...state.filters, subject_type: val }, currentPage: 1 })}>
+                
                 <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
@@ -437,15 +437,15 @@ const SubjectManagement = () => {
             </div>
           </div>
 
-          {state.loading ? (
-            <div className="py-4">
+          {state.loading ?
+          <div className="py-4">
               <SkeletonTable rows={10} cols={6} />
-            </div>
-          ) : (
+            </div> :
+
+          <>
             <>
-            <>
-              {state.subjects.length > 0 ? (
-                <>
+              {state.subjects.length > 0 ?
+              <>
                   {/* Desktop/Table for md+ */}
                   <div className="overflow-x-auto hidden md:block">
                     <table className="w-full table-auto text-sm">
@@ -460,13 +460,13 @@ const SubjectManagement = () => {
                         </tr>
                       </thead>
                       <tbody className={theme === 'dark' ? 'bg-background' : 'bg-white'}>
-                        {state.subjects.map((subject, index) => (
-                          <tr
-                            key={subject.id}
-                            className={
-                              index % 2 === 0 ? (theme === 'dark' ? 'bg-card' : 'bg-gray-50') : (theme === 'dark' ? 'bg-background' : 'bg-white')
-                            }
-                          >
+                        {state.subjects.map((subject, index) =>
+                      <tr
+                        key={subject.id}
+                        className={
+                        index % 2 === 0 ? theme === 'dark' ? 'bg-card' : 'bg-gray-50' : theme === 'dark' ? 'bg-background' : 'bg-white'
+                        }>
+                        
                             <td className="px-4 py-3">{subject.subject_code}</td>
                             <td className="px-4 py-3">{subject.name}</td>
                             <td className="px-4 py-3">{getSemesterNumber(subject.semester_id)}</td>
@@ -474,27 +474,27 @@ const SubjectManagement = () => {
                             <td className="px-4 py-3">{subject.credits ?? 0}</td>
                             <td className="px-4 py-3 flex gap-5">
                               <Pencil
-                                className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
-                                onClick={() => handleEdit(subject)}
-                              />
+                            className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
+                            onClick={() => handleEdit(subject)} />
+                          
                               <Trash2
-                                className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}`}
-                                onClick={() => handleDelete(subject.id)}
-                              />
+                            className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}`}
+                            onClick={() => handleDelete(subject.id)} />
+                          
                             </td>
                           </tr>
-                        ))}
+                      )}
                       </tbody>
                     </table>
                   </div>
 
                   {/* Mobile: card list (only visible on small screens) */}
                   <div className="md:hidden space-y-3">
-                    {state.subjects.map((subject) => (
-                      <div
-                        key={subject.id}
-                        className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}
-                      >
+                    {state.subjects.map((subject) =>
+                  <div
+                    key={subject.id}
+                    className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                    
                         <div className="flex justify-between items-start">
                           <div className="flex-1 pr-3">
                             <div className="text-xs text-gray-500 mb-1">{subject.subject_code} • {getSemesterNumber(subject.semester_id)}</div>
@@ -503,21 +503,21 @@ const SubjectManagement = () => {
                           </div>
                           <div className="flex items-start gap-3">
                             <Pencil
-                              className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
-                              onClick={() => handleEdit(subject)}
-                            />
+                          className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
+                          onClick={() => handleEdit(subject)} />
+                        
                             <Trash2
-                              className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'} }`}
-                              onClick={() => handleDelete(subject.id)}
-                            />
+                          className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'} }`}
+                          onClick={() => handleDelete(subject.id)} />
+                        
                           </div>
                         </div>
                       </div>
-                    ))}
+                  )}
                   </div>
-                </>
-              ) : (
-                <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-xl border-2 border-dashed transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 hover:bg-card/50' : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'}`}>
+                </> :
+
+              <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-xl border-2 border-dashed transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 hover:bg-card/50' : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'}`}>
                   <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-600'}`}>
                     <BookOpen className="w-10 h-10" />
                   </div>
@@ -525,29 +525,29 @@ const SubjectManagement = () => {
                   <p className={`text-sm text-center max-w-xs mb-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     It looks like there are no courses matching your criteria. Try adjusting your filters or add a new course to get started.
                   </p>
-                  <Button 
-                    onClick={() => updateState({ 
-                      showModal: "add",
-                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                      currentSubject: null,
-                    })}
-                    className="bg-primary text-white hover:bg-primary/90 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
-                  >
+                  <Button
+                  onClick={() => updateState({
+                    showModal: "add",
+                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                    currentSubject: null
+                  })}
+                  className="bg-primary text-white hover:bg-primary/90 transition-all transform hover:scale-105 active:scale-95 shadow-lg">
+                  
                     + Add Your First Course
                   </Button>
                 </div>
-              )}
+              }
             </>
             </>
-          )}
+          }
 
           {/* Pagination */}
           <div className="mt-4 flex justify-end items-center gap-2">
             <Button
               onClick={() => updateState({ currentPage: Math.max(state.currentPage - 1, 1) })}
               disabled={state.currentPage === 1 || state.loading}
-              className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-            >
+              className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+              
               Previous
             </Button>
             <div className={`px-4 text-center text-sm font-medium py-1.5 rounded-md min-w-12 ${theme === 'dark' ? 'text-foreground bg-card border border-border' : 'text-gray-900 bg-white border border-gray-300'}`}>
@@ -556,8 +556,8 @@ const SubjectManagement = () => {
             <Button
               onClick={() => updateState({ currentPage: Math.min(state.currentPage + 1, totalPages) })}
               disabled={state.currentPage === totalPages || state.loading || totalPages === 0}
-              className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-            >
+              className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+              
               Next
             </Button>
           </div>
@@ -566,72 +566,72 @@ const SubjectManagement = () => {
 
 
       {/* Add/Edit Subject Modal */}
-      {state.showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={() => updateState({ showModal: null })}>
+      {state.showModal &&
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={() => updateState({ showModal: null })}>
           <div className={`p-6 rounded-lg shadow-lg w-[90%] sm:w-80 max-h-[70vh] overflow-y-auto md:max-h-none md:overflow-visible ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}`} onClick={(e) => e.stopPropagation()}>
             <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               {state.showModal === "add" ? "Add New Subject" : "Edit Subject"}
             </h3>
 
             {/* Display modal-level error below title */}
-            {state.modalError && (
-              <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{state.modalError}</p>
-            )}
+            {state.modalError &&
+          <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{state.modalError}</p>
+          }
 
             {/* Course Code */}
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Code</label>
               <Input
-                type="text"
-                value={state.newSubject.code}
-                onChange={(e) => {
-                  const code = e.target.value.toUpperCase(); // auto-uppercase
-                  updateState({
-                    newSubject: { ...state.newSubject, code },
-                    modalError: null,
-                  });
-                }}
-                placeholder="e.g., PH1L001, BCS601"
-                disabled={state.loading}
-                className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`}
-              />
+              type="text"
+              value={state.newSubject.code}
+              onChange={(e) => {
+                const code = e.target.value.toUpperCase(); // auto-uppercase
+                updateState({
+                  newSubject: { ...state.newSubject, code },
+                  modalError: null
+                });
+              }}
+              placeholder="e.g., PH1L001, BCS601"
+              disabled={state.loading}
+              className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
+            
             </div>
 
             {/* Course Name */}
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Name</label>
               <Input
-                type="text"
-                value={state.newSubject.name}
-                onChange={(e) =>
-                  updateState({
-                    newSubject: { ...state.newSubject, name: e.target.value },
-                    modalError: null,
-                  })
-                }
-                placeholder="e.g., Mathematics"
-                disabled={state.loading}
-                className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`}
-              />
+              type="text"
+              value={state.newSubject.name}
+              onChange={(e) =>
+              updateState({
+                newSubject: { ...state.newSubject, name: e.target.value },
+                modalError: null
+              })
+              }
+              placeholder="e.g., Mathematics"
+              disabled={state.loading}
+              className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
+            
             </div>
 
             {/* Semester */}
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester</label>
               <Select
-                value={state.newSubject.semester_id}
-                onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val }, modalError: null })}
-                disabled={state.loading}
-              >
+              value={state.newSubject.semester_id}
+              onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val }, modalError: null })}
+              disabled={state.loading}>
+              
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                   <SelectValue placeholder="Select Semester" />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  {state.semesters.map((semester) => (
-                    <SelectItem key={semester.id} value={semester.id}>
+                  {state.semesters.map((semester) =>
+                <SelectItem key={semester.id} value={semester.id}>
                       Semester {semester.number}
                     </SelectItem>
-                  ))}
+                )}
                 </SelectContent>
               </Select>
             </div>
@@ -640,10 +640,10 @@ const SubjectManagement = () => {
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Type</label>
               <Select
-                value={state.newSubject.subject_type}
-                onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val }, modalError: null })}
-                disabled={state.loading}
-              >
+              value={state.newSubject.subject_type}
+              onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val }, modalError: null })}
+              disabled={state.loading}>
+              
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                   <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
@@ -659,113 +659,113 @@ const SubjectManagement = () => {
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Credits</label>
               <Input
-                type="number"
-                min={0}
-                value={state.newSubject.credits}
-                onChange={(e) =>
-                  updateState({ newSubject: { ...state.newSubject, credits: Number(e.target.value) }, modalError: null })
-                }
-                placeholder="e.g., 3"
-                disabled={state.loading}
-                className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`}
-              />
+              type="number"
+              min={0}
+              value={state.newSubject.credits}
+              onChange={(e) =>
+              updateState({ newSubject: { ...state.newSubject, credits: Number(e.target.value) }, modalError: null })
+              }
+              placeholder="e.g., 3"
+              disabled={state.loading}
+              className={`${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'} px-3 py-2 rounded`} />
+            
             </div>
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-4">
               <Button
-                onClick={() => {
-                  updateState({
-                    showModal: null,
-                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                    currentSubject: null,
-                    modalError: null,
-                  });
-                }}
-                className={`${theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 bottom-1 '}`}
-                disabled={state.loading}
-              >
+              onClick={() => {
+                updateState({
+                  showModal: null,
+                  newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                  currentSubject: null,
+                  modalError: null
+                });
+              }}
+              className={`${theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 bottom-1 '}`}
+              disabled={state.loading}>
+              
                 Cancel
               </Button>
 
               <Button
-                onClick={async () => {
-                  if (!state.newSubject.code || !state.newSubject.name || !state.newSubject.semester_id) {
-                    updateState({ modalError: "All fields are required" });
-                    return;
-                  }
+              onClick={async () => {
+                if (!state.newSubject.code || !state.newSubject.name || !state.newSubject.semester_id) {
+                  updateState({ modalError: "All fields are required" });
+                  return;
+                }
 
-                  const data: ManageSubjectsRequest = {
-                    action: state.showModal === "add" ? "create" : "update",
-                    branch_id: state.branchId,
-                    name: state.newSubject.name,
-                    subject_code: state.newSubject.code,
-                    semester_id: state.newSubject.semester_id,
-                    subject_type: state.newSubject.subject_type,
-                    credits: Number(state.newSubject.credits),
-                    ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {}),
-                  };
+                const data: ManageSubjectsRequest = {
+                  action: state.showModal === "add" ? "create" : "update",
+                  branch_id: state.branchId,
+                  name: state.newSubject.name,
+                  subject_code: state.newSubject.code,
+                  semester_id: state.newSubject.semester_id,
+                  subject_type: state.newSubject.subject_type,
+                  credits: Number(state.newSubject.credits),
+                  ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {})
+                };
 
-                  updateState({ loading: true, modalError: null, success: null });
-                  try {
-                    const response = await manageSubjects(data, "POST");
-                    if (response.success) {
-                      const isCreate = data.action === 'create';
-                      const createdId = response.data?.subject_id as unknown as string;
-                      const updatedSubject: Subject = {
-                        id: isCreate ? (createdId || `${Date.now()}`) : (state.currentSubject ? state.currentSubject.id : createdId || `${Date.now()}`),
-                        name: state.newSubject.name,
-                        subject_code: state.newSubject.code,
-                        semester_id: state.newSubject.semester_id,
-                        subject_type: state.newSubject.subject_type,
-                        credits: state.newSubject.credits,
-                      };
+                updateState({ loading: true, modalError: null, success: null });
+                try {
+                  const response = await manageSubjects(data, "POST");
+                  if (response.success) {
+                    const isCreate = data.action === 'create';
+                    const createdId = response.data?.subject_id as unknown as string;
+                    const updatedSubject: Subject = {
+                      id: isCreate ? createdId || `${Date.now()}` : state.currentSubject ? state.currentSubject.id : createdId || `${Date.now()}`,
+                      name: state.newSubject.name,
+                      subject_code: state.newSubject.code,
+                      semester_id: state.newSubject.semester_id,
+                      subject_type: state.newSubject.subject_type,
+                      credits: state.newSubject.credits
+                    };
 
-                      if (isCreate) {
-                        const newSubjects = [updatedSubject, ...state.subjects].slice(0, state.pageSize);
-                        const newTotalCount = state.totalCount + 1;
-                        const newTotalPages = Math.ceil(newTotalCount / state.pageSize);
-                        updateState({
-                          subjects: newSubjects,
-                          totalCount: newTotalCount,
-                          totalPages: newTotalPages,
-                          success: "Subject added successfully",
-                          showModal: null,
-                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                          currentSubject: null,
-                          modalError: null,
-                        });
-                      } else {
-                        const newSubjects = state.subjects.map((s) => (s.id === updatedSubject.id ? updatedSubject : s));
-                        updateState({
-                          subjects: newSubjects,
-                          success: "Subject updated successfully",
-                          showModal: null,
-                          newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                          currentSubject: null,
-                          modalError: null,
-                        });
-                      }
+                    if (isCreate) {
+                      const newSubjects = [updatedSubject, ...state.subjects].slice(0, state.pageSize);
+                      const newTotalCount = state.totalCount + 1;
+                      const newTotalPages = Math.ceil(newTotalCount / state.pageSize);
+                      updateState({
+                        subjects: newSubjects,
+                        totalCount: newTotalCount,
+                        totalPages: newTotalPages,
+                        success: "Subject added successfully",
+                        showModal: null,
+                        newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                        currentSubject: null,
+                        modalError: null
+                      });
                     } else {
-                      updateState({ modalError: response.message });
+                      const newSubjects = state.subjects.map((s) => s.id === updatedSubject.id ? updatedSubject : s);
+                      updateState({
+                        subjects: newSubjects,
+                        success: "Subject updated successfully",
+                        showModal: null,
+                        newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                        currentSubject: null,
+                        modalError: null
+                      });
                     }
-                  } catch (err) {
-                    updateState({ modalError: "Failed to save subject" });
-                  } finally {
-                    updateState({ loading: false });
+                  } else {
+                    updateState({ modalError: response.message });
                   }
-                }}
-                className="bg-primary text-white border border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-                disabled={state.loading}
-              >
+                } catch (err) {
+                  updateState({ modalError: "Failed to save subject" });
+                } finally {
+                  updateState({ loading: false });
+                }
+              }}
+              className="bg-primary text-white border border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
+              disabled={state.loading}>
+              
                 {state.showModal === "add" ? "Add Course" : "Update Course"}
               </Button>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 
 export default SubjectManagement;

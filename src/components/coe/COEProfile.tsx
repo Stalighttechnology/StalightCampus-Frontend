@@ -42,17 +42,17 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
     last_name: "",
     email: "",
     phone_number: "",
-    address: "",
+    address: ""
   });
   const [passwordData, setPasswordData] = useState({
     current_password: "",
     new_password: "",
-    confirm_password: "",
+    confirm_password: ""
   });
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     next: false,
-    confirm: false,
+    confirm: false
   });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
 
@@ -63,7 +63,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   const fetchProfile = async () => {
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/`, {
-        method: 'GET',
+        method: 'GET'
       });
       const result = await response.json();
       if (result.success) {
@@ -74,11 +74,11 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
           last_name: profileData.last_name || "",
           email: profileData.email || "",
           phone_number: profileData.phone_number || profileData.mobile_number || "",
-          address: profileData.address || "",
+          address: profileData.address || ""
         });
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+
     } finally {
       setLoading(false);
     }
@@ -89,9 +89,9 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/update/`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       });
 
       const result = await response.json();
@@ -100,7 +100,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
         await fetchProfile();
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
+
     }
   };
 
@@ -111,7 +111,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
         last_name: profile.last_name || "",
         email: profile.email || "",
         phone_number: profile.phone_number || profile.mobile_number || "",
-        address: profile.address || "",
+        address: profile.address || ""
       });
     }
     setEditing(false);
@@ -123,7 +123,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
         icon: "error",
         title: "Password mismatch",
         text: "New passwords don't match",
-        target: passwordDialogContentRef.current ?? document.body,
+        target: passwordDialogContentRef.current ?? document.body
       });
       return;
     }
@@ -133,7 +133,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
         icon: "error",
         title: "Invalid new password",
         text: "Current password and new password cannot be the same.",
-        target: passwordDialogContentRef.current ?? document.body,
+        target: passwordDialogContentRef.current ?? document.body
       });
       return;
     }
@@ -142,13 +142,13 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/change-password/`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           current_password: passwordData.current_password,
           new_password: passwordData.new_password,
-          confirm_password: passwordData.confirm_password,
-        }),
+          confirm_password: passwordData.confirm_password
+        })
       });
 
       const result = await response.json();
@@ -157,29 +157,29 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
         setPasswordData({
           current_password: "",
           new_password: "",
-          confirm_password: "",
+          confirm_password: ""
         });
         Swal.fire({
           icon: "success",
           title: "Password changed",
           text: "Your password has been updated successfully.",
-          target: passwordDialogContentRef.current ?? document.body,
+          target: passwordDialogContentRef.current ?? document.body
         });
       } else {
         Swal.fire({
           icon: "error",
           title: "Unable to change password",
           text: result.message || "Failed to change password",
-          target: passwordDialogContentRef.current ?? document.body,
+          target: passwordDialogContentRef.current ?? document.body
         });
       }
     } catch (error) {
-      console.error('Error changing password:', error);
+
       Swal.fire({
         icon: "error",
         title: "Unable to change password",
         text: "Failed to change password",
-        target: passwordDialogContentRef.current ?? document.body,
+        target: passwordDialogContentRef.current ?? document.body
       });
     }
   };
@@ -188,16 +188,16 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
     return (
       <div className="p-4 sm:p-6 space-y-6">
         <SkeletonCard className="w-full h-[400px]" />
-      </div>
-    );
+      </div>);
+
   }
 
   if (!profile) {
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">Failed to load profile</p>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -217,18 +217,18 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
               } else {
                 setEditing(true);
               }
-            }}
-          >
+            }}>
+            
             {editing ? 'Save' : 'Edit Profile'}
           </Button>
-          {editing && (
-            <button
-              onClick={handleCancelEdit}
-              className={`text-md sm:text-xl px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto border rounded-md transition-colors ${theme === 'dark' ? 'border-muted-foreground text-muted-foreground hover:border-foreground hover:text-foreground' : 'border-gray-600 text-gray-600 hover:border-gray-900 hover:text-gray-900'}`}
-            >
+          {editing &&
+          <button
+            onClick={handleCancelEdit}
+            className={`text-md sm:text-xl px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto border rounded-md transition-colors ${theme === 'dark' ? 'border-muted-foreground text-muted-foreground hover:border-foreground hover:text-foreground' : 'border-gray-600 text-gray-600 hover:border-gray-900 hover:text-gray-900'}`}>
+            
               Cancel
             </button>
-          )}
+          }
 
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogTrigger asChild>
@@ -249,14 +249,14 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                       type={showPasswords.current ? "text" : "password"}
                       value={passwordData.current_password}
                       onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                      className="pr-10 h-12 text-[18px] sm:text-sm"
-                    />
+                      className="pr-10 h-12 text-[18px] sm:text-sm" />
+                    
                     <button
                       type="button"
                       onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                      aria-label={showPasswords.current ? "Hide current password" : "Show current password"}
-                    >
+                      aria-label={showPasswords.current ? "Hide current password" : "Show current password"}>
+                      
                       {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -269,14 +269,14 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                       type={showPasswords.next ? "text" : "password"}
                       value={passwordData.new_password}
                       onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                      className="pr-10 h-12 text-[18px] sm:text-sm"
-                    />
+                      className="pr-10 h-12 text-[18px] sm:text-sm" />
+                    
                     <button
                       type="button"
                       onClick={() => setShowPasswords((prev) => ({ ...prev, next: !prev.next }))}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                      aria-label={showPasswords.next ? "Hide new password" : "Show new password"}
-                    >
+                      aria-label={showPasswords.next ? "Hide new password" : "Show new password"}>
+                      
                       {showPasswords.next ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -289,14 +289,14 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                       type={showPasswords.confirm ? "text" : "password"}
                       value={passwordData.confirm_password}
                       onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                      className="pr-10 h-12 text-[18px] sm:text-sm"
-                    />
+                      className="pr-10 h-12 text-[18px] sm:text-sm" />
+                    
                     <button
                       type="button"
                       onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                      aria-label={showPasswords.confirm ? "Hide confirm password" : "Show confirm password"}
-                    >
+                      aria-label={showPasswords.confirm ? "Hide confirm password" : "Show confirm password"}>
+                      
                       {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -348,28 +348,28 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
 
             <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
-              {activeTab === 'personal' && (
-                <div className="space-y-4 sm:space-y-5 md:space-y-6">
+              {activeTab === 'personal' &&
+              <div className="space-y-4 sm:space-y-5 md:space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                     <div>
                       <Label htmlFor="first_name" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</Label>
                       <Input
-                        id="first_name"
-                        value={formData.first_name}
-                        disabled={!editing}
-                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                        className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full"
-                      />
+                      id="first_name"
+                      value={formData.first_name}
+                      disabled={!editing}
+                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                      className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full" />
+                    
                     </div>
                     <div>
                       <Label htmlFor="last_name" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</Label>
                       <Input
-                        id="last_name"
-                        value={formData.last_name}
-                        disabled={!editing}
-                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                        className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full"
-                      />
+                      id="last_name"
+                      value={formData.last_name}
+                      disabled={!editing}
+                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                      className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full" />
+                    
                     </div>
                   </div>
                   <div>
@@ -377,61 +377,61 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                     <Input id="username_view" value={profile.username} disabled className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full" />
                   </div>
                 </div>
-              )}
+              }
 
-              {activeTab === 'contact' && (
-                <div className="space-y-4 sm:space-y-5">
+              {activeTab === 'contact' &&
+              <div className="space-y-4 sm:space-y-5">
                   <div>
                     <Label htmlFor="email" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      disabled={!editing}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="text-[18px] sm:text-sm h-12 sm:h-10"
-                    />
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    disabled={!editing}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="text-[18px] sm:text-sm h-12 sm:h-10" />
+                  
                   </div>
                   <div>
                     <Label htmlFor="phone_number" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Phone Number</Label>
                     <Input
-                      id="phone_number"
-                      value={formData.phone_number}
-                      disabled={!editing}
-                      onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                      className="text-[18px] sm:text-sm h-12 sm:h-10"
-                    />
+                    id="phone_number"
+                    value={formData.phone_number}
+                    disabled={!editing}
+                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                    className="text-[18px] sm:text-sm h-12 sm:h-10" />
+                  
                   </div>
                   <div>
                     <Label htmlFor="address" className={`block text-[16px] sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</Label>
                     <Textarea
-                      id="address"
-                      rows={3}
-                      value={formData.address}
-                      disabled={!editing}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="text-[18px] sm:text-sm"
-                    />
+                    id="address"
+                    rows={3}
+                    value={formData.address}
+                    disabled={!editing}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="text-[18px] sm:text-sm" />
+                  
                   </div>
                 </div>
-              )}
+              }
 
               <div className="pt-4 border-t mt-4">
                 <div className="space-y-3 text-[16px] sm:text-sm text-muted-foreground">
-                  {profile.last_login && (
-                    <div className="flex items-center gap-2">
+                  {profile.last_login &&
+                  <div className="flex items-center gap-2">
                       <Calendar className="h-5 w-5 sm:h-4 sm:w-4" />
                       <span>Last Login: {new Date(profile.last_login).toLocaleString()}</span>
                     </div>
-                  )}
+                  }
                 </div>
               </div>
             </div>
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 });
 
 COEProfile.displayName = 'COEProfile';

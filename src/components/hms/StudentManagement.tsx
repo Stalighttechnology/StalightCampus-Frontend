@@ -96,7 +96,7 @@ const StudentManagement: React.FC = () => {
 
   const getFloorsForHostel = async (hostelId: number) => {
     setIsLoadingFloors(true);
-    const hostel = hostels.find(h => h.id === hostelId);
+    const hostel = hostels.find((h) => h.id === hostelId);
     const floors = hostel ? Array.from({ length: hostel.floor_count || 1 }, (_, i) => i) : [];
     setFloorsForHostel(floors);
     setIsLoadingFloors(false);
@@ -107,7 +107,7 @@ const StudentManagement: React.FC = () => {
       setRoomsForHostel([]);
       return;
     }
-    
+
     setIsLoadingRooms(true);
     const results = await getCachedRooms(hostelId, floor.toString());
     setRoomsForHostel(results);
@@ -115,13 +115,13 @@ const StudentManagement: React.FC = () => {
   };
 
   const fetchSemesters = async (branchId?: string) => {
-    console.log('fetchSemesters called with branchId:', branchId);
+
     if (!branchId) {
       setSemesters([]);
       return;
     }
     const results = await getSemestersForBranch(parseInt(branchId));
-    console.log('fetchSemesters results:', results);
+
     setSemesters(results);
   };
 
@@ -156,11 +156,11 @@ const StudentManagement: React.FC = () => {
   // We want it to be manual and cascaded
 
   const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
     setCurrentPage(1);
     if (key === 'branch') {
       fetchSemesters(value);
-      setFilters(prev => ({ ...prev, semester: '' }));
+      setFilters((prev) => ({ ...prev, semester: '' }));
     }
   };
 
@@ -171,9 +171,9 @@ const StudentManagement: React.FC = () => {
     const response = await manageHostelStudents(formData, editingStudent.id, 'PUT');
     if (response.success) {
       // Find the selected hostel and room names for the manual update
-      const selectedHostel = hostels.find(h => h.id === selectedHostelInDialog);
-      const selectedRoom = roomsForHostel.find(r => r.id === formData.room);
-      
+      const selectedHostel = hostels.find((h) => h.id === selectedHostelInDialog);
+      const selectedRoom = roomsForHostel.find((r) => r.id === formData.room);
+
       const updatedStudent: HostelStudent = {
         ...editingStudent,
         ...formData,
@@ -185,7 +185,7 @@ const StudentManagement: React.FC = () => {
       if (editingStudent.room !== formData.room) {
         // Decrement old room count if it existed
         if (editingStudent.room && editingStudent.room_hostel_name) {
-          const oldHostel = hostels.find(h => h.name === editingStudent.room_hostel_name);
+          const oldHostel = hostels.find((h) => h.name === editingStudent.room_hostel_name);
           if (oldHostel) {
             updateRoomStudentCount(oldHostel.id, editingStudent.room, -1);
           }
@@ -202,8 +202,8 @@ const StudentManagement: React.FC = () => {
         updatedStudent.room_hostel_name = undefined;
       }
 
-      setStudents(prev => prev.map(s => s.id === editingStudent.id ? updatedStudent : s));
-      
+      setStudents((prev) => prev.map((s) => s.id === editingStudent.id ? updatedStudent : s));
+
       setIsDialogOpen(false);
       toast({ title: "Success", description: "Student details updated successfully" });
     } else {
@@ -220,11 +220,11 @@ const StudentManagement: React.FC = () => {
     });
 
     if (student.room && student.room_hostel_name) {
-      const hostel = hostels.find(h => h.name === student.room_hostel_name);
+      const hostel = hostels.find((h) => h.name === student.room_hostel_name);
       if (hostel) {
         setSelectedHostelInDialog(hostel.id);
         getFloorsForHostel(hostel.id);
-        
+
         // If we have floor info, fetch rooms for that floor
         // Since we don't have explicit floor in student object yet, we extract it from room name
         if (student.room_name) {
@@ -256,51 +256,51 @@ const StudentManagement: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Batch</Label>
-                {loading || skeletonMode ? (
-                  <div className="w-full h-9 rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Select value={filters.batch || "all"} onValueChange={(v) => handleFilterChange('batch', v === "all" ? '' : v)}>
+                {loading || skeletonMode ?
+                <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
+
+                <Select value={filters.batch || "all"} onValueChange={(v) => handleFilterChange('batch', v === "all" ? '' : v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder="All Batches" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Batches</SelectItem>
-                      {batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                      {batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                )}
+                }
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Branch</Label>
-                {loading || skeletonMode ? (
-                  <div className="w-full h-9 rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Select value={filters.branch || "all"} onValueChange={(v) => handleFilterChange('branch', v === "all" ? '' : v)}>
+                {loading || skeletonMode ?
+                <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
+
+                <Select value={filters.branch || "all"} onValueChange={(v) => handleFilterChange('branch', v === "all" ? '' : v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder="All Branches" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Branches</SelectItem>
-                      {branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                      {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                )}
+                }
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Semester</Label>
-                {loading || skeletonMode ? (
-                  <div className="w-full h-9 rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Select value={filters.semester || "all"} onValueChange={(v) => handleFilterChange('semester', v === "all" ? '' : v)} disabled={!filters.branch}>
+                {loading || skeletonMode ?
+                <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
+
+                <Select value={filters.semester || "all"} onValueChange={(v) => handleFilterChange('semester', v === "all" ? '' : v)} disabled={!filters.branch}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder="All Semesters" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Semesters</SelectItem>
-                      {Array.isArray(semesters) && semesters.map(s => <SelectItem key={s.id} value={s.id}>Semester {s.number}</SelectItem>)}
+                      {Array.isArray(semesters) && semesters.map((s) => <SelectItem key={s.id} value={s.id}>Semester {s.number}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                )}
+                }
               </div>
             </div>
 
@@ -310,26 +310,26 @@ const StudentManagement: React.FC = () => {
                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Search Students</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  {loading || skeletonMode ? (
-                    <div className="h-9 w-full rounded-md bg-muted animate-pulse border" />
-                  ) : (
-                    <Input
-                      placeholder="USN, Name, Email..."
-                      className="h-9 pl-10 bg-background border-muted-foreground/20 focus:border-primary/50 transition-colors"
-                      value={filters.search}
-                      onChange={(e) => handleFilterChange('search', e.target.value)}
-                    />
-                  )}
+                  {loading || skeletonMode ?
+                  <div className="h-9 w-full rounded-md bg-muted animate-pulse border" /> :
+
+                  <Input
+                    placeholder="USN, Name, Email..."
+                    className="h-9 pl-10 bg-background border-muted-foreground/20 focus:border-primary/50 transition-colors"
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange('search', e.target.value)} />
+
+                  }
                 </div>
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {loading || skeletonMode ? (
-            <div className="p-6"><SkeletonTable rows={10} columns={7} /></div>
-          ) : (
-            <>
+          {loading || skeletonMode ?
+          <div className="p-6"><SkeletonTable rows={10} columns={7} /></div> :
+
+          <>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -343,9 +343,9 @@ const StudentManagement: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {students.length > 0 ? (
-                      students.map((student) => (
-                        <TableRow key={student.id} className="hover:bg-muted/30 transition-colors">
+                    {students.length > 0 ?
+                  students.map((student) =>
+                  <TableRow key={student.id} className="hover:bg-muted/30 transition-colors">
                           <TableCell className="font-medium">{student.usn}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
@@ -354,25 +354,25 @@ const StudentManagement: React.FC = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {student.room_name ? (
-                              <div className="flex items-center gap-2">
+                            {student.room_name ?
+                      <div className="flex items-center gap-2">
                                 <span className="text-sm">{student.room_hostel_name} - {student.room_name}</span>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground italic">Not Assigned</span>
-                            )}
+                              </div> :
+
+                      <span className="text-xs text-muted-foreground italic">Not Assigned</span>
+                      }
                           </TableCell>
                           <TableCell className="text-center">
                             {student.room_allotted ?
-                              <Badge className="bg-green-500/10 text-green-600 border-green-200 hover:bg-green-500/20">Allotted</Badge> :
-                              <Badge variant="outline" className="text-muted-foreground border-dashed">Pending</Badge>
-                            }
+                      <Badge className="bg-green-500/10 text-green-600 border-green-200 hover:bg-green-500/20">Allotted</Badge> :
+                      <Badge variant="outline" className="text-muted-foreground border-dashed">Pending</Badge>
+                      }
                           </TableCell>
                           <TableCell className="text-center">
                             {student.no_dues ?
-                              <CheckCircle2 size={18} className="text-green-500 mx-auto" /> :
-                              <XCircle size={18} className="text-red-500 mx-auto" />
-                            }
+                      <CheckCircle2 size={18} className="text-green-500 mx-auto" /> :
+                      <XCircle size={18} className="text-red-500 mx-auto" />
+                      }
                           </TableCell>
                           <TableCell className="text-right px-6">
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(student)} className="h-8 w-8 text-primary hover:bg-primary/10">
@@ -380,39 +380,39 @@ const StudentManagement: React.FC = () => {
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
+                  ) :
+
+                  <TableRow>
                         <TableCell colSpan={6} className="text-center py-20 text-muted-foreground">
                           {!filters.batch || !filters.branch || !filters.semester ?
-                            "Select filters to view student records." :
-                            "No student records found."
-                          }
+                      "Select filters to view student records." :
+                      "No student records found."
+                      }
                         </TableCell>
                       </TableRow>
-                    )}
+                  }
                   </TableBody>
                 </Table>
               </div>
 
               {/* Pagination */}
-              {totalCount > pageSize && (
-                <div className="p-4 border-t flex items-center justify-between">
+              {totalCount > pageSize &&
+            <div className="p-4 border-t flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    Showing {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount}
+                    Showing {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount}
                   </span>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => prev - 1)} disabled={!previousPage}>
+                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((prev) => prev - 1)} disabled={!previousPage}>
                       <ChevronLeft className="w-4 h-4 mr-1" /> Prev
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => prev + 1)} disabled={!nextPage}>
+                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((prev) => prev + 1)} disabled={!nextPage}>
                       Next <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
                 </div>
-              )}
+            }
             </>
-          )}
+          }
         </CardContent>
       </Card>
 
@@ -422,8 +422,8 @@ const StudentManagement: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Update Student HMS Details</DialogTitle>
           </DialogHeader>
-          {editingStudent && (
-            <div className="space-y-6 pt-4">
+          {editingStudent &&
+          <div className="space-y-6 pt-4">
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex gap-4 items-center">
                 <UserCircle2 className="w-12 h-12 text-primary opacity-80" />
                 <div className="grid grid-cols-2 gap-x-8 gap-y-1 flex-1">
@@ -439,16 +439,16 @@ const StudentManagement: React.FC = () => {
                   <div className="space-y-2">
                     <Label>Assign Hostel</Label>
                     <Select value={selectedHostelInDialog?.toString() || ''} onValueChange={(v) => {
-                      const id = parseInt(v);
-                      setSelectedHostelInDialog(id);
-                      setSelectedFloorInDialog(null);
-                      setRoomsForHostel([]);
-                      getFloorsForHostel(id);
-                      setFormData(prev => ({ ...prev, room: null }));
-                    }}>
+                    const id = parseInt(v);
+                    setSelectedHostelInDialog(id);
+                    setSelectedFloorInDialog(null);
+                    setRoomsForHostel([]);
+                    getFloorsForHostel(id);
+                    setFormData((prev) => ({ ...prev, room: null }));
+                  }}>
                       <SelectTrigger><SelectValue placeholder="Select hostel" /></SelectTrigger>
                       <SelectContent>
-                        {hostels.map(h => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)}
+                        {hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -457,47 +457,47 @@ const StudentManagement: React.FC = () => {
                     <div className="space-y-2">
                       <Label>Select Floor</Label>
                       <Select
-                        value={selectedFloorInDialog?.toString() || ''}
-                        onValueChange={(v) => {
-                          const floor = parseInt(v);
-                          setSelectedFloorInDialog(floor);
-                          if (selectedHostelInDialog) {
-                            getRoomsForHostel(selectedHostelInDialog, floor);
-                          }
-                          setFormData(prev => ({ ...prev, room: null }));
-                        }}
-                        disabled={!selectedHostelInDialog || isLoadingFloors}
-                      >
+                      value={selectedFloorInDialog?.toString() || ''}
+                      onValueChange={(v) => {
+                        const floor = parseInt(v);
+                        setSelectedFloorInDialog(floor);
+                        if (selectedHostelInDialog) {
+                          getRoomsForHostel(selectedHostelInDialog, floor);
+                        }
+                        setFormData((prev) => ({ ...prev, room: null }));
+                      }}
+                      disabled={!selectedHostelInDialog || isLoadingFloors}>
+                      
                         <SelectTrigger>
                           {isLoadingFloors ? <span className="animate-pulse">Loading Floors...</span> : <SelectValue placeholder="Select Floor" />}
                         </SelectTrigger>
                         <SelectContent>
-                          {floorsForHostel.length > 0 ? (
-                            floorsForHostel.map(floor => (
-                              <SelectItem key={floor} value={floor.toString()}>
+                          {floorsForHostel.length > 0 ?
+                        floorsForHostel.map((floor) =>
+                        <SelectItem key={floor} value={floor.toString()}>
                                 {floor === 0 ? 'Ground Floor' : `${floor}${floor === 1 ? 'st' : floor === 2 ? 'nd' : floor === 3 ? 'rd' : 'th'} Floor`}
                               </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="none" disabled>No floors found</SelectItem>
-                          )}
+                        ) :
+
+                        <SelectItem value="none" disabled>No floors found</SelectItem>
+                        }
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
                       <Label>Assign Room</Label>
-                      <Select value={formData.room?.toString() || 'none'} onValueChange={(v) => setFormData(prev => ({ ...prev, room: v === 'none' ? null : parseInt(v) }))} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || isLoadingRooms}>
+                      <Select value={formData.room?.toString() || 'none'} onValueChange={(v) => setFormData((prev) => ({ ...prev, room: v === 'none' ? null : parseInt(v) }))} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || isLoadingRooms}>
                         <SelectTrigger>
                           {isLoadingRooms ? <span className="animate-pulse">Loading Rooms...</span> : <SelectValue placeholder="Select room" />}
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
                           <SelectItem value="none">Unassigned</SelectItem>
-                          {roomsForHostel.map(r => (
-                            <SelectItem key={r.id} value={r.id.toString()} disabled={r.student_count >= r.capacity && editingStudent.room !== r.id}>
+                          {roomsForHostel.map((r) =>
+                        <SelectItem key={r.id} value={r.id.toString()} disabled={r.student_count >= r.capacity && editingStudent.room !== r.id}>
                               {r.name} ({r.student_count}/{r.capacity})
                             </SelectItem>
-                          ))}
+                        )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -507,22 +507,22 @@ const StudentManagement: React.FC = () => {
                 <div className="flex gap-6 p-4 rounded-lg bg-muted/30">
                   <div className="flex items-center gap-3">
                     <input
-                      type="checkbox"
-                      id="room_allotted"
-                      className="w-4 h-4 accent-primary"
-                      checked={formData.room_allotted}
-                      onChange={(e) => setFormData(prev => ({ ...prev, room_allotted: e.target.checked }))}
-                    />
+                    type="checkbox"
+                    id="room_allotted"
+                    className="w-4 h-4 accent-primary"
+                    checked={formData.room_allotted}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, room_allotted: e.target.checked }))} />
+                  
                     <Label htmlFor="room_allotted" className="cursor-pointer">Room Allotted</Label>
                   </div>
                   <div className="flex items-center gap-3">
                     <input
-                      type="checkbox"
-                      id="no_dues"
-                      className="w-4 h-4 accent-primary"
-                      checked={formData.no_dues}
-                      onChange={(e) => setFormData(prev => ({ ...prev, no_dues: e.target.checked }))}
-                    />
+                    type="checkbox"
+                    id="no_dues"
+                    className="w-4 h-4 accent-primary"
+                    checked={formData.no_dues}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, no_dues: e.target.checked }))} />
+                  
                     <Label htmlFor="no_dues" className="cursor-pointer">Clear Dues (No Dues)</Label>
                   </div>
                 </div>
@@ -533,11 +533,11 @@ const StudentManagement: React.FC = () => {
                 </div>
               </form>
             </div>
-          )}
+          }
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default StudentManagement;

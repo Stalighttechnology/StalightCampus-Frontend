@@ -12,8 +12,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
-} from "@/components/ui/dialog";
+  DialogDescription } from
+"@/components/ui/dialog";
 import {
   Download,
   Calendar as CalendarIcon,
@@ -23,22 +23,22 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
-  FileText
-} from 'lucide-react';
+  FileText } from
+'lucide-react';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getStaffAttendanceAudit, getStaffDetailedAttendance, STAFF_ROLES } from '../../utils/fees_manager_api';
 import { useTheme } from '@/context/ThemeContext';
-import { 
-  Skeleton, 
-  SkeletonStatsGrid, 
-  SkeletonTable, 
-  SkeletonList, 
+import {
+  Skeleton,
+  SkeletonStatsGrid,
+  SkeletonTable,
+  SkeletonList,
   SkeletonPageHeader,
-  SkeletonCard
-} from "@/components/ui/skeleton";
+  SkeletonCard } from
+"@/components/ui/skeleton";
 
 
 interface AttendanceSummary {
@@ -147,7 +147,7 @@ const Reports: React.FC = () => {
         setDetailedAttendance(response.results);
       }
     } catch (error) {
-      console.error("Error fetching detailed attendance:", error);
+
     } finally {
       setLoadingDetails(false);
     }
@@ -170,12 +170,12 @@ const Reports: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {error && (
-        <Alert variant="destructive" className="rounded-xl border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900/20">
+      {error &&
+      <Alert variant="destructive" className="rounded-xl border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900/20">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="font-medium">{error}</AlertDescription>
         </Alert>
-      )}
+      }
 
       <Card>
         <CardHeader className="border-b bg-muted/20 pb-6 px-6">
@@ -191,8 +191,8 @@ const Reports: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => downloadReport('pdf')}
-                className="h-9 px-4 font-semibold uppercase text-[12px] tracking-widest rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all"
-              >
+                className="h-9 px-4 font-semibold uppercase text-[12px] tracking-widest rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all">
+                
                 <Download className="h-4 w-4 mr-2" />
                 Download PDF
               </Button>
@@ -200,8 +200,8 @@ const Reports: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => downloadReport('excel')}
-                className="h-9 px-4 font-semibold uppercase text-[12px] tracking-widest rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all"
-              >
+                className="h-9 px-4 font-semibold uppercase text-[12px] tracking-widest rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all">
+                
                 <FileText className="h-4 w-4 mr-2" />
                 Export Excel
               </Button>
@@ -219,11 +219,11 @@ const Reports: React.FC = () => {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl shadow-xl">
-                  {STAFF_ROLES.map((role) => (
-                    <SelectItem key={role.value} value={role.value} className="rounded-lg">
+                  {STAFF_ROLES.map((role) =>
+                  <SelectItem key={role.value} value={role.value} className="rounded-lg">
                       {role.label}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -237,8 +237,8 @@ const Reports: React.FC = () => {
                     className={cn(
                       "w-full justify-start text-left font-normal bg-background rounded-xl border-border/50 h-11",
                       !startDate && "text-muted-foreground"
-                    )}
-                  >
+                    )}>
+                    
                     <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                     {startDate ? format(new Date(startDate), "PPP") : <span>Pick a date</span>}
                   </Button>
@@ -254,8 +254,8 @@ const Reports: React.FC = () => {
                       }
                     }}
                     initialFocus
-                    className="rounded-2xl"
-                  />
+                    className="rounded-2xl" />
+                  
                 </PopoverContent>
               </Popover>
             </div>
@@ -269,8 +269,8 @@ const Reports: React.FC = () => {
                     className={cn(
                       "w-full justify-start text-left font-normal bg-background rounded-xl border-border/50 h-11",
                       !endDate && "text-muted-foreground"
-                    )}
-                  >
+                    )}>
+                    
                     <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                     {endDate ? format(new Date(endDate), "PPP") : <span>Pick a date</span>}
                   </Button>
@@ -286,8 +286,8 @@ const Reports: React.FC = () => {
                       }
                     }}
                     initialFocus
-                    className="rounded-2xl"
-                  />
+                    className="rounded-2xl" />
+                  
                 </PopoverContent>
               </Popover>
             </div>
@@ -309,16 +309,16 @@ const Reports: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow>
+                {loading ?
+                <TableRow>
                     <TableCell colSpan={8} className="p-0">
                       <SkeletonTable rows={10} cols={8} />
                     </TableCell>
-                  </TableRow>
-                ) : attendanceData.length > 0 ? (
+                  </TableRow> :
+                attendanceData.length > 0 ?
 
-                  attendanceData.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                attendanceData.map((item) =>
+                <TableRow key={item.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
                       <TableCell className="py-5 px-6 font-semibold text-foreground">{item.name}</TableCell>
                       <TableCell className="px-6">
                         <Badge variant="outline" className="bg-muted/30 text-[10px] font-semibold uppercase tracking-widest border-border/50 px-2 py-0.5 rounded-md">
@@ -342,31 +342,31 @@ const Reports: React.FC = () => {
                           <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{item.attendance_percentage}%</div>
                           <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
                             <div
-                              className={cn(
-                                "h-full rounded-full transition-all duration-1000",
-                                item.attendance_percentage >= 75 ? "bg-green-500" :
-                                  item.attendance_percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
-                              )}
-                              style={{ width: `${item.attendance_percentage}%` }}
-                            />
+                          className={cn(
+                            "h-full rounded-full transition-all duration-1000",
+                            item.attendance_percentage >= 75 ? "bg-green-500" :
+                            item.attendance_percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
+                          )}
+                          style={{ width: `${item.attendance_percentage}%` }} />
+                        
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-right pr-6">
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
-                          title="View Full Report"
-                          onClick={() => handleViewAttendance(item)}
-                        >
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
+                      title="View Full Report"
+                      onClick={() => handleViewAttendance(item)}>
+                      
                           <Eye className="h-4.5 w-4.5" />
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : !selectedRole || !startDate || !endDate ? (
-                  <TableRow>
+                ) :
+                !selectedRole || !startDate || !endDate ?
+                <TableRow>
                     <TableCell colSpan={8} className="h-72 text-center">
                       <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                         <div className="bg-primary/10 p-4 rounded-full">
@@ -378,9 +378,9 @@ const Reports: React.FC = () => {
                         </div>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  <TableRow>
+                  </TableRow> :
+
+                <TableRow>
                     <TableCell colSpan={8} className="h-72 text-center">
                       <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                         <div className="bg-muted p-4 rounded-full">
@@ -393,53 +393,53 @@ const Reports: React.FC = () => {
                       </div>
                     </TableCell>
                   </TableRow>
-                )}
+                }
               </TableBody>
             </Table>
 
             {/* Pagination Footer */}
-            {totalItems > 0 && (
-              <div className="p-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
+            {totalItems > 0 &&
+            <div className="p-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
                 <p className="text-[13px] font-medium text-muted-foreground">
                   Showing <span className="text-foreground font-semibold">{(currentPage - 1) * 10 + 1}</span> to <span className="text-foreground font-semibold">{Math.min(currentPage * 10, totalItems)}</span> of <span className="text-foreground font-semibold">{totalItems}</span> results
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                    disabled={currentPage === 1 || loading}
-                    onClick={() => setCurrentPage(prev => prev - 1)}
-                  >
+                  variant="outline"
+                  size="sm"
+                  className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                  disabled={currentPage === 1 || loading}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}>
+                  
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     Previous
                   </Button>
 
                   <Button
-                    variant="outline"
-                    size="sm"
-                    disabled
-                    className={cn(
-                      "h-9 w-10 font-semibold rounded-lg border-border/50",
-                      theme === 'dark' ? "bg-card text-foreground" : "bg-white text-gray-900"
-                    )}
-                  >
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  className={cn(
+                    "h-9 w-10 font-semibold rounded-lg border-border/50",
+                    theme === 'dark' ? "bg-card text-foreground" : "bg-white text-gray-900"
+                  )}>
+                  
                     {currentPage}
                   </Button>
 
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                    disabled={currentPage === totalPages || loading}
-                    onClick={() => setCurrentPage(prev => prev + 1)}
-                  >
+                  variant="outline"
+                  size="sm"
+                  className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                  disabled={currentPage === totalPages || loading}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}>
+                  
                     Next
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               </div>
-            )}
+            }
           </div>
         </CardContent>
       </Card>
@@ -458,56 +458,56 @@ const Reports: React.FC = () => {
           </DialogHeader>
 
           <div className="p-6 space-y-6">
-            {loadingDetails ? (
-              <div className="space-y-6">
+            {loadingDetails ?
+            <div className="space-y-6">
                 <Skeleton className="h-[350px] w-full rounded-2xl" />
                 <div className="grid grid-cols-2 gap-3">
                   <Skeleton className="h-20 rounded-2xl" />
                   <Skeleton className="h-20 rounded-2xl" />
                 </div>
-              </div>
-            ) : (
+              </div> :
 
-              <>
+
+            <>
                 <div className="rounded-2xl border border-border/50 p-4 bg-muted/5 max-h-[350px] overflow-y-auto custom-scrollbar">
                   <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                     {getDatesInRange(startDate, endDate).map((date, idx) => {
-                      const dateStr = format(date, "yyyy-MM-dd");
-                      const record = detailedAttendance.find(r => {
-                        const rDate = typeof r.date === 'string' ? r.date : format(new Date(r.date), "yyyy-MM-dd");
-                        return rDate === dateStr;
-                      });
+                    const dateStr = format(date, "yyyy-MM-dd");
+                    const record = detailedAttendance.find((r) => {
+                      const rDate = typeof r.date === 'string' ? r.date : format(new Date(r.date), "yyyy-MM-dd");
+                      return rDate === dateStr;
+                    });
 
-                      const isPresent = record?.status === 'present';
-                      // If no record exists or status is explicitly 'absent', treat as absent to match summary logic
-                      const isAbsent = record?.status === 'absent' || (!record && !isPresent);
+                    const isPresent = record?.status === 'present';
+                    // If no record exists or status is explicitly 'absent', treat as absent to match summary logic
+                    const isAbsent = record?.status === 'absent' || !record && !isPresent;
 
-                      return (
-                        <div
-                          key={idx}
-                          className={cn(
-                            "flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all duration-300 shadow-sm",
-                            isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5" :
-                              isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5" :
-                                "bg-muted/30 border-border/50 text-muted-foreground opacity-30"
-                          )}
-                        >
+                    return (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all duration-300 shadow-sm",
+                          isPresent ? "bg-green-500/10 border-green-500/30 text-green-700 shadow-green-500/5" :
+                          isAbsent ? "bg-red-500/10 border-red-500/30 text-red-700 shadow-red-500/5" :
+                          "bg-muted/30 border-border/50 text-muted-foreground opacity-30"
+                        )}>
+                        
                           <span className={cn(
-                            "text-[10px] font-semibold uppercase tracking-tighter opacity-70",
-                            (isPresent || isAbsent) && "opacity-100"
-                          )}>
+                          "text-[10px] font-semibold uppercase tracking-tighter opacity-70",
+                          (isPresent || isAbsent) && "opacity-100"
+                        )}>
                             {format(date, "EEE")}
                           </span>
                           <span className="text-sm font-semibold leading-tight">
                             {format(date, "d")}
                           </span>
                           <div className={cn(
-                            "w-1.5 h-1.5 rounded-full mt-1.5",
-                            isPresent ? "bg-green-500" : isAbsent ? "bg-red-500" : "bg-muted-foreground/30"
-                          )} />
-                        </div>
-                      );
-                    })}
+                          "w-1.5 h-1.5 rounded-full mt-1.5",
+                          isPresent ? "bg-green-500" : isAbsent ? "bg-red-500" : "bg-muted-foreground/30"
+                        )} />
+                        </div>);
+
+                  })}
                   </div>
                 </div>
 
@@ -528,19 +528,19 @@ const Reports: React.FC = () => {
                   </div>
                 </div>
               </>
-            )}
+            }
 
             <Button
               className="w-full h-12 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98]"
-              onClick={() => setIsCalendarDialogOpen(false)}
-            >
+              onClick={() => setIsCalendarDialogOpen(false)}>
+              
               Close History
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Reports;

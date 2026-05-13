@@ -12,8 +12,8 @@ import {
   ExternalLink,
   Info,
   X,
-  Eye
-} from 'lucide-react';
+  Eye } from
+'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
@@ -60,19 +60,19 @@ const StudentAssignments = () => {
       if (res.success) {
         // normalize different pagination shapes to a canonical shape
         const normalized = normalizePaginatedResponse(res, 'assignments');
-        setAssignments((normalized.items && normalized.items.length) ? normalized.items : (res.assignments || []));
+        setAssignments(normalized.items && normalized.items.length ? normalized.items : res.assignments || []);
         setPagination({
           current_page: normalized.meta.currentPage ?? res.pagination?.current_page ?? page,
           page_size: res.page_size || res.pagination?.page_size || 10,
           total_items: normalized.meta.totalItems ?? res.pagination?.total_items ?? 0,
           total_pages: normalized.meta.totalPages ?? res.pagination?.total_pages ?? 1,
           has_next: Boolean(normalized.meta.next ?? res.pagination?.has_next ?? res.pagination?.next),
-          has_previous: Boolean(normalized.meta.previous ?? res.pagination?.has_prev ?? res.pagination?.previous),
+          has_previous: Boolean(normalized.meta.previous ?? res.pagination?.has_prev ?? res.pagination?.previous)
         });
         if (page !== currentPage) setCurrentPage(page);
       }
     } catch (error) {
-      console.error("Error fetching assignments:", error);
+
       toast({
         title: "Error",
         description: "Failed to load assignments.",
@@ -99,12 +99,12 @@ const StudentAssignments = () => {
       if (res.success && res.assignment) {
         toast({
           title: "Success",
-          description: "Assignment submitted successfully!",
+          description: "Assignment submitted successfully!"
         });
         setShowSubmitModal(false);
         setSubmissionFile(null);
         // Update local state instead of re-fetching
-        setAssignments(prev => prev.map(a => a.id === res.assignment.id ? res.assignment : a));
+        setAssignments((prev) => prev.map((a) => a.id === res.assignment.id ? res.assignment : a));
       } else {
         toast({
           title: "Error",
@@ -124,7 +124,7 @@ const StudentAssignments = () => {
   };
 
   const filteredAssignments = useMemo(() => {
-    return assignments.filter(a => {
+    return assignments.filter((a) => {
       const now = new Date();
       const dueDate = new Date(a.due_date);
       const isOverdue = !a.is_submitted && dueDate < now;
@@ -142,9 +142,9 @@ const StudentAssignments = () => {
     const now = new Date();
     return {
       total: assignments.length,
-      pending: assignments.filter(a => !a.is_submitted && new Date(a.due_date) > now).length,
-      submitted: assignments.filter(a => a.is_submitted).length,
-      overdue: assignments.filter(a => !a.is_submitted && new Date(a.due_date) < now).length
+      pending: assignments.filter((a) => !a.is_submitted && new Date(a.due_date) > now).length,
+      submitted: assignments.filter((a) => a.is_submitted).length,
+      overdue: assignments.filter((a) => !a.is_submitted && new Date(a.due_date) < now).length
     };
   }, [assignments]);
 
@@ -157,8 +157,8 @@ const StudentAssignments = () => {
         <Badge className={theme === 'dark' ? "bg-green-500/20 text-green-400" : "bg-green-100 text-green-700 border-green-200"}>
           <CheckCircle size={12} className="mr-1" />
           Submitted
-        </Badge>
-      );
+        </Badge>);
+
     }
 
     if (dueDate < now) {
@@ -166,16 +166,16 @@ const StudentAssignments = () => {
         <Badge className={theme === 'dark' ? "bg-red-500/20 text-red-400" : "bg-red-100 text-red-700 border-red-200"}>
           <AlertCircle size={12} className="mr-1" />
           Overdue
-        </Badge>
-      );
+        </Badge>);
+
     }
 
     return (
       <Badge className={theme === 'dark' ? "bg-blue-500/20 text-blue-400" : "bg-blue-100 text-blue-700 border-blue-200"}>
         <Clock size={12} className="mr-1" />
         Pending
-      </Badge>
-    );
+      </Badge>);
+
   };
   return (
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -190,12 +190,12 @@ const StudentAssignments = () => {
           {/* Stats row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
             {[
-              { label: 'Total', value: stats.total, icon: FileText, color: 'text-gray-400', bg: 'bg-gray-400/10', },
-              { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-              { label: 'Submitted', value: stats.submitted, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
-              { label: 'Overdue', value: stats.overdue, icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-500/10' }
-            ].map((stat, i) => (
-              <div key={i} className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} flex items-center gap-4 border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+            { label: 'Total', value: stats.total, icon: FileText, color: 'text-gray-400', bg: 'bg-gray-400/10' },
+            { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+            { label: 'Submitted', value: stats.submitted, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
+            { label: 'Overdue', value: stats.overdue, icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-500/10' }].
+            map((stat, i) =>
+            <div key={i} className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} flex items-center gap-4 border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
                 <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shrink-0`}>
                   <stat.icon size={20} />
                 </div>
@@ -204,7 +204,7 @@ const StudentAssignments = () => {
                   <p className="text-xl sm:text-2xl font-semibold mt-0.5">{stat.value}</p>
                 </div>
               </div>
-            ))}
+            )}
           </div>
 
           {/* Search & Filter Toolbar */}
@@ -217,8 +217,8 @@ const StudentAssignments = () => {
                   placeholder="Search assignments..."
                   className={`pl-10 w-full md:w-72 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`}
                   value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                />
+                  onChange={(e) => setSearchTerm(e.target.value)} />
+                
               </div>
               <Button variant="outline" size="icon" className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
                 <Filter size={18} />
@@ -228,19 +228,19 @@ const StudentAssignments = () => {
 
           {/* List Content */}
           <div className="min-h-[400px] pt-4 border-t border-border/50">
-            {loading ? (
-              <div className="p-8 space-y-4">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className={`h-28 w-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} animate-pulse rounded-2xl`} />
-                ))}
-              </div>
-            ) : filteredAssignments.length > 0 ? (
-              <div className="divide-y divide-border/50">
-                {filteredAssignments.map((assignment) => (
-                  <div
-                    key={assignment.id}
-                    className="p-6 hover:bg-primary/5 transition-all duration-300 group"
-                  >
+            {loading ?
+            <div className="p-8 space-y-4">
+                {[1, 2, 3, 4].map((i) =>
+              <div key={i} className={`h-28 w-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-100'} animate-pulse rounded-2xl`} />
+              )}
+              </div> :
+            filteredAssignments.length > 0 ?
+            <div className="divide-y divide-border/50">
+                {filteredAssignments.map((assignment) =>
+              <div
+                key={assignment.id}
+                className="p-6 hover:bg-primary/5 transition-all duration-300 group">
+                
                     <div className="flex flex-col lg:flex-row justify-between gap-6">
                       <div className="flex gap-5">
                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${theme === 'dark' ? 'bg-primary/20 text-primary shadow-primary/5' : 'bg-primary/10 text-primary shadow-primary/10'}`}>
@@ -268,46 +268,46 @@ const StudentAssignments = () => {
                       <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-start gap-4 shrink-0">
                         {getStatusBadge(assignment)}
                         <div className="flex items-center gap-2">
-                          {assignment.file_url && (
-                            <Button variant="outline" size="sm" asChild className="rounded-xl">
+                          {assignment.file_url &&
+                      <Button variant="outline" size="sm" asChild className="rounded-xl">
                               <a href={assignment.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-2">
                                 <Download size={14} />
                                 Questions
                               </a>
                             </Button>
-                          )}
-                          {!assignment.is_submitted ? (
-                            <Button
-                              size="sm"
-                              className="bg-primary text-white gap-2 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30"
-                              onClick={() => {
-                                setSelectedAssignment(assignment);
-                                setShowSubmitModal(true);
-                              }}
-                            >
+                      }
+                          {!assignment.is_submitted ?
+                      <Button
+                        size="sm"
+                        className="bg-primary text-white gap-2 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30"
+                        onClick={() => {
+                          setSelectedAssignment(assignment);
+                          setShowSubmitModal(true);
+                        }}>
+                        
                               <Upload size={14} />
                               Submit
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
-                              onClick={() => {
-                                setSelectedAssignment(assignment);
-                                setShowDetailsModal(true);
-                              }}
-                            >
+                            </Button> :
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                        onClick={() => {
+                          setSelectedAssignment(assignment);
+                          setShowDetailsModal(true);
+                        }}>
+                        
                               <Info size={14} />
                               Details
                             </Button>
-                          )}
+                      }
                         </div>
                       </div>
                     </div>
 
-                    {assignment.is_submitted && (
-                      <div className={`mt-5 p-5 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/80 border-gray-200'}`}>
+                    {assignment.is_submitted &&
+                <div className={`mt-5 p-5 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/80 border-gray-200'}`}>
                         <div className="flex flex-col md:flex-row justify-between gap-6">
                           <div className="space-y-1.5">
                             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Submission Date</p>
@@ -316,27 +316,27 @@ const StudentAssignments = () => {
                           <div className="md:text-right">
                             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Grade Status</p>
                             <p className={`text-xl font-semibold ${assignment.marks_obtained !== null ? 'text-indigo-500' : 'text-amber-500'}`}>
-                              {assignment.marks_obtained !== null
-                                ? `${assignment.marks_obtained} / ${assignment.max_marks}`
-                                : 'Awaiting Grade'}
+                              {assignment.marks_obtained !== null ?
+                        `${assignment.marks_obtained} / ${assignment.max_marks}` :
+                        'Awaiting Grade'}
                             </p>
                           </div>
                         </div>
-                        {assignment.feedback && (
-                          <div className="mt-4 pt-4 border-t border-border/50">
+                        {assignment.feedback &&
+                  <div className="mt-4 pt-4 border-t border-border/50">
                             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Instructor Feedback</p>
                             <p className={`text-sm italic leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                               "{assignment.feedback}"
                             </p>
                           </div>
-                        )}
+                  }
                       </div>
-                    )}
+                }
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16 px-4 animate-in fade-in duration-700">
+              )}
+              </div> :
+
+            <div className="flex flex-col items-center justify-center py-16 px-4 animate-in fade-in duration-700">
                 <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-4 shadow-sm`}>
                   <FileText className="h-12 w-12 text-indigo-500/50" />
                 </div>
@@ -347,63 +347,63 @@ const StudentAssignments = () => {
                   </p>
                 </div>
               </div>
-            )}
+            }
           </div>
 
           {/* Pagination Footer */}
-          {pagination && pagination.total_pages > 1 && (
-            <div className={`mt-8 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4`}>
+          {pagination && pagination.total_pages > 1 &&
+          <div className={`mt-8 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4`}>
               <p className="text-sm text-muted-foreground">
                 Showing <span className="font-semibold text-foreground">{(pagination.current_page - 1) * pagination.page_size + 1}</span> to <span className="font-semibold text-foreground">{Math.min(pagination.current_page * pagination.page_size, pagination.total_items)}</span> of <span className="font-semibold text-foreground">{pagination.total_items}</span> assignments
               </p>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!pagination.has_previous}
-                  onClick={() => setCurrentPage(prev => prev - 1)}
-                  className="rounded-xl"
-                >
+                variant="outline"
+                size="sm"
+                disabled={!pagination.has_previous}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                className="rounded-xl">
+                
                   Previous
                 </Button>
                 <div className="flex items-center gap-1.5">
-                  {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map(p => (
-                    <Button
-                      key={p}
-                      variant={pagination.current_page === p ? "default" : "outline"}
-                      size="sm"
-                      className={`w-9 h-9 p-0 rounded-xl ${pagination.current_page === p ? 'shadow-lg shadow-primary/20' : ''}`}
-                      onClick={() => setCurrentPage(p)}
-                    >
+                  {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map((p) =>
+                <Button
+                  key={p}
+                  variant={pagination.current_page === p ? "default" : "outline"}
+                  size="sm"
+                  className={`w-9 h-9 p-0 rounded-xl ${pagination.current_page === p ? 'shadow-lg shadow-primary/20' : ''}`}
+                  onClick={() => setCurrentPage(p)}>
+                  
                       {p}
                     </Button>
-                  ))}
+                )}
                 </div>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!pagination.has_next}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  className="rounded-xl"
-                >
+                variant="outline"
+                size="sm"
+                disabled={!pagination.has_next}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                className="rounded-xl">
+                
                   Next
                 </Button>
               </div>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
 
       {/* Details Modal */}
-      {showDetailsModal && selectedAssignment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {showDetailsModal && selectedAssignment &&
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            onClick={() => setShowDetailsModal(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          />
+          onClick={() => setShowDetailsModal(false)}
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        
           <div
-            className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden ${theme === 'dark' ? 'bg-[#1c1c1e] border border-white/10' : 'bg-white'}`}
-          >
+          className={`relative w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden ${theme === 'dark' ? 'bg-[#1c1c1e] border border-white/10' : 'bg-white'}`}>
+          
             <div className="p-6 border-b border-border/50 flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold">Submission Details</h2>
@@ -427,9 +427,9 @@ const StudentAssignments = () => {
                 <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Grade</p>
                   <p className={`text-lg font-semibold ${selectedAssignment.marks_obtained !== null ? 'text-indigo-500' : 'text-amber-500'}`}>
-                    {selectedAssignment.marks_obtained !== null
-                      ? `${selectedAssignment.marks_obtained} / ${selectedAssignment.max_marks}`
-                      : 'Awaiting Grading'}
+                    {selectedAssignment.marks_obtained !== null ?
+                  `${selectedAssignment.marks_obtained} / ${selectedAssignment.max_marks}` :
+                  'Awaiting Grading'}
                   </p>
                 </div>
               </div>
@@ -440,8 +440,8 @@ const StudentAssignments = () => {
                   <span className="font-medium">{new Date(selectedAssignment.submission_date).toLocaleString()}</span>
                 </div>
 
-                {selectedAssignment.submission_file_url && (
-                  <div className={`flex items-center justify-between p-4 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/50 border-gray-200'}`}>
+                {selectedAssignment.submission_file_url &&
+              <div className={`flex items-center justify-between p-4 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/50 border-gray-200'}`}>
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
                         <FileText size={20} />
@@ -465,16 +465,16 @@ const StudentAssignments = () => {
                       </Button>
                     </div>
                   </div>
-                )}
+              }
 
-                {selectedAssignment.feedback && (
-                  <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-indigo-500/5' : 'bg-indigo-50'} border ${theme === 'dark' ? 'border-indigo-500/10' : 'border-indigo-100'}`}>
+                {selectedAssignment.feedback &&
+              <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-indigo-500/5' : 'bg-indigo-50'} border ${theme === 'dark' ? 'border-indigo-500/10' : 'border-indigo-100'}`}>
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-500 mb-1.5">Instructor Feedback</p>
                     <p className={`text-sm italic leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                       "{selectedAssignment.feedback}"
                     </p>
                   </div>
-                )}
+              }
               </div>
             </div>
 
@@ -485,18 +485,18 @@ const StudentAssignments = () => {
             </div>
           </div>
         </div>
-      )}
+      }
 
       {/* Submission Modal */}
-      {showSubmitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {showSubmitModal &&
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            onClick={() => setShowSubmitModal(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          />
+          onClick={() => setShowSubmitModal(false)}
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        
           <div
-            className={`relative w-full max-w-lg rounded-2xl shadow-2xl p-6 ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}
-          >
+          className={`relative w-full max-w-lg rounded-2xl shadow-2xl p-6 ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}>
+          
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-xl font-semibold">Submit Assignment</h2>
@@ -509,16 +509,16 @@ const StudentAssignments = () => {
 
             <form onSubmit={handleSubmitAssignment} className="space-y-6">
               <div
-                className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-colors ${submissionFile ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
-                  }`}
-              >
+              className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-colors ${submissionFile ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`
+              }>
+              
                 <input
-                  type="file"
-                  id="submit-file"
-                  className="hidden"
-                  onChange={handleFileChange}
-                  required
-                />
+                type="file"
+                id="submit-file"
+                className="hidden"
+                onChange={handleFileChange}
+                required />
+              
                 <label htmlFor="submit-file" className="cursor-pointer flex flex-col items-center">
                   <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${submissionFile ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
                     <Upload size={28} />
@@ -537,19 +537,19 @@ const StudentAssignments = () => {
                   Cancel
                 </Button>
                 <Button
-                  type="submit"
-                  className="flex-[2] bg-primary text-white"
-                  disabled={submitting || !submissionFile}
-                >
+                type="submit"
+                className="flex-[2] bg-primary text-white"
+                disabled={submitting || !submissionFile}>
+                
                   {submitting ? 'Uploading...' : 'Submit Now'}
                 </Button>
               </div>
             </form>
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };
 
 export default StudentAssignments;

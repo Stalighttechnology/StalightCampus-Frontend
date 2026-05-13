@@ -43,7 +43,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     email: "",
     mobile_number: "",
     address: "",
-    bio: "",
+    bio: ""
   });
   const [localError, setLocalError] = useState<string | null>(null);
   const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
@@ -84,7 +84,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             }
           }
         } catch (e) {
-          console.error('User load error', e);
+
         }
       }
 
@@ -107,7 +107,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             email: response.profile.email || '',
             mobile_number: response.profile.mobile_number || '',
             address: response.profile.address || '',
-            bio: response.profile.bio || '',
+            bio: response.profile.bio || ''
           };
           setProfile(profileData);
           setOriginalProfile(profileData);
@@ -122,12 +122,12 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               email: currentUser.email || '',
               mobile_number: '',
               address: '',
-              bio: '',
+              bio: ''
             });
           }
         }
       } catch (err) {
-        console.error('Fetch Profile Error:', err);
+
         setLocalError('Network error');
         showErrorAlert('Error', 'Network error');
       } finally {
@@ -146,10 +146,10 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       if (result.success) {
         setSubscriptionData(result.data);
       } else {
-        console.error('Failed to fetch subscription details', result.message);
+
       }
     } catch (err) {
-      console.error('Network error fetching subscription details', err);
+
     } finally {
       setSubLoading(false);
     }
@@ -165,11 +165,11 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        
+
         // Use PDF as default extension, but respect content-type if it's HTML fallback
         const extension = contentType?.includes('html') ? 'html' : 'pdf';
         a.download = `Stalight_Receipt_${paymentId}.${extension}`;
-        
+
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -180,7 +180,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         showErrorAlert('Error', result.message || 'Failed to download receipt');
       }
     } catch (err) {
-      console.error('Download receipt error', err);
+
       showErrorAlert('Error', 'Network error while downloading receipt');
     } finally {
       setDownloadingId(null);
@@ -203,7 +203,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       const res = await response.json();
       if (res.tickets) setTickets(res.tickets);
     } catch (e) {
-      console.error(e);
+
     } finally {
       setLoadingTickets(false);
     }
@@ -224,7 +224,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         setTicketForm({ subject: '', description: '', priority: 'Medium' });
         // Add the new ticket to the start of the list without triggering a GET request
         if (res.ticket) {
-          setTickets(prev => [res.ticket, ...prev]);
+          setTickets((prev) => [res.ticket, ...prev]);
         }
       } else {
         showErrorAlert('Error', res.error || 'Failed to raise ticket');
@@ -295,14 +295,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             email: response.profile.email || '',
             mobile_number: response.profile.mobile_number || '',
             address: response.profile.address || '',
-            bio: response.profile.bio || '',
+            bio: response.profile.bio || ''
           };
           setProfile(profileData);
           setOriginalProfile(profileData);
           localStorage.setItem('user', JSON.stringify({
             ...JSON.parse(localStorage.getItem('user') || '{}'),
             ...response.profile,
-            user_id: currentUser.user_id,
+            user_id: currentUser.user_id
           }));
         }
         setEditing(false);
@@ -314,7 +314,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         showErrorAlert('Error', message);
       }
     } catch (err: any) {
-      console.error('Save Profile Error:', err);
+
       const message = err?.message || 'Network error';
       if (setError) setError(message);
       setLocalError(message);
@@ -345,8 +345,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         body: JSON.stringify({
           current_password: passwordData.current_password,
           new_password: passwordData.new_password,
-          confirm_password: passwordData.confirm_password,
-        }),
+          confirm_password: passwordData.confirm_password
+        })
       });
       const result = await response.json();
       if (result.success) {
@@ -357,7 +357,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         showErrorAlert('Unable to change password', result.message || 'Failed to change password');
       }
     } catch (err) {
-      console.error('Error changing password:', err);
+
       showErrorAlert('Unable to change password', 'Failed to change password');
     }
   };
@@ -396,8 +396,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               {localErrors.mobile_number && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.mobile_number}</p>}
             </div>
           </div>
-        </div>
-      );
+        </div>);
+
     }
 
     if (activeTab === 'subscription') {
@@ -409,8 +409,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             <Skeleton className="h-24 w-full rounded-xl" />
           </div>
           <Skeleton className="h-48 w-full rounded-xl" />
-        </div>
-      );
+        </div>);
+
       if (!subscriptionData) return <div className="text-center py-10 text-muted-foreground">No subscription data found.</div>;
 
       return (
@@ -428,22 +428,22 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                     <p className="text-lg font-bold text-primary uppercase tracking-tight">{subscriptionData.plan_name}</p>
                   </div>
                 </div>
-                {subscriptionData.plan_name.toLowerCase() !== 'advance' && (
-                  <Button
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90 text-white text-xs h-8 px-3 rounded-lg"
-                    onClick={() => setIsUpgradeOpen(true)}
-                  >
+                {subscriptionData.plan_name.toLowerCase() !== 'advance' &&
+                <Button
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white text-xs h-8 px-3 rounded-lg"
+                  onClick={() => setIsUpgradeOpen(true)}>
+                  
                     Upgrade Plan
                   </Button>
-                )}
+                }
               </CardContent>
             </Card>
 
             <Card className={cn("border-none shadow-sm", theme === 'dark' ? 'bg-zinc-900' : 'bg-white')}>
               <CardContent className="p-4 flex items-center gap-4">
                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center",
-                  subscriptionData.is_active ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30")}>
+                subscriptionData.is_active ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30")}>
                   <Activity size={24} />
                 </div>
                 <div>
@@ -463,11 +463,11 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Expiry Date</p>
                   <p className="text-sm font-semibold">
-                    {subscriptionData.subscription_expires_at
-                      ? format(new Date(subscriptionData.subscription_expires_at), 'dd MMM yyyy')
-                      : subscriptionData.trial_ends_at
-                        ? format(new Date(subscriptionData.trial_ends_at), 'dd MMM yyyy HH:mm')
-                        : 'Lifetime Access'}
+                    {subscriptionData.subscription_expires_at ?
+                    format(new Date(subscriptionData.subscription_expires_at), 'dd MMM yyyy') :
+                    subscriptionData.trial_ends_at ?
+                    format(new Date(subscriptionData.trial_ends_at), 'dd MMM yyyy HH:mm') :
+                    'Lifetime Access'}
                   </p>
                 </div>
               </CardContent>
@@ -494,9 +494,9 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {subscriptionData.payments && subscriptionData.payments.length > 0 ? (
-                    subscriptionData.payments.map((p: any) => (
-                      <TableRow key={p.id}>
+                  {subscriptionData.payments && subscriptionData.payments.length > 0 ?
+                  subscriptionData.payments.map((p: any) =>
+                  <TableRow key={p.id}>
                         <TableCell className="font-medium text-xs sm:text-sm whitespace-nowrap">
                           {format(new Date(p.date), 'dd MMM yyyy')}
                         </TableCell>
@@ -516,35 +516,35 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleDownloadReceipt(p.id)}
-                            disabled={downloadingId === p.id}
-                            title="Download Receipt"
-                          >
-                            {downloadingId === p.id ? (
-                              <Loader2 size={14} className="text-primary animate-spin" />
-                            ) : (
-                              <Download size={14} className="text-primary" />
-                            )}
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleDownloadReceipt(p.id)}
+                        disabled={downloadingId === p.id}
+                        title="Download Receipt">
+                        
+                            {downloadingId === p.id ?
+                        <Loader2 size={14} className="text-primary animate-spin" /> :
+
+                        <Download size={14} className="text-primary" />
+                        }
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
+                  ) :
+
+                  <TableRow>
                       <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                         No payment records found.
                       </TableCell>
                     </TableRow>
-                  )}
+                  }
                 </TableBody>
               </Table>
             </div>
           </div>
-        </div>
-      );
+        </div>);
+
     }
 
     if (activeTab === 'support') {
@@ -566,14 +566,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 <div className="space-y-4 pt-4">
                   <div>
                     <Label>Subject</Label>
-                    <Input value={ticketForm.subject} onChange={e => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary of the issue" />
+                    <Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary of the issue" />
                   </div>
                   <div>
                     <Label>Priority</Label>
                     <Select
                       value={ticketForm.priority}
-                      onValueChange={value => setTicketForm({ ...ticketForm, priority: value })}
-                    >
+                      onValueChange={(value) => setTicketForm({ ...ticketForm, priority: value })}>
+                      
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
@@ -590,10 +590,10 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                     <div className="h-20 rounded-md border border-input bg-background overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                       <Textarea
                         value={ticketForm.description}
-                        onChange={e => setTicketForm({ ...ticketForm, description: e.target.value })}
+                        onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
                         placeholder="Detailed description..."
-                        className="h-full w-full resize-none border-none focus-visible:ring-0 shadow-none custom-scrollbar"
-                      />
+                        className="h-full w-full resize-none border-none focus-visible:ring-0 shadow-none custom-scrollbar" />
+                      
                     </div>
                   </div>
                   <Button className="w-full" onClick={handleRaiseTicket} disabled={loadingTickets}>
@@ -608,28 +608,28 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 <DialogHeader>
                   <DialogTitle>Ticket Details</DialogTitle>
                 </DialogHeader>
-                {viewTicket && (
-                  <div className="space-y-4 pt-4">
+                {viewTicket &&
+                <div className="space-y-4 pt-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-[10px] uppercase text-muted-foreground">Status</Label>
                         <div className="mt-1">
                           <Badge className={
-                            viewTicket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                              viewTicket.status === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
-                                viewTicket.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                                  'bg-blue-100 text-blue-800 border-blue-200'
-                          } variant="outline">{viewTicket.status}</Badge>
+                        viewTicket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                        viewTicket.status === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
+                        viewTicket.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                        'bg-blue-100 text-blue-800 border-blue-200'
+                        } variant="outline">{viewTicket.status}</Badge>
                         </div>
                       </div>
                       <div>
                         <Label className="text-[10px] uppercase text-muted-foreground">Priority</Label>
                         <div className="mt-1">
                           <Badge variant="outline" className={
-                            viewTicket.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50' :
-                              viewTicket.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50' :
-                                'border-blue-500 text-blue-600 bg-blue-50'
-                          }>{viewTicket.priority}</Badge>
+                        viewTicket.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50' :
+                        viewTicket.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50' :
+                        'border-blue-500 text-blue-600 bg-blue-50'
+                        }>{viewTicket.priority}</Badge>
                         </div>
                       </div>
                     </div>
@@ -643,16 +643,16 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         <p className="text-sm whitespace-pre-wrap">{viewTicket.description}</p>
                       </ScrollArea>
                     </div>
-                    {viewTicket.response && (
-                      <div>
+                    {viewTicket.response &&
+                  <div>
                         <Label className="text-[10px] uppercase text-muted-foreground">HQ Response</Label>
                         <div className="mt-1 p-3 rounded-md bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/20">
                           <p className="text-sm italic">{viewTicket.response}</p>
                         </div>
                       </div>
-                    )}
+                  }
                   </div>
-                )}
+                }
               </DialogContent>
             </Dialog>
           </div>
@@ -671,47 +671,47 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               </TableHeader>
               <TableBody>
                 {loadingTickets ? <TableRow><TableCell colSpan={6} className="text-center h-24">Loading tickets...</TableCell></TableRow> :
-                  tickets.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center h-24 text-muted-foreground">No support tickets found.</TableCell></TableRow> :
-                    tickets.map(t => (
-                      <TableRow key={t.id}>
+                tickets.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center h-24 text-muted-foreground">No support tickets found.</TableCell></TableRow> :
+                tickets.map((t) =>
+                <TableRow key={t.id}>
                         <TableCell className="font-medium">{t.id}</TableCell>
                         <TableCell className="font-medium">{t.subject}</TableCell>
                         <TableCell>
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
-                            onClick={() => setViewTicket(t)}
-                          >
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
+                      onClick={() => setViewTicket(t)}>
+                      
                             <Eye size={14} />
                             View
                           </Button>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={
-                            t.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
-                              t.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-900/10' :
-                                'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/10'
-                          }>{t.priority}</Badge>
+                    t.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
+                    t.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-900/10' :
+                    'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/10'
+                    }>{t.priority}</Badge>
                         </TableCell>
                         <TableCell>
                           <Badge className={
-                            t.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-emerald-200' :
-                              t.status === 'Closed' ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300' :
-                                t.status === 'Pending' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200' :
-                                  'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200'
-                          } variant="outline">
+                    t.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-emerald-200' :
+                    t.status === 'Closed' ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300' :
+                    t.status === 'Pending' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200' :
+                    'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200'
+                    } variant="outline">
                             {t.status}
                           </Badge>
                         </TableCell>
                         <TableCell>{t.date}</TableCell>
                       </TableRow>
-                    ))}
+                )}
               </TableBody>
             </Table>
           </div>
-        </div>
-      );
+        </div>);
+
     }
 
     // other tab: Address + Bio
@@ -728,16 +728,16 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           <Textarea value={profile.bio} name="bio" onChange={handleChange} disabled={!editing} placeholder="Tell us about yourself" rows={4} className="text-xs sm:text-sm w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
           {localErrors.bio && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.bio}</p>}
         </div>
-      </div>
-    );
+      </div>);
+
   };
 
   if (loading) {
     return (
       <div className="w-full max-w-none mx-auto my-2 sm:my-4 md:my-6 px-2 sm:px-4 md:px-6 py-2 sm:py-4 md:py-6">
         <SkeletonForm fields={6} />
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -750,28 +750,28 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            {editing && (
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                onClick={() => { 
-                  if (originalProfile) setProfile(originalProfile);
-                  setEditing(false); 
-                  setLocalErrors({});
-                }}
-              >
+            {editing &&
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                if (originalProfile) setProfile(originalProfile);
+                setEditing(false);
+                setLocalErrors({});
+              }}>
+              
                 Cancel
               </Button>
-            )}
+            }
 
             <Button
               size="sm"
-              onClick={() => { if (editing) handleSaveProfile(); else setEditing(true); }}
+              onClick={() => {if (editing) handleSaveProfile();else setEditing(true);}}
               variant="outline"
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-              disabled={loading}
-            >
-              {editing ? (loading ? 'Saving...' : 'Save') : 'Edit Profile'}
+              disabled={loading}>
+              
+              {editing ? loading ? 'Saving...' : 'Save' : 'Edit Profile'}
             </Button>
 
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -791,14 +791,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         type={showPasswords.current ? 'text' : 'password'}
                         value={passwordData.current_password}
                         onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                        aria-label={showPasswords.current ? 'Hide current password' : 'Show current password'}
-                      >
+                        aria-label={showPasswords.current ? 'Hide current password' : 'Show current password'}>
+                        
                         {showPasswords.current ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -811,14 +811,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         type={showPasswords.next ? 'text' : 'password'}
                         value={passwordData.new_password}
                         onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, next: !prev.next }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                        aria-label={showPasswords.next ? 'Hide new password' : 'Show new password'}
-                      >
+                        aria-label={showPasswords.next ? 'Hide new password' : 'Show new password'}>
+                        
                         {showPasswords.next ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -831,14 +831,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         type={showPasswords.confirm ? 'text' : 'password'}
                         value={passwordData.confirm_password}
                         onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                        aria-label={showPasswords.confirm ? 'Hide confirm password' : 'Show confirm password'}
-                      >
+                        aria-label={showPasswords.confirm ? 'Hide confirm password' : 'Show confirm password'}>
+                        
                         {showPasswords.confirm ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -859,7 +859,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
               <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4 flex-shrink-0`}>
-                {(profile.first_name && profile.first_name[0]) || ''}{(profile.last_name && profile.last_name[0]) || ''}
+                {profile.first_name && profile.first_name[0] || ''}{profile.last_name && profile.last_name[0] || ''}
               </div>
 
               <div className="text-base sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
@@ -903,10 +903,10 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         onClose={() => setIsUpgradeOpen(false)}
         orgName={localStorage.getItem("org_name") || "Your Institution"}
         currentPlan={subscriptionData?.plan_name || "basic"}
-        onSuccess={() => fetchSubscriptionDetails()}
-      />
-    </div>
-  );
+        onSuccess={() => fetchSubscriptionDetails()} />
+      
+    </div>);
+
 };
 
 export default AdminProfile;

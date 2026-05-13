@@ -26,8 +26,8 @@ import {
   LayoutGrid,
   FileText,
   Users,
-  Mail
-} from 'lucide-react';
+  Mail } from
+'lucide-react';
 import DashboardCard from '@/components/common/DashboardCard';
 import { useTheme } from '@/context/ThemeContext';
 import { showConfirmAlert, showSuccessAlert } from '../../utils/sweetalert';
@@ -37,16 +37,16 @@ import {
   getPaymentDetails as getPaymentDetailsApi,
   processRefund as processRefundApi,
   downloadReceipt as downloadReceiptApi,
-  bulkSendReminders
-} from "../../utils/fees_manager_api";
-import { 
-  Skeleton, 
-  SkeletonStatsGrid, 
-  SkeletonTable, 
-  SkeletonList, 
+  bulkSendReminders } from
+"../../utils/fees_manager_api";
+import {
+  Skeleton,
+  SkeletonStatsGrid,
+  SkeletonTable,
+  SkeletonList,
   SkeletonPageHeader,
-  SkeletonCard
-} from "@/components/ui/skeleton";
+  SkeletonCard } from
+"@/components/ui/skeleton";
 
 
 interface Payment {
@@ -147,14 +147,14 @@ const PaymentMonitoring: React.FC = () => {
         ...(searchTerm && { search: searchTerm }),
         ...(statusFilter !== 'all' && { status: statusFilter }),
         ...(methodFilter !== 'all' && { mode: methodFilter }),
-        ...(dateRange !== 'all' && { date_range: dateRange }),
+        ...(dateRange !== 'all' && { date_range: dateRange })
       };
 
       // Fetch payments and stats in parallel
       const [paymentsJson, statsJson] = await Promise.all([
-        getPayments(params),
-        getPaymentStats(params)
-      ]);
+      getPayments(params),
+      getPaymentStats(params)]
+      );
 
       if (!paymentsJson.success || !statsJson.success) {
         throw new Error('Failed to fetch payment data');
@@ -167,7 +167,7 @@ const PaymentMonitoring: React.FC = () => {
         payment_method: p.mode ?? p.payment_method ?? 'N/A',
         payment_date: p.timestamp ?? p.payment_date ?? p.created_at ?? null,
         created_at: p.created_at ?? p.timestamp ?? null,
-        updated_at: p.updated_at ?? p.timestamp ?? null,
+        updated_at: p.updated_at ?? p.timestamp ?? null
       });
 
       const normalizedPayments = (paymentsJson.data || []).map((p: any) => normalize(p));
@@ -180,7 +180,7 @@ const PaymentMonitoring: React.FC = () => {
         today_amount: toRupees(s.today_amount_cents ?? s.today_amount),
         monthly_amount: toRupees(s.monthly_amount_cents ?? s.monthly_amount),
         refunded_amount: toRupees(s.refunded_amount_cents ?? s.refunded_amount),
-        outstanding_amount: toRupees(s.outstanding_amount_cents ?? s.outstanding_amount),
+        outstanding_amount: toRupees(s.outstanding_amount_cents ?? s.outstanding_amount)
       };
 
       setPayments(normalizedPayments || []);
@@ -194,12 +194,12 @@ const PaymentMonitoring: React.FC = () => {
 
   const fetchPaymentDetails = async (paymentId: number) => {
     // Open dialog immediately so the button always responds and user sees loading
-    console.debug('fetchPaymentDetails start for', paymentId);
+
     setSelectedPayment(null);
     setIsDetailLoading(true);
     setIsDetailsDialogOpen(true);
     try {
-      console.debug('fetchPaymentDetails called for', paymentId);
+
       const json = await getPaymentDetailsApi(paymentId);
 
       if (!json.success) {
@@ -213,7 +213,7 @@ const PaymentMonitoring: React.FC = () => {
         payment_method: p.mode ?? p.payment_method ?? 'N/A',
         payment_date: p.timestamp ?? p.payment_date ?? p.created_at ?? null,
         created_at: p.created_at ?? p.timestamp ?? null,
-        updated_at: p.updated_at ?? p.timestamp ?? null,
+        updated_at: p.updated_at ?? p.timestamp ?? null
       };
       // Ensure invoice and nested fields exist to avoid render crashes
       if (!normalized.invoice) {
@@ -221,7 +221,7 @@ const PaymentMonitoring: React.FC = () => {
           id: null,
           invoice_number: 'N/A',
           student: { id: null, name: 'N/A', usn: '', department: '', semester: '' },
-          fee_assignment: { template: { name: 'N/A', fee_type: '' } },
+          fee_assignment: { template: { name: 'N/A', fee_type: '' } }
         } as any;
       } else {
         normalized.invoice.student = normalized.invoice.student || { id: null, name: 'N/A', usn: '', department: '', semester: '' };
@@ -230,7 +230,7 @@ const PaymentMonitoring: React.FC = () => {
         normalized.invoice.student.semester = normalized.invoice.student.semester || '';
       }
 
-      console.debug('normalized payment detail:', normalized);
+
       setSelectedPayment(normalized);
       setIsDetailLoading(false);
     } catch (err) {
@@ -243,7 +243,7 @@ const PaymentMonitoring: React.FC = () => {
 
   // debug: log when dialog open state or selected payment changes
   useEffect(() => {
-    console.debug('Details dialog open:', isDetailsDialogOpen, 'selectedPayment:', selectedPayment, 'loading:', isDetailLoading);
+
   }, [isDetailsDialogOpen, selectedPayment, isDetailLoading]);
 
   const processRefund = async (paymentId: number) => {
@@ -252,7 +252,7 @@ const PaymentMonitoring: React.FC = () => {
       'Are you sure you want to process a refund for this payment?',
       'Yes, refund it'
     );
-    
+
     if (!confirmed.isConfirmed) return;
 
     try {
@@ -300,15 +300,15 @@ const PaymentMonitoring: React.FC = () => {
       'This will send fee reminder emails to all students with pending invoices. Continue?',
       'Yes, send now'
     );
-    
+
     if (!confirmed.isConfirmed) return;
-    
+
     setNotifying(true);
     try {
       const response = await bulkSendReminders();
       if (response.success) {
         showSuccessAlert(
-          'Notifications Sent!', 
+          'Notifications Sent!',
           `Successfully sent reminders to ${response.data.sent_count} students.`
         );
         setHasNotified(true);
@@ -325,7 +325,7 @@ const PaymentMonitoring: React.FC = () => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'INR'
     }).format(amount);
   };
 
@@ -335,7 +335,7 @@ const PaymentMonitoring: React.FC = () => {
       success: { variant: 'default' as const, label: 'Completed', color: 'text-green-600' },
       pending: { variant: 'secondary' as const, label: 'Pending', color: 'text-yellow-600' },
       failed: { variant: 'destructive' as const, label: 'Failed', color: 'text-red-600' },
-      refunded: { variant: 'outline' as const, label: 'Refunded', color: 'text-gray-600' },
+      refunded: { variant: 'outline' as const, label: 'Refunded', color: 'text-gray-600' }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
@@ -350,7 +350,7 @@ const PaymentMonitoring: React.FC = () => {
       cheque: { label: 'Cheque', color: 'bg-orange-100 text-orange-800' },
       upi: { label: 'UPI', color: 'bg-cyan-100 text-cyan-800' },
       dd: { label: 'DD', color: 'bg-indigo-100 text-indigo-800' },
-      neft: { label: 'NEFT', color: 'bg-teal-100 text-teal-800' },
+      neft: { label: 'NEFT', color: 'bg-teal-100 text-teal-800' }
     };
 
     const config = methodConfig[method as keyof typeof methodConfig] || { label: method, color: 'bg-gray-100 text-gray-800' };
@@ -366,14 +366,14 @@ const PaymentMonitoring: React.FC = () => {
           <Skeleton className="h-10 w-full rounded-xl" />
           <SkeletonTable rows={10} cols={6} />
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
 
 
   return (
-    <div >
+    <div>
       <Card>
         <CardHeader className="border-b bg-muted/20 pb-6 px-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -388,34 +388,34 @@ const PaymentMonitoring: React.FC = () => {
 
         <CardContent className="p-6">
           {/* Stats Overview */}
-          {stats && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats &&
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <DashboardCard
-                title="Total Revenue"
-                value={formatCurrency(stats.total_amount)}
-                description={`${stats.total_payments} total transactions`}
-                icon={<DollarSign className="h-5 w-5" />}
-              />
+              title="Total Revenue"
+              value={formatCurrency(stats.total_amount)}
+              description={`${stats.total_payments} total transactions`}
+              icon={<DollarSign className="h-5 w-5" />} />
+            
               <DashboardCard
-                title="Successful"
-                value={stats.successful_payments}
-                description="Completed payments"
-                icon={<CheckCircle className="h-5 w-5" />}
-              />
+              title="Successful"
+              value={stats.successful_payments}
+              description="Completed payments"
+              icon={<CheckCircle className="h-5 w-5" />} />
+            
               <DashboardCard
-                title="Today's Collection"
-                value={formatCurrency(stats.today_amount)}
-                description={`${stats.today_payments} payments today`}
-                icon={<TrendingUp className="h-5 w-5" />}
-              />
+              title="Today's Collection"
+              value={formatCurrency(stats.today_amount)}
+              description={`${stats.today_payments} payments today`}
+              icon={<TrendingUp className="h-5 w-5" />} />
+            
               <DashboardCard
-                title="Outstanding"
-                value={formatCurrency(stats.outstanding_amount)}
-                description={`${stats.pending_invoice_count} unpaid invoices`}
-                icon={<AlertTriangle className="h-5 w-5 text-amber-500" />}
-              />
+              title="Outstanding"
+              value={formatCurrency(stats.outstanding_amount)}
+              description={`${stats.pending_invoice_count} unpaid invoices`}
+              icon={<AlertTriangle className="h-5 w-5 text-amber-500" />} />
+            
             </div>
-          )}
+          }
 
           {/* Control Row */}
           <div className="space-y-4 mb-6">
@@ -473,38 +473,38 @@ const PaymentMonitoring: React.FC = () => {
                   placeholder="Search by student name, USN, invoice number, or transaction ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-11 bg-background border-border/50 shadow-sm transition-all focus:ring-2 focus:ring-primary/20"
-                />
+                  className="pl-10 h-11 bg-background border-border/50 shadow-sm transition-all focus:ring-2 focus:ring-primary/20" />
+                
               </div>
               
-              {statusFilter === 'pending' && (
-                <Button 
-                  onClick={handleBulkNotify}
-                  disabled={notifying || hasNotified}
-                  className={`h-11 px-6 shadow-lg rounded-xl transition-all active:scale-95 flex items-center gap-2 font-semibold ${
-                    hasNotified 
-                      ? "bg-green-600 hover:bg-green-700 text-white shadow-green-200/50" 
-                      : "bg-primary hover:bg-primary/90 text-white shadow-primary/50"
-                  }`}
-                >
-                  {notifying ? (
-                    <>
+              {statusFilter === 'pending' &&
+              <Button
+                onClick={handleBulkNotify}
+                disabled={notifying || hasNotified}
+                className={`h-11 px-6 shadow-lg rounded-xl transition-all active:scale-95 flex items-center gap-2 font-semibold ${
+                hasNotified ?
+                "bg-green-600 hover:bg-green-700 text-white shadow-green-200/50" :
+                "bg-primary hover:bg-primary/90 text-white shadow-primary/50"}`
+                }>
+                
+                  {notifying ?
+                <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
                       Sending...
-                    </>
-                  ) : hasNotified ? (
-                    <>
+                    </> :
+                hasNotified ?
+                <>
                       <CheckCircle className="w-4 h-4" />
                       Reminders Sent
-                    </>
-                  ) : (
-                    <>
+                    </> :
+
+                <>
                       <Mail className="w-4 h-4" />
                       Notify All Pending
                     </>
-                  )}
+                }
                 </Button>
-              )}
+              }
             </div>
           </div>
 
@@ -522,8 +522,8 @@ const PaymentMonitoring: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payments.length === 0 ? (
-                  <TableRow>
+                {payments.length === 0 ?
+                <TableRow>
                     <TableCell colSpan={6} className="h-72 text-center">
                       <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
                         <div className="bg-muted p-4 rounded-full">
@@ -535,10 +535,10 @@ const PaymentMonitoring: React.FC = () => {
                         </div>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  payments.map((p) => (
-                    <TableRow key={p.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
+                  </TableRow> :
+
+                payments.map((p) =>
+                <TableRow key={p.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
                       <TableCell className="py-5 px-6 align-middle">
                         <div className="font-mono font-semibold text-primary tracking-tighter text-sm uppercase">{p.invoice.invoice_number}</div>
                         <div className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">
@@ -564,87 +564,87 @@ const PaymentMonitoring: React.FC = () => {
                       <TableCell className="text-right pr-6 align-middle">
                         <div className="flex justify-end gap-1">
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
-                            onClick={() => fetchPaymentDetails(p.id)}
-                            title="View Details"
-                          >
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
+                        onClick={() => fetchPaymentDetails(p.id)}
+                        title="View Details">
+                        
                             <Eye className="h-4.5 w-4.5" />
                           </Button>
-                          {(p.status === 'completed' || p.status === 'success') && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-full transition-all active:scale-95"
-                              onClick={() => downloadReceipt(p.id)}
-                              title="Download Receipt"
-                            >
+                          {(p.status === 'completed' || p.status === 'success') &&
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-full transition-all active:scale-95"
+                        onClick={() => downloadReceipt(p.id)}
+                        title="Download Receipt">
+                        
                               <Download className="h-4.5 w-4.5" />
                             </Button>
-                          )}
-                          {p.status === 'completed' && p.payment_method === 'stripe' && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 text-red-600 hover:bg-red-50 rounded-full transition-all active:scale-95"
-                              onClick={() => processRefund(p.id)}
-                              title="Process Refund"
-                            >
+                      }
+                          {p.status === 'completed' && p.payment_method === 'stripe' &&
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-red-600 hover:bg-red-50 rounded-full transition-all active:scale-95"
+                        onClick={() => processRefund(p.id)}
+                        title="Process Refund">
+                        
                               <RefreshCw className="h-4.5 w-4.5" />
                             </Button>
-                          )}
+                      }
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                )
+                }
               </TableBody>
             </Table>
 
             {/* Pagination Footer */}
-            {meta && meta.total_pages > 1 && (
-              <div className="p-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
+            {meta && meta.total_pages > 1 &&
+            <div className="p-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
                 <p className="text-[13px] font-medium text-muted-foreground">
                   Showing <span className="text-foreground font-semibold">{(meta.page - 1) * 25 + 1}</span> to <span className="text-foreground font-semibold">{Math.min(meta.page * 25, meta.total_count)}</span> of <span className="text-foreground font-semibold">{meta.total_count}</span> results
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  >
+                  variant="outline"
+                  size="sm"
+                  className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+                  
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     Previous
                   </Button>
 
                   <Button
-                    variant="outline"
-                    size="sm"
-                    disabled
-                    className={cn(
-                      "h-9 w-10 font-bold rounded-lg border-border/50",
-                      theme === 'dark' ? "bg-card text-foreground" : "bg-white text-gray-900"
-                    )}
-                  >
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  className={cn(
+                    "h-9 w-10 font-bold rounded-lg border-border/50",
+                    theme === 'dark' ? "bg-card text-foreground" : "bg-white text-gray-900"
+                  )}>
+                  
                     {currentPage}
                   </Button>
 
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                    disabled={currentPage === meta.total_pages}
-                    onClick={() => setCurrentPage(p => Math.min(meta.total_pages, p + 1))}
-                  >
+                  variant="outline"
+                  size="sm"
+                  className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                  disabled={currentPage === meta.total_pages}
+                  onClick={() => setCurrentPage((p) => Math.min(meta.total_pages, p + 1))}>
+                  
                     Next
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               </div>
-            )}
+            }
           </div>
         </CardContent>
       </Card>
@@ -680,8 +680,8 @@ const PaymentMonitoring: React.FC = () => {
           </div>
 
           <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
-            {isDetailLoading ? (
-              <div className="space-y-6">
+            {isDetailLoading ?
+            <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <SkeletonCard className="h-32" />
                   <SkeletonCard className="h-32" />
@@ -696,10 +696,10 @@ const PaymentMonitoring: React.FC = () => {
                   <Skeleton className="h-11 flex-1 rounded-xl" />
                   <Skeleton className="h-11 flex-1 rounded-xl" />
                 </div>
-              </div>
-            ) : selectedPayment && (
+              </div> :
+            selectedPayment &&
 
-              <>
+            <>
                 {/* Info Grid - Responsive */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/5">
@@ -758,14 +758,14 @@ const PaymentMonitoring: React.FC = () => {
                         {selectedPayment.transaction_id || 'N/A'}
                       </p>
                     </div>
-                    {selectedPayment.stripe_payment_intent_id && (
-                      <div className="space-y-1.5 pb-3 border-b border-border/30">
+                    {selectedPayment.stripe_payment_intent_id &&
+                  <div className="space-y-1.5 pb-3 border-b border-border/30">
                         <span className="text-muted-foreground uppercase text-[9px] font-bold tracking-widest">Stripe Payment Intent</span>
                         <p className="font-bold text-foreground select-all break-all leading-relaxed bg-background/50 p-2 rounded-lg border border-border/20">
                           {selectedPayment.stripe_payment_intent_id}
                         </p>
                       </div>
-                    )}
+                  }
                     <div className="flex justify-between items-center pt-1">
                       <span className="text-muted-foreground uppercase text-[9px] font-bold tracking-widest">Logged At</span>
                       <span className="text-foreground font-bold">{new Date(selectedPayment.created_at).toLocaleString()}</span>
@@ -775,38 +775,38 @@ const PaymentMonitoring: React.FC = () => {
 
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  {(selectedPayment.status === 'completed' || selectedPayment.status === 'success') && (
-                    <Button
-                      className="flex-1 h-11 text-xs font-semibold uppercase tracking-widest shadow-lg shadow-primary/20 rounded-xl"
-                      onClick={() => downloadReceipt(selectedPayment.id)}
-                    >
+                  {(selectedPayment.status === 'completed' || selectedPayment.status === 'success') &&
+                <Button
+                  className="flex-1 h-11 text-xs font-semibold uppercase tracking-widest shadow-lg shadow-primary/20 rounded-xl"
+                  onClick={() => downloadReceipt(selectedPayment.id)}>
+                  
                       <Download className="h-3.5 w-3.5 mr-2" /> Download Receipt
                     </Button>
-                  )}
-                  {selectedPayment.status === 'completed' && selectedPayment.payment_method === 'stripe' && (
-                    <Button
-                      variant="destructive"
-                      className="flex-1 h-11 text-xs font-semibold uppercase tracking-widest rounded-xl"
-                      onClick={() => processRefund(selectedPayment.id)}
-                    >
+                }
+                  {selectedPayment.status === 'completed' && selectedPayment.payment_method === 'stripe' &&
+                <Button
+                  variant="destructive"
+                  className="flex-1 h-11 text-xs font-semibold uppercase tracking-widest rounded-xl"
+                  onClick={() => processRefund(selectedPayment.id)}>
+                  
                       Process Refund
                     </Button>
-                  )}
+                }
                   <Button
-                    variant="outline"
-                    className="h-11 px-8 text-xs font-semibold uppercase tracking-widest rounded-xl border-border/50"
-                    onClick={() => setIsDetailsDialogOpen(false)}
-                  >
+                  variant="outline"
+                  className="h-11 px-8 text-xs font-semibold uppercase tracking-widest rounded-xl border-border/50"
+                  onClick={() => setIsDetailsDialogOpen(false)}>
+                  
                     Close Window
                   </Button>
                 </div>
               </>
-            )}
+            }
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default PaymentMonitoring;

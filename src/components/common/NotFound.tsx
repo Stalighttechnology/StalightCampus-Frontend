@@ -10,10 +10,10 @@ const NotFound = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
+
+
+
+
   }, [location.pathname]);
 
   const containerVariants = {
@@ -42,12 +42,12 @@ const NotFound = () => {
       </div>
 
       {/* Main Content */}
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 w-full max-w-5xl grid lg:grid-cols-2 gap-12 items-center"
-      >
+        className="relative z-10 w-full max-w-5xl grid lg:grid-cols-2 gap-12 items-center">
+        
         {/* Left Side: Illustration */}
         <motion.div variants={itemVariants} className="hidden lg:block">
           <ErrorIllustration />
@@ -82,11 +82,11 @@ const NotFound = () => {
 
           {/* Action Button */}
           <motion.div variants={itemVariants} className="w-full sm:w-auto">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="h-12 px-8 bg-primary hover:bg-primary/90 text-white shadow-[0_0_20px_-5px_rgba(var(--primary),0.5)] transition-all hover:scale-[1.02] w-full sm:w-auto"
-              onClick={() => navigate("/dashboard")}
-            >
+              onClick={() => navigate("/dashboard")}>
+              
               <LayoutDashboard className="mr-2 w-4 h-4" />
               Back to Dashboard
             </Button>
@@ -95,17 +95,17 @@ const NotFound = () => {
       </motion.div>
 
       {/* Footer Branding */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 opacity-50 hover:opacity-100 transition-opacity"
-      >
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 opacity-50 hover:opacity-100 transition-opacity">
+        
         <img src="/logo.jpeg" alt="Logo" className="w-10 h-10 rounded-full object-cover" />
         <span className="text-sm font-semibold tracking-wider uppercase">Stalight Campus</span>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default NotFound;

@@ -84,7 +84,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     }
     const safeHeaders = {
       ...(options.headers as Record<string, string> | undefined),
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`
     };
     options.headers = safeHeaders;
     const response = await fetch(url, options);
@@ -98,7 +98,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
         }
         options.headers = {
           ...options.headers,
-          Authorization: `Bearer ${refreshResult.access}`,
+          Authorization: `Bearer ${refreshResult.access}`
         };
         return fetch(url, options);
       } else {
@@ -119,13 +119,13 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
           return response;
         }
       } catch (e) {
+
         // Not a JSON response or doesn't have the flag
-      }
-    }
+      }}
 
     return response;
   } catch (error) {
-    console.error("Fetch with token refresh error:", error);
+
     localStorage.clear();
     stopTokenRefresh();
     window.location.href = "/"; // Redirect to home
@@ -148,18 +148,18 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
         throw new Error("No refresh token available");
       }
 
-      console.log("Sending token refresh request:", { refresh });
+
       const response = await fetch(`${API_ENDPOINT}/token/refresh/`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ refresh }),
-        signal: AbortSignal.timeout(TOKEN_REFRESH_TIMEOUT),
+        signal: AbortSignal.timeout(TOKEN_REFRESH_TIMEOUT)
       });
 
       const result: RefreshTokenResponse = await response.json();
-      console.log("Token refresh response:", result);
+
 
       if (!response.ok) {
         throw new Error(result.message || "Token refresh failed");
@@ -167,10 +167,10 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
       return {
         success: true,
         access: result.access,
-        refresh: result.refresh,
+        refresh: result.refresh
       };
     } catch (error: any) {
-      console.error("Refresh Token Error:", error);
+
       localStorage.clear();
       stopTokenRefresh();
       return { success: false, message: error.message || "Network error" };
@@ -194,9 +194,9 @@ export const startTokenRefresh = () => {
       if (refreshResult.refresh) {
         localStorage.setItem("refresh_token", refreshResult.refresh);
       }
-      console.log("Access token refreshed proactively");
+
     } else {
-      console.error("Proactive token refresh failed:", refreshResult.message);
+
       localStorage.clear();
       stopTokenRefresh();
       window.location.href = "/"; // Redirect to home
@@ -213,20 +213,20 @@ export const stopTokenRefresh = () => {
 
 export const loginUser = async ({ username, password }: LoginRequest): Promise<LoginResponse> => {
   if (!username?.trim() || !password?.trim()) {
-    console.warn("Login attempt with empty fields:", { username, password });
+
     return { success: false, message: "Username and password required" };
   }
   try {
-    console.log("Sending login request:", { username });
+
     const response = await fetch(`${API_ENDPOINT}/login/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password })
     });
     const result: LoginResponse = await response.json();
-    console.log("Login response:", result);
+
     if (response.ok && result.success) {
       if (result.message === "OTP sent") {
         return result; // Frontend handles OTP input
@@ -245,27 +245,27 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
     }
     return result;
   } catch (error: any) {
-    console.error("Login Error:", error);
+
     return { success: false, message: error.response?.data?.message || "Failed to connect to the server" };
   }
 };
 
 export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<LoginResponse> => {
   if (!user_id?.trim() || !otp?.trim()) {
-    console.warn("Verify OTP attempt with empty fields:", { user_id, otp });
+
     return { success: false, message: "User ID and OTP required" };
   }
   try {
-    console.log("Sending OTP verification request:", { user_id, otp });
+
     const response = await fetch(`${API_ENDPOINT}/verify-otp/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ user_id, otp }),
+      body: JSON.stringify({ user_id, otp })
     });
     const result: LoginResponse = await response.json();
-    console.log("OTP verification response:", result);
+
     if (response.ok && result.success) {
       // Convert relative profile_image URL to absolute URL
       if (result.profile && result.profile.profile_image && result.profile.profile_image.startsWith('/media/')) {
@@ -280,53 +280,53 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
     }
     return result;
   } catch (error: any) {
-    console.error("Verify OTP Error:", error);
+
     return { success: false, message: error.response?.data?.message || "Failed to connect to the server" };
   }
 };
 
 export const resendOTP = async ({ user_id }: ResendOTPRequest): Promise<GenericResponse> => {
   if (!user_id?.trim()) {
-    console.warn("Resend OTP attempt with empty user_id:", { user_id });
+
     return { success: false, message: "User ID required" };
   }
   try {
-    console.log("Sending resend OTP request:", { user_id });
+
     const response = await fetch(`${API_ENDPOINT}/resend-otp/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ user_id }),
+      body: JSON.stringify({ user_id })
     });
     const result = await response.json();
-    console.log("Resend OTP response:", result);
+
     return result;
   } catch (error: any) {
-    console.error("Resend OTP Error:", error);
+
     return { success: false, message: error.response?.data?.message || "Failed to connect to the server" };
   }
 };
 
 export const forgotPassword = async ({ email }: ForgotPasswordRequest): Promise<GenericResponse> => {
   if (!email?.trim()) {
-    console.warn("Forgot password attempt with empty email:", { email });
+
     return { success: false, message: "Email required" };
   }
   try {
-    console.log("Sending forgot password request:", { email });
+
     const response = await fetch(`${API_ENDPOINT}/forgot-password/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email })
     });
     const result = await response.json();
-    console.log("Forgot password response:", result);
+
     return result;
   } catch (error: any) {
-    console.error("Forgot Password Error:", error);
+
     return { success: false, message: error.response?.data?.message || "Failed to connect to the server" };
   }
 };
@@ -335,31 +335,31 @@ export const resetPassword = async ({
   user_id,
   otp,
   new_password,
-  confirm_password,
+  confirm_password
 }: ResetPasswordRequest): Promise<GenericResponse> => {
   if (!user_id?.trim() || !otp?.trim() || !new_password?.trim() || !confirm_password?.trim()) {
-    console.warn("Reset password attempt with empty fields:", { user_id, otp, new_password });
+
     return { success: false, message: "All fields required" };
   }
   try {
-    console.log("Sending reset password request:", { user_id, otp });
+
     const response = await fetch(`${API_ENDPOINT}/reset-password/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         user_id,
         otp,
         new_password,
-        confirm_password,
-      }),
+        confirm_password
+      })
     });
     const result = await response.json();
-    console.log("Reset password response:", result);
+
     return result;
   } catch (error: any) {
-    console.error("Reset Password Error:", error);
+
     return { success: false, message: error.response?.data?.message || "Failed to connect to the server" };
   }
 };
@@ -369,31 +369,31 @@ export const logoutUser = async (): Promise<GenericResponse> => {
     const refresh = localStorage.getItem("refresh_token");
     const accessToken = localStorage.getItem("access_token");
     if (!refresh) {
-      console.warn("Logout attempt with no refresh token");
+
       localStorage.clear();
       stopTokenRefresh();
       return { success: true, message: "Logged out successfully (no refresh token)" };
     }
-    console.log("Sending logout request:", { refresh });
+
     const response = await fetch(`${API_ENDPOINT}/logout/`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken || ""}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ refresh }),
+      body: JSON.stringify({ refresh })
     });
     localStorage.clear();
     stopTokenRefresh();
     if (!response.ok) {
-      console.warn(`Logout request failed with status ${response.status}`);
+
       return { success: true, message: "Logged out successfully (server error ignored)" };
     }
     const result = await response.json();
-    console.log("Logout response:", result);
+
     return result;
   } catch (error: any) {
-    console.error("Logout Error:", error);
+
     localStorage.clear();
     stopTokenRefresh();
     return { success: true, message: "Logged out successfully (error ignored)" };

@@ -17,7 +17,7 @@ const Billing = () => {
         const res = await response.json();
         setData(res.billing || []);
       } catch (error) {
-        console.error("Error:", error);
+
       } finally {
         setLoading(false);
       }
@@ -43,8 +43,8 @@ const Billing = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading...</TableCell></TableRow> : data.map((item) => (
-              <TableRow key={item.id}>
+            {loading ? <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading...</TableCell></TableRow> : data.map((item) =>
+            <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.org_name}</TableCell>
                 <TableCell>{item.plan}</TableCell>
                 <TableCell>{item.amount}</TableCell>
@@ -55,11 +55,11 @@ const Billing = () => {
                 </TableCell>
                 <TableCell className="text-muted-foreground">{item.date}</TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 export default Billing;

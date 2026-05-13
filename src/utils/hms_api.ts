@@ -56,11 +56,11 @@ interface HMSResponse<T> {
 }
 
 // Generic HMS API function
-const hmsApiCall = async <T>(
-  endpoint: string,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-  data?: any
-): Promise<HMSResponse<T>> => {
+const hmsApiCall = async <T,>(
+endpoint: string,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+data?: any)
+: Promise<HMSResponse<T>> => {
   try {
     const url = `${API_ENDPOINT}/hms/${endpoint}`;
 
@@ -68,9 +68,9 @@ const hmsApiCall = async <T>(
       method,
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : undefined
     });
 
     // Log cache information for debugging (only in development)
@@ -79,33 +79,33 @@ const hmsApiCall = async <T>(
       const cacheControl = response.headers.get('Cache-Control');
       const dbQueryCount = response.headers.get('X-DB-Query-Count');
       const dbQueryTime = response.headers.get('X-DB-Query-Time');
-      
+
       if (response.status === 304) {
-        console.log(`[CACHE HIT] ${method} ${endpoint} - 304 Not Modified`);
+
       } else if (etag || cacheControl) {
-        console.log(`[CACHE] ${method} ${endpoint}`, {
-          status: response.status,
-          etag: etag ? '✓' : '✗',
-          cacheControl: cacheControl || 'none',
-          dbQueries: dbQueryCount ? parseInt(dbQueryCount) : 'unknown',
-          dbTime: dbQueryTime || 'unknown',
-        });
+
+
+
+
+
+
+
       }
     }
 
     const result = response.status === 204 ? null : await response.json();
-    
+
     // Handle successful DELETE (204 No Content)
     if (method === "DELETE" && response.status === 204) {
       return { success: true };
     }
-    
+
     if (!response.ok) {
-      console.error(`HMS API ${method} ${endpoint} Failed:`, { status: response.status, result });
-      
+
+
       // Extract error message from different formats
       let errorMessage = `HTTP ${response.status}`;
-      
+
       if (result && result.detail) {
         errorMessage = result.detail;
       } else if (result && result.message) {
@@ -113,7 +113,7 @@ const hmsApiCall = async <T>(
       } else if (result && typeof result === 'object') {
         // Handle Django REST Framework validation errors
         // Format: { "field_name": ["error message"], "non_field_errors": ["error message"] }
-        
+
         // Check for non_field_errors first (these are validation errors like unique constraint violations)
         if (result.non_field_errors && Array.isArray(result.non_field_errors)) {
           errorMessage = result.non_field_errors[0];
@@ -122,17 +122,17 @@ const hmsApiCall = async <T>(
           const errorEntries = Object.entries(result);
           if (errorEntries.length > 0) {
             // Collect all error messages for better debugging
-            const errorMessages = errorEntries
-              .map(([field, errors]) => {
-                if (Array.isArray(errors)) {
-                  return `${field}: ${(errors as string[]).join(', ')}`;
-                } else if (typeof errors === 'string') {
-                  return `${field}: ${errors}`;
-                }
-                return `${field}: ${JSON.stringify(errors)}`;
-              });
-            console.error('All validation errors:', errorMessages.join('; '));
-            
+            const errorMessages = errorEntries.
+            map(([field, errors]) => {
+              if (Array.isArray(errors)) {
+                return `${field}: ${(errors as string[]).join(', ')}`;
+              } else if (typeof errors === 'string') {
+                return `${field}: ${errors}`;
+              }
+              return `${field}: ${JSON.stringify(errors)}`;
+            });
+
+
             // For user display, show just the first error
             const firstError = errorEntries[0];
             if (Array.isArray(firstError[1])) {
@@ -143,7 +143,7 @@ const hmsApiCall = async <T>(
           }
         }
       }
-      
+
       return { success: false, message: errorMessage };
     }
 
@@ -158,24 +158,24 @@ const hmsApiCall = async <T>(
         results: result.results,
         count: result.count,
         next: result.next,
-        previous: result.previous,
+        previous: result.previous
       };
     } else {
       // Single object response
       return { success: true, data: result };
     }
   } catch (error) {
-    console.error(`HMS API ${method} ${endpoint} Error:`, error);
+
     return { success: false, message: "Network error" };
   }
 };
 
 // Hostel Management
 export const manageHostels = async (
-  data?: Partial<Hostel>,
-  hostelId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<HMSResponse<Hostel>> => {
+data?: Partial<Hostel>,
+hostelId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<HMSResponse<Hostel>> => {
   const endpoint = hostelId ? `hostels/${hostelId}/` : "hostels/";
   return hmsApiCall<Hostel>(endpoint, method, data);
 };
@@ -195,11 +195,11 @@ export const getRoomDetail = async (roomId: number): Promise<HMSResponse<any>> =
 
 // Room Management
 export const manageRooms = async (
-  data?: Partial<HostelRoom>,
-  roomId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-  params?: Record<string, any>
-): Promise<HMSResponse<HostelRoom>> => {
+data?: Partial<HostelRoom>,
+roomId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+params?: Record<string, any>)
+: Promise<HMSResponse<HostelRoom>> => {
   let endpoint = roomId ? `rooms/${roomId}/` : "rooms/";
 
   // Add query parameters for GET requests
@@ -236,11 +236,11 @@ export const getFloorsByHostel = async (hostelId: number): Promise<HMSResponse<n
 
 // Student Management
 export const manageHostelStudents = async (
-  data?: Partial<HostelStudent>,
-  studentId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
-  params?: Record<string, any>
-): Promise<HMSResponse<HostelStudent>> => {
+data?: Partial<HostelStudent>,
+studentId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+params?: Record<string, any>)
+: Promise<HMSResponse<HostelStudent>> => {
   let endpoint = studentId ? `students/${studentId}/` : "students/";
 
   // Add query parameters for GET requests
@@ -266,20 +266,20 @@ export const getAcademicInit = async (): Promise<HMSResponse<any>> => {
 
 // Warden Management
 export const manageWardens = async (
-  data?: any,
-  wardenId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<HMSResponse<any>> => {
+data?: any,
+wardenId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<HMSResponse<any>> => {
   const endpoint = wardenId ? `wardens/${wardenId}/` : "wardens/";
   return hmsApiCall<any>(endpoint, method, data);
 };
 
 // Caretaker Management
 export const manageCaretakers = async (
-  data?: any,
-  caretakerId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<HMSResponse<any>> => {
+data?: any,
+caretakerId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<HMSResponse<any>> => {
   const endpoint = caretakerId ? `caretakers/${caretakerId}/` : "caretakers/";
   return hmsApiCall<any>(endpoint, method, data);
 };
@@ -310,10 +310,10 @@ export const getStaffEnrollment = async (page: number = 1, pageSize: number = 50
 
 // Course Management
 export const manageCourses = async (
-  data?: Partial<HostelCourse>,
-  courseId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<HMSResponse<HostelCourse>> => {
+data?: Partial<HostelCourse>,
+courseId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<HMSResponse<HostelCourse>> => {
   const endpoint = courseId ? `courses/${courseId}/` : "courses/";
   return hmsApiCall<HostelCourse>(endpoint, method, data);
 };
@@ -328,10 +328,10 @@ export const getMealTypes = async (): Promise<HMSResponse<any>> => {
 };
 
 export const manageMealType = async (
-  data?: any,
-  mealTypeId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<HMSResponse<any>> => {
+data?: any,
+mealTypeId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<HMSResponse<any>> => {
   const endpoint = mealTypeId ? `meal-types/${mealTypeId}/` : "meal-types/";
   return hmsApiCall<any>(endpoint, method, data);
 };
@@ -353,10 +353,10 @@ export const getMenuItems = async (filters?: Record<string, any>): Promise<HMSRe
 };
 
 export const manageMenuItem = async (
-  data?: any,
-  itemId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<HMSResponse<any>> => {
+data?: any,
+itemId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<HMSResponse<any>> => {
   const endpoint = itemId ? `menu-items/${itemId}/` : "menu-items/";
   return hmsApiCall<any>(endpoint, method, data);
 };
@@ -378,10 +378,10 @@ export const getMenus = async (filters?: Record<string, any>, page: number = 1):
 };
 
 export const manageMenu = async (
-  data?: any,
-  menuId?: number,
-  method: "GET" | "POST" | "PUT" | "DELETE" = "GET"
-): Promise<HMSResponse<any>> => {
+data?: any,
+menuId?: number,
+method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
+: Promise<HMSResponse<any>> => {
   const endpoint = menuId ? `menus/${menuId}/` : "menus/";
   return hmsApiCall<any>(endpoint, method, data);
 };
@@ -481,20 +481,20 @@ export const getIssueDetail = async (issueId: number): Promise<HMSResponse<any>>
 };
 
 export const updateIssueStatus = async (
-  issueId: number,
-  data: {
-    status: string;
-    note?: string;
-  }
-): Promise<HMSResponse<any>> => {
+issueId: number,
+data: {
+  status: string;
+  note?: string;
+})
+: Promise<HMSResponse<any>> => {
   return hmsApiCall<any>(`issues/${issueId}/`, "PATCH", data);
 };
 
 export const getHostelIssues = async (
-  hostelId: number,
-  status?: string,
-  page: number = 1
-): Promise<HMSResponse<any>> => {
+hostelId: number,
+status?: string,
+page: number = 1)
+: Promise<HMSResponse<any>> => {
   let endpoint = `issues/hostel_issues/?hostel_id=${hostelId}&page=${page}`;
   if (status) {
     endpoint += `&status=${status}`;

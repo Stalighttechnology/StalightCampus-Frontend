@@ -141,8 +141,8 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
     typeof error === 'object' &&
     error !== null &&
     'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
-  );
+    typeof (error as Record<string, unknown>).message === 'string');
+
 }
 
 // Error Boundary Component
@@ -159,8 +159,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         <div className="text-center py-6 text-red-500">
           <h2>Error: {this.state.errorMessage}</h2>
           <p>Please try refreshing the page or contact support.</p>
-        </div>
-      );
+        </div>);
+
     }
     return this.props.children;
   }
@@ -185,7 +185,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     sections: [] as Section[],
     semesters: [] as Semester[],
     faculties: [] as Faculty[],
-    allBranches: [] as { id: string, name: string }[],
+    allBranches: [] as {id: string;name: string;}[],
     selectedBranchForFaculty: "",
     facultySearch: "",
     facultyPage: 1,
@@ -197,28 +197,28 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     filterSections: [] as Section[],
     isFirstLoad: true,
     assignmentsPage: 1,
-    assignmentsTotalPages: 1,
+    assignmentsTotalPages: 1
   });
   const [localFacultySearch, setLocalFacultySearch] = useState("");
 
   // Helper to update state (stable reference for hooks)
   const updateState = useCallback((newState: Partial<typeof state>) => {
-    setState(prev => ({ ...prev, ...newState }));
+    setState((prev) => ({ ...prev, ...newState }));
   }, []);
 
   // Small helpers to reduce cognitive complexity in handlers
   const buildFacultyName = (id: string) => {
-    const f = state.faculties.find(x => x.id === id);
+    const f = state.faculties.find((x) => x.id === id);
     return f ? `${f.first_name} ${f.last_name || ''}`.trim() : 'This faculty';
   };
 
   const hasDuplicateAssignment = (subjectId: string, sectionId: string, semesterId: string, excludeId?: string) =>
-    state.assignments.some(a => a.subject_id === subjectId && a.section_id === sectionId && a.semester_id === semesterId && a.id !== excludeId);
+  state.assignments.some((a) => a.subject_id === subjectId && a.section_id === sectionId && a.semester_id === semesterId && a.id !== excludeId);
 
   const hasDuplicateFaculty = (facultyId: string, subjectId: string, sectionId: string, semesterId: string, excludeId?: string) =>
-    state.assignments.some(a => a.faculty_id === facultyId && a.subject_id === subjectId && a.section_id === sectionId && a.semester_id === semesterId && a.id !== excludeId);
+  state.assignments.some((a) => a.faculty_id === facultyId && a.subject_id === subjectId && a.section_id === sectionId && a.semester_id === semesterId && a.id !== excludeId);
 
-  const buildAssignmentFromForm = (form?: { facultyId?: string; subjectId?: string; sectionId?: string; semesterId?: string }) => {
+  const buildAssignmentFromForm = (form?: {facultyId?: string;subjectId?: string;sectionId?: string;semesterId?: string;}) => {
     const fId = form?.facultyId ?? state.facultyId;
     const sId = form?.subjectId ?? state.subjectId;
     const secId = form?.sectionId ?? state.sectionId;
@@ -230,33 +230,33 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       section_id: secId,
       semester_id: semId,
       faculty: buildFacultyName(fId),
-      subject: state.subjects.find(s => s.id === sId)?.name || '',
-      section: state.sections.find(s => s.id === secId)?.name || '',
-      semester: state.semesters.find(s => s.id === semId)?.number || 0,
+      subject: state.subjects.find((s) => s.id === sId)?.name || '',
+      section: state.sections.find((s) => s.id === secId)?.name || '',
+      semester: state.semesters.find((s) => s.id === semId)?.number || 0
     } as Partial<Assignment>;
   };
 
-    type FormState = {
-      facultyId: string;
-      subjectId: string;
-      sectionId: string;
-      semesterId: string;
-      editingId: string | null;
-    };
+  type FormState = {
+    facultyId: string;
+    subjectId: string;
+    sectionId: string;
+    semesterId: string;
+    editingId: string | null;
+  };
 
   // Optimistic helpers (separate create vs update to avoid branching flag)
   const applyOptimisticCreate = (tempId?: string) => {
     const newAssignment: Assignment = {
       id: tempId || `temp-${Date.now()}`,
-      ...(buildAssignmentFromForm() as Assignment),
+      ...(buildAssignmentFromForm() as Assignment)
     };
     updateState({ assignments: [...state.assignments, newAssignment] });
   };
 
   const applyOptimisticEdit = () => {
     const updateFields = buildAssignmentFromForm();
-    const updatedAssignments = state.assignments.map(assignment =>
-      assignment.id === state.editingId ? { ...assignment, ...updateFields } : assignment
+    const updatedAssignments = state.assignments.map((assignment) =>
+    assignment.id === state.editingId ? { ...assignment, ...updateFields } : assignment
     );
     updateState({ assignments: updatedAssignments });
   };
@@ -264,9 +264,9 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   const reconcileCreateResponse = (response: ManageAssignmentsResponse, originalFormStateLocal: FormState) => {
     const createdId = response.data?.assignment_id;
     if (createdId) {
-      const replaced = state.assignments.map((a) => (String(a.id).startsWith('temp-') && a.faculty_id === originalFormStateLocal.facultyId && a.subject_id === originalFormStateLocal.subjectId && a.section_id === originalFormStateLocal.sectionId && a.semester_id === originalFormStateLocal.semesterId)
-        ? { ...a, id: createdId }
-        : a
+      const replaced = state.assignments.map((a) => String(a.id).startsWith('temp-') && a.faculty_id === originalFormStateLocal.facultyId && a.subject_id === originalFormStateLocal.subjectId && a.section_id === originalFormStateLocal.sectionId && a.semester_id === originalFormStateLocal.semesterId ?
+      { ...a, id: createdId } :
+      a
       );
       updateState({ assignments: replaced });
     }
@@ -279,14 +279,14 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       subjectId: originalFormStateLocal.subjectId,
       sectionId: originalFormStateLocal.sectionId,
       semesterId: originalFormStateLocal.semesterId,
-      editingId: originalFormStateLocal.editingId,
+      editingId: originalFormStateLocal.editingId
     });
   };
 
   const saveCreateAssignment = async (data: ManageFacultyAssignmentsRequest, originalAssignmentsLocal: Assignment[], originalFormStateLocal: FormState) => {
     updateState({ isAssigning: true, loading: true });
     try {
-      const response = await manageFacultyAssignments(data, "POST") as ManageAssignmentsResponse;
+      const response = (await manageFacultyAssignments(data, "POST")) as ManageAssignmentsResponse;
       if (response.success) {
         reconcileCreateResponse(response, originalFormStateLocal);
       } else {
@@ -311,7 +311,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   const saveUpdateAssignment = async (data: ManageFacultyAssignmentsRequest, originalAssignmentsLocal: Assignment[], originalFormStateLocal: FormState) => {
     updateState({ isAssigning: true, loading: true });
     try {
-      const response = await manageFacultyAssignments(data, "POST") as ManageAssignmentsResponse;
+      const response = (await manageFacultyAssignments(data, "POST")) as ManageAssignmentsResponse;
       if (!response.success) {
         throw new Error(response.message || "Failed to save assignment");
       }
@@ -359,10 +359,10 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
           allBranches,
           faculties: faculties.map((f: any) => ({
             ...f,
-            name: `${f.first_name} ${f.last_name || ""}`.trim(),
+            name: `${f.first_name} ${f.last_name || ""}`.trim()
           })),
           facultyTotalPages: facultiesPagination?.total_pages || 1,
-          selectedBranchForFaculty: profile.branch_id, // Default to own branch
+          selectedBranchForFaculty: profile.branch_id // Default to own branch
         });
       } catch (err) {
         if (isErrorWithMessage(err)) {
@@ -394,22 +394,22 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
         const res = await manageFaculties({
           branch_id: state.selectedBranchForFaculty,
           search: state.facultySearch,
-          page_size: 1000, // Fetch many for frontend pagination
+          page_size: 1000 // Fetch many for frontend pagination
         });
 
         if (res.success) {
           const allFaculties = res.data.map((f: any) => ({
             ...f,
-            name: `${f.first_name} ${f.last_name || ""}`.trim(),
+            name: `${f.first_name} ${f.last_name || ""}`.trim()
           }));
           updateState({
             faculties: allFaculties,
             facultyPage: 1,
-            facultyTotalPages: Math.ceil(allFaculties.length / 10),
+            facultyTotalPages: Math.ceil(allFaculties.length / 10)
           });
         }
       } catch (err) {
-        console.error("Error fetching faculties:", err);
+
       } finally {
         updateState({ loadingFaculties: false });
       }
@@ -446,7 +446,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
           });
         }
       } catch (err) {
-        console.error("Error fetching semester data:", err);
+
       } finally {
         updateState({ loading: false });
       }
@@ -468,7 +468,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
           updateState({ filterSections: sectionsRes.data || [], filterSectionId: "" });
         }
       } catch (err) {
-        console.error("Error fetching filter sections:", err);
+
       }
     };
     fetchFilterSections();
@@ -488,17 +488,17 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
           branch_id: state.branchId,
           semester_id: state.filterSemesterId,
           section_id: state.filterSectionId,
-          page: state.assignmentsPage,
+          page: state.assignmentsPage
         }, "GET");
 
         if (response.success && (response.data?.assignments || (response as any).results?.data?.assignments)) {
           updateState({
             assignments: response.data?.assignments || (response as any).results?.data?.assignments,
-            assignmentsTotalPages: response.total_pages || Math.ceil((response.count || 0) / 10) || 1,
+            assignmentsTotalPages: response.total_pages || Math.ceil((response.count || 0) / 10) || 1
           });
         }
       } catch (err) {
-        console.error("Error fetching assignments:", err);
+
       } finally {
         updateState({ loading: false });
       }
@@ -513,7 +513,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       subjectId: "",
       sectionId: "",
       semesterId: "",
-      editingId: null,
+      editingId: null
     });
   };
 
@@ -522,23 +522,23 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       toast({
         title: "Error",
         description: "Please select all required fields",
-        variant: "destructive",
+        variant: "destructive"
       });
       return false;
     }
-    if (!state.faculties.some(f => f.id === state.facultyId)) {
+    if (!state.faculties.some((f) => f.id === state.facultyId)) {
       toast({ title: "Error", description: "Invalid faculty selected", variant: "destructive" });
       return false;
     }
-    if (!state.subjects.some(s => s.id === state.subjectId)) {
+    if (!state.subjects.some((s) => s.id === state.subjectId)) {
       toast({ title: "Error", description: "Invalid subject selected", variant: "destructive" });
       return false;
     }
-    if (!state.sections.some(s => s.id === state.sectionId)) {
+    if (!state.sections.some((s) => s.id === state.sectionId)) {
       toast({ title: "Error", description: "Invalid section selected", variant: "destructive" });
       return false;
     }
-    if (!state.semesters.some(s => s.id === state.semesterId)) {
+    if (!state.semesters.some((s) => s.id === state.semesterId)) {
       toast({ title: "Error", description: "Invalid semester selected", variant: "destructive" });
       return false;
     }
@@ -550,22 +550,22 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
 
     // 🚨 Case 1: Prevent multiple faculties or duplicate faculty assignment for same subject/section/semester
     if (hasDuplicateAssignment(state.subjectId, state.sectionId, state.semesterId, state.editingId)) {
-      const dup = state.assignments.find(a => a.subject_id === state.subjectId && a.section_id === state.sectionId && a.semester_id === state.semesterId && a.id !== state.editingId);
+      const dup = state.assignments.find((a) => a.subject_id === state.subjectId && a.section_id === state.sectionId && a.semester_id === state.semesterId && a.id !== state.editingId);
       toast({
         variant: "destructive",
         title: "Duplicate Assignment",
-        description: `Subject "${dup?.subject || ''}" is already assigned to Section ${dup?.section || ''}, Semester ${dup?.semester || ''}. Only one faculty can be assigned.`,
+        description: `Subject "${dup?.subject || ''}" is already assigned to Section ${dup?.section || ''}, Semester ${dup?.semester || ''}. Only one faculty can be assigned.`
       });
       return;
     }
 
     if (hasDuplicateFaculty(state.facultyId, state.subjectId, state.sectionId, state.semesterId, state.editingId)) {
-      const dupF = state.assignments.find(a => a.faculty_id === state.facultyId && a.subject_id === state.subjectId && a.section_id === state.sectionId && a.semester_id === state.semesterId && a.id !== state.editingId);
+      const dupF = state.assignments.find((a) => a.faculty_id === state.facultyId && a.subject_id === state.subjectId && a.section_id === state.sectionId && a.semester_id === state.semesterId && a.id !== state.editingId);
       const facultyName = buildFacultyName(state.facultyId);
       toast({
         variant: "destructive",
         title: "Duplicate Faculty Assignment",
-        description: `${facultyName} is already assigned to ${dupF?.subject || ''} - Section ${dupF?.section || ''}, Semester ${dupF?.semester || ''}.`,
+        description: `${facultyName} is already assigned to ${dupF?.subject || ''} - Section ${dupF?.section || ''}, Semester ${dupF?.semester || ''}.`
       });
       return;
     }
@@ -578,12 +578,12 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       subjectId: state.subjectId,
       sectionId: state.sectionId,
       semesterId: state.semesterId,
-      editingId: state.editingId,
+      editingId: state.editingId
     };
 
     // Optimistic update
     const tempId = `temp-${Date.now()}`;
-    if (isEditing) applyOptimisticEdit(); else applyOptimisticCreate(tempId);
+    if (isEditing) applyOptimisticEdit();else applyOptimisticCreate(tempId);
 
     // Clear form optimistically and show success toast
     resetForm();
@@ -596,7 +596,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       subject_id: originalFormState.subjectId,
       semester_id: originalFormState.semesterId,
       section_id: originalFormState.sectionId,
-      branch_id: state.branchId,
+      branch_id: state.branchId
     };
 
     if (isEditing) {
@@ -612,7 +612,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       facultyId: assignment.faculty_id,
       subjectId: assignment.subject_id,
       sectionId: assignment.section_id,
-      semesterId: assignment.semester_id,
+      semesterId: assignment.semester_id
     });
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -629,7 +629,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       cancelButtonText: "Cancel",
       background: theme === 'dark' ? '#1f2937' : '#ffffff',
       color: theme === 'dark' ? '#f3f4f6' : '#111827',
-      iconColor: "#ef4444",
+      iconColor: "#ef4444"
     }).then((result) => {
       if (result.isConfirmed) {
         executeDelete(deleteId);
@@ -644,7 +644,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     const originalAssignments = [...state.assignments];
 
     // Optimistic update: remove assignment from list
-    const updatedAssignments = state.assignments.filter(a => a.id !== deleteId);
+    const updatedAssignments = state.assignments.filter((a) => a.id !== deleteId);
     updateState({ assignments: updatedAssignments });
 
     updateState({ loading: true });
@@ -653,7 +653,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       const data: ManageFacultyAssignmentsRequest = {
         action: "delete",
         assignment_id: deleteId,
-        branch_id: state.branchId,
+        branch_id: state.branchId
       };
       const response = await manageFacultyAssignments(data, "POST");
       if (response.success) {
@@ -665,7 +665,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
           timer: 1500,
           showConfirmButton: false,
           background: theme === 'dark' ? '#1f2937' : '#ffffff',
-          color: theme === 'dark' ? '#f3f4f6' : '#111827',
+          color: theme === 'dark' ? '#f3f4f6' : '#111827'
         });
       } else {
         throw new Error(response.message || "Failed to delete assignment");
@@ -677,13 +677,13 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       const errorMessage = isErrorWithMessage(err) ? err.message : "Network error";
       toast({ variant: "destructive", title: "Error", description: errorMessage });
       setError(errorMessage);
-      
+
       Swal.fire({
         title: "Error!",
         text: errorMessage,
         icon: "error",
         background: theme === 'dark' ? '#1f2937' : '#ffffff',
-        color: theme === 'dark' ? '#f3f4f6' : '#111827',
+        color: theme === 'dark' ? '#f3f4f6' : '#111827'
       });
     } finally {
       updateState({ loading: false });
@@ -694,10 +694,10 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   const facultyMap = state.faculties.reduce((acc, f) => {
     acc[f.id] = {
       name: `${f.first_name} ${f.last_name || ""}`.trim(),
-      email: f.username,
+      email: f.username
     };
     return acc;
-  }, {} as Record<string, { name: string; email: string }>);
+  }, {} as Record<string, {name: string;email: string;}>);
 
 
   return (
@@ -712,19 +712,19 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch
                 <Select
-                  value={state.selectedBranchForFaculty}
-                  onValueChange={(value) => updateState({ selectedBranchForFaculty: value, facultyPage: 1, facultyId: "" })}
-                  disabled={state.loading || state.isAssigning || state.allBranches.length === 0}
-                >
+                    value={state.selectedBranchForFaculty}
+                    onValueChange={(value) => updateState({ selectedBranchForFaculty: value, facultyPage: 1, facultyId: "" })}
+                    disabled={state.loading || state.isAssigning || state.allBranches.length === 0}>
+                    
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder="Select Branch" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    {state.allBranches.map((branch) => (
+                    {state.allBranches.map((branch) =>
                       <SelectItem key={branch.id} value={branch.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                         {branch.name}
                       </SelectItem>
-                    ))}
+                      )}
                   </SelectContent>
                 </Select>
                 </label>
@@ -732,10 +732,10 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty
                 <Select
-                  value={state.facultyId}
-                  onValueChange={(value) => updateState({ facultyId: value })}
-                  disabled={state.loading || state.isAssigning || !state.selectedBranchForFaculty}
-                >
+                    value={state.facultyId}
+                    onValueChange={(value) => updateState({ facultyId: value })}
+                    disabled={state.loading || state.isAssigning || !state.selectedBranchForFaculty}>
+                    
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder={state.loadingFaculties ? "Loading..." : "Select Faculty"} />
                   </SelectTrigger>
@@ -744,34 +744,34 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       <div className="relative">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                         <input
-                          type="text"
-                          autoFocus
-                          placeholder="Search faculty..."
-                          value={localFacultySearch}
-                          onChange={(e) => setLocalFacultySearch(e.target.value)}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onTouchStart={(e) => e.stopPropagation()}
-                          className={`w-full pl-8 pr-2 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`}
-                        />
+                            type="text"
+                            autoFocus
+                            placeholder="Search faculty..."
+                            value={localFacultySearch}
+                            onChange={(e) => setLocalFacultySearch(e.target.value)}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                            className={`w-full pl-8 pr-2 py-1.5 text-sm rounded border ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
+                          
                       </div>
                     </div>
                     <div className="max-h-60 overflow-y-auto">
-                      {state.loadingFaculties ? (
-                        <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
-                      ) : state.faculties.length === 0 ? (
-                        <div className="p-4 text-center text-sm text-muted-foreground">No faculty found</div>
-                      ) : (
-                        state.faculties
-                          .slice((state.facultyPage - 1) * 10, state.facultyPage * 10)
-                          .map((faculty) => (
-                            <SelectItem key={faculty.id} value={faculty.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                      {state.loadingFaculties ?
+                        <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> :
+                        state.faculties.length === 0 ?
+                        <div className="p-4 text-center text-sm text-muted-foreground">No faculty found</div> :
+
+                        state.faculties.
+                        slice((state.facultyPage - 1) * 10, state.facultyPage * 10).
+                        map((faculty) =>
+                        <SelectItem key={faculty.id} value={faculty.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                               {faculty.first_name} {faculty.last_name || ""} ({faculty.username})
                             </SelectItem>
-                          ))
-                      )}
+                        )
+                        }
                     </div>
-                    {state.facultyTotalPages > 1 && (
+                    {state.facultyTotalPages > 1 &&
                       <div className="px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 bg-inherit z-10">
                         <Button
                           variant="outline"
@@ -781,8 +781,8 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                             if (state.facultyPage > 1) updateState({ facultyPage: state.facultyPage - 1 });
                           }}
                           disabled={state.facultyPage === 1}
-                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}
-                        >
+                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}>
+                          
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
                         <div className="flex items-center gap-2">
@@ -801,12 +801,12 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                             if (state.facultyPage < state.facultyTotalPages) updateState({ facultyPage: state.facultyPage + 1 });
                           }}
                           disabled={state.facultyPage === state.facultyTotalPages}
-                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}
-                        >
+                          className={`h-8 w-8 p-0 rounded-md transition-all ${theme === 'dark' ? 'hover:bg-primary/20 border-border' : 'hover:bg-primary/10 border-gray-200'}`}>
+                          
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
-                    )}
+                      }
                   </SelectContent>
                 </Select>
                 </label>
@@ -814,19 +814,19 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester
                 <Select
-                  value={state.semesterId}
-                  onValueChange={(value) => updateState({ semesterId: value, subjectId: "", sectionId: "" })}
-                  disabled={state.loading || state.isAssigning || state.semesters.length === 0}
-                >
+                    value={state.semesterId}
+                    onValueChange={(value) => updateState({ semesterId: value, subjectId: "", sectionId: "" })}
+                    disabled={state.loading || state.isAssigning || state.semesters.length === 0}>
+                    
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder={state.semesters.length === 0 ? "No semesters available" : "Select Semester"} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    {state.semesters.map((semester) => (
+                    {state.semesters.map((semester) =>
                       <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                         Semester {semester.number}
                       </SelectItem>
-                    ))}
+                      )}
                   </SelectContent>
                 </Select>
                 </label>
@@ -834,20 +834,20 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course
                 <Select
-                  value={state.subjectId}
-                  onValueChange={(value) => updateState({ subjectId: value })}
-                  disabled={state.loading || state.isAssigning || !state.semesterId || state.subjects.length === 0}
-                >
+                    value={state.subjectId}
+                    onValueChange={(value) => updateState({ subjectId: value })}
+                    disabled={state.loading || state.isAssigning || !state.semesterId || state.subjects.length === 0}>
+                    
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder={state.subjects.length === 0 ? "No subjects available" : "Select Subject"} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    {state.subjects
-                      .map((subject) => (
-                        <SelectItem key={subject.id} value={subject.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                    {state.subjects.
+                      map((subject) =>
+                      <SelectItem key={subject.id} value={subject.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                           {subject.name} ({subject.subject_code})
                         </SelectItem>
-                      ))}
+                      )}
                   </SelectContent>
                 </Select>
                 </label>
@@ -855,53 +855,53 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section
                 <Select
-                  value={state.sectionId}
-                  onValueChange={(value) => updateState({ sectionId: value })}
-                  disabled={state.loading || state.isAssigning || !state.semesterId || state.sections.length === 0}
-                >
+                    value={state.sectionId}
+                    onValueChange={(value) => updateState({ sectionId: value })}
+                    disabled={state.loading || state.isAssigning || !state.semesterId || state.sections.length === 0}>
+                    
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder={state.sections.length === 0 ? "No sections available" : "Select Section"} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    {state.sections
-                      .map((section) => (
-                        <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                    {state.sections.
+                      map((section) =>
+                      <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                           Section {section.name}
                         </SelectItem>
-                      ))}
+                      )}
                   </SelectContent>
                 </Select>
                 </label>
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              {(state.facultyId || state.subjectId || state.sectionId || state.semesterId || state.editingId) && (
-                <Button
-                  variant="outline"
-                  onClick={resetForm}
-                  disabled={state.loading || state.isAssigning}
-                  className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-900 bg-white border-gray-300 hover:bg-gray-100'}
-                >
+              {(state.facultyId || state.subjectId || state.sectionId || state.semesterId || state.editingId) &&
+              <Button
+                variant="outline"
+                onClick={resetForm}
+                disabled={state.loading || state.isAssigning}
+                className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-900 bg-white border-gray-300 hover:bg-gray-100'}>
+                
                   Cancel
                 </Button>
 
-              )}
+              }
               <Button
                 onClick={handleAssignFaculty}
                 disabled={state.loading || state.isAssigning}
-                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-              >
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md">
+                
                 {(() => {
                   const loading = state.isAssigning;
                   let label = "+ Assign Faculty";
                   if (state.editingId) label = "Update Assignment";
                   if (loading) label = state.editingId ? "Updating..." : "Assigning...";
-                  return loading ? (
-                    <>
+                  return loading ?
+                  <>
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                       {label}
-                    </>
-                  ) : label;
+                    </> :
+                  label;
                 })()}
               </Button>
             </div>
@@ -918,18 +918,18 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                 <Select
                   value={state.filterSemesterId || "all"}
                   onValueChange={(value) => updateState({ filterSemesterId: value === "all" ? "" : value, filterSectionId: "" })}
-                  disabled={state.loading || state.semesters.length === 0}
-                >
+                  disabled={state.loading || state.semesters.length === 0}>
+                  
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder="All Semesters" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectItem value="all" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>All Semesters</SelectItem>
-                    {state.semesters.map((semester) => (
-                      <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                    {state.semesters.map((semester) =>
+                    <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                         Semester {semester.number}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -937,29 +937,29 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                 <Select
                   value={state.filterSectionId || "all"}
                   onValueChange={(value) => updateState({ filterSectionId: value === "all" ? "" : value })}
-                  disabled={state.loading || !state.filterSemesterId || state.filterSections.length === 0}
-                >
+                  disabled={state.loading || !state.filterSemesterId || state.filterSections.length === 0}>
+                  
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder="All Sections" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectItem value="all" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>All Sections</SelectItem>
-                    {state.filterSections.map((section) => (
-                      <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                    {state.filterSections.map((section) =>
+                    <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                         Section {section.name}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
-                {(state.filterSemesterId || state.filterSectionId) && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => updateState({ filterSemesterId: "", filterSectionId: "" })}
-                    className="bg-primary hover:bg-[#9147e0] text-white"
-                  >
+                {(state.filterSemesterId || state.filterSectionId) &&
+                <Button
+                  variant="ghost"
+                  onClick={() => updateState({ filterSemesterId: "", filterSectionId: "" })}
+                  className="bg-primary hover:bg-[#9147e0] text-white">
+                  
                     Clear
                   </Button>
-                )}
+                }
               </div>
             </div>
             {(() => {
@@ -973,8 +973,8 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   <p className="max-w-md text-base leading-relaxed">
                     Select a <span className="font-semibold text-primary">semester</span> and <span className="font-semibold text-primary">section</span> from the filters above to load the assignment list.
                   </p>
-                </div>
-              );
+                </div>);
+
               if (filteredAssignments.length === 0) return <div className={`text-center py-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No assignments found for the selected criteria.</div>;
 
               return (
@@ -990,11 +990,11 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredAssignments.map((assignment) => (
-                        <tr
-                          key={assignment.id}
-                          className={`border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-100'}`}
-                        >
+                      {filteredAssignments.map((assignment) =>
+                      <tr
+                        key={assignment.id}
+                        className={`border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-100'}`}>
+                        
                           <td className="p-2">{assignment.subject}</td>
                           <td className="p-2">{assignment.section}</td>
                           <td className="p-2">{assignment.semester}</td>
@@ -1006,62 +1006,62 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                           </td>
                           <td className="p-2 flex items-center gap-2">
                             <Button
-                              size="icon"
-                              variant="ghost"
-                              className={theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-200'}
-                              onClick={() => handleEdit(assignment)}
-                              disabled={state.loading || state.isAssigning}
-                            >
+                            size="icon"
+                            variant="ghost"
+                            className={theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-200'}
+                            onClick={() => handleEdit(assignment)}
+                            disabled={state.loading || state.isAssigning}>
+                            
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
-                              size="icon"
-                              variant="ghost"
-                              className={theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-200'}
-                              onClick={() => handleDelete(assignment.id)}
-                              disabled={state.loading || state.isAssigning}
-                            >
+                            size="icon"
+                            variant="ghost"
+                            className={theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-200'}
+                            onClick={() => handleDelete(assignment.id)}
+                            disabled={state.loading || state.isAssigning}>
+                            
                               <Trash2 className={`h-4 w-4 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`} />
                             </Button>
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
-                  {state.assignmentsTotalPages > 1 && (
-                    <div className="flex items-center justify-between mt-4 px-2 py-3 border-t">
+                  {state.assignmentsTotalPages > 1 &&
+                  <div className="flex items-center justify-between mt-4 px-2 py-3 border-t">
                       <div className="text-sm text-muted-foreground">
                         Page {state.assignmentsPage} of {state.assignmentsTotalPages}
                       </div>
                       <div className="flex gap-2">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateState({ assignmentsPage: state.assignmentsPage - 1 })}
-                          disabled={state.assignmentsPage === 1}
-                        >
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateState({ assignmentsPage: state.assignmentsPage - 1 })}
+                        disabled={state.assignmentsPage === 1}>
+                        
                           Previous
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateState({ assignmentsPage: state.assignmentsPage + 1 })}
-                          disabled={state.assignmentsPage === state.assignmentsTotalPages}
-                        >
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateState({ assignmentsPage: state.assignmentsPage + 1 })}
+                        disabled={state.assignmentsPage === state.assignmentsTotalPages}>
+                        
                           Next
                         </Button>
                       </div>
                     </div>
-                  )}
-                </div>
-              );
+                  }
+                </div>);
+
             })()}
           </CardContent>
         </Card>
 
       </div>
-    </ErrorBoundary>
-  );
+    </ErrorBoundary>);
+
 };
 
 export default FacultyAssignments;

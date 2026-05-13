@@ -32,7 +32,7 @@ const StudentEnrollment = () => {
   const { theme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [resultModalOpen, setResultModalOpen] = useState(false);
-  const [resultData, setResultData] = useState<{ added: number; removed: number; failed: any[] }>({ added: 0, removed: 0, failed: [] });
+  const [resultData, setResultData] = useState<{added: number;removed: number;failed: any[];}>({ added: 0, removed: 0, failed: [] });
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,7 +50,7 @@ const StudentEnrollment = () => {
   useEffect(() => {
     const loadBootstrap = async () => {
       try {
-      const boot = await getElectiveEnrollmentBootstrap();
+        const boot = await getElectiveEnrollmentBootstrap();
         if (boot.success && boot.data) {
           const bId = boot.data.profile?.branch_id;
           if (bId) setBranchId(String(bId));
@@ -67,7 +67,7 @@ const StudentEnrollment = () => {
           // Removed: elective_subjects loading - now loaded on demand
         }
       } catch (e) {
-        console.error(e);
+
       }
     };
     loadBootstrap();
@@ -88,7 +88,7 @@ const StudentEnrollment = () => {
 
         const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/elective-enrollment-bootstrap/?${params}`, {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         });
 
         const data = await response.json();
@@ -97,12 +97,12 @@ const StudentEnrollment = () => {
           if (electivePage === 1) {
             setElectiveSubjects(newSubjects);
           } else {
-            setElectiveSubjects(prev => [...prev, ...newSubjects]);
+            setElectiveSubjects((prev) => [...prev, ...newSubjects]);
           }
           setElectiveTotalPages(data.data.elective_pagination?.num_pages || 1);
         }
       } catch (e) {
-        console.error('Error loading elective subjects:', e);
+
       }
       setElectiveLoading(false);
     };
@@ -135,7 +135,7 @@ const StudentEnrollment = () => {
     if (!branchId || !selectedSubjectId) return;
     // Determine selected subject type to decide required params (open_elective vs regular)
     const selSub = subjects.find((s: any) => String(s.id) === String(selectedSubjectId));
-    const selType = selSub ? (selSub.subject_type || selSub.subjectType || '') : '';
+    const selType = selSub ? selSub.subject_type || selSub.subjectType || '' : '';
 
     // non-open electives require semester and section
     if (selType !== 'open_elective' && (!semesterId || !sectionId)) return;
@@ -158,7 +158,7 @@ const StudentEnrollment = () => {
 
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/students/?${params}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
 
       const data = await response.json();
@@ -172,17 +172,17 @@ const StudentEnrollment = () => {
         usn: s.usn || s.student_id || s.id,
         name: s.name,
         checked: s.is_enrolled || false,
-        originallyEnrolled: s.is_enrolled || false, // Store original state for change detection
+        originallyEnrolled: s.is_enrolled || false // Store original state for change detection
       }));
 
       setStudents(mapped);
       setCurrentPage(page);
-      setTotalPages(data.total_pages || Math.ceil(data.count / 50));  // Fixed page size of 50
+      setTotalPages(data.total_pages || Math.ceil(data.count / 50)); // Fixed page size of 50
       setTotalStudents(data.count);
 
       // Reset enrolled count - derived when needed (removed state)
     } catch (e) {
-      console.error(e);
+
     }
     setIsLoading(false);
   };
@@ -195,7 +195,7 @@ const StudentEnrollment = () => {
   }, [branchId, selectedSubjectId, semesterId, sectionId]);
 
   const toggleStudent = (id: string) => {
-    setStudents((prev) => prev.map((p) => (p.id === id ? { ...p, checked: !p.checked } : p)));
+    setStudents((prev) => prev.map((p) => p.id === id ? { ...p, checked: !p.checked } : p));
   };
 
   const save = async () => {
@@ -203,8 +203,8 @@ const StudentEnrollment = () => {
     setSaving(true);
     try {
       // Determine changes based on original loaded state vs current checked state
-      const toRegister = students.filter(s => s.checked && !s.originallyEnrolled).map(s => s.usn);
-      const toUnregister = students.filter(s => !s.checked && s.originallyEnrolled).map(s => s.usn);
+      const toRegister = students.filter((s) => s.checked && !s.originallyEnrolled).map((s) => s.usn);
+      const toUnregister = students.filter((s) => !s.checked && s.originallyEnrolled).map((s) => s.usn);
 
       let registeredCount = 0;
       let removedCount = 0;
@@ -242,9 +242,9 @@ const StudentEnrollment = () => {
 
       setResultData({ added: registeredCount, removed: removedCount, failed });
       setResultModalOpen(true);
-      
+
       // Update local state instead of reloading to avoid extra API call
-      setStudents((prev) => prev.map(student => {
+      setStudents((prev) => prev.map((student) => {
         if (toRegister.includes(student.usn)) {
           return { ...student, checked: true, originallyEnrolled: true };
         } else if (toUnregister.includes(student.usn)) {
@@ -252,9 +252,9 @@ const StudentEnrollment = () => {
         }
         return student;
       }));
-      
+
     } catch (e) {
-      console.error(e);
+
       setResultData({ added: 0, removed: 0, failed: [] });
       setResultModalOpen(true);
     }
@@ -272,14 +272,14 @@ const StudentEnrollment = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Semester</label>
-                  <Select value={semesterId} onValueChange={(v: string) => { setSemesterId(v); setSectionId(""); }}>
+                  <Select value={semesterId} onValueChange={(v: string) => {setSemesterId(v);setSectionId("");}}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select semester" />
                     </SelectTrigger>
                     <SelectContent>
-                      {semesters.map((sem: any) => (
-                        <SelectItem key={sem.id} value={sem.id}>{`${sem.number}th Semester`}</SelectItem>
-                      ))}
+                      {semesters.map((sem: any) =>
+                    <SelectItem key={sem.id} value={sem.id}>{`${sem.number}th Semester`}</SelectItem>
+                    )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -291,13 +291,13 @@ const StudentEnrollment = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {(() => {
-                        const semObj = semesters.find((s: any) => String(s.id) === String(semesterId));
-                        const semNumberKey = semObj ? String(semObj.number) : "";
-                        const list = sectionsBySemester[String(semesterId)] || sectionsBySemester[semNumberKey] || [];
-                        return list.map((sec: any) => (
-                          <SelectItem key={String(sec.id)} value={String(sec.id)}>{sec.name}</SelectItem>
-                        ));
-                      })()}
+                      const semObj = semesters.find((s: any) => String(s.id) === String(semesterId));
+                      const semNumberKey = semObj ? String(semObj.number) : "";
+                      const list = sectionsBySemester[String(semesterId)] || sectionsBySemester[semNumberKey] || [];
+                      return list.map((sec: any) =>
+                      <SelectItem key={String(sec.id)} value={String(sec.id)}>{sec.name}</SelectItem>
+                      );
+                    })()}
                     </SelectContent>
                   </Select>
                 </div>
@@ -320,29 +320,29 @@ const StudentEnrollment = () => {
                       <SelectValue placeholder="Select subject" />
                     </SelectTrigger>
                     <SelectContent>
-                      {subjects.map((s: any) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      ))}
+                      {subjects.map((s: any) =>
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    )}
                     </SelectContent>
                   </Select>
-                  {electivePage < electiveTotalPages && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setElectivePage(prev => prev + 1)}
-                      disabled={electiveLoading}
-                      className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white border-purple-600 shadow-sm"
-                    >
+                  {electivePage < electiveTotalPages &&
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setElectivePage((prev) => prev + 1)}
+                  disabled={electiveLoading}
+                  className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white border-purple-600 shadow-sm">
+                  
                       {electiveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load More Subjects"}
                     </Button>
-                  )}
+                }
                 </div>
               </div>
             </div>
 
           <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6 p-4 sm:p-5 rounded-lg border ${
-            theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-gray-50 border-gray-100'
-          }`}>
+          theme === 'dark' ? 'bg-muted/50 border-border' : 'bg-gray-50 border-gray-100'}`
+          }>
             <div className="flex-1">
               <input
                 type="text"
@@ -350,25 +350,25 @@ const StudentEnrollment = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by USN or name"
                 className={`w-full px-4 py-2.5 text-sm rounded-md border shadow-sm transition-all placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 ${
-                  theme === 'dark'
-                    ? 'bg-background border-border text-foreground placeholder:text-muted-foreground'
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-              />
+                theme === 'dark' ?
+                'bg-background border-border text-foreground placeholder:text-muted-foreground' :
+                'bg-white border-gray-300 text-gray-900'}`
+                } />
+              
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <Button
                 onClick={() => loadStudents(1, searchTerm)}
                 disabled={!selectedSubjectId || isLoading || !branchId}
-                className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95"
-              >
+                className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95">
+                
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
               </Button>
-              <Button 
-                onClick={save} 
+              <Button
+                onClick={save}
                 disabled={saving || students.length === 0}
-                className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95"
-              >
+                className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95">
+                
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Enrollment"}
               </Button>
             </div>
@@ -376,35 +376,35 @@ const StudentEnrollment = () => {
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-600 dark:text-gray-400">Enrolled:</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                  theme === 'dark' 
-                    ? 'bg-green-900/30 text-green-400 border border-green-800/50' 
-                    : 'bg-green-100 text-green-800 border border-green-200'
-                }`}>
-                  {students.filter((s:any)=>s.checked).length}
+                theme === 'dark' ?
+                'bg-green-900/30 text-green-400 border border-green-800/50' :
+                'bg-green-100 text-green-800 border border-green-200'}`
+                }>
+                  {students.filter((s: any) => s.checked).length}
                 </span>
               </div>
               <label className="flex items-center gap-2 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  checked={showEnrolledOnly} 
-                  onChange={(e)=>setShowEnrolledOnly(e.target.checked)} 
-                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4 transition-all"
-                />
+                <input
+                  type="checkbox"
+                  checked={showEnrolledOnly}
+                  onChange={(e) => setShowEnrolledOnly(e.target.checked)}
+                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-4 w-4 transition-all" />
+                
                 <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-600 transition-colors">Show enrolled only</span>
               </label>
             </div>
           </div>
 
           <div>
-            {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {isLoading ?
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SkeletonCard />
                 <SkeletonCard />
-              </div>
-            ) : (
-              <>
-                {students.length === 0 ? (
-                  <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+              </div> :
+
+            <>
+                {students.length === 0 ?
+              <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                     <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                       <Users className="w-12 h-12 opacity-80" />
                     </div>
@@ -412,17 +412,17 @@ const StudentEnrollment = () => {
                     <p className="max-w-xs text-base leading-relaxed">
                       Select a semester, section, and subject to load students for enrollment management.
                     </p>
-                  </div>
-                ) : (
-                  (() => {
-                    // Server-side search is used when the user clicks the Search button.
-                    // `students` already contains the server-provided (possibly searched) page.
-                    const filtered = students;
-                    const enrolledListFiltered = filtered.filter((s: any) => s.checked);
-                    const notEnrolledListFiltered = filtered.filter((s: any) => !s.checked);
+                  </div> :
 
-                    return (
-                      <>
+              (() => {
+                // Server-side search is used when the user clicks the Search button.
+                // `students` already contains the server-provided (possibly searched) page.
+                const filtered = students;
+                const enrolledListFiltered = filtered.filter((s: any) => s.checked);
+                const notEnrolledListFiltered = filtered.filter((s: any) => !s.checked);
+
+                return (
+                  <>
                         <div className={showEnrolledOnly ? "" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-3 md:gap-2 lg:gap-4"}>
                           <div className={`p-4 sm:p-5 border rounded-xl transition-all ${theme === 'dark' ? 'bg-card/20 border-border' : 'bg-white border-gray-100 shadow-sm'}`}>
                             <div className="flex items-center justify-between mb-4">
@@ -431,18 +431,18 @@ const StudentEnrollment = () => {
                                 <strong className="text-lg font-semibold">Enrolled</strong>
                               </div>
                               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                                theme === 'dark' 
-                                  ? 'bg-green-900/40 text-green-400 border border-green-800/50' 
-                                  : 'bg-green-100 text-green-800 border border-green-200'
-                              }`}>
+                          theme === 'dark' ?
+                          'bg-green-900/40 text-green-400 border border-green-800/50' :
+                          'bg-green-100 text-green-800 border border-green-200'}`
+                          }>
                                 {enrolledListFiltered.length}
                               </span>
                             </div>
                             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
-                              {enrolledListFiltered.map((s: any) => (
-                                <div key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
-                                  theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'
-                                }`}>
+                              {enrolledListFiltered.map((s: any) =>
+                          <div key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
+                          theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`
+                          }>
                                   <Checkbox checked={s.checked} onCheckedChange={() => toggleStudent(s.id)} />
                                   <div className="text-sm">
                                     <span className="font-semibold">{s.usn}</span>
@@ -450,36 +450,36 @@ const StudentEnrollment = () => {
                                     <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{s.name}</span>
                                   </div>
                                 </div>
-                              ))}
-                              {enrolledListFiltered.length === 0 && (
-                                <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
+                          )}
+                              {enrolledListFiltered.length === 0 &&
+                          <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
                                   <UserX className="w-8 h-8 mb-2 opacity-20" />
                                   <p className="text-sm font-medium">No enrolled students</p>
                                 </div>
-                              )}
+                          }
                             </div>
                           </div>
 
-                          {!showEnrolledOnly && (
-                            <div className={`p-4 sm:p-5 border rounded-xl custom-scrollbar transition-all ${theme === 'dark' ? 'bg-card/20 border-border' : 'bg-white border-gray-100 shadow-sm'}`}>
+                          {!showEnrolledOnly &&
+                      <div className={`p-4 sm:p-5 border rounded-xl custom-scrollbar transition-all ${theme === 'dark' ? 'bg-card/20 border-border' : 'bg-white border-gray-100 shadow-sm'}`}>
                               <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2">
                                   <Users className={`w-5 h-5 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
                                   <strong className="text-lg font-semibold">Not Enrolled</strong>
                                 </div>
                                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                                  theme === 'dark' 
-                                    ? 'bg-red-900/40 text-red-400 border border-red-800/50' 
-                                    : 'bg-red-100 text-red-800 border border-red-200'
-                                }`}>
+                          theme === 'dark' ?
+                          'bg-red-900/40 text-red-400 border border-red-800/50' :
+                          'bg-red-100 text-red-800 border border-red-200'}`
+                          }>
                                   {notEnrolledListFiltered.length}
                                 </span>
                               </div>
                               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                                {notEnrolledListFiltered.map((s: any) => (
-                                  <div key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
-                                    theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'
-                                  }`}>
+                                {notEnrolledListFiltered.map((s: any) =>
+                          <div key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
+                          theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`
+                          }>
                                     <Checkbox checked={s.checked} onCheckedChange={() => toggleStudent(s.id)} />
                                     <div className="text-sm">
                                       <span className="font-semibold">{s.usn}</span>
@@ -487,56 +487,56 @@ const StudentEnrollment = () => {
                                       <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{s.name}</span>
                                     </div>
                                   </div>
-                                ))}
-                                {notEnrolledListFiltered.length === 0 && (
-                                  <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
+                          )}
+                                {notEnrolledListFiltered.length === 0 &&
+                          <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
                                     <UserCheck className="w-8 h-8 mb-2 opacity-20" />
                                     <p className="text-sm font-medium">All students enrolled</p>
                                   </div>
-                                )}
+                          }
                               </div>
                             </div>
-                          )}
+                      }
                         </div>
 
                         {/* Pagination Controls */}
-                        {totalPages > 1 && (
-                          <div className="flex flex-col sm:flex-row items-center justify-between mt-6 sm:mt-5 md:mt-4 lg:mt-6 pt-4 sm:pt-3 md:pt-3 lg:pt-4 border-t gap-3 sm:gap-3 md:gap-2 lg:gap-4">
+                        {totalPages > 1 &&
+                    <div className="flex flex-col sm:flex-row items-center justify-between mt-6 sm:mt-5 md:mt-4 lg:mt-6 pt-4 sm:pt-3 md:pt-3 lg:pt-4 border-t gap-3 sm:gap-3 md:gap-2 lg:gap-4">
                             <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-600'}`}>
                               Page {currentPage} of {totalPages} ({totalStudents} total students)
                             </div>
                             <div className="flex items-center space-x-2">
                               <Button
-                                variant="outline"
-                                disabled={currentPage === 1}
-                                onClick={() => loadStudents(currentPage - 1)}
-                                className="text-sm font-medium px-4 py-2 rounded-md bg-primary hover:bg-primary/80 text-white border-primary"
-                              >
+                          variant="outline"
+                          disabled={currentPage === 1}
+                          onClick={() => loadStudents(currentPage - 1)}
+                          className="text-sm font-medium px-4 py-2 rounded-md bg-primary hover:bg-primary/80 text-white border-primary">
+                          
                                 Previous
                               </Button>
                               <span className={`px-4 py-2 text-sm font-medium rounded-md ${theme === 'dark' ? 'text-foreground bg-accent' : 'text-gray-900 bg-gray-100'}`}>
                                 {currentPage}
                               </span>
                               <Button
-                                variant="outline"
-                                disabled={currentPage === totalPages}
-                                onClick={() => loadStudents(currentPage + 1)}
-                                className="text-sm font-medium px-4 py-2 rounded-md bg-primary hover:bg-primary/80 text-white border-primary"
-                              >
+                          variant="outline"
+                          disabled={currentPage === totalPages}
+                          onClick={() => loadStudents(currentPage + 1)}
+                          className="text-sm font-medium px-4 py-2 rounded-md bg-primary hover:bg-primary/80 text-white border-primary">
+                          
                                 Next
                               </Button>
                             </div>
                           </div>
-                        )}
-                      </>
-                    );
-                  })()
-                )}
+                    }
+                      </>);
+
+              })()
+              }
               </>
-            )}
+            }
           </div>
 
-          <Dialog open={resultModalOpen} onOpenChange={(open) => { setResultModalOpen(open); }}>
+          <Dialog open={resultModalOpen} onOpenChange={(open) => {setResultModalOpen(open);}}>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Enrollment Results</DialogTitle>
@@ -545,25 +545,25 @@ const StudentEnrollment = () => {
                 <div className="mb-2">Added: <strong>{resultData.added}</strong></div>
                 <div className="mb-2">Removed: <strong>{resultData.removed}</strong></div>
                 <div className="mb-2">Failed: <strong>{resultData.failed?.length || 0}</strong></div>
-                {resultData.failed && resultData.failed.length > 0 && (
-                  <div className="mt-2 max-h-40 overflow-y-auto border rounded p-2">
-                    {resultData.failed.map((f: any, idx: number) => (
-                      <div key={f?.usn || f?.student_id || String(f) || idx} className="text-sm">{f.usn || f.student_id || f}</div>
-                    ))}
+                {resultData.failed && resultData.failed.length > 0 &&
+                <div className="mt-2 max-h-40 overflow-y-auto border rounded p-2">
+                    {resultData.failed.map((f: any, idx: number) =>
+                  <div key={f?.usn || f?.student_id || String(f) || idx} className="text-sm">{f.usn || f.student_id || f}</div>
+                  )}
                   </div>
-                )}
+                }
               </div>
               <DialogFooter>
                 <div className="w-full flex justify-end">
-                  <Button onClick={() => { setResultModalOpen(false); }} className="bg-purple-600 hover:bg-purple-700 text-white">Close</Button>
+                  <Button onClick={() => {setResultModalOpen(false);}} className="bg-purple-600 hover:bg-purple-700 text-white">Close</Button>
                 </div>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default StudentEnrollment;

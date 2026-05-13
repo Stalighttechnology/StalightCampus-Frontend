@@ -17,12 +17,12 @@ import { useTheme } from '@/context/ThemeContext';
 import { toast } from 'sonner';
 
 const EXAM_PERIODS = [
-  { value: 'june_july', label: 'June/July' },
-  { value: 'nov_dec', label: 'November/December' },
-  { value: 'jan_feb', label: 'January/February' },
-  { value: 'apr_may', label: 'April/May' },
-  { value: 'supplementary', label: 'Supplementary' },
-];
+{ value: 'june_july', label: 'June/July' },
+{ value: 'nov_dec', label: 'November/December' },
+{ value: 'jan_feb', label: 'January/February' },
+{ value: 'apr_may', label: 'April/May' },
+{ value: 'supplementary', label: 'Supplementary' }];
+
 
 const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { theme } = useTheme();
@@ -83,7 +83,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         setFilters(result.data);
       }
     } catch (error) {
-      console.error('Error loading filters:', error);
+
       toast.error('Failed to load filter options');
     }
   };
@@ -110,7 +110,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         setTotalPages(uiPag.total_pages || 1);
       }
     } catch (error) {
-      console.error('Error loading requests:', error);
+
       toast.error('Failed to load makeup requests');
     } finally {
       setLoading(false);
@@ -147,12 +147,12 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       if (result.success) {
         toast.success(`Makeup request ${actionType}d successfully`);
         // Update the request status in local state instead of refetching
-        setRequests(prevRequests =>
-          prevRequests.map(req =>
-            req.id === selectedRequest.id
-              ? { ...req, status: actionType === 'approve' ? 'approved' : 'rejected' }
-              : req
-          )
+        setRequests((prevRequests) =>
+        prevRequests.map((req) =>
+        req.id === selectedRequest.id ?
+        { ...req, status: actionType === 'approve' ? 'approved' : 'rejected' } :
+        req
+        )
         );
         setActionDialogOpen(false);
         loadRequests(); // Refresh the list
@@ -160,7 +160,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         toast.error(result.message || 'Failed to update request');
       }
     } catch (error) {
-      console.error('Error updating request:', error);
+
       toast.error('Failed to update request');
     } finally {
       setProcessing(false);
@@ -191,7 +191,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       const sems = await getSemesters(parseInt(branchId));
       setSemesters(sems);
     } catch (error) {
-      console.error('Error fetching semesters:', error);
+
       setSemesters([]);
     }
   };
@@ -219,24 +219,24 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Batches</SelectItem>
-                  {filters?.batches.map(batch => (
-                    <SelectItem key={batch.id} value={batch.id.toString()}>{batch.name}</SelectItem>
-                  ))}
+                  {filters?.batches.map((batch) =>
+                  <SelectItem key={batch.id} value={batch.id.toString()}>{batch.name}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
             <div>
               <Label htmlFor="branch">Branch</Label>
-              <Select value={branchId} onValueChange={(value) => { setBranchId(value); setSemesterId(''); fetchSemesters(value); }}>
+              <Select value={branchId} onValueChange={(value) => {setBranchId(value);setSemesterId('');fetchSemesters(value);}}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Branches</SelectItem>
-                  {filters?.branches.map(branch => (
-                    <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
-                  ))}
+                  {filters?.branches.map((branch) =>
+                  <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -249,9 +249,9 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Semesters</SelectItem>
-                  {getAvailableSemesters().map(semester => (
-                    <SelectItem key={semester.id} value={semester.id.toString()}>{semester.number}</SelectItem>
-                  ))}
+                  {getAvailableSemesters().map((semester) =>
+                  <SelectItem key={semester.id} value={semester.id.toString()}>{semester.number}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -264,9 +264,9 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Periods</SelectItem>
-                  {EXAM_PERIODS.map(period => (
-                    <SelectItem key={period.value} value={period.value}>{period.label}</SelectItem>
-                  ))}
+                  {EXAM_PERIODS.map((period) =>
+                  <SelectItem key={period.value} value={period.value}>{period.label}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -295,14 +295,14 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 id="search"
                 placeholder="Search by name, USN, subject..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+                onChange={(e) => setSearch(e.target.value)} />
+              
             </div>
           </div>
 
           {/* Requests Table */}
-          {!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ? (
-             <Card className="border-dashed border-2 shadow-none bg-transparent">
+          {!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ?
+          <Card className="border-dashed border-2 shadow-none bg-transparent">
                 <CardContent className="flex flex-col items-center justify-center py-24 text-center">
                   <div className="bg-primary/5 p-6 rounded-full mb-4">
                     <Search className="w-12 h-12 text-primary/40" />
@@ -312,9 +312,9 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                     Please select a batch, branch, semester, and exam period from the dropdowns above to load the makeup exam requests.
                   </p>
                 </CardContent>
-             </Card>
-          ) : (
-            <div className="border rounded-lg">
+             </Card> :
+
+          <div className="border rounded-lg">
               <Table>
                 <TableHeader>
                   <TableRow className={theme === 'dark' ? 'bg-muted/40 border-b border-border' : 'bg-slate-100 border-b border-slate-200'}>
@@ -328,19 +328,19 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loading ? (
-                    <TableRow>
+                  {loading ?
+                <TableRow>
                       <TableCell colSpan={7} className="p-0 border-none">
                         <SkeletonTable rows={pageSize} cols={7} />
                       </TableCell>
-                    </TableRow>
-                  ) : requests.length === 0 ? (
-                    <TableRow>
+                    </TableRow> :
+                requests.length === 0 ?
+                <TableRow>
                       <TableCell colSpan={7} className="text-center py-8">No makeup requests found</TableCell>
-                    </TableRow>
-                  ) : (
-                    requests.map((request) => (
-                      <TableRow key={request.id}>
+                    </TableRow> :
+
+                requests.map((request) =>
+                <TableRow key={request.id}>
                         <TableCell>
                           <div>
                             <div className="font-medium">{request.student_name}</div>
@@ -365,54 +365,54 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedRequest(request)}
-                            >
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedRequest(request)}>
+                        
                               <Eye className="w-4 h-4" />
                             </Button>
-                            {request.attachment && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => window.open(request.attachment!, '_blank')}
-                              >
+                            {request.attachment &&
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(request.attachment!, '_blank')}>
+                        
                                 <Download className="w-4 h-4" />
                               </Button>
-                            )}
-                            {request.status === 'pending' && (
-                              <>
+                      }
+                            {request.status === 'pending' &&
+                      <>
                                 <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleAction(request, 'approve')}
-                                  className="text-green-700 border-green-600 hover:bg-green-100"
-                                >
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAction(request, 'approve')}
+                          className="text-green-700 border-green-600 hover:bg-green-100">
+                          
                                   Approve
                                 </Button>
                                 <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleAction(request, 'reject')}
-                                  className="text-red-700 border-red-600 hover:bg-red-100"
-                                >
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAction(request, 'reject')}
+                          className="text-red-700 border-red-600 hover:bg-red-100">
+                          
                                   Reject
                                 </Button>
                               </>
-                            )}
+                      }
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                )
+                }
                 </TableBody>
               </Table>
             </div>
-          )}
+          }
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+          {totalPages > 1 &&
+          <div className="flex items-center justify-between mt-4">
               <div className="flex items-center gap-2">
                 <Label htmlFor="page-size">Items per page:</Label>
                 <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(parseInt(value))}>
@@ -430,7 +430,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
-                  Showing {requests.length > 0 ? ((currentPage - 1) * pageSize) + 1 : 0} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} results
+                  Showing {requests.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} results
                 </span>
               </div>
 
@@ -438,53 +438,53 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
-                      onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                      className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                    />
+                    onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                    className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  
                   </PaginationItem>
 
                   {/* Page numbers */}
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
 
-                    return (
-                      <PaginationItem key={pageNum}>
+                  return (
+                    <PaginationItem key={pageNum}>
                         <PaginationLink
-                          onClick={() => setCurrentPage(pageNum)}
-                          isActive={currentPage === pageNum}
-                          className="cursor-pointer"
-                        >
+                        onClick={() => setCurrentPage(pageNum)}
+                        isActive={currentPage === pageNum}
+                        className="cursor-pointer">
+                        
                           {pageNum}
                         </PaginationLink>
-                      </PaginationItem>
-                    );
-                  })}
+                      </PaginationItem>);
 
-                  {totalPages > 5 && currentPage < totalPages - 2 && (
-                    <PaginationItem>
+                })}
+
+                  {totalPages > 5 && currentPage < totalPages - 2 &&
+                <PaginationItem>
                       <PaginationEllipsis />
                     </PaginationItem>
-                  )}
+                }
 
                   <PaginationItem>
                     <PaginationNext
-                      onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-                      className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                    />
+                    onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                    className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
 
@@ -494,8 +494,8 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Makeup Request Details</DialogTitle>
           </DialogHeader>
-          {selectedRequest && (
-            <div className="space-y-4 overflow-auto px-1 sm:px-2 py-1">
+          {selectedRequest &&
+          <div className="space-y-4 overflow-auto px-1 sm:px-2 py-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Student</Label>
@@ -528,25 +528,25 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Reason</Label>
                 <p className={`mt-1 rounded-md p-3 whitespace-pre-wrap ${theme === 'dark' ? 'bg-muted/20' : 'bg-gray-50 border border-gray-200'}`}>{selectedRequest.reason}</p>
               </div>
-              {selectedRequest.response_note && (
-                <div>
+              {selectedRequest.response_note &&
+            <div>
                   <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Response Note</Label>
                   <p className={`mt-1 rounded-md p-3 whitespace-pre-wrap ${theme === 'dark' ? 'bg-muted/20' : 'bg-gray-50 border border-gray-200'}`}>{selectedRequest.response_note}</p>
                 </div>
-              )}
-              {selectedRequest.processed_by && (
-                <div>
+            }
+              {selectedRequest.processed_by &&
+            <div>
                   <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Processed By</Label>
                   <p>{selectedRequest.processed_by}</p>
-                  {selectedRequest.processed_at && (
-                    <p className="text-sm text-muted-foreground">
+                  {selectedRequest.processed_at &&
+              <p className="text-sm text-muted-foreground">
                       on {new Date(selectedRequest.processed_at).toLocaleString()}
                     </p>
-                  )}
+              }
                 </div>
-              )}
+            }
             </div>
-          )}
+          }
         </DialogContent>
       </Dialog>
 
@@ -565,8 +565,8 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 id="response-note"
                 placeholder="Add a note for the student..."
                 value={responseNote}
-                onChange={(e) => setResponseNote(e.target.value)}
-              />
+                onChange={(e) => setResponseNote(e.target.value)} />
+              
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'} onClick={() => handleActionDialogOpenChange(false)}>
@@ -576,16 +576,16 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 onClick={submitAction}
                 disabled={processing}
                 variant="outline"
-                className={actionType === 'approve' ? 'text-green-700 border-green-600 hover:bg-green-100' : 'text-red-700 border-red-600 hover:bg-red-100'}
-              >
+                className={actionType === 'approve' ? 'text-green-700 border-green-600 hover:bg-green-100' : 'text-red-700 border-red-600 hover:bg-red-100'}>
+                
                 {processing ? 'Processing...' : actionType === 'approve' ? 'Approve' : 'Reject'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 });
 
 MakeupRequests.displayName = 'MakeupRequests';

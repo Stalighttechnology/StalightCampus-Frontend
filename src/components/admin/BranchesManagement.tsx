@@ -7,15 +7,15 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+  DialogTitle } from
+"../ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+  SelectValue } from
+"../ui/select";
 import { SkeletonTable } from "../ui/skeleton";
 import { PencilIcon, TrashIcon, PlusIcon, UserPlus2Icon, FileDownIcon } from "lucide-react";
 import jsPDF from "jspdf";
@@ -46,7 +46,7 @@ interface User {
   mobile_number: string | null;
 }
 
-const BranchesManagement = ({ setError, toast }: { setError: (error: string | null) => void; toast: (options: any) => void }) => {
+const BranchesManagement = ({ setError, toast }: {setError: (error: string | null) => void;toast: (options: any) => void;}) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [filter, setFilter] = useState("");
@@ -73,7 +73,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
     setError(null);
     try {
       const response = await getBranchesWithHODs({ page, page_size: pageSize, search });
-      console.log("Combined Branch and HOD Response:", response);
+
 
       const hasResults = response && typeof response === 'object' && 'results' in response;
       const paginationData = response as any;
@@ -81,48 +81,48 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
 
       if (dataSource && dataSource.success) {
         // Handle paginated response format
-        const branchData = Array.isArray(dataSource.branches)
-          ? dataSource.branches.map((b: any) => {
-            let hodName: string | null = null;
-            let hodContact: string | null = null;
+        const branchData = Array.isArray(dataSource.branches) ?
+        dataSource.branches.map((b: any) => {
+          let hodName: string | null = null;
+          let hodContact: string | null = null;
 
-            if (b.hod) {
-              if (typeof b.hod === 'string') {
-                hodName = b.hod;
-                hodContact = b.hod_contact || null;
-              } else if (typeof b.hod === 'object') {
-                hodName = `${b.hod.first_name || ''} ${b.hod.last_name || ''}`.trim() || null;
-                hodContact = b.hod.mobile_number || b.hod.email || null;
-              }
+          if (b.hod) {
+            if (typeof b.hod === 'string') {
+              hodName = b.hod;
+              hodContact = b.hod_contact || null;
+            } else if (typeof b.hod === 'object') {
+              hodName = `${b.hod.first_name || ''} ${b.hod.last_name || ''}`.trim() || null;
+              hodContact = b.hod.mobile_number || b.hod.email || null;
             }
+          }
 
-            return {
-              id: b.id,
-              name: b.name || "",
-              branch_code: b.branch_code || null,
-              hod: hodName,
-              hod_contact: hodContact || (b.hod ? "--" : null),
-            };
-          })
-          : [];
+          return {
+            id: b.id,
+            name: b.name || "",
+            branch_code: b.branch_code || null,
+            hod: hodName,
+            hod_contact: hodContact || (b.hod ? "--" : null)
+          };
+        }) :
+        [];
         setBranches(branchData);
 
         // Process HODs data
-        const hodData = Array.isArray(dataSource.hods)
-          ? dataSource.hods.map((u: any) => ({
-            id: u.id,
-            username: u.username,
-            email: u.email,
-            role: "hod",
-            first_name: u.first_name,
-            last_name: u.last_name,
-            mobile_number: u.mobile_number,
-          }))
-          : [];
+        const hodData = Array.isArray(dataSource.hods) ?
+        dataSource.hods.map((u: any) => ({
+          id: u.id,
+          username: u.username,
+          email: u.email,
+          role: "hod",
+          first_name: u.first_name,
+          last_name: u.last_name,
+          mobile_number: u.mobile_number
+        })) :
+        [];
         setUsers(hodData);
 
         // Set pagination info
-        const count = paginationData.count || (dataSource && dataSource.count);
+        const count = paginationData.count || dataSource && dataSource.count;
         if (count !== undefined) {
           setTotalPages(Math.ceil(count / 10));
           setTotalCount(count);
@@ -137,7 +137,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         toast({ variant: "destructive", title: "Error", description: dataSource?.message || "Failed to fetch branches and HODs" });
       }
     } catch (err) {
-      console.error("Fetch error:", err);
+
       setError("Network error or invalid response");
       toast({ variant: "destructive", title: "Error", description: "Network error or invalid response" });
     } finally {
@@ -179,7 +179,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         return;
       }
 
-      if (trimmedCode && (!/^[A-Za-z0-9]{2,10}$/.test(trimmedCode))) {
+      if (trimmedCode && !/^[A-Za-z0-9]{2,10}$/.test(trimmedCode)) {
         toast({ variant: "destructive", title: "Error", description: "Branch code must be 2-10 characters (letters and numbers only)" });
         return;
       }
@@ -215,10 +215,10 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         );
 
         const hasResults = response && typeof response === 'object' && 'results' in response;
-        const dataSource = hasResults ? (response as any).results : (response as any);
+        const dataSource = hasResults ? (response as any).results : response as any;
 
         if (dataSource && dataSource.success) {
-          setBranches(branches.map((b) => (b.id === editData.id ? { ...editData, name: trimmedName, branch_code: trimmedCode || null } : b)));
+          setBranches(branches.map((b) => b.id === editData.id ? { ...editData, name: trimmedName, branch_code: trimmedCode || null } : b));
           setEditingId(null);
           setEditData(null);
           toast({ title: "Success", description: "Branch updated successfully" });
@@ -246,7 +246,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
       cancelButtonColor: '#3b82f6',
       confirmButtonText: 'Delete Branch',
       background: currentTheme === 'dark' ? '#1f2937' : '#fff',
-      color: currentTheme === 'dark' ? '#fff' : '#000',
+      color: currentTheme === 'dark' ? '#fff' : '#000'
     }).then((result) => {
       if (result.isConfirmed) {
         deleteBranch(id);
@@ -259,7 +259,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
     try {
       const response = await manageBranches(undefined, id, "DELETE");
       const hasResults = response && typeof response === 'object' && 'results' in response;
-      const dataSource = hasResults ? (response as any).results : (response as any);
+      const dataSource = hasResults ? (response as any).results : response as any;
 
       if (dataSource && dataSource.success) {
         if (branches.length === 1 && currentPage > 1) {
@@ -293,7 +293,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
       return;
     }
 
-    if (trimmedCode && (!/^[A-Za-z0-9]{2,10}$/.test(trimmedCode))) {
+    if (trimmedCode && !/^[A-Za-z0-9]{2,10}$/.test(trimmedCode)) {
       toast({ variant: "destructive", title: "Error", description: "Branch code must be 2-10 characters (letters and numbers only)" });
       return;
     }
@@ -321,7 +321,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
       );
 
       const hasResults = response && typeof response === 'object' && 'results' in response;
-      const dataSource = hasResults ? (response as any).results : (response as any);
+      const dataSource = hasResults ? (response as any).results : response as any;
 
       if (dataSource && dataSource.success) {
         fetchData(1);
@@ -333,7 +333,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         toast({ variant: "destructive", title: "Error", description: response.message || "Failed to add branch" });
       }
     } catch (err) {
-      console.error("Add Branch Error:", err);
+
       setError("Network error");
       toast({ variant: "destructive", title: "Error", description: "Network error" });
     } finally {
@@ -358,16 +358,16 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         "PUT"
       );
       const hasResults = response && typeof response === 'object' && 'results' in response;
-      const dataSource = hasResults ? (response as any).results : (response as any);
+      const dataSource = hasResults ? (response as any).results : response as any;
 
       if (dataSource && dataSource.success) {
         // Update local state
         const assignedHod = users.find((u) => u.id === Number(newHodId));
-        setBranches(branches.map((b) => (b.id === selectedBranchId ? {
+        setBranches(branches.map((b) => b.id === selectedBranchId ? {
           ...b,
           hod: assignedHod ? `${assignedHod.first_name} ${assignedHod.last_name}`.trim() : null,
-          hod_contact: assignedHod ? (assignedHod.mobile_number || assignedHod.email || "--") : null
-        } : b)));
+          hod_contact: assignedHod ? assignedHod.mobile_number || assignedHod.email || "--" : null
+        } : b));
         setIsAssignDialogOpen(false);
         setNewHodId("");
         setSelectedBranchId(null);
@@ -377,7 +377,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         toast({ variant: "destructive", title: "Error", description: response.message || "Failed to assign HOD" });
       }
     } catch (err) {
-      console.error("Assign HOD Error:", err);
+
       setError("Network error");
       toast({ variant: "destructive", title: "Error", description: "Network error" });
     } finally {
@@ -392,12 +392,12 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
       startY: 20,
       head: [["ID", "Branch", "Branch Code", "Assigned HOD", "HOD Contact No"]],
       body: branches.map((branch) => [
-        branch.id || "",
-        branch.name || "--",
-        branch.branch_code || "--",
-        branch.hod || "--",
-        branch.hod_contact || "--",
-      ]),
+      branch.id || "",
+      branch.name || "--",
+      branch.branch_code || "--",
+      branch.hod || "--",
+      branch.hod_contact || "--"]
+      )
     });
     doc.save("Branch_list.pdf");
   };
@@ -465,29 +465,29 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
 
           <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
             <Button
-              size="sm"
-              className="flex items-center justify-center gap-1 w-full md:w-auto"
-              onClick={() => setIsAddDialogOpen(true)}
-              disabled={loading}
-            >
+                size="sm"
+                className="flex items-center justify-center gap-1 w-full md:w-auto"
+                onClick={() => setIsAddDialogOpen(true)}
+                disabled={loading}>
+                
               <PlusIcon className="w-4 h-4" /> Add Branch
             </Button>
 
             <Button
-              size="sm"
-              className="flex items-center justify-center gap-1 w-full md:w-auto"
-              onClick={() => setIsAssignDialogOpen(true)}
-              disabled={loading}
-            >
+                size="sm"
+                className="flex items-center justify-center gap-1 w-full md:w-auto"
+                onClick={() => setIsAssignDialogOpen(true)}
+                disabled={loading}>
+                
               <UserPlus2Icon className="w-4 h-4" /> Assign HOD
             </Button>
 
             <Button
-              size="sm"
-              className="flex items-center justify-center gap-1 w-full md:w-auto"
-              onClick={exportToPDF}
-              disabled={loading}
-            >
+                size="sm"
+                className="flex items-center justify-center gap-1 w-full md:w-auto"
+                onClick={exportToPDF}
+                disabled={loading}>
+                
               <FileDownIcon className="w-4 h-4" /> Export PDF
             </Button>
           </div>
@@ -496,16 +496,16 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         <CardContent className="flex-1 overflow-hidden flex flex-col px-2 sm:px-4 pt-0">
           <div className="pt-3 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <Input
-              placeholder="Search by branch name..."
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className={theme === 'dark' ? 'w-full sm:w-64 bg-card text-foreground py-1' : 'w-full sm:w-64 bg-white text-gray-900 py-1'}
-            />
+                placeholder="Search by branch name..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className={theme === 'dark' ? 'w-full sm:w-64 bg-card text-foreground py-1' : 'w-full sm:w-64 bg-white text-gray-900 py-1'} />
+              
           </div>
 
-          {loading && branches.length === 0 ? (
-            <SkeletonTable rows={pageSize} cols={4} />
-          ) : (
+          {loading && branches.length === 0 ?
+            <SkeletonTable rows={pageSize} cols={4} /> :
+
             <>
               <div className="branches-table-container flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
                 <table className="branches-table w-full text-xs md:text-sm text-left table-auto border-collapse">
@@ -519,68 +519,68 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredBranches.length === 0 ? (
-                      <tr>
+                    {filteredBranches.length === 0 ?
+                    <tr>
                         <td colSpan={5} className="py-10 text-center text-muted-foreground">
                           No branches found.
                         </td>
-                      </tr>
-                    ) : (
-                      filteredBranches.map((branch) => (
-                        <tr
-                          key={branch.id}
-                          className={`border-b transition-colors duration-200 ${theme === 'dark'
-                            ? 'border-border hover:bg-accent text-foreground'
-                            : 'border-gray-200 hover:bg-gray-50 text-gray-900'
-                            }`}
-                        >
+                      </tr> :
+
+                    filteredBranches.map((branch) =>
+                    <tr
+                      key={branch.id}
+                      className={`border-b transition-colors duration-200 ${theme === 'dark' ?
+                      'border-border hover:bg-accent text-foreground' :
+                      'border-gray-200 hover:bg-gray-50 text-gray-900'}`
+                      }>
+                      
                           <td className="py-3 px-3 align-middle font-medium branch-name-cell">
-                            {editingId === branch.id ? (
-                              <Input
-                                name="name"
-                                value={editData?.name || ""}
-                                onChange={handleEditChange}
-                                className="edit-input-mobile h-8"
-                              />
-                            ) : (
-                              <div className="break-words">{branch.name}</div>
-                            )}
+                            {editingId === branch.id ?
+                        <Input
+                          name="name"
+                          value={editData?.name || ""}
+                          onChange={handleEditChange}
+                          className="edit-input-mobile h-8" /> :
+
+
+                        <div className="break-words">{branch.name}</div>
+                        }
                           </td>
 
                           <td className="py-3 px-3 hidden sm:table-cell align-middle">
-                            {editingId === branch.id ? (
-                              <Input
-                                name="branch_code"
-                                value={editData?.branch_code || ""}
-                                onChange={handleEditChange}
-                                className="h-8"
-                              />
-                            ) : (
-                              <span className="opacity-70">{branch.branch_code || "--"}</span>
-                            )}
+                            {editingId === branch.id ?
+                        <Input
+                          name="branch_code"
+                          value={editData?.branch_code || ""}
+                          onChange={handleEditChange}
+                          className="h-8" /> :
+
+
+                        <span className="opacity-70">{branch.branch_code || "--"}</span>
+                        }
                           </td>
 
                           <td className="py-3 px-3 align-middle hod-cell">
-                            {editingId === branch.id ? (
-                              <Select
-                                value={editData?.hod || "none"}
-                                onValueChange={(val) => setEditData(prev => prev ? { ...prev, hod: val === "none" ? null : val } : null)}
-                              >
+                            {editingId === branch.id ?
+                        <Select
+                          value={editData?.hod || "none"}
+                          onValueChange={(val) => setEditData((prev) => prev ? { ...prev, hod: val === "none" ? null : val } : null)}>
+                          
                                 <SelectTrigger className="edit-input-mobile h-8 w-full">
                                   <SelectValue placeholder="Select HOD" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="none">-- Unassign --</SelectItem>
-                                  {users.map((u) => (
-                                    <SelectItem key={u.id} value={`${u.first_name} ${u.last_name}`.trim()}>
+                                  {users.map((u) =>
+                            <SelectItem key={u.id} value={`${u.first_name} ${u.last_name}`.trim()}>
                                       {`${u.first_name} ${u.last_name}`.trim()}
                                     </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <div className="break-words">{branch.hod || "--"}</div>
                             )}
+                                </SelectContent>
+                              </Select> :
+
+                        <div className="break-words">{branch.hod || "--"}</div>
+                        }
                           </td>
 
                           <td className="py-3 px-3 hidden sm:table-cell align-middle text-xs opacity-70">
@@ -588,13 +588,13 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                           </td>
 
                           <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
-                            {editingId === branch.id ? (
-                              <div className="edit-actions-wrapper flex gap-1 justify-end">
+                            {editingId === branch.id ?
+                        <div className="edit-actions-wrapper flex gap-1 justify-end">
                                 <Button size="sm" onClick={saveEdit} disabled={loading} className="edit-btn-mobile h-8 px-2">Save</Button>
-                                <Button size="sm" variant="ghost" onClick={() => { setEditingId(null); setEditData(null); }} className="edit-btn-mobile h-8 px-2">Cancel</Button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-end gap-1">
+                                <Button size="sm" variant="ghost" onClick={() => {setEditingId(null);setEditData(null);}} className="edit-btn-mobile h-8 px-2">Cancel</Button>
+                              </div> :
+
+                        <div className="flex items-center justify-end gap-1">
                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(branch)} className="h-8 w-8">
                                   <PencilIcon className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
                                 </Button>
@@ -602,33 +602,33 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                                   <TrashIcon className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
                                 </Button>
                               </div>
-                            )}
+                        }
                           </td>
                         </tr>
-                      ))
-                    )}
+                    )
+                    }
                   </tbody>
                 </table>
               </div>
 
               {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 py-3 border-t">
+              {totalPages > 1 &&
+              <div className="flex items-center justify-between px-2 py-3 border-t">
                   <div className="flex-1 flex justify-between sm:hidden">
                     <Button
-                      onClick={() => fetchData(currentPage - 1, filter)}
-                      disabled={currentPage === 1 || loading}
-                      variant="outline"
-                      size="sm"
-                    >
+                    onClick={() => fetchData(currentPage - 1, filter)}
+                    disabled={currentPage === 1 || loading}
+                    variant="outline"
+                    size="sm">
+                    
                       Previous
                     </Button>
                     <Button
-                      onClick={() => fetchData(currentPage + 1, filter)}
-                      disabled={currentPage === totalPages || loading}
-                      variant="outline"
-                      size="sm"
-                    >
+                    onClick={() => fetchData(currentPage + 1, filter)}
+                    disabled={currentPage === totalPages || loading}
+                    variant="outline"
+                    size="sm">
+                    
                       Next
                     </Button>
                   </div>
@@ -644,43 +644,43 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                     </div>
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => fetchData(currentPage - 1, filter)}
-                        disabled={currentPage === 1 || loading}
-                        variant="outline"
-                        size="sm"
-                        className="h-8"
-                      >
+                      onClick={() => fetchData(currentPage - 1, filter)}
+                      disabled={currentPage === 1 || loading}
+                      variant="outline"
+                      size="sm"
+                      className="h-8">
+                      
                         Previous
                       </Button>
                       <div className="flex items-center gap-1">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                          <Button
-                            key={p}
-                            onClick={() => fetchData(p, filter)}
-                            variant={currentPage === p ? "default" : "outline"}
-                            size="sm"
-                            className={`h-8 w-8 p-0 ${currentPage === p ? 'bg-primary text-white shadow-sm' : ''}`}
-                            disabled={loading}
-                          >
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) =>
+                      <Button
+                        key={p}
+                        onClick={() => fetchData(p, filter)}
+                        variant={currentPage === p ? "default" : "outline"}
+                        size="sm"
+                        className={`h-8 w-8 p-0 ${currentPage === p ? 'bg-primary text-white shadow-sm' : ''}`}
+                        disabled={loading}>
+                        
                             {p}
                           </Button>
-                        ))}
+                      )}
                       </div>
                       <Button
-                        onClick={() => fetchData(currentPage + 1, filter)}
-                        disabled={currentPage === totalPages || loading}
-                        variant="outline"
-                        size="sm"
-                        className="h-8"
-                      >
+                      onClick={() => fetchData(currentPage + 1, filter)}
+                      disabled={currentPage === totalPages || loading}
+                      variant="outline"
+                      size="sm"
+                      className="h-8">
+                      
                         Next
                       </Button>
                     </div>
                   </div>
                 </div>
-              )}
+              }
             </>
-          )}
+            }
         </CardContent>
       </Card>
 
@@ -692,18 +692,18 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
             <div className="space-y-2">
               <label className="text-sm font-semibold">Branch Name</label>
               <Input
-                placeholder="e.g. Computer Science"
-                value={newBranch.name}
-                onChange={(e) => setNewBranch({ ...newBranch, name: e.target.value })}
-              />
+                  placeholder="e.g. Computer Science"
+                  value={newBranch.name}
+                  onChange={(e) => setNewBranch({ ...newBranch, name: e.target.value })} />
+                
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold">Branch Code</label>
               <Input
-                placeholder="e.g. CSE"
-                value={newBranch.branch_code}
-                onChange={(e) => setNewBranch({ ...newBranch, branch_code: e.target.value })}
-              />
+                  placeholder="e.g. CSE"
+                  value={newBranch.branch_code}
+                  onChange={(e) => setNewBranch({ ...newBranch, branch_code: e.target.value })} />
+                
             </div>
           </div>
           <DialogFooter className="flex gap-3">
@@ -722,16 +722,16 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
             <div className="space-y-2">
               <label className="text-sm font-semibold">Target Branch</label>
               <Select
-                value={selectedBranchId?.toString() || ""}
-                onValueChange={(val) => setSelectedBranchId(Number(val))}
-              >
+                  value={selectedBranchId?.toString() || ""}
+                  onValueChange={(val) => setSelectedBranchId(Number(val))}>
+                  
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {branches.map((branch) => (
+                  {branches.map((branch) =>
                     <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
-                  ))}
+                    )}
                 </SelectContent>
               </Select>
             </div>
@@ -739,18 +739,18 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
             <div className="space-y-2">
               <label className="text-sm font-semibold">Available HODs</label>
               <Select
-                value={newHodId}
-                onValueChange={setNewHodId}
-              >
+                  value={newHodId}
+                  onValueChange={setNewHodId}>
+                  
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select HOD" />
                 </SelectTrigger>
                 <SelectContent>
-                  {users.map((user) => (
+                  {users.map((user) =>
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {`${user.first_name} ${user.last_name}`.trim()}
                     </SelectItem>
-                  ))}
+                    )}
                 </SelectContent>
               </Select>
             </div>
@@ -758,18 +758,18 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
           <DialogFooter className="flex gap-3">
             <Button variant="ghost" onClick={() => setIsAssignDialogOpen(false)} className="flex-1">Cancel</Button>
             <Button
-              onClick={handleAssignHod}
-              disabled={loading || !selectedBranchId || !newHodId}
-              className="flex-1 bg-primary text-white"
-            >
+                onClick={handleAssignHod}
+                disabled={loading || !selectedBranchId || !newHodId}
+                className="flex-1 bg-primary text-white">
+                
               {loading ? "Assigning..." : "Assign HOD"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-    </>
-  );
+    </>);
+
 };
 
 export default BranchesManagement;

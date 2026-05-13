@@ -26,8 +26,8 @@ import {
   Clock,
   XCircle,
   ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+  ChevronRight } from
+'lucide-react';
 import {
   getStudentFeeReport,
   getStudentsFeeReports,
@@ -39,17 +39,17 @@ import {
   Branch,
   Semester,
   Section,
-  sendFeeReminder
-} from '../../utils/fees_manager_api';
+  sendFeeReminder } from
+'../../utils/fees_manager_api';
 import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
-import { 
-  Skeleton, 
-  SkeletonStatsGrid, 
-  SkeletonTable, 
-  SkeletonList, 
+import {
+  Skeleton,
+  SkeletonStatsGrid,
+  SkeletonTable,
+  SkeletonList,
   SkeletonPageHeader,
-  SkeletonCard
-} from "@/components/ui/skeleton";
+  SkeletonCard } from
+"@/components/ui/skeleton";
 
 
 const StudentFeeReports: React.FC = () => {
@@ -63,7 +63,7 @@ const StudentFeeReports: React.FC = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
-  const [batches, setBatches] = useState<{ id: number, name: string }[]>([]);
+  const [batches, setBatches] = useState<{id: number;name: string;}[]>([]);
   const [admissionModes, setAdmissionModes] = useState<string[]>([]);
   const [selectedBatch, setSelectedBatch] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('');
@@ -148,11 +148,11 @@ const StudentFeeReports: React.FC = () => {
   // Automatic data loading when filters are selected
   useEffect(() => {
     const isAcademicHierarchySelected =
-      selectedBatch !== '' &&
-      selectedBranch !== '' &&
-      selectedSemester !== '' &&
-      selectedSection !== '' &&
-      selectedAdmissionMode !== '';
+    selectedBatch !== '' &&
+    selectedBranch !== '' &&
+    selectedSemester !== '' &&
+    selectedSection !== '' &&
+    selectedAdmissionMode !== '';
 
     if (isAcademicHierarchySelected) {
       handleBulkSearch(1);
@@ -224,8 +224,8 @@ const StudentFeeReports: React.FC = () => {
       setHasPrevious(response.data.previous !== null);
       setCurrentPage(page);
     } else {
-      // Handle error - maybe set an error state
-      console.error('Failed to load bulk reports:', response.message);
+
+
     }
   };
 
@@ -297,33 +297,33 @@ const StudentFeeReports: React.FC = () => {
                     placeholder="Enter USN or student name"
                     value={typeof searchTerm === 'string' ? searchTerm : ''}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleIndividualSearch()}
-                  />
+                    onKeyPress={(e) => e.key === 'Enter' && handleIndividualSearch()} />
+                  
                 </div>
                 <div className="flex items-end">
                   <Button
                     onClick={() => handleIndividualSearch()}
                     disabled={searchLoading}
-                    className="w-full"
-                  >
-                    {searchLoading ? (
-                      <div className="flex items-center gap-2">
+                    className="w-full">
+                    
+                    {searchLoading ?
+                    <div className="flex items-center gap-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                         Searching...
-                      </div>
-                    ) : 'Search'}
+                      </div> :
+                    'Search'}
                   </Button>
                 </div>
               </div>
 
-              {searchLoading && (
-                <div className="space-y-6 animate-in fade-in duration-500">
+              {searchLoading &&
+              <div className="space-y-6 animate-in fade-in duration-500">
                   <SkeletonCard className="h-32" />
                   <SkeletonStatsGrid items={4} />
                   <Skeleton className="h-24 w-full rounded-xl" />
                   <SkeletonTable rows={5} cols={6} />
                 </div>
-              )}
+              }
 
 
               {/* Search Error Handled by SweetAlert */}
@@ -331,8 +331,8 @@ const StudentFeeReports: React.FC = () => {
           </Card>
 
           {/* Student Details View */}
-          {studentReport && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500 pb-10">
+          {studentReport &&
+          <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500 pb-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-primary/10 rounded-lg">
@@ -341,11 +341,11 @@ const StudentFeeReports: React.FC = () => {
                   <h2 className="text-xl font-bold tracking-tight">Student Fee Report</h2>
                 </div>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setStudentReport(null)}
-                  className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                >
+                variant="outline"
+                size="sm"
+                onClick={() => setStudentReport(null)}
+                className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
+                
                   <XCircle className="w-4 h-4 mr-2" />
                   Clear Result
                 </Button>
@@ -434,8 +434,8 @@ const StudentFeeReports: React.FC = () => {
                 </div>
 
                 {/* Send Notification Section - Only show if there's pending amount */}
-                {studentReport.fee_summary.total_pending > 0 && (
-                  <Card className="bg-orange-50/50 border-orange-100 shadow-none">
+                {studentReport.fee_summary.total_pending > 0 &&
+              <Card className="bg-orange-50/50 border-orange-100 shadow-none">
                     <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-orange-100 rounded-full">
@@ -447,38 +447,38 @@ const StudentFeeReports: React.FC = () => {
                         </div>
                       </div>
                       <Button
-                        onClick={() => handleSendReminder(studentReport.student.id, studentReport.student.name)}
-                        disabled={sendingReminder}
-                        className="bg-orange-600 hover:bg-orange-700 rounded-xl whitespace-nowrap"
-                      >
-                        {sendingReminder ? (
-                          <>
+                    onClick={() => handleSendReminder(studentReport.student.id, studentReport.student.name)}
+                    disabled={sendingReminder}
+                    className="bg-orange-600 hover:bg-orange-700 rounded-xl whitespace-nowrap">
+                    
+                        {sendingReminder ?
+                    <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                             Sending Notification...
-                          </>
-                        ) : (
-                          <>
+                          </> :
+
+                    <>
                             <IndianRupee className="w-4 h-4 mr-2" />
                             Send Fee Reminder
                           </>
-                        )}
+                    }
                       </Button>
                     </CardContent>
                   </Card>
-                )}
+              }
 
 
 
                 {/* Semester-wise Breakdown */}
-                {studentReport.semester_wise_breakdown && studentReport.semester_wise_breakdown.length > 0 && (
-                  <div className="space-y-4">
+                {studentReport.semester_wise_breakdown && studentReport.semester_wise_breakdown.length > 0 &&
+              <div className="space-y-4">
                     <h3 className="text-lg font-bold flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-primary" />
                       Semester-wise Breakdown
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {studentReport.semester_wise_breakdown.map((semester, index) => (
-                        <Card key={index} className="overflow-hidden border-muted/40 shadow-sm hover:shadow-md transition-shadow">
+                      {studentReport.semester_wise_breakdown.map((semester, index) =>
+                  <Card key={index} className="overflow-hidden border-muted/40 shadow-sm hover:shadow-md transition-shadow">
                           <CardHeader className="bg-muted/30 py-3">
                             <CardTitle className="text-md flex justify-between items-center">
                               <span>{semester.semester_name}</span>
@@ -502,11 +502,11 @@ const StudentFeeReports: React.FC = () => {
                             </div>
 
                             {/* Invoices List */}
-                            {semester.invoices.length > 0 && (
-                              <div className="space-y-2 pt-2">
+                            {semester.invoices.length > 0 &&
+                      <div className="space-y-2 pt-2">
                                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Invoices</p>
-                                {semester.invoices.map((invoice) => (
-                                  <div key={invoice.id} className="flex items-center justify-between p-2 rounded-lg bg-background border border-muted/50 text-xs">
+                                {semester.invoices.map((invoice) =>
+                        <div key={invoice.id} className="flex items-center justify-between p-2 rounded-lg bg-background border border-muted/50 text-xs">
                                     <div className="flex items-center gap-2">
                                       <FileText className="w-3 h-3 text-muted-foreground" />
                                       <span className="font-medium">{invoice.invoice_number}</span>
@@ -516,15 +516,15 @@ const StudentFeeReports: React.FC = () => {
                                       {getStatusBadge(invoice.status)}
                                     </div>
                                   </div>
-                                ))}
+                        )}
                               </div>
-                            )}
+                      }
                           </CardContent>
                         </Card>
-                      ))}
+                  )}
                     </div>
                   </div>
-                )}
+              }
 
                 {/* All Invoices Table */}
                 <Card className="border-none shadow-sm">
@@ -547,8 +547,8 @@ const StudentFeeReports: React.FC = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {studentReport.invoices.map((invoice) => (
-                          <TableRow key={invoice.id} className="hover:bg-muted/20">
+                        {studentReport.invoices.map((invoice) =>
+                      <TableRow key={invoice.id} className="hover:bg-muted/20">
                             <TableCell className="font-mono font-medium">{invoice.invoice_number}</TableCell>
                             <TableCell className="text-muted-foreground">{invoice.template_name}</TableCell>
                             <TableCell className="font-bold">{formatCurrency(invoice.total_amount)}</TableCell>
@@ -556,7 +556,7 @@ const StudentFeeReports: React.FC = () => {
                             <TableCell className="text-red-600 font-medium">{formatCurrency(invoice.balance_amount)}</TableCell>
                             <TableCell className="text-right">{getStatusBadge(invoice.status)}</TableCell>
                           </TableRow>
-                        ))}
+                      )}
                       </TableBody>
                     </Table>
                   </CardContent>
@@ -582,9 +582,9 @@ const StudentFeeReports: React.FC = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {studentReport.payment_history.length > 0 ? (
-                          studentReport.payment_history.map((payment) => (
-                            <TableRow key={payment.id} className="hover:bg-muted/20">
+                        {studentReport.payment_history.length > 0 ?
+                      studentReport.payment_history.map((payment) =>
+                      <TableRow key={payment.id} className="hover:bg-muted/20">
                               <TableCell>{new Date(payment.payment_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
                               <TableCell className="font-bold text-green-600">{formatCurrency(payment.amount)}</TableCell>
                               <TableCell>
@@ -595,21 +595,21 @@ const StudentFeeReports: React.FC = () => {
                               <TableCell className="font-mono text-xs text-muted-foreground">{payment.invoice_number}</TableCell>
                               <TableCell className="text-right">{getStatusBadge(payment.status)}</TableCell>
                             </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
+                      ) :
+
+                      <TableRow>
                             <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                               No payment records found for this student.
                             </TableCell>
                           </TableRow>
-                        )}
+                      }
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
               </div>
             </div>
-          )}
+          }
         </TabsContent>
 
         <TabsContent value="bulk" className="space-y-4">
@@ -626,17 +626,17 @@ const StudentFeeReports: React.FC = () => {
                   <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] ml-1">Batch <span className="text-red-500">*</span></Label>
                   <Select
                     value={selectedBatch || undefined}
-                    onValueChange={setSelectedBatch}
-                  >
+                    onValueChange={setSelectedBatch}>
+                    
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Batch" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {batches.map((batch) => (
-                        <SelectItem key={batch.id} value={batch.id.toString()} className="rounded-lg">
+                      {batches.map((batch) =>
+                      <SelectItem key={batch.id} value={batch.id.toString()} className="rounded-lg">
                           {batch.name}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -646,17 +646,17 @@ const StudentFeeReports: React.FC = () => {
                   <Select
                     value={selectedBranch || undefined}
                     onValueChange={setSelectedBranch}
-                    disabled={selectedBatch === ''}
-                  >
+                    disabled={selectedBatch === ''}>
+                    
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Branch" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {branches.map((branch) => (
-                        <SelectItem key={branch.id} value={branch.id.toString()} className="rounded-lg">
+                      {branches.map((branch) =>
+                      <SelectItem key={branch.id} value={branch.id.toString()} className="rounded-lg">
                           {branch.name}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -666,17 +666,17 @@ const StudentFeeReports: React.FC = () => {
                   <Select
                     value={selectedSemester || undefined}
                     onValueChange={setSelectedSemester}
-                    disabled={selectedBranch === ''}
-                  >
+                    disabled={selectedBranch === ''}>
+                    
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Semester" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {semesters.map((semester) => (
-                        <SelectItem key={semester.id} value={semester.id.toString()} className="rounded-lg">
+                      {semesters.map((semester) =>
+                      <SelectItem key={semester.id} value={semester.id.toString()} className="rounded-lg">
                           Semester {semester.number}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -686,17 +686,17 @@ const StudentFeeReports: React.FC = () => {
                   <Select
                     value={selectedSection || undefined}
                     onValueChange={setSelectedSection}
-                    disabled={selectedSemester === ''}
-                  >
+                    disabled={selectedSemester === ''}>
+                    
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {sections.map((section) => (
-                        <SelectItem key={section.id} value={section.id.toString()} className="rounded-lg">
+                      {sections.map((section) =>
+                      <SelectItem key={section.id} value={section.id.toString()} className="rounded-lg">
                           {section.name}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -706,18 +706,18 @@ const StudentFeeReports: React.FC = () => {
                   <Select
                     value={selectedAdmissionMode || undefined}
                     onValueChange={setSelectedAdmissionMode}
-                    disabled={selectedSection === ''}
-                  >
+                    disabled={selectedSection === ''}>
+                    
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Admission Mode" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       <SelectItem value="all" className="rounded-lg font-medium text-primary">All Admission Modes</SelectItem>
-                      {admissionModes.map((mode) => (
-                        <SelectItem key={mode} value={mode} className="rounded-lg">
+                      {admissionModes.map((mode) =>
+                      <SelectItem key={mode} value={mode} className="rounded-lg">
                           {mode}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -726,8 +726,8 @@ const StudentFeeReports: React.FC = () => {
           </Card>
 
           {/* Cohort Stats */}
-          {cohortStats && bulkReports.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {cohortStats && bulkReports.length > 0 &&
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/20 shadow-none">
                 <CardContent className="p-4">
                   <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Students</p>
@@ -753,21 +753,21 @@ const StudentFeeReports: React.FC = () => {
                 </CardContent>
               </Card>
             </div>
-          )}
+          }
 
-          {bulkLoading && (
-            <div className="space-y-4">
+          {bulkLoading &&
+          <div className="space-y-4">
               <SkeletonStatsGrid items={4} />
               <div className="space-y-4">
                 <Skeleton className="h-12 w-full rounded-xl" />
                 <SkeletonTable rows={10} cols={10} />
               </div>
             </div>
-          )}
+          }
 
           {/* Bulk Reports Table */}
-          {bulkReports.length > 0 && !bulkLoading && (
-            <div className="space-y-4">
+          {bulkReports.length > 0 && !bulkLoading &&
+          <div className="space-y-4">
 
               <Card>
                 <CardHeader>
@@ -796,8 +796,8 @@ const StudentFeeReports: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {bulkReports.map((report) => (
-                        <TableRow key={report.student.id}>
+                      {bulkReports.map((report) =>
+                    <TableRow key={report.student.id}>
                           <TableCell className="font-medium">{report.student.usn}</TableCell>
                           <TableCell>{report.student.name}</TableCell>
                           <TableCell>{report.student.branch}</TableCell>
@@ -811,18 +811,18 @@ const StudentFeeReports: React.FC = () => {
                           <TableCell>{report.fee_summary.invoice_count}</TableCell>
                           <TableCell>
                             <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setActiveTab('individual');
-                                handleIndividualSearch(report.student.usn);
-                              }}
-                            >
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setActiveTab('individual');
+                            handleIndividualSearch(report.student.usn);
+                          }}>
+                          
                               <Eye className="w-4 h-4" />
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))}
+                    )}
                     </TableBody>
                   </Table>
                 </CardContent>
@@ -837,11 +837,11 @@ const StudentFeeReports: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={!hasPrevious || bulkLoading}
-                      >
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={!hasPrevious || bulkLoading}>
+                      
                         <ChevronLeft className="w-4 h-4 mr-1" />
                         Previous
                       </Button>
@@ -851,11 +851,11 @@ const StudentFeeReports: React.FC = () => {
                       </span>
 
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={!hasNext || bulkLoading}
-                      >
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={!hasNext || bulkLoading}>
+                      
                         Next
                         <ChevronRight className="w-4 h-4 ml-1" />
                       </Button>
@@ -864,21 +864,21 @@ const StudentFeeReports: React.FC = () => {
                 </CardContent>
               </Card>
             </div>
-          )}
+          }
 
-          {bulkReports.length === 0 && !bulkLoading && (
-            <Card>
+          {bulkReports.length === 0 && !bulkLoading &&
+          <Card>
               <CardContent className="text-center py-8">
                 <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">No students found</h3>
                 <p className="text-muted-foreground">Select filters and click "View Reports" to see student fee data</p>
               </CardContent>
             </Card>
-          )}
+          }
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>);
+
 };
 
 export default StudentFeeReports;

@@ -112,9 +112,9 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   const [paymentPage, setPaymentPage] = useState(1);
   const { theme } = useTheme();
 
-  console.log('StudentFees user object:', user);
-  console.log('StudentFees user.usn:', user?.usn);
-  console.log('StudentFees user.username:', user?.username);
+
+
+
 
   // Fetch complete fee data from Django backend
   const { data: feeData, isLoading, error } = useQuery<FeeDataResponse>({
@@ -122,8 +122,8 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
     queryFn: async (): Promise<FeeDataResponse> => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/fee-data/?invoice_page=${invoicePage}&payment_page=${paymentPage}`, {
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       });
       if (!response.ok) {
         throw new Error('Failed to fetch fee data');
@@ -145,7 +145,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           amount_paid: toRupees(raw.fee_summary?.amount_paid_cents ?? raw.fee_summary?.amount_paid),
           remaining_fees: toRupees(raw.fee_summary?.remaining_fees_cents ?? raw.fee_summary?.remaining_fees),
           due_date: raw.fee_summary?.due_date ?? null,
-          payment_status: raw.fee_summary?.payment_status ?? '',
+          payment_status: raw.fee_summary?.payment_status ?? ''
         },
         fee_breakdown: raw.fee_breakdown || {},
         invoices: (raw.invoices || []).map((inv: any) => ({
@@ -160,7 +160,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           due_date: inv.due_date,
           created_at: inv.created_at,
           invoice_type: inv.invoice_type,
-          components: inv.components || [],
+          components: inv.components || []
         })),
         payments: (raw.payments || []).map((p: any) => ({
           id: p.id,
@@ -170,7 +170,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           status: p.status,
           timestamp: p.timestamp,
           transaction_id: p.transaction_id,
-          payment_reference: p.payment_reference,
+          payment_reference: p.payment_reference
         })),
         receipts: (raw.receipts || []).map((r: any) => ({
           id: r.id,
@@ -182,7 +182,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           transaction_id: r.transaction_id,
           invoice_id: r.invoice_id,
           semester: r.semester || 0,
-          generated_at: r.generated_at,
+          generated_at: r.generated_at
         })),
         statistics: raw.statistics || {
           total_invoices: 0,
@@ -190,13 +190,13 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           total_receipts: 0,
           successful_payments: 0,
           pending_payments: 0,
-          failed_payments: 0,
+          failed_payments: 0
         }
       };
 
       return transformed;
     },
-    enabled: !!user,
+    enabled: !!user
   });
 
   if (isLoading) {
@@ -205,8 +205,8 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
         <SkeletonPageHeader />
         <SkeletonStatsGrid items={3} />
         <SkeletonTable rows={4} cols={5} />
-      </div>
-    );
+      </div>);
+
   }
 
   if (error) {
@@ -216,14 +216,14 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
         <AlertDescription>
           Unable to load fee information. Please try again later.
         </AlertDescription>
-      </Alert>
-    );
+      </Alert>);
+
   }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'INR'
     }).format(amount);
   };
 
@@ -282,14 +282,14 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/payments/create-checkout-session/${selectedInvoiceId}/`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           payment_type: paymentType,
-          selected_components: paymentType === 'component' && currentInvoice?.components
-            ? Array.from(selectedComponents).map((idx: any) => currentInvoice.components[idx as number]?.id)
-            : null,
-        }),
+          selected_components: paymentType === 'component' && currentInvoice?.components ?
+          Array.from(selectedComponents).map((idx: any) => currentInvoice.components[idx as number]?.id) :
+          null
+        })
       });
 
       if (!response.ok) {
@@ -309,7 +309,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
         window.location.href = checkoutUrl;
       }
     } catch (error) {
-      console.error('Payment error:', error);
+
       alert('Error initiating payment. Please try again.');
     } finally {
       setIsProcessingPayment(false);
@@ -332,14 +332,14 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading receipt:', error);
+
       alert('Failed to download receipt.');
     }
   };
 
-  const currentInvoice = selectedInvoiceId === 0
-    ? { id: 0, balance_amount: feeData?.fee_summary?.remaining_fees || 0, invoice_number: 'ALL' }
-    : feeData?.invoices?.find(inv => inv.id === selectedInvoiceId);
+  const currentInvoice = selectedInvoiceId === 0 ?
+  { id: 0, balance_amount: feeData?.fee_summary?.remaining_fees || 0, invoice_number: 'ALL' } :
+  feeData?.invoices?.find((inv) => inv.id === selectedInvoiceId);
 
   // Animation variants
   const containerVariants = {
@@ -348,9 +348,9 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
+        delayChildren: 0.2
+      }
+    }
   };
 
   const itemVariants = {
@@ -358,21 +358,21 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: "easeOut" },
-    },
+      transition: { duration: 0.4, ease: "easeOut" }
+    }
   };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-    >
+      transition={{ duration: 0.4 }}>
+      
       <Card className={`overflow-hidden ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
         <CardHeader className="border-b">
           <div className="flex justify-between items-center">
@@ -438,17 +438,17 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
 
       {/* Fee Summary Cards */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible">
+            
         {/* Total Fees Card */}
         <motion.div
-          variants={cardVariants}
-          whileHover={{ y: -4, scale: 1.02 }}
-          className="h-full"
-        >
+              variants={cardVariants}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="h-full">
+              
           <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -470,10 +470,10 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
 
         {/* Amount Paid Card */}
         <motion.div
-          variants={cardVariants}
-          whileHover={{ y: -4, scale: 1.02 }}
-          className="h-full"
-        >
+              variants={cardVariants}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="h-full">
+              
           <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -495,10 +495,10 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
 
         {/* Remaining Fees Card */}
         <motion.div
-          variants={cardVariants}
-          whileHover={{ y: -4, scale: 1.02 }}
-          className="h-full"
-        >
+              variants={cardVariants}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="h-full">
+              
           <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -534,39 +534,39 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                 <Badge className={`mb-3 ${getStatusColor(feeData?.fee_summary?.remaining_fees || 0)} px-4 py-2 text-base`}>
                   {(feeData?.fee_summary?.remaining_fees || 0) === 0 ? '✓ All Paid' : '● Pending Payment'}
                 </Badge>
-                {feeData?.fee_summary?.due_date && (
-                  <p className={`text-sm flex items-center gap-2 mt-3 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                {feeData?.fee_summary?.due_date &&
+                    <p className={`text-sm flex items-center gap-2 mt-3 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                     <Calendar className="h-4 w-4" />
                     Due Date: {new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
-                )}
+                    }
               </motion.div>
               <motion.div variants={itemVariants} className="flex flex-wrap gap-3">
-                {(feeData?.fee_summary?.remaining_fees || 0) > 0 && (
-                  <>
+                {(feeData?.fee_summary?.remaining_fees || 0) > 0 &&
+                    <>
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
-                        className={`bg-primary hover:bg-primary/90 text-white font-semibold`}
-                        onClick={() => handlePaymentClick(0)}
-                      >
+                          className={`bg-primary hover:bg-primary/90 text-white font-semibold`}
+                          onClick={() => handlePaymentClick(0)}>
+                          
                         <CreditCard className="h-4 w-4 mr-2" />
                         Pay Full Amount
                       </Button>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Button
-                        variant="outline"
-                        className={theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold'}
-                        onClick={() => {
-                          const inv = feeData?.invoices?.find(inv => inv.balance_amount > 0);
-                          if (inv) handleComponentPaymentClick(inv.id);
-                        }}
-                      >
+                          variant="outline"
+                          className={theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold'}
+                          onClick={() => {
+                            const inv = feeData?.invoices?.find((inv) => inv.balance_amount > 0);
+                            if (inv) handleComponentPaymentClick(inv.id);
+                          }}>
+                          
                         Pay by Component
                       </Button>
                     </motion.div>
                   </>
-                )}
+                    }
               </motion.div>
             </div>
           </CardContent>
@@ -583,22 +583,22 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {feeData?.invoices?.length ? (
-              <motion.div
-                className="space-y-4"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
+            {feeData?.invoices?.length ?
+                <motion.div
+                  className="space-y-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible">
+                  
                 <AnimatePresence>
-                  {feeData.invoices.map((invoice) => (
+                  {feeData.invoices.map((invoice) =>
                     <motion.div
                       key={invoice.id}
                       variants={itemVariants}
                       layout
                       className={`border rounded-lg p-4 transition-all ${theme === 'dark' ? 'border-border hover:border-primary/50 hover:bg-card/50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
-                      whileHover={{ x: 4 }}
-                    >
+                      whileHover={{ x: 4 }}>
+                      
                       <div className="flex justify-between items-start mb-4">
                         <motion.div variants={itemVariants}>
                           <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
@@ -611,8 +611,8 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                         <motion.div whileHover={{ scale: 1.1 }}>
                           <Badge
                             variant={invoice.status === 'paid' ? 'default' : 'destructive'}
-                            className={`font-semibold ${invoice.status === 'paid' ? 'bg-green-600 text-white' : ''}`}
-                          >
+                            className={`font-semibold ${invoice.status === 'paid' ? 'bg-green-600 text-white' : ''}`}>
+                            
                             {invoice.status.toUpperCase()}
                           </Badge>
                         </motion.div>
@@ -643,39 +643,39 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                           </p>
                         </motion.div>
                       </div>
-                      {invoice.balance_amount > 0 && (
-                        <motion.div
-                          variants={itemVariants}
-                          className="flex gap-2 flex-wrap"
-                        >
+                      {invoice.balance_amount > 0 &&
+                      <motion.div
+                        variants={itemVariants}
+                        className="flex gap-2 flex-wrap">
+                        
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
-                              size="sm"
-                              className={`bg-primary hover:bg-primary/90 text-white font-semibold`}
-                              onClick={() => handlePaymentClick(invoice.id)}
-                            >
+                            size="sm"
+                            className={`bg-primary hover:bg-primary/90 text-white font-semibold`}
+                            onClick={() => handlePaymentClick(invoice.id)}>
+                            
                               <CreditCard className="h-3.5 w-3.5 mr-1" />
                               Pay Full
                             </Button>
                           </motion.div>
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
-                              size="sm"
-                              variant="outline"
-                              className={theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold'}
-                              onClick={() => handleComponentPaymentClick(invoice.id)}
-                            >
+                            size="sm"
+                            variant="outline"
+                            className={theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold'}
+                            onClick={() => handleComponentPaymentClick(invoice.id)}>
+                            
                               Pay Component
                             </Button>
                           </motion.div>
                         </motion.div>
-                      )}
+                      }
                     </motion.div>
-                  ))}
+                    )}
                 </AnimatePresence>
 
                 {/* Invoice Pagination */}
-                {feeData && feeData.statistics.total_invoices > 10 && (
+                {feeData && feeData.statistics.total_invoices > 10 &&
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
                     <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       Showing {(invoicePage - 1) * 10 + 1} to {Math.min(invoicePage * 10, feeData.statistics.total_invoices)} of {feeData.statistics.total_invoices} invoices
@@ -684,27 +684,27 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setInvoicePage(p => Math.max(1, p - 1))}
+                        onClick={() => setInvoicePage((p) => Math.max(1, p - 1))}
                         disabled={invoicePage === 1}
-                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}
-                      >
+                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                        
                         Previous
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setInvoicePage(p => p + 1)}
+                        onClick={() => setInvoicePage((p) => p + 1)}
                         disabled={invoicePage * 10 >= feeData.statistics.total_invoices}
-                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}
-                      >
+                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                        
                         Next
                       </Button>
                     </div>
                   </div>
-                )}
-              </motion.div>
-            ) : (
-              <div className="py-24 flex flex-col items-center justify-center text-center">
+                  }
+              </motion.div> :
+
+                <div className="py-24 flex flex-col items-center justify-center text-center">
                 <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
                   <Receipt className="h-16 w-16 text-primary/30" />
                 </div>
@@ -713,7 +713,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   Your fee invoices will appear here once they are generated by the finance department.
                 </p>
               </div>
-            )}
+                }
           </CardContent>
         </Card>
       </motion.div>
@@ -728,22 +728,22 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {feeData?.payments?.length ? (
-              <motion.div
-                className="space-y-3"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
+            {feeData?.payments?.length ?
+                <motion.div
+                  className="space-y-3"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible">
+                  
                 <AnimatePresence>
-                  {feeData.payments.map((payment) => (
+                  {feeData.payments.map((payment) =>
                     <motion.div
                       key={payment.id}
                       variants={itemVariants}
                       layout
                       className={`border rounded-lg p-4 transition-all ${theme === 'dark' ? 'border-border hover:border-primary/50 hover:bg-card/50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
-                      whileHover={{ x: 4 }}
-                    >
+                      whileHover={{ x: 4 }}>
+                      
                       <div className="flex justify-between items-start gap-4">
                         <motion.div variants={itemVariants} className="flex-1">
                           <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
@@ -755,13 +755,13 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                         </motion.div>
                         <motion.div variants={itemVariants} className="flex gap-2 flex-shrink-0">
                           <Badge
-                            variant={payment.status === 'success' ? 'default' : (payment.status === 'failed' ? 'destructive' : 'secondary')}
+                            variant={payment.status === 'success' ? 'default' : payment.status === 'failed' ? 'destructive' : 'secondary'}
                             className={
-                              payment.status === 'success' ? 'bg-green-600 text-white' :
-                                (payment.status === 'failed' ? '' : 'bg-yellow-100 text-yellow-800 border-yellow-300')
-                            }
-                          >
-                            {payment.status === 'success' ? '✓ Success' : (payment.status === 'failed' ? 'Failed' : 'Pending')}
+                            payment.status === 'success' ? 'bg-green-600 text-white' :
+                            payment.status === 'failed' ? '' : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                            }>
+                            
+                            {payment.status === 'success' ? '✓ Success' : payment.status === 'failed' ? 'Failed' : 'Pending'}
                           </Badge>
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
@@ -769,19 +769,19 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                               size="sm"
                               className={theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}
                               onClick={() => handleDownloadReceipt(payment.id)}
-                              title="Download Receipt"
-                            >
+                              title="Download Receipt">
+                              
                               <Download className="h-4 w-4" />
                             </Button>
                           </motion.div>
                         </motion.div>
                       </div>
                     </motion.div>
-                  ))}
+                    )}
                 </AnimatePresence>
 
                 {/* Payment Pagination */}
-                {feeData && feeData.statistics.total_payments > 10 && (
+                {feeData && feeData.statistics.total_payments > 10 &&
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
                     <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       Showing {(paymentPage - 1) * 10 + 1} to {Math.min(paymentPage * 10, feeData.statistics.total_payments)} of {feeData.statistics.total_payments} payments
@@ -790,27 +790,27 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setPaymentPage(p => Math.max(1, p - 1))}
+                        onClick={() => setPaymentPage((p) => Math.max(1, p - 1))}
                         disabled={paymentPage === 1}
-                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}
-                      >
+                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                        
                         Previous
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setPaymentPage(p => p + 1)}
+                        onClick={() => setPaymentPage((p) => p + 1)}
                         disabled={paymentPage * 10 >= feeData.statistics.total_payments}
-                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}
-                      >
+                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                        
                         Next
                       </Button>
                     </div>
                   </div>
-                )}
-              </motion.div>
-            ) : (
-              <div className="py-24 flex flex-col items-center justify-center text-center">
+                  }
+              </motion.div> :
+
+                <div className="py-24 flex flex-col items-center justify-center text-center">
                 <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
                   <CreditCard className="h-16 w-16 text-primary/30" />
                 </div>
@@ -819,7 +819,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   You haven't made any fee payments yet. Your transaction history will be displayed here.
                 </p>
               </div>
-            )}
+                }
           </CardContent>
         </Card>
       </motion.div>
@@ -828,26 +828,26 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
 
   {/* Payment Modal and other overlays */}
   <AnimatePresence>
-        {paymentModalOpen && (
-          <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        {paymentModalOpen &&
+        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
             {/* ... Modal content remains same ... */}
             <DialogContent className={`max-w-md ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader>
                 <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                  {selectedInvoiceId === 0
-                    ? '💳 Pay Total Remaining Balance'
-                    : (paymentType === 'full' ? '💳 Pay Full Amount' : '🧩 Pay by Component')
-                  }
+                  {selectedInvoiceId === 0 ?
+                '💳 Pay Total Remaining Balance' :
+                paymentType === 'full' ? '💳 Pay Full Amount' : '🧩 Pay by Component'
+                }
                 </DialogTitle>
               </DialogHeader>
 
-              {paymentType === 'full' ? (
-                <motion.div
-                  className="space-y-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
+              {paymentType === 'full' ?
+            <motion.div
+              className="space-y-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}>
+              
                   <div className={`p-4 rounded-lg border-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-300'}`}>
                     <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Total Amount to Pay
@@ -858,46 +858,46 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   </div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                      onClick={initiateStripePayment}
-                      disabled={isProcessingPayment}
-                      className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}
-                    >
-                      {isProcessingPayment ? (
-                        <>
+                  onClick={initiateStripePayment}
+                  disabled={isProcessingPayment}
+                  className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
+                  
+                      {isProcessingPayment ?
+                  <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Processing...
-                        </>
-                      ) : (
-                        <>
+                        </> :
+
+                  <>
                           <CreditCard className="h-4 w-4 mr-2" />
                           Proceed to Stripe Payment
                         </>
-                      )}
+                  }
                     </Button>
                   </motion.div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  className="space-y-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
+                </motion.div> :
+
+            <motion.div
+              className="space-y-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}>
+              
                   <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                     Select components to pay:
                   </p>
                   <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                    {currentInvoice?.components?.map((component, idx) => (
-                      <motion.div
-                        key={idx}
-                        variants={itemVariants}
-                        className={`flex items-center space-x-3 p-3 border rounded-lg ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}`}
-                      >
+                    {currentInvoice?.components?.map((component, idx) =>
+                <motion.div
+                  key={idx}
+                  variants={itemVariants}
+                  className={`flex items-center space-x-3 p-3 border rounded-lg ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                  
                         <Checkbox
-                          checked={selectedComponents.has(idx)}
-                          onCheckedChange={() => handleComponentToggle(idx)}
-                          className={`w-5 h-5 ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}
-                        />
+                    checked={selectedComponents.has(idx)}
+                    onCheckedChange={() => handleComponentToggle(idx)}
+                    className={`w-5 h-5 ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`} />
+                  
                         <Label className={`flex-1 cursor-pointer ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           <div>
                             <p className="font-medium text-sm">{component.component_name}</p>
@@ -907,55 +907,55 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                           </div>
                         </Label>
                       </motion.div>
-                    ))}
+                )}
                   </div>
 
-                  {selectedComponents.size > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`p-4 rounded-lg border-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-300'}`}
-                    >
+                  {selectedComponents.size > 0 &&
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-4 rounded-lg border-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-300'}`}>
+                
                       <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Total Selected
                       </p>
                       <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         {formatCurrency(
-                          (currentInvoice?.components || [])
-                            .filter((_, idx) => selectedComponents.has(idx))
-                            .reduce((sum, comp) => sum + comp.balance_amount, 0)
-                        )}
+                    (currentInvoice?.components || []).
+                    filter((_, idx) => selectedComponents.has(idx)).
+                    reduce((sum, comp) => sum + comp.balance_amount, 0)
+                  )}
                       </p>
                     </motion.div>
-                  )}
+              }
 
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                      onClick={initiateStripePayment}
-                      disabled={isProcessingPayment || selectedComponents.size === 0}
-                      className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}
-                    >
-                      {isProcessingPayment ? (
-                        <>
+                  onClick={initiateStripePayment}
+                  disabled={isProcessingPayment || selectedComponents.size === 0}
+                  className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
+                  
+                      {isProcessingPayment ?
+                  <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Processing...
-                        </>
-                      ) : (
-                        <>
+                        </> :
+
+                  <>
                           <CreditCard className="h-4 w-4 mr-2" />
                           Proceed to Payment
                         </>
-                      )}
+                  }
                     </Button>
                   </motion.div>
                 </motion.div>
-              )}
+            }
             </DialogContent>
           </Dialog>
-        )}
+        }
       </AnimatePresence>
-    </motion.div>
-  );
+    </motion.div>);
+
 };
 
 export default StudentFees;

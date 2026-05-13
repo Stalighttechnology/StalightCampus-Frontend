@@ -9,21 +9,21 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-} from "@/components/ui/dialog";
+  SelectValue } from
+"../ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription } from
+"@/components/ui/dialog";
 import { getRoomDetail } from "../../utils/hms_api";
 import DashboardCard from "../common/DashboardCard";
-import { 
-  SkeletonStatsGrid, 
-  SkeletonCard 
-} from "../ui/skeleton";
+import {
+  SkeletonStatsGrid,
+  SkeletonCard } from
+"../ui/skeleton";
 
 interface Hostel {
   id: number;
@@ -80,7 +80,7 @@ const HMSOverview = () => {
     totalStudents: statistics.total_students,
     totalWardens: statistics.total_wardens,
     totalCaretakers: statistics.total_caretakers,
-    occupancyRate: statistics.occupancy_rate,
+    occupancyRate: statistics.occupancy_rate
   };
 
   // Fetch floors when hostel is selected
@@ -104,7 +104,7 @@ const HMSOverview = () => {
   }, [selectedHostel, selectedFloor]);
 
   const fetchHostelFloors = (hostelId: number) => {
-    const hostel = hostels.find(h => h.id === hostelId);
+    const hostel = hostels.find((h) => h.id === hostelId);
     const floors = hostel ? Array.from({ length: hostel.floor_count || 1 }, (_, i) => i) : [];
     setAvailableFloors(floors);
   };
@@ -115,7 +115,7 @@ const HMSOverview = () => {
     setRooms(results);
     setLoadingRooms(false);
   };
-  
+
   const handleRoomClick = async (room: Room) => {
     setSelectedRoom(room);
     setIsDialogOpen(true);
@@ -126,21 +126,21 @@ const HMSOverview = () => {
         setSelectedRoom(result.data);
       }
     } catch (error) {
-      console.error("Error fetching room details:", error);
+
     } finally {
       setLoadingRoomDetails(false);
     }
   };
 
   const getRoomColor = (occupied: number, capacity: number) => {
-    const occupancyPercent = (occupied / capacity) * 100;
+    const occupancyPercent = occupied / capacity * 100;
     if (occupancyPercent === 100) return "bg-red-500/10 border-red-500/50 text-red-600 dark:text-red-400"; // Full
     if (occupancyPercent >= 50) return "bg-yellow-500/10 border-yellow-500/50 text-yellow-600 dark:text-yellow-400"; // Half full
     return "bg-green-500/10 border-green-500/50 text-green-600 dark:text-green-400"; // Available
   };
 
   const getRoomStatusLabel = (occupied: number, capacity: number) => {
-    const occupancyPercent = (occupied / capacity) * 100;
+    const occupancyPercent = occupied / capacity * 100;
     if (occupancyPercent === 100) return "FULL";
     if (occupancyPercent >= 50) return "HALF";
     return "AVAIL";
@@ -166,7 +166,7 @@ const HMSOverview = () => {
 
   // Ensure rooms in each floor are sorted by room_number
   Object.keys(roomsByFloor).forEach((f) => {
-    roomsByFloor[Number(f)].sort((a, b) => (a.room_number).localeCompare(b.room_number, undefined, {numeric: true}));
+    roomsByFloor[Number(f)].sort((a, b) => a.room_number.localeCompare(b.room_number, undefined, { numeric: true }));
   });
 
   // No variants needed anymore
@@ -182,43 +182,43 @@ const HMSOverview = () => {
           title="Total Hostels"
           value={isSkeleton ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats.totalHostels}
           description="Managed properties"
-          icon={<Building2 size={20} />}
-        />
+          icon={<Building2 size={20} />} />
+        
         <DashboardCard
           title="Total Rooms"
           value={isSkeleton ? <div className="h-8 w-16 bg-muted animate-pulse rounded" /> : stats.totalRooms}
           description="Total capacity"
-          icon={<Grid3X3 size={20} />}
-        />
+          icon={<Grid3X3 size={20} />} />
+        
         <DashboardCard
           title="Total Students"
           value={isSkeleton ? <div className="h-8 w-14 bg-muted animate-pulse rounded" /> : stats.totalStudents}
           description="Active residents"
-          icon={<Users size={20} />}
-        />
+          icon={<Users size={20} />} />
+        
         <DashboardCard
           title="Wardens"
           value={isSkeleton ? <div className="h-8 w-10 bg-muted animate-pulse rounded" /> : stats.totalWardens}
           description="Hostel supervisors"
-          icon={<Shield size={20} />}
-        />
+          icon={<Shield size={20} />} />
+        
         <DashboardCard
           title="Occupancy"
-          value={isSkeleton ? (
-            <div className="flex items-baseline gap-1">
+          value={isSkeleton ?
+          <div className="flex items-baseline gap-1">
               <div className="h-8 w-16 bg-muted animate-pulse rounded" />
               <span className="text-xl font-bold text-muted-foreground">%</span>
-            </div>
-          ) : `${stats.occupancyRate}%`}
+            </div> :
+          `${stats.occupancyRate}%`}
           description="Current utilization"
-          icon={<AlertCircle size={20} />}
-        />
+          icon={<AlertCircle size={20} />} />
+        
       </div>
 
       {/* Room Matrix Visualization */}
       <div
-        className={`rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden`}
-      >
+        className={`rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden`}>
+        
         <div className="p-6 border-b bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -229,54 +229,54 @@ const HMSOverview = () => {
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               {/* Hostel Filter */}
               <div className="w-full sm:w-48 md:w-64">
-                {isSkeleton ? (
-                  <div className="h-10 w-full rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Select
-                    value={selectedHostel?.toString() || ''}
-                    onValueChange={(v) => {
-                      setSelectedHostel(Number(v));
-                      setSelectedFloor("");
-                    }}
-                  >
+                {isSkeleton ?
+                <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+
+                <Select
+                  value={selectedHostel?.toString() || ''}
+                  onValueChange={(v) => {
+                    setSelectedHostel(Number(v));
+                    setSelectedFloor("");
+                  }}>
+                  
                     <SelectTrigger>
                       <SelectValue placeholder="Choose Hostel" />
                     </SelectTrigger>
                     <SelectContent>
-                      {hostels.map((hostel) => (
-                        <SelectItem key={hostel.id} value={hostel.id.toString()}>
+                      {hostels.map((hostel) =>
+                    <SelectItem key={hostel.id} value={hostel.id.toString()}>
                           {hostel.name}
                         </SelectItem>
-                      ))}
+                    )}
                     </SelectContent>
                   </Select>
-                )}
+                }
               </div>
 
               {/* Floor Filter */}
               <div className="w-full sm:w-40 md:w-48">
-                {isSkeleton ? (
-                  <div className="h-10 w-full rounded-md bg-muted animate-pulse border" />
-                ) : (
-                  <Select
-                    value={selectedFloor}
-                    onValueChange={setSelectedFloor}
-                  >
+                {isSkeleton ?
+                <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+
+                <Select
+                  value={selectedFloor}
+                  onValueChange={setSelectedFloor}>
+                  
                     <SelectTrigger>
                       <SelectValue placeholder="Choose Floor" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Floors</SelectItem>
-                      {availableFloors
-                        .sort((a, b) => a - b)
-                        .map((floor) => (
-                          <SelectItem key={floor} value={floor.toString()}>
+                      {availableFloors.
+                    sort((a, b) => a - b).
+                    map((floor) =>
+                    <SelectItem key={floor} value={floor.toString()}>
                             Floor {floor === 0 ? 'Ground' : floor}
                           </SelectItem>
-                        ))}
+                    )}
                     </SelectContent>
                   </Select>
-                )}
+                }
               </div>
             </div>
           </div>
@@ -299,41 +299,41 @@ const HMSOverview = () => {
         </div>
 
         <div className="p-6">
-          {loadingRooms || skeletonMode ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-              {Array.from({ length: 16 }).map((_, i) => (
-                <div key={i} className="h-20 rounded-lg border bg-muted animate-pulse" />
-              ))}
-            </div>
-          ) : selectedHostel ? (
-            !selectedFloor ? (
-              <div className="text-center py-12 text-muted-foreground">
+          {loadingRooms || skeletonMode ?
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+              {Array.from({ length: 16 }).map((_, i) =>
+            <div key={i} className="h-20 rounded-lg border bg-muted animate-pulse" />
+            )}
+            </div> :
+          selectedHostel ?
+          !selectedFloor ?
+          <div className="text-center py-12 text-muted-foreground">
                 Select a floor to view room occupancy.
-              </div>
-            ) : Object.keys(roomsByFloor).length > 0 ? (
-              <div className="space-y-8">
-                {Object.keys(roomsByFloor)
-                  .map((k) => Number(k))
-                  .sort((a, b) => a - b)
-                  .filter((f) => selectedFloor === "all" || f.toString() === selectedFloor)
-                  .map((floorNum) => (
-                    <div key={floorNum}>
+              </div> :
+          Object.keys(roomsByFloor).length > 0 ?
+          <div className="space-y-8">
+                {Object.keys(roomsByFloor).
+            map((k) => Number(k)).
+            sort((a, b) => a - b).
+            filter((f) => selectedFloor === "all" || f.toString() === selectedFloor).
+            map((floorNum) =>
+            <div key={floorNum}>
                       <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
                         Floor {floorNum === 0 ? 'Ground' : floorNum}
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                        {roomsByFloor[floorNum].map((room) => (
-                          <motion.div
-                            key={room.id}
-                            variants={itemVariants}
-                            whileHover={{ scale: 1.05 }}
-                            onClick={() => handleRoomClick(room)}
-                            className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${getRoomColor(
-                              room.student_count,
-                              room.capacity
-                            )} font-medium shadow-sm hover:shadow-md`}
-                            title={`${room.room_number}: ${room.student_count}/${room.capacity} students. Click to view.`}
-                          >
+                        {roomsByFloor[floorNum].map((room) =>
+                <motion.div
+                  key={room.id}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => handleRoomClick(room)}
+                  className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${getRoomColor(
+                    room.student_count,
+                    room.capacity
+                  )} font-medium shadow-sm hover:shadow-md`}
+                  title={`${room.room_number}: ${room.student_count}/${room.capacity} students. Click to view.`}>
+                  
                             <div className="text-[10px] opacity-70 mb-1">ROOM</div>
                             <div className="text-sm font-bold">{room.room_number}</div>
                             <div className="text-[10px] mt-1 font-bold">
@@ -344,21 +344,21 @@ const HMSOverview = () => {
                               <span>View</span>
                             </div>
                           </motion.div>
-                        ))}
+                )}
                       </div>
                     </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
+            )}
+              </div> :
+
+          <div className="text-center py-12 text-muted-foreground">
                 No rooms available for this hostel.
-              </div>
-            )
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
+              </div> :
+
+
+          <div className="text-center py-12 text-muted-foreground">
               Select a hostel to view room occupancy.
             </div>
-          )}
+          }
         </div>
       </div>
 
@@ -376,18 +376,18 @@ const HMSOverview = () => {
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-            {loadingRoomDetails ? (
-              <div className="space-y-3">
+            {loadingRoomDetails ?
+            <div className="space-y-3">
                 <div className="h-16 w-full rounded-xl bg-muted animate-pulse" />
                 <div className="h-16 w-full rounded-xl bg-muted animate-pulse" />
-              </div>
-            ) : selectedRoom?.residents && selectedRoom.residents.length > 0 ? (
-              <div className="grid gap-3">
-                {selectedRoom.residents.map((resident) => (
-                  <div 
-                    key={resident.id} 
-                    className="flex items-center justify-between p-3 rounded-xl border bg-muted/30"
-                  >
+              </div> :
+            selectedRoom?.residents && selectedRoom.residents.length > 0 ?
+            <div className="grid gap-3">
+                {selectedRoom.residents.map((resident) =>
+              <div
+                key={resident.id}
+                className="flex items-center justify-between p-3 rounded-xl border bg-muted/30">
+                
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                         {resident.name.charAt(0)}
@@ -403,19 +403,19 @@ const HMSOverview = () => {
                       {resident.usn}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
+              )}
+              </div> :
+
+            <div className="text-center py-8 text-muted-foreground">
                 <Users size={32} className="mx-auto mb-2 opacity-20" />
                 <p>No residents assigned to this room.</p>
               </div>
-            )}
+            }
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default HMSOverview;

@@ -24,13 +24,13 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [studentsPagination, setStudentsPagination] = useState<any>(null);
   const [dirtyPages, setDirtyPages] = useState<Record<number, boolean>>({});
   const [navModalOpen, setNavModalOpen] = useState(false);
-  const [pendingNav, setPendingNav] = useState<{ page: number; pageSize?: number } | null>(null);
+  const [pendingNav, setPendingNav] = useState<{page: number;pageSize?: number;} | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
   // marks for current page (kept for compatibility)
-  const [marks, setMarks] = useState<Record<string, Record<string, { cie?: number | string | null; see?: number | string | null }>>>({});
+  const [marks, setMarks] = useState<Record<string, Record<string, {cie?: number | string | null;see?: number | string | null;}>>>({});
   // persisted marks across pages keyed by student_id -> { usn, subs: { subjectId: {cie,see} }}
-  const [allMarks, setAllMarks] = useState<Record<string, { usn: string; subs: Record<string, { cie?: number | string | null; see?: number | string | null }> }>>({});
+  const [allMarks, setAllMarks] = useState<Record<string, {usn: string;subs: Record<string, {cie?: number | string | null;see?: number | string | null;}>;}>>({});
   const [saving, setSaving] = useState(false);
   const [filtersLoading, setFiltersLoading] = useState(true);
   const [studentsLoading, setStudentsLoading] = useState(false);
@@ -53,7 +53,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       const sems = await getSemesters(parseInt(branchId));
       setSemesters(sems);
     } catch (error) {
-      console.error('Error fetching semesters:', error);
+
       setSemesters([]);
     }
   };
@@ -86,10 +86,10 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
           await fetchStudentsPage(res.upload_batch.id, studentsPage, studentsPageSize);
         }
       } catch (e) {
+
         // ignore
-      }
-    })();
-    return () => { mounted = false; };
+      }})();
+    return () => {mounted = false;};
   }, [selected.batch, selected.branch, selected.semester, selected.exam_period]);
 
   // Helper to fetch a specific students page and merge marks
@@ -103,9 +103,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       setStudentsPagination(stu.pagination || null);
       setStudentsPage(page || 1);
       // mark this page as clean when freshly loaded
-      setDirtyPages(prev => ({ ...(prev || {}), [page || 1]: false }));
+      setDirtyPages((prev) => ({ ...(prev || {}), [page || 1]: false }));
       // merge marks into allMarks
-      setAllMarks(prev => {
+      setAllMarks((prev) => {
         const next = { ...prev };
         (studentList || []).forEach((s: any) => {
           const sid = String(s.student_id);
@@ -148,7 +148,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       return; // do not update state, preventing typing >50 or <0
     }
     const val = candidate;
-    setAllMarks(prev => {
+    setAllMarks((prev) => {
       const next = { ...prev } as any;
       if (!next[sid]) next[sid] = { usn: usn, subs: {} };
       if (!next[sid].subs) next[sid].subs = {};
@@ -156,7 +156,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       return next;
     });
     // keep compatibility marks for current page rendering
-    setMarks(prev => {
+    setMarks((prev) => {
       const p = { ...prev } as any;
       const sKey = sid;
       const subKey2 = subKey;
@@ -166,7 +166,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       return p;
     });
     // mark current page dirty when user edits
-    setDirtyPages(prev => ({ ...(prev || {}), [studentsPage]: true }));
+    setDirtyPages((prev) => ({ ...(prev || {}), [studentsPage]: true }));
   };
 
   const handleSave = async () => {
@@ -182,8 +182,8 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       Object.entries(subs).forEach(([subId, marksObj]) => {
         const rawCie = (marksObj as any).cie;
         const rawSee = (marksObj as any).see;
-        const cieVal = (rawCie === null || rawCie === undefined || (typeof rawCie === 'string' && String(rawCie).trim() === '')) ? null : Number(rawCie);
-        const seeVal = (rawSee === null || rawSee === undefined || (typeof rawSee === 'string' && String(rawSee).trim() === '')) ? null : Number(rawSee);
+        const cieVal = rawCie === null || rawCie === undefined || typeof rawCie === 'string' && String(rawCie).trim() === '' ? null : Number(rawCie);
+        const seeVal = rawSee === null || rawSee === undefined || typeof rawSee === 'string' && String(rawSee).trim() === '' ? null : Number(rawSee);
         payload.push({ usn: usn, subject_id: Number(subId), cie_marks: Number.isNaN(cieVal) ? null : cieVal, see_marks: Number.isNaN(seeVal) ? null : seeVal });
       });
     });
@@ -194,15 +194,15 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.success(`Saved ${res.saved_count} records`);
       setDirtyPages({});
       // Merge the saved payload into local cache so UI reflects confirmed values
-      setAllMarks(prev => {
+      setAllMarks((prev) => {
         const next = { ...(prev || {}) } as any;
         payload.forEach((rec: any) => {
-          const sid = Object.keys(next).find(k => next[k].usn === rec.usn) || String(rec.usn);
+          const sid = Object.keys(next).find((k) => next[k].usn === rec.usn) || String(rec.usn);
           // if we can't find by usn in existing cache, try to find student by matching current students list
           let sidKey = sid;
           if (!next[sidKey]) {
             // fallback: if payload contains usn but no existing entry, attempt to find student_id from `students` on current page
-            const found = (students || []).find(s => s.usn === rec.usn);
+            const found = (students || []).find((s) => s.usn === rec.usn);
             if (found) sidKey = String(found.student_id);
           }
           if (!next[sidKey]) next[sidKey] = { usn: rec.usn, subs: {} };
@@ -213,10 +213,10 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
         return next;
       });
       // also update marks for current page rendering
-      setMarks(prev => {
+      setMarks((prev) => {
         const next = { ...(prev || {}) } as any;
         payload.forEach((rec: any) => {
-          const sid = String(rec.student_id || Object.keys(next).find(k => k === String(rec.student_id)) || (students.find(s => s.usn === rec.usn) ? String((students.find(s => s.usn === rec.usn) as any).student_id) : String(rec.student_id || rec.usn)));
+          const sid = String(rec.student_id || Object.keys(next).find((k) => k === String(rec.student_id)) || (students.find((s) => s.usn === rec.usn) ? String((students.find((s) => s.usn === rec.usn) as any).student_id) : String(rec.student_id || rec.usn)));
           const subId = String(rec.subject_id);
           if (!next[sid]) next[sid] = {};
           if (!next[sid][subId]) next[sid][subId] = {};
@@ -254,7 +254,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
     if (!saveFirst) {
       // Discard local unsaved changes for the current page so server values are shown
-      setAllMarks(prev => {
+      setAllMarks((prev) => {
         const next = { ...prev };
         (students || []).forEach((s: any) => {
           delete next[String(s.student_id)];
@@ -262,7 +262,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
         return next;
       });
       // mark current page clean
-      setDirtyPages(prev => ({ ...(prev || {}), [studentsPage]: false }));
+      setDirtyPages((prev) => ({ ...(prev || {}), [studentsPage]: false }));
     }
     await fetchStudentsPage(upload.id, pendingNav.page, pendingNav.pageSize ?? studentsPageSize);
     setPendingNav(null);
@@ -290,7 +290,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       toast.error('No published result found for this student');
       return;
     }
-    
+
     try {
       const res = await toggleWithholdResult(publishedResultId);
       if (res.success) {
@@ -312,16 +312,16 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     <div ref={ref} className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
         <CardHeader className="pb-4">
-          <CardTitle >Filter And Create Upload Batch</CardTitle>
+          <CardTitle>Filter And Create Upload Batch</CardTitle>
         </CardHeader>
         <CardContent>
-          {filtersLoading ? (
-            <SkeletonForm fields={4} />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4">
+          {filtersLoading ?
+          <SkeletonForm fields={4} /> :
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4">
               <div>
                 <label htmlFor="publish-results-batch" className="block text-sm mb-1">Batch</label>
-                <Select value={selected.batch} onValueChange={(v) => setSelected(s => ({ ...s, batch: v }))}>
+                <Select value={selected.batch} onValueChange={(v) => setSelected((s) => ({ ...s, batch: v }))}>
                   <SelectTrigger id="publish-results-batch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select batch" />
                   </SelectTrigger>
@@ -333,9 +333,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               <div>
                 <label htmlFor="publish-results-branch" className="block text-sm mb-1">Branch</label>
                 <Select value={selected.branch} onValueChange={(v) => {
-                  setSelected(s => ({ ...s, branch: v, semester: '' }));
-                  fetchSemesters(v);
-                }}>
+                setSelected((s) => ({ ...s, branch: v, semester: '' }));
+                fetchSemesters(v);
+              }}>
                   <SelectTrigger id="publish-results-branch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select branch" />
                   </SelectTrigger>
@@ -346,20 +346,20 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
               <div>
                 <label htmlFor="publish-results-semester" className="block text-sm mb-1">Semester</label>
-                <Select value={selected.semester} onValueChange={(v) => setSelected(s => ({ ...s, semester: v }))}>
+                <Select value={selected.semester} onValueChange={(v) => setSelected((s) => ({ ...s, semester: v }))}>
                   <SelectTrigger id="publish-results-semester" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select semester" />
                   </SelectTrigger>
                   <SelectContent>
-                    {semesters.map((s: any) => (
-                      <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>
-                    ))}
+                    {semesters.map((s: any) =>
+                  <SelectItem key={s.id} value={String(s.id)}>{s.number}</SelectItem>
+                  )}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <label htmlFor="publish-results-exam-period" className="block text-sm mb-1">Exam Period</label>
-                <Select value={selected.exam_period} onValueChange={(v) => setSelected(s => ({ ...s, exam_period: v }))}>
+                <Select value={selected.exam_period} onValueChange={(v) => setSelected((s) => ({ ...s, exam_period: v }))}>
                   <SelectTrigger id="publish-results-exam-period" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Exam period" />
                   </SelectTrigger>
@@ -378,12 +378,12 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </Button>
               </div>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
 
-      {upload && (
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
+      {upload &&
+      <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} mb-4`}>
           <CardContent className="pt-5">
           <div className="text-sm sm:text-base flex items-center gap-2 flex-wrap">
             <span>Upload ID: <span className="font-semibold">{upload.id}</span></span>
@@ -397,8 +397,8 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                 const url = `${window.location.origin}/results/view/${upload.token}`;
                 navigator.clipboard.writeText(url);
                 toast.success('Result link copied to clipboard');
-              }}
-            >
+              }}>
+              
               <Copy className="h-3 w-3 mr-1" /> Copy Link
             </Button>
             <Button
@@ -407,25 +407,25 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               className="h-7 px-2 text-xs"
               onClick={() => {
                 window.open(`/results/view/${upload.token}`, '_blank');
-              }}
-            >
+              }}>
+              
               <ExternalLink className="h-3 w-3 mr-1" /> Open Link
             </Button>
           </div>
           <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <div>Published: <span className={`font-medium ${upload.is_published ? 'text-green-600' : 'text-red-600'}`}>{upload.is_published ? 'Yes' : 'No'}</span></div>
-            {upload.is_published ? (
-              <Button onClick={() => setUnpublishModalOpen(true)} variant="secondary">Unpublish</Button>
-            ) : (
-              <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={() => setPublishModalOpen(true)}>Publish Results</Button>
-            )}
+            {upload.is_published ?
+            <Button onClick={() => setUnpublishModalOpen(true)} variant="secondary">Unpublish</Button> :
+
+            <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={() => setPublishModalOpen(true)}>Publish Results</Button>
+            }
           </div>
           </CardContent>
         </Card>
-      )}
+      }
 
-      {!selected.batch || !selected.branch || !selected.semester || !selected.exam_period ? (
-         <Card className="border-dashed border-2 shadow-none bg-transparent">
+      {!selected.batch || !selected.branch || !selected.semester || !selected.exam_period ?
+      <Card className="border-dashed border-2 shadow-none bg-transparent">
             <CardContent className="flex flex-col items-center justify-center py-24 text-center">
               <div className="bg-primary/5 p-6 rounded-full mb-4">
                 <Search className="w-12 h-12 text-primary/40" />
@@ -435,9 +435,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                 Please select a batch, branch, semester, and exam period from the dropdowns above to load the student list and entry form.
               </p>
             </CardContent>
-         </Card>
-      ) : students.length > 0 && (
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+         </Card> :
+      students.length > 0 &&
+      <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
           </CardHeader>
@@ -449,53 +449,53 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               {/* Pagination controls will follow below the table */}
             </div>
           </div>
-            {studentsLoading ? (
-              <SkeletonTable rows={10} cols={9} />
-            ) : (
-              <div className="space-y-4">
-                {students.map((s) => {
-                  const studentMarks = (allMarks[String(s.student_id)]?.subs) || marks[String(s.student_id)] || {};
-                  // Consistent pass/fail rule used across this student row
-                  const meetsPassCriteria = (c: any, se: any, t: any) => {
-                    return (typeof c === 'number' && typeof se === 'number' && typeof t === 'number') && (c >= 20 && se >= 18 && t >= 40);
-                  };
-                  const incompleteCount = (s.subjects || []).reduce((acc: number, sub: any) => {
-                    const e = studentMarks[String(sub.id)];
-                    const cie = e?.cie;
-                    const see = e?.see;
-                    if (cie === null || cie === undefined || see === null || see === undefined || cie === '' || see === '') return acc + 1;
-                    return acc;
-                  }, 0);
+            {studentsLoading ?
+            <SkeletonTable rows={10} cols={9} /> :
 
-                  return (
-                    <div key={s.student_id} className="border rounded-md p-3">
+            <div className="space-y-4">
+                {students.map((s) => {
+                const studentMarks = allMarks[String(s.student_id)]?.subs || marks[String(s.student_id)] || {};
+                // Consistent pass/fail rule used across this student row
+                const meetsPassCriteria = (c: any, se: any, t: any) => {
+                  return typeof c === 'number' && typeof se === 'number' && typeof t === 'number' && c >= 20 && se >= 18 && t >= 40;
+                };
+                const incompleteCount = (s.subjects || []).reduce((acc: number, sub: any) => {
+                  const e = studentMarks[String(sub.id)];
+                  const cie = e?.cie;
+                  const see = e?.see;
+                  if (cie === null || cie === undefined || see === null || see === undefined || cie === '' || see === '') return acc + 1;
+                  return acc;
+                }, 0);
+
+                return (
+                  <div key={s.student_id} className="border rounded-md p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div>
                           <div className="font-medium">{s.name} <span className="text-sm text-muted-foreground">({s.usn})</span></div>
                           <div className="text-sm text-muted-foreground">Subjects: {(s.subjects || []).length} • Incomplete Entries: {incompleteCount}</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {s.is_withheld && (
-                            <div className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded border border-amber-300">
+                          {s.is_withheld &&
+                        <div className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded border border-amber-300">
                               Withheld
                             </div>
-                          )}
-                          {upload?.is_published && (
-                            <Button
-                              size="sm"
-                              variant={s.is_withheld ? "outline" : "destructive"}
-                              onClick={async () => {
-                                if (!s.published_result_id) {
-                                  toast.error('Published result ID not found yet. Please refresh student list.');
-                                  return;
-                                }
-                                await handleToggleWithhold(s.student_id, s.name, s.published_result_id, s.is_withheld);
-                              }}
-                              className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
-                            >
+                        }
+                          {upload?.is_published &&
+                        <Button
+                          size="sm"
+                          variant={s.is_withheld ? "outline" : "destructive"}
+                          onClick={async () => {
+                            if (!s.published_result_id) {
+                              toast.error('Published result ID not found yet. Please refresh student list.');
+                              return;
+                            }
+                            await handleToggleWithhold(s.student_id, s.name, s.published_result_id, s.is_withheld);
+                          }}
+                          className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
+                          
                               {s.is_withheld ? "Release Result" : "Withhold Result"}
                             </Button>
-                          )}
+                        }
                         </div>
                       </div>
 
@@ -519,36 +519,36 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                             const entry = studentMarks[String(sub.id)];
                             const cie = entry?.cie ?? '';
                             const see = entry?.see ?? '';
-                            const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : '';
+                            const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : '';
                             const displayTotal = total;
-                            const result = displayTotal === '' ? 'Incomplete' : (meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail');
-                            
+                            const result = displayTotal === '' ? 'Incomplete' : meetsPassCriteria(cie, see, total) ? 'Pass' : 'Fail';
+
                             // Calculate grade based on total marks (assuming 100 max)
                             let grade = '';
                             let gradePoints = '';
                             if (typeof total === 'number') {
-                              if (total >= 90) { grade = 'S'; gradePoints = '10'; }
-                              else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
-                              else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
-                              else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
-                              else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
-                              else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
-                              else { grade = 'F'; gradePoints = '0'; }
+                              if (total >= 90) {grade = 'S';gradePoints = '10';} else
+                              if (total >= 80) {grade = 'A';gradePoints = '9';} else
+                              if (total >= 70) {grade = 'B';gradePoints = '8';} else
+                              if (total >= 60) {grade = 'C';gradePoints = '7';} else
+                              if (total >= 50) {grade = 'D';gradePoints = '6';} else
+                              if (total >= 40) {grade = 'E';gradePoints = '5';} else
+                              {grade = 'F';gradePoints = '0';}
                             }
-                            
+
                             return (
                               <tr key={sub.id}>
                                 <td className="border px-2 py-1">{sub.code}</td>
                                 <td className="border px-2 py-1">{sub.name}</td>
-                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e:any) => e.currentTarget.blur()} /></td>
-                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e:any) => e.currentTarget.blur()} /></td>
+                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={cie} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'cie', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
+                                <td className={`border px-2 py-1`}><Input disabled={upload?.is_published} className="w-20" type="number" min={0} max={50} value={see} onChange={(e: any) => handleInput(s.student_id, s.usn, sub.id, 'see', e.target.value)} onWheel={(e: any) => e.currentTarget.blur()} /></td>
                                 <td className="border px-2 py-1">{displayTotal}</td>
                                 <td className={`border px-2 py-1 ${result === 'Pass' ? 'text-green-600' : result === 'Fail' ? 'text-red-600' : 'text-yellow-600'}`}>{result}</td>
                                 <td className="border px-2 py-1">{grade}</td>
                                 <td className="border px-2 py-1">{gradePoints}</td>
-                                <td className="border px-2 py-1">{result === 'Pass' ? (sub.credits ?? 0) : (result === 'Fail' ? 0 : 'N/A')}</td>
-                              </tr>
-                            );
+                                <td className="border px-2 py-1">{result === 'Pass' ? sub.credits ?? 0 : result === 'Fail' ? 0 : 'N/A'}</td>
+                              </tr>);
+
                           })}
                         </tbody>
                         <tfoot>
@@ -559,9 +559,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 const entry = studentMarks[String(sub.id)];
                                 const cie = entry?.cie;
                                 const see = entry?.see;
-                                const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : null;
+                                const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : null;
                                 const passed = meetsPassCriteria(cie, see, total);
-                                const creditsToAdd = passed ? (sub.credits || 0) : 0;
+                                const creditsToAdd = passed ? sub.credits || 0 : 0;
                                 return acc + creditsToAdd;
                               }, 0)}
                             </td>
@@ -573,7 +573,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 const entry = studentMarks[String(sub.id)];
                                 const cie = entry?.cie;
                                 const see = entry?.see;
-                                const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : 0;
+                                const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : 0;
                                 return acc + (typeof total === 'number' ? total : 0);
                               }, 0)}
                             </td>
@@ -585,30 +585,30 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                                 const subjects = s.subjects || [];
                                 let totalGradePoints = 0;
                                 let totalCredits = 0;
-                                
+
                                 subjects.forEach((sub: any) => {
                                   const entry = studentMarks[String(sub.id)];
                                   const cie = entry?.cie;
                                   const see = entry?.see;
-                                  const total = (typeof cie === 'number' && typeof see === 'number') ? (cie + see) : null;
+                                  const total = typeof cie === 'number' && typeof see === 'number' ? cie + see : null;
                                   const credits = sub.credits || 0;
                                   const passed = meetsPassCriteria(cie, see, total);
 
                                   if (typeof total === 'number' && credits > 0 && passed) {
                                     let gradePoints = 0;
-                                    if (total >= 90) gradePoints = 10;
-                                    else if (total >= 80) gradePoints = 9;
-                                    else if (total >= 70) gradePoints = 8;
-                                    else if (total >= 60) gradePoints = 7;
-                                    else if (total >= 50) gradePoints = 6;
-                                    else if (total >= 40) gradePoints = 5;
-                                    else gradePoints = 0;
+                                    if (total >= 90) gradePoints = 10;else
+                                    if (total >= 80) gradePoints = 9;else
+                                    if (total >= 70) gradePoints = 8;else
+                                    if (total >= 60) gradePoints = 7;else
+                                    if (total >= 50) gradePoints = 6;else
+                                    if (total >= 40) gradePoints = 5;else
+                                    gradePoints = 0;
 
                                     totalGradePoints += gradePoints * credits;
                                     totalCredits += credits;
                                   }
                                 });
-                                
+
                                 return totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
                               })()}
                             </td>
@@ -616,74 +616,74 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                         </tfoot>
                       </table>
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>);
+
+              })}
               </div>
-            )}
+            }
 
           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between mt-8 gap-6 border-t pt-6">
             <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
-              {studentsPagination?.count > 0 
-                ? `Showing ${(studentsPage - 1) * studentsPageSize + 1} to ${Math.min(studentsPage * studentsPageSize, studentsPagination?.count || 0)} of ${studentsPagination?.count || 0} students` 
-                : `Showing 0 students`}
+              {studentsPagination?.count > 0 ?
+                `Showing ${(studentsPage - 1) * studentsPageSize + 1} to ${Math.min(studentsPage * studentsPageSize, studentsPagination?.count || 0)} of ${studentsPagination?.count || 0} students` :
+                `Showing 0 students`}
             </div>
             
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
               <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (!upload) return;
-                    navigateToPage(Math.max(1, studentsPage - 1));
-                  }}
-                  disabled={studentsPage === 1}
-                  className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50"
-                >
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (!upload) return;
+                      navigateToPage(Math.max(1, studentsPage - 1));
+                    }}
+                    disabled={studentsPage === 1}
+                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50">
+                    
                   Prev
                 </Button>
 
                 <div className="flex items-center">
                   <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary/5"
-                  >
+                      size="sm"
+                      variant="outline"
+                      className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary/5">
+                      
                     {studentsPage}
                   </Button>
                 </div>
 
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (!upload) return;
-                    navigateToPage(studentsPage + 1);
-                  }}
-                  disabled={!studentsPagination?.next}
-                  className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50"
-                >
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (!upload) return;
+                      navigateToPage(studentsPage + 1);
+                    }}
+                    disabled={!studentsPagination?.next}
+                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50">
+                    
                   Next
                 </Button>
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button 
-                  className="flex-1 sm:flex-none h-12 sm:h-9 px-6 sm:px-4 text-[18px] sm:text-sm font-bold sm:font-semibold bg-primary text-white border-primary hover:bg-primary/90" 
-                  onClick={handleSave} 
-                  disabled={saving || upload?.is_published}
-                >
+                <Button
+                    className="flex-1 sm:flex-none h-12 sm:h-9 px-6 sm:px-4 text-[18px] sm:text-sm font-bold sm:font-semibold bg-primary text-white border-primary hover:bg-primary/90"
+                    onClick={handleSave}
+                    disabled={saving || upload?.is_published}>
+                    
                   {saving ? 'Saving...' : 'Save Marks'}
                 </Button>
-                {upload?.is_published && (
-                  <Button 
-                    onClick={() => setUnpublishModalOpen(true)} 
-                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
-                  >
+                {upload?.is_published &&
+                  <Button
+                    onClick={() => setUnpublishModalOpen(true)}
+                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
+                    
                     Unpublish
                   </Button>
-                )}
+                  }
               </div>
             </div>
           </div>
@@ -700,7 +700,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="mt-6 flex justify-end">
-                  <Button variant="ghost" onClick={() => { setNavModalOpen(false); setPendingNav(null); }}>Cancel</Button>
+                  <Button variant="ghost" onClick={() => {setNavModalOpen(false);setPendingNav(null);}}>Cancel</Button>
                   <button className={`ml-3 px-4 py-2 rounded border ${theme === 'dark' ? 'border-amber-400 text-amber-200 bg-amber-900/10 hover:bg-amber-900/20' : 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100'}`} onClick={() => confirmNavSave(false)}>Continue without saving</button>
                   <Button className="ml-3" onClick={() => confirmNavSave(true)}>Save and continue</Button>
                 </div>
@@ -721,7 +721,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
             </DialogHeader>
             <div className="mt-4 flex justify-end">
               <Button variant="ghost" onClick={() => setPublishModalOpen(false)}>Cancel</Button>
-              <Button variant="destructive" className="ml-3" onClick={async () => { setPublishModalOpen(false); await handlePublish(); }}>Confirm Publish</Button>
+              <Button variant="destructive" className="ml-3" onClick={async () => {setPublishModalOpen(false);await handlePublish();}}>Confirm Publish</Button>
             </div>
         </DialogContent>
       </Dialog>
@@ -740,25 +740,25 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="mt-4 flex justify-end">
             <Button variant="ghost" onClick={() => setUnpublishModalOpen(false)}>Cancel</Button>
             <Button className="ml-3" onClick={async () => {
-              setUnpublishModalOpen(false);
-              if (!upload) return;
-              const res = await unpublishUploadBatch(upload.id);
-              if (res.success) {
-                setUpload({ ...upload, is_published: false });
-                toast.success('Public link is now inactive.');
-              } else {
-                toast.error(res.message || 'Failed to unpublish');
-              }
-            }}>Confirm Unpublish</Button>
+                    setUnpublishModalOpen(false);
+                    if (!upload) return;
+                    const res = await unpublishUploadBatch(upload.id);
+                    if (res.success) {
+                      setUpload({ ...upload, is_published: false });
+                      toast.success('Public link is now inactive.');
+                    } else {
+                      toast.error(res.message || 'Failed to unpublish');
+                    }
+                  }}>Confirm Unpublish</Button>
           </div>
         </DialogContent>
       </Dialog>
         </div>
           </CardContent>
         </Card>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 });
 
 PublishResults.displayName = 'PublishResults';

@@ -11,8 +11,8 @@ import {
   PieChart,
   Pie,
   Legend,
-  Cell
-} from "recharts";
+  Cell } from
+"recharts";
 import { getCOEDashboardStats, DashboardStats } from "../../utils/coe_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonStatsGrid, SkeletonChart, SkeletonTable } from "../ui/skeleton";
@@ -37,7 +37,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
         setStats(null);
       }
     } catch (e) {
-      console.error("Error loading COE dashboard:", e);
+
       setStats(null);
     } finally {
       setLoading(false);
@@ -69,8 +69,8 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
         <div className="p-6 rounded-lg border bg-card space-y-4">
           <SkeletonTable rows={5} cols={5} />
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (!stats) {
@@ -83,31 +83,31 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
         <p className={`text-[18px] sm:text-base mt-2 max-w-sm mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
           We were unable to retrieve the dashboard statistics. This might be due to a connection issue or lack of data.
         </p>
-        <button 
+        <button
           onClick={fetchDashboardStats}
-          className="mt-8 px-8 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
-        >
+          className="mt-8 px-8 py-3 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
+          
           Retry Loading Data
         </button>
-      </div>
-    );
+      </div>);
+
   }
 
   // Application Pie Chart Data
   const appStatusData = [
-    { name: "Approved", value: stats.approved_applications || 0, color: "#10b981" },
-    { name: "Pending", value: stats.pending_applications || 0, color: "#f59e0b" },
-    { name: "Rejected", value: stats.rejected_applications || 0, color: "#ef4444" },
-  ];
+  { name: "Approved", value: stats.approved_applications || 0, color: "#10b981" },
+  { name: "Pending", value: stats.pending_applications || 0, color: "#f59e0b" },
+  { name: "Rejected", value: stats.rejected_applications || 0, color: "#ef4444" }];
+
 
   // Dummy Application Trend Chart Data (until backend sends it)
   const trendData = (stats as any).application_trend || [
-    { week: "Week 1", count: 12 },
-    { week: "Week 2", count: 18 },
-    { week: "Week 3", count: 25 },
-    { week: "Week 4", count: 14 },
-    { week: "Week 5", count: stats.total_applications > 0 ? stats.total_applications : 0 },
-  ];
+  { week: "Week 1", count: 12 },
+  { week: "Week 2", count: 18 },
+  { week: "Week 3", count: 25 },
+  { week: "Week 4", count: 14 },
+  { week: "Week 5", count: stats.total_applications > 0 ? stats.total_applications : 0 }];
+
 
   const totalApplications = stats.total_applications || 0;
 
@@ -121,8 +121,8 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
     return (
       <text x={x} y={y} fill={theme === 'dark' ? '#e5e7eb' : '#111827'} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12}>
         {entry.name}: {entry.value}
-      </text>
-    );
+      </text>);
+
   };
 
   return (
@@ -130,39 +130,39 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          {
-            title: "Total Applications",
-            value: stats.total_applications?.toString() || "0",
-            icon: <FileText />,
-            color: "text-blue-600",
-            bg: "bg-blue-600/10"
-          },
-          {
-            title: "Pending Approval",
-            value: stats.pending_applications?.toString() || "0",
-            icon: <Clock />,
-            color: "text-yellow-600",
-            bg: "bg-yellow-600/10"
-          },
-          {
-            title: "Question Papers",
-            value: stats.qp_stats?.total_qps?.toString() || "0",
-            icon: <BookOpen />,
-            color: "text-indigo-600",
-            bg: "bg-indigo-600/10"
-          },
-          {
-            title: "Published Results",
-            value: stats.published_results_summary?.total_published_results?.toString() || "0",
-            icon: <CheckCircle />,
-            color: "text-green-600",
-            bg: "bg-green-600/10"
-          },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className={`p-5 rounded-lg shadow-sm flex items-center gap-4 border transition-shadow hover:shadow-md ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}
-          >
+        {
+          title: "Total Applications",
+          value: stats.total_applications?.toString() || "0",
+          icon: <FileText />,
+          color: "text-blue-600",
+          bg: "bg-blue-600/10"
+        },
+        {
+          title: "Pending Approval",
+          value: stats.pending_applications?.toString() || "0",
+          icon: <Clock />,
+          color: "text-yellow-600",
+          bg: "bg-yellow-600/10"
+        },
+        {
+          title: "Question Papers",
+          value: stats.qp_stats?.total_qps?.toString() || "0",
+          icon: <BookOpen />,
+          color: "text-indigo-600",
+          bg: "bg-indigo-600/10"
+        },
+        {
+          title: "Published Results",
+          value: stats.published_results_summary?.total_published_results?.toString() || "0",
+          icon: <CheckCircle />,
+          color: "text-green-600",
+          bg: "bg-green-600/10"
+        }].
+        map((item, i) =>
+        <div
+          key={i}
+          className={`p-5 rounded-lg shadow-sm flex items-center gap-4 border transition-shadow hover:shadow-md ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+          
             <div className={`flex items-center justify-center w-14 h-14 rounded-full ${item.bg}`}>
               <span className={`text-2xl ${item.color}`}>{item.icon}</span>
             </div>
@@ -171,7 +171,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
               <p className={`text-[26px] sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{item.value}</p>
             </div>
           </div>
-        ))}
+        )}
       </div>
 
       {/* Charts */}
@@ -190,8 +190,8 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <YAxis allowDecimals={false} stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} fontSize={12} />
                 <Tooltip
                   contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }}
-                  itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
-                />
+                  itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }} />
+                
                 <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={3} dot={{ r: 5 }} name="Applications" />
               </LineChart>
             </ResponsiveContainer>
@@ -205,31 +205,31 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
           <p className="text-[16px] sm:text-sm mb-6 text-muted-foreground">Distribution of exam application statuses</p>
           <div className="min-h-[250px] focus:outline-none">
-            {totalApplications === 0 ? (
-              <div className="flex flex-col items-center justify-center h-[250px] text-center space-y-3">
+            {totalApplications === 0 ?
+            <div className="flex flex-col items-center justify-center h-[250px] text-center space-y-3">
                 <div className={`p-4 rounded-full bg-primary/10 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
                   <FileText className="h-8 w-8 text-primary/30" />
                 </div>
                 <p className="text-[16px] sm:text-sm text-muted-foreground font-semibold">No applications submitted yet</p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={250}>
+              </div> :
+
+            <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
-                    data={appStatusData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={85}
-                    paddingAngle={3}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                  >
-                    {appStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+                  data={appStatusData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={85}
+                  paddingAngle={3}
+                  label={renderCustomizedLabel}
+                  labelLine={false}>
+                  
+                    {appStatusData.map((entry, index) =>
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  )}
                   </Pie>
                   {theme === 'dark' && <circle cx="50%" cy="50%" r={50} fill="#0b1220" opacity={0.06} />}
                   <text x="50%" y="46%" textAnchor="middle" fill={theme === 'dark' ? '#cbd5e1' : '#6b7280'} fontSize={12}>Total</text>
@@ -237,12 +237,12 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                     {totalApplications}
                   </text>
                   <Tooltip
-                    contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }}
-                  />
+                  contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }} />
+                
                   <Legend verticalAlign="bottom" height={36} />
                 </PieChart>
               </ResponsiveContainer>
-            )}
+            }
           </div>
         </div>
       </div>
@@ -266,18 +266,18 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <div className="px-1 text-right">Action Links</div>
               </div>
 
-              {(!stats.published_results_summary || stats.published_results_summary.recent_published_results.length === 0) ? (
-                <div className="py-24 text-center">
+              {!stats.published_results_summary || stats.published_results_summary.recent_published_results.length === 0 ?
+              <div className="py-24 text-center">
                   <div className="flex flex-col items-center justify-center space-y-4">
                     <div className={`p-6 rounded-full bg-primary/10  ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
                       <CheckCircle className="h-10 w-10 text-primary/30" />
                     </div>
                     <p className="text-[18px] text-muted-foreground font-semibold">No recent published results found</p>
                   </div>
-                </div>
-              ) : (
-                (stats.published_results_summary.recent_published_results || []).slice(0, 5).map((pr: any, idx) => (
-                  <div key={idx} className={`flex justify-between items-center py-4 border-b last:border-none transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-100 hover:bg-gray-50'} px-1`}>
+                </div> :
+
+              (stats.published_results_summary.recent_published_results || []).slice(0, 5).map((pr: any, idx) =>
+              <div key={idx} className={`flex justify-between items-center py-4 border-b last:border-none transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-100 hover:bg-gray-50'} px-1`}>
                     <div className="flex flex-col min-w-0 pr-4">
                       <div className="font-bold text-[16px] text-primary truncate">{pr.batch_name}</div>
                       <div className="text-[14px] text-muted-foreground mt-0.5">Sem {pr.semester_number} • {pr.exam_period}</div>
@@ -286,31 +286,31 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                     
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
-                        onClick={() => {
-                          const url = `${window.location.origin}/results/view/${pr.token}`;
-                          navigator.clipboard.writeText(url);
-                          toast.success('Link copied to clipboard!');
-                        }}
-                        className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[14px] font-medium transition ${theme === 'dark' ? 'bg-muted/50 hover:bg-muted text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
-                        title="Copy Link"
-                      >
+                    onClick={() => {
+                      const url = `${window.location.origin}/results/view/${pr.token}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success('Link copied to clipboard!');
+                    }}
+                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[14px] font-medium transition ${theme === 'dark' ? 'bg-muted/50 hover:bg-muted text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                    title="Copy Link">
+                    
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         <span className="hidden xs:inline">Copy Link</span>
                         <span className="xs:hidden">Copy</span>
                       </button>
                       <button
-                        onClick={() => window.open(`/results/view/${pr.token}`, '_blank')}
-                        className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[14px] font-medium transition ${theme === 'dark' ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
-                        title="Open Link"
-                      >
+                    onClick={() => window.open(`/results/view/${pr.token}`, '_blank')}
+                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[14px] font-medium transition ${theme === 'dark' ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
+                    title="Open Link">
+                    
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                         <span className="hidden xs:inline">Open Link</span>
                         <span className="xs:hidden">Open</span>
                       </button>
                     </div>
                   </div>
-                ))
-              )}
+              )
+              }
             </div>
 
             {/* Tablet/Desktop View: Table */}
@@ -324,15 +324,15 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(!stats.published_results_summary || stats.published_results_summary.recent_published_results.length === 0) ? (
-                    <tr>
+                  {!stats.published_results_summary || stats.published_results_summary.recent_published_results.length === 0 ?
+                  <tr>
                       <td colSpan={3} className="py-24 text-center">
                         <p className="text-base text-muted-foreground font-semibold">No recent published results found</p>
                       </td>
-                    </tr>
-                  ) : (
-                    (stats.published_results_summary.recent_published_results || []).slice(0, 5).map((pr: any, idx) => (
-                      <tr key={idx} className={`border-b last:border-none transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                    </tr> :
+
+                  (stats.published_results_summary.recent_published_results || []).slice(0, 5).map((pr: any, idx) =>
+                  <tr key={idx} className={`border-b last:border-none transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-100 hover:bg-gray-50'}`}>
                         <td className="py-4 px-4">
                           <div className="font-medium text-sm text-primary">{pr.batch_name}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">Sem {pr.semester_number} • {pr.exam_period}</div>
@@ -341,38 +341,38 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
                         <td className="py-4 px-4 text-right">
                           <div className="flex justify-end gap-3">
                             <button
-                              onClick={() => {
-                                const url = `${window.location.origin}/results/view/${pr.token}`;
-                                navigator.clipboard.writeText(url);
-                                toast.success('Link copied to clipboard!');
-                              }}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-muted/50 hover:bg-muted text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
-                              title="Copy Link"
-                            >
+                          onClick={() => {
+                            const url = `${window.location.origin}/results/view/${pr.token}`;
+                            navigator.clipboard.writeText(url);
+                            toast.success('Link copied to clipboard!');
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-muted/50 hover:bg-muted text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                          title="Copy Link">
+                          
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                               Copy Link
                             </button>
                             <button
-                              onClick={() => window.open(`/results/view/${pr.token}`, '_blank')}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
-                              title="Open Link"
-                            >
+                          onClick={() => window.open(`/results/view/${pr.token}`, '_blank')}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${theme === 'dark' ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-400' : 'bg-blue-50 hover:bg-blue-100 text-blue-600'}`}
+                          title="Open Link">
+                          
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                               Open Link
                             </button>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
+                  )
+                  }
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 });
 
 COEDashboardStats.displayName = 'COEDashboardStats';

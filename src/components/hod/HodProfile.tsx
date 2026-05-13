@@ -34,7 +34,7 @@ interface Profile {
   bio: string;
 }
 
-const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (error: string | null) => void }) => {
+const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error: string | null) => void;}) => {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile>({
@@ -43,7 +43,7 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
     email: "",
     mobile_number: "",
     address: "",
-    bio: "",
+    bio: ""
   });
   const [error, setLocalError] = useState<string | null>(null);
   const { theme } = useTheme();
@@ -81,7 +81,7 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                 user_id: parsedUser.user_id,
                 username: parsedUser.username || parsedUser.first_name || "",
                 email: parsedUser.email || "",
-                role: parsedUser.role || "hod",
+                role: parsedUser.role || "hod"
               };
               setFetchedUser(currentUser);
             } else {
@@ -91,12 +91,12 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
             throw new Error("No user data found");
           }
         } catch (err) {
-          console.error("User Fetch Error:", err);
+
           const message = "Authentication failed. Please log in again.";
           if (setError) setError(message);
           setLocalError(message);
           showErrorAlert("Error", message);
-          setTimeout(() => (window.location.href = "/login"), 2000);
+          setTimeout(() => window.location.href = "/login", 2000);
           setLoading(false);
           return;
         }
@@ -124,11 +124,11 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
             email: payload.email || payload.username || "",
             mobile_number: payload.mobile_number || payload.mobile || "",
             address: payload.address || "",
-            bio: payload.bio || "",
+            bio: payload.bio || ""
           };
           setProfile(fetchedProfile);
         } else {
-          const message = (response && (response as any).message) || "Failed to fetch profile";
+          const message = response && (response as any).message || "Failed to fetch profile";
           setLocalError(message);
           showErrorAlert("Error", message);
           if (message === "Profile not found") {
@@ -139,12 +139,12 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
               email: currentUser?.email || "",
               mobile_number: "",
               address: "",
-              bio: "",
+              bio: ""
             });
           }
         }
       } catch (err) {
-        console.error("Fetch Profile Error:", err);
+
         const message = "Network error";
         if (setError) setError(message);
         setLocalError(message);
@@ -159,7 +159,7 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProfile(prev => ({ ...prev, [name]: value }));
+    setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSaveProfile = async () => {
@@ -196,13 +196,13 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
         return;
       }
 
-      const updates: { 
-        first_name?: string; 
-        last_name?: string; 
-        email?: string; 
-        mobile_number?: string; 
-        address?: string; 
-        bio?: string; 
+      const updates: {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+        mobile_number?: string;
+        address?: string;
+        bio?: string;
       } = {};
       if (profile.first_name !== (currentUser.first_name || "")) updates.first_name = profile.first_name;
       if (profile.last_name !== (currentUser.last_name || "")) updates.last_name = profile.last_name;
@@ -228,14 +228,14 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
           email: response.data.email || "",
           mobile_number: response.data.mobile_number || "",
           address: response.data.address || "",
-          bio: response.data.bio || "",
+          bio: response.data.bio || ""
         };
         setProfile(updatedProfile);
         showSuccessAlert("Success", "Profile saved successfully");
         localStorage.setItem("user", JSON.stringify({
           ...JSON.parse(localStorage.getItem("user") || "{}"),
           ...response.data,
-          user_id: currentUser.user_id,
+          user_id: currentUser.user_id
         }));
         setEditing(false);
       } else {
@@ -245,7 +245,7 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
         showErrorAlert("Error", message);
       }
     } catch (err) {
-      console.error("Save Profile Error:", err);
+
       const message = err instanceof Error ? err.message : "Network error";
       if (setError) setError(message);
       setLocalError(message);
@@ -276,8 +276,8 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
         body: JSON.stringify({
           current_password: passwordData.current_password,
           new_password: passwordData.new_password,
-          confirm_password: passwordData.confirm_password,
-        }),
+          confirm_password: passwordData.confirm_password
+        })
       });
       const result = await response.json();
       if (result.success) {
@@ -288,7 +288,7 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
         showErrorAlert('Unable to change password', result.message || 'Failed to change password');
       }
     } catch (err) {
-      console.error('Error changing password:', err);
+
       showErrorAlert('Unable to change password', 'Failed to change password');
     }
   };
@@ -297,8 +297,8 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
     return (
       <div className="min-h-screen flex justify-center items-start p-6">
         <SkeletonCard className="w-full max-w-4xl h-[500px]" />
-      </div>
-    );
+      </div>);
+
   }
 
   const renderTabContent = () => {
@@ -327,8 +327,8 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                 <Input id="mobile_number" name="mobile_number" value={profile.mobile_number} onChange={handleChange} disabled={!editing || loading} maxLength={10} placeholder="10-digit mobile" className="text-sm h-9 sm:h-10 w-full" />
               </div>
             </div>
-          </div>
-        );
+          </div>);
+
 
       case 'contact':
         return (
@@ -342,8 +342,8 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
               <Textarea id="bio" name="bio" value={profile.bio} onChange={handleChange} disabled={!editing || loading} rows={4} className="text-sm w-full" />
               <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{profile.bio.trim().split(/\s+/).filter(Boolean).length}/50 words</p>
             </div>
-          </div>
-        );
+          </div>);
+
       default:
         return null;
     }
@@ -359,20 +359,20 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            {editing && (
-              <Button size="sm" variant="ghost" onClick={() => { setEditing(false); /* revert could be implemented if desired */ }}>
+            {editing &&
+            <Button size="sm" variant="ghost" onClick={() => {setEditing(false); /* revert could be implemented if desired */}}>
                 Cancel
               </Button>
-            )}
+            }
 
             <Button
               size="sm"
-              onClick={() => { if (editing) handleSaveProfile(); else setEditing(true); }}
+              onClick={() => {if (editing) handleSaveProfile();else setEditing(true);}}
               variant="outline"
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-              disabled={loading}
-            >
-              {editing ? (loading ? 'Saving...' : 'Save') : 'Edit Profile'}
+              disabled={loading}>
+              
+              {editing ? loading ? 'Saving...' : 'Save' : 'Edit Profile'}
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>
@@ -391,14 +391,14 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                         type={showPasswords.current ? 'text' : 'password'}
                         value={passwordData.current_password}
                         onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                        aria-label={showPasswords.current ? 'Hide current password' : 'Show current password'}
-                      >
+                        aria-label={showPasswords.current ? 'Hide current password' : 'Show current password'}>
+                        
                         {showPasswords.current ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -411,14 +411,14 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                         type={showPasswords.next ? 'text' : 'password'}
                         value={passwordData.new_password}
                         onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, next: !prev.next }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                        aria-label={showPasswords.next ? 'Hide new password' : 'Show new password'}
-                      >
+                        aria-label={showPasswords.next ? 'Hide new password' : 'Show new password'}>
+                        
                         {showPasswords.next ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -431,14 +431,14 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
                         type={showPasswords.confirm ? 'text' : 'password'}
                         value={passwordData.confirm_password}
                         onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                        className="pr-10"
-                      />
+                        className="pr-10" />
+                      
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                        aria-label={showPasswords.confirm ? 'Hide confirm password' : 'Show confirm password'}
-                      >
+                        aria-label={showPasswords.confirm ? 'Hide confirm password' : 'Show confirm password'}>
+                        
                         {showPasswords.confirm ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -459,7 +459,7 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
               <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4 flex-shrink-0`}>
-                {(profile.first_name && profile.first_name[0]) || ''}{(profile.last_name && profile.last_name[0]) || ''}
+                {profile.first_name && profile.first_name[0] || ''}{profile.last_name && profile.last_name[0] || ''}
               </div>
 
               <div className="text-base sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
@@ -494,8 +494,8 @@ const HodProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default HodProfile;

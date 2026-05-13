@@ -17,10 +17,10 @@ interface QPPending {
   test_type: string;
   faculty: string;
   submitted_at: string;
-  branch?: { id: number | null; name: string | null };
+  branch?: {id: number | null;name: string | null;};
   status?: string;
   current_holder?: string | null;
-  last_action?: { actor?: string; role?: string; action?: string; comment?: string } | null;
+  last_action?: {actor?: string;role?: string;action?: string;comment?: string;} | null;
 }
 
 interface QPDetail {
@@ -45,8 +45,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from "../ui/dialog";
+  DialogFooter } from
+"../ui/dialog";
 
 const QPApprovals = () => {
   const [pendingQPs, setPendingQPs] = useState<QPPending[]>([]);
@@ -86,9 +86,9 @@ const QPApprovals = () => {
         document.head.appendChild(style);
       }
     } catch (e) {
+
       // ignore when DOM not available
-    }
-  }, []);
+    }}, []);
 
   useEffect(() => {
     fetchPendingQPs(currentPage);
@@ -99,13 +99,13 @@ const QPApprovals = () => {
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/hod-pending/?page=${page}&page_size=10`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        }
       });
       const responseData = await response.json();
 
       const hasResults = responseData && typeof responseData === 'object' && 'results' in responseData;
-      const dataSource = hasResults ? responseData.results : (Array.isArray(responseData.data) ? responseData.data : []);
+      const dataSource = hasResults ? responseData.results : Array.isArray(responseData.data) ? responseData.data : [];
 
       setPendingQPs(dataSource);
 
@@ -117,7 +117,7 @@ const QPApprovals = () => {
         setTotalCount(dataSource.length);
       }
     } catch (error) {
-      console.error("Error fetching pending QPs:", error);
+
     } finally {
       setLoading(false);
     }
@@ -128,8 +128,8 @@ const QPApprovals = () => {
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/hod-detail/`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        }
       });
       const data = await response.json();
       if (data.success && data.data && data.data.length > 0) {
@@ -145,7 +145,7 @@ const QPApprovals = () => {
         setQpDetail(transformedQP);
       }
     } catch (error) {
-      console.error("Error fetching QP detail:", error);
+
     } finally {
       setDetailLoading(false);
     }
@@ -168,10 +168,10 @@ const QPApprovals = () => {
 
       doc.setFontSize(12);
       const headerLines = [
-        `Subject: ${qpDetail.subject}`,
-        `Test Type: ${qpDetail.test_type}`,
-        `Faculty: ${qpDetail.faculty}`,
-      ];
+      `Subject: ${qpDetail.subject}`,
+      `Test Type: ${qpDetail.test_type}`,
+      `Faculty: ${qpDetail.faculty}`];
+
       headerLines.forEach((ln: string) => {
         const lines = doc.splitTextToSize(ln, maxWidth);
         doc.text(lines, margin, y);
@@ -205,9 +205,9 @@ const QPApprovals = () => {
           if (contentLines.length > 0) {
             // write first line and place marks at the right end of the same line
             doc.text(contentLines[0], margin, y);
-            try { doc.setFont(undefined, 'bold'); } catch (e) { }
+            try {doc.setFont(undefined, 'bold');} catch (e) {}
             doc.text(`${s.max_marks}m`, pageWidth - margin, y, { align: 'right' });
-            try { doc.setFont(undefined, 'normal'); } catch (e) { }
+            try {doc.setFont(undefined, 'normal');} catch (e) {}
             y += lineHeight;
           }
 
@@ -235,7 +235,7 @@ const QPApprovals = () => {
       const fileName = `qp-${(qpDetail.subject || 'qp').replace(/\s+/g, '_')}-${(qpDetail.test_type || 'test').replace(/\s+/g, '_')}.pdf`;
       doc.save(fileName);
     } catch (err) {
-      console.error('Error generating PDF:', err);
+
       toast({ title: 'Error', description: 'Failed to generate PDF.' });
     }
   };
@@ -259,11 +259,11 @@ const QPApprovals = () => {
       allowOutsideClick: true,
       allowEscapeKey: true,
       reverseButtons: true,
-      target: document.body,
+      target: document.body
     });
 
     if (!result || result.isDismissed || !result.isConfirmed) {
-      try { MySwal.close(); } catch (e) { }
+      try {MySwal.close();} catch (e) {}
       return;
     }
 
@@ -273,13 +273,13 @@ const QPApprovals = () => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ comment }),
+        body: JSON.stringify({ comment })
       });
       const data = await response.json();
       if (data.success) {
-        try { MySwal.close(); } catch (e) { }
+        try {MySwal.close();} catch (e) {}
         const t = toast({ title: 'Approved', description: data.message || 'QP approved and forwarded to Admin.' });
         setTimeout(() => t.dismiss(), 3000);
         fetchPendingQPs(currentPage);
@@ -291,7 +291,7 @@ const QPApprovals = () => {
         MySwal.fire('Error', data.message || 'Failed to approve QP.', 'error');
       }
     } catch (error) {
-      console.error("Error approving QP:", error);
+
       toast({ title: 'Network error', description: 'Network error while approving QP.' });
     } finally {
       setActionLoading(false);
@@ -310,11 +310,11 @@ const QPApprovals = () => {
       reverseButtons: true,
       confirmButtonText: 'Yes, reject',
       cancelButtonText: 'Cancel',
-      target: document.body,
+      target: document.body
     });
 
     if (!result || result.isDismissed || !result.isConfirmed) {
-      try { MySwal.close(); } catch (e) { }
+      try {MySwal.close();} catch (e) {}
       return;
     }
 
@@ -324,13 +324,13 @@ const QPApprovals = () => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ comment }),
+        body: JSON.stringify({ comment })
       });
       const data = await response.json();
       if (data.success) {
-        try { MySwal.close(); } catch (e) { }
+        try {MySwal.close();} catch (e) {}
         const t = toast({ title: 'Rejected', description: data.message || 'QP rejected and sent back to Faculty for edits.' });
         setTimeout(() => t.dismiss(), 3000);
         fetchPendingQPs(currentPage);
@@ -342,7 +342,7 @@ const QPApprovals = () => {
         MySwal.fire('Error', data.message || 'Failed to reject QP.', 'error');
       }
     } catch (error) {
-      console.error("Error rejecting QP:", error);
+
       toast({ title: 'Network error', description: 'Network error while rejecting QP.' });
     } finally {
       setActionLoading(false);
@@ -353,8 +353,8 @@ const QPApprovals = () => {
     return (
       <Card className="p-6">
         <SkeletonTable rows={5} cols={4} />
-      </Card>
-    );
+      </Card>);
+
   }
 
   return (
@@ -366,19 +366,19 @@ const QPApprovals = () => {
               <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
               <div className="flex items-center gap-3">
                 <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and approve question papers from your department faculty</p>
-                {totalCount > 0 && (
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                {totalCount > 0 &&
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {totalCount} Total
                   </span>
-                )}
+                }
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden px-4 sm:px-6 pt-0">
           <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4">
-            {pendingQPs.length === 0 ? (
-              <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+            {pendingQPs.length === 0 ?
+            <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
                   <ClipboardCheck className="w-12 h-12 opacity-80" />
                 </div>
@@ -386,11 +386,11 @@ const QPApprovals = () => {
                 <p className="max-w-xs text-base leading-relaxed">
                   All question papers have been reviewed. Check back later for new submissions from your faculty.
                 </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pendingQPs.map((qp) => (
-                  <Card key={qp.id} className={`p-4 border transition-all hover:shadow-md ${theme === 'dark' ? 'bg-card/50 border-border' : 'bg-gray-50/50 border-gray-100'}`}>
+              </div> :
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {pendingQPs.map((qp) =>
+              <Card key={qp.id} className={`p-4 border transition-all hover:shadow-md ${theme === 'dark' ? 'bg-card/50 border-border' : 'bg-gray-50/50 border-gray-100'}`}>
                     <div className="flex flex-col h-full justify-between gap-3">
                       <div>
                         <div className="flex items-start justify-between gap-2 mb-2">
@@ -409,93 +409,93 @@ const QPApprovals = () => {
                             <span className="text-muted-foreground font-medium">Submitted:</span>
                             <span>{new Date(qp.submitted_at).toLocaleDateString()}</span>
                           </p>
-                          {qp.branch && (
-                            <p className="text-sm flex items-center gap-2">
+                          {qp.branch &&
+                      <p className="text-sm flex items-center gap-2">
                               <span className="text-muted-foreground font-medium">Branch:</span>
                               <span className="truncate">{qp.branch.name}</span>
                             </p>
-                          )}
+                      }
                         </div>
 
-                        {qp.last_action && (
-                          <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
+                        {qp.last_action &&
+                    <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
                             <p className="font-medium mb-1">Last Action: {qp.last_action.action}</p>
                             <p className="text-muted-foreground italic line-clamp-2">
                               "{qp.last_action.comment || 'No comment provided'}"
                             </p>
                           </div>
-                        )}
+                    }
                       </div>
 
                       <div className="flex gap-2 mt-2">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
-                          onClick={() => handleReview(qp)}
-                        >
+                      variant="outline"
+                      size="sm"
+                      className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
+                      onClick={() => handleReview(qp)}>
+                      
                           <Eye className="w-4 h-4" />
                           Review & Action
                         </Button>
                       </div>
                     </div>
                   </Card>
-                ))}
+              )}
               </div>
-            )}
+            }
           </div>
         </CardContent>
 
         {/* Pagination Footer */}
-        {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-6 py-4 border-t border-border">
+        {totalPages > 1 &&
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-6 py-4 border-t border-border">
             <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
               Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
             </div>
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || loading}
-                className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
-              >
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1 || loading}
+              className={theme === 'dark' ? 'border-border' : 'border-gray-300'}>
+              
                 Previous
               </Button>
 
               <div className="flex gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum = currentPage <= 3 ? i + 1 : (currentPage >= totalPages - 2 ? totalPages - 4 + i : currentPage - 2 + i);
-                  if (pageNum < 1) pageNum = i + 1;
-                  if (pageNum > totalPages) return null;
+                let pageNum = currentPage <= 3 ? i + 1 : currentPage >= totalPages - 2 ? totalPages - 4 + i : currentPage - 2 + i;
+                if (pageNum < 1) pageNum = i + 1;
+                if (pageNum > totalPages) return null;
 
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(pageNum)}
-                      disabled={loading}
-                      className={`w-8 h-8 p-0 ${currentPage === pageNum ? 'bg-primary text-white' : ''}`}
-                    >
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    disabled={loading}
+                    className={`w-8 h-8 p-0 ${currentPage === pageNum ? 'bg-primary text-white' : ''}`}>
+                    
                       {pageNum}
-                    </Button>
-                  );
-                })}
+                    </Button>);
+
+              })}
               </div>
 
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages || loading}
-                className={theme === 'dark' ? 'border-border' : 'border-gray-300'}
-              >
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages || loading}
+              className={theme === 'dark' ? 'border-border' : 'border-gray-300'}>
+              
                 Next
               </Button>
             </div>
           </div>
-        )}
+        }
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={(open) => {
@@ -518,20 +518,20 @@ const QPApprovals = () => {
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type}</DialogTitle>
           </DialogHeader>
           <div className="overflow-auto px-4 py-2 space-y-4 flex-1">
-            {detailLoading ? (
-              <div className="text-center py-4">Loading QP details...</div>
-            ) : qpDetail ? (
-              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+            {detailLoading ?
+            <div className="text-center py-4">Loading QP details...</div> :
+            qpDetail ?
+            <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
                 <h4 className="font-semibold mb-4">Question Paper Preview</h4>
                 <div className="space-y-4">
-                  {qpDetail.questions.map((q, qIndex) => (
-                    <div key={qIndex} className="space-y-3">
+                  {qpDetail.questions.map((q, qIndex) =>
+                <div key={qIndex} className="space-y-3">
                       {q.subparts.map((s, sIndex) => {
-                        const key = `${qIndex}-${sIndex}`;
-                        const isExpanded = !!expanded[key];
-                        const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : (s.content || '');
-                        return (
-                          <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
+                    const key = `${qIndex}-${sIndex}`;
+                    const isExpanded = !!expanded[key];
+                    const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
+                    return (
+                      <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
                                 {q.question_number}{s.subpart_label}
@@ -548,31 +548,31 @@ const QPApprovals = () => {
                                 <div className="flex flex-wrap items-center gap-2 mt-2">
                                   <Badge className="text-black bg-transparent">CO: {q.co}</Badge>
                                   <Badge className="text-black bg-transparent">{q.blooms_level}</Badge>
-                                  {((s.content || '').length > 160) && (
-                                    <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
+                                  {(s.content || '').length > 160 &&
+                              <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
                                       {isExpanded ? 'Show less' : 'Show more'}
                                     </button>
-                                  )}
+                              }
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          </div>);
+
+                  })}
                     </div>
-                  ))}
+                )}
                   <div className="font-semibold pt-2 border-t">
                     Total Marks: {qpDetail.questions.reduce((total, q) =>
-                      total + q.subparts.reduce((subTotal, s) => subTotal + s.max_marks, 0), 0
-                    )}
+                  total + q.subparts.reduce((subTotal, s) => subTotal + s.max_marks, 0), 0
+                  )}
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
+              </div> :
+
+            <div className="text-center py-4 text-muted-foreground">
                 Failed to load QP details
               </div>
-            )}
+            }
 
             <div>
               <label className="block text-sm font-medium mb-2">Comment (optional)</label>
@@ -580,8 +580,8 @@ const QPApprovals = () => {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Add a comment for the faculty..."
-                rows={3}
-              />
+                rows={3} />
+              
             </div>
           </div>
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
@@ -589,16 +589,16 @@ const QPApprovals = () => {
               <Button
                 onClick={() => selectedQP && handleApprove(selectedQP.id)}
                 disabled={actionLoading}
-                className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}
-              >
+                className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}>
+                
                 <CheckCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                 <span className="whitespace-normal">Approve</span>
               </Button>
               <Button
                 onClick={() => selectedQP && handleReject(selectedQP.id)}
                 disabled={actionLoading}
-                className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
-              >
+                className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
+                
                 <XCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
                 <span className="whitespace-normal">Reject</span>
               </Button>
@@ -614,8 +614,8 @@ const QPApprovals = () => {
       </Dialog>
 
       {/* ConfirmDialog removed — using SweetAlert (MySwal) like Admin page */}
-    </div>
-  );
+    </div>);
+
 };
 
 export default QPApprovals;

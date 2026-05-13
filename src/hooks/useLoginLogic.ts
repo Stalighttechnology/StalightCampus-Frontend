@@ -31,7 +31,7 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
     try {
       const response = await loginUser({
         username: trimmedUsername,
-        password: trimmedPassword,
+        password: trimmedPassword
       });
 
       // Handle forced password reset on first login
@@ -94,7 +94,7 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
       }
     } catch (err) {
       setError("Network error. Please try again.");
-      console.error("Login Error:", err);
+
     } finally {
       setLoading(false);
     }
@@ -115,6 +115,6 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
     showPassword,
     setShowPassword,
     handleLogin,
-    handleForgotPassword,
+    handleForgotPassword
   };
 };

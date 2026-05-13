@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+  SelectItem } from
+"@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { UploadCloud, X } from "lucide-react";
 import Papa from 'papaparse';
@@ -34,8 +34,8 @@ import {
   UploadIAMarksRequest,
   updateQuestionPaper,
   getQuestionPapers,
-  getQuestionPaperDetail
-} from "../../utils/faculty_api";
+  getQuestionPaperDetail } from
+"../../utils/faculty_api";
 import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
 import { normalizePaginatedResponse } from "../../utils/normalizePagination";
@@ -52,10 +52,10 @@ const SAMPLE_ROW = ['1AM22CI064', 'Amit Kumar', '85/100'];
 
 // Add new constants for Excel template
 const EXCEL_TEMPLATE_HEADERS = [
-  'SL No', 'USN', '1a', '1b', '1c', 'T1', '2a', '2b', '2c', 'T2', 'P-A TOT',
-  '3a', '3b', '3c', 'T3', '4a', '4b', '4c', 'T4', 'P-B TOT', '5a', '5b', 'T5',
-  '6a', '6b', 'T6', 'P-C TOT', 'TOT', 'IA1 (25)'
-];
+'SL No', 'USN', '1a', '1b', '1c', 'T1', '2a', '2b', '2c', 'T2', 'P-A TOT',
+'3a', '3b', '3c', 'T3', '4a', '4b', '4c', 'T4', 'P-B TOT', '5a', '5b', 'T5',
+'6a', '6b', 'T6', 'P-C TOT', 'TOT', 'IA1 (25)'];
+
 
 // Type for question format
 interface Question {
@@ -81,8 +81,8 @@ const validateMarks = (marks: string, total: string): boolean => {
     !isNaN(marksNum) &&
     !isNaN(totalNum) &&
     marksNum >= 0 &&
-    marksNum <= totalNum
-  );
+    marksNum <= totalNum);
+
 };
 
 // New validation function for max marks
@@ -91,8 +91,8 @@ const validateMaxMarks = (maxMarks: string): boolean => {
   return (
     !isNaN(maxMarksNum) &&
     maxMarksNum > 0 &&
-    maxMarksNum <= 10
-  );
+    maxMarksNum <= 10);
+
 };
 
 // (Removed duplicate helper) calculateTotal logic lives inside the component
@@ -110,11 +110,11 @@ const UploadMarks = () => {
   const { data: assignments = [], isLoading: assignmentsLoading, error: assignmentsError } = useFacultyAssignmentsQuery();
   const { toast } = useToast();
   const [dropdownData, setDropdownData] = useState({
-    branch: [] as { id: number; name: string }[],
-    semester: [] as { id: number; number: number }[],
-    section: [] as { id: number; name: string }[],
-    subject: [] as { id: number; name: string }[],
-    testType: ["IA1", "IA2", "IA3", "SEE"],
+    branch: [] as {id: number;name: string;}[],
+    semester: [] as {id: number;number: number;}[],
+    section: [] as {id: number;name: string;}[],
+    subject: [] as {id: number;name: string;}[],
+    testType: ["IA1", "IA2", "IA3", "SEE"]
   });
   const [selected, setSelected] = useState({
     branch: "",
@@ -126,9 +126,9 @@ const UploadMarks = () => {
     section_id: undefined as number | undefined,
     semester: "",
     semester_id: undefined as number | undefined,
-    testType: "",
+    testType: ""
   });
-  const [students, setStudents] = useState<(ClassStudent & { marks: string; total: string; isEditing: boolean; totalEdited?: boolean })[]>([]);
+  const [students, setStudents] = useState<(ClassStudent & {marks: string;total: string;isEditing: boolean;totalEdited?: boolean;})[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<null | {
@@ -145,14 +145,14 @@ const UploadMarks = () => {
   const calculateTotal = (marks: Record<string, string>) => {
     // Group marks by main question number and SUM subpart marks per main question
     const mainMarks: Record<string, number> = {};
-    Object.keys(marks).forEach(key => {
+    Object.keys(marks).forEach((key) => {
       const mainQ = key.charAt(0);
       const mark = parseFloat(marks[key]) || 0;
       mainMarks[mainQ] = (mainMarks[mainQ] || 0) + mark;
     });
 
     // Attended main questions
-    const attended = Object.keys(mainMarks).filter(q => mainMarks[q] > 0);
+    const attended = Object.keys(mainMarks).filter((q) => mainMarks[q] > 0);
 
     // If no questions attempted, return 0
     if (attended.length === 0) return '0';
@@ -168,12 +168,12 @@ const UploadMarks = () => {
     if (attended.length === 2) {
       const a = attended[0];
       const b = attended[1];
-      const pairAllowed = (
-        (a === '1' && (b === '3' || b === '4')) ||
-        (a === '2' && (b === '3' || b === '4')) ||
-        (b === '1' && (a === '3' || a === '4')) ||
-        (b === '2' && (a === '3' || a === '4'))
-      );
+      const pairAllowed =
+      a === '1' && (b === '3' || b === '4') ||
+      a === '2' && (b === '3' || b === '4') ||
+      b === '1' && (a === '3' || a === '4') ||
+      b === '2' && (a === '3' || a === '4');
+
       if (pairAllowed) {
         return (mainMarks[a] + mainMarks[b]).toString();
       }
@@ -215,16 +215,16 @@ const UploadMarks = () => {
       if (response.success && response.data) {
         const initialMarks: Record<string, Record<string, string>> = {};
         const existingTotals: Record<number, number | null> = {};
-        response.data.forEach(s => {
-          existingTotals[s.id] = s.existing_mark ? (s.existing_mark.total_obtained || null) : null;
+        response.data.forEach((s) => {
+          existingTotals[s.id] = s.existing_mark ? s.existing_mark.total_obtained || null : null;
           if (s.existing_mark && s.existing_mark.marks_detail) {
             initialMarks[s.id.toString()] = {};
-            Object.keys(s.existing_mark.marks_detail).forEach(key => {
+            Object.keys(s.existing_mark.marks_detail).forEach((key) => {
               initialMarks[s.id.toString()][key] = s.existing_mark!.marks_detail[key].toString();
             });
           }
         });
-        const newStudents = response.data.map(s => {
+        const newStudents = response.data.map((s) => {
           const marksForStudent = initialMarks[s.id?.toString()] || {};
           const autoTotal = calculateTotal(marksForStudent) || '';
           const existingTotal = existingTotals[s.id];
@@ -234,10 +234,10 @@ const UploadMarks = () => {
             id: s.id,
             name: s.name,
             usn: s.usn,
-            marks: (s.existing_mark && s.existing_mark.total_obtained) ? String(s.existing_mark.total_obtained) : '',
+            marks: s.existing_mark && s.existing_mark.total_obtained ? String(s.existing_mark.total_obtained) : '',
             total: totalValue,
             isEditing: false,
-            totalEdited: isEdited,
+            totalEdited: isEdited
           };
         });
         setStudents(newStudents);
@@ -245,7 +245,7 @@ const UploadMarks = () => {
         setOriginalStudentMarks(JSON.parse(JSON.stringify(initialMarks)));
         setActionModes(() => {
           const m: Record<string, 'edit' | 'save' | 'view'> = {};
-          newStudents.forEach(st => { m[st.id] = 'view'; });
+          newStudents.forEach((st) => {m[st.id] = 'view';});
           return m;
         });
         // Normalize any pagination shape (AdminPagination, DRF, legacy)
@@ -257,7 +257,7 @@ const UploadMarks = () => {
             total: normalized.meta.totalItems || 0,
             total_pages: normalized.meta.totalPages || Math.ceil((normalized.meta.totalItems || 0) / studentsPerPage),
             has_next: !!normalized.meta.next,
-            has_previous: !!normalized.meta.previous,
+            has_previous: !!normalized.meta.previous
           } as any);
           setCurrentPage(normalized.meta.currentPage || page || 1);
         } else {
@@ -292,19 +292,19 @@ const UploadMarks = () => {
 
   // New state for question paper format
   const [questions, setQuestions] = useState<Question[]>([
-    { id: "1a", number: "1a", content: "Question 1a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-    { id: "1b", number: "1b", content: "Question 1b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-    { id: "1c", number: "1c", content: "Question 1c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
-    { id: "2a", number: "2a", content: "Question 2a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-    { id: "2b", number: "2b", content: "Question 2b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-    { id: "2c", number: "2c", content: "Question 2c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
-    { id: "3a", number: "3a", content: "Question 3a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-    { id: "3b", number: "3b", content: "Question 3b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-    { id: "3c", number: "3c", content: "Question 3c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
-    { id: "4a", number: "4a", content: "Question 4a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-    { id: "4b", number: "4b", content: "Question 4b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
-    { id: "4c", number: "4c", content: "Question 4c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
-  ]);
+  { id: "1a", number: "1a", content: "Question 1a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
+  { id: "1b", number: "1b", content: "Question 1b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
+  { id: "1c", number: "1c", content: "Question 1c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
+  { id: "2a", number: "2a", content: "Question 2a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
+  { id: "2b", number: "2b", content: "Question 2b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
+  { id: "2c", number: "2c", content: "Question 2c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
+  { id: "3a", number: "3a", content: "Question 3a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
+  { id: "3b", number: "3b", content: "Question 3b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
+  { id: "3c", number: "3c", content: "Question 3c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" },
+  { id: "4a", number: "4a", content: "Question 4a", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
+  { id: "4b", number: "4b", content: "Question 4b", maxMarks: "7", co: "CO2", bloomsLevel: "Apply" },
+  { id: "4c", number: "4c", content: "Question 4c", maxMarks: "6", co: "CO1", bloomsLevel: "Remember" }]
+  );
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [totalMarks, setTotalMarks] = useState(0);
 
@@ -324,13 +324,13 @@ const UploadMarks = () => {
   // Check if all dropdowns are selected
   const areAllDropdownsSelected = () => {
     if (!selected.subject_id || !selected.testType) return false;
-    
+
     const subjIdNum = Number(selected.subject_id);
-    const filteredBySubject = assignments.filter(a => a.subject_id === subjIdNum);
-    
-    const hasBranches = filteredBySubject.some(a => a.branch_id);
-    const hasSemesters = filteredBySubject.some(a => a.semester_id);
-    const hasSections = filteredBySubject.some(a => a.section_id);
+    const filteredBySubject = assignments.filter((a) => a.subject_id === subjIdNum);
+
+    const hasBranches = filteredBySubject.some((a) => a.branch_id);
+    const hasSemesters = filteredBySubject.some((a) => a.semester_id);
+    const hasSections = filteredBySubject.some((a) => a.section_id);
 
     if (hasBranches && !selected.branch_id) return false;
     if (hasSemesters && !selected.semester_id) return false;
@@ -342,17 +342,17 @@ const UploadMarks = () => {
   // Update dropdown data when assignments change
   useEffect(() => {
     const branches = Array.from(
-      new Map(assignments.map(a => [a.branch_id, { id: a.branch_id, name: a.branch }])).values()
+      new Map(assignments.map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])).values()
     );
-    setDropdownData(prev => ({ ...prev, branch: branches }));
+    setDropdownData((prev) => ({ ...prev, branch: branches }));
   }, [assignments]);
 
   // Populate subject dropdown from assignments so subject list shows immediately
   useEffect(() => {
     const subjects = Array.from(
-      new Map(assignments.map(a => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values()
+      new Map(assignments.map((a) => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values()
     );
-    setDropdownData(prev => ({ ...prev, subject: subjects }));
+    setDropdownData((prev) => ({ ...prev, subject: subjects }));
   }, [assignments]);
 
   // Calculate total marks when questions change
@@ -387,7 +387,7 @@ const UploadMarks = () => {
 
   // Load full QP detail only when user opens the Question Paper tab
   useEffect(() => {
-    const shouldLoad = (tabValue === 'questionPaper') && existingQpSummary && (!questions || questions.length === 0);
+    const shouldLoad = tabValue === 'questionPaper' && existingQpSummary && (!questions || questions.length === 0);
     if (!shouldLoad) return;
 
     let mounted = true;
@@ -424,10 +424,10 @@ const UploadMarks = () => {
           if (loadedQuestions.length > 0) setQuestions(loadedQuestions);
         }
       } catch (err) {
-        console.error('Failed to fetch QP detail on tab open:', err);
+
       }
     })();
-    return () => { mounted = false; };
+    return () => {mounted = false;};
   }, [tabValue, existingQpSummary]);
 
 
@@ -436,14 +436,14 @@ const UploadMarks = () => {
     if (/^\d*$/.test(value)) {
       const actualIndex = (currentPage - 1) * studentsPerPage + index;
       setStudents((prev) =>
-        prev.map((student, i) =>
-          i === actualIndex
-            ? {
-              ...student,
-              [field]: field === "marks" ? normalizeMarks(value) : value,
-            }
-            : student
-        )
+      prev.map((student, i) =>
+      i === actualIndex ?
+      {
+        ...student,
+        [field]: field === "marks" ? normalizeMarks(value) : value
+      } :
+      student
+      )
       );
     }
   };
@@ -451,18 +451,18 @@ const UploadMarks = () => {
   const toggleEdit = (index: number) => {
     const actualIndex = (currentPage - 1) * studentsPerPage + index;
     setStudents((prev) =>
-      prev.map((student, i) =>
-        i === actualIndex ? { ...student, isEditing: !student.isEditing } : student
-      )
+    prev.map((student, i) =>
+    i === actualIndex ? { ...student, isEditing: !student.isEditing } : student
+    )
     );
   };
 
   const saveRow = (index: number) => {
     const actualIndex = (currentPage - 1) * studentsPerPage + index;
     setStudents((prev) =>
-      prev.map((student, i) =>
-        i === actualIndex ? { ...student, isEditing: false } : student
-      )
+    prev.map((student, i) =>
+    i === actualIndex ? { ...student, isEditing: false } : student
+    )
     );
   };
 
@@ -503,9 +503,9 @@ const UploadMarks = () => {
     }
 
     setQuestions([
-      ...questions,
-      { id: Date.now().toString(), number: newNumber, content: newContent, maxMarks: newMaxMarks, co: newCo, bloomsLevel: newBlooms }
-    ]);
+    ...questions,
+    { id: Date.now().toString(), number: newNumber, content: newContent, maxMarks: newMaxMarks, co: newCo, bloomsLevel: newBlooms }]
+    );
   };
 
   const removeQuestion = (id: string) => {
@@ -517,7 +517,7 @@ const UploadMarks = () => {
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, remove it!",
-      cancelButtonText: "Cancel",
+      cancelButtonText: "Cancel"
     }).then((result) => {
       if (result.isConfirmed) {
         setQuestions(questions.filter((q) => q.id !== id));
@@ -542,8 +542,8 @@ const UploadMarks = () => {
       }
     }
 
-    setQuestions(questions.map(q =>
-      q.id === id ? { ...q, [field]: value } : q
+    setQuestions(questions.map((q) =>
+    q.id === id ? { ...q, [field]: value } : q
     ));
   };
 
@@ -560,20 +560,20 @@ const UploadMarks = () => {
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
         detail: isQuestionPaperTab,
-        approved_only: false,
+        approved_only: false
       });
       if (qpResponse.success && qpResponse.data) {
         const existingQp = qpResponse.data.find((q: any) => {
           const branchId = typeof q.branch === 'object' ? q.branch?.id : q.branch;
-          return branchId === selected.branch_id && 
-                 q.subject === selected.subject_id && 
-                 q.test_type === selected.testType;
+          return branchId === selected.branch_id &&
+          q.subject === selected.subject_id &&
+          q.test_type === selected.testType;
         });
 
         if (existingQp) {
           setQpId(existingQp.id);
           setExistingQpSummary(existingQp);
-          
+
           if (isQuestionPaperTab && existingQp.questions) {
             const loadedQuestions: Question[] = [];
             (existingQp.questions || []).forEach((q: any) => {
@@ -611,17 +611,17 @@ const UploadMarks = () => {
         }
       }
     } catch (error) {
-      console.error("Error loading existing QP:", error);
+
     }
   };
 
   const saveQuestionFormat = async () => {
     // Validate that all questions have max marks
-    const isValid = questions.every(q =>
-      q.number.trim() !== "" &&
-      q.maxMarks.trim() !== "" &&
-      parseInt(q.maxMarks) > 0 &&
-      parseInt(q.maxMarks) <= 10
+    const isValid = questions.every((q) =>
+    q.number.trim() !== "" &&
+    q.maxMarks.trim() !== "" &&
+    parseInt(q.maxMarks) > 0 &&
+    parseInt(q.maxMarks) <= 10
     );
 
     if (!isValid) {
@@ -640,7 +640,7 @@ const UploadMarks = () => {
       subject_id: selected.subject_id?.toString(),
       test_type: selected.testType,
       detail: false,
-      approved_only: true,
+      approved_only: true
     });
     let existingQp = null;
     if (qpResponse.success && qpResponse.data) {
@@ -651,8 +651,8 @@ const UploadMarks = () => {
     }
 
     // Prepare QP data - group by main question
-    const groupedQuestions: Record<string, { co: string; blooms_level: string; subparts: Array<{ subpart_label: string; content: string; max_marks: number }> }> = {};
-    questions.forEach(q => {
+    const groupedQuestions: Record<string, {co: string;blooms_level: string;subparts: Array<{subpart_label: string;content: string;max_marks: number;}>;}> = {};
+    questions.forEach((q) => {
       const mainQ = q.number.charAt(0);
       if (!groupedQuestions[mainQ]) {
         groupedQuestions[mainQ] = { co: q.co, blooms_level: q.bloomsLevel, subparts: [] };
@@ -665,7 +665,7 @@ const UploadMarks = () => {
     });
 
     // Derive branch/semester/section when missing for open_elective from assignments
-    const assignForSubject = assignments.find(a => a.subject_id === selected.subject_id);
+    const assignForSubject = assignments.find((a) => a.subject_id === selected.subject_id);
     const derivedBranchId = selected.branch_id || (assignForSubject ? assignForSubject.branch_id : undefined);
     const derivedSemesterId = selected.semester_id || (assignForSubject ? assignForSubject.semester_id : undefined);
     const derivedSectionId = selected.section_id || (assignForSubject ? assignForSubject.section_id : undefined);
@@ -674,7 +674,7 @@ const UploadMarks = () => {
     const qpData: any = {
       subject: selected.subject_id!,
       test_type: selected.testType,
-      questions_data: Object.keys(groupedQuestions).map(mainQ => ({
+      questions_data: Object.keys(groupedQuestions).map((mainQ) => ({
         question_number: mainQ,
         co: groupedQuestions[mainQ].co,
         blooms_level: groupedQuestions[mainQ].blooms_level,
@@ -713,7 +713,7 @@ const UploadMarks = () => {
           title: existingQp ? "Question Format Updated!" : "Question Format Saved!",
           text: existingQp ? "The question paper format has been successfully updated." : "The question paper format has been successfully saved.",
           icon: "success",
-          confirmButtonText: "OK",
+          confirmButtonText: "OK"
         }).then(() => {
           setTabValue("questionPaper");
         });
@@ -737,7 +737,7 @@ const UploadMarks = () => {
       MySwal.fire({
         title: "Question Paper not found or not approved",
         icon: "error",
-        confirmButtonText: "OK",
+        confirmButtonText: "OK"
       });
       setSavingMarks(false);
       return;
@@ -746,13 +746,13 @@ const UploadMarks = () => {
     // Prepare marks data
     const marksData: UploadIAMarksRequest = {
       question_paper_id: existingQpSummary.id,
-      marks_data: students.map(s => {
+      marks_data: students.map((s) => {
         const marksDetail = Object.fromEntries(
           Object.entries(studentMarks[s.id.toString()] || {}).map(([key, value]) => [key, parseFloat(value) || 0])
         );
         // If instructor manually edited total for this student, prefer that value
         const autoTotal = parseFloat(calculateTotal(studentMarks[s.id.toString()] || {})) || 0;
-        const manualTotal = s.totalEdited ? (parseFloat(s.total as any) || autoTotal) : null;
+        const manualTotal = s.totalEdited ? parseFloat(s.total as any) || autoTotal : null;
         return {
           student_id: s.id,
           marks_detail: marksDetail,
@@ -764,26 +764,26 @@ const UploadMarks = () => {
     try {
       // Debug: log students and studentMarks to verify edited totals and per-question marks
       // eslint-disable-next-line no-console
-      console.log('Upload IAMarks - students state:', JSON.stringify(students, null, 2));
+
       // eslint-disable-next-line no-console
-      console.log('Upload IAMarks - studentMarks state:', JSON.stringify(studentMarks, null, 2));
+
       // Debug: log payload to verify manual vs auto totals
       // Remove or disable this in production
       // eslint-disable-next-line no-console
-      console.log('Upload IAMarks payload:', JSON.stringify(marksData, null, 2));
+
       const res = await uploadIAMarks(marksData);
       if (res.success) {
         MySwal.fire({
           title: "Marks uploaded!",
           icon: "success",
-          confirmButtonText: "OK",
+          confirmButtonText: "OK"
         });
         // Update local state to reflect saved status without a fresh GET call
-        setStudents(prev => prev.map(s => ({ ...s, totalEdited: false })));
+        setStudents((prev) => prev.map((s) => ({ ...s, totalEdited: false })));
         setOriginalStudentMarks(JSON.parse(JSON.stringify(studentMarks)));
-        setActionModes(prev => {
+        setActionModes((prev) => {
           const updated = { ...prev };
-          Object.keys(updated).forEach(id => { updated[id] = 'view'; });
+          Object.keys(updated).forEach((id) => {updated[id] = 'view';});
           return updated;
         });
       } else {
@@ -791,14 +791,14 @@ const UploadMarks = () => {
           title: "Upload failed",
           text: res.message || "Unknown error",
           icon: "error",
-          confirmButtonText: "OK",
+          confirmButtonText: "OK"
         });
       }
     } catch (err) {
       MySwal.fire({
         title: "Network error",
         icon: "error",
-        confirmButtonText: "OK",
+        confirmButtonText: "OK"
       });
     } finally {
       setSavingMarks(false);
@@ -839,7 +839,7 @@ const UploadMarks = () => {
         data = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false });
       }
       const header = data[0]?.map((cell: string | number) => String(cell).trim().toLowerCase());
-      const expectedHeader = REQUIRED_HEADERS.map(h => h.toLowerCase());
+      const expectedHeader = REQUIRED_HEADERS.map((h) => h.toLowerCase());
       if (JSON.stringify(header) !== JSON.stringify(expectedHeader)) {
         setErrorMessage('Invalid header. Required: usn, name, marks');
         return;
@@ -875,8 +875,8 @@ const UploadMarks = () => {
           setErrorMessage("Failed to fetch student list.");
           return;
         }
-        const studentMap = new Map(studentsList.map(s => [s.usn, s]));
-        const studentData: (ClassStudent & { marks: string; total: string; isEditing: boolean })[] = [];
+        const studentMap = new Map(studentsList.map((s) => [s.usn, s]));
+        const studentData: (ClassStudent & {marks: string;total: string;isEditing: boolean;})[] = [];
         for (let i = 1; i < data.length; i++) {
           const row = data[i];
           const usn = row[0]?.toString().trim();
@@ -901,13 +901,13 @@ const UploadMarks = () => {
             marks,
             total,
             isEditing: false,
-            totalEdited: false,
+            totalEdited: false
           });
         }
         setStudents(studentData);
         setErrorMessage("");
       } catch (error) {
-        console.error("Error fetching students:", error);
+
         setErrorMessage("Failed to fetch students.");
       }
     };
@@ -1009,7 +1009,7 @@ const UploadMarks = () => {
         usnToIdMap.set(student.usn.toUpperCase(), student.id);
       });
 
-      console.log('USN to ID mapping:', usnToIdMap);
+
 
       // Process each row
       for (const row of dataRows) {
@@ -1018,10 +1018,10 @@ const UploadMarks = () => {
         const usn = String(row[1]).trim().toUpperCase(); // USN is in column B (index 1)
         const studentId = usnToIdMap.get(usn);
 
-        console.log(`Processing USN: ${usn}, Found student ID: ${studentId}`);
+
 
         if (!studentId) {
-          console.warn(`Student with USN ${usn} not found in the selected class.`);
+
           continue;
         }
 
@@ -1046,7 +1046,7 @@ const UploadMarks = () => {
           if (colIdx < row.length) {
             const value = row[colIdx];
             const marks = value !== null && value !== undefined ? String(value).trim() : '';
-            console.log(`Extracted marks for student ${studentId}, question ${questionNumber}: ${marks}`);
+
             if (marks !== '' && !isNaN(Number(marks))) {
               updatedStudentMarks[studentId.toString()][questionNumber] = marks;
             }
@@ -1055,22 +1055,22 @@ const UploadMarks = () => {
       }
 
       // Update student marks state
-      console.log('Updating student marks:', updatedStudentMarks);
+
       setStudentMarks(updatedStudentMarks);
       setBulkUploadCompleted(true);
 
       // Switch to manual tab to show the results
-      console.log('Switching to manual tab with marks:', updatedStudentMarks);
+
       setTabValue("manual");
 
       MySwal.fire({
         title: "Bulk Upload Successful!",
         text: "Marks have been imported successfully. Please review and save.",
         icon: "success",
-        confirmButtonText: "OK",
+        confirmButtonText: "OK"
       });
     } catch (error) {
-      console.error("Error processing bulk upload:", error);
+
       setErrorMessage("Failed to process the Excel file. Please check the format and try again.");
     }
   };
@@ -1082,11 +1082,11 @@ const UploadMarks = () => {
 
   const handleDownloadTemplate = () => {
     const csvContent = [
-      ['usn', 'name', 'marks'],
-      ['1AM22CI064', 'Pannaga J A', '85/100'],
-    ]
-      .map((row) => row.join(','))
-      .join('\n');
+    ['usn', 'name', 'marks'],
+    ['1AM22CI064', 'Pannaga J A', '85/100']].
+
+    map((row) => row.join(',')).
+    join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -1126,36 +1126,36 @@ const UploadMarks = () => {
 
     // Create worksheet data
     const ws_data = [
-      // Header rows
-      ["Department of Computer Science & Engineering (AIML)"],
-      ["FIRST SEMESTER"],
-      [""],
-      ["FIRST INTERNAL ASSESSMENT – NOVEMBER 2025"],
-      [""],
-      ["Subject Code: 1BEIT105", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Subject Name: PROGRAMMING IN C"],
-      [""],
-      // Column headers
-      ["SL No", "USN", "1a", "1b", "1c", "T1", "2a", "2b", "2c", "T2", "P-A TOT", "3a", "3b", "3c", "T3", "4a", "4b", "4c", "T4", "P-B TOT", "5a", "5b", "T5", "6a", "6b", "T6", "P-C TOT", "TOT", "IA1 (25)"],
-      // Sample data row
-      ["1", "COM240109", "7", "6", "6", "20", "3", "2", "5", "16", "20", "3", "0", "6", "10", "5", "6", "6", "18", "18", "7", "2", "9", "3", "2", "5", "9", "23.5", ""],
-      ["2", "COM240117", "7", "7", "6", "", "7", "7", "6", "", "", "7", "7", "6", "", "7", "7", "6", "", "", "", "", "", "", "", "", "", "", ""],
-      ["3", "1AM25C003", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["4", "1AM25C004", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["5", "1AM25C005", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["6", "1AM25C006", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["7", "1AM25C007", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["8", "1AM25C008", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["9", "1AM25C009", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["10", "1AM25C010", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["11", "1AM25C011", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["12", "1AM25C012", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["13", "1AM25C013", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["14", "1AM25C014", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["15", "1AM25C015", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["16", "1AM25C016", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["17", "1AM25C017", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-      ["18", "1AM25C018", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-    ];
+    // Header rows
+    ["Department of Computer Science & Engineering (AIML)"],
+    ["FIRST SEMESTER"],
+    [""],
+    ["FIRST INTERNAL ASSESSMENT – NOVEMBER 2025"],
+    [""],
+    ["Subject Code: 1BEIT105", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Subject Name: PROGRAMMING IN C"],
+    [""],
+    // Column headers
+    ["SL No", "USN", "1a", "1b", "1c", "T1", "2a", "2b", "2c", "T2", "P-A TOT", "3a", "3b", "3c", "T3", "4a", "4b", "4c", "T4", "P-B TOT", "5a", "5b", "T5", "6a", "6b", "T6", "P-C TOT", "TOT", "IA1 (25)"],
+    // Sample data row
+    ["1", "COM240109", "7", "6", "6", "20", "3", "2", "5", "16", "20", "3", "0", "6", "10", "5", "6", "6", "18", "18", "7", "2", "9", "3", "2", "5", "9", "23.5", ""],
+    ["2", "COM240117", "7", "7", "6", "", "7", "7", "6", "", "", "7", "7", "6", "", "7", "7", "6", "", "", "", "", "", "", "", "", "", "", ""],
+    ["3", "1AM25C003", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["4", "1AM25C004", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["5", "1AM25C005", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["6", "1AM25C006", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["7", "1AM25C007", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["8", "1AM25C008", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["9", "1AM25C009", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["10", "1AM25C010", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["11", "1AM25C011", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["12", "1AM25C012", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["13", "1AM25C013", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["14", "1AM25C014", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["15", "1AM25C015", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["16", "1AM25C016", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["17", "1AM25C017", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ["18", "1AM25C018", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]];
+
 
     // Create worksheet
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
@@ -1174,35 +1174,35 @@ const UploadMarks = () => {
 
     // Set column widths
     const columnWidths = [
-      { wch: 8 },   // SL No
-      { wch: 12 },  // USN
-      { wch: 5 },   // 1a
-      { wch: 5 },   // 1b
-      { wch: 5 },   // 1c
-      { wch: 5 },   // T1
-      { wch: 5 },   // 2a
-      { wch: 5 },   // 2b
-      { wch: 5 },   // 2c
-      { wch: 5 },   // T2
-      { wch: 8 },   // P-A TOT
-      { wch: 5 },   // 3a
-      { wch: 5 },   // 3b
-      { wch: 5 },   // 3c
-      { wch: 5 },   // T3
-      { wch: 5 },   // 4a
-      { wch: 5 },   // 4b
-      { wch: 5 },   // 4c
-      { wch: 5 },   // T4
-      { wch: 8 },   // P-B TOT
-      { wch: 5 },   // 5a
-      { wch: 5 },   // 5b
-      { wch: 5 },   // T5
-      { wch: 5 },   // 6a
-      { wch: 5 },   // 6b
-      { wch: 5 },   // T6
-      { wch: 8 },   // P-C TOT
-      { wch: 8 },   // TOT
-      { wch: 10 }   // IA1 (25)
+    { wch: 8 }, // SL No
+    { wch: 12 }, // USN
+    { wch: 5 }, // 1a
+    { wch: 5 }, // 1b
+    { wch: 5 }, // 1c
+    { wch: 5 }, // T1
+    { wch: 5 }, // 2a
+    { wch: 5 }, // 2b
+    { wch: 5 }, // 2c
+    { wch: 5 }, // T2
+    { wch: 8 }, // P-A TOT
+    { wch: 5 }, // 3a
+    { wch: 5 }, // 3b
+    { wch: 5 }, // 3c
+    { wch: 5 }, // T3
+    { wch: 5 }, // 4a
+    { wch: 5 }, // 4b
+    { wch: 5 }, // 4c
+    { wch: 5 }, // T4
+    { wch: 8 }, // P-B TOT
+    { wch: 5 }, // 5a
+    { wch: 5 }, // 5b
+    { wch: 5 }, // T5
+    { wch: 5 }, // 6a
+    { wch: 5 }, // 6b
+    { wch: 5 }, // T6
+    { wch: 8 }, // P-C TOT
+    { wch: 8 }, // TOT
+    { wch: 10 } // IA1 (25)
     ];
 
     ws['!cols'] = columnWidths;
@@ -1215,22 +1215,22 @@ const UploadMarks = () => {
   };
 
   const handleSelectChange = async (field: string, value: string | number) => {
-    console.log('UploadMarks: handleSelectChange called', { field, value });
+
     setErrorMessage("");
     const updated = { ...selected };
     if (field.endsWith('_id')) {
       updated[field] = value as number;
       if (field === 'branch_id') {
-        const branchObj = dropdownData.branch.find(b => b.id === value);
+        const branchObj = dropdownData.branch.find((b) => b.id === value);
         updated.branch = branchObj ? branchObj.name : "";
       } else if (field === 'semester_id') {
-        const semObj = dropdownData.semester.find(s => s.id === value);
+        const semObj = dropdownData.semester.find((s) => s.id === value);
         updated.semester = semObj ? semObj.number.toString() : "";
       } else if (field === 'section_id') {
-        const secObj = dropdownData.section.find(s => s.id === value);
+        const secObj = dropdownData.section.find((s) => s.id === value);
         updated.section = secObj ? secObj.name : "";
       } else if (field === 'subject_id') {
-        const subjObj = dropdownData.subject.find(s => s.id === value);
+        const subjObj = dropdownData.subject.find((s) => s.id === value);
         updated.subject = subjObj ? subjObj.name : "";
       }
     } else {
@@ -1239,12 +1239,12 @@ const UploadMarks = () => {
 
     if (field === 'subject_id' && value) {
       const subjIdNum = Number(value);
-      const filteredBySubject = assignments.filter(a => a.subject_id === subjIdNum);
-      const branches = Array.from(new Map(filteredBySubject.filter(a => a.branch_id).map(a => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
-      const semesters = Array.from(new Map(filteredBySubject.filter(a => a.semester_id).map(a => [a.semester_id, { id: a.semester_id, number: a.semester }])).values());
-      const sections = Array.from(new Map(filteredBySubject.filter(a => a.section_id).map(a => [a.section_id, { id: a.section_id, name: a.section }])).values());
-      
-      setDropdownData(prev => ({ ...prev, branch: branches, semester: semesters, section: sections }));
+      const filteredBySubject = assignments.filter((a) => a.subject_id === subjIdNum);
+      const branches = Array.from(new Map(filteredBySubject.filter((a) => a.branch_id).map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])).values());
+      const semesters = Array.from(new Map(filteredBySubject.filter((a) => a.semester_id).map((a) => [a.semester_id, { id: a.semester_id, number: a.semester }])).values());
+      const sections = Array.from(new Map(filteredBySubject.filter((a) => a.section_id).map((a) => [a.section_id, { id: a.section_id, name: a.section }])).values());
+
+      setDropdownData((prev) => ({ ...prev, branch: branches, semester: semesters, section: sections }));
 
       const autoBranchId = branches.length === 1 ? branches[0].id : undefined;
       const autoSemesterId = semesters.length === 1 ? semesters[0].id : undefined;
@@ -1258,17 +1258,17 @@ const UploadMarks = () => {
       updated.section = autoSectionId ? sections[0].name : "";
       if (!updated.testType) updated.testType = "IA1";
     } else if (field === "branch_id") {
-      const filtered = assignments.filter(a => a.subject_id === updated.subject_id && a.branch_id === updated.branch_id);
-      const semesters = Array.from(new Map(filtered.filter(a => a.semester_id).map(a => [a.semester_id, { id: a.semester_id, number: a.semester }])).values());
-      setDropdownData(prev => ({ ...prev, semester: semesters, section: [] }));
+      const filtered = assignments.filter((a) => a.subject_id === updated.subject_id && a.branch_id === updated.branch_id);
+      const semesters = Array.from(new Map(filtered.filter((a) => a.semester_id).map((a) => [a.semester_id, { id: a.semester_id, number: a.semester }])).values());
+      setDropdownData((prev) => ({ ...prev, semester: semesters, section: [] }));
       updated.semester_id = undefined;
       updated.semester = "";
       updated.section_id = undefined;
       updated.section = "";
     } else if (field === "semester_id") {
-      const filtered = assignments.filter(a => a.subject_id === updated.subject_id && a.branch_id === updated.branch_id && a.semester_id === updated.semester_id);
-      const sections = Array.from(new Map(filtered.filter(a => a.section_id).map(a => [a.section_id, { id: a.section_id, name: a.section }])).values());
-      setDropdownData(prev => ({ ...prev, section: sections }));
+      const filtered = assignments.filter((a) => a.subject_id === updated.subject_id && a.branch_id === updated.branch_id && a.semester_id === updated.semester_id);
+      const sections = Array.from(new Map(filtered.filter((a) => a.section_id).map((a) => [a.section_id, { id: a.section_id, name: a.section }])).values());
+      setDropdownData((prev) => ({ ...prev, section: sections }));
       updated.section_id = undefined;
       updated.section = "";
     }
@@ -1378,64 +1378,64 @@ const UploadMarks = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Select value={selected.subject_id?.toString()} onValueChange={value => handleSelectChange('subject_id', Number(value))}>
+          <Select value={selected.subject_id?.toString()} onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select Subject" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.subject.map((item) => (
-                <SelectItem key={item.id} value={item.id.toString()}>
+              {dropdownData.subject.map((item) =>
+              <SelectItem key={item.id} value={item.id.toString()}>
                   {item.name}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
-          <Select value={selected.branch_id?.toString()} onValueChange={value => handleSelectChange('branch_id', Number(value))}>
+          <Select value={selected.branch_id?.toString()} onValueChange={(value) => handleSelectChange('branch_id', Number(value))}>
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select Branch" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.branch.map((item) => (
-                <SelectItem key={item.id} value={item.id.toString()}>
+              {dropdownData.branch.map((item) =>
+              <SelectItem key={item.id} value={item.id.toString()}>
                   {item.name}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
-          <Select value={selected.semester_id?.toString()} onValueChange={value => handleSelectChange('semester_id', Number(value))}>
+          <Select value={selected.semester_id?.toString()} onValueChange={(value) => handleSelectChange('semester_id', Number(value))}>
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select Semester" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.semester.map((item) => (
-                <SelectItem key={item.id} value={item.id.toString()}>
+              {dropdownData.semester.map((item) =>
+              <SelectItem key={item.id} value={item.id.toString()}>
                   {item.number}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
-          <Select value={selected.section_id?.toString()} onValueChange={value => handleSelectChange('section_id', Number(value))}>
+          <Select value={selected.section_id?.toString()} onValueChange={(value) => handleSelectChange('section_id', Number(value))}>
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select Section" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.section.map((item) => (
-                <SelectItem key={item.id} value={item.id.toString()}>
+              {dropdownData.section.map((item) =>
+              <SelectItem key={item.id} value={item.id.toString()}>
                   {item.name}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
-          <Select value={selected.testType} onValueChange={value => handleSelectChange('testType', value)}>
+          <Select value={selected.testType} onValueChange={(value) => handleSelectChange('testType', value)}>
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select TestType" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.testType.map((item) => (
-                <SelectItem key={item} value={item}>
+              {dropdownData.testType.map((item) =>
+              <SelectItem key={item} value={item}>
                   {item}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -1452,45 +1452,45 @@ const UploadMarks = () => {
           setTabValue(newTab);
         }} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
           <TabsList className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-gray-100 border border-gray-300 text-gray-900'}>
-            { /* Question Format tab removed per UX simplification */}
+            {/* Question Format tab removed per UX simplification */}
             <TabsTrigger
               value="questionPaper"
-              className={`data-[state=active]:bg-primary data-[state=active]:text-white ${theme === 'dark' ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}
-            >
+              className={`data-[state=active]:bg-primary data-[state=active]:text-white ${theme === 'dark' ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}>
+              
               Question Paper
             </TabsTrigger>
             <TabsTrigger
               value="manual"
-              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved'
-                ? theme === 'dark'
-                  ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer'
-                  : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer'
-                : 'opacity-50 cursor-not-allowed'
-                }`}
+              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved' ?
+              theme === 'dark' ?
+              'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer' :
+              'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer' :
+              'opacity-50 cursor-not-allowed'}`
+              }
               disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
-              title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing marks entry' : ''}
-            >
+              title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing marks entry' : ''}>
+              
               Marks Entry
             </TabsTrigger>
             <TabsTrigger
               value="bulkUpload"
-              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved'
-                ? theme === 'dark'
-                  ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer'
-                  : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer'
-                : 'opacity-50 cursor-not-allowed'
-                }`}
+              className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved' ?
+              theme === 'dark' ?
+              'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer' :
+              'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 cursor-pointer' :
+              'opacity-50 cursor-not-allowed'}`
+              }
               disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
-              title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing bulk upload' : ''}
-            >
+              title={!existingQpSummary || existingQpSummary.status !== 'approved' ? 'Question paper must be approved before accessing bulk upload' : ''}>
+              
               Bulk Upload
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="manual">
-            {!areAllDropdownsSelected() ? (
-              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-                }`}>
+            {!areAllDropdownsSelected() ?
+            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
+            }>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                   <Layers className="w-12 h-12 opacity-80" />
                 </div>
@@ -1498,12 +1498,12 @@ const UploadMarks = () => {
                 <p className="max-w-xs text-base leading-relaxed">
                   Please select all the dropdown options above to view and enter student marks.
                 </p>
-              </div>
-            ) : (
-              <>
+              </div> :
+
+            <>
                 {/* Students Table - only shown after saving question format */}
-                {qpReady && (
-                  <div className={`border rounded-lg overflow-hidden ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
+                {qpReady &&
+              <div className={`border rounded-lg overflow-hidden ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
                     {/* Header */}
                     <div className={`p-4 border-b ${theme === 'dark' ? 'border-border bg-muted' : 'border-gray-300 bg-gray-50'}`}>
                       <h3 className="text-lg font-semibold">Internal Assessment Test</h3>
@@ -1519,11 +1519,11 @@ const UploadMarks = () => {
                             <th rowSpan={3} className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider align-middle">Name</th>
 
                             {/* Dynamic Question Groups based on question format */}
-                            {questions.map((question) => (
-                              <th key={`q-${question.id}`} colSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">
+                            {questions.map((question) =>
+                        <th key={`q-${question.id}`} colSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider">
                                 Q{question.number}
                               </th>
-                            ))}
+                        )}
 
                             {/* Final Columns - Removed Marks After Weightage */}
                             <th rowSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider align-middle">Total Marks</th>
@@ -1531,28 +1531,28 @@ const UploadMarks = () => {
                           </tr>
                           <tr>
                             {/* Sub-columns for each question */}
-                            {questions.map((question) => (
-                              <Fragment key={`sub-${question.id}`}>
+                            {questions.map((question) =>
+                        <Fragment key={`sub-${question.id}`}>
                                 <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">CO</th>
                                 <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">Max Marks</th>
                                 <th className="px-2 py-1 text-center text-xs font-medium uppercase tracking-wider">Marks</th>
                               </Fragment>
-                            ))}
+                        )}
                           </tr>
                           <tr>
                             {/* CO and Max Marks rows */}
-                            {questions.map((question, index) => (
-                              <Fragment key={`row-${question.id}`}>
+                            {questions.map((question, index) =>
+                        <Fragment key={`row-${question.id}`}>
                                 <td className="px-2 py-1 text-center text-xs italic">CO</td>
                                 <td className="px-2 py-1 text-center text-xs italic">Max marks</td>
                                 <td className="px-2 py-1 text-center text-xs italic">{formatTestType(selected.testType)}</td>
                               </Fragment>
-                            ))}
+                        )}
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-border">
-                          {loadingStudents ? (
-                            <tr>
+                          {loadingStudents ?
+                      <tr>
                               <td colSpan={questions.length * 3 + 5} className="p-0">
                                 <div className="w-full h-20 flex items-center justify-center">
                                   <div className="flex items-center gap-3">
@@ -1561,141 +1561,141 @@ const UploadMarks = () => {
                                   </div>
                                 </div>
                               </td>
-                            </tr>
-                          ) : currentStudents.length === 0 ? (
-                            <tr>
+                            </tr> :
+                      currentStudents.length === 0 ?
+                      <tr>
                               <td colSpan={questions.length * 3 + 5} className={`text-center text-sm p-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                                 No students found for selected criteria.
                               </td>
-                            </tr>
-                          ) : (
-                            currentStudents.map((student, index) => (
-                              <tr key={student.id} className={`${theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-50'}`}>
+                            </tr> :
+
+                      currentStudents.map((student, index) =>
+                      <tr key={student.id} className={`${theme === 'dark' ? 'hover:bg-muted' : 'hover:bg-gray-50'}`}>
                                 <td className="px-4 py-2 text-sm">{indexOfFirstStudent + index + 1}</td>
                                 <td className="px-4 py-2 text-sm">{student.usn}</td>
                                 <td className="px-4 py-2 text-sm whitespace-nowrap">{student.name}</td>
 
                                 {/* Dynamic question inputs based on question format */}
-                                {questions.map((question, qIndex) => (
-                                  <Fragment key={`input-${question.id}-${student.id}`}>
+                                {questions.map((question, qIndex) =>
+                        <Fragment key={`input-${question.id}-${student.id}`}>
                                     <td className="px-2 py-1 text-center">
                                       <Input
-                                        type="text"
-                                        className="w-16 text-center mx-auto"
-                                        placeholder="CO"
-                                        value={question.co}
-                                        readOnly
-                                      />
+                              type="text"
+                              className="w-16 text-center mx-auto"
+                              placeholder="CO"
+                              value={question.co}
+                              readOnly />
+                            
                                     </td>
                                     <td className="px-2 py-1 text-center">
                                       <Input
-                                        type="text"
-                                        className="w-16 text-center mx-auto"
-                                        placeholder="Max"
-                                        value={question.maxMarks}
-                                        readOnly
-                                      />
+                              type="text"
+                              className="w-16 text-center mx-auto"
+                              placeholder="Max"
+                              value={question.maxMarks}
+                              readOnly />
+                            
                                     </td>
                                     <td className="px-2 py-1 text-center">
                                       <Input
-                                        type="number"
-                                        className="w-16 text-center mx-auto"
-                                        placeholder="Marks"
-                                        value={studentMarks[student.id]?.[question.number] || ""}
-                                        min="0"
-                                        max={question.maxMarks}
-                                        readOnly={actionModes[student.id] !== 'edit'}
-                                        onChange={(e) => {
-                                          const value = e.target.value;
-                                          const maxMarks = parseInt(question.maxMarks);
-                                          const numValue = parseInt(value);
+                              type="number"
+                              className="w-16 text-center mx-auto"
+                              placeholder="Marks"
+                              value={studentMarks[student.id]?.[question.number] || ""}
+                              min="0"
+                              max={question.maxMarks}
+                              readOnly={actionModes[student.id] !== 'edit'}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                const maxMarks = parseInt(question.maxMarks);
+                                const numValue = parseInt(value);
 
-                                          // Validate that the entered value doesn't exceed max marks
-                                          if (value !== "" && (isNaN(numValue) || numValue < 0 || numValue > maxMarks)) {
-                                            // If invalid, don't update the state
-                                            return;
-                                          }
+                                // Validate that the entered value doesn't exceed max marks
+                                if (value !== "" && (isNaN(numValue) || numValue < 0 || numValue > maxMarks)) {
+                                  // If invalid, don't update the state
+                                  return;
+                                }
 
-                                          setStudentMarks(prev => {
-                                            const updated = { ...prev };
-                                            if (!updated[student.id]) updated[student.id] = {};
-                                            updated[student.id][question.number] = value;
-                                            return updated;
-                                          });
-                                        }}
-                                      />
+                                setStudentMarks((prev) => {
+                                  const updated = { ...prev };
+                                  if (!updated[student.id]) updated[student.id] = {};
+                                  updated[student.id][question.number] = value;
+                                  return updated;
+                                });
+                              }} />
+                            
                                     </td>
                                   </Fragment>
-                                ))}
+                        )}
 
                                 {/* Final columns */}
                                 <td className="px-4 py-2 text-center">
                                   {(() => {
-                                    const autoTotal = calculateTotal(studentMarks[student.id] || {});
-                                    const displayTotal = student.totalEdited ? (student.total ?? '') : (autoTotal || (student.total ?? ''));
-                                    return (
-                                      <div className="flex items-center justify-center gap-2">
+                            const autoTotal = calculateTotal(studentMarks[student.id] || {});
+                            const displayTotal = student.totalEdited ? student.total ?? '' : autoTotal || (student.total ?? '');
+                            return (
+                              <div className="flex items-center justify-center gap-2">
                                         <Input
-                                          type="text"
-                                          className="w-20 text-center mx-auto"
-                                          placeholder="Total"
-                                          value={displayTotal}
-                                          onChange={(e) => {
-                                            const v = e.target.value;
-                                            if (!/^\d*$/.test(v)) return;
-                                            setStudents(prev => prev.map(s => s.id === student.id ? { ...s, total: v, totalEdited: true } : s));
-                                          }}
-                                        />
+                                  type="text"
+                                  className="w-20 text-center mx-auto"
+                                  placeholder="Total"
+                                  value={displayTotal}
+                                  onChange={(e) => {
+                                    const v = e.target.value;
+                                    if (!/^\d*$/.test(v)) return;
+                                    setStudents((prev) => prev.map((s) => s.id === student.id ? { ...s, total: v, totalEdited: true } : s));
+                                  }} />
+                                
                                         {/* Reset to auto-calc */}
                                         <button
-                                          title="Reset to auto"
-                                          className="text-xs text-muted-foreground"
-                                          onClick={() => {
-                                            setStudents(prev => prev.map(s => s.id === student.id ? { ...s, totalEdited: false, total: calculateTotal(studentMarks[student.id] || {}) } : s));
-                                          }}
-                                        >
+                                  title="Reset to auto"
+                                  className="text-xs text-muted-foreground"
+                                  onClick={() => {
+                                    setStudents((prev) => prev.map((s) => s.id === student.id ? { ...s, totalEdited: false, total: calculateTotal(studentMarks[student.id] || {}) } : s));
+                                  }}>
+                                  
                                           Reset
                                         </button>
-                                      </div>
-                                    );
-                                  })()}
+                                      </div>);
+
+                          })()}
                                 </td>
                                 <td className="px-4 py-2 text-center">
-                                  {actionModes[student.id] === 'edit' ? (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="border-primary text-primary hover:bg-primary hover:text-white"
-                                      disabled={JSON.stringify(studentMarks[student.id] || {}) === JSON.stringify(originalStudentMarks[student.id] || {})}
-                                      onClick={() => {
-                                        // Row-level save only locks the row locally
-                                        setActionModes(prev => ({
-                                          ...prev,
-                                          [student.id]: 'view'
-                                        }));
-                                      }}
-                                    >
+                                  {actionModes[student.id] === 'edit' ?
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-primary text-primary hover:bg-primary hover:text-white"
+                            disabled={JSON.stringify(studentMarks[student.id] || {}) === JSON.stringify(originalStudentMarks[student.id] || {})}
+                            onClick={() => {
+                              // Row-level save only locks the row locally
+                              setActionModes((prev) => ({
+                                ...prev,
+                                [student.id]: 'view'
+                              }));
+                            }}>
+                            
                                       Save
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="border-primary text-primary hover:bg-primary hover:text-white"
-                                      onClick={() => {
-                                        setActionModes(prev => ({
-                                          ...prev,
-                                          [student.id]: 'edit'
-                                        }));
-                                      }}
-                                    >
+                                    </Button> :
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-primary text-primary hover:bg-primary hover:text-white"
+                            onClick={() => {
+                              setActionModes((prev) => ({
+                                ...prev,
+                                [student.id]: 'edit'
+                              }));
+                            }}>
+                            
                                       Edit
                                     </Button>
-                                  )}
+                          }
                                 </td>
                               </tr>
-                            ))
-                          )}
+                      )
+                      }
                         </tbody>
                       </table>
                     </div>
@@ -1706,32 +1706,32 @@ const UploadMarks = () => {
                       </span>
                       <div className="space-x-2">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
-                          onClick={handlePrevPage}
-                          disabled={pagination ? !pagination.has_previous : currentPage === 1}
-                        >
+                      variant="outline"
+                      size="sm"
+                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
+                      onClick={handlePrevPage}
+                      disabled={pagination ? !pagination.has_previous : currentPage === 1}>
+                      
                           Previous
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
-                          onClick={handleNextPage}
-                          disabled={pagination ? !pagination.has_next : currentPage === totalPages}
-                        >
+                      variant="outline"
+                      size="sm"
+                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
+                      onClick={handleNextPage}
+                      disabled={pagination ? !pagination.has_next : currentPage === totalPages}>
+                      
                           Next
                         </Button>
                       </div>
                     </div>
                   </div>
-                )}
+              }
 
                 {/* Message to configure question format first */}
-                {!qpReady && (
-                  <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-                    }`}>
+                {!qpReady &&
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
+              }>
                     <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                       <Settings2 className="w-12 h-12 opacity-80" />
                     </div>
@@ -1740,64 +1740,64 @@ const UploadMarks = () => {
                       Please configure the question paper format first to enable marks entry for this subject.
                     </p>
                     <Button
-                      onClick={() => setTabValue("questionPaper")}
-                      className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
-                    >
+                  onClick={() => setTabValue("questionPaper")}
+                  className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20">
+                  
                       View Question Paper
                     </Button>
                   </div>
-                )}
+              }
 
                 {/* Save button for Marks Entry */}
-                {qpReady && (
-                  <div className="flex justify-end mt-6">
+                {qpReady &&
+              <div className="flex justify-end mt-6">
                     <Button
-                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
-                      onClick={handleSubmit}
-                      disabled={savingMarks}
-                    >
-                      {savingMarks ? (
-                        <>
+                  className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
+                  onClick={handleSubmit}
+                  disabled={savingMarks}>
+                  
+                      {savingMarks ?
+                  <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Saving...
-                        </>
-                      ) : (
-                        "Save"
-                      )}
+                        </> :
+
+                  "Save"
+                  }
                     </Button>
                   </div>
-                )}
+              }
               </>
-            )}
+            }
           </TabsContent>
 
-          { /* Question Format tab content removed */}
+          {/* Question Format tab content removed */}
 
           {/* Question Paper Tab - For viewing the saved format */}
           <TabsContent value="questionPaper">
-            {qpReady && areAllDropdownsSelected() ? (
-              <div>
+            {qpReady && areAllDropdownsSelected() ?
+            <div>
                 <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white border border-gray-300'}`}>
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-semibold">Question Paper Format</h3>
                     <Button
-                      onClick={downloadQuestionPaperPDF}
-                      className="bg-primary text-white hover:bg-primary/90"
-                    >
+                    onClick={downloadQuestionPaperPDF}
+                    className="bg-primary text-white hover:bg-primary/90">
+                    
                       Download PDF
                     </Button>
                   </div>
 
                   {/* Status panel showing approval status and history */}
-                  {existingQpSummary && (
-                    <div className={`mb-6 p-4 rounded-md border ${existingQpSummary.status === 'approved'
-                      ? theme === 'dark'
-                        ? 'bg-green-500/10 text-green-300 border-green-500/30'
-                        : 'bg-green-50 text-green-800 border-green-200'
-                      : theme === 'dark'
-                        ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30'
-                        : 'bg-yellow-50 text-yellow-800 border-yellow-200'
-                      }`}>
+                  {existingQpSummary &&
+                <div className={`mb-6 p-4 rounded-md border ${existingQpSummary.status === 'approved' ?
+                theme === 'dark' ?
+                'bg-green-500/10 text-green-300 border-green-500/30' :
+                'bg-green-50 text-green-800 border-green-200' :
+                theme === 'dark' ?
+                'bg-yellow-500/10 text-yellow-300 border-yellow-500/30' :
+                'bg-yellow-50 text-yellow-800 border-yellow-200'}`
+                }>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold">Status:</span>
@@ -1805,8 +1805,8 @@ const UploadMarks = () => {
                             {existingQpSummary.status || 'Pending'}
                           </span>
                         </div>
-                        {existingQpSummary.last_action && (
-                          <>
+                        {existingQpSummary.last_action &&
+                    <>
                             <div className="flex items-center justify-between text-sm">
                               <span>Last Action:</span>
                               <span className="capitalize">
@@ -1819,34 +1819,34 @@ const UploadMarks = () => {
                                 {existingQpSummary.last_action.actor} ({existingQpSummary.last_action.role})
                               </span>
                             </div>
-                            {existingQpSummary.last_action.timestamp && (
-                              <div className="flex items-center justify-between text-sm">
+                            {existingQpSummary.last_action.timestamp &&
+                      <div className="flex items-center justify-between text-sm">
                                 <span>Date:</span>
                                 <span>
                                   {new Date(existingQpSummary.last_action.timestamp).toLocaleString()}
                                 </span>
                               </div>
-                            )}
-                            {existingQpSummary.last_action.comment && (
-                              <div className="text-sm pt-2 border-t border-current border-opacity-30">
+                      }
+                            {existingQpSummary.last_action.comment &&
+                      <div className="text-sm pt-2 border-t border-current border-opacity-30">
                                 <span className="block font-medium mb-1">Comment:</span>
                                 <span className="block italic">{existingQpSummary.last_action.comment}</span>
                               </div>
-                            )}
+                      }
                           </>
-                        )}
-                        {existingQpSummary.status !== 'approved' && (
-                          <div className="pt-2 border-t border-current border-opacity-30 text-sm">
+                    }
+                        {existingQpSummary.status !== 'approved' &&
+                    <div className="pt-2 border-t border-current border-opacity-30 text-sm">
                             Once approved, you can submit marks.
                           </div>
-                        )}
+                    }
                       </div>
                     </div>
-                  )}
+                }
 
                   <div className="space-y-6">
-                    {questions.map((question, index) => (
-                      <div key={question.id} className="flex items-start gap-3">
+                    {questions.map((question, index) =>
+                  <div key={question.id} className="flex items-start gap-3">
                         <span className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           {question.number}.
                         </span>
@@ -1859,19 +1859,19 @@ const UploadMarks = () => {
                           <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                             ({question.maxMarks} marks)
                           </div>
-                          {question.co && (
-                            <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {question.co &&
+                      <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                               CO: {question.co}
                             </div>
-                          )}
-                          {question.bloomsLevel && (
-                            <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      }
+                          {question.bloomsLevel &&
+                      <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                               Blooms: {question.bloomsLevel}
                             </div>
-                          )}
+                      }
                         </div>
                       </div>
-                    ))}
+                  )}
                     <div className={`pt-4 border-t ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>
                       <div className="flex justify-between font-semibold text-lg">
                         <span>Total Marks:</span>
@@ -1879,47 +1879,47 @@ const UploadMarks = () => {
                       </div>
                     </div>
                     <div className="flex justify-end gap-2 mt-6">
-                      { /* Edit removed — QP editing happens on the Upload QP page */}
+                      {/* Edit removed — QP editing happens on the Upload QP page */}
                       <Button
-                        onClick={() => setTabValue("manual")}
-                        disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
-                        className={`${existingQpSummary?.status === 'approved' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-                        title={existingQpSummary?.status !== 'approved' ? 'Question paper must be approved by COE before proceeding to marks entry' : ''}
-                      >
+                      onClick={() => setTabValue("manual")}
+                      disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
+                      className={`${existingQpSummary?.status === 'approved' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                      title={existingQpSummary?.status !== 'approved' ? 'Question paper must be approved by COE before proceeding to marks entry' : ''}>
+                      
                         Proceed to Marks Entry
                       </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-                }`}>
+              </div> :
+
+            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
+            }>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  {areAllDropdownsSelected() ? (
-                    <Settings2 className="w-12 h-12 opacity-80" />
-                  ) : (
-                    <Layers className="w-12 h-12 opacity-80" />
-                  )}
+                  {areAllDropdownsSelected() ?
+                <Settings2 className="w-12 h-12 opacity-80" /> :
+
+                <Layers className="w-12 h-12 opacity-80" />
+                }
                 </div>
                 <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   {areAllDropdownsSelected() ? "Configuration Needed" : "Selection Required"}
                 </h3>
                 <p className="max-w-xs text-base leading-relaxed mb-6">
-                  {areAllDropdownsSelected()
-                    ? "Please configure the question paper format first to view the final document."
-                    : "Please select all the dropdown options first to view the question paper."}
+                  {areAllDropdownsSelected() ?
+                "Please configure the question paper format first to view the final document." :
+                "Please select all the dropdown options first to view the question paper."}
                 </p>
-                {areAllDropdownsSelected() && (
-                  <Button
-                    onClick={() => setTabValue("questionPaper")}
-                    className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
-                  >
+                {areAllDropdownsSelected() &&
+              <Button
+                onClick={() => setTabValue("questionPaper")}
+                className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20">
+                
                     View Question Paper
                   </Button>
-                )}
+              }
               </div>
-            )}
+            }
           </TabsContent>
 
           {/* Bulk Upload Tab */}
@@ -1932,25 +1932,25 @@ const UploadMarks = () => {
                 </p>
               </div>
 
-              {areAllDropdownsSelected() ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              {areAllDropdownsSelected() ?
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                   {/* Main Upload Area - Takes 2/3 on desktop, full width on tablet/mobile */}
                   <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                     <div
-                      onDrop={handleBulkDrop}
-                      onDragOver={handleBulkDragOver}
-                      onDragLeave={handleBulkDragLeave}
-                      className={`border rounded-md p-6 sm:p-8 lg:p-10 text-center space-y-3 sm:space-y-4 transition-all duration-300 min-h-[300px] sm:min-h-[320px] lg:min-h-[360px] flex flex-col items-center justify-center ${bulkDragActive
-                        ? (theme === 'dark' ? "border-primary bg-primary/10" : "border-blue-400 bg-blue-50")
-                        : (theme === 'dark' ? "border-dashed border-border bg-muted" : "border-dashed border-gray-300 bg-gray-50")
-                        }`}
-                    >
+                    onDrop={handleBulkDrop}
+                    onDragOver={handleBulkDragOver}
+                    onDragLeave={handleBulkDragLeave}
+                    className={`border rounded-md p-6 sm:p-8 lg:p-10 text-center space-y-3 sm:space-y-4 transition-all duration-300 min-h-[300px] sm:min-h-[320px] lg:min-h-[360px] flex flex-col items-center justify-center ${bulkDragActive ?
+                    theme === 'dark' ? "border-primary bg-primary/10" : "border-blue-400 bg-blue-50" :
+                    theme === 'dark' ? "border-dashed border-border bg-muted" : "border-dashed border-gray-300 bg-gray-50"}`
+                    }>
+                    
                       <UploadCloud
-                        className={`mx-auto h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 transition-transform duration-300 ${bulkDragActive
-                          ? (theme === 'dark' ? "scale-110 text-primary" : "scale-110 text-blue-400")
-                          : (theme === 'dark' ? "text-muted-foreground" : "text-gray-400")
-                          }`}
-                      />
+                      className={`mx-auto h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 transition-transform duration-300 ${bulkDragActive ?
+                      theme === 'dark' ? "scale-110 text-primary" : "scale-110 text-blue-400" :
+                      theme === 'dark' ? "text-muted-foreground" : "text-gray-400"}`
+                      } />
+                    
                       <div className="space-y-1 sm:space-y-2">
                         <p className={`text-sm sm:text-base lg:text-lg font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
                           Drag & drop Excel file here
@@ -1959,53 +1959,53 @@ const UploadMarks = () => {
                           Supports .xlsx, .xls (max 5MB)
                         </p>
                       </div>
-                      {!bulkUploadFile ? (
-                        <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4 flex-wrap justify-center">
+                      {!bulkUploadFile ?
+                    <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4 flex-wrap justify-center">
                           <button
-                            onClick={() => document.getElementById("bulkFileInput")?.click()}
-                            className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-md font-medium transition-all duration-200 whitespace-nowrap ${theme === 'dark' ? 'border border-border hover:bg-accent text-foreground bg-primary text-white hover:bg-primary/90' : 'border border-gray-300 hover:bg-gray-100 text-gray-700 bg-primary text-white hover:bg-primary/90'}`}
-                          >
+                        onClick={() => document.getElementById("bulkFileInput")?.click()}
+                        className={`px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base rounded-md font-medium transition-all duration-200 whitespace-nowrap ${theme === 'dark' ? 'border border-border hover:bg-accent text-foreground bg-primary text-white hover:bg-primary/90' : 'border border-gray-300 hover:bg-gray-100 text-gray-700 bg-primary text-white hover:bg-primary/90'}`}>
+                        
                             Select File
                           </button>
                           <input
-                            id="bulkFileInput"
-                            type="file"
-                            accept=".xlsx,.xls"
-                            onChange={handleBulkFileChange}
-                            className="hidden"
-                          />
-                        </div>
-                      ) : (
-                        <div className={`flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mt-3 sm:mt-4 p-3 sm:p-4 rounded-md w-full ${theme === 'dark' ? 'bg-green-400/10 border border-green-400/30' : 'bg-green-50 border border-green-200'}`}>
+                        id="bulkFileInput"
+                        type="file"
+                        accept=".xlsx,.xls"
+                        onChange={handleBulkFileChange}
+                        className="hidden" />
+                      
+                        </div> :
+
+                    <div className={`flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mt-3 sm:mt-4 p-3 sm:p-4 rounded-md w-full ${theme === 'dark' ? 'bg-green-400/10 border border-green-400/30' : 'bg-green-50 border border-green-200'}`}>
                           <div className="flex-1 min-w-0">
                             <p className={`text-xs sm:text-sm font-medium truncate ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
                               ✓ {bulkUploadFile.name}
                             </p>
                           </div>
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleClearBulkFile}
-                            className="flex-shrink-0"
-                          >
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClearBulkFile}
+                        className="flex-shrink-0">
+                        
                             <X className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-900'}`} />
                           </Button>
                         </div>
-                      )}
+                    }
                     </div>
 
-                    {errorMessage && (
-                      <div className={`text-sm font-medium text-center p-3 sm:p-4 rounded-md ${theme === 'dark' ? 'text-destructive border border-destructive/30 bg-destructive/10' : 'text-red-600 border border-red-200 bg-red-50'}`}>
+                    {errorMessage &&
+                  <div className={`text-sm font-medium text-center p-3 sm:p-4 rounded-md ${theme === 'dark' ? 'text-destructive border border-destructive/30 bg-destructive/10' : 'text-red-600 border border-red-200 bg-red-50'}`}>
                         {errorMessage}
                       </div>
-                    )}
+                  }
 
                     <div className="flex gap-2 sm:gap-3 flex-col-reverse sm:flex-row justify-end">
                       <Button
-                        onClick={handleProcessBulkUpload}
-                        disabled={!bulkUploadFile}
-                        className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 font-medium py-2 sm:py-2.5 px-4 sm:px-6 transition-all duration-200"
-                      >
+                      onClick={handleProcessBulkUpload}
+                      disabled={!bulkUploadFile}
+                      className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 font-medium py-2 sm:py-2.5 px-4 sm:px-6 transition-all duration-200">
+                      
                         Process Upload
                       </Button>
                     </div>
@@ -2035,16 +2035,16 @@ const UploadMarks = () => {
 
                     <div className={`border-t pt-3 sm:pt-4 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                       <button
-                        onClick={downloadExcelTemplate}
-                        className={`w-full text-center py-2 sm:py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-primary text-white hover:bg-primary/90'}`}
-                      >
+                      onClick={downloadExcelTemplate}
+                      className={`w-full text-center py-2 sm:py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-primary text-white hover:bg-primary/90'}`}>
+                      
                         Download Template
                       </button>
                     </div>
 
                     {/* File Info Panel */}
-                    {bulkUploadFile && (
-                      <div className={`border-t pt-3 sm:pt-4 space-y-2 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                    {bulkUploadFile &&
+                  <div className={`border-t pt-3 sm:pt-4 space-y-2 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                         <p className={`text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           Selected File
                         </p>
@@ -2055,12 +2055,12 @@ const UploadMarks = () => {
                           Size: {(bulkUploadFile.size / 1024).toFixed(2)} KB
                         </p>
                       </div>
-                    )}
+                  }
                   </div>
-                </div>
-              ) : (
-                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 w-full ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
-                  }`}>
+                </div> :
+
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 w-full ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
+              }>
                   <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <Layers className="w-12 h-12 opacity-80" />
                   </div>
@@ -2069,13 +2069,13 @@ const UploadMarks = () => {
                     Please select all the dropdown options first to enable bulk marks upload.
                   </p>
                 </div>
-              )}
+              }
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 };
 
 export default UploadMarks;
@@ -2098,4 +2098,4 @@ export default UploadMarks;
 
 // and until the qp is approved the marks entry and bulk upload tab shoudl be disabled correctly 
 
-// explain in shoert what you will do no code changes onyl explain in short 
+// explain in shoert what you will do no code changes onyl explain in short
