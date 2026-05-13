@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -25,11 +26,17 @@ interface ExamApplicationProps {
 const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: initialProctorStudents = [], proctorStudentsLoading = false }) => {
   const { theme } = useTheme();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const printRef = useRef<HTMLDivElement | null>(null);
   const [exporting, setExporting] = useState(false);
 
   const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
+  // Normalize debounced search for API: trim and uppercase USN queries
+  const processedSearch = useMemo(() => (debouncedSearch || '').toString().trim().toUpperCase(), [debouncedSearch]);
   const [examPeriod, setExamPeriod] = useState("june_july");
+  
+  // Track the last search/examPeriod we invalidated for to avoid redundant cache clears
+  const lastInvalidatedRef = useRef<{ search: string; examPeriod: string } | null>(null);
   const [open, setOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<ProctorStudent | null>(null);
   const [studentDetails, setStudentDetails] = useState<any>(null);
@@ -50,11 +57,41 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
     isLoading: isProctorLoading,
     pagination: proctorPagination,
     refetch: refetchProctor
-  } = useProctorStudentsQuery(true, includeFields, examPeriod, false, debouncedSearch);
+  } = useProctorStudentsQuery(true, includeFields, examPeriod, false, processedSearch);
 
   const students = proctorData?.data || [];
   const totalPages = proctorPagination?.paginationState.totalPages || 1;
   const totalStudentsCount = proctorPagination?.paginationState.totalItems || 0;
+
+  // Reset to first page and invalidate cache when search or exam period actually changes
+  useEffect(() => {
+    const hasChanged = !lastInvalidatedRef.current || 
+      lastInvalidatedRef.current.search !== processedSearch || 
+      lastInvalidatedRef.current.examPeriod !== examPeriod;
+    
+    if (hasChanged) {
+      // Mark that we've invalidated for this search/examPeriod combo
+      lastInvalidatedRef.current = { search: processedSearch, examPeriod };
+      
+      // Invalidate the cache to force a fresh fetch
+      queryClient.invalidateQueries({
+        queryKey: ['proctorStudents']
+      });
+    }
+  }, [processedSearch, examPeriod, queryClient]);
+  
+  // Track pagination ref for page resets
+  const paginationRef = useRef(proctorPagination);
+  useEffect(() => {
+    paginationRef.current = proctorPagination;
+  }, [proctorPagination]);
+  
+  // Reset pagination to page 1 when search or exam period changes (separate from cache invalidation)
+  useEffect(() => {
+    if (paginationRef.current && typeof paginationRef.current.goToPage === 'function') {
+      paginationRef.current.goToPage(1);
+    }
+  }, [processedSearch, examPeriod]);
 
   // Sync status map from the consolidated proctor students response
   useEffect(() => {
