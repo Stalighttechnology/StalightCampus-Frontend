@@ -254,12 +254,12 @@ urlpatterns = [
     path('fees-manager/students/<int:student_id>/assign-individual-fees/', fees_manager_views.assign_individual_fees, name='assign_individual_fees'),
     path('fees-manager/students/<int:student_id>/remove-individual-fees/', fees_manager_views.remove_individual_fees, name='remove_individual_fees'),
     
-    # Stripe Payment endpoints
+    # Payment endpoints (Razorpay)
     path('payments/create-checkout-session/<int:invoice_id>/', CreateCheckoutSessionView.as_view(), name='create_checkout_session'),
     path('payments/invoice-components/<int:invoice_id>/', InvoiceComponentSelectionView.as_view(), name='invoice_components'),
     path('payments/component-payment/<int:invoice_id>/', ComponentBasedPaymentView.as_view(), name='component_payment'),
     path('payments/status/<str:session_id>/', PaymentStatusView.as_view(), name='payment_status'),
-    path('payments/webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
+    path('payments/webhook/', StripeWebhookView.as_view(), name='razorpay_webhook'),
     path('payments/refund/<int:payment_id>/', RefundPaymentView.as_view(), name='refund_payment'),
     path('payments/receipt/<int:payment_id>/', fees_manager_views.download_receipt, name='download_receipt'),
 

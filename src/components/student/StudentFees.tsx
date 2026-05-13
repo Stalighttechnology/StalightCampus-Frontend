@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { loadStripe } from '@stripe/stripe-js';
+// Using Razorpay Checkout instead of Stripe
 import { useTheme } from "@/context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchWithTokenRefresh } from '@/utils/authService';
@@ -111,6 +111,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   const [invoicePage, setInvoicePage] = useState(1);
   const [paymentPage, setPaymentPage] = useState(1);
   const { theme } = useTheme();
+  const queryClient = useQueryClient();
 
 
 
@@ -261,22 +262,9 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
     setSelectedComponents(newSet);
   };
 
-  const initiateStripePayment = async () => {
+  const initiateRazorpayPayment = async () => {
     try {
       setIsProcessingPayment(true);
-      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-
-      if (!stripeKey) {
-        alert('Payment configuration error. Please contact support.');
-        return;
-      }
-
-      const stripe = await loadStripe(stripeKey);
-      if (!stripe) {
-        alert('Failed to initialize payment. Please try again.');
-        return;
-      }
-
       if (selectedInvoiceId === null) return;
 
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/payments/create-checkout-session/${selectedInvoiceId}/`, {
@@ -297,17 +285,53 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
         throw new Error(errorData.error || 'Failed to create checkout session');
       }
 
-      const { session_id, checkout_url } = await response.json();
+      const { order_id, razorpay_key_id } = await response.json();
 
-      // Redirect to Stripe checkout with proper API key
-      if (checkout_url) {
-        // Use the checkout_url provided by backend if available
-        window.location.href = checkout_url;
-      } else if (session_id) {
-        // Fallback: construct checkout URL with publishable key
-        const checkoutUrl = `https://checkout.stripe.com/pay/${session_id}?key=${stripeKey}`;
-        window.location.href = checkoutUrl;
+      const keyId = razorpay_key_id || import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (!order_id || !keyId) {
+        alert('Payment configuration error. Please contact support.');
+        return;
       }
+
+      // Load Razorpay checkout script dynamically
+      await new Promise<void>((resolve, reject) => {
+        if ((window as any).Razorpay) return resolve();
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Razorpay checkout'));
+        document.body.appendChild(script);
+      });
+
+      const options: any = {
+        key: keyId,
+        order_id: order_id,
+        name: 'Stalight Campus',
+        description: `Payment for invoice ${selectedInvoiceId}`,
+        handler: async function (resp: any) {
+          try {
+            await fetchWithTokenRefresh(`${API_ENDPOINT}/payments/verify/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(resp)
+            });
+            // Invalidate and refetch fee data after payment verification
+            queryClient.invalidateQueries({ queryKey: ['studentCompleteFeeData'] });
+          } catch (e) {
+            // verification endpoint is optional; webhook will handle final state
+          }
+
+          alert('Payment initiated/completed. It may take a few moments to reflect in your account.');
+        },
+        prefill: {
+          name: user?.first_name || '',
+          email: user?.email || ''
+        },
+        theme: { color: '#3399cc' }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
     } catch (error) {
 
       alert('Error initiating payment. Please try again.');
@@ -858,7 +882,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   </div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                  onClick={initiateStripePayment}
+                  onClick={initiateRazorpayPayment}
                   disabled={isProcessingPayment}
                   className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
                   
@@ -870,7 +894,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
 
                   <>
                           <CreditCard className="h-4 w-4 mr-2" />
-                          Proceed to Stripe Payment
+                          Proceed to Payment
                         </>
                   }
                     </Button>
@@ -931,7 +955,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
 
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                  onClick={initiateStripePayment}
+                  onClick={initiateRazorpayPayment}
                   disabled={isProcessingPayment || selectedComponents.size === 0}
                   className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
                   
