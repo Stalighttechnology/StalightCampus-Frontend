@@ -367,12 +367,16 @@ const FeeComponents: React.FC = () => {
                 ))}
                 {components.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      <div className="flex flex-col items-center justify-center">
-                        <DollarSign className="h-12 w-12 text-muted-foreground mb-2" />
-                        <h3 className="font-medium text-lg mb-1">No fee components found</h3>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          Create your first fee component to get started
+                    <TableCell colSpan={5} className="py-12 px-4">
+                      <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                        <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                          <IndianRupee className="w-10 h-10 text-primary opacity-50" />
+                        </div>
+                        <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          No Fee Components Found
+                        </h3>
+                        <p className={`text-center max-w-sm text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          Create your first fee component to get started. These are the building blocks for your templates.
                         </p>
                       </div>
                     </TableCell>
