@@ -296,7 +296,8 @@ const DeanExams: React.FC = () => {
 
                     <div className={`rounded-xl border shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`
                     }>
-                          <div className="overflow-x-auto">
+                          {/* Desktop Table View */}
+                          <div className="hidden md:block overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
                               <thead className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
                                 <tr className={`text-left text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`

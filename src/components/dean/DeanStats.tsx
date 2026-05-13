@@ -280,7 +280,7 @@ const DeanStats = () => {
                     <tbody className="divide-y divide-border">
                       {rows.map((r) => (
                         <tr key={r.branch_id} className="hover:bg-muted/50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">{r.branch}</td>
+                          <td className="px-6 py-4 text-sm whitespace-normal break-words min-w-[120px]">{r.branch}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{r.total_students}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">{r.faculty ?? '-'}</td>
                         </tr>

@@ -116,7 +116,7 @@ const ManageAdminLeavesDean = () => {
       if (response.success && response.updated_leave) {
         // Find the item in pending leaves to move it to recent history
         const movedItem = pendingLeaves.find(l => l.id === leaveId);
-        
+
         if (movedItem) {
           // Update both lists locally for immediate feedback
           setPendingLeaves(prev => prev.filter(l => l.id !== leaveId));
@@ -182,7 +182,7 @@ const ManageAdminLeavesDean = () => {
             <CardContent className="overflow-x-auto">
               <div className="overflow-x-auto max-w-full custom-scrollbar">
                 {/* Mobile: stacked cards */}
-                <div className="md:hidden space-y-3">
+                <div className="md:hidden space-y-3 pl-4">
                   {pendingLoading ? (
                     <div className="space-y-3">
                       <SkeletonList items={3} />
@@ -227,8 +227,8 @@ const ManageAdminLeavesDean = () => {
                                 size="sm"
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
-                                    ? 'text-green-400 border-green-400 hover:bg-green-900/20'
-                                    : 'text-green-700 border-green-600 hover:bg-green-100'
+                                  ? 'text-green-400 border-green-400 hover:bg-green-900/20'
+                                  : 'text-green-700 border-green-600 hover:bg-green-100'
                                   }`}
                                 onClick={() => handleAction(leave.id, 'APPROVED')}
                                 disabled={actionLoading === leave.id}
@@ -239,8 +239,8 @@ const ManageAdminLeavesDean = () => {
                                 size="sm"
                                 variant="outline"
                                 className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
-                                    ? 'text-red-400 border-red-400 hover:bg-red-900/20'
-                                    : 'text-red-700 border-red-600 hover:bg-red-100'
+                                  ? 'text-red-400 border-red-400 hover:bg-red-900/20'
+                                  : 'text-red-700 border-red-600 hover:bg-red-100'
                                   }`}
                                 onClick={() => handleAction(leave.id, 'REJECTED')}
                                 disabled={actionLoading === leave.id}
@@ -306,8 +306,8 @@ const ManageAdminLeavesDean = () => {
                                 <Button
                                   variant="outline"
                                   className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
-                                      ? 'text-green-400 border-green-400 hover:bg-green-900/20'
-                                      : 'text-green-700 border-green-600 hover:bg-green-100'
+                                    ? 'text-green-400 border-green-400 hover:bg-green-900/20'
+                                    : 'text-green-700 border-green-600 hover:bg-green-100'
                                     }`}
                                   onClick={() => handleAction(leave.id, 'APPROVED')}
                                   disabled={actionLoading === leave.id}
@@ -317,8 +317,8 @@ const ManageAdminLeavesDean = () => {
                                 <Button
                                   variant="outline"
                                   className={`px-3 py-1 text-xs flex items-center gap-1 w-full md:w-auto ${theme === 'dark'
-                                      ? 'text-red-400 border-red-400 hover:bg-red-900/20'
-                                      : 'text-red-700 border-red-600 hover:bg-red-100'
+                                    ? 'text-red-400 border-red-400 hover:bg-red-900/20'
+                                    : 'text-red-700 border-red-600 hover:bg-red-100'
                                     }`}
                                   onClick={() => handleAction(leave.id, 'REJECTED')}
                                   disabled={actionLoading === leave.id}
@@ -435,10 +435,10 @@ const ManageAdminLeavesDean = () => {
                               <div className="flex items-center gap-2">
                                 <h3 className={`font-medium ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title || 'Leave Request'}</h3>
                                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${leave.faculty_type === 'coe'
-                                    ? (theme === 'dark' ? 'bg-green-400 text-green-900' : 'bg-green-600 text-white')
-                                    : leave.faculty_type === 'principal'
-                                      ? (theme === 'dark' ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800')
-                                      : (theme === 'dark' ? 'bg-purple-100 text-purple-800' : 'bg-purple-100 text-purple-800')
+                                  ? (theme === 'dark' ? 'bg-green-400 text-green-900' : 'bg-green-600 text-white')
+                                  : leave.faculty_type === 'principal'
+                                    ? (theme === 'dark' ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800')
+                                    : (theme === 'dark' ? 'bg-purple-100 text-purple-800' : 'bg-purple-100 text-purple-800')
                                   }`}>{leave.faculty_type.toUpperCase()}</span>
                               </div>
                               <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>{leave.start_date}</p>
@@ -468,8 +468,8 @@ const ManageAdminLeavesDean = () => {
                         <div className="ml-4 flex-shrink-0 text-right">
                           <div className="flex flex-col items-end">
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${leave.status === 'APPROVED' ? (theme === 'dark' ? 'bg-green-700 text-green-50' : 'bg-green-100 text-green-700') :
-                                leave.status === 'REJECTED' ? (theme === 'dark' ? 'bg-red-700 text-red-50' : 'bg-red-100 text-red-700') :
-                                  (theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700')
+                              leave.status === 'REJECTED' ? (theme === 'dark' ? 'bg-red-700 text-red-50' : 'bg-red-100 text-red-700') :
+                                (theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700')
                               }`}>{leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}</span>
                             <p className={`text-xs mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{new Date(leave.start_date).toLocaleDateString()}</p>
                           </div>

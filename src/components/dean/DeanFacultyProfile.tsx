@@ -313,7 +313,7 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
         @media (max-width: 480px) {
           .dean-profile .filters-row { gap: 12px !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; }
           .dean-profile .filters-row .flex-1 { width: 100% !important; min-width: 0 !important; }
-          .dean-profile .filters-row .flex-shrink-0 { width: 100% !important; margin-top: 0.25rem !important; display: flex !important; justify-content: flex-end !important; }
+          .dean-profile .filters-row .flex-shrink-0 { width: 100% !important; margin-top: 0.25rem !important; display: flex !important; justify-content: center !important; }
 
           .dean-profile h1 { font-size: 1.75rem !important; line-height: 1.4 !important; }
           .dean-profile h2 { font-size: 1.375rem !important; line-height: 1.45 !important; }
@@ -323,7 +323,7 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
           .dean-profile .card, .dean-profile .card-content { padding-left: 12px !important; padding-right: 12px !important; }
 
           .dean-profile .button-group, .dean-profile .flex-row { flex-direction: column !important; gap: 8px !important; }
-          .dean-profile button, .dean-profile .btn { width: 100% !important; max-width: 320px !important; padding: 10px 16px !important; min-height: 40px !important; }
+          .dean-profile button, .dean-profile .btn { width: 100% !important; padding: 10px 16px !important; min-height: 40px !important; }
 
           .dean-profile img, .dean-profile .responsive-img { max-width: 100% !important; height: auto !important; }
 
@@ -426,7 +426,7 @@ const DeanFacultyProfile = ({ facultyId: initialFacultyId, initialStartDate, ini
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
-                        className="flex items-center gap-2 px-4 h-10"
+                        className="flex items-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white"
                         disabled={!selectedBranch || !selectedFaculty || facultiesLoading}
                         title={!selectedBranch || !selectedFaculty ? 'Select branch and faculty to enable filters' : undefined}
                       >
@@ -569,8 +569,8 @@ function StatsCard({ label, value, color, theme }: StatsCardProps) {
     <div className={`bg-gradient-to-br ${theme === 'dark' ? cfg.darkGradient : cfg.gradient} p-6 rounded-xl border ${theme === 'dark' ? cfg.darkBorder : cfg.border}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className={`text-sm font-medium ${theme === 'dark' ? cfg.darkLabel : cfg.label}`}>{label}</p>
-          <p className={`text-3xl font-bold ${theme === 'dark' ? cfg.darkValue : cfg.value}`}>{value}</p>
+          <p className={`text-base sm:text-sm font-semibold uppercase tracking-wide mb-1 ${theme === 'dark' ? cfg.darkLabel : cfg.label}`}>{label}</p>
+          <p className={`text-4xl sm:text-3xl font-black ${theme === 'dark' ? cfg.darkValue : cfg.value}`}>{value}</p>
         </div>
       </div>
     </div>
@@ -722,7 +722,7 @@ function AttendanceLogTable({ attendance, theme }: AttendanceLogTableProps) {
 interface LeaveRequestsTableProps {
   readonly leaves: readonly LeaveRecord[];
   readonly theme: string;
-  readonly pagination?: { total_pages: number };
+  readonly pagination?: { total_pages: number; count?: number };
   readonly currentPage: number;
   readonly onPageChange: (page: number) => void;
 }
@@ -769,24 +769,34 @@ function LeaveRequestsTable({ leaves, theme, pagination, currentPage, onPageChan
         </tbody>
       </table>
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex items-center justify-between p-4 border-t border-border bg-muted/20 text-xs">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage === 1}
-            onClick={() => onPageChange(currentPage - 1)}
-          >
-            Prev
-          </Button>
-          <span className="font-medium">Page {currentPage} of {pagination.total_pages}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage === pagination.total_pages}
-            onClick={() => onPageChange(currentPage + 1)}
-          >
-            Next
-          </Button>
+        <div className="flex flex-col sm:flex-row items-center justify-between p-6 border-t border-border gap-4">
+          <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            Showing Page {currentPage} of {pagination.total_pages}
+            {pagination.count !== undefined && ` (${pagination.count} records)`}
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => onPageChange(currentPage - 1)}
+              className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
+            >
+              Previous
+            </Button>
+            <div className={`flex items-center justify-center min-w-[40px] h-9 px-3 text-sm font-semibold rounded-lg border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+              {currentPage}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === pagination.total_pages}
+              onClick={() => onPageChange(currentPage + 1)}
+              className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
+            >
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>

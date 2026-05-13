@@ -216,7 +216,7 @@ const DeanProfile = () => {
           <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             Profile
           </CardTitle>
-          <p className="text-xs sm:text-sm mt-1 text-gray-500">Manage your dean profile and account settings</p>
+          <p className="text-sm sm:text-sm mt-1 text-gray-500">Manage your dean profile and account settings</p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
@@ -338,16 +338,16 @@ const DeanProfile = () => {
             <div className={`text-xs sm:text-sm mb-4 sm:mb-6 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{profile.designation}</div>
 
             <div className="w-full mt-4 sm:mt-6 flex-1 flex flex-col">
-              <h4 className={`text-xs sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+              <h4 className={`text-md sm:text-md font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
               <div className={`border rounded-lg p-2.5 sm:p-4 flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5 h-full">
                   <div className="flex flex-col justify-start overflow-hidden">
-                    <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email ID</span>
-                    <Badge variant="secondary" className="w-fit max-w-full text-xs px-2.5 py-1 rounded-2xl bg-primary/10 text-primary border-none shadow-none truncate">{profile.email || '—'}</Badge>
+                    <span className={`text-md font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email ID</span>
+                    <Badge variant="secondary" className="w-fit max-w-full text-sm px-2.5 py-1 rounded-2xl bg-primary/10 text-primary border-none shadow-none truncate">{profile.email || '—'}</Badge>
                   </div>
                   <div className="flex flex-col justify-start">
-                    <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</span>
-                    <Badge variant="secondary" className="w-fit text-xs px-2.5 py-1 rounded-2xl bg-primary/10 text-primary border-none shadow-none">{profile.designation || '—'}</Badge>
+                    <span className={`text-md font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</span>
+                    <Badge variant="secondary" className="w-fit text-sm px-2.5 py-1 rounded-2xl bg-primary/10 text-primary border-none shadow-none">{profile.designation || '—'}</Badge>
                   </div>
                 </div>
               </div>

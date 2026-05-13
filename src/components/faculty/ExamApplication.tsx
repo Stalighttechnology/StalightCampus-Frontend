@@ -3,11 +3,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "../ui/dialog";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { useTheme } from "@/context/ThemeContext";
 import { API_ENDPOINT, API_BASE_URL } from "@/utils/config";
-import { manageSubjects } from "@/utils/hod_api";
+
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useToast } from "@/hooks/use-toast";
 import { useProctorStudentsQuery } from "@/hooks/useApiQueries";
@@ -106,7 +106,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
   }, [proctorData]);
 
   // Prevent duplicate fetches when dialog opens (React StrictMode may double-invoke effects)
-  const fetchInProgressRef = useRef<number | null>(null);
+  const fetchInProgressRef = useRef<string | null>(null);
 
   const downloadHallTicket = async (student: any) => {
     try {
@@ -710,7 +710,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> :
 
 
-                        <AvatarFallback className="text-xl md:text-lg lg:text-2xl font-medium\">
+                        <AvatarFallback className="text-xl md:text-lg lg:text-2xl font-medium">
                             {(selectedStudent?.name || studentDetails?.name || 'U')[0]?.toUpperCase()}
                           </AvatarFallback>
                         }
