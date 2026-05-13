@@ -420,7 +420,7 @@ const InvoiceManagement: React.FC = () => {
           {/* Cascading Filters Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Batch</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Batch</Label>
               <Select value={selectedFilters.batchId} onValueChange={(val) => setSelectedFilters((p) => ({ ...p, batchId: val }))}>
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="All Batches" />
@@ -433,7 +433,7 @@ const InvoiceManagement: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Branch</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Branch</Label>
               <Select
                 value={selectedFilters.branchId}
                 onValueChange={(val) => setSelectedFilters((p) => ({ ...p, branchId: val }))}
@@ -450,7 +450,7 @@ const InvoiceManagement: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Semester</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Semester</Label>
               <Select
                 value={selectedFilters.semesterId}
                 onValueChange={(val) => setSelectedFilters((p) => ({ ...p, semesterId: val }))}
@@ -466,7 +466,7 @@ const InvoiceManagement: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Section</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Section</Label>
               <Select
                 value={selectedFilters.sectionId}
                 onValueChange={(val) => setSelectedFilters((p) => ({ ...p, sectionId: val }))}
@@ -482,7 +482,7 @@ const InvoiceManagement: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admission Mode</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admission Mode</Label>
               <Select
                 value={selectedFilters.admissionMode}
                 onValueChange={(val) => setSelectedFilters((p) => ({ ...p, admissionMode: val }))}
@@ -529,7 +529,7 @@ const InvoiceManagement: React.FC = () => {
           {/* Table Area */}
           <div className="rounded-xl border border-border/50 overflow-hidden bg-card/30">
             <Table>
-              <TableHeader className="bg-muted/30">
+              <TableHeader className="bg-muted/30 text-md sm:text-lg">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="font-semibold py-4 px-6 text-foreground h-12">Invoice Info</TableHead>
                   <TableHead className="font-semibold text-foreground h-12">Student Details</TableHead>
@@ -606,7 +606,7 @@ const InvoiceManagement: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell className="align-middle">
-                        <div className="font-semibold text-foreground leading-tight">{inv.student.name}</div>
+                        <div className="font-semibold text-foreground leading-tight text-sm sm:text-md">{inv.student.name}</div>
                         <div className="text-[13px] font-semibold text-muted-foreground font-mono uppercase tracking-tight mt-1">{inv.student.usn} • Sem {inv.student.semester}</div>
                       </TableCell>
                       <TableCell className="align-middle">

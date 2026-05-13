@@ -386,26 +386,46 @@ const FeeComponents: React.FC = () => {
             </Table>
           </div>
           {/* Pagination controls */}
-          <div className="mt-4 flex items-center justify-between max-[480px]:flex-col max-[480px]:items-stretch max-[480px]:gap-3">
-            <div className="text-sm text-gray-600 max-[480px]:text-center">Page {componentsPage} of {componentsTotalPages}</div>
-            <div className="flex items-center space-x-2 max-[480px]:justify-center">
-              <Button size="sm" className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 max-[480px]:h-11 max-[480px]:flex-1" onClick={() => {
-                if (componentsPage > 1) {
-                  const next = componentsPage - 1;
-                  setComponentsPage(next);
-                  fetchComponents(next);
-                }
-              }} disabled={componentsPage === 1}>Prev</Button>
-              <span className={`min-w-8 text-center text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+          <div className={`mt-6 pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
+            <div className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Showing Page {componentsPage} of {componentsTotalPages}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline"
+                size="sm" 
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10" 
+                onClick={() => {
+                  if (componentsPage > 1) {
+                    const next = componentsPage - 1;
+                    setComponentsPage(next);
+                    fetchComponents(next);
+                  }
+                }} 
+                disabled={componentsPage === 1}
+              >
+                Previous
+              </Button>
+              
+              <div className={`min-w-10 h-9 flex items-center justify-center rounded-md border text-sm font-bold ${theme === 'dark' ? 'bg-muted/50 border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
                 {componentsPage}
-              </span>
-              <Button size="sm" className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 max-[480px]:h-11 max-[480px]:flex-1" onClick={() => {
-                if (componentsPage < componentsTotalPages) {
-                  const next = componentsPage + 1;
-                  setComponentsPage(next);
-                  fetchComponents(next);
-                }
-              }} disabled={componentsPage === componentsTotalPages}>Next</Button>
+              </div>
+              
+              <Button 
+                variant="outline"
+                size="sm" 
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10" 
+                onClick={() => {
+                  if (componentsPage < componentsTotalPages) {
+                    const next = componentsPage + 1;
+                    setComponentsPage(next);
+                    fetchComponents(next);
+                  }
+                }} 
+                disabled={componentsPage === componentsTotalPages}
+              >
+                Next
+              </Button>
             </div>
           </div>
         </CardContent>

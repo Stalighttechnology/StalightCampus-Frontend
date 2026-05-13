@@ -375,15 +375,15 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       
       <Card className={`overflow-hidden ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
         <CardHeader className="border-b">
-          <div className="flex justify-between items-center">
-            
-              <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold text-gray-900'}`}>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-1 sm:gap-4">
+            <div>
+              <CardTitle className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                 Fee Information
               </CardTitle>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+              <p className={`text-sm mt-1 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 View and manage your fee payments
               </p>
-           
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-8">
@@ -397,37 +397,37 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
               Student Details
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
               <motion.div variants={itemVariants}>
-                <label className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Name
+                <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
+                  Student Name
                 </label>
-                <p className={`text-base font-semibold mt-1.5 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                   {feeData?.student?.name || 'N/A'}
                 </p>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <label className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
                   USN
                 </label>
-                <p className={`text-base font-semibold mt-1.5 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                <p className={`text-base sm:text-lg font-semibold mt-1 font-mono ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                   {feeData?.student?.usn || 'N/A'}
                 </p>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <label className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
                   Department
                 </label>
-                <p className={`text-base font-semibold mt-1.5 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                   {feeData?.student?.dept || 'N/A'}
                 </p>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <label className={`text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Semester
+                <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
+                  Current Semester
                 </label>
-                <p className={`text-base font-semibold mt-1.5 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                   Semester {feeData?.student?.semester || 'N/A'}
                 </p>
               </motion.div>
@@ -450,18 +450,18 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
               className="h-full">
               
           <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex-1">
-                  <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                  <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                     Total Fees
                   </p>
-                  <p className={`text-3xl font-bold ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                  <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                     {formatCurrency(feeData?.fee_summary?.total_fees || 0)}
                   </p>
                 </div>
-                <motion.div whileHover={{ rotate: 10 }} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-600'}`}>
-                  <IndianRupee className="h-6 w-6" />
+                <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                  <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
                 </motion.div>
               </div>
             </CardContent>
@@ -475,18 +475,18 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
               className="h-full">
               
           <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex-1">
-                  <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                  <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                     Amount Paid
                   </p>
-                  <p className={`text-3xl font-bold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                  <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
                     {formatCurrency(feeData?.fee_summary?.amount_paid || 0)}
                   </p>
                 </div>
-                <motion.div whileHover={{ rotate: 10 }} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-green-500/10 text-green-400' : 'bg-green-100 text-green-600'}`}>
-                  <TrendingUp className="h-6 w-6" />
+                <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-green-50 text-green-600 border border-green-100'}`}>
+                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
                 </motion.div>
               </div>
             </CardContent>
@@ -500,18 +500,18 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
               className="h-full">
               
           <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex-1">
-                  <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                  <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                     Remaining Fees
                   </p>
-                  <p className={`text-3xl font-bold ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
+                  <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
                     {formatCurrency(feeData?.fee_summary?.remaining_fees || 0)}
                   </p>
                 </div>
-                <motion.div whileHover={{ rotate: 10 }} className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/10 text-destructive' : 'bg-red-100 text-red-600'}`}>
-                  <TrendingDown className="h-6 w-6" />
+                <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-destructive/10 text-destructive border border-destructive/20' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                  <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6" />
                 </motion.div>
               </div>
             </CardContent>
@@ -528,45 +528,44 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
               Payment Status
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <motion.div variants={itemVariants}>
-                <Badge className={`mb-3 ${getStatusColor(feeData?.fee_summary?.remaining_fees || 0)} px-4 py-2 text-base`}>
+              <motion.div variants={itemVariants} className="space-y-1">
+                <Badge className={`mb-2 ${getStatusColor(feeData?.fee_summary?.remaining_fees || 0)} px-4 py-1.5 text-sm sm:text-base font-semibold shadow-sm`}>
                   {(feeData?.fee_summary?.remaining_fees || 0) === 0 ? '✓ All Paid' : '● Pending Payment'}
                 </Badge>
-                {feeData?.fee_summary?.due_date &&
-                    <p className={`text-sm flex items-center gap-2 mt-3 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                    <Calendar className="h-4 w-4" />
-                    Due Date: {new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                {feeData?.fee_summary?.due_date && (
+                  <p className={`text-sm flex items-center gap-2 mt-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    <Calendar className="h-4 w-4 text-primary" />
+                    Due Date: <span className="text-foreground">{new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                   </p>
-                    }
+                )}
               </motion.div>
-              <motion.div variants={itemVariants} className="flex flex-wrap gap-3">
-                {(feeData?.fee_summary?.remaining_fees || 0) > 0 &&
-                    <>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3">
+                {(feeData?.fee_summary?.remaining_fees || 0) > 0 && (
+                  <>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                       <Button
-                          className={`bg-primary hover:bg-primary/90 text-white font-semibold`}
-                          onClick={() => handlePaymentClick(0)}>
-                          
+                        className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold h-11 px-6 shadow-lg shadow-primary/20"
+                        onClick={() => handlePaymentClick(0)}>
                         <CreditCard className="h-4 w-4 mr-2" />
                         Pay Full Amount
                       </Button>
                     </motion.div>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                       <Button
-                          variant="outline"
-                          className={theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold'}
-                          onClick={() => {
-                            const inv = feeData?.invoices?.find((inv) => inv.balance_amount > 0);
-                            if (inv) handleComponentPaymentClick(inv.id);
-                          }}>
-                          
+                        variant="outline"
+                        className={`w-full sm:w-auto h-11 px-6 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
+                        onClick={() => {
+                          const inv = feeData?.invoices?.find((inv) => inv.balance_amount > 0);
+                          if (inv) handleComponentPaymentClick(inv.id);
+                        }}>
+                        <Receipt className="h-4 w-4 mr-2" />
                         Pay by Component
                       </Button>
                     </motion.div>
                   </>
-                    }
+                )}
               </motion.div>
             </div>
           </CardContent>
@@ -617,25 +616,25 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                           </Badge>
                         </motion.div>
                       </div>
-                      <div className="grid grid-cols-3 gap-4 mb-4 p-3 rounded-lg" style={{ backgroundColor: theme === 'dark' ? 'rgba(99, 102, 241, 0.05)' : 'rgba(59, 130, 246, 0.05)' }}>
-                        <motion.div variants={itemVariants}>
-                          <p className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 p-4 rounded-xl border border-dashed" style={{ backgroundColor: theme === 'dark' ? 'rgba(99, 102, 241, 0.05)' : 'rgba(59, 130, 246, 0.05)', borderColor: theme === 'dark' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(59, 130, 246, 0.2)' }}>
+                        <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1">
+                          <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                             Total
                           </p>
                           <p className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                             {formatCurrency(invoice.total_amount)}
                           </p>
                         </motion.div>
-                        <motion.div variants={itemVariants}>
-                          <p className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1">
+                          <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                             Paid
                           </p>
-                          <p className={`font-semibold text-base ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                          <p className={`font-semibold text-base ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
                             {formatCurrency(invoice.paid_amount)}
                           </p>
                         </motion.div>
-                        <motion.div variants={itemVariants}>
-                          <p className={`text-xs font-semibold uppercase ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1 border-t sm:border-t-0 pt-2 sm:pt-0 mt-1 sm:mt-0 border-dashed border-border/50">
+                          <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
                             Balance
                           </p>
                           <p className={`font-semibold text-base ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
@@ -643,33 +642,31 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                           </p>
                         </motion.div>
                       </div>
-                      {invoice.balance_amount > 0 &&
-                      <motion.div
-                        variants={itemVariants}
-                        className="flex gap-2 flex-wrap">
-                        
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      {invoice.balance_amount > 0 && (
+                        <motion.div
+                          variants={itemVariants}
+                          className="flex flex-col sm:flex-row gap-2">
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                             <Button
-                            size="sm"
-                            className={`bg-primary hover:bg-primary/90 text-white font-semibold`}
-                            onClick={() => handlePaymentClick(invoice.id)}>
-                            
-                              <CreditCard className="h-3.5 w-3.5 mr-1" />
+                              size="sm"
+                              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold h-10 px-4"
+                              onClick={() => handlePaymentClick(invoice.id)}>
+                              <CreditCard className="h-3.5 w-3.5 mr-1.5" />
                               Pay Full
                             </Button>
                           </motion.div>
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                             <Button
-                            size="sm"
-                            variant="outline"
-                            className={theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold'}
-                            onClick={() => handleComponentPaymentClick(invoice.id)}>
-                            
+                              size="sm"
+                              variant="outline"
+                              className={`w-full sm:w-auto h-10 px-4 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
+                              onClick={() => handleComponentPaymentClick(invoice.id)}>
+                              <Receipt className="h-3.5 w-3.5 mr-1.5" />
                               Pay Component
                             </Button>
                           </motion.div>
                         </motion.div>
-                      }
+                      )}
                     </motion.div>
                     )}
                 </AnimatePresence>
@@ -852,7 +849,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                     <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Total Amount to Pay
                     </p>
-                    <p className={`text-3xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    <p className={`text-3xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                       {formatCurrency(currentInvoice?.balance_amount || 0)}
                     </p>
                   </div>
@@ -919,7 +916,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                       <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Total Selected
                       </p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      <p className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         {formatCurrency(
                     (currentInvoice?.components || []).
                     filter((_, idx) => selectedComponents.has(idx)).

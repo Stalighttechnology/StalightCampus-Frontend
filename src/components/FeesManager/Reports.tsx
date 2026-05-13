@@ -181,29 +181,27 @@ const Reports: React.FC = () => {
         <CardHeader className="border-b bg-muted/20 pb-6 px-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-2xl font-semibold flex items-center gap-2">
+              <CardTitle className="text-2xl sm:text-2xl font-semibold flex items-center gap-2 tracking-tight">
                 Staff Attendance Audit
               </CardTitle>
-              <p className="text-muted-foreground mt-1 text-sm">Monitor attendance across all institutional roles</p>
+              <p className="text-muted-foreground mt-1.5 text-sm sm:text-md font-medium">Monitor attendance across all institutional roles</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => downloadReport('pdf')}
-                className="h-9 px-4 font-semibold uppercase text-[12px] tracking-widest rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all">
-                
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
+                className="h-10 sm:h-9 px-3 sm:px-4 font-semibold uppercase text-[16px] sm:text-[13px] tracking-widest rounded-xl sm:rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-sm">
+                <Download className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">PDF</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => downloadReport('excel')}
-                className="h-9 px-4 font-semibold uppercase text-[12px] tracking-widest rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all">
-                
-                <FileText className="h-4 w-4 mr-2" />
-                Export Excel
+                className="h-10 sm:h-9 px-3 sm:px-4 font-semibold uppercase text-[16px] sm:text-[13px] tracking-widest rounded-xl sm:rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-sm">
+                <FileText className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">Excel</span>
               </Button>
             </div>
           </div>
@@ -213,7 +211,7 @@ const Reports: React.FC = () => {
           {/* Filters Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-muted/10 p-5 rounded-2xl border border-border/50">
             <div className="space-y-2">
-              <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
+              <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                   <SelectValue placeholder="Select Role" />
@@ -229,7 +227,7 @@ const Reports: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] ml-1">Start Date <span className="text-red-500">*</span></Label>
+              <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Start Date <span className="text-red-500">*</span></Label>
               <Popover open={isStartPopoverOpen} onOpenChange={setIsStartPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -261,7 +259,7 @@ const Reports: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[11px] font-semibold uppercase tracking-[0.1em] ml-1">End Date <span className="text-red-500">*</span></Label>
+              <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">End Date <span className="text-red-500">*</span></Label>
               <Popover open={isEndPopoverOpen} onOpenChange={setIsEndPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -296,16 +294,16 @@ const Reports: React.FC = () => {
           {/* Table Section */}
           <div className="rounded-xl border border-border/50 overflow-x-auto bg-card/30 backdrop-blur-md custom-scrollbar">
             <Table>
-              <TableHeader className="bg-muted/40">
+              <TableHeader className="bg-muted/40 whitespace-nowrap">
                 <TableRow className="hover:bg-transparent border-b border-border/50">
-                  <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider">Staff Name</TableHead>
-                  <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider">Role</TableHead>
-                  <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider">Department</TableHead>
-                  <TableHead className="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-wider">Total Days</TableHead>
-                  <TableHead className="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-wider text-green-600">Present</TableHead>
-                  <TableHead className="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-wider text-red-600">Absent</TableHead>
-                  <TableHead className="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-wider">Performance</TableHead>
-                  <TableHead className="px-6 py-4 text-right pr-6 text-[11px] font-semibold uppercase tracking-wider">Actions</TableHead>
+                  <TableHead className="px-6 py-4 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Staff Name</TableHead>
+                  <TableHead className="px-6 py-4 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Role</TableHead>
+                  <TableHead className="px-6 py-4 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Department</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Total Days</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-green-600">Present</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider text-red-600">Absent</TableHead>
+                  <TableHead className="px-6 py-4 text-center text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Performance</TableHead>
+                  <TableHead className="px-6 py-4 text-right pr-6 text-sm sm:text-[14px] font-semibold uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -319,13 +317,13 @@ const Reports: React.FC = () => {
 
                 attendanceData.map((item) =>
                 <TableRow key={item.id} className="hover:bg-primary/5 transition-all duration-200 border-b border-border/50">
-                      <TableCell className="py-5 px-6 font-semibold text-foreground">{item.name}</TableCell>
+                      <TableCell className="py-5 px-6 font-semibold text-sm sm:text-base text-foreground">{item.name}</TableCell>
                       <TableCell className="px-6">
                         <Badge variant="outline" className="bg-muted/30 text-[10px] font-semibold uppercase tracking-widest border-border/50 px-2 py-0.5 rounded-md">
                           {item.role}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-6 text-sm text-muted-foreground font-medium uppercase tracking-tight">{item.branch_dept}</TableCell>
+                      <TableCell className="px-6 text-sm text-muted-foreground font-medium">{item.branch_dept}</TableCell>
                       <TableCell className="text-center font-mono font-semibold text-sm">{item.total_days}</TableCell>
                       <TableCell className="text-center">
                         <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 font-semibold text-sm">
