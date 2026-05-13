@@ -28,27 +28,54 @@ export interface UploadStudyMaterialRequest {
   semester_id: string;
   branch_id: string;
   section_id?: string;
-  file: File;
+  file_url: string;
 }
+
+export interface GetR2PresignedUrlResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    url: string;
+    file_url: string;
+  };
+}
+
+export const getR2PresignedUrl = async (file_name: string, file_type: string, folder: string = 'study_materials'): Promise<GetR2PresignedUrlResponse> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/common/generate-r2-presigned-url/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file_name, file_type, folder })
+    });
+    return await response.json();
+  } catch (error: unknown) {
+    return { success: false, message: (error as any).toString() };
+  }
+};
 
 export const uploadStudyMaterial = async (data: UploadStudyMaterialRequest) => {
   try {
-    if (!data.branch_id || !data.semester_id || !data.title || !data.file) {
-      throw new Error("Branch ID, Semester ID, Title, and File are required");
+    if (!data.branch_id || !data.semester_id || !data.title || !data.file_url) {
+      throw new Error("Branch ID, Semester ID, Title, and File URL are required");
     }
-    const formData = new FormData();
-    formData.append('title', data.title);
-    if (data.subject_id) formData.append('subject_id', data.subject_id);
-    formData.append('subject_name', data.subject_name || '');
-    formData.append('subject_code', data.subject_code || '');
-    formData.append('semester_id', data.semester_id);
-    formData.append('branch_id', data.branch_id);
-    if (data.section_id) formData.append('section_id', data.section_id);
-    formData.append('file', data.file);
-
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/study-materials/`, {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error: unknown) {
+    return { success: false, message: (error as any).toString() };
+  }
+};
+
+export const deleteStudyMaterial = async (material_id: string): Promise<any> => {
+  try {
+    if (!material_id) throw new Error("Material ID is required");
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/study-materials/`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ material_id })
     });
     return await response.json();
   } catch (error: unknown) {

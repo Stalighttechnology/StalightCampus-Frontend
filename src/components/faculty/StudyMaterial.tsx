@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "../ui/card";
-import { Download, FileText, UploadCloud, X, Search, BookOpen } from "lucide-react";
-import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject } from "../../utils/faculty_api";
+import { Download, FileText, UploadCloud, X, Search, BookOpen, Trash2, Loader2 } from "lucide-react";
+import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject, getR2PresignedUrl, deleteStudyMaterial } from "../../utils/faculty_api";
 import { useTheme } from "../../context/ThemeContext";
+import { toast } from "react-hot-toast";
 import {
   Select,
   SelectContent,
@@ -42,41 +43,73 @@ interface AssignedSection {
   branch_id: string;
 }
 
-const StudyMaterialRow = ({ material, theme }: {material: StudyMaterial;theme: string;}) =>
-<div className={`grid md:grid-cols-6 gap-2 md:gap-3 items-start md:items-center text-xs sm:text-sm py-2 md:py-3 border-b md:border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'} last:border-b-0`}>
-    <div className="hidden md:flex items-center">
-      <FileText className="text-red-500" size={18} />
-    </div>
-    <div className="flex items-start gap-2 md:flex-col md:gap-0">
-      <FileText className="text-red-500 flex-shrink-0 md:hidden" size={16} />
-      <div>
-        <div className="text-xs text-gray-500 md:hidden font-semibold">Title</div>
-        <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} font-medium cursor-pointer hover:underline break-words`}>
-          {material.title}
+const StudyMaterialRow = ({ material, theme, onDelete }: {material: StudyMaterial;theme: string;onDelete: (id: number) => void;}) => {
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete "${material.title}"? This action cannot be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      const resp = await deleteStudyMaterial(String(material.id));
+      if (resp.success) {
+        toast.success("Study material deleted successfully");
+        onDelete(material.id);
+      } else {
+        toast.error(resp.message || "Failed to delete study material");
+      }
+    } catch (e) {
+      toast.error("Error deleting study material");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className={`grid md:grid-cols-6 gap-2 md:gap-3 items-start md:items-center text-xs sm:text-sm py-2 md:py-3 border-b md:border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'} last:border-b-0`}>
+      <div className="hidden md:flex items-center">
+        <FileText className="text-red-500" size={18} />
+      </div>
+      <div className="flex items-start gap-2 md:flex-col md:gap-0">
+        <FileText className="text-red-500 flex-shrink-0 md:hidden" size={16} />
+        <div>
+          <div className="text-xs text-gray-500 md:hidden font-semibold">Title</div>
+          <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} font-medium cursor-pointer hover:underline break-words`}>
+            {material.title}
+          </div>
         </div>
       </div>
-    </div>
-    <div className="flex items-start gap-2 md:flex-col md:gap-0">
-      <div className="text-xs text-gray-500 md:hidden font-semibold min-w-fit">Course</div>
-      <div className="flex flex-col md:gap-0.5">
-        <div className={`truncate`}>{material.subject_name}</div>
-        <div className="hidden md:block text-gray-500 text-xs">({material.subject_code})</div>
+      <div className="flex items-start gap-2 md:flex-col md:gap-0">
+        <div className="text-xs text-gray-500 md:hidden font-semibold min-w-fit">Course</div>
+        <div className="flex flex-col md:gap-0.5">
+          <div className={`truncate`}>{material.subject_name}</div>
+          <div className="hidden md:block text-gray-500 text-xs">({material.subject_code})</div>
+        </div>
+      </div>
+      <div className="flex items-start gap-2 md:flex-col md:gap-0">
+        <div className="text-xs text-gray-500 md:hidden font-semibold">Semester</div>
+        <div className="">{material.semester || "N/A"}</div>
+      </div>
+      <div className="flex items-start gap-2 md:flex-col md:gap-0">
+        <div className="text-xs text-gray-500 md:hidden font-semibold">Uploaded</div>
+        <div className="">{material.uploaded_by}</div>
+      </div>
+      <div className="flex items-center justify-end md:justify-center gap-2">
+        <a href={material.file_url} download={material.title + ".pdf"} target="_blank" rel="noopener noreferrer">
+          <Download className={`cursor-pointer text-gray-500 hover:text-gray-700 flex-shrink-0`} size={18} />
+        </a>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className={`transition-colors ${theme === 'dark' ? 'text-muted-foreground hover:text-red-400' : 'text-gray-500 hover:text-red-600'}`}
+        >
+          {deleting ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
+        </button>
       </div>
     </div>
-    <div className="flex items-start gap-2 md:flex-col md:gap-0">
-      <div className="text-xs text-gray-500 md:hidden font-semibold">Semester</div>
-      <div className="">{material.semester || "N/A"}</div>
-    </div>
-    <div className="flex items-start gap-2 md:flex-col md:gap-0">
-      <div className="text-xs text-gray-500 md:hidden font-semibold">Uploaded</div>
-      <div className="">{material.uploaded_by}</div>
-    </div>
-    <div className="flex items-center justify-end md:justify-center">
-      <a href={material.file_url} download={material.title + ".pdf"} target="_blank" rel="noopener noreferrer">
-        <Download className={`cursor-pointer text-gray-500 hover:text-gray-700 flex-shrink-0`} size={18} />
-      </a>
-    </div>
-  </div>;
+  );
+};
 
 
 const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref) => {
@@ -309,7 +342,14 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                   </p>
                 </div> :
 
-              materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
+              materials.map((m: StudyMaterial) => (
+                <StudyMaterialRow
+                  key={m.id}
+                  material={m}
+                  theme={theme}
+                  onDelete={(id) => setMaterials((prev) => prev.filter((item) => item.id !== id))}
+                />
+              ))
               }
             </div>
           </div>
@@ -382,48 +422,77 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} />
             
               <button
-              onClick={async () => {
-                if (!uploadFile || !uploadTitle || !uploadSubject) {
-                  alert("Please fill all fields");
-                  return;
-                }
-                setUploading(true);
-                try {
-                  const subj = grouped.find((g) => String(g.subject_id) === uploadSubject);
-                  const resp = await uploadStudyMaterial({
-                    title: uploadTitle,
-                    subject_id: uploadSubject,
-                    subject_name: subj ? subj.subject_name : '',
-                    subject_code: subj ? subj.subject_code : '',
-                    semester_id: uploadSemester,
-                    branch_id: uploadBranch,
-                    section_id: uploadSection,
-                    file: uploadFile
-                  });
-                  if (resp && resp.success) {
-                    alert('Uploaded successfully');
-                    setShowUploadModal(false);
-                    setUploadSubject('');
-                    setUploadBranch('');
-                    setUploadSemester('');
-                    setUploadSection('');
-                    setUploadTitle('');
-                    setUploadFile(null);
-                    // Materials will automatically reload since filters are already selected
-                  } else {
-                    alert(resp?.message || 'Upload failed');
+                onClick={async () => {
+                  if (!uploadFile || !uploadTitle || !uploadSubject) {
+                    toast.error("Please fill all fields");
+                    return;
                   }
-                } catch (e) {
+                  setUploading(true);
+                  try {
+                    // 1. Get pre-signed URL
+                    const presignedResp = await getR2PresignedUrl(uploadFile.name, uploadFile.type);
+                    if (!presignedResp.success || !presignedResp.data) {
+                      throw new Error(presignedResp.message || "Failed to get upload URL");
+                    }
 
-                  alert('Upload error');
-                } finally {
-                  setUploading(false);
-                }
-              }}
-              disabled={uploading}
-              className={`w-full px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-bold text-white ${uploading ? 'bg-gray-500' : 'bg-primary hover:bg-primary/90'}`}>
-              
-                {uploading ? 'Uploading...' : 'Upload'}
+                    const { url: uploadUrl, file_url: finalFileUrl } = presignedResp.data;
+
+                    // 2. Upload to R2
+                    const uploadResp = await fetch(uploadUrl, {
+                      method: "PUT",
+                      body: uploadFile,
+                      headers: {
+                        "Content-Type": uploadFile.type
+                      }
+                    });
+
+                    if (!uploadResp.ok) {
+                      throw new Error("Failed to upload file to storage");
+                    }
+
+                    // 3. Finalize with backend
+                    const subj = grouped.find((g) => String(g.subject_id) === uploadSubject);
+                    const resp = await uploadStudyMaterial({
+                      title: uploadTitle,
+                      subject_id: uploadSubject,
+                      subject_name: subj ? subj.subject_name : '',
+                      subject_code: subj ? subj.subject_code : '',
+                      semester_id: uploadSemester,
+                      branch_id: uploadBranch,
+                      section_id: uploadSection,
+                      file_url: finalFileUrl
+                    });
+
+                    if (resp && resp.success) {
+                      toast.success('Uploaded successfully');
+                      setShowUploadModal(false);
+                      setUploadSubject('');
+                      setUploadBranch('');
+                      setUploadSemester('');
+                      setUploadSection('');
+                      setUploadTitle('');
+                      setUploadFile(null);
+                      loadMaterials();
+                    } else {
+                      toast.error(resp?.message || 'Upload failed');
+                    }
+                  } catch (error: any) {
+                    toast.error(error.message || 'Upload error');
+                  } finally {
+                    setUploading(false);
+                  }
+                }}
+                disabled={uploading}
+                className={`w-full px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 ${uploading ? 'bg-gray-500' : 'bg-primary hover:bg-primary/90'}`}>
+                
+                {uploading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={16} />
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload'
+                )}
               </button>
             </div>
           </div>

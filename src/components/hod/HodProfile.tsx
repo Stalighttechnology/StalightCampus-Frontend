@@ -12,6 +12,10 @@ import { Eye, EyeOff } from "lucide-react";
 import { SkeletonCard } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
+import { Camera, Upload } from "lucide-react";
+import { performR2Upload } from "../../utils/common_api";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Progress } from "../ui/progress";
 
 interface User {
   user_id?: string;
@@ -43,8 +47,11 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
     email: "",
     mobile_number: "",
     address: "",
-    bio: ""
+    bio: "",
+    profile_picture: ""
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setLocalError] = useState<string | null>(null);
   const { theme } = useTheme();
   const [fetchedUser, setFetchedUser] = useState<User | null>(null);
@@ -118,15 +125,16 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
         }
 
         if (payload) {
-          const fetchedProfile: Profile = {
+          const fetchedProfile: Profile & { profile_picture?: string } = {
             first_name: payload.first_name || "",
             last_name: payload.last_name || "",
             email: payload.email || payload.username || "",
             mobile_number: payload.mobile_number || payload.mobile || "",
             address: payload.address || "",
-            bio: payload.bio || ""
+            bio: payload.bio || "",
+            profile_picture: payload.profile_picture || payload.profile_picture_url || ""
           };
-          setProfile(fetchedProfile);
+          setProfile(fetchedProfile as any);
         } else {
           const message = response && (response as any).message || "Failed to fetch profile";
           setLocalError(message);
@@ -156,6 +164,37 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
 
     fetchProfile();
   }, [propUser, setError]);
+
+  const handleProfilePictureSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadProgress(10);
+    try {
+      const fileUrl = await performR2Upload(file, 'profiles');
+      setUploadProgress(90);
+      if (fileUrl) {
+        // Update backend immediately
+        const res = await manageProfile({ profile_picture_url: fileUrl }, "PATCH");
+        if (res.success) {
+          setProfile(prev => ({ ...prev, profile_picture: fileUrl } as any));
+          // Update local storage
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          user.profile_picture = fileUrl;
+          localStorage.setItem('user', JSON.stringify(user));
+          showSuccessAlert("Success", "Profile picture updated!");
+        } else {
+          showErrorAlert("Error", res.message || "Failed to update profile picture");
+        }
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Upload failed");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -458,9 +497,37 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
 
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
-              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4 flex-shrink-0`}>
-                {profile.first_name && profile.first_name[0] || ''}{profile.last_name && profile.last_name[0] || ''}
+              <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0">
+                <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
+                  {(profile as any).profile_picture ? (
+                    <AvatarImage src={(profile as any).profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
+                  ) : (
+                    <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+                      {(profile.first_name?.[0] || "") + (profile.last_name?.[0] || "")}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <label 
+                  htmlFor="profile-picture-upload" 
+                  className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                >
+                  <Camera className="h-4 w-4" />
+                </label>
+                <input 
+                  id="profile-picture-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleProfilePictureSelect} 
+                  className="hidden" 
+                />
               </div>
+
+              {isUploading && (
+                <div className="w-full max-w-[150px] mb-2">
+                  <Progress value={uploadProgress} className="h-1" />
+                  <p className="text-[10px] text-center mt-1 text-muted-foreground">Uploading...</p>
+                </div>
+              )}
 
               <div className="text-base sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
               <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Head of Department</div>
