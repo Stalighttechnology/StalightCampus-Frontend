@@ -243,11 +243,12 @@ const DeanAttendanceFilters = () => {
                 </Button>
                 <Button
                   variant="secondary"
+                  disabled={!startDate && !endDate}
                   onClick={() => {
                     setStartDate("");
                     setEndDate("");
                   }}
-                  className="gap-2 w-full lg:w-auto"
+                  className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
                 >
                   <Trash2 className="w-4 h-4" />
                   Clear
@@ -450,21 +451,27 @@ const DeanAttendanceFilters = () => {
                   </div>
 
                   {selectedPersonSummary.leaves_pagination?.total_pages > 1 && (
-                    <div className="flex items-center justify-between mt-4 text-xs">
+                    <div className={`flex items-center justify-between p-2 rounded-lg border mt-4 ${theme === 'dark' ? 'bg-card/50 border-border' : 'bg-gray-50 border-gray-200'}`}>
                       <button
                         disabled={leavesPage === 1}
                         onClick={() => setLeavesPage(p => Math.max(1, p - 1))}
-                        className="px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-50"
+                        className={`px-3 py-1.5 text-xs font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${leavesPage > 1
+                            ? 'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm'
+                            : 'bg-primary opacity-50 text-white border-primary cursor-not-allowed'
+                          }`}
                       >
-                        Prev
+                        Previous
                       </button>
-                      <span className="text-muted-foreground">
-                        Page {leavesPage} of {selectedPersonSummary.leaves_pagination.total_pages}
+                      <span className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        Page <span className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{leavesPage}</span> of {selectedPersonSummary.leaves_pagination.total_pages}
                       </span>
                       <button
                         disabled={leavesPage === selectedPersonSummary.leaves_pagination.total_pages}
                         onClick={() => setLeavesPage(p => p + 1)}
-                        className="px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-50"
+                        className={`px-3 py-1.5 text-xs font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${leavesPage < selectedPersonSummary.leaves_pagination.total_pages
+                            ? 'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm'
+                            : 'bg-primary opacity-50 text-white border-primary cursor-not-allowed'
+                          }`}
                       >
                         Next
                       </button>

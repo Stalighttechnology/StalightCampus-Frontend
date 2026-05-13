@@ -296,7 +296,8 @@ const DeanExams: React.FC = () => {
                       ) : (
                         <div className={`rounded-xl border shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'
                           }`}>
-                          <div className="overflow-x-auto">
+                          {/* Desktop Table View */}
+                          <div className="hidden md:block overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
                               <thead className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
                                 <tr className={`text-left text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'
@@ -373,6 +374,84 @@ const DeanExams: React.FC = () => {
                                 ))}
                               </tbody>
                             </table>
+                          </div>
+
+                          {/* Mobile Card View */}
+                          <div className="md:hidden divide-y divide-border">
+                            {list.map((ex: ExamEntry) => (
+                              <div key={ex.id} className="p-4 space-y-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="space-y-1.5 flex-1 pr-2">
+                                    <div className="font-bold text-lg text-foreground leading-tight">
+                                      {ex.title || ex.subject || 'Exam'}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                      <span className="font-medium">{ex.subject}</span>
+                                      <span className="opacity-50">•</span>
+                                      <span>{ex.branch}</span>
+                                    </div>
+                                  </div>
+                                  <Badge className={`capitalize shrink-0 text-xs py-0.5 px-2 ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                                    computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                                      'bg-gray-500/10 text-gray-600 border-gray-500/20'
+                                    }`} variant="outline">
+                                    {computeStatus(ex)}
+                                  </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-y-5 gap-x-3">
+                                  <div className="space-y-1.5">
+                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Date & Time</div>
+                                    <div className="flex items-center gap-2 text-sm font-bold">
+                                      <Calendar className="w-4 h-4 text-primary" />
+                                      {formatDate(ex.date)}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground ml-6">
+                                      <Clock className="w-3.5 h-3.5 opacity-70" />
+                                      {ex.start_time} - {ex.end_time}
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-1.5 text-right">
+                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Batch / Sem</div>
+                                    <div className="text-sm font-bold">{ex.batch || '-'}</div>
+                                    <div className="text-xs text-muted-foreground">Semester {ex.semester || '-'}</div>
+                                  </div>
+
+                                  <div className="space-y-1.5">
+                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Venue</div>
+                                    <Badge variant="secondary" className="font-bold text-xs px-2.5 py-0.5 h-6">
+                                      {ex.room || 'TBD'}
+                                    </Badge>
+                                  </div>
+
+                                  <div className="space-y-1.5 text-right">
+                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold">Published</div>
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      {ex.is_published ? (
+                                        <div className="flex items-center gap-1 text-green-600 font-bold text-xs">
+                                          <CheckCircle2 className="w-4 h-4" /> Yes
+                                        </div>
+                                      ) : (
+                                        <span className="text-xs text-muted-foreground font-bold bg-muted/50 px-2 py-0.5 rounded">Draft</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {!ex.is_published && (
+                                  <div className="pt-2">
+                                    <Button
+                                      variant="default"
+                                      className="w-full h-10 text-sm font-bold shadow-md bg-primary hover:bg-primary/90"
+                                      onClick={() => publishExam(ex.id)}
+                                    >
+                                      Publish Results
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}

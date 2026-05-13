@@ -591,21 +591,21 @@ const CampusLocationManager: React.FC = () => {
     <div className={`flex flex-col h-[100dvh] overflow-hidden p-4 sm:p-4 text-sm sm:text-base w-full max-w-[412px] sm:max-w-none sm:min-h-screen mx-auto ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 rounded-lg'}`}>
       {/* Header area (fixed) */}
       <div className="shrink-0 space-y-6">
-        <div className="flex items-start justify-between w-full">
-          <div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-4">
+          <div className="flex-1">
             <h2 className={`text-lg sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Location Management</h2>
-            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500 p-2'}`}>Set and manage campus boundaries for geolocation-based attendance</p>
+            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Set and manage campus boundaries for geolocation-based attendance</p>
           </div>
-          <div>
-            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white">
-              <Plus className="h-4 w-4" />
+          <div className="w-full sm:w-auto">
+            <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white h-10 font-bold shadow-md">
+              <Plus className="h-5 w-5" />
               Add Location
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden w-full min-h-0">
+      <div className="flex-1 overflow-hidden w-full pt-2">
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogContent className={theme === 'dark' ? 'bg-card border border-border text-foreground w-[95%] max-w-[400px] sm:max-w-[720px] max-h-[90dvh] flex flex-col overflow-hidden rounded-lg mx-auto' : 'bg-white border border-gray-200 text-gray-900 w-[95%] max-w-[400px] sm:max-w-[720px] max-h-[90dvh] flex flex-col overflow-hidden rounded-lg mx-auto'}>
             <DialogHeader className="shrink-0">
