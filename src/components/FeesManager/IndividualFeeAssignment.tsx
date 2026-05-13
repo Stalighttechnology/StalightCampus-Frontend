@@ -266,7 +266,7 @@ const IndividualFeeAssignment: React.FC = () => {
               <CardTitle>
                 Individual Fee Management
               </CardTitle>
-              <p className="text-muted-foreground mt-1 text-sm">Review and manage existing student fee assignments</p>
+              <p className="text-muted-foreground mt-1 text-md sm:text-sm">Review and manage existing student fee assignments</p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="px-3 py-1 font-medium h-9">
@@ -280,7 +280,7 @@ const IndividualFeeAssignment: React.FC = () => {
           {/* Filters Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Batch</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Batch</Label>
               <Select value={selectedFilters.batchId} onValueChange={(val) => setSelectedFilters((p) => ({ ...p, batchId: val }))}>
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="All Batches" />
@@ -293,7 +293,7 @@ const IndividualFeeAssignment: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Branch</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Branch</Label>
               <Select
                 value={selectedFilters.branchId}
                 onValueChange={(val) => setSelectedFilters((p) => ({ ...p, branchId: val }))}
@@ -310,7 +310,7 @@ const IndividualFeeAssignment: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Semester</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Semester</Label>
               <Select
                 value={selectedFilters.semesterId}
                 onValueChange={(val) => setSelectedFilters((p) => ({ ...p, semesterId: val }))}
@@ -326,7 +326,7 @@ const IndividualFeeAssignment: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Section</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Section</Label>
               <Select
                 value={selectedFilters.sectionId}
                 onValueChange={(val) => setSelectedFilters((p) => ({ ...p, sectionId: val }))}
@@ -342,7 +342,7 @@ const IndividualFeeAssignment: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admission Mode</Label>
+              <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admission Mode</Label>
               <Select
                 value={selectedFilters.admissionMode}
                 onValueChange={(val) => setSelectedFilters((p) => ({ ...p, admissionMode: val }))}
@@ -374,50 +374,56 @@ const IndividualFeeAssignment: React.FC = () => {
           </div>
 
           <div className="border rounded-xl overflow-hidden shadow-sm">
-            {!allFiltersSelected ?
-            <div className="h-[400px] flex flex-col items-center justify-center bg-muted/5 px-6 text-center">
+            {!allFiltersSelected ? (
+              <div className="min-h-[400px] py-10 flex flex-col items-center justify-center bg-muted/5 px-4 text-center">
                 <div className="relative mb-6">
-                  <div className="absolute -top-4 -right-4 bg-primary/10 p-3 rounded-full animate-bounce">
-                    <MousePointer2 className="h-3 w-3 text-primary" />
+                  <div className="absolute -top-3 -right-3 bg-primary/10 p-2 rounded-full animate-bounce sm:-top-4 sm:-right-4 sm:p-3">
+                    <MousePointer2 className="h-3 w-3 text-primary sm:h-4 sm:w-4" />
                   </div>
-                  <div className="bg-muted/20 p-8 rounded-2xl border-2 border-dashed border-muted">
-                    <Filter className="h-7 w-7 text-muted-foreground/30" />
+                  <div className="bg-muted/20 p-6 rounded-2xl border-2 border-dashed border-muted sm:p-8">
+                    <Filter className="h-6 w-6 text-muted-foreground/30 sm:h-8 sm:w-8" />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Selection Required</h3>
-                <p className="text-muted-foreground max-w-sm mb-8">
+                <h3 className="text-lg font-bold text-foreground mb-2">Selection Required</h3>
+                <p className="text-muted-foreground max-w-sm mb-8 text-sm px-2">
                   Please complete the cascading filter selection above to view fee assignments.
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 w-full max-w-2xl">
+                <div className="flex flex-wrap justify-center gap-4 sm:gap-6 w-full max-w-3xl">
                   {[
-                { label: 'Batch', active: !!selectedFilters.batchId },
-                { label: 'Branch', active: !!selectedFilters.branchId },
-                { label: 'Semester', active: !!selectedFilters.semesterId },
-                { label: 'Section', active: !!selectedFilters.sectionId },
-                { label: 'Admission', active: !!selectedFilters.admissionMode }].
-                map((step, i) =>
-                <div key={step.label} className="flex flex-col items-center gap-2">
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-all ${step.active ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-background border-muted text-muted-foreground'}`
-                  }>
-                        {step.active ? <CheckCircle className="h-4 w-4" /> : i + 1}
+                    { label: 'Batch', active: !!selectedFilters.batchId },
+                    { label: 'Branch', active: !!selectedFilters.branchId },
+                    { label: 'Semester', active: !!selectedFilters.semesterId },
+                    { label: 'Section', active: !!selectedFilters.sectionId },
+                    { label: 'Admission', active: !!selectedFilters.admissionMode }
+                  ].map((step, i) => (
+                    <div key={step.label} className="flex flex-col items-center gap-2 min-w-[60px] sm:min-w-[80px]">
+                      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 transition-all duration-300 ${
+                        step.active 
+                          ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-110' 
+                          : 'bg-background border-muted text-muted-foreground opacity-60'
+                      }`}>
+                        {step.active ? <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6" /> : i + 1}
                       </div>
-                      <span className={`text-[10px] font-semibold uppercase tracking-wider ${step.active ? 'text-primary' : 'text-muted-foreground'}`}>
+                      <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors duration-300 ${
+                        step.active ? 'text-primary' : 'text-muted-foreground opacity-60'
+                      }`}>
                         {step.label}
                       </span>
                     </div>
-                )}
+                  ))}
                 </div>
-              </div> :
-            loading ?
-            <div className="overflow-x-auto">
+              </div>
+            ) : loading ? (
+              <div className="overflow-x-auto">
                 <SkeletonTable rows={10} cols={6} />
-              </div> :
-            assignments.length === 0 ?
-            <div className="h-[400px] flex flex-col items-center justify-center text-muted-foreground italic px-6 text-center bg-muted/5">
+              </div>
+            ) : assignments.length === 0 ? (
+              <div className="h-[400px] flex flex-col items-center justify-center text-muted-foreground italic px-6 text-center bg-muted/5">
                 <Users className="h-12 w-12 mb-4 opacity-10" />
                 <h3 className="text-lg font-semibold text-foreground not-italic mb-1">No Assignments Found</h3>
                 <p className="text-sm text-muted-foreground">Try adjusting your filters to find what you're looking for.</p>
-              </div> :
+              </div>
+            ) : (
 
 
             <div className="overflow-x-auto">
@@ -481,7 +487,7 @@ const IndividualFeeAssignment: React.FC = () => {
                   </TableBody>
                 </Table>
               </div>
-            }
+            )}
           </div>
         </CardContent>
 
