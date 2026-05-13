@@ -55,8 +55,8 @@ const Pricing = () => {
     },
     {
       name: "Pro",
-      price: "₹99,999",
-      duration: "/year",
+      price: "₹1,000",
+      duration: "/year (Testing)",
       description: "For scaling institutions with enhanced workflows and deep analytics.",
       tagline: "Elevate your campus",
       features: [
@@ -76,8 +76,8 @@ const Pricing = () => {
     },
     {
       name: "Advance",
-      price: "₹3,00,000",
-      duration: "/year",
+      price: "₹5,000",
+      duration: "/year (Testing)",
       description: "Enterprise-grade capabilities with state-of-the-art intelligence and security.",
       tagline: "The future of education",
       features: [

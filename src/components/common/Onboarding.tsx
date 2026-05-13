@@ -11,6 +11,13 @@ import {
 import { API_ENDPOINT } from "@/utils/config";
 import { toast } from "@/components/ui/use-toast";
 
+// Razorpay types
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 const Onboarding = () => {
   const { plan } = useParams<{ plan: string }>();
   const navigate = useNavigate();
@@ -75,6 +82,60 @@ const Onboarding = () => {
 
   const prevStep = () => setCurrentStep(prev => prev - 1);
 
+  const handleRazorpayPayment = async (orderId: string, keyId: string, orgData: any) => {
+    const options = {
+      key: keyId,
+      amount: formData.plan === 'pro' ? 100000 : 500000, // Amount in paise (₹1,000 for pro, ₹5,000 for advance)
+      currency: 'INR',
+      order_id: orderId,
+      name: 'Stalight Campus',
+      description: `${formData.plan.charAt(0).toUpperCase() + formData.plan.slice(1)} Plan Subscription`,
+      handler: async function (response: any) {
+        // Payment successful
+        try {
+          const verifyResponse = await fetch(`${API_ENDPOINT}/payments/verify/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
+
+          const verifyData = await verifyResponse.json();
+
+          if (verifyResponse.ok && verifyData.success) {
+            setSuccess(true);
+            toast({ title: "Payment Successful!", description: "Your organization has been activated. Check your email for credentials." });
+          } else {
+            toast({ variant: "destructive", title: "Payment Verification Failed", description: "Please contact support if amount was debited." });
+          }
+        } catch (error) {
+          toast({ variant: "destructive", title: "Verification Error", description: "Please contact support if amount was debited." });
+        }
+      },
+      prefill: {
+        name: orgData.admin_name,
+        email: orgData.email,
+        contact: orgData.phone,
+      },
+      theme: {
+        color: '#7c3aed',
+      },
+      modal: {
+        ondismiss: function() {
+          toast({ variant: "destructive", title: "Payment Cancelled", description: "Organization setup was cancelled." });
+        }
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -96,9 +157,9 @@ const Onboarding = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        if (data.requires_payment && data.checkout_url) {
-          toast({ title: "Redirecting to Payment", description: "Please complete the payment to activate your institution." });
-          window.location.href = data.checkout_url;
+        if (data.requires_payment && data.order_id) {
+          // Handle Razorpay payment
+          await handleRazorpayPayment(data.order_id, data.razorpay_key_id, formData);
           return;
         }
 
