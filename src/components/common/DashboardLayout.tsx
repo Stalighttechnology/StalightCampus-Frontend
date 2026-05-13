@@ -10,6 +10,7 @@ import { getDashboardOverview } from "../../utils/student_api";
 import { getFacultyDashboardBootstrap } from "../../utils/faculty_api";
 import { getHODStats } from "../../utils/hod_api";
 import { getAdminStats } from "../../utils/admin_api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface User {
   username: string;
@@ -68,61 +69,77 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fetch unread announcement count based on role
-  const fetchUnreadCount = useCallback(async () => {
-    if (!role) return;
+  // Use React Query to cache bootstrap/unread counts per role.
+  const queryClient = useQueryClient();
 
+  const studentQuery = useQuery({
+    queryKey: ["dashboard", "student", "overview"],
+    queryFn: getDashboardOverview,
+    enabled: role === 'student',
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  const facultyQuery = useQuery({
+    queryKey: ["dashboard", "faculty", "bootstrap"],
+    queryFn: getFacultyDashboardBootstrap,
+    enabled: role === 'faculty',
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  const hodQuery = useQuery({
+    queryKey: ["dashboard", "hod", (user as any)?.extra?.branch_id || (user as any)?.branch_id || ''],
+    queryFn: () => getHODStats((user as any)?.extra?.branch_id || (user as any)?.branch_id || ''),
+    enabled: role === 'hod',
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  const adminQuery = useQuery({
+    queryKey: ["dashboard", "admin", "stats"],
+    queryFn: getAdminStats,
+    enabled: role === 'admin' || role === 'principal',
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  // Derive unreadCount from whichever query is active for the role
+  useEffect(() => {
     try {
       let count = 0;
-      if (role === 'student') {
-        const res = await getDashboardOverview();
-        if (res.success && res.data) {
-          count = res.data.unread_announcement_count || 0;
-        }
-      } else if (role === 'faculty') {
-        const res = await getFacultyDashboardBootstrap();
-        if (res.success && res.data) {
-          count = res.data.unread_announcement_count || 0;
-        }
-      } else if (role === 'hod') {
-        // branch_id is determined server-side — the query param is optional validation only
-        const branchId = (user as any)?.extra?.branch_id || (user as any)?.branch_id || '';
-        const res = await getHODStats(branchId);
-        if (res.success && res.data) {
-          count = res.data.unread_announcement_count || 0;
-        }
-      } else if (role === 'admin' || role === 'principal') {
-        const res = await getAdminStats();
-        if (res.success && res.data) {
-          count = res.data.unread_announcement_count || 0;
-        }
+      if (role === 'student' && studentQuery.data?.success && studentQuery.data.data) {
+        count = studentQuery.data.data.unread_announcement_count || 0;
+      } else if (role === 'faculty' && facultyQuery.data?.success && facultyQuery.data.data) {
+        count = facultyQuery.data.data.unread_announcement_count || 0;
+      } else if (role === 'hod' && hodQuery.data?.success && hodQuery.data.data) {
+        count = hodQuery.data.data.unread_announcement_count || 0;
+      } else if ((role === 'admin' || role === 'principal') && adminQuery.data?.success && adminQuery.data.data) {
+        count = adminQuery.data.data.unread_announcement_count || 0;
       }
       setUnreadCount(count);
     } catch (e) {
-      console.error("Error fetching unread count:", e);
+      console.error("Error deriving unread count:", e);
     }
-  }, [role, user]);
+  }, [role, studentQuery.data, facultyQuery.data, hodQuery.data, adminQuery.data]);
 
+  // Listen for manual refresh events — invalidate relevant queries instead of calling APIs directly
   useEffect(() => {
-    fetchUnreadCount();
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchUnreadCount, 5 * 60 * 1000);
-
-    // Add event listener for manual refreshes from child components
     const handleRefresh = (e: any) => {
       if (e.detail?.decrement) {
         setUnreadCount(prev => Math.max(0, prev - (e.detail.decrement || 1)));
-      } else {
-        fetchUnreadCount();
+        return;
       }
+      // Invalidate all dashboard queries so they refetch according to React Query rules
+      queryClient.invalidateQueries(["dashboard"]);
     };
     window.addEventListener('refresh-unread-count', handleRefresh);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('refresh-unread-count', handleRefresh);
-    };
-  }, [fetchUnreadCount]);
+    return () => window.removeEventListener('refresh-unread-count', handleRefresh);
+  }, [queryClient]);
 
   // Close sidebar when page changes on mobile/tablet only
   useEffect(() => {
