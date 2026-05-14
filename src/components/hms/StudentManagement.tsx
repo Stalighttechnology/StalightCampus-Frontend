@@ -12,6 +12,7 @@ import { Search, Filter, Edit2, CheckCircle2, XCircle, UserCircle2, Building2 } 
 import { AdminPagination } from '../common/AdminPagination';
 import { SkeletonTable, SkeletonPageHeader } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/sweetalert';
 import { useHMSContext } from "../../context/HMSContext";
 import { useAcademicContext, Batch, Branch, Semester } from "../../context/AcademicContext";
 
@@ -169,6 +170,14 @@ const StudentManagement: React.FC = () => {
     e.preventDefault();
     if (!editingStudent) return;
 
+    const result = await showConfirmAlert(
+      "Confirm Changes",
+      "Are you sure you want to update the hostel details for this student?",
+      "Yes, Save Changes"
+    );
+
+    if (!result.isConfirmed) return;
+
     const response = await manageHostelStudents(formData, editingStudent.id, 'PUT');
     if (response.success) {
       // Find the selected hostel and room names for the manual update
@@ -206,9 +215,9 @@ const StudentManagement: React.FC = () => {
       setStudents((prev) => prev.map((s) => s.id === editingStudent.id ? updatedStudent : s));
 
       setIsDialogOpen(false);
-      toast({ title: "Success", description: "Student details updated successfully" });
+      showSuccessAlert("Success", "Student details updated successfully");
     } else {
-      toast({ variant: "destructive", title: "Error", description: response.message || "Failed to update student" });
+      showErrorAlert("Error", response.message || "Failed to update student");
     }
   };
 
@@ -436,7 +445,7 @@ const StudentManagement: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Assign Hostel</Label>
+                    <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Hostel</Label>
                     <Select value={selectedHostelInDialog?.toString() || ''} onValueChange={(v) => {
                     const id = parseInt(v);
                     setSelectedHostelInDialog(id);
@@ -454,7 +463,7 @@ const StudentManagement: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label>Select Floor</Label>
+                      <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Select Floor</Label>
                       <Select
                       value={selectedFloorInDialog?.toString() || ''}
                       onValueChange={(v) => {
@@ -485,7 +494,7 @@ const StudentManagement: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Assign Room</Label>
+                      <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Room</Label>
                       <Select value={formData.room?.toString() || 'none'} onValueChange={(v) => setFormData((prev) => ({ ...prev, room: v === 'none' ? null : parseInt(v) }))} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || isLoadingRooms}>
                         <SelectTrigger>
                           {isLoadingRooms ? <span className="animate-pulse">Loading Rooms...</span> : <SelectValue placeholder="Select room" />}

@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  Building2, 
-  Users, 
-  Grid3X3, 
-  Search, 
-  Eye, 
-  Phone, 
-  ShieldCheck, 
-  HeartPulse, 
-  MapPin, 
+import {
+  Building2,
+  Users,
+  Grid3X3,
+  Search,
+  Eye,
+  Phone,
+  ShieldCheck,
+  HeartPulse,
+  MapPin,
   User as UserIcon,
   ChevronRight,
   GraduationCap
@@ -19,18 +19,18 @@ import { useWardenContext } from "../../context/WardenContext";
 import { useToast } from "../../hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { SkeletonCard } from "../ui/skeleton";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -84,13 +84,13 @@ const WardenHostelOverview = () => {
   const filteredStudents = students.filter(s => {
     // If no floor is selected, don't show any students
     if (!selectedFloor) return false;
-    
+
     const matchesSearch = (s.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (s.usn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (s.room_name || "").toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesFloor = selectedFloor === "all" || s.room_floor?.toString() === selectedFloor;
-    
+
     return matchesSearch && matchesFloor;
   });
 
@@ -103,8 +103,8 @@ const WardenHostelOverview = () => {
       <div className="flex flex-col md:flex-row items-center gap-4">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search residents..." 
+          <Input
+            placeholder="Search residents..."
             className="pl-10 h-10 rounded-xl"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -156,9 +156,9 @@ const WardenHostelOverview = () => {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1.5">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-6 px-2 text-[12px] gap-1 rounded-full text-muted-foreground group-hover:text-primary group-hover:bg-primary/5 border border-transparent group-hover:border-primary/10 transition-all"
                   >
                     <Eye size={12} />
@@ -208,7 +208,7 @@ const WardenHostelOverview = () => {
 
       {/* Resident Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg p-0 overflow-hidden border-none shadow-2xl">
+        <DialogContent className="sm:max-w-lg w-[90%] rounded-xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
           <div className="bg-primary p-6 text-primary-foreground relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 scale-150">
               <GraduationCap size={120} />
@@ -234,53 +234,53 @@ const WardenHostelOverview = () => {
           <div className="p-6 space-y-6 bg-background">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Hostel Location</p>
+                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider">Hostel Location</p>
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <MapPin size={14} className="text-primary" />
                   {selectedStudent?.room_hostel_name}, Room {selectedStudent?.room_name}
                 </div>
-                <p className="text-[10px] text-muted-foreground ml-6">Floor {selectedStudent?.room_floor ?? 'N/A'}</p>
+                <p className="text-[14px] text-muted-foreground ml-6">Floor {selectedStudent?.room_floor ?? 'N/A'}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Personal Contact</p>
+                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider">Personal Contact</p>
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Phone size={14} className="text-primary" />
                   {selectedStudent?.phone || "N/A"}
                 </div>
-                <p className="text-[10px] text-muted-foreground ml-6 truncate">{selectedStudent?.user_email}</p>
+                <p className="text-[12px] text-muted-foreground ml-6 break-words">{selectedStudent?.user_email}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/40">
               <div className="space-y-1">
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Guardian Info</p>
+                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider">Guardian Info</p>
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <UserIcon size={14} className="text-primary" />
                   {selectedStudent?.parent_name || "N/A"}
                 </div>
-                <p className="text-[10px] text-muted-foreground ml-6">
+                <p className="text-[14px] text-muted-foreground ml-6">
                   {selectedStudent?.parent_contact ? `Ph: ${selectedStudent.parent_contact}` : 'No contact provided'}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Medical Status</p>
+                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider">Medical Status</p>
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <HeartPulse size={14} className="text-primary" />
                   Blood: {selectedStudent?.blood_group || "N/A"}
                 </div>
                 <div className="flex items-center gap-1.5 ml-6">
                   <div className={`w-1.5 h-1.5 rounded-full ${selectedStudent?.no_dues ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[14px] text-muted-foreground">
                     {selectedStudent?.no_dues ? 'Dues Cleared' : 'Fees Pending'}
                   </span>
                 </div>
               </div>
             </div>
-            
+
             <div className="pt-2">
-              <Button 
-                variant="outline" 
-                className="w-full rounded-xl gap-2 text-xs h-9"
+              <Button
+                variant="outline"
+                className="w-full bg-primary hover:bg-primary/90 text-white hover:text-white rounded-xl gap-2 text-xs h-9"
                 onClick={() => setIsDialogOpen(false)}
               >
                 Close Profile
