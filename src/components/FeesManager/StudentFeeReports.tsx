@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from "@/context/ThemeContext";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,9 +25,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  XCircle,
-  ChevronLeft,
-  ChevronRight } from
+  XCircle } from
 'lucide-react';
 import { motion } from "framer-motion";
 import {
@@ -823,8 +821,8 @@ const StudentFeeReports: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Student Fee Reports ({totalStudents} students)</span>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4 mr-2" />
+                    <Button variant="outline" size="sm" className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'>
+                      <Download className="w-4 h-4 mr-2 " />
                       Export
                     </Button>
                   </CardTitle>
@@ -876,42 +874,40 @@ const StudentFeeReports: React.FC = () => {
                     </TableBody>
                   </Table>
                 </CardContent>
-              </Card>
-
-              {/* Pagination Controls */}
-              <Card>
-                <CardContent className="py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Page {currentPage} of {totalPages} ({totalStudents} total students)
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
+                <CardFooter className="py-4 bg-muted/5 flex flex-col sm:flex-row items-center justify-between border-t px-6 gap-4">
+                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Showing {totalStudents > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {Math.min(currentPage * pageSize, totalStudents)} of {totalStudents} students
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={!hasPrevious || bulkLoading}>
-                      
-                        <ChevronLeft className="w-4 h-4 mr-1" />
-                        Previous
-                      </Button>
+                      disabled={!hasPrevious || bulkLoading}
+                      className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
+                      Previous
+                    </Button>
 
-                      <span className="text-sm text-muted-foreground px-2">
-                        {currentPage}
-                      </span>
-
+                    <div className="flex items-center">
                       <Button
+                        variant="outline"
+                        size="sm"
+                        disabled
+                        className={`${theme === 'dark' ? 'text-muted-foreground bg-card border border-border' : 'text-gray-700 bg-white border border-gray-300'} px-3 py-1 h-9 min-w-[36px]`}>
+                        {currentPage}
+                      </Button>
+                    </div>
+
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={!hasNext || bulkLoading}>
-                      
-                        Next
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </Button>
-                    </div>
+                      disabled={!hasNext || bulkLoading}
+                      className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-3 py-1 h-9">
+                      Next
+                    </Button>
                   </div>
-                </CardContent>
+                </CardFooter>
               </Card>
             </div>
           }
