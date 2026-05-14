@@ -589,7 +589,6 @@ const StudyMaterials = () => {
           uploaded_at: apiMaterial.uploaded_at,
           file_url: apiMaterial.file_url
         };
-        addStudyMaterial(newMaterial);
         resetForm();
         setShowUploadModal(false);
         

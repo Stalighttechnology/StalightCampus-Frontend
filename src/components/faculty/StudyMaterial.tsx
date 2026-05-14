@@ -655,7 +655,6 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                     });
                     setShowUploadModal(false);
                     resetForm();
-                    loadMaterials();
                   } else {
                     toast.error(resp?.message || 'Upload failed');
                   }
