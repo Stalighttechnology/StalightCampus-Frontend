@@ -233,7 +233,7 @@ const WardenDashboard = () => {
         <div className="p-6 border-b bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl sm:text-xl font-bold">Room Occupancy Matrix</h2>
+              <h2 className="text-2xl sm:text-xl font-semibold">Room Occupancy Matrix</h2>
               <p className="text-base sm:text-sm text-muted-foreground">Visual breakdown of room availability by floor.</p>
             </div>
 
