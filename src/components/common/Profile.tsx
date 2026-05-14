@@ -5,6 +5,8 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
+import { API_ENDPOINT } from "../../utils/config";
+import { performR2Upload } from "../../utils/common_api";
 
 const API_BASE_URL = "http://127.0.0.1:8000/api/";
 
@@ -99,28 +101,45 @@ const Profile = ({ role, user }: ProfileProps) => {
     setSuccess(null);
 
     try {
-      const formDataObj = new FormData();
-      formDataObj.append("email", formData.email);
-      formDataObj.append("first_name", formData.first_name);
-      formDataObj.append("last_name", formData.last_name);
+      let r2Url = null;
       if (profilePicture) {
-        formDataObj.append("profile_image", profilePicture);
+        r2Url = await performR2Upload(profilePicture, 'profiles');
+        if (!r2Url) {
+          throw new Error("Failed to upload profile picture to R2");
+        }
+      }
+
+      const updateData: any = {
+        email: formData.email,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+      };
+
+      if (r2Url) {
+        updateData.profile_picture_url = r2Url;
       }
 
       const endpoint =
-      role === "admin" || role === "principal" ?
-      `${API_BASE_URL}admin/users/` :
-      role === "student" ?
-      `${API_BASE_URL}student/update-profile/` :
-      `${API_BASE_URL}${role}/profile/`;
+        role === "admin" || role === "principal" ?
+          `${API_ENDPOINT}/admin/users/` :
+          role === "student" ?
+            `${API_ENDPOINT}/student/update-profile/` :
+            `${API_ENDPOINT}/${role}/profile/`;
 
-      const method = role === "admin" || role === "principal" ? "POST" : role === "student" ? "POST" : "PATCH";
-      const body = role === "admin" || role === "principal" ? { user_id: user.user_id, action: "edit", updates: Object.fromEntries(formDataObj) } : formDataObj;
+      let method = "PATCH";
+      let body: any = updateData;
+
+      if (role === "admin" || role === "principal") {
+        method = "POST";
+        body = { user_id: user.user_id, action: "edit", updates: updateData };
+      } else if (role === "student") {
+        method = "PATCH";
+      }
 
       const response = await fetchWithTokenRefresh(endpoint, {
         method,
-        headers: role === "admin" || role === "principal" ? { "Content-Type": "application/json" } : {},
-        body: role === "admin" || role === "principal" ? JSON.stringify(body) : formDataObj
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
       });
 
       const data = await response.json();
@@ -129,8 +148,10 @@ const Profile = ({ role, user }: ProfileProps) => {
         setSuccess("Profile updated successfully");
         showSuccessAlert("Success", "Profile updated successfully");
         const updatedUser = { ...user, ...formData };
-        if (data.data?.profile_image) {
-          updatedUser.profile_image = data.data.profile_image;
+        if (r2Url) {
+          updatedUser.profile_image = r2Url;
+        } else if (data.data?.profile_image || data.data?.profile_picture) {
+          updatedUser.profile_image = data.data.profile_image || data.data.profile_picture;
         }
         localStorage.setItem("user", JSON.stringify(updatedUser));
       } else {
@@ -138,8 +159,9 @@ const Profile = ({ role, user }: ProfileProps) => {
         showErrorAlert("Error", data.message || "Failed to update profile");
       }
     } catch (err) {
-      setError("Error updating profile");
-      showErrorAlert("Error", "Error updating profile");
+      console.error("Profile update error:", err);
+      setError(err instanceof Error ? err.message : "Error updating profile");
+      showErrorAlert("Error", err instanceof Error ? err.message : "Error updating profile");
     } finally {
       setLoading(false);
     }

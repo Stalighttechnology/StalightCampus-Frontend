@@ -16,6 +16,7 @@ import { SkeletonForm } from "../ui/skeleton";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { performR2Upload } from "../../utils/common_api";
 
 type StudentForm = Record<string, any>;
 
@@ -152,18 +153,32 @@ const StudentProfile: React.FC = () => {
 
   const uploadProfilePictureDirectly = async (file: File) => {
     try {
-      const result = await uploadProfilePicture(file, `${API_ENDPOINT}/profile/upload-picture`, {});
-      if (result?.success && (result.profile_picture_url || result.url)) {
-        const url = (result.profile_picture_url || result.url) as string;
-        const fullUrl = url.startsWith('http') ? url : `${API_ENDPOINT.replace('/api', '')}${url}`;
-        setForm((p) => ({ ...p, profile_picture: fullUrl }));
-        const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
-        currentUserData.profile_picture = fullUrl;
-        localStorage.setItem('user', JSON.stringify(currentUserData));
-        showSuccessAlert('Success', 'Profile picture uploaded successfully!');
+      // Step 1 & 2: Upload to R2 via common utility
+      const fileUrl = await performR2Upload(file, 'profiles');
+      
+      if (fileUrl) {
+        // Step 3: Finalize update with backend
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/upload-picture/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_picture_url: fileUrl })
+        });
+        const result = await response.json();
+
+        if (result?.success) {
+          setForm((p) => ({ ...p, profile_picture: fileUrl }));
+          const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
+          currentUserData.profile_picture = fileUrl;
+          localStorage.setItem('user', JSON.stringify(currentUserData));
+          showSuccessAlert('Success', 'Profile picture updated successfully!');
+        } else {
+          showErrorAlert('Error', result.message || 'Failed to update backend with new photo');
+        }
+      } else {
+        showErrorAlert('Error', 'Failed to upload image to R2');
       }
     } catch (err) {
-
+      console.error("Profile picture upload error:", err);
       showErrorAlert('Error', 'Failed to upload profile picture');
     } finally {
       resetUpload();
