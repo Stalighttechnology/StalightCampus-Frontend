@@ -19,10 +19,11 @@ import {
   TableHeader,
   TableRow } from
 "../ui/table";
-import { Download, FileText, UploadCloud, X } from "lucide-react";
-import { uploadStudyMaterial, getStudyMaterials, getBranches, manageSections, getSemesters, manageSubjects } from "../../utils/hod_api";
+import { Download, FileText, UploadCloud, X, Trash2, Loader2 } from "lucide-react";
+import { uploadStudyMaterial, getStudyMaterials, getBranches, manageSections, getSemesters, manageSubjects, getR2PresignedUrl, deleteStudyMaterial } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable } from "../ui/skeleton";
+import { toast } from "react-hot-toast";
 
 // Interface for study material from API
 interface ApiStudyMaterial {
@@ -120,7 +121,11 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
     setStudyMaterials((s) => [material, ...s]);
   };
 
-  return { studyMaterials, addStudyMaterial, loading, totalPages, totalCount };
+  const removeStudyMaterial = (id: string) => {
+    setStudyMaterials((s) => s.filter((m) => m.id !== id));
+  };
+
+  return { studyMaterials, addStudyMaterial, removeStudyMaterial, loading, totalPages, totalCount };
 };
 
 // Hook for managing upload modal
@@ -204,34 +209,68 @@ const useUploadModal = () => {
 };
 
 // Row component for each study material
-const StudyMaterialRow = ({ material, theme }: {material: StudyMaterial;theme: string;}) =>
-<TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-    <TableCell className="w-[50px] whitespace-nowrap">
-      <FileText className="text-red-500" size={20} />
-    </TableCell>
-    <TableCell className={`font-medium whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline truncate max-w-[200px] sm:max-w-[300px]`}>
-        {material.title}
-      </div>
-    </TableCell>
-    <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      {material.subject_name}
-    </TableCell>
-    <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      {material.subject_code}
-    </TableCell>
-    <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      {material.semester || "N/A"}
-    </TableCell>
-    <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      {material.uploaded_by}
-    </TableCell>
-    <TableCell className="text-right whitespace-nowrap">
-      <a href={material.file_url} download={material.title + ".pdf"} target="_blank" rel="noopener noreferrer">
-        <Download className={`inline-block cursor-pointer ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`} size={20} />
-      </a>
-    </TableCell>
-  </TableRow>;
+const StudyMaterialRow = ({ material, theme, onDelete }: {material: StudyMaterial;theme: string;onDelete: (id: string) => void;}) => {
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete "${material.title}"? This action cannot be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      const resp = await deleteStudyMaterial(material.id);
+      if (resp.success) {
+        toast.success("Study material deleted successfully");
+        onDelete(material.id);
+      } else {
+        toast.error(resp.message || "Failed to delete study material");
+      }
+    } catch (e) {
+      toast.error("Error deleting study material");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+      <TableCell className="w-[50px] whitespace-nowrap">
+        <FileText className="text-red-500" size={20} />
+      </TableCell>
+      <TableCell className={`font-medium whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline truncate max-w-[200px] sm:max-w-[300px]`}>
+          {material.title}
+        </div>
+      </TableCell>
+      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        {material.subject_name}
+      </TableCell>
+      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        {material.subject_code}
+      </TableCell>
+      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        {material.semester || "N/A"}
+      </TableCell>
+      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        {material.uploaded_by}
+      </TableCell>
+      <TableCell className="text-right whitespace-nowrap">
+        <div className="flex justify-end gap-2">
+          <a href={material.file_url} download={material.title + ".pdf"} target="_blank" rel="noopener noreferrer">
+            <Download className={`inline-block cursor-pointer ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`} size={20} />
+          </a>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className={`transition-colors ${theme === 'dark' ? 'text-muted-foreground hover:text-red-400' : 'text-gray-500 hover:text-red-600'}`}
+          >
+            {deleting ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
+          </button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 
 // Main component
@@ -265,7 +304,7 @@ const StudyMaterials = () => {
 
   // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
   const branchIdForHook = selectedBranchFilter === "All Branches" ? null : selectedBranchFilter;
-  const { studyMaterials, addStudyMaterial, loading, totalPages, totalCount } = useStudyMaterials(branchIdForHook, semesterFilter, selectedSectionFilter, searchQuery, pageSectionsLoaded, currentPage);
+  const { studyMaterials, addStudyMaterial, removeStudyMaterial, loading, totalPages, totalCount } = useStudyMaterials(branchIdForHook, semesterFilter, selectedSectionFilter, searchQuery, pageSectionsLoaded, currentPage);
   const {
     showUploadModal,
     setShowUploadModal,
@@ -456,6 +495,28 @@ const StudyMaterials = () => {
 
     setUploading(true);
     try {
+      // 1. Get pre-signed URL from backend
+      const presignedResp = await getR2PresignedUrl(file.name, file.type);
+      if (!presignedResp.success || !presignedResp.data) {
+        throw new Error(presignedResp.message || "Failed to get upload URL");
+      }
+
+      const { url: uploadUrl, file_url: finalFileUrl } = presignedResp.data;
+
+      // 2. Upload directly to R2
+      const uploadResp = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type
+        }
+      });
+
+      if (!uploadResp.ok) {
+        throw new Error("Failed to upload file to storage");
+      }
+
+      // 3. Finalize upload with backend
       const response = await uploadStudyMaterial({
         title,
         subject_name: subjectName,
@@ -463,7 +524,7 @@ const StudyMaterials = () => {
         semester_id: semesterId,
         branch_id: branchId,
         section_id: sectionId,
-        file
+        file_url: finalFileUrl
       });
 
       if (response.success && response.data) {
@@ -477,18 +538,17 @@ const StudyMaterials = () => {
           branch: apiMaterial.branch_id || apiMaterial.branch || null,
           uploaded_by: apiMaterial.uploaded_by,
           uploaded_at: apiMaterial.uploaded_at,
-          // Prefer Drive web view link when available
-          file_url: apiMaterial.drive_web_view_link || apiMaterial.file_url
+          file_url: apiMaterial.file_url
         };
         addStudyMaterial(newMaterial);
         resetForm();
         setShowUploadModal(false);
+        toast.success("Study material uploaded successfully");
       } else {
-        alert(response.message || "Upload failed");
+        toast.error(response.message || "Upload failed");
       }
-    } catch (error) {
-      alert("Error uploading material");
-
+    } catch (error: any) {
+      toast.error(error.message || "Error uploading material");
     } finally {
       setUploading(false);
     }
@@ -654,7 +714,7 @@ const StudyMaterials = () => {
                   </TableRow> :
 
                 filteredMaterials.map((material) =>
-                <StudyMaterialRow key={material.id} material={material} theme={theme} />
+                <StudyMaterialRow key={material.id} material={material} theme={theme} onDelete={removeStudyMaterial} />
                 )
                 }
               </TableBody>

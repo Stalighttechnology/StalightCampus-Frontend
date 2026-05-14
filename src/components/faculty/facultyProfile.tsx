@@ -14,6 +14,10 @@ import { Eye, EyeOff } from "lucide-react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
+import { Camera, Upload } from "lucide-react";
+import { performR2Upload } from "../../utils/common_api";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Progress } from "../ui/progress";
 
 const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -46,6 +50,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -133,6 +139,37 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
     setFormData((prev) => ({ ...prev, [field]: newValue }));
     setLocalErrors((prev) => ({ ...prev, [field]: errorMessage }));
+  };
+
+  const handleProfilePictureSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadProgress(10);
+    try {
+      const fileUrl = await performR2Upload(file, 'profiles');
+      setUploadProgress(90);
+      if (fileUrl) {
+        // Update backend immediately
+        const res = await manageProfile({ profile_picture_url: fileUrl } as any);
+        if (res.success) {
+          setFormData(prev => ({ ...prev, profile_picture: fileUrl }));
+          // Update local storage
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          user.profile_picture = fileUrl;
+          localStorage.setItem('user', JSON.stringify(user));
+          showSuccessAlert("Success", "Profile picture updated!");
+        } else {
+          showErrorAlert("Error", res.message || "Failed to update profile picture");
+        }
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Upload failed");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   const handleSave = async () => {
@@ -451,9 +488,38 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-stretch">
           {/* Left column: avatar and basic */}
           <div className="col-span-1 flex flex-col items-center h-full">
-            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4 flex-shrink-0`}>
-              {formData.firstName && formData.firstName[0] || ""}{formData.lastName && formData.lastName[0] || ""}
+            <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0">
+              <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
+                {formData.profile_picture ? (
+                  <AvatarImage src={formData.profile_picture} alt={`${formData.firstName} ${formData.lastName}`} />
+                ) : (
+                  <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+                    {(formData.firstName?.[0] || "") + (formData.lastName?.[0] || "")}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <label 
+                htmlFor="profile-picture-upload" 
+                className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+              >
+                <Camera className="h-4 w-4" />
+              </label>
+              <input 
+                id="profile-picture-upload" 
+                type="file" 
+                accept="image/*" 
+                onChange={handleProfilePictureSelect} 
+                className="hidden" 
+              />
             </div>
+
+            {isUploading && (
+              <div className="w-full max-w-[150px] mb-2">
+                <Progress value={uploadProgress} className="h-1" />
+                <p className="text-[10px] text-center mt-1 text-muted-foreground">Uploading...</p>
+              </div>
+            )}
+
             <div className="text-base sm:text-lg font-semibold text-center mb-1">{formData.firstName} {formData.lastName}</div>
             <div className={`text-sm mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</div>
 
