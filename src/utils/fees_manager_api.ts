@@ -660,6 +660,31 @@ export const getFeesManagerDashboard = async () => {
   }
 };
 
+// Payment settings (Razorpay)
+export const getPaymentSettings = async () => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payment-settings/`, {
+      method: 'GET'
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error' };
+  }
+};
+
+export const savePaymentSettings = async (data: { razorpay_key_id: string; razorpay_key_secret: string }) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/payment-settings/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Network error' };
+  }
+};
+
 export const STAFF_ROLES = [
 { value: 'principal', label: 'Principal' },
 { value: 'hod', label: 'HOD' },
