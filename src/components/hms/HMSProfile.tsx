@@ -169,7 +169,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
           <div className="space-y-4 sm:space-y-5 md:space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
+                <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
                 {isSkeleton ?
                 <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
@@ -177,7 +177,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                 }
               </div>
               <div className="w-full">
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
+                <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
                 {isSkeleton ?
                 <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
@@ -188,7 +188,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
+                <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
                 {isSkeleton ?
                 <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
@@ -196,7 +196,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                 }
               </div>
               <div>
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
+                <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
                 {isSkeleton ?
                 <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
@@ -206,7 +206,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             </div>
 
             <div className="w-full">
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</label>
+                <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</label>
                 {isSkeleton ?
               <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
@@ -219,7 +219,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
         return (
           <div className="space-y-4 sm:space-y-5">
             <div>
-              <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</label>
+              <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</label>
               {isSkeleton ?
               <div className="h-20 w-full rounded-md bg-muted animate-pulse border" /> :
 
@@ -227,7 +227,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
               }
             </div>
             <div>
-              <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bio</label>
+              <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bio</label>
               {isSkeleton ?
               <div className="h-24 w-full rounded-md bg-muted animate-pulse border" /> :
 
@@ -246,8 +246,8 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
       <Card className={`w-full max-w-none mx-auto my-2 ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
-            <CardTitle className={`text-lg sm:text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>HMS Profile Information</CardTitle>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your administrative profile</p>
+            <CardTitle className={`text-2xl sm:text-xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>HMS Profile Information</CardTitle>
+            <p className={`text-base sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your administrative profile</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
@@ -264,7 +264,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>
-                <Button className="text-sm px-3 sm:px-4 py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
+                <Button className="text-sm sm:text-md px-3 sm:px-4 py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
               </DialogTrigger>
               <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
                 <DialogHeader>
@@ -329,20 +329,20 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
               <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4`}>
                 {profile.first_name[0]}{profile.last_name[0]}
               </div>
-              <div className="text-base sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
-              <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>HMS Manager</div>
+              <div className="text-xl sm:text-lg font-bold text-center mb-1">{profile.first_name} {profile.last_name}</div>
+              <div className={`text-base sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>HMS Manager</div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
                 <h4 className="text-sm font-bold mb-2">Quick Info</h4>
                 <div className={`border rounded-lg p-3 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="space-y-3">
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-muted-foreground">Email</span>
-                      <span className={`text-sm break-all p-1.5 rounded-lg ${theme === 'dark' ? 'bg-accent' : 'bg-purple-100 text-purple-700'}`}>{profile.email || '—'}</span>
+                      <span className="text-[14px] font-semibold text-muted-foreground mb-1">Email</span>
+                      <span className={`text-base break-all p-1.5 rounded-lg ${theme === 'dark' ? 'bg-accent' : 'bg-purple-100 text-purple-700'}`}>{profile.email || '—'}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-muted-foreground">Mobile</span>
-                      <span className={`text-sm p-1.5 rounded-lg ${theme === 'dark' ? 'bg-accent' : 'bg-purple-100 text-purple-700'}`}>{profile.mobile_number || '—'}</span>
+                      <span className="text-[14px] font-semibold text-muted-foreground mb-1">Mobile</span>
+                      <span className={`text-base p-1.5 rounded-lg ${theme === 'dark' ? 'bg-accent' : 'bg-purple-100 text-purple-700'}`}>{profile.mobile_number || '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -350,9 +350,9 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             </div>
 
             <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
-              <div className="flex gap-2 mb-4 border-b pb-2 overflow-x-auto">
-                <button onClick={() => setActiveTab('personal')} className={`px-4 py-2 rounded-md transition-colors font-medium ${activeTab === 'personal' ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-accent'}`}>Personal</button>
-                <button onClick={() => setActiveTab('contact')} className={`px-4 py-2 rounded-md transition-colors font-medium ${activeTab === 'contact' ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-accent'}`}>Contact & Bio</button>
+              <div className="flex gap-2 mb-4 border-b pb-2 overflow-x-auto custom-scrollbar">
+                <button onClick={() => setActiveTab('personal')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'personal' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Personal Info</button>
+                <button onClick={() => setActiveTab('contact')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'contact' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Contact & Bio</button>
               </div>
               <div className={`p-4 sm:p-6 rounded-lg border min-h-[300px] ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 {renderTabContent()}

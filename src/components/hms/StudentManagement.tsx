@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { manageHostelStudents, manageRooms } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
-import { Search, Filter, Edit2, CheckCircle2, XCircle, ChevronLeft, ChevronRight, UserCircle2, Building2 } from 'lucide-react';
+import { Search, Filter, Edit2, CheckCircle2, XCircle, UserCircle2, Building2 } from 'lucide-react';
+import { AdminPagination } from '../common/AdminPagination';
 import { SkeletonTable, SkeletonPageHeader } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useHMSContext } from "../../context/HMSContext";
@@ -255,7 +256,7 @@ const StudentManagement: React.FC = () => {
             {/* Row 1: Dropdowns */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Batch</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Batch</Label>
                 {loading || skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
@@ -271,7 +272,7 @@ const StudentManagement: React.FC = () => {
                 }
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Branch</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Branch</Label>
                 {loading || skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
@@ -287,7 +288,7 @@ const StudentManagement: React.FC = () => {
                 }
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Semester</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Semester</Label>
                 {loading || skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
@@ -307,7 +308,7 @@ const StudentManagement: React.FC = () => {
             {/* Row 2: Search */}
             <div className="flex flex-col md:flex-row items-end gap-4">
               <div className="flex-1 w-full space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">Search Students</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Search Students</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   {loading || skeletonMode ?
@@ -349,8 +350,8 @@ const StudentManagement: React.FC = () => {
                           <TableCell className="font-medium">{student.usn}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <span className="font-semibold">{student.name}</span>
-                              <span className="text-[10px] text-muted-foreground uppercase">{student.branch_name}</span>
+                              <span className="font-semibold whitespace-nowrap">{student.name}</span>
+                              <span className="text-[12px] text-muted-foreground uppercase">{student.branch_name}</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -397,20 +398,18 @@ const StudentManagement: React.FC = () => {
 
               {/* Pagination */}
               {totalCount > pageSize &&
-            <div className="p-4 border-t flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Showing {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount}
-                  </span>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((prev) => prev - 1)} disabled={!previousPage}>
-                      <ChevronLeft className="w-4 h-4 mr-1" /> Prev
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPage((prev) => prev + 1)} disabled={!nextPage}>
-                      Next <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-            }
+                <AdminPagination
+                  pagination={{
+                    page: currentPage,
+                    pageSize: pageSize,
+                    totalPages: Math.ceil(totalCount / pageSize),
+                    totalItems: totalCount,
+                    hasNext: !!nextPage,
+                    hasPrev: !!previousPage
+                  }}
+                  onPageChange={(page) => setCurrentPage(page)}
+                />
+              }
             </>
           }
         </CardContent>

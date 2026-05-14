@@ -103,7 +103,7 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
               <ChefHat className="w-6 h-6 text-orange-600" />
             </div>
             <div>
-              <CardTitle className="text-xl">Today's Mess Menu</CardTitle>
+              <CardTitle className="text-xl">Today's Menu</CardTitle>
               <CardDescription>Scheduled meals and nutrition info</CardDescription>
             </div>
           </div>
@@ -159,7 +159,7 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
                     </div>
                     <h3 className="font-semibold text-lg">{meal.meal_type_detail.name}</h3>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider bg-background/50 px-2 py-1 rounded-md border">
+                  <div className="flex items-center gap-1.5 text-[14px] font-semibold uppercase tracking-wider bg-background/50 px-2 py-1 rounded-md border">
                     <Clock className="w-3 h-3" />
                     {meal.meal_type_detail.time_from} - {meal.meal_type_detail.time_to}
                   </div>
@@ -177,7 +177,7 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
                       }`}
                     >
                       {item.vegetarian && <Leaf className="w-3 h-3" />}
-                      <span className="font-medium text-[11px]">{item.name}</span>
+                      <span className="font-medium text-[14px]">{item.name}</span>
                     </Badge>
                   ))}
                 </div>

@@ -275,7 +275,7 @@ const RoomManagement: React.FC = () => {
             <div className="flex flex-row items-center gap-4 w-full md:w-auto">
               <div className="flex items-center gap-3 w-full md:w-auto">
                 <div className="flex flex-col w-full">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-none mb-1">Current Hostel</span>
+                  <span className="text-[14px] font-semibold mb-2">Current Hostel</span>
                   {isLoadingHostels || skeletonMode ?
                   <div className="w-full md:w-[200px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
@@ -301,7 +301,7 @@ const RoomManagement: React.FC = () => {
               {/* Floor Filter */}
               <div className="flex items-center gap-3 w-full md:w-auto">
                 <div className="flex flex-col w-full">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-none mb-1">Current Floor</span>
+                  <span className="text-[14px] font-semibold mb-2">Current Floor</span>
                   {isLoadingHostels || skeletonMode ?
                   <div className="w-full md:w-[160px] h-9 rounded-md bg-muted animate-pulse border" /> :
 

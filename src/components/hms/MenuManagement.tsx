@@ -671,7 +671,7 @@ const MenuManagement: React.FC = () => {
 
       {/* Menu Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="sm:max-w-[500px] w-[90vw] rounded-xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <DialogContent className="w-[92vw] max-w-[500px] rounded-2xl max-h-[80vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ChefHat className="w-5 h-5 text-primary" />
@@ -681,7 +681,7 @@ const MenuManagement: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6 pt-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Hostel</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Hostel</Label>
                 <Select value={formData.hostel} onValueChange={(val) => setFormData({ ...formData, hostel: val })}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Select Hostel" />
@@ -694,7 +694,7 @@ const MenuManagement: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Day of Week</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Day of Week</Label>
                 <Select value={formData.day_of_week} onValueChange={(val) => setFormData({ ...formData, day_of_week: val })}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Select Day" />
@@ -707,7 +707,7 @@ const MenuManagement: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Meal Type</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Meal Type</Label>
                 <Select value={formData.meal_type} onValueChange={(val) => setFormData({ ...formData, meal_type: val })}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Select Type" />
@@ -722,7 +722,7 @@ const MenuManagement: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Date (Optional)</Label>
+                <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Date (Optional)</Label>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -763,7 +763,7 @@ const MenuManagement: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-base font-semibold flex items-center justify-between">
+              <Label className="text-[18px] sm:text-[16px] font-semibold flex items-center justify-between mb-2 block">
                 Select Food Items
                 <Badge variant="secondary" className="font-normal">{formData.items.length} Selected</Badge>
               </Label>
@@ -800,17 +800,17 @@ const MenuManagement: React.FC = () => {
 
       {/* Food Item Dialog */}
       <Dialog open={showFoodForm} onOpenChange={setShowFoodForm}>
-        <DialogContent>
+        <DialogContent className="w-[92vw] max-w-[400px] rounded-2xl">
           <DialogHeader>
             <DialogTitle>{editingFoodItem ? 'Edit Food Item' : 'Add New Food Item'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleFoodItemSubmit} className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label>Item Name</Label>
+              <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Item Name</Label>
               <Input value={foodFormData.name} onChange={(e) => setFoodFormData({ ...foodFormData, name: e.target.value })} placeholder="e.g. Paneer Butter Masala" required />
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
+              <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Description</Label>
               <Input value={foodFormData.description} onChange={(e) => setFoodFormData({ ...foodFormData, description: e.target.value })} placeholder="Ingredients, taste, etc." />
             </div>
             <div className="flex items-center gap-2 pt-2">

@@ -193,7 +193,7 @@ const StaffManagementOverview: React.FC = () => {
     <div className="space-y-8">
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-6">
         <DashboardCard
           title="Total Wardens"
           value={isSkeleton ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : wardensTotal.toString()}
@@ -212,7 +212,7 @@ const StaffManagementOverview: React.FC = () => {
           <CardHeader className="pb-3 border-b">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-primary" />
+                <UserCheck className="w-6 h-6 sm:w-5 sm:h-5 text-primary" />
                 Wardens
               </CardTitle>
               <div className="relative w-48">
@@ -222,7 +222,7 @@ const StaffManagementOverview: React.FC = () => {
                 ) : (
                   <Input
                     placeholder="Search..."
-                    className="pl-9 h-8 text-xs"
+                    className="pl-9 h-10 sm:h-8 text-sm sm:text-xs"
                     value={wardenSearch}
                     onChange={(e) => setWardenSearch(e.target.value)}
                   />
@@ -266,15 +266,15 @@ const StaffManagementOverview: React.FC = () => {
                       <TableRow key={warden.id} className="group">
                         <TableCell>
                           <div className="space-y-1 py-1">
-                            <div className="font-semibold flex items-center gap-2">
+                            <div className="text-lg sm:text-base font-semibold flex items-center gap-2">
                               {warden.name}
-                              <Badge variant="outline" className="text-[10px] py-0">{warden.designation || 'Warden'}</Badge>
+                              <Badge variant="outline" className="text-xs sm:text-[10px] py-0">{warden.designation || 'Warden'}</Badge>
                             </div>
-                            <div className="text-xs text-muted-foreground flex flex-col gap-0.5">
-                              <span className="flex items-center gap-1.5"><Mail size={12} /> {warden.email || 'N/A'}</span>
-                              <span className="flex items-center gap-1.5"><Phone size={12} /> {warden.phone || 'N/A'}</span>
-                              <span className="flex items-center gap-1.5"><MapPin size={12} /> {warden.address || 'N/A'}</span>
-                              <span className="flex items-center gap-1.5 font-medium text-primary/70"><Award size={12} /> {warden.experience || '0'} Years Experience</span>
+                            <div className="text-sm sm:text-xs text-muted-foreground flex flex-col gap-0.5">
+                              <span className="flex items-center gap-1.5 text-sm"><Mail size={14} className="sm:size-[14px] mt-1 " /> {warden.email || 'N/A'}</span>
+                              <span className="flex items-center gap-1.5 text-sm"><Phone size={14} className="sm:size-[14px] mt-1" /> {warden.phone || 'N/A'}</span>
+                              <span className="flex items-center gap-1.5 text-sm"><MapPin size={14} className="sm:size-[14px] mt-1" /> {warden.address || 'N/A'}</span>
+                              <span className="flex items-center gap-1.5 font-medium text-primary/70 text-sm"><Award size={14} className="sm:size-[14px] mt-1" /> {warden.experience || '0'} Years Experience</span>
                             </div>
                           </div>
                         </TableCell>
@@ -301,8 +301,8 @@ const StaffManagementOverview: React.FC = () => {
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-500" />
+              <CardTitle className="text-xl font-semibold flex items-center gap-2 pr-2">
+                <Users className="w-6 h-6 sm:w-5 sm:h-5 text-blue-500" />
                 Caretakers
               </CardTitle>
               <div className="relative w-48">
@@ -312,7 +312,7 @@ const StaffManagementOverview: React.FC = () => {
                 ) : (
                   <Input
                     placeholder="Search..."
-                    className="pl-9 h-8 text-xs"
+                    className="pl-9 h-10 sm:h-8 text-sm sm:text-xs"
                     value={caretakerSearch}
                     onChange={(e) => setCaretakerSearch(e.target.value)}
                   />
@@ -356,14 +356,14 @@ const StaffManagementOverview: React.FC = () => {
                       <TableRow key={caretaker.id} className="group">
                         <TableCell>
                           <div className="space-y-1 py-1">
-                            <div className="font-semibold flex items-center gap-2">
+                            <div className="text-lg sm:text-base font-semibold flex items-center gap-2">
                               {caretaker.name}
                             </div>
-                            <div className="text-xs text-muted-foreground flex flex-col gap-0.5">
-                              <span className="flex items-center gap-1.5"><Mail size={12} /> {caretaker.email || 'N/A'}</span>
-                              <span className="flex items-center gap-1.5"><Phone size={12} /> {caretaker.phone || 'N/A'}</span>
-                              <span className="flex items-center gap-1.5"><MapPin size={12} /> {caretaker.address || 'N/A'}</span>
-                              <span className="flex items-center gap-1.5 font-medium text-blue-500/70"><Briefcase size={12} /> {caretaker.experience || '0'} Years Experience</span>
+                            <div className="text-sm sm:text-xs text-muted-foreground flex flex-col gap-0.5">
+                              <span className="flex items-center gap-1.5 text-sm"><Mail size={14} className="sm:size-[14px] mt-1" /> {caretaker.email || 'N/A'}</span>
+                              <span className="flex items-center gap-1.5 text-sm"><Phone size={14} className="sm:size-[14px] mt-1" /> {caretaker.phone || 'N/A'}</span>
+                              <span className="flex items-center gap-1.5 text-sm"><MapPin size={14} className="sm:size-[14px] mt-1" /> {caretaker.address || 'N/A'}</span>
+                              <span className="flex items-center gap-1.5 font-medium text-blue-500/70 text-sm"><Briefcase size={14} className="sm:size-[14px] mt-1" /> {caretaker.experience || '0'} Years Experience</span>
                             </div>
                           </div>
                         </TableCell>
@@ -389,9 +389,9 @@ const StaffManagementOverview: React.FC = () => {
 
       {/* Warden Edit Modal */}
       <Dialog open={isWardenModalOpen} onOpenChange={setIsWardenModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="w-[92vw] max-w-[400px] sm:max-w-[500px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="text-xl sm:text-lg flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-primary" />
               Edit Warden Details
             </DialogTitle>
@@ -435,9 +435,9 @@ const StaffManagementOverview: React.FC = () => {
 
       {/* Caretaker Edit Modal */}
       <Dialog open={isCaretakerModalOpen} onOpenChange={setIsCaretakerModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="w-[92vw] max-w-[400px] sm:max-w-[500px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="text-xl sm:text-lg flex items-center gap-2">
               <Users className="w-5 h-5 text-blue-500" />
               Edit Caretaker Details
             </DialogTitle>
