@@ -75,27 +75,57 @@ interface RefreshTokenResponse {
   message?: string;
 }
 
-// Wrapper function to handle token refresh on 401 errors
+// Helper to check if a JWT token is expired
+const isTokenExpired = (token: string | null): boolean => {
+  if (!token) return true;
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    const { exp } = JSON.parse(jsonPayload);
+    // Refresh 30 seconds before actual expiration to be safe
+    return Date.now() >= exp * 1000 - 30000;
+  } catch (error) {
+    return true;
+  }
+};
+
+// Wrapper function to handle token refresh on 401 errors or proactively
 export const fetchWithTokenRefresh = async (url: string, options: RequestInit = {}): Promise<Response> => {
   try {
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) {
-      throw new Error("No access token available");
+    let accessToken = localStorage.getItem("access_token");
+
+    // Proactive refresh: if token is expired, refresh it before even trying the request
+    if (isTokenExpired(accessToken)) {
+      const refreshResult = await refreshToken();
+      if (refreshResult.success && refreshResult.access) {
+        accessToken = refreshResult.access;
+        localStorage.setItem("access_token", accessToken);
+      } else {
+        localStorage.clear();
+        stopTokenRefresh();
+        window.location.href = "/";
+        throw new Error("Session expired");
+      }
     }
+
     const safeHeaders = {
       ...(options.headers as Record<string, string> | undefined),
       Authorization: `Bearer ${accessToken}`
     };
     options.headers = safeHeaders;
+    options.credentials = 'include'; // Include cookies
     const response = await fetch(url, options);
 
     if (response.status === 401) {
       const refreshResult = await refreshToken();
       if (refreshResult.success && refreshResult.access) {
         localStorage.setItem("access_token", refreshResult.access);
-        if (refreshResult.refresh) {
-          localStorage.setItem("refresh_token", refreshResult.refresh);
-        }
         options.headers = {
           ...options.headers,
           Authorization: `Bearer ${refreshResult.access}`
@@ -119,13 +149,12 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
           return response;
         }
       } catch (e) {
-
         // Not a JSON response or doesn't have the flag
-      }}
+      }
+    }
 
     return response;
   } catch (error) {
-
     localStorage.clear();
     stopTokenRefresh();
     window.location.href = "/"; // Redirect to home
@@ -143,18 +172,13 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
 
   refreshPromise = (async () => {
     try {
-      const refresh = localStorage.getItem("refresh_token");
-      if (!refresh) {
-        throw new Error("No refresh token available");
-      }
-
-
       const response = await fetch(`${API_ENDPOINT}/token/refresh/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ refresh }),
+        credentials: "include", // Send HttpOnly refresh_token cookie
+        body: JSON.stringify({}), // Body can be empty as token is in cookie
         signal: AbortSignal.timeout(TOKEN_REFRESH_TIMEOUT)
       });
 
@@ -191,10 +215,6 @@ export const startTokenRefresh = () => {
     const refreshResult = await refreshToken();
     if (refreshResult.success && refreshResult.access) {
       localStorage.setItem("access_token", refreshResult.access);
-      if (refreshResult.refresh) {
-        localStorage.setItem("refresh_token", refreshResult.refresh);
-      }
-
     } else {
 
       localStorage.clear();
@@ -223,6 +243,7 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include", // Receive HttpOnly refresh_token cookie
       body: JSON.stringify({ username, password })
     });
     const result: LoginResponse = await response.json();
@@ -238,7 +259,6 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
       }
 
       localStorage.setItem("access_token", result.access || "");
-      localStorage.setItem("refresh_token", result.refresh || "");
       localStorage.setItem("role", result.role || "");
       localStorage.setItem("user", JSON.stringify(result.profile || {}));
       startTokenRefresh();
@@ -262,6 +282,7 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include", // Receive HttpOnly refresh_token cookie
       body: JSON.stringify({ user_id, otp })
     });
     const result: LoginResponse = await response.json();
@@ -273,7 +294,6 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
       }
 
       localStorage.setItem("access_token", result.access || "");
-      localStorage.setItem("refresh_token", result.refresh || "");
       localStorage.setItem("role", result.role || "");
       localStorage.setItem("user", JSON.stringify(result.profile || {}));
       startTokenRefresh();
@@ -366,22 +386,14 @@ export const resetPassword = async ({
 
 export const logoutUser = async (): Promise<GenericResponse> => {
   try {
-    const refresh = localStorage.getItem("refresh_token");
-    const accessToken = localStorage.getItem("access_token");
-    if (!refresh) {
-
-      localStorage.clear();
-      stopTokenRefresh();
-      return { success: true, message: "Logged out successfully (no refresh token)" };
-    }
-
     const response = await fetch(`${API_ENDPOINT}/logout/`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken || ""}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ refresh })
+      credentials: "include", // Send HttpOnly refresh_token cookie to blacklist it
+      body: JSON.stringify({}) 
     });
     localStorage.clear();
     stopTokenRefresh();
