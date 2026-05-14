@@ -53,6 +53,7 @@ import Reports from './Reports';
 import StudentFeeReports from './StudentFeeReports';
 import FeesManagerLeave from './FeesManagerLeave';
 import FeesManagerProfile from './FeesManagerProfile';
+import PaymentSettings from './PaymentSettings';
 
 interface DashboardStats {
   total_students: number;
@@ -335,6 +336,12 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
           onClick={() => handlePageChange("payments")}
         />
         <DashboardCard
+          title="Payment Settings"
+          description="Configure Razorpay account for your college"
+          icon={<Settings size={20} />}
+          onClick={() => handlePageChange("payment-settings")}
+        />
+        <DashboardCard
           title="Financial Reports"
           description="Download collection reports"
           icon={<BarChart3 size={20} />}
@@ -366,6 +373,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       case 'bulk-assignment': return <BulkAssignment />;
       case 'invoices': return <InvoiceManagement />;
       case 'payments': return <PaymentMonitoring />;
+      case 'payment-settings': return <PaymentSettings />;
       case 'reports': return <Reports />;
       case 'student-reports': return <StudentFeeReports />;
       case 'leave': return <FeesManagerLeave />;
