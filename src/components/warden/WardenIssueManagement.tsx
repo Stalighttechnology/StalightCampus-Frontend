@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertCircle,
@@ -83,6 +83,7 @@ const WardenIssueManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [updatingIssueId, setUpdatingIssueId] = useState<number | null>(null);
   const [totalCount, setTotalCount] = useState(0);
+  const detailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchIssues();
@@ -116,6 +117,12 @@ const WardenIssueManagement = () => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/issues/${issue.id}/`);
       const data = await response.json();
       setSelectedIssue(data);
+      // Scroll into view on mobile
+      if (window.innerWidth < 1024) {
+        setTimeout(() => {
+          detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
     } catch (error) {
 
     }
@@ -231,14 +238,14 @@ const WardenIssueManagement = () => {
                         
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">#{issue.id}</span>
-                              <h4 className="font-semibold text-sm truncate max-w-[150px]">{issue.title}</h4>
+                              <span className="text-xs sm:text-[14px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">#{issue.id}</span>
+                              <h4 className="font-semibold text-base sm:text-sm truncate max-w-[150px]">{issue.title}</h4>
                             </div>
-                            <Badge variant="outline" className={`text-[10px] h-5 ${config.color}`}>
+                            <Badge variant="outline" className={`text-xs sm:text-[14px] h-5 ${config.color}`}>
                               {issue.status_display}
                             </Badge>
                           </div>
-                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                          <div className="flex items-center justify-between text-sm sm:text-[14px] text-muted-foreground">
                             <span>{issue.student_name} • Room {issue.room_name}</span>
                             <span>{formatDate(issue.created_at)}</span>
                           </div>
@@ -253,7 +260,7 @@ const WardenIssueManagement = () => {
         </div>
 
         {/* Issue Details */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-7" ref={detailsRef}>
           <AnimatePresence mode="wait">
             {selectedIssue ?
             <motion.div
@@ -266,7 +273,7 @@ const WardenIssueManagement = () => {
                   <CardHeader className="pb-4 border-b bg-muted/10">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex flex-wrap items-center gap-3">
-                        <CardTitle className="text-xl font-semibold">{selectedIssue.title}</CardTitle>
+                        <CardTitle className="text-2xl sm:text-xl font-semibold">{selectedIssue.title}</CardTitle>
                         <Badge className={`${STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.color} px-3 py-1`}>
                           {selectedIssue.status_display}
                         </Badge>
@@ -279,24 +286,24 @@ const WardenIssueManagement = () => {
                   <CardContent className="pt-6 space-y-6">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl bg-muted/20">
                       <div>
-                        <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Student</p>
-                        <p className="text-sm font-semibold">{selectedIssue.student_name}</p>
+                        <p className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Student</p>
+                        <p className="text-base font-semibold">{selectedIssue.student_name}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Room</p>
-                        <p className="text-sm font-semibold">{selectedIssue.room_name}</p>
+                        <p className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Room</p>
+                        <p className="text-base font-semibold">{selectedIssue.room_name}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Hostel</p>
-                        <p className="text-sm font-semibold">{selectedIssue.hostel_name}</p>
+                        <p className="text-[14px] uppercase font-semibold text-muted-foreground mb-1 tracking-wider">Hostel</p>
+                        <p className="text-base font-semibold">{selectedIssue.hostel_name}</p>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <h4 className="text-sm font-semibold flex items-center gap-2 uppercase tracking-wide text-muted-foreground/80">
+                      <h4 className="text-base font-semibold flex items-center gap-2 uppercase tracking-wide text-muted-foreground/80">
                         Description
                       </h4>
-                      <p className="text-sm leading-relaxed bg-background p-4 rounded-lg border border-dashed border-border/60">
+                      <p className="text-base leading-relaxed bg-background p-4 rounded-lg border border-dashed border-border/60">
                         {selectedIssue.description}
                       </p>
                     </div>
@@ -319,7 +326,7 @@ const WardenIssueManagement = () => {
                             variant={isCurrent ? "default" : "outline"}
                             onClick={() => handleStatusChange(selectedIssue.id, status)}
                             disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
-                            className={`h-8 text-xs font-semibold transition-all ${isCurrent ?
+                            className={`h-10 px-4 text-sm font-semibold transition-all ${isCurrent ?
                             "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105" :
                             isPast ?
                             "opacity-50 grayscale-[0.5] cursor-not-allowed bg-muted/20" :

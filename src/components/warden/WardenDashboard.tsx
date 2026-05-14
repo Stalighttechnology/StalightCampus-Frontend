@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Building2, Users, Grid3X3, AlertCircle, ClipboardList, Eye } from "lucide-react";
 import { useWardenContext } from "../../context/WardenContext";
@@ -61,7 +61,8 @@ const WardenDashboard = () => {
     wardenFloorsMap,
     wardenName,
     stats,
-    loading: contextLoading
+    loading: contextLoading,
+    refreshWardenData
   } = useWardenContext();
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
   const [selectedFloor, setSelectedFloor] = useState<string>("");
@@ -71,6 +72,14 @@ const WardenDashboard = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+  const dataFetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (!contextLoading && hostels.length === 0 && !dataFetchedRef.current) {
+      dataFetchedRef.current = true;
+      refreshWardenData();
+    }
+  }, [contextLoading, hostels.length, refreshWardenData]);
 
   useEffect(() => {
     if (hostels.length > 0 && selectedHostel === null) {
@@ -185,8 +194,8 @@ const WardenDashboard = () => {
                 <Building2 size={20} />
               </div>
               <div>
-                <h3 className="font-semibold text-base leading-tight">{hostel.name}</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                <h3 className="font-bold text-xl sm:text-base leading-tight mb-1">{hostel.name}</h3>
+                <p className="text-[14px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
                   {hostel.gender === 'M' ? 'Boys Hostel' : 'Girls Hostel'}
                 </p>
               </div>
@@ -194,12 +203,12 @@ const WardenDashboard = () => {
             
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div className="text-center p-2 rounded-lg bg-muted/20">
-                <div className="text-xl font-bold text-primary">{hostel.room_count}</div>
-                <div className="text-[10px] text-muted-foreground uppercase font-semibold">Rooms</div>
+                <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.room_count}</div>
+                <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Rooms</div>
               </div>
               <div className="text-center p-2 rounded-lg bg-muted/20">
-                <div className="text-xl font-bold text-primary">{hostel.student_count}</div>
-                <div className="text-[10px] text-muted-foreground uppercase font-semibold">Students</div>
+                <div className="text-2xl sm:text-xl font-bold text-primary">{hostel.student_count}</div>
+                <div className="text-[12px] sm:text-[10px] text-muted-foreground uppercase font-semibold">Students</div>
               </div>
             </div>
           </motion.div>
@@ -224,8 +233,8 @@ const WardenDashboard = () => {
         <div className="p-6 border-b bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold">Room Occupancy Matrix</h2>
-              <p className="text-sm text-muted-foreground">Visual breakdown of room availability by floor.</p>
+              <h2 className="text-2xl sm:text-xl font-bold">Room Occupancy Matrix</h2>
+              <p className="text-base sm:text-sm text-muted-foreground">Visual breakdown of room availability by floor.</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -255,16 +264,16 @@ const WardenDashboard = () => {
 
           {/* Legend */}
           <div className="flex flex-wrap gap-4 mt-6">
-            <div className="flex items-center gap-2 text-xs font-medium">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <div className="flex items-center gap-2 text-sm sm:text-xs font-semibold">
+              <div className="w-3.5 h-3.5 bg-green-500 rounded-full shadow-sm ring-2 ring-green-500/20"></div>
               <span>Available</span>
             </div>
-            <div className="flex items-center gap-2 text-xs font-medium">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div className="flex items-center gap-2 text-sm sm:text-xs font-semibold">
+              <div className="w-3.5 h-3.5 bg-yellow-500 rounded-full shadow-sm ring-2 ring-yellow-500/20"></div>
               <span>Half Full</span>
             </div>
-            <div className="flex items-center gap-2 text-xs font-medium">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div className="flex items-center gap-2 text-sm sm:text-xs font-semibold">
+              <div className="w-3.5 h-3.5 bg-red-500 rounded-full shadow-sm ring-2 ring-red-500/20"></div>
               <span>Full</span>
             </div>
           </div>
@@ -279,9 +288,12 @@ const WardenDashboard = () => {
             </div> :
           selectedHostel ?
           !selectedFloor ?
-          <div className="text-center py-12 text-muted-foreground">
-                <Grid3X3 size={48} className="mx-auto mb-4 opacity-10" />
-                <p>Select a floor to view the room occupancy matrix.</p>
+          <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-muted/50 rounded-2xl bg-muted/5">
+                <div className="bg-muted rounded-full p-8 mb-6 ring-8 ring-muted/20">
+                  <Grid3X3 size={40} className="text-muted-foreground/50" />
+                </div>
+                <p className="text-xl font-bold text-muted-foreground">Choose a floor</p>
+                <p className="text-base text-muted-foreground mt-2 max-w-sm mx-auto">Select a floor from the menu above to view the occupancy details.</p>
               </div> :
           Object.keys(roomsByFloor).length > 0 ?
           <div className="space-y-8">
@@ -306,13 +318,13 @@ const WardenDashboard = () => {
                   )} font-medium shadow-sm hover:shadow-md`}
                   title={`${room.room_number}: ${room.student_count}/${room.capacity} students. Click to view.`}>
                   
-                            <div className="text-[10px] opacity-70 mb-1">ROOM</div>
-                            <div className="text-sm font-bold">{room.room_number}</div>
-                            <div className="text-[10px] mt-1 font-bold">
+                            <div className="text-[12px] sm:text-[10px] opacity-70 mb-1">ROOM</div>
+                            <div className="text-base sm:text-sm font-bold">{room.room_number}</div>
+                            <div className="text-[12px] sm:text-[10px] mt-1 font-bold">
                               {room.student_count}/{room.capacity}
                             </div>
-                            <div className="mt-2 pt-2 border-t border-current/10 flex items-center justify-center gap-1 text-[12px] uppercase tracking-wider font-bold opacity-60 group-hover:opacity-100 transition-all">
-                              <Eye size={15} />
+                            <div className="mt-2 pt-2 border-t border-current/10 flex items-center justify-center gap-1 text-[14px] sm:text-[12px] uppercase tracking-wider font-bold opacity-60 group-hover:opacity-100 transition-all">
+                              <Eye size={16} />
                               <span>View</span>
                             </div>
                           </motion.div>
@@ -327,8 +339,12 @@ const WardenDashboard = () => {
               </div> :
 
 
-          <div className="text-center py-12 text-muted-foreground">
-              Select a hostel card above to view room occupancy.
+          <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-primary/10 rounded-2xl bg-primary/5">
+              <div className="bg-primary/10 rounded-full p-8 mb-6 ring-8 ring-primary/5">
+                <Building2 size={40} className="text-primary/50" />
+              </div>
+              <p className="text-xl font-bold text-primary/80">Select a Hostel</p>
+              <p className="text-base text-muted-foreground mt-2 max-w-sm mx-auto">Choose a hostel card from above to view the detailed room occupancy matrix.</p>
             </div>
           }
         </div>
