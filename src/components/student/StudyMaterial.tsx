@@ -15,6 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   getBranches,
   getSemesters,
   getSections,
@@ -22,6 +30,7 @@ import {
 } from "@/utils/student_api";
 import { Button } from "@/components/ui/button";
 import { SkeletonList } from "../ui/skeleton";
+import { AdminPagination } from "../common/AdminPagination";
 import {
   Pagination,
   PaginationContent,
@@ -43,31 +52,46 @@ interface StudyMaterial {
 }
 
 const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme: string }) => (
-  <div className={`grid grid-cols-3 md:grid-cols-7 gap-2 md:gap-2 items-start md:items-center text-xs md:text-sm py-3 md:py-2 px-3 md:px-0 md:border-b ${theme === 'dark' ? 'md:border-border' : 'md:border-gray-200'} last:border-b-0`}>
-    <div className="hidden md:flex items-center">
-      <FileText className="text-red-500" size={18} />
-    </div>
-    <div className="col-span-1">
-      <span className={`md:hidden text-xs font-semibold mr-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Title:</span>
-      <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} font-medium cursor-pointer hover:underline truncate`}>
+  <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+    <TableCell className="w-[70px]">
+      <div className={`p-2.5 rounded-xl inline-flex items-center justify-center ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
+        <FileText className="text-red-500" size={22} />
+      </div>
+    </TableCell>
+    <TableCell className="font-medium max-w-[250px]">
+      <div className={`text-sm md:text-base lg:text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline cursor-pointer truncate font-semibold tracking-tight`}>
         {material.title}
       </div>
-    </div>
-    <div className="col-span-1">
-      <span className={`md:hidden text-xs font-semibold mr-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Course:</span>
-      <div className={`truncate`}>{material.subject_name}</div>
-    </div>
-    <div className="col-span-1 hidden md:block">
-      <span className={`truncate`}>{material.subject_code}</span>
-    </div>
-    <div className="hidden md:block col-span-1">{material.semester || "N/A"}</div>
-    <div className="hidden md:block col-span-1">{material.uploaded_by}</div>
-    <div className="col-span-1">
-      <a href={material.file_url} download={material.title + ".pdf"} target="_blank" rel="noopener noreferrer">
-        <Download className={`cursor-pointer ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`} size={18} />
+    </TableCell>
+    <TableCell className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'} font-medium`}>
+      {material.subject_name}
+    </TableCell>
+    <TableCell className={`hidden md:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+      {material.subject_code}
+    </TableCell>
+    <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+      {material.semester || "N/A"}
+    </TableCell>
+    <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+          {material.uploaded_by.charAt(0)}
+        </div>
+        <span className="truncate font-medium">{material.uploaded_by}</span>
+      </div>
+    </TableCell>
+    <TableCell className="text-right">
+      <a
+        href={material.file_url}
+        download={material.title + ".pdf"}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
+      >
+        <Download size={22} />
       </a>
-    </div>
-  </div>
+    </TableCell>
+  </TableRow>
 );
 
 const StudyMaterialsStudent = () => {
@@ -135,6 +159,7 @@ const StudyMaterialsStudent = () => {
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   const loadMaterials = async (page = 1) => {
     setLoading(true);
@@ -150,10 +175,12 @@ const StudyMaterialsStudent = () => {
     if (resp && resp.success && Array.isArray(resp.data)) {
       setMaterials(resp.data);
       setTotalPages(resp.total_pages || 1);
+      setTotalCount(resp.count || 0);
       setCurrentPage(page);
     } else {
       setMaterials([]);
       setTotalPages(1);
+      setTotalCount(0);
     }
     setHasSearched(true);
     setLoading(false);
@@ -191,9 +218,14 @@ const StudyMaterialsStudent = () => {
     return pages;
   };
 
-  // Load materials on mount and when filters change
+  // Load materials only when all filters are selected
   useEffect(() => {
-    loadMaterials(1);
+    if (selectedBranch !== "All Branches" && selectedSemester !== "All Semesters" && selectedSection !== "All Sections") {
+      loadMaterials(1);
+    } else {
+      setMaterials([]);
+      setHasSearched(false);
+    }
   }, [selectedBranch, selectedSemester, selectedSection, searchQuery]);
 
   return (
@@ -210,7 +242,7 @@ const StudyMaterialsStudent = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger className={theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}>
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
@@ -226,7 +258,7 @@ const StudyMaterialsStudent = () => {
                 onValueChange={setSelectedSemester}
                 disabled={semesters.length === 0}
               >
-                <SelectTrigger className={`${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Semesters" />
                 </SelectTrigger>
                 <SelectContent>
@@ -242,7 +274,7 @@ const StudyMaterialsStudent = () => {
                 onValueChange={setSelectedSection}
                 disabled={sections.length === 0}
               >
-                <SelectTrigger className={`${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Sections" />
                 </SelectTrigger>
                 <SelectContent>
@@ -259,103 +291,81 @@ const StudyMaterialsStudent = () => {
               placeholder="Search by title, course name, course code, semester, or uploaded by..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}
+              className={`w-full px-3 py-2 text-sm sm:text-base h-10 sm:h-11 border rounded ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}
             />
           </div>
 
           {/* Materials Table Section */}
           <div className="pt-4 border-t">
-            <div className="hidden md:grid grid-cols-7 font-semibold text-xs sm:text-sm gap-2 mb-4 px-2">
-              <div>Type</div>
-              <div>Title</div>
-              <div>Course Name</div>
-              <div>Course Code</div>
-              <div>Semester</div>
-              <div>Uploaded By</div>
-              <div>Action</div>
-            </div>
-            <div className="space-y-1">
-              {loading ? (
-                <SkeletonList items={5} />
-              ) : !hasSearched ? (
-                <div className="flex flex-col items-center justify-center py-16 px-4 animate-in fade-in duration-700">
-                  <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-4 shadow-sm`}>
-                    <Search className="h-12 w-12 text-indigo-500/50" />
-                  </div>
-                  <div className="text-center max-w-sm">
-                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Ready to Search</h3>
-                    <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Select your branch, semester, and section to access your study materials.
-                    </p>
-                  </div>
+            {!hasSearched ? (
+              <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner animate-pulse ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <Search className="w-12 h-12" />
                 </div>
-              ) : materials.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 px-4 animate-in fade-in duration-700">
-                  <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-4 shadow-sm`}>
-                    <BookOpen className="h-12 w-12 text-indigo-500/50" />
-                  </div>
-                  <div className="text-center max-w-sm">
-                    <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Materials Found</h3>
-                    <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      We couldn't find any study materials matching your current criteria. Please try different filters.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
-              )}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="mt-8">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handlePageChange(currentPage - 1);
-                        }}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-
-                    {getPageNumbers().map((page, i) => (
-                      <PaginationItem key={i}>
-                        {page === 'ellipsis' ? (
-                          <PaginationEllipsis />
-                        ) : (
-                          <PaginationLink
-                            href="#"
-                            isActive={currentPage === page}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handlePageChange(page as number);
-                            }}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        )}
-                      </PaginationItem>
-                    ))}
-
-                    <PaginationItem>
-                      <PaginationNext
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handlePageChange(currentPage + 1);
-                        }}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                <h3 className={`text-2xl md:text-2xl font-semibold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Select Filters to View Materials
+                </h3>
+                <p className={`text-base md:text-sm max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Please select your branch, semester, and section from the dropdowns above to access and download your study materials.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-border">
+                <Table>
+                  <TableHeader className={theme === 'dark' ? 'bg-muted/30' : 'bg-slate-50/50'}>
+                    <TableRow className="border-none hover:bg-transparent h-14">
+                      <TableHead className="w-[70px] text-base text-slate-800 md:text-lg font-semibold">Type</TableHead>
+                      <TableHead className="text-base md:text-lg font-semibold text-slate-800">Title</TableHead>
+                      <TableHead className="text-base md:text-lg font-semibold text-slate-800">Course Name</TableHead>
+                      <TableHead className="hidden md:table-cell text-base md:text-lg font-semibold text-slate-800">Code</TableHead>
+                      <TableHead className="hidden md:table-cell text-base md:text-lg font-semibold text-slate-800">Sem</TableHead>
+                      <TableHead className="hidden lg:table-cell text-base md:text-lg font-semibold text-slate-800">Uploaded By</TableHead>
+                      <TableHead className="text-right text-base md:text-lg font-semibold text-slate-800">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="p-4 text-center">
+                          <SkeletonList items={5} />
+                        </TableCell>
+                      </TableRow>
+                    ) : materials.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="p-8">
+                          <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                            <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                              <BookOpen className="w-12 h-12" />
+                            </div>
+                            <h3 className={`text-2xl md:text-3xl font-bold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              No Materials Found
+                            </h3>
+                            <p className={`text-base md:text-lg max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {searchQuery ?
+                                `We couldn't find any materials matching "${searchQuery}". Please try a different search term or criteria.` :
+                                "No study materials have been uploaded for the selected filters yet."}
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      materials.map((m: StudyMaterial) => <StudyMaterialRow key={m.id} material={m} theme={theme} />)
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </div>
+
+          <AdminPagination
+            pagination={{
+              page: currentPage,
+              pageSize: 50,
+              totalPages: totalPages,
+              totalItems: totalCount
+            }}
+            onPageChange={handlePageChange}
+          />
         </CardContent>
       </Card>
     </div>

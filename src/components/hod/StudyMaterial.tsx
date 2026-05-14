@@ -9,21 +9,25 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue } from
-"../ui/select";
+  SelectValue
+} from
+  "../ui/select";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow } from
-"../ui/table";
+  TableRow
+} from
+  "../ui/table";
 import { Download, FileText, UploadCloud, X, Trash2, Loader2 } from "lucide-react";
 import { uploadStudyMaterial, getStudyMaterials, getBranches, manageSections, getSemesters, manageSubjects, getR2PresignedUrl, deleteStudyMaterial } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable } from "../ui/skeleton";
 import { toast } from "react-hot-toast";
+import { AdminPagination } from "../common/AdminPagination";
+import Swal from "sweetalert2";
 
 // Interface for study material from API
 interface ApiStudyMaterial {
@@ -68,8 +72,11 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
 
   useEffect(() => {
     const fetchMaterials = async () => {
-      // Allow fetching even if some filters are "All"
-      if (!sectionsLoaded) {
+      // Only load materials when all filters are selected
+      if (!sectionsLoaded || !branchId || semesterFilter === 'All Semesters' || sectionFilter === 'All Sections') {
+        setStudyMaterials([]);
+        setTotalPages(1);
+        setTotalCount(0);
         return;
       }
       setLoading(true);
@@ -209,62 +216,104 @@ const useUploadModal = () => {
 };
 
 // Row component for each study material
-const StudyMaterialRow = ({ material, theme, onDelete }: {material: StudyMaterial;theme: string;onDelete: (id: string) => void;}) => {
+const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMaterial; theme: string; onDelete: (id: string) => void; }) => {
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete "${material.title}"? This action cannot be undone.`)) {
-      return;
-    }
-    setDeleting(true);
-    try {
-      const resp = await deleteStudyMaterial(material.id);
-      if (resp.success) {
-        toast.success("Study material deleted successfully");
-        onDelete(material.id);
-      } else {
-        toast.error(resp.message || "Failed to delete study material");
+    Swal.fire({
+      title: "Delete Study Material?",
+      text: `Are you sure you want to delete "${material.title}"? This action cannot be undone.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: theme === 'dark' ? '#374151' : '#e5e7eb',
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+      background: theme === 'dark' ? '#1f2937' : '#ffffff',
+      color: theme === 'dark' ? '#f3f4f6' : '#111827',
+      iconColor: "#ef4444"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setDeleting(true);
+        try {
+          const resp = await deleteStudyMaterial(material.id);
+          if (resp.success) {
+            toast.success("Study material deleted successfully");
+            onDelete(material.id);
+            Swal.fire({
+              title: "Deleted!",
+              text: "The material has been deleted.",
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false,
+              background: theme === 'dark' ? '#1f2937' : '#ffffff',
+              color: theme === 'dark' ? '#f3f4f6' : '#111827'
+            });
+          } else {
+            toast.error(resp.message || "Failed to delete study material");
+            Swal.fire({
+              title: "Error!",
+              text: resp.message || "Failed to delete study material",
+              icon: "error",
+              background: theme === 'dark' ? '#1f2937' : '#ffffff',
+              color: theme === 'dark' ? '#f3f4f6' : '#111827'
+            });
+          }
+        } catch (e) {
+          toast.error("Error deleting study material");
+        } finally {
+          setDeleting(false);
+        }
       }
-    } catch (e) {
-      toast.error("Error deleting study material");
-    } finally {
-      setDeleting(false);
-    }
+    });
   };
 
   return (
-    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-      <TableCell className="w-[50px] whitespace-nowrap">
-        <FileText className="text-red-500" size={20} />
+    <TableRow className={`group ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'} hover:bg-muted/5 transition-colors`}>
+      <TableCell className="w-[100px] px-6 py-4">
+        <div className={`p-2.5 rounded-xl inline-flex items-center justify-center ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
+          <FileText className="text-red-500" size={22} />
+        </div>
       </TableCell>
-      <TableCell className={`font-medium whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-        <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline truncate max-w-[200px] sm:max-w-[300px]`}>
+      <TableCell className="font-medium max-w-[250px] px-6 py-4">
+        <div className={`text-sm md:text-base lg:text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline cursor-pointer truncate font-semibold tracking-tight`}>
           {material.title}
         </div>
       </TableCell>
-      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+      <TableCell className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'} font-medium px-6 py-4 whitespace-nowrap`}>
         {material.subject_name}
       </TableCell>
-      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+      <TableCell className={`hidden md:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap`}>
         {material.subject_code}
       </TableCell>
-      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+      <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
         {material.semester || "N/A"}
       </TableCell>
-      <TableCell className={`whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-        {material.uploaded_by}
+      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap`}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
+            {material.uploaded_by.charAt(0)}
+          </div>
+          <span className="truncate font-medium">{material.uploaded_by}</span>
+        </div>
       </TableCell>
-      <TableCell className="text-right whitespace-nowrap">
-        <div className="flex justify-end gap-2">
-          <a href={material.file_url} download={material.title + ".pdf"} target="_blank" rel="noopener noreferrer">
-            <Download className={`inline-block cursor-pointer ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`} size={20} />
+      <TableCell className="text-right px-6 py-4">
+        <div className="flex justify-end items-center gap-3">
+          <a
+            href={material.file_url}
+            download={material.title + ".pdf"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
+          >
+            <Download size={22} />
           </a>
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className={`transition-colors ${theme === 'dark' ? 'text-muted-foreground hover:text-red-400' : 'text-gray-500 hover:text-red-600'}`}
+            className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
           >
-            {deleting ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
+            {deleting ? <Loader2 className="animate-spin" size={22} /> : <Trash2 size={22} />}
           </button>
         </div>
       </TableCell>
@@ -278,14 +327,14 @@ const StudyMaterials = () => {
   const { theme } = useTheme();
   const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("All Branches");
   const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>("All Sections");
-  const [branches, setBranches] = useState<Array<{id: string;name: string;}>>([]);
-  const [sections, setSections] = useState<Array<{id: string;name: string;}>>([]);
+  const [branches, setBranches] = useState<Array<{ id: string; name: string; }>>([]);
+  const [sections, setSections] = useState<Array<{ id: string; name: string; }>>([]);
   const [pageSectionsLoaded, setPageSectionsLoaded] = useState<boolean>(false);
-  const [pageSemesters, setPageSemesters] = useState<Array<{id: string;number: number;}>>([]);
+  const [pageSemesters, setPageSemesters] = useState<Array<{ id: string; number: number; }>>([]);
   // Modal-specific lists
-  const [modalSemesters, setModalSemesters] = useState<Array<{id: string;number: number;}>>([]);
-  const [modalSections, setModalSections] = useState<Array<{id: string;name: string;}>>([]);
-  const [modalSubjects, setModalSubjects] = useState<Array<{id: string;name: string;subject_code: string;}>>([]);
+  const [modalSemesters, setModalSemesters] = useState<Array<{ id: string; number: number; }>>([]);
+  const [modalSections, setModalSections] = useState<Array<{ id: string; name: string; }>>([]);
+  const [modalSubjects, setModalSubjects] = useState<Array<{ id: string; name: string; subject_code: string; }>>([]);
 
   // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
   const [searchQuery, setSearchQuery] = useState("");
@@ -543,7 +592,20 @@ const StudyMaterials = () => {
         addStudyMaterial(newMaterial);
         resetForm();
         setShowUploadModal(false);
-        toast.success("Study material uploaded successfully");
+        
+        Swal.fire({
+          title: "Upload Successful!",
+          text: `"${title}" has been added to the course materials.`,
+          icon: "success",
+          confirmButtonText: "Great",
+          confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: theme === 'dark' ? '#ffffff' : '#000000',
+          iconColor: "#22c55e",
+          customClass: {
+            popup: 'rounded-2xl border border-border shadow-2xl'
+          }
+        });
       } else {
         toast.error(response.message || "Upload failed");
       }
@@ -566,9 +628,9 @@ const StudyMaterials = () => {
             <CardTitle className="text-2xl font-semibold leading-none tracking-tight">Study Materials</CardTitle>
             <Button
               onClick={() => setShowUploadModal(true)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1 transition-all duration-200 ease-in-out transform hover:scale-105 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white ${theme === 'dark' ? 'shadow-lg shadow-primary/20' : 'shadow-md'}`}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1 transition-all duration-200 ease-in-out transform hover:scale-105 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white ${theme === 'dark' ? 'shadow-lg shadow-primary/20' : 'shadow-md'}`}
               disabled={uploading}>
-              
+
               <UploadCloud size={16} />
               Upload
             </Button>
@@ -582,14 +644,14 @@ const StudyMaterials = () => {
                 <Select
                   value={selectedBranchFilter}
                   onValueChange={(value) => setSelectedBranchFilter(value)}>
-                  
-                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+
+                  <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                     <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectItem value="All Branches">All Branches</SelectItem>
                     {branches.map((b) =>
-                    <SelectItem key={b.id} value={b.id}>
+                      <SelectItem key={b.id} value={b.id}>
                         {b.name}
                       </SelectItem>
                     )}
@@ -601,24 +663,24 @@ const StudyMaterials = () => {
                 <Select
                   value={semesterFilter}
                   onValueChange={(value) => setSemesterFilter(value)}>
-                  
-                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+
+                  <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                     <SelectValue placeholder="All Semesters" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectItem value="All Semesters">All Semesters</SelectItem>
                     {pageSemesters && pageSemesters.length > 0 ?
-                    pageSemesters.map((s) =>
-                    <SelectItem key={s.id} value={s.id}>
+                      pageSemesters.map((s) =>
+                        <SelectItem key={s.id} value={s.id}>
                           {`Semester ${s.number}`}
                         </SelectItem>
-                    ) :
+                      ) :
 
-                    ["1", "2", "3", "4", "5", "6", "7", "8"].map((semester) =>
-                    <SelectItem key={semester} value={semester}>
+                      ["1", "2", "3", "4", "5", "6", "7", "8"].map((semester) =>
+                        <SelectItem key={semester} value={semester}>
                           {semester}
                         </SelectItem>
-                    )
+                      )
                     }
                   </SelectContent>
                 </Select>
@@ -628,14 +690,14 @@ const StudyMaterials = () => {
                 <Select
                   value={selectedSectionFilter}
                   onValueChange={(value) => setSelectedSectionFilter(value)}>
-                  
-                  <SelectTrigger className={`w-full ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+
+                  <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                     <SelectValue placeholder="All Sections" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectItem value="All Sections">All Sections</SelectItem>
                     {sections.map((s) =>
-                    <SelectItem key={s.id} value={s.id}>
+                      <SelectItem key={s.id} value={s.id}>
                         {s.name}
                       </SelectItem>
                     )}
@@ -647,108 +709,86 @@ const StudyMaterials = () => {
             {/* Search Row */}
             <div className="w-full">
               <Input
-                placeholder="Search by title, course name, course code, semester, or uploaded by..."
-                className={`w-full ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                placeholder="Search materials..."
+                className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
                 value={localSearchQuery}
                 onChange={(e) => setLocalSearchQuery(e.target.value)} />
-              
             </div>
           </div>
 
-          {/* Table Area */}
-          <div className="overflow-x-auto rounded-lg border">
-            <Table className="min-w-[700px]">
-              <TableHeader>
-                <TableRow className={theme === 'dark' ? 'border-border hover:bg-transparent' : 'border-gray-200 hover:bg-transparent'}>
-                  <TableHead className="w-[50px] whitespace-nowrap">Type</TableHead>
-                  <TableHead className="whitespace-nowrap">Title</TableHead>
-                  <TableHead className="whitespace-nowrap">Course Name</TableHead>
-                  <TableHead className="whitespace-nowrap">Course Code</TableHead>
-                  <TableHead className="whitespace-nowrap">Sem</TableHead>
-                  <TableHead className="whitespace-nowrap">Uploaded By</TableHead>
-                  <TableHead className="text-right whitespace-nowrap">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ?
-                <TableRow>
-                    <TableCell colSpan={7} className="p-4">
-                      <SkeletonTable rows={10} cols={7} />
-                    </TableCell>
-                  </TableRow> :
-                selectedBranchFilter === "All Branches" ?
-                <TableRow>
-                    <TableCell colSpan={7} className="p-0">
-                      <div className={`flex flex-col items-center justify-center py-20 px-6 text-center space-y-4 ${theme === 'dark' ? 'bg-accent/5' : 'bg-gray-50/50'}`}>
-                        <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
-                          <FileText className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
-                        </div>
-                        <div className="max-w-xs mx-auto">
-                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            Select Branch to View Materials
-                          </h3>
-                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            Please select a branch, semester, and section from the dropdowns above to explore available study materials.
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow> :
-                filteredMaterials.length === 0 ?
-                <TableRow>
-                    <TableCell colSpan={7} className="p-0">
-                      <div className={`flex flex-col items-center justify-center py-20 px-6 text-center space-y-4 ${theme === 'dark' ? 'bg-accent/5' : 'bg-gray-50/50'}`}>
-                        <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/10'}`}>
-                          <UploadCloud className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
-                        </div>
-                        <div className="max-w-xs mx-auto">
-                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            No Study Materials Found
-                          </h3>
-                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            We couldn't find any materials matching your current filters or search query. Try adjusting the dropdowns or uploading new content.
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow> :
-
-                filteredMaterials.map((material) =>
-                <StudyMaterialRow key={material.id} material={material} theme={theme} onDelete={removeStudyMaterial} />
-                )
-                }
-              </TableBody>
-            </Table>
+          {/* Table Area Section */}
+          <div className="pt-4 border-t">
+            {(!pageSectionsLoaded || !branchIdForHook || semesterFilter === 'All Semesters' || selectedSectionFilter === 'All Sections') ? (
+              <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner animate-pulse ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <FileText className="w-12 h-12" />
+                </div>
+                <h3 className={`text-2xl md:text-2xl font-semibold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Select Filters to View Materials
+                </h3>
+                <p className={`text-base md:text-md max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Please select a branch, semester, and section from the dropdowns above to explore available study materials.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-border">
+                <Table>
+                  <TableHeader className={theme === 'dark' ? 'bg-muted/30' : 'bg-slate-50/50'}>
+                    <TableRow className="border-none hover:bg-transparent h-14">
+                      <TableHead className="w-[100px] px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Type</TableHead>
+                      <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Title</TableHead>
+                      <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Course Name</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Code</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap text-center">Sem</TableHead>
+                      <TableHead className="hidden lg:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Uploaded By</TableHead>
+                      <TableHead className="text-right px-6 py-4 text-base md:text-md font-semibold text-slate-800 whitespace-nowrap">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="p-4 text-center">
+                          <SkeletonTable rows={5} cols={7} />
+                        </TableCell>
+                      </TableRow>
+                    ) : studyMaterials.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="p-8">
+                          <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                            <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                              <UploadCloud className="w-12 h-12" />
+                            </div>
+                            <h3 className={`text-2xl md:text-3xl font-semibold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              No Study Materials Found
+                            </h3>
+                            <p className={`text-base md:text-lg max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {searchQuery ?
+                                `We couldn't find any materials matching "${searchQuery}". Please try a different search term or criteria.` :
+                                "No study materials have been uploaded for the selected filters yet."}
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      studyMaterials.map((material) => (
+                        <StudyMaterialRow key={material.id} material={material} theme={theme} onDelete={removeStudyMaterial} />
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 &&
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mt-6">
-              <Button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1 || loading}
-              variant="outline"
-              size="sm"
-              className={`w-full sm:w-auto ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}`}>
-              
-                Previous
-              </Button>
-
-              <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                Page {currentPage} of {totalPages} ({totalCount} total materials)
-              </span>
-
-              <Button
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages || loading}
-              variant="outline"
-              size="sm"
-              className={`w-full sm:w-auto ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-900 hover:bg-gray-100'}`}>
-              
-                Next
-              </Button>
-            </div>
-          }
+          <AdminPagination
+            pagination={{
+              page: currentPage,
+              pageSize: 20,
+              totalPages: totalPages,
+              totalItems: totalCount
+            }}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
 
@@ -760,7 +800,7 @@ const StudyMaterials = () => {
       }}>
         <DialogContent className={`w-[92%] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Upload Study Material</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Upload Study Material</DialogTitle>
           </DialogHeader>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
@@ -775,7 +815,7 @@ const StudyMaterials = () => {
                   onChange={(e) => setTitle(e.target.value)}
                   className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}
                   disabled={uploading} />
-                
+
               </div>
 
               <div className="space-y-2">
@@ -784,13 +824,13 @@ const StudyMaterials = () => {
                   value={branchId}
                   onValueChange={(value) => setBranchId(value)}
                   disabled={uploading}>
-                  
+
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select Branch" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
                     {branches.map((b) =>
-                    <SelectItem key={b.id} value={b.id}>
+                      <SelectItem key={b.id} value={b.id}>
                         {b.name}
                       </SelectItem>
                     )}
@@ -805,13 +845,13 @@ const StudyMaterials = () => {
                     value={semesterId}
                     onValueChange={(value) => setSemesterId(value)}
                     disabled={uploading || !branchId}>
-                    
+
                     <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                       <SelectValue placeholder="Select Sem" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
                       {modalSemesters.map((s) =>
-                      <SelectItem key={s.id} value={s.id}>
+                        <SelectItem key={s.id} value={s.id}>
                           Sem {s.number}
                         </SelectItem>
                       )}
@@ -824,13 +864,13 @@ const StudyMaterials = () => {
                     value={sectionId}
                     onValueChange={(value) => setSectionId(value)}
                     disabled={uploading || !semesterId}>
-                    
+
                     <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                       <SelectValue placeholder="Optional" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
                       {modalSections.map((s) =>
-                      <SelectItem key={s.id} value={s.id}>
+                        <SelectItem key={s.id} value={s.id}>
                           Sec {s.name}
                         </SelectItem>
                       )}
@@ -855,13 +895,13 @@ const StudyMaterials = () => {
                     }
                   }}
                   disabled={uploading || !semesterId}>
-                  
+
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select Course" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
                     {modalSubjects.map((s) =>
-                    <SelectItem key={s.id} value={s.id}>
+                      <SelectItem key={s.id} value={s.id}>
                         {s.name} ({s.subject_code})
                       </SelectItem>
                     )}
@@ -881,51 +921,50 @@ const StudyMaterials = () => {
                 className={`
                   relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200
                   ${dragActive ?
-                'border-primary bg-primary/10 scale-[1.02]' :
-                theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-300 bg-gray-50'}
-                  ${
-                file ? 'border-green-500 bg-green-500/5' : ''}
+                    'border-primary bg-primary/10 scale-[1.02]' :
+                    theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-300 bg-gray-50'}
+                  ${file ? 'border-green-500 bg-green-500/5' : ''}
                 `}>
-                
+
                 <UploadCloud
                   className={`mx-auto mb-4 ${file ? 'text-green-500' : theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}
                   size={48} />
-                
-                
+
+
                 {file ?
-                <div className="space-y-2">
+                  <div className="space-y-2">
                     <p className="text-sm font-medium truncate px-4">{file.name}</p>
                     <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                     <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setFile(null)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50">
-                    
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFile(null)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50">
+
                       <X size={14} className="mr-1" /> Remove
                     </Button>
                   </div> :
 
-                <div className="space-y-2">
+                  <div className="space-y-2">
                     <p className="text-sm font-medium">Click or drag to upload</p>
                     <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       PDF, DOCX, etc. (Max 50MB)
                     </p>
                     <Input
-                    type="file"
-                    className="hidden"
-                    id="file-upload"
-                    onChange={handleFileChange}
-                    disabled={uploading} />
-                  
+                      type="file"
+                      className="hidden"
+                      id="file-upload"
+                      onChange={handleFileChange}
+                      disabled={uploading} />
+
                     <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => document.getElementById('file-upload')?.click()}>
-                    
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => document.getElementById('file-upload')?.click()}>
+
                       Browse Files
                     </Button>
                   </div>
@@ -942,20 +981,20 @@ const StudyMaterials = () => {
                 setShowUploadModal(false);
               }}
               disabled={uploading}>
-              
+
               Cancel
             </Button>
             <Button
               onClick={handleUpload}
               disabled={uploading || !file || !title || !branchId || !semesterId || !subjectId && !subjectName}>
-              
+
               {uploading ?
-              <>
+                <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Uploading...
                 </> :
 
-              "Upload Material"
+                "Upload Material"
               }
             </Button>
           </DialogFooter>

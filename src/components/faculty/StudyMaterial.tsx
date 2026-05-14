@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "../ui/card";
-import { Download, FileText, UploadCloud, X, Search, BookOpen, Trash2, Loader2 } from "lucide-react";
+import { FileText, Download, UploadCloud, Trash2, Loader2, Search, BookOpen, X, CloudUpload } from "lucide-react";
 import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject, getR2PresignedUrl, deleteStudyMaterial } from "../../utils/faculty_api";
 import { useTheme } from "../../context/ThemeContext";
 import { toast } from "react-hot-toast";
@@ -9,11 +9,17 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue } from
-"@/components/ui/select";
+  SelectValue
+} from
+  "@/components/ui/select";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { usePagination, useDebouncedSearch } from "@/hooks/useOptimizations";
 import { AdminPagination } from "../common/AdminPagination";
+import Swal from "sweetalert2";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface StudyMaterial {
   id: number;
@@ -34,80 +40,107 @@ interface Subject {
   section: string;
 }
 
-interface AssignedSection {
-  section: string;
-  section_id: string;
-  semester: number;
-  semester_id: string;
-  branch: string;
-  branch_id: string;
-}
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-const StudyMaterialRow = ({ material, theme, onDelete }: {material: StudyMaterial;theme: string;onDelete: (id: number) => void;}) => {
+const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMaterial; theme: string; onDelete: (id: number) => void; }) => {
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete "${material.title}"? This action cannot be undone.`)) {
-      return;
-    }
-    setDeleting(true);
-    try {
-      const resp = await deleteStudyMaterial(String(material.id));
-      if (resp.success) {
-        toast.success("Study material deleted successfully");
-        onDelete(material.id);
-      } else {
-        toast.error(resp.message || "Failed to delete study material");
+    Swal.fire({
+      title: "Delete Study Material?",
+      text: `Are you sure you want to delete "${material.title}"? This action cannot be undone.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: theme === 'dark' ? '#374151' : '#e5e7eb',
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+      background: theme === 'dark' ? '#1f2937' : '#ffffff',
+      color: theme === 'dark' ? '#f3f4f6' : '#111827',
+      iconColor: "#ef4444"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setDeleting(true);
+        try {
+          const resp = await deleteStudyMaterial(String(material.id));
+          if (resp.success) {
+            toast.success("Study material deleted successfully");
+            onDelete(material.id);
+            Swal.fire({
+              title: "Deleted!",
+              text: "The material has been deleted.",
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false,
+              background: theme === 'dark' ? '#1f2937' : '#ffffff',
+              color: theme === 'dark' ? '#f3f4f6' : '#111827'
+            });
+          } else {
+            toast.error(resp.message || "Failed to delete study material");
+            Swal.fire({
+              title: "Error!",
+              text: resp.message || "Failed to delete study material",
+              icon: "error",
+              background: theme === 'dark' ? '#1f2937' : '#ffffff',
+              color: theme === 'dark' ? '#f3f4f6' : '#111827'
+            });
+          }
+        } catch (e) {
+          toast.error("Error deleting study material");
+        } finally {
+          setDeleting(false);
+        }
       }
-    } catch (e) {
-      toast.error("Error deleting study material");
-    } finally {
-      setDeleting(false);
-    }
+    });
   };
 
   return (
-    <div className={`grid md:grid-cols-6 gap-2 md:gap-3 items-start md:items-center text-xs sm:text-sm py-2 md:py-3 border-b md:border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'} last:border-b-0`}>
-      <div className="hidden md:flex items-center">
-        <FileText className="text-red-500" size={18} />
-      </div>
-      <div className="flex items-start gap-2 md:flex-col md:gap-0">
-        <FileText className="text-red-500 flex-shrink-0 md:hidden" size={16} />
-        <div>
-          <div className="text-xs text-gray-500 md:hidden font-semibold">Title</div>
-          <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} font-medium cursor-pointer hover:underline break-words`}>
-            {material.title}
+    <TableRow className={`group ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'} hover:bg-muted/5 transition-colors`}>
+      <TableCell className="w-[100px] px-6 py-4">
+        <div className={`p-2.5 rounded-xl inline-flex items-center justify-center ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
+          <FileText className="text-red-500" size={22} />
+        </div>
+      </TableCell>
+      <TableCell className="font-medium max-w-[250px] px-6 py-4">
+        <div className={`text-sm md:text-base lg:text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline cursor-pointer truncate font-semibold tracking-tight`}>
+          {material.title}
+        </div>
+      </TableCell>
+      <TableCell className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'} font-medium px-6 py-4 whitespace-nowrap`}>
+        {material.subject_name}
+      </TableCell>
+      <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
+        {material.semester || "N/A"}
+      </TableCell>
+      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap`}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
+            {material.uploaded_by.charAt(0)}
           </div>
+          <span className="truncate font-medium">{material.uploaded_by}</span>
         </div>
-      </div>
-      <div className="flex items-start gap-2 md:flex-col md:gap-0">
-        <div className="text-xs text-gray-500 md:hidden font-semibold min-w-fit">Course</div>
-        <div className="flex flex-col md:gap-0.5">
-          <div className={`truncate`}>{material.subject_name}</div>
-          <div className="hidden md:block text-gray-500 text-xs">({material.subject_code})</div>
+      </TableCell>
+      <TableCell className="text-right px-6 py-4">
+        <div className="flex justify-end items-center gap-3">
+          <a
+            href={material.file_url}
+            download={material.title + ".pdf"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
+          >
+            <Download size={22} />
+          </a>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
+          >
+            {deleting ? <Loader2 className="animate-spin" size={22} /> : <Trash2 size={22} />}
+          </button>
         </div>
-      </div>
-      <div className="flex items-start gap-2 md:flex-col md:gap-0">
-        <div className="text-xs text-gray-500 md:hidden font-semibold">Semester</div>
-        <div className="">{material.semester || "N/A"}</div>
-      </div>
-      <div className="flex items-start gap-2 md:flex-col md:gap-0">
-        <div className="text-xs text-gray-500 md:hidden font-semibold">Uploaded</div>
-        <div className="">{material.uploaded_by}</div>
-      </div>
-      <div className="flex items-center justify-end md:justify-center gap-2">
-        <a href={material.file_url} download={material.title + ".pdf"} target="_blank" rel="noopener noreferrer">
-          <Download className={`cursor-pointer text-gray-500 hover:text-gray-700 flex-shrink-0`} size={18} />
-        </a>
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className={`transition-colors ${theme === 'dark' ? 'text-muted-foreground hover:text-red-400' : 'text-gray-500 hover:text-red-600'}`}
-        >
-          {deleting ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
-        </button>
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 };
 
@@ -116,7 +149,6 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   const { theme } = useTheme();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [grouped, setGrouped] = useState<AssignedSubject[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedBranch, setSelectedBranch] = useState<string>("All Branches");
   const [selectedSemester, setSelectedSemester] = useState<string>("All Semesters");
   const [selectedSection, setSelectedSection] = useState<string>("All Sections");
@@ -129,9 +161,45 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   const [uploadSection, setUploadSection] = useState<string>("");
   const [uploadTitle, setUploadTitle] = useState<string>("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [branches, setBranches] = useState<{id: string;name: string;}[]>([]);
-  const [semesters, setSemesters] = useState<{id: string;number: number;}[]>([]);
-  const [sections, setSections] = useState<{id: string;name: string;}[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setUploadFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setUploadFile(e.target.files[0]);
+    }
+  };
+
+  const resetForm = () => {
+    setUploadTitle("");
+    setUploadFile(null);
+    setUploadSubject("");
+    setUploadBranch("");
+    setUploadSemester("");
+    setUploadSection("");
+    setDragActive(false);
+  };
+  const [branches, setBranches] = useState<{ id: string; name: string; }[]>([]);
+  const [semesters, setSemesters] = useState<{ id: string; number: number; }[]>([]);
+  const [sections, setSections] = useState<{ id: string; name: string; }[]>([]);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -152,7 +220,6 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
     loadBranches();
   }, []);
 
-  // Load assigned subjects only when upload modal opens
   useEffect(() => {
     if (showUploadModal) {
       const loadAssignments = async () => {
@@ -227,9 +294,13 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
     setLoading(false);
   };
 
-  // Auto-load materials when all filters are selected
   useEffect(() => {
-    loadMaterials();
+    if (selectedBranch !== "All Branches" && selectedSemester !== "All Semesters" && selectedSection !== "All Sections") {
+      loadMaterials();
+    } else {
+      setMaterials([]);
+      setHasSearched(false);
+    }
   }, [selectedBranch, selectedSemester, selectedSection, debouncedSearch, pagination.page, pagination.pageSize]);
 
   return (
@@ -243,23 +314,22 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 View and upload course-related study materials for your assigned subjects.
               </p>
             </div>
-            <button onClick={() => setShowUploadModal(true)} className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1 bg-primary text-white hover:bg-primary/90 whitespace-nowrap`}>
+            <button onClick={() => setShowUploadModal(true)} className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1 bg-primary text-white hover:bg-primary/90 whitespace-nowrap`}>
               <UploadCloud size={16} /> Upload
             </button>
           </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
-          {/* Filters & Search */}
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
               <Select value={selectedBranch} onValueChange={(value) => setSelectedBranch(value)}>
-                <SelectTrigger className={theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}>
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Branches">All Branches</SelectItem>
                   {branches.map((b) =>
-                  <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                    <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -268,14 +338,14 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 value={selectedSemester}
                 onValueChange={(value) => setSelectedSemester(value)}
                 disabled={semesters.length === 0}>
-                
-                <SelectTrigger className={`${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Semesters" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Semesters">All Semesters</SelectItem>
                   {semesters.map((s) =>
-                  <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
+                    <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -284,220 +354,332 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 value={selectedSection}
                 onValueChange={(value) => setSelectedSection(value)}
                 disabled={sections.length === 0}>
-                
-                <SelectTrigger className={`${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Sections" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Sections">All Sections</SelectItem>
                   {sections.map((sec) =>
-                  <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
+                    <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
-            </div>
 
-            <div className="relative">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-              <input
-                type="text"
-                placeholder="Search by title, course name, course code, semester, or uploaded by..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg text-xs sm:text-sm transition-all outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark' ?
-                'border-border bg-background text-foreground focus:border-primary' :
-                'border-gray-200 bg-white text-gray-900 focus:border-primary'}`
-                } />
-              
+              <div className="relative">
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                <input
+                  type="text"
+                  placeholder="Search materials..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className={`w-full pl-10 pr-3 py-2 text-sm sm:text-base h-10 sm:h-11 border rounded transition-all outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark' ?
+                    'border-border bg-background text-foreground focus:border-primary' :
+                    'border-gray-200 bg-white text-gray-900 focus:border-primary'}`
+                  } />
+              </div>
             </div>
           </div>
 
-          {/* Materials Table Section */}
           <div className="pt-4 border-t">
-            <div className="hidden md:grid grid-cols-6 font-semibold text-xs sm:text-sm gap-2 mb-4 px-2">
-              <div>Type</div>
-              <div>Title</div>
-              <div>Course</div>
-              <div>Semester</div>
-              <div>Uploaded By</div>
-              <div>Action</div>
-            </div>
-            <div className="space-y-1">
-              {loading ?
-              <div className="py-4">
-                  <SkeletonList items={5} />
-                </div> :
-              materials.length === 0 ?
-              <div className={`flex flex-col items-center justify-center py-12 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
-                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                    <BookOpen className="w-10 h-10" />
-                  </div>
-                  <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    No Materials Found
-                  </h3>
-                  <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    {search ?
-                  `We couldn't find any materials matching "${search}". Please try a different search term or criteria.` :
-                  "No study materials have been uploaded for the selected filters yet."}
-                  </p>
-                </div> :
-
-              materials.map((m: StudyMaterial) => (
-                <StudyMaterialRow
-                  key={m.id}
-                  material={m}
-                  theme={theme}
-                  onDelete={(id) => setMaterials((prev) => prev.filter((item) => item.id !== id))}
-                />
-              ))
-              }
-            </div>
+            {!hasSearched ? (
+              <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner animate-pulse ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                  <Search className="w-12 h-12" />
+                </div>
+                <h3 className={`text-2xl md:text-2xl font-semibold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Select Filters to View Materials
+                </h3>
+                <p className={`text-base md:text-md max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Please select a branch, semester, and section to view the uploaded study materials.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-border">
+                <Table>
+                  <TableHeader className={theme === 'dark' ? 'bg-muted/30' : 'bg-slate-50/50'}>
+                    <TableRow className="border-none hover:bg-transparent h-14">
+                      <TableHead className="w-[100px] px-6 py-4 text-base md:text-md font-semibold text-slate-800">Type</TableHead>
+                      <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Title</TableHead>
+                      <TableHead className="px-6 py-4 text-base md:text-md font-semibold text-slate-800">Course</TableHead>
+                      <TableHead className="hidden md:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">Semester</TableHead>
+                      <TableHead className="hidden lg:table-cell px-6 py-4 text-base md:text-md font-semibold text-slate-800">Uploaded By</TableHead>
+                      <TableHead className="text-right px-6 py-4 text-base md:text-md font-semibold text-slate-800">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="p-4 text-center">
+                          <SkeletonList items={5} />
+                        </TableCell>
+                      </TableRow>
+                    ) : materials.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="p-8">
+                          <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                            <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                              <BookOpen className="w-12 h-12" />
+                            </div>
+                            <h3 className={`text-2xl md:text-3xl font-semibold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              No Materials Found
+                            </h3>
+                            <p className={`text-base md:text-lg max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {search ?
+                                `We couldn't find any materials matching "${search}". Please try a different search term or criteria.` :
+                                "No study materials have been uploaded for the selected filters yet."}
+                            </p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      materials.map((m: StudyMaterial) => (
+                        <StudyMaterialRow
+                          key={m.id}
+                          material={m}
+                          theme={theme}
+                          onDelete={(id) => setMaterials((prev) => prev.filter((item) => item.id !== id))}
+                        />
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
 
           <AdminPagination
             pagination={pagination.paginationState}
             onPageChange={pagination.goToPage} />
-          
+
         </CardContent>
       </Card>
 
-      {showUploadModal &&
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200"
-        onClick={() => setShowUploadModal(false)}>
-        
-          <div
-          className={`p-4 sm:p-6 rounded-2xl shadow-2xl max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-md w-full border animate-in zoom-in-95 duration-200 ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-100 text-gray-900'}`}
-          onClick={(e) => e.stopPropagation()}>
-          
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h2 className="text-base sm:text-lg font-semibold">Upload Study Material</h2>
-              <button onClick={() => setShowUploadModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X size={20} />
-              </button>
+      <Dialog open={showUploadModal} onOpenChange={(open) => {
+        if (!uploading) {
+          setShowUploadModal(open);
+          if (!open) resetForm();
+        }
+      }}>
+        <DialogContent className={`w-[92%] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Upload Study Material</DialogTitle>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="upload-title">Material Title *</Label>
+                <Input
+                  id="upload-title"
+                  placeholder="Enter title (e.g. Unit 1 Notes)"
+                  value={uploadTitle}
+                  onChange={(e) => setUploadTitle(e.target.value)}
+                  className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}
+                  disabled={uploading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Subject / Course *</Label>
+                <Select
+                  value={uploadSubject}
+                  onValueChange={(subjId) => {
+                    setUploadSubject(subjId);
+                    const subj = grouped.find((g) => String(g.subject_id) === subjId);
+                    if (subj && subj.sections.length > 0) {
+                      const s = subj.sections[0];
+                      setUploadBranch(String(s.branch_id));
+                      setUploadSemester(String(s.semester_id));
+                      setUploadSection(String(s.section_id));
+                    }
+                  }}
+                  disabled={uploading}>
+                  <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
+                    <SelectValue placeholder="Select Subject" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
+                    {grouped.map((g) => (
+                      <SelectItem key={g.subject_id} value={String(g.subject_id)}>
+                        {g.subject_name} ({g.subject_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {uploadSubject && (
+                <div className="space-y-3 p-3 rounded-xl border border-dashed animate-in fade-in slide-in-from-top-1 duration-300 bg-primary/5 border-primary/20">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Branch:</span>
+                    <span className="font-medium text-primary">{grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.branch_id) === uploadBranch)?.branch || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Semester:</span>
+                    <span className="font-medium text-primary">{uploadSemester ? `Sem ${grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.semester_id) === uploadSemester)?.semester}` : 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Section:</span>
+                    <span className="font-medium text-primary">{uploadSection ? grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.section_id) === uploadSection)?.section : 'N/A'}</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="space-y-3 sm:space-y-4">
-              <Select
-              value={uploadSubject}
-              onValueChange={(subjId) => {
-                setUploadSubject(subjId);
-                const subj = grouped.find((g) => String(g.subject_id) === subjId);
-                if (subj && subj.sections.length > 0) {
-                  const s = subj.sections[0];
-                  setUploadBranch(String(s.branch_id));
-                  setUploadSemester(String(s.semester_id));
-                  setUploadSection(String(s.section_id));
-                }
-              }}>
-              
-                <SelectTrigger className={theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}>
-                  <SelectValue placeholder="Select Subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {grouped.map((g) =>
-                <SelectItem key={g.subject_id} value={String(g.subject_id)}>{g.subject_name} ({g.subject_code})</SelectItem>
-                )}
-                </SelectContent>
-              </Select>
-              <div className={`px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                Branch: {uploadBranch ? grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.branch_id) === uploadBranch)?.branch : 'N/A'}
-              </div>
-              <div className={`px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                Semester: {uploadSemester ? `Semester ${grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.semester_id) === uploadSemester)?.semester}` : 'N/A'}
-              </div>
-              <div className={`px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                Section: {uploadSection ? grouped.find((g) => String(g.subject_id) === uploadSubject)?.sections.find((s) => String(s.section_id) === uploadSection)?.section : 'N/A'}
-              </div>
-              <input
-              type="text"
-              placeholder="Title"
-              value={uploadTitle}
-              onChange={(e) => setUploadTitle(e.target.value)}
-              className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} />
-            
-              <input
-              type="file"
-              accept=".pdf,.doc,.docx,.ppt,.pptx"
-              onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
-              className={`w-full px-2 sm:px-3 py-2 border rounded text-xs sm:text-sm ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} />
-            
-              <button
-                onClick={async () => {
-                  if (!uploadFile || !uploadTitle || !uploadSubject) {
-                    toast.error("Please fill all fields");
-                    return;
-                  }
-                  setUploading(true);
-                  try {
-                    // 1. Get pre-signed URL
-                    const presignedResp = await getR2PresignedUrl(uploadFile.name, uploadFile.type);
-                    if (!presignedResp.success || !presignedResp.data) {
-                      throw new Error(presignedResp.message || "Failed to get upload URL");
-                    }
 
-                    const { url: uploadUrl, file_url: finalFileUrl } = presignedResp.data;
+            <div className="space-y-4">
+              <Label>File Upload *</Label>
+              <div
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                className={`
+                  relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 h-[200px] flex flex-col items-center justify-center
+                  ${dragActive ?
+                    'border-primary bg-primary/10 scale-[1.02]' :
+                    theme === 'dark' ? 'border-border bg-background/50' : 'border-gray-300 bg-gray-50'}
+                  ${uploadFile ? 'border-green-500 bg-green-500/5' : ''}
+                `}
+              >
+                <CloudUpload
+                  className={`mx-auto mb-4 ${uploadFile ? 'text-green-500' : theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}
+                  size={48}
+                />
 
-                    // 2. Upload to R2
-                    const uploadResp = await fetch(uploadUrl, {
-                      method: "PUT",
-                      body: uploadFile,
-                      headers: {
-                        "Content-Type": uploadFile.type
-                      }
-                    });
-
-                    if (!uploadResp.ok) {
-                      throw new Error("Failed to upload file to storage");
-                    }
-
-                    // 3. Finalize with backend
-                    const subj = grouped.find((g) => String(g.subject_id) === uploadSubject);
-                    const resp = await uploadStudyMaterial({
-                      title: uploadTitle,
-                      subject_id: uploadSubject,
-                      subject_name: subj ? subj.subject_name : '',
-                      subject_code: subj ? subj.subject_code : '',
-                      semester_id: uploadSemester,
-                      branch_id: uploadBranch,
-                      section_id: uploadSection,
-                      file_url: finalFileUrl
-                    });
-
-                    if (resp && resp.success) {
-                      toast.success('Uploaded successfully');
-                      setShowUploadModal(false);
-                      setUploadSubject('');
-                      setUploadBranch('');
-                      setUploadSemester('');
-                      setUploadSection('');
-                      setUploadTitle('');
-                      setUploadFile(null);
-                      loadMaterials();
-                    } else {
-                      toast.error(resp?.message || 'Upload failed');
-                    }
-                  } catch (error: any) {
-                    toast.error(error.message || 'Upload error');
-                  } finally {
-                    setUploading(false);
-                  }
-                }}
-                disabled={uploading}
-                className={`w-full px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 ${uploading ? 'bg-gray-500' : 'bg-primary hover:bg-primary/90'}`}>
-                
-                {uploading ? (
-                  <>
-                    <Loader2 className="animate-spin" size={16} />
-                    Uploading...
-                  </>
+                {uploadFile ? (
+                  <div className="space-y-2 w-full">
+                    <p className="text-sm font-medium truncate px-4">{uploadFile.name}</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      {(uploadFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setUploadFile(null)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8"
+                    >
+                      <X size={14} className="mr-1" /> Remove
+                    </Button>
+                  </div>
                 ) : (
-                  'Upload'
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Click or drag to upload</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      PDF, DOCX, etc. (Max 50MB)
+                    </p>
+                    <input
+                      type="file"
+                      className="hidden"
+                      id="file-upload"
+                      onChange={handleFileChange}
+                      disabled={uploading}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                    >
+                      Browse Files
+                    </Button>
+                  </div>
                 )}
-              </button>
+              </div>
             </div>
           </div>
-        </div>
-      }
+
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowUploadModal(false);
+                resetForm();
+              }}
+              disabled={uploading}
+              className="rounded-xl px-6 h-11"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!uploadFile || !uploadTitle || !uploadSubject) {
+                  toast.error("Please fill all mandatory fields");
+                  return;
+                }
+                setUploading(true);
+                try {
+                  const presignedResp = await getR2PresignedUrl(uploadFile.name, uploadFile.type);
+                  if (!presignedResp.success || !presignedResp.data) {
+                    throw new Error(presignedResp.message || "Failed to get upload URL");
+                  }
+
+                  const { url: uploadUrl, file_url: finalFileUrl } = presignedResp.data;
+
+                  const uploadResp = await fetch(uploadUrl, {
+                    method: "PUT",
+                    body: uploadFile,
+                    headers: {
+                      "Content-Type": uploadFile.type
+                    }
+                  });
+
+                  if (!uploadResp.ok) {
+                    throw new Error("Failed to upload file to storage");
+                  }
+
+                  const subj = grouped.find((g) => String(g.subject_id) === uploadSubject);
+                  const resp = await uploadStudyMaterial({
+                    title: uploadTitle,
+                    subject_id: uploadSubject,
+                    subject_name: subj ? subj.subject_name : '',
+                    subject_code: subj ? subj.subject_code : '',
+                    semester_id: uploadSemester,
+                    branch_id: uploadBranch,
+                    section_id: uploadSection,
+                    file_url: finalFileUrl
+                  });
+
+                  if (resp && resp.success) {
+                    Swal.fire({
+                      title: "Upload Successful!",
+                      text: `"${uploadTitle}" has been added to the course materials.`,
+                      icon: "success",
+                      confirmButtonText: "Great",
+                      confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+                      background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+                      color: theme === 'dark' ? '#ffffff' : '#000000',
+                      iconColor: "#22c55e",
+                      customClass: {
+                        popup: 'rounded-2xl border border-border shadow-2xl'
+                      }
+                    });
+                    setShowUploadModal(false);
+                    resetForm();
+                    loadMaterials();
+                  } else {
+                    toast.error(resp?.message || 'Upload failed');
+                  }
+                } catch (error: any) {
+                  toast.error(error.message || 'Upload error');
+                } finally {
+                  setUploading(false);
+                }
+              }}
+              disabled={uploading}
+              className="bg-primary text-white hover:bg-primary/90 rounded-xl px-8 h-11 font-bold shadow-lg shadow-primary/20 transition-all active:scale-95"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                'Confirm Upload'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>);
 

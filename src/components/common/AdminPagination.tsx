@@ -18,7 +18,7 @@ export const AdminPagination = ({ pagination, onPageChange }: AdminPaginationPro
 
   if (!pagination) return null;
 
-  const startItem = Math.max(1, (pagination.page - 1) * pagination.pageSize + 1);
+  const startItem = pagination.totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
   const endItem = Math.min(pagination.page * pagination.pageSize, pagination.totalItems);
 
   return (
