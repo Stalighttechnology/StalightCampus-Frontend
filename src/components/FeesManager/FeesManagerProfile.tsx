@@ -150,8 +150,8 @@ const FeesManagerProfile: React.FC = () => {
       <Card className={`w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
         <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
-            <CardTitle className={`text-lg ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Fees Manager Profile</CardTitle>
-            <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage your account and contact details</p>
+            <CardTitle>Fees Manager Profile</CardTitle>
+            <p className="text-sm sm:text-sm mt-2 text-gray-500">Manage your account and contact details</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
@@ -161,13 +161,13 @@ const FeesManagerProfile: React.FC = () => {
               </Button>
             }
 
-            <Button size="sm" onClick={() => {if (editing) handleSave();else setEditing(true);}} variant="outline" className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white" disabled={loading}>
+            <Button size="sm" onClick={() => {if (editing) handleSave();else setEditing(true);}} variant="outline" className="text-white text-md sm:text-sm bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white" disabled={loading}>
               {editing ? 'Save' : 'Edit Profile'}
             </Button>
 
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>
-                <Button className="text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
+                <Button className="text-md sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
               </DialogTrigger>
               <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
                 <DialogHeader>
@@ -214,21 +214,21 @@ const FeesManagerProfile: React.FC = () => {
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
-              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4 flex-shrink-0`}>{(formData.first_name?.[0] || '') + (formData.last_name?.[0] || '')}</div>
-              <div className="text-base sm:text-lg font-semibold text-center mb-1">{formData.first_name} {formData.last_name}</div>
-              <div className={`text-xs sm:text-sm mb-4 sm:mb-6 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Fees Manager</div>
+              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4 flex-shrink-0`}>{(formData.first_name?.[0] || '') + (formData.last_name?.[0] || '')}</div>
+              <div className="text-xl sm:text-xl font-semibold text-center mb-1">{formData.first_name} {formData.last_name}</div>
+              <div className={`text-md sm:text-md mb-4 sm:mb-6 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Fees Manager</div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
-                <h4 className={`text-xs sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+                <h4 className={`text-sm sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
                 <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                     <div className="flex flex-col justify-start">
-                      <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</span>
-                      <span className={`text-xs sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{formData.email || '—'}</span>
+                      <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</span>
+                      <span className={`text-sm sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{formData.email || '—'}</span>
                     </div>
                     <div className="flex flex-col justify-start">
-                      <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</span>
-                      <span className={`text-xs sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{formData.phone || '—'}</span>
+                      <span className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</span>
+                      <span className={`text-sm sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{formData.phone || '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -237,41 +237,41 @@ const FeesManagerProfile: React.FC = () => {
 
             <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
-                <button onClick={() => {/* single tab only for simplicity */}} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${'bg-primary text-white'}`}>Details</button>
+                <button onClick={() => {/* single tab only for simplicity */}} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${'bg-primary text-white'}`}>Details</button>
               </div>
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="space-y-4 sm:space-y-5 md:space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                     <div>
-                      <Label htmlFor="first_name">First Name</Label>
-                      <Input id="first_name" value={formData.first_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} className="text-xs sm:text-sm h-8 sm:h-9 md:h-10 w-full" />
+                      <Label htmlFor="first_name" className="text-md sm:text-sm">First Name</Label>
+                      <Input id="first_name" value={formData.first_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
                     </div>
                     <div>
-                      <Label htmlFor="last_name">Last Name</Label>
-                      <Input id="last_name" value={formData.last_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} className="text-xs sm:text-sm h-8 sm:h-9 md:h-10 w-full" />
+                      <Label htmlFor="last_name" className="text-md sm:text-sm">Last Name</Label>
+                      <Input id="last_name" value={formData.last_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" value={formData.email} disabled={!editing} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="text-xs sm:text-sm h-8 sm:h-10 w-full" />
+                      <Label htmlFor="email" className="text-md sm:text-sm">Email</Label>
+                      <Input id="email" value={formData.email} disabled={!editing} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
                     </div>
                     <div>
-                      <Label htmlFor="phone">Mobile</Label>
-                      <Input id="phone" value={formData.phone} disabled={!editing} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="text-xs sm:text-sm h-8 sm:h-10 w-full" />
+                      <Label htmlFor="phone" className="text-md sm:text-sm">Mobile</Label>
+                      <Input id="phone" value={formData.phone} disabled={!editing} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Textarea id="address" rows={3} value={formData.address} disabled={!editing} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="text-xs sm:text-sm w-full" />
+                    <Label htmlFor="address" className="text-md sm:text-sm">Address</Label>
+                    <Textarea id="address" rows={3} value={formData.address} disabled={!editing} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="text-md sm:text-sm w-full" />
                   </div>
 
                   <div>
-                    <Label htmlFor="bio">Bio</Label>
-                    <Textarea id="bio" rows={4} value={formData.bio} disabled={!editing} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="text-xs sm:text-sm w-full" />
+                    <Label htmlFor="bio" className="text-md sm:text-sm">Bio</Label>
+                    <Textarea id="bio" rows={4} value={formData.bio} disabled={!editing} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="text-md sm:text-sm w-full" />
                   </div>
                 </div>
               </div>
