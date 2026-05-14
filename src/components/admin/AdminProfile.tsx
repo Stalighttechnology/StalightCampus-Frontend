@@ -893,6 +893,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 </div>
               </DialogContent>
             </Dialog>
+          </div>
         </CardHeader>
 
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
