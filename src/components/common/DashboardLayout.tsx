@@ -5,7 +5,8 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { useIsMobile } from "../../hooks/use-mobile";
 import { useTheme } from "../../context/ThemeContext";
-import { stopTokenRefresh, logoutUser } from "../../utils/authService";
+import { logoutUser } from "../../utils/authService";
+import { useAuth } from "../../context/AuthContext";
 import { getDashboardOverview } from "../../utils/student_api";
 import { getFacultyDashboardBootstrap } from "../../utils/faculty_api";
 import { getHODStats } from "../../utils/hod_api";
@@ -45,6 +46,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const { theme } = useTheme();
+  const { clearAuth } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 1024); // Start expanded on desktop, collapsed on mobile
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -172,8 +174,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     } catch (err) {
 
     } finally {
-      localStorage.clear();
-      stopTokenRefresh();
+      clearAuth();
       // Use client-side navigation to avoid reloading from backend server
       try {
         navigate("/", { replace: true });

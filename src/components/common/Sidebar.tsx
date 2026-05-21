@@ -154,7 +154,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
 
-  const userStr = localStorage.getItem("user");
+  const userStr = sessionStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const orgPlan = user?.org_plan || "basic";
 

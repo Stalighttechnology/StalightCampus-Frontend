@@ -84,8 +84,8 @@ const FloatingAssistant: React.FC = () => {
 
   // Get user information from localStorage
   const getUserInfo = () => {
-    const userStr = localStorage.getItem('user');
-    const role = localStorage.getItem('role');
+    const userStr = sessionStorage.getItem("user");
+    const role = sessionStorage.getItem("role");
     if (userStr && role) {
       try {
         const user = JSON.parse(userStr);

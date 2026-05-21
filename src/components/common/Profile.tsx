@@ -153,7 +153,7 @@ const Profile = ({ role, user }: ProfileProps) => {
         } else if (data.data?.profile_image || data.data?.profile_picture) {
           updatedUser.profile_image = data.data.profile_image || data.data.profile_picture;
         }
-        localStorage.setItem("user", JSON.stringify(updatedUser));
+        sessionStorage.setItem("user", JSON.stringify(updatedUser));
       } else {
         setError(data.message || "Failed to update profile");
         showErrorAlert("Error", data.message || "Failed to update profile");

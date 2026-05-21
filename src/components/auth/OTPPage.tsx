@@ -5,6 +5,7 @@ import { verifyOTP, resendOTP } from "../../utils/authService";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Shield, ArrowLeft, RotateCcw, CheckCircle } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 interface OTPPageProps {
   setRole: (role: string) => void;
@@ -14,6 +15,7 @@ interface OTPPageProps {
 
 const OTPPage = ({ setRole, setPage, setUser }: OTPPageProps) => {
   const navigate = useNavigate();
+  const { setTokens } = useAuth();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -21,7 +23,7 @@ const OTPPage = ({ setRole, setPage, setUser }: OTPPageProps) => {
   const [resendDisabled, setResendDisabled] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
-  const user_id = localStorage.getItem("temp_user_id") || "";
+  const user_id = sessionStorage.getItem("temp_user_id") || "";
 
   useEffect(() => {
     if (!user_id && !isVerified) {
@@ -58,6 +60,12 @@ const OTPPage = ({ setRole, setPage, setUser }: OTPPageProps) => {
       if (response.success) {
         setSuccess("OTP verified successfully");
         setIsVerified(true);
+        
+        // Hydrate AuthContext immediately
+        if (response.access && response.role && response.profile) {
+          setTokens(response.access, response.role, response.profile as Record<string, any>);
+        }
+
         // Navigate directly to appropriate dashboard
         const userRole = response.role;
         setTimeout(() => {

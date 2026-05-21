@@ -4,6 +4,8 @@ import DashboardLayout from "../common/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import FeesManagerDashboard from "../FeesManager/FeesManagerDashboard";
+import { useAuth } from "@/context/AuthContext";
+import { API_ENDPOINT } from "../../utils/config";
 
 interface FeesManagerDashboardProps {
   user: any;
@@ -12,6 +14,7 @@ interface FeesManagerDashboardProps {
 
 const FeesManagerDashboardWrapper: React.FC<FeesManagerDashboardProps> = ({ user, setPage }) => {
   const navigate = useNavigate();
+  const { clearAuth } = useAuth();
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +26,8 @@ const FeesManagerDashboardWrapper: React.FC<FeesManagerDashboardProps> = ({ user
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('access_token');
-      const response = await fetch('http://127.0.0.1:8000/api/fees-manager/dashboard/', {
+      const token = sessionStorage.getItem("access_token");
+      const response = await fetch(`${API_ENDPOINT}/fees-manager/dashboard/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -33,7 +36,7 @@ const FeesManagerDashboardWrapper: React.FC<FeesManagerDashboardProps> = ({ user
 
       if (response.status === 401) {
         // Token expired or invalid, redirect to login
-        localStorage.clear();
+        clearAuth();
         setPage("login");
         return;
       }
@@ -52,7 +55,7 @@ const FeesManagerDashboardWrapper: React.FC<FeesManagerDashboardProps> = ({ user
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    clearAuth();
     navigate("/", { replace: true });
   };
 

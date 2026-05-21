@@ -30,7 +30,7 @@ const ForgotPassword = ({ setPage }: ForgotPasswordProps) => {
 
       if (response.success) {
         setSuccess("OTP sent successfully to your email");
-        localStorage.setItem("temp_user_id", response.user_id || "");
+        sessionStorage.setItem("temp_user_id", response.user_id || "");
         setTimeout(() => {
           setPage("reset-password");
         }, 2000);

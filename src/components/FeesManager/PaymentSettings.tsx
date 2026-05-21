@@ -20,7 +20,7 @@ const PaymentSettings: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [validating, setValidating] = useState(false);
 
-  const userStr = localStorage.getItem('user');
+  const userStr = sessionStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const role = user?.role || '';
 

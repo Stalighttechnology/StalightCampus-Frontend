@@ -539,7 +539,7 @@ export const getDashboardOverview = async (): Promise<DashboardOverviewResponse>
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/dashboard/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -572,7 +572,7 @@ data: TakeAttendanceRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/take-attendance/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       },
       body: formData
     });
@@ -628,7 +628,7 @@ data: AIAttendanceRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/ai-attendance/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       },
       body: formData
     });
@@ -658,7 +658,7 @@ data: UploadMarksRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/upload-marks/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       },
       body: formData
     });
@@ -676,7 +676,7 @@ data: ApplyLeaveRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/apply-leave/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -696,7 +696,7 @@ params: {branch_id: string;semester_id: string;section_id: string;subject_id: st
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/attendance-records/?${query}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -714,7 +714,7 @@ data: CreateAnnouncementRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/announcements/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -772,7 +772,7 @@ export const getProctorStudents = async (params?: {
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     });
     return await response.json();
@@ -806,7 +806,7 @@ export const getProctorStudentsForStats = async (params?: {
         const response = await fetchWithTokenRefresh(url, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
             "Content-Type": "application/json"
           }
         });
@@ -861,7 +861,7 @@ params?: {search?: string;page?: number;page_size?: number;}) =>
     let config: any = {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     };
 
@@ -899,7 +899,7 @@ export const getAssignmentDetail = async (assignmentId: number) => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/${assignmentId}/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -915,7 +915,7 @@ export const getAssignmentSubmissions = async (assignmentId: number) => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/${assignmentId}/submissions/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -931,7 +931,7 @@ export const gradeSubmission = async (submissionId: number, data: {marks_obtaine
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/submissions/${submissionId}/grade/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -948,7 +948,7 @@ export const getFacultyAssignments = async (): Promise<GetFacultyAssignmentsResp
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -973,7 +973,7 @@ export const getFacultyDashboardBootstrap = async (): Promise<GetFacultyDashboar
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/dashboard/bootstrap/`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         }
       });
@@ -1009,7 +1009,7 @@ export const getAttendanceRecordsWithSummary = async (params?: {
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -1030,7 +1030,7 @@ export const getApplyLeaveBootstrap = async (params?: {page?: number;page_size?:
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/apply-leave/bootstrap/${qs}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -1055,7 +1055,7 @@ export const getTimetable = async (): Promise<GetTimetableResponse> => {
         const response = await fetchWithTokenRefresh(url, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`
+            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
           }
         });
         return await response.json();
@@ -1080,7 +1080,7 @@ method: "GET" | "POST" = "GET")
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/chat/`, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method === "POST" ? JSON.stringify(data) : undefined
@@ -1120,7 +1120,7 @@ data: ManageProfileRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/profile/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       },
       body: formData
     });
@@ -1138,7 +1138,7 @@ data: ScheduleMentoringRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/schedule-mentoring/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -1158,7 +1158,7 @@ params: {file_id: string;})
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/generate-statistics/?${query}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -1176,7 +1176,7 @@ filename: string)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/download-pdf/${filename}/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     });
     if (response.ok) {
@@ -1206,7 +1206,7 @@ subject_id: number)
   const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/students/?${params.toString()}`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
       "Content-Type": "application/json"
     },
     credentials: 'include'
@@ -1233,7 +1233,7 @@ test_number: number)
   const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/internal-marks/?${params.toString()}`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
       "Content-Type": "application/json"
     },
     credentials: 'include'
@@ -1247,7 +1247,7 @@ export const getFacultyLeaveRequests = async (): Promise<FacultyLeaveRequest[]> 
   const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/leave-requests/`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
       "Content-Type": "application/json"
     },
     credentials: 'include'
@@ -1262,7 +1262,7 @@ export const getFacultyProfile = async () => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/profile/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -1277,7 +1277,7 @@ export async function getFacultyNotifications() {
   const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/notifications/`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
       "Content-Type": "application/json"
     }
   });
@@ -1288,7 +1288,7 @@ export async function getFacultySentNotifications() {
   const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/notifications/sent/`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
       "Content-Type": "application/json"
     }
   });
@@ -1301,7 +1301,7 @@ export async function getAttendanceRecordsList() {
   const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/attendance-records/list/`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
       "Content-Type": "application/json"
     }
   });
@@ -1312,7 +1312,7 @@ export async function getAttendanceRecordDetails(recordId: number) {
   const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/attendance-records/${recordId}/details/`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
       "Content-Type": "application/json"
     }
   });
@@ -1409,7 +1409,7 @@ export const getTakeAttendanceBootstrap = async (params: {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/take-attendance/bootstrap/?${query.toString()}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -1425,7 +1425,7 @@ export const getAssignedSubjects = async (): Promise<{success: boolean;message?:
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assigned-subjects/`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       }
     });
@@ -1452,7 +1452,7 @@ export const getStudentsForRegular = async (params: {branch_id: string;semester_
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/students/regular/?${query.toString()}`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       }
     });
@@ -1479,7 +1479,7 @@ export const getStudentsForElective = async (params: {subject_id: string;branch_
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/students/elective/?${query.toString()}`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       }
     });
@@ -1506,7 +1506,7 @@ export const getStudentsForOpenElective = async (params: {subject_id: string;bra
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/students/open-elective/?${query.toString()}`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       }
     });
@@ -1522,7 +1522,7 @@ export const getSubjectDetail = async (subject_id: string): Promise<{success: bo
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/common/subject-detail/?subject_id=${encodeURIComponent(subject_id)}`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       }
     });
@@ -1562,7 +1562,7 @@ export const getUploadMarksBootstrap = async (params: {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/upload-marks/bootstrap/?${query.toString()}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -1590,7 +1590,7 @@ data: ManageStudentLeaveRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/manage-student-leave/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -1643,7 +1643,7 @@ export const getProctorStudentLeaves = async (params?: {
     const url = `${API_ENDPOINT}/faculty/proctor-student-leaves/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
-      headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+      headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token")}` }
     });
     return await response.json();
   } catch (error) {
@@ -1713,7 +1713,7 @@ data: MarkFacultyAttendanceRequest)
 : Promise<MarkFacultyAttendanceResponse> => {
   try {
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
     };
     const bodyPayload = JSON.stringify(data);
     if (bodyPayload) headers['Content-Type'] = 'application/json';
@@ -1748,7 +1748,7 @@ export const getFacultyAttendanceRecords = async (params?: {
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     });
     return await response.json();
@@ -1823,7 +1823,7 @@ export const createQuestionPaper = async (data: CreateQPRequest): Promise<QPResp
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/qps/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -1871,7 +1871,7 @@ export const getQuestionPapers = async (params: GetQPsParams = {}): Promise<any>
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     });
     return await response.json();
@@ -1886,7 +1886,7 @@ export const getQuestionPaperDetail = async (id: number): Promise<any> => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/qps/?qp_id=${id}&detail=true`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     });
     return await response.json();
@@ -1916,7 +1916,7 @@ export const getStudentsForMarks = async (params: {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/students-for-marks/?${query.toString()}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     });
     return await response.json();
@@ -1931,7 +1931,7 @@ export const uploadIAMarks = async (data: UploadIAMarksRequest): Promise<any> =>
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/upload-ia-marks/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -1948,7 +1948,7 @@ export const updateQuestionPaper = async (id: number, data: CreateQPRequest): Pr
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/qps/${id}/`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -1966,7 +1966,7 @@ export const submitQPForApproval = async (qpId: number, comment?: string): Promi
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       },
       body: JSON.stringify({ comment: comment || "" })
     });
@@ -2001,7 +2001,7 @@ export const getCOAttainment = async (params: {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/co-attainment/?${query.toString()}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });

@@ -63,7 +63,7 @@ method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET')
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       },
       body: method !== 'GET' && data ? JSON.stringify(data) : undefined
@@ -150,7 +150,7 @@ page?: number)
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       },
       body: method === 'PATCH' && data ? JSON.stringify(data) : undefined
@@ -219,7 +219,7 @@ page?: number)
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       },
       body: method === 'PATCH' && data ? JSON.stringify(data) : undefined
@@ -291,7 +291,7 @@ page?: number)
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         'Content-Type': 'application/json'
       },
       body: method === 'PATCH' && data ? JSON.stringify(data) : undefined

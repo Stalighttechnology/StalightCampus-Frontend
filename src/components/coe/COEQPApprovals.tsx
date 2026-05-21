@@ -90,7 +90,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/coe-pending/?page=${pendingPage}&page_size=10`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
         }
       });
       const data = await response.json();
@@ -117,7 +117,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/coe-finalized/?page=${finalizedPage}&page_size=10`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
         }
       });
       const data = await response.json();
@@ -165,7 +165,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/coe-finalize/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ comment })
@@ -317,7 +317,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/coe-reject/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ comment })

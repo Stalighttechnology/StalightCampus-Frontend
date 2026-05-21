@@ -7,6 +7,7 @@ import { API_ENDPOINT } from '../../utils/config';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useTheme } from '@/context/ThemeContext';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 type Message = {role: 'user' | 'bot';text: string;};
 
@@ -30,7 +31,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
 
   // Check if user is student and has required plan
   useEffect(() => {
-    const userStr = localStorage.getItem("user");
+    const userStr = sessionStorage.getItem("user");
     const user = userStr ? JSON.parse(userStr) : null;
     const orgPlan = (user?.org_plan || "basic").toLowerCase();
 
@@ -55,7 +56,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
   }, [messages]);
 
   // Role and Plan Check
-  const userStr = localStorage.getItem("user");
+  const userStr = sessionStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const orgPlan = (user?.org_plan || "basic").toLowerCase();
 
@@ -476,7 +477,7 @@ const ChatWithPDF: React.FC<ChatProps> = ({ role }) => {
                 }
                   <div
                   className={`p-1.5 rounded-md max-w-[75%] text-xs shadow-sm bot-message ${msg.role === 'user' ? theme === 'dark' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-blue-600 text-white rounded-br-none' : theme === 'dark' ? 'bg-muted text-foreground border-border rounded-bl-none' : 'bg-gray-100 text-gray-900 border-gray-200 rounded-bl-none'}`}
-                  dangerouslySetInnerHTML={{ __html: msg.text }} />
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.text) }} />
                 
                   {msg.role === 'user' &&
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-200 text-gray-900'}`}>

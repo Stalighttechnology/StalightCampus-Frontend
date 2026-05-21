@@ -145,7 +145,7 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
   };
 
   useEffect(() => {
-    const role = localStorage.getItem('role');
+    const role = sessionStorage.getItem("role");
     const isWardenPath = window.location.pathname.includes('/warden');
 
     if (!fetchRef.current && role !== 'warden' && !isWardenPath) {

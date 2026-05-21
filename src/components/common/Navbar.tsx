@@ -69,7 +69,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       }
     }
   };
-  const userStr = localStorage.getItem("user");
+  const userStr = sessionStorage.getItem("user");
   const userData = userStr ? JSON.parse(userStr) : null;
   const orgPlan = (userData?.org_plan || "basic").toLowerCase();
 

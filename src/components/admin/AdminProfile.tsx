@@ -81,7 +81,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       let currentUser = propUser;
       if (!currentUser || !currentUser.user_id) {
         try {
-          const userData = localStorage.getItem('user');
+          const userData = sessionStorage.getItem("user");
           if (userData) {
             const parsed = JSON.parse(userData);
             if (parsed.user_id) {
@@ -261,9 +261,9 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         if (res.success) {
           setProfile(prev => ({ ...prev, profile_picture: fileUrl } as any));
           // Update local storage
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          const user = JSON.parse(sessionStorage.getItem("user") || '{}');
           user.profile_picture = fileUrl;
-          localStorage.setItem('user', JSON.stringify(user));
+          sessionStorage.setItem("user", JSON.stringify(user));
           showSuccessAlert("Success", "Profile picture updated!");
         } else {
           showErrorAlert("Error", res.message || "Failed to update profile picture");
@@ -342,8 +342,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           };
           setProfile(profileData);
           setOriginalProfile(profileData);
-          localStorage.setItem('user', JSON.stringify({
-            ...JSON.parse(localStorage.getItem('user') || '{}'),
+          sessionStorage.setItem("user", JSON.stringify({
+            ...JSON.parse(sessionStorage.getItem("user") || '{}'),
             ...response.profile,
             user_id: currentUser.user_id
           }));

@@ -16,8 +16,8 @@ const PaymentCancel: React.FC<PaymentCancelProps> = ({ setPage }) => {
 
   // Check authentication on mount
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const role = localStorage.getItem('role');
+    const token = sessionStorage.getItem("access_token");
+    const role = sessionStorage.getItem("role");
 
     if (!token || role !== 'student') {
 

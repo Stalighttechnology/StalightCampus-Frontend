@@ -40,12 +40,12 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
       } else if (result.success) {
         toast.success(`Plan upgrade initiated successfully.`);
 
-        const userStr = localStorage.getItem("user");
+        const userStr = sessionStorage.getItem("user");
         if (userStr) {
           try {
             const user = JSON.parse(userStr);
             user.org_plan = selectedPlan;
-            localStorage.setItem("user", JSON.stringify(user));
+            sessionStorage.setItem("user", JSON.stringify(user));
           } catch (e) {
 
           }

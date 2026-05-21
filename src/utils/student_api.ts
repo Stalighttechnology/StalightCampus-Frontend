@@ -311,7 +311,7 @@ export const getDashboardOverview = async (): Promise<DashboardOverviewResponse>
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/dashboard/`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         }
       });
@@ -337,7 +337,7 @@ export const getTimetable = async (): Promise<GetTimetableResponse> => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/timetable/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -353,7 +353,7 @@ export const getStudentAttendance = async (): Promise<GetStudentAttendanceRespon
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/attendance/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -376,7 +376,7 @@ export const getInternalMarks = async (): Promise<GetInternalMarksResponse> => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/internal-marks/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -396,7 +396,7 @@ data: SubmitLeaveRequestRequest)
     // Debug log
     // Debug log
 
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     if (!token) {
 
       return { success: false, message: "No authentication token found" };
@@ -454,7 +454,7 @@ export const getLeaveRequests = async (page = 1, pageSize = 20): Promise<GetLeav
       page: String(page),
       page_size: String(pageSize)
     });
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/leave-requests/?${params.toString()}`, {
       method: "GET",
       headers: {
@@ -535,7 +535,7 @@ data: UploadCertificateRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/upload-certificate/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       },
       body: formData
     });
@@ -551,7 +551,7 @@ export const getCertificates = async (): Promise<GetCertificatesResponse> => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/certificates/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -569,7 +569,7 @@ data: DeleteCertificateRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/delete-certificate/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -588,7 +588,7 @@ data: UpdateProfileRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/update-profile/`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -605,7 +605,7 @@ export const getAnnouncements = async (): Promise<GetAnnouncementsResponse> => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/announcements/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -624,7 +624,7 @@ method: "GET" | "POST" = "GET")
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/chat/`, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method === "POST" ? JSON.stringify(data) : undefined
@@ -641,7 +641,7 @@ export const getNotifications = async (): Promise<GetNotificationsResponse> => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/notifications/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -659,7 +659,7 @@ data: UploadFaceEncodingsRequest)
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/upload-face-encodings/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -676,7 +676,7 @@ export const getFullStudentProfile = async () => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/full-profile/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -698,7 +698,7 @@ export const getStudentAssignments = async (params?: {search?: string;page?: num
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/assignments/${qs}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -716,7 +716,7 @@ export const submitAssignment = async (assignmentId: number, file: File) => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/assignments/${assignmentId}/submit/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       },
       body: formData
     });
@@ -732,7 +732,7 @@ export const getStudentStudyMaterials = async () => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/study-materials/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -763,7 +763,7 @@ pageSize = 50) =>
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/all-study-materials/?${params.toString()}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -780,7 +780,7 @@ export const getBranches = async () => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/branches/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -796,7 +796,7 @@ export const getSemesters = async (branchId: string) => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/semesters/?branch_id=${branchId}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -812,7 +812,7 @@ export const getSections = async (branchId: string, semesterId: string) => {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/sections/?branch_id=${branchId}&semester_id=${semesterId}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });

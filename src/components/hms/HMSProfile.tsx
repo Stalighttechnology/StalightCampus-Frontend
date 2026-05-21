@@ -119,8 +119,8 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
       if (result.success) {
         showSuccessAlert("Success", "Profile saved successfully");
         setEditing(false);
-        const userData = JSON.parse(localStorage.getItem("user") || "{}");
-        localStorage.setItem("user", JSON.stringify({ ...userData, ...result.data }));
+        const userData = JSON.parse(sessionStorage.getItem("user") || "{}");
+        sessionStorage.setItem("user", JSON.stringify({ ...userData, ...result.data }));
       } else {
         showErrorAlert("Error", result.message || "Failed to save profile");
       }

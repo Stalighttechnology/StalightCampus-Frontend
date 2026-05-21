@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../utils/authService";
+import { useAuth } from "../context/AuthContext";
 
 export interface UseLoginProps {
   setRole: (role: string) => void;
@@ -10,6 +11,7 @@ export interface UseLoginProps {
 
 export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
   const navigate = useNavigate();
+  const { setTokens } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +38,8 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
 
       // Handle forced password reset on first login
       if (response && (response as any).password_reset_required) {
-        localStorage.setItem("temp_user_id", (response as any).user_id || "");
-        localStorage.setItem("password_reset_email", trimmedUsername);
+        sessionStorage.setItem("temp_user_id", (response as any).user_id || "");
+        sessionStorage.setItem("password_reset_email", trimmedUsername);
         setPage("forgot-password");
         setLoading(false);
         return;
@@ -45,10 +47,15 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
 
       if (response.success) {
         if (response.message === "OTP sent") {
-          localStorage.setItem("temp_user_id", response.user_id || "");
+          // OTP path — user_id already written to sessionStorage by loginUser()
+          sessionStorage.setItem("temp_user_id", response.user_id || "");
           setPage("otp");
         } else {
-          // Authentication successful - navigate directly
+          // Direct login (no OTP) — hydrate AuthContext immediately
+          if (response.access && response.role && response.profile) {
+            setTokens(response.access, response.role, response.profile as Record<string, any>);
+          }
+
           const userRole = response.role;
           switch (userRole) {
             case "admin":
@@ -85,8 +92,8 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
         }
       } else {
         if (response.password_reset_required) {
-          localStorage.setItem("temp_user_id", response.user_id || "");
-          localStorage.setItem("password_reset_email", trimmedUsername);
+          sessionStorage.setItem("temp_user_id", response.user_id || "");
+          sessionStorage.setItem("password_reset_email", trimmedUsername);
           setPage("forgot-password");
           return;
         }

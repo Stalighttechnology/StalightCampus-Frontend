@@ -80,7 +80,7 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
         setLocalError(null);
         if (setError) setError(null);
         try {
-          const userData = localStorage.getItem("user");
+          const userData = sessionStorage.getItem("user");
           if (userData) {
             const parsedUser = JSON.parse(userData);
             if (parsedUser.user_id) {
@@ -180,9 +180,9 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
         if (res.success) {
           setProfile(prev => ({ ...prev, profile_picture: fileUrl } as any));
           // Update local storage
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          const user = JSON.parse(sessionStorage.getItem("user") || '{}');
           user.profile_picture = fileUrl;
-          localStorage.setItem('user', JSON.stringify(user));
+          sessionStorage.setItem("user", JSON.stringify(user));
           showSuccessAlert("Success", "Profile picture updated!");
         } else {
           showErrorAlert("Error", res.message || "Failed to update profile picture");
@@ -271,8 +271,8 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
         };
         setProfile(updatedProfile);
         showSuccessAlert("Success", "Profile saved successfully");
-        localStorage.setItem("user", JSON.stringify({
-          ...JSON.parse(localStorage.getItem("user") || "{}"),
+        sessionStorage.setItem("user", JSON.stringify({
+          ...JSON.parse(sessionStorage.getItem("user") || "{}"),
           ...response.data,
           user_id: currentUser.user_id
         }));

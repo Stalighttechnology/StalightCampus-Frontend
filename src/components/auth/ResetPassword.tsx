@@ -17,7 +17,7 @@ const ResetPassword = ({ setPage }: ResetPasswordProps) => {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isReset, setIsReset] = useState(false);
-  const user_id = localStorage.getItem("temp_user_id") || "";
+  const user_id = sessionStorage.getItem("temp_user_id") || "";
 
   useEffect(() => {
     if (!user_id && !isReset) {
@@ -59,7 +59,7 @@ const ResetPassword = ({ setPage }: ResetPasswordProps) => {
       if (response.success) {
         setSuccess("Password reset successfully");
         setIsReset(true);
-        localStorage.removeItem("temp_user_id");
+        sessionStorage.removeItem("temp_user_id");
         setTimeout(() => {
           setPage("login");
         }, 2000);

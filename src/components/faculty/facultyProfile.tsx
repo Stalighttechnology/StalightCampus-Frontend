@@ -157,9 +157,9 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         if (res.success) {
           setFormData(prev => ({ ...prev, profile_picture: fileUrl }));
           // Update local storage
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          const user = JSON.parse(sessionStorage.getItem("user") || '{}');
           user.profile_picture = fileUrl;
-          localStorage.setItem('user', JSON.stringify(user));
+          sessionStorage.setItem("user", JSON.stringify(user));
           showSuccessAlert("Success", "Profile picture updated!");
         } else {
           showErrorAlert("Error", res.message || "Failed to update profile picture");

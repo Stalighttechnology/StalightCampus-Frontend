@@ -665,14 +665,14 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <img
-                        src={JSON.parse(localStorage.getItem('user') || '{}').org_logo || "/logo.jpeg"}
+                        src={JSON.parse(sessionStorage.getItem("user") || '{}').org_logo || "/logo.jpeg"}
                         alt="Logo"
                         style={{ height: 96, width: 96, objectFit: 'contain', borderRadius: 6 }} />
                       
                     </div>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                       <div className="font-bold text-lg uppercase" style={{ letterSpacing: '0.6px' }}>
-                        {JSON.parse(localStorage.getItem('user') || '{}').org_name || "NEURO CAMPUS"}
+                        {JSON.parse(sessionStorage.getItem("user") || '{}').org_name || "NEURO CAMPUS"}
                       </div>
                       <div className="text-xs text-muted-foreground">Official Campus Portal</div>
                     </div>

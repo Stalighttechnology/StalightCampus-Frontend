@@ -4,8 +4,7 @@ import DashboardCard from "../common/DashboardCard";
 import { Activity, BookOpen, Calendar, Clock } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonStatsGrid } from "../ui/skeleton";
-
-const API_BASE_URL = "http://127.0.0.1:8000";
+import { API_BASE_URL } from "@/utils/config";
 
 const StudentStats = () => {
   const [stats, setStats] = useState<any>(null);
@@ -29,7 +28,7 @@ const StudentStats = () => {
       try {
         const response = await fetch(`${API_BASE_URL}/student/dashboard/`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
             "Content-Type": "application/json",
           },
         });

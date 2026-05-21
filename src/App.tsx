@@ -28,95 +28,64 @@ const SuperAdminIndex = lazy(() => import("./superadmin/index"));
 
 import { WardenProvider } from "./context/WardenContext";
 import { shouldShowFloatingAssistant } from "./utils/config";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { initErrorLogger } from "./utils/errorLogger";
+import type { ReactNode } from "react";
 
 // Protected Route Component
-const ProtectedRoute = ({ children, allowedRoles }: {children: React.ReactNode;allowedRoles: string[];}) => {
-  const token = localStorage.getItem("access_token");
-  const role = localStorage.getItem("role");
-  const user = localStorage.getItem("user");
+const ProtectedRoute = ({
+  children,
+  allowedRoles,
+}: {
+  children: ReactNode;
+  allowedRoles: string[];
+}) => {
+  const { isAuthenticated, isInitializing, role } = useAuth();
 
-  if (!token || !role || !user || !allowedRoles.includes(role)) {
+  // While the silent cookie-refresh is running, show a loading spinner
+  // to avoid briefly rendering the login page for authenticated users.
+  if (isInitializing) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <img
+            src="/logo.jpeg"
+            alt="Stalight Campus Logo"
+            className="w-16 h-16 rounded-full object-cover animate-pulse shadow-lg"
+          />
+          <p className="text-sm font-medium text-muted-foreground animate-pulse">
+            Loading Stalight Campus...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !role || !allowedRoles.includes(role)) {
     return <Index />;
   }
 
   return <>{children}</>;
 };
 
-// Helper function to safely parse user data
-const getUserData = () => {
-  try {
-    const userData = localStorage.getItem("user");
-    return userData ? JSON.parse(userData) : {};
-  } catch (error) {
-
-    localStorage.removeItem("user");
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("role");
-    return {};
-  }
-};
-
-const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [userData, setUserData] = useState(getUserData());
+const AppContent = () => {
+  const { role: userRole, user: userData } = useAuth();
 
   useEffect(() => {
-    // Check authentication status on mount and when localStorage changes
-    const checkAuth = () => {
-      const token = localStorage.getItem("access_token");
-      const role = localStorage.getItem("role");
-      const user = localStorage.getItem("user");
-
-      const isAuth = !!(token && role && user);
-      const currentUserData = getUserData();
-
-      // Only update state if values actually changed
-      setIsAuthenticated((prev) => prev !== isAuth ? isAuth : prev);
-      setUserRole((prev) => prev !== role ? role : prev);
-      setUserData((prev) => {
-        // Only update if the user data actually changed
-        const prevStr = JSON.stringify(prev);
-        const currentStr = JSON.stringify(currentUserData);
-        return prevStr !== currentStr ? currentUserData : prev;
-      });
-    };
-
-    checkAuth();
-
-    // Listen for storage changes (login/logout from other tabs)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "access_token" || e.key === "role" || e.key === "user") {
-        checkAuth();
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    // Check less frequently - every 5 seconds instead of 1 second
-    const interval = setInterval(checkAuth, 5000);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
-    };
+    initErrorLogger();
   }, []);
 
   return (
-    // ✅ NO QueryClientProvider here - it's in main.tsx
-    // ✅ NO ThemeProvider here - it's in main.tsx
-    // ✅ NO TooltipProvider here - it's in main.tsx
-    <BrowserRouter>
-      <WardenProvider>
-        <Suspense fallback={
+    <>
+      <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen bg-background">
-            <div className="flex flex-col items-center gap-4">
-              <img src="/logo.jpeg" alt="Stalight Campus Logo" className="w-16 h-16 rounded-full object-cover animate-pulse shadow-lg" />
-              <p className="text-sm font-medium text-muted-foreground animate-pulse">Loading Stalight Campus...</p>
-            </div>
+          <div className="flex flex-col items-center gap-4">
+            <img src="/logo.jpeg" alt="Stalight Campus Logo" className="w-16 h-16 rounded-full object-cover animate-pulse shadow-lg" />
+            <p className="text-sm font-medium text-muted-foreground animate-pulse">Loading Stalight Campus...</p>
           </div>
-        }>
-          <Routes>
+        </div>
+      }>
+        <Routes>
             {/* Public routes */}
             <Route path="/" element={
             <>
@@ -159,7 +128,7 @@ const App = () => {
             <ProtectedRoute allowedRoles={["teacher", "student"]}>
                 <>
                   {(() => {
-                  const roleNow = localStorage.getItem('role');
+                  const roleNow = sessionStorage.getItem("role");
                   return roleNow === 'teacher' ? <FacultyDashboard user={userData} setPage={() => {}} /> : <StudentDashboard user={userData} setPage={() => {}} />;
                 })()}
                   {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -171,7 +140,7 @@ const App = () => {
             <ProtectedRoute allowedRoles={["teacher", "student"]}>
                 <>
                   {(() => {
-                  const roleNow = localStorage.getItem('role');
+                  const roleNow = sessionStorage.getItem("role");
                   return roleNow === 'teacher' ? <FacultyDashboard user={userData} setPage={() => {}} /> : <StudentDashboard user={userData} setPage={() => {}} />;
                 })()}
                   {shouldShowFloatingAssistant() && <FloatingAssistant />}
@@ -428,13 +397,26 @@ const App = () => {
             } />
           </Routes>
         </Suspense>
-      </WardenProvider>
+        {/* ✅ Toast components rendered OUTSIDE routes but INSIDE AppContent */}
+        <Toaster />
+        <Sonner />
+      </>
+  );
+};
 
-      {/* ✅ Toast components rendered OUTSIDE routes but INSIDE BrowserRouter */}
-      <Toaster />
-      <Sonner />
-    </BrowserRouter>);
-
+const App = () => {
+  return (
+    // ✅ NO QueryClientProvider here - it's in main.tsx
+    // ✅ NO ThemeProvider here - it's in main.tsx
+    // ✅ NO TooltipProvider here - it's in main.tsx
+    <BrowserRouter>
+      <AuthProvider>
+        <WardenProvider>
+          <AppContent />
+        </WardenProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 };
 
 export default App;

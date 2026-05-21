@@ -129,7 +129,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       const response = await fetchWithTokenRefresh(url, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         }
       });
@@ -170,7 +170,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/assign-teacher-branch/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({

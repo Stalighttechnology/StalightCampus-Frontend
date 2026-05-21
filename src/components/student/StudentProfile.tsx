@@ -222,7 +222,7 @@ const StudentProfile: React.FC = () => {
 
       // check face status
       try {
-        const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/student/check-face-status/`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` } });
+        const resp = await fetch(`${API_ENDPOINT}/student/check-face-status/`, { headers: { 'Authorization': `Bearer ${sessionStorage.getItem("access_token")}` } });
         const j = await resp.json();
         if (j.success) setHasFaceTrained(Boolean(j.has_face));
       } catch (err) {
@@ -255,9 +255,9 @@ const StudentProfile: React.FC = () => {
 
         if (result?.success) {
           setForm((p) => ({ ...p, profile_picture: fileUrl }));
-          const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
+          const currentUserData = JSON.parse(sessionStorage.getItem("user") || '{}');
           currentUserData.profile_picture = fileUrl;
-          localStorage.setItem('user', JSON.stringify(currentUserData));
+          sessionStorage.setItem("user", JSON.stringify(currentUserData));
           showSuccessAlert('Success', 'Profile picture updated successfully!');
         } else {
           showErrorAlert('Error', result.message || 'Failed to update backend with new photo');
@@ -396,7 +396,7 @@ const StudentProfile: React.FC = () => {
       const fd = new FormData();
       faceImages.forEach((f) => fd.append('images', f));
       setFaceTrainingProgress(25);setFaceTrainingMessage('Uploading images...');
-      const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/student/train-face/`, { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }, body: fd });
+      const resp = await fetch(`${API_ENDPOINT}/student/train-face/`, { method: 'POST', headers: { 'Authorization': `Bearer ${sessionStorage.getItem("access_token")}` }, body: fd });
       const j = await resp.json();
       setFaceTrainingProgress(75);setFaceTrainingMessage('Training face recognition...');
       if (j.success) {setFaceTrainingProgress(100);setFaceTrainingStatus('success');setHasFaceTrained(true);setFaceImages([]);showSuccessAlert('Success', 'Face updated successfully!');} else
