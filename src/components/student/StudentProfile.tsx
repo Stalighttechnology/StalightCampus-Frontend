@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { getFullStudentProfile } from "@/utils/student_api";
 import { useStudentProfileUpdateMutation } from "@/hooks/useApiQueries";
@@ -113,7 +113,7 @@ const StudentProfile: React.FC = () => {
   
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile'|'personal'|'academic'|'face'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile'|'personal'|'academic'|'face'|'activity'>('profile');
   
   // Toggle states for Guardian Details and Address
   const [showGuardianDetails, setShowGuardianDetails] = useState(false);
@@ -125,6 +125,10 @@ const StudentProfile: React.FC = () => {
   const [faceTrainingProgress, setFaceTrainingProgress] = useState<number>(0);
   const [faceTrainingMessage, setFaceTrainingMessage] = useState<string>('');
   const [hasFaceTrained, setHasFaceTrained] = useState<boolean>(false);
+
+  // Login activity state
+  const [loginHistory, setLoginHistory] = useState<any[]>([]);
+  const [loginHistoryLoading, setLoginHistoryLoading] = useState(false);
 
   // Profile picture upload state
   const [isUploadingPicture, setIsUploadingPicture] = useState<boolean>(false);
@@ -233,6 +237,21 @@ const StudentProfile: React.FC = () => {
     fetchProfile().finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchLoginHistory = async () => {
+    setLoginHistoryLoading(true);
+    try {
+      const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/login-history/`, {
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+      });
+      const j = await resp.json();
+      if (j.success) setLoginHistory(j.history || []);
+    } catch (err) {
+      // silent
+    } finally {
+      setLoginHistoryLoading(false);
+    }
+  };
 
   const handleProfilePictureSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -525,6 +544,7 @@ const StudentProfile: React.FC = () => {
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
                 <button onClick={() => setActiveTab('academic')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'academic' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Academic</button>
                 <button onClick={() => setActiveTab('face')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'face' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Face Recognition</button>
+                <button onClick={() => { setActiveTab('activity'); if (loginHistory.length === 0) fetchLoginHistory(); }} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
@@ -903,6 +923,164 @@ const StudentProfile: React.FC = () => {
                     </div>
                   </div>
                 }
+
+                {activeTab === 'activity' && (
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
+                          <ShieldCheck className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Login Activity</h3>
+                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Recent sessions on your account</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={fetchLoginHistory}
+                        disabled={loginHistoryLoading}
+                        className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all font-medium
+                          ${theme === 'dark' ? 'border-border text-muted-foreground hover:text-foreground hover:border-foreground' : 'border-gray-200 text-gray-500 hover:text-gray-800 hover:border-gray-400'}`}
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${loginHistoryLoading ? 'animate-spin' : ''}`} />
+                        Refresh
+                      </button>
+                    </div>
+
+                    {/* Loading state */}
+                    {loginHistoryLoading && (
+                      <div className="space-y-3">
+                        {[1,2,3].map(i => (
+                          <div key={i} className={`animate-pulse rounded-xl p-4 ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
+                            <div className="flex items-center gap-4">
+                              <div className={`h-12 w-12 rounded-xl ${theme === 'dark' ? 'bg-muted-foreground/20' : 'bg-gray-200'}`} />
+                              <div className="flex-1 space-y-2">
+                                <div className={`h-4 rounded w-2/5 ${theme === 'dark' ? 'bg-muted-foreground/20' : 'bg-gray-200'}`} />
+                                <div className={`h-3 rounded w-3/5 ${theme === 'dark' ? 'bg-muted-foreground/10' : 'bg-gray-150'}`} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Empty state */}
+                    {!loginHistoryLoading && loginHistory.length === 0 && (
+                      <div className={`flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border text-muted-foreground' : 'border-gray-200 text-gray-400'}`}>
+                        <Clock className="h-12 w-12 mb-3 opacity-40" />
+                        <p className="font-medium">No login history yet</p>
+                        <p className="text-sm mt-1">Login events will appear here after your next sign-in.</p>
+                      </div>
+                    )}
+
+                    {/* Login history list */}
+                    {!loginHistoryLoading && loginHistory.length > 0 && (
+                      <div className="space-y-3">
+                        {loginHistory.map((entry: any, idx: number) => {
+                          const dt = new Date(entry.timestamp);
+                          const isRecent = idx === 0;
+                          const timeAgo = (() => {
+                            const diff = Date.now() - dt.getTime();
+                            const mins = Math.floor(diff / 60000);
+                            const hrs = Math.floor(mins / 60);
+                            const days = Math.floor(hrs / 24);
+                            if (mins < 2) return 'Just now';
+                            if (mins < 60) return `${mins}m ago`;
+                            if (hrs < 24) return `${hrs}h ago`;
+                            if (days < 7) return `${days}d ago`;
+                            return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                          })();
+
+                          // Device icon
+                          const DeviceIcon = entry.device_type === 'mobile' ? Smartphone
+                            : entry.device_type === 'tablet' ? Tablet
+                            : entry.device_type === 'desktop' ? Monitor
+                            : Globe;
+
+                          // Color scheme per device type
+                          const iconColor = entry.device_type === 'mobile' ? 'text-emerald-600'
+                            : entry.device_type === 'tablet' ? 'text-blue-600'
+                            : entry.device_type === 'desktop' ? 'text-violet-600'
+                            : 'text-orange-500';
+
+                          const iconBg = entry.device_type === 'mobile'
+                            ? (theme === 'dark' ? 'bg-emerald-900/30' : 'bg-emerald-50')
+                            : entry.device_type === 'tablet'
+                            ? (theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-50')
+                            : entry.device_type === 'desktop'
+                            ? (theme === 'dark' ? 'bg-violet-900/30' : 'bg-violet-50')
+                            : (theme === 'dark' ? 'bg-orange-900/30' : 'bg-orange-50');
+
+                          return (
+                            <div
+                              key={entry.id}
+                              className={`relative flex items-start gap-4 p-4 rounded-xl border transition-all
+                                ${isRecent
+                                  ? (theme === 'dark' ? 'border-primary/40 bg-primary/5' : 'border-primary/30 bg-primary/3')
+                                  : (theme === 'dark' ? 'border-border bg-card hover:border-border/80' : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm')
+                                }`}
+                            >
+                              {/* Current session badge */}
+                              {isRecent && (
+                                <span className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-white">
+                                  Latest
+                                </span>
+                              )}
+
+                              {/* Device Icon */}
+                              <div className={`flex-shrink-0 h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>
+                                <DeviceIcon className={`h-6 w-6 ${iconColor}`} />
+                              </div>
+
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`font-semibold text-sm truncate ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                    {entry.device}
+                                  </span>
+                                  {entry.brand && entry.brand !== 'Unknown' && entry.brand !== entry.device && (
+                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-600'}`}>
+                                      {entry.brand}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* OS + Browser */}
+                                <div className={`flex items-center gap-2 mt-1 text-xs flex-wrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                  <span>{entry.os}</span>
+                                  <span className="opacity-40">·</span>
+                                  <span>{entry.browser}</span>
+                                </div>
+
+                                {/* IP + Time */}
+                                <div className={`flex items-center gap-3 mt-2 flex-wrap`}>
+                                  <span className={`flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-md ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-600'}`}>
+                                    <Globe className="h-3 w-3 opacity-60" />
+                                    {entry.ip_address}
+                                  </span>
+                                  <span className={`flex items-center gap-1 text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                    <Clock className="h-3 w-3 opacity-60" />
+                                    <span title={dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}>{timeAgo}</span>
+                                    <span className="opacity-50 ml-1">{dt.toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' })}</span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Security tip */}
+                    {!loginHistoryLoading && loginHistory.length > 0 && (
+                      <div className={`flex items-start gap-3 p-3 rounded-lg border text-xs ${theme === 'dark' ? 'bg-amber-900/10 border-amber-800/30 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
+                        <ShieldCheck className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>If you notice any unfamiliar login, change your password immediately or contact your admin.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
               </div>
             </div>
