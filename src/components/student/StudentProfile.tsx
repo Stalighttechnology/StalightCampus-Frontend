@@ -20,6 +20,148 @@ import { performR2Upload } from "../../utils/common_api";
 
 type StudentForm = Record<string, any>;
 
+/* ── Brand / OS / Browser inline SVG logos for Login Activity ── */
+const BRAND_LOGOS: Record<string, (size: number) => React.ReactNode> = {
+  'Apple': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+  ),
+  'Samsung': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M5.9 4.1C4.3 4.1 3 5.4 3 7v10c0 1.6 1.3 2.9 2.9 2.9h12.2c1.6 0 2.9-1.3 2.9-2.9V7c0-1.6-1.3-2.9-2.9-2.9H5.9zm.6 7.5h1.1v1.5c0 .3-.1.5-.3.7-.2.2-.5.3-.7.3-.3 0-.5-.1-.7-.3-.2-.2-.3-.4-.3-.7v-.4h.9v.3c0 .1 0 .1.1.2 0 0 .1.1.1.1s.1 0 .1-.1c.1-.1.1-.1.1-.2v-1.4H6.5v-.9h1.1v.9h-1.1v-.9zm2.1 0h.9l.6 1.6.6-1.6h.9l-1.1 2.5h-.9l-1-2.5zm3.7 0h1.7v.7h-1v.3h.9v.6h-.9v.3h1v.7h-1.7v-2.6zm2.4 0h.8v1.9h1v.7h-1.8v-2.6zm2.3 0h1.7v.7h-1v.3h.9v.6h-.9v.3h1v.7h-1.7v-2.6z"/></svg>
+  ),
+  'OnePlus': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.5 11h-3v3c0 .55-.45 1-1 1h-1c-.55 0-1-.45-1-1v-3h-3c-.55 0-1-.45-1-1v-1c0-.55.45-1 1-1h3V7c0-.55.45-1 1-1h1c.55 0 1 .45 1 1v3h3c.55 0 1 .45 1 1v1c0 .55-.45 1-1 1z"/></svg>
+  ),
+  'Motorola': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.1 0 2.04.74 2.33 1.75L12 10.5 9.67 6.75C9.96 5.74 10.9 5 12 5zm-5.5 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5c.55 0 1.06.18 1.47.48L8 12l-1.97 2.02c-.41.3-.92.48-1.53.48zm11 0c-.61 0-1.12-.18-1.53-.48L14 12l1.97-2.02c.41-.3.92-.48 1.53-.48 1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5zm-5.5 4.5c-1.1 0-2.04-.74-2.33-1.75L12 13.5l2.33 3.75C14.04 18.26 13.1 19 12 19z"/></svg>
+  ),
+  'Xiaomi': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h3v3H8V8zm5 0h3v8h-3V8zm-5 5h3v3H8v-3z"/></svg>
+  ),
+  'Redmi': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm2 2h3v3H8V8zm5 0h3v8h-3V8zm-5 5h3v3H8v-3z"/></svg>
+  ),
+  'OPPO': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
+  ),
+  'Vivo': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l4.5 8h1L12 9.5 15.5 16h1L21 8h-2l-3.5 6L12 7.5 8.5 14 5 8H3z"/></svg>
+  ),
+  'Realme': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M5 5h14v4H5V5zm0 6h8v8H5v-8zm10 0h4v8h-4v-8z"/></svg>
+  ),
+  'POCO': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm3 3h2v6H9V9zm4 0h2v6h-2V9z"/></svg>
+  ),
+  'Google Pixel': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.13 15.94c-1.98-.33-3.65-1.53-4.58-3.19l1.74-1.01c.64 1.15 1.8 1.98 3.15 2.2v2zm.26-4.07A3.005 3.005 0 0 1 9 10.87c0-1.66 1.34-3 3-3 1.31 0 2.42.84 2.83 2.01l-1.86 1.08A1.001 1.001 0 0 0 12 9.87c-.55 0-1 .45-1 1 0 .43.27.79.65.93l-1.52.87v.2zm5.11 1.32-1.74-1.01c.42-.74.66-1.59.66-2.49 0-.45-.06-.88-.17-1.29l1.86-1.08c.25.72.39 1.5.39 2.31 0 1.29-.38 2.49-1 3.49v.07z"/></svg>
+  ),
+  'Nokia': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v12H4V6zm4 0h2l4 7V6h2v12h-2l-4-7v7H8V6zm10 0h2v12h-2V6z"/></svg>
+  ),
+  'Huawei': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 6.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5V12h-3V8.5zm-4 3c-.83 0-1.5-.67-1.5-1.5S6.17 8.5 7 8.5H10v3H7zm5 7c-.83 0-1.5-.67-1.5-1.5V14h3v3c0 .83-.67 1.5-1.5 1.5zm5-7h-3V8.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
+  ),
+  'LG': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-3-11v6h4v-2h-2V9H9zm5 0v4h2v2h-2v-2h-1V9h3v6h-4V9h2z"/></svg>
+  ),
+  'ASUS': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M2 16l4-8h1.5l-3 6H20l-3-6h1.5l4 8H2zm7-6h2l1 2 1-2h2l-2.25 4.5h-1.5L9 10z"/></svg>
+  ),
+  'Sony Xperia': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 8.5C3 6.57 4.57 5 6.5 5h11C19.43 5 21 6.57 21 8.5v7c0 1.93-1.57 3.5-3.5 3.5h-11C4.57 19 3 17.43 3 15.5v-7zM6.5 7C5.67 7 5 7.67 5 8.5v7c0 .83.67 1.5 1.5 1.5h11c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5h-11z"/></svg>
+  ),
+  'Windows PC': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l7-1.05V12H3zm8-6.3L21 4v8H11V5.7zM3 13h7v6.3l-7-1.05V13zm8 0h10v8l-10-1.5V13z"/></svg>
+  ),
+  'Linux': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c-1.77 0-2.71 1.52-2.83 2.55-.06.51.01 1.06.26 1.56.22.44.35.88.35 1.39 0 .77-.32 1.34-.67 1.83-.33.46-.68.85-.82 1.37-.12.46-.1.99.15 1.57.03.07.06.14.1.21-.74.56-1.41 1.3-1.85 2.14-.45.87-.66 1.83-.51 2.79.1.6.4 1.15.83 1.59.13.14.28.26.44.37-.05.22-.07.44-.06.66.02.55.23 1.06.58 1.46.35.4.84.65 1.38.72.28.04.56.02.83-.05.13.27.31.52.55.72.39.33.88.52 1.39.52.51 0 1-.19 1.39-.52.23-.2.42-.44.55-.72.27.07.55.09.83.05.54-.07 1.03-.32 1.38-.72.35-.4.56-.91.58-1.46.01-.22-.01-.44-.06-.66.16-.11.31-.23.44-.37.43-.44.73-.99.83-1.59.15-.96-.06-1.92-.51-2.79-.44-.84-1.11-1.58-1.85-2.14.04-.07.07-.14.1-.21.25-.58.27-1.11.15-1.57-.14-.52-.49-.91-.82-1.37-.35-.49-.67-1.06-.67-1.83 0-.51.13-.95.35-1.39.25-.5.32-1.05.26-1.56C15.21 3.52 14.27 2 12.5 2z"/></svg>
+  ),
+  'Chromebook': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-2.76 0-5-2.24-5-5h3c0 1.1.9 2 2 2s2-.9 2-2h3c0 2.76-2.24 5-5 5zm6.65-5H15c0-1.66-1.34-3-3-3s-3 1.34-3 3H5.35C5.13 8.52 8.25 5.8 12 5.8s6.87 2.72 6.65 6.2z"/></svg>
+  ),
+  'Android Phone': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
+  ),
+};
+
+const BROWSER_LOGOS: Record<string, (size: number) => React.ReactNode> = {
+  'Chrome': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#4285F4"/>
+      <circle cx="12" cy="12" r="4.5" fill="white"/>
+      <path d="M12 7.5l6.93 4a10 10 0 0 0-.43-4H12z" fill="#EA4335"/>
+      <path d="M5.07 15.5l3.47-6A4.5 4.5 0 0 0 7.5 12c0 .92.28 1.77.75 2.49L5.07 15.5z" fill="#FBBC05"/>
+      <path d="M18.93 15.5H12l3.47 6A10 10 0 0 0 18.93 15.5z" fill="#34A853"/>
+      <circle cx="12" cy="12" r="3" fill="white"/>
+    </svg>
+  ),
+  'Firefox': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="#FF6611"/><path d="M12 4c.7 0 1.38.1 2.03.26-.4.53-.63 1.19-.53 1.89.14 1.02.84 1.73 1.6 2.15.67.37 1.12.94 1.12 1.7 0 1.2-1.16 2-2.22 2-2.76 0-5-2.24-5-5 0-.57.1-1.11.27-1.62A7.97 7.97 0 0 1 12 4z" fill="#FFBD4F"/></svg>
+  ),
+  'Safari': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#006CFF"/>
+      <circle cx="12" cy="12" r="9" fill="white" stroke="#006CFF" strokeWidth="0.5"/>
+      <polygon points="12,3 14,12 12,21 10,12" fill="#FF3B30" opacity="0.9"/>
+      <polygon points="3,12 12,10 21,12 12,14" fill="#006CFF" opacity="0.7"/>
+    </svg>
+  ),
+  'Microsoft Edge': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 3.34 1.64 6.3 4.16 8.1.17-.5.27-1.03.27-1.6 0-2.56-1.42-4.03-1.42-4.03S6.5 12.5 9.5 12.5c2 0 3.5 1.12 3.5 3.5 0 2.5-2 4-4 4-.74 0-1.42-.2-2-.54A9.95 9.95 0 0 0 12 22c5.52 0 10-4.48 10-10 0-1.72-.44-3.34-1.21-4.75C18.52 4.84 15.5 3 12 3c-3.5 0-6.5 2.5-7.5 5.5h5c1.38 0 2.5 1.12 2.5 2.5" fill="#0078D4"/></svg>
+  ),
+  'Opera': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM8.5 16.5c-1.38-1.38-2-3.5-2-4.5s.62-3.12 2-4.5c1.38 1.38 2 3.5 2 4.5s-.62 3.12-2 4.5zm7 0c-1.38-1.38-2-3.5-2-4.5s.62-3.12 2-4.5c1.38 1.38 2 3.5 2 4.5s-.62 3.12-2 4.5z" fill="#FF1B2D"/></svg>
+  ),
+  'Samsung Internet': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="#1428A0"/><path d="M7 10c1-2 3-3.5 5-3.5S16 7 17 10" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/><path d="M17 14c-1 2-3 3.5-5 3.5S8 17 7 14" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
+  ),
+  'Brave': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 6v4c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18L19 8v2c0 4.52-3.15 8.76-7 9.93V4.18z" fill="#FB542B"/></svg>
+  ),
+};
+
+const OS_LOGOS: Record<string, (size: number) => React.ReactNode> = {
+  'windows': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.75l7-1.05V12H3zm8-6.3L21 4v8H11V5.7zM3 13h7v6.3l-7-1.05V13zm8 0h10v8l-10-1.5V13z" fill="#00ADEF"/></svg>
+  ),
+  'android': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z" fill="#3DDC84"/></svg>
+  ),
+  'ios': (s) => BRAND_LOGOS['Apple'](s),
+  'ipados': (s) => BRAND_LOGOS['Apple'](s),
+  'macos': (s) => BRAND_LOGOS['Apple'](s),
+  'linux': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 2c-1.77 0-2.71 1.52-2.83 2.55-.06.51.01 1.06.26 1.56.22.44.35.88.35 1.39 0 .77-.32 1.34-.67 1.83-.33.46-.68.85-.82 1.37-.12.46-.1.99.15 1.57.03.07.06.14.1.21-.74.56-1.41 1.3-1.85 2.14-.45.87-.66 1.83-.51 2.79.1.6.4 1.15.83 1.59.13.14.28.26.44.37-.05.22-.07.44-.06.66.02.55.23 1.06.58 1.46.35.4.84.65 1.38.72.28.04.56.02.83-.05.13.27.31.52.55.72.39.33.88.52 1.39.52.51 0 1-.19 1.39-.52.23-.2.42-.44.55-.72.27.07.55.09.83.05.54-.07 1.03-.32 1.38-.72.35-.4.56-.91.58-1.46.01-.22-.01-.44-.06-.66.16-.11.31-.23.44-.37.43-.44.73-.99.83-1.59.15-.96-.06-1.92-.51-2.79-.44-.84-1.11-1.58-1.85-2.14.04-.07.07-.14.1-.21.25-.58.27-1.11.15-1.57-.14-.52-.49-.91-.82-1.37-.35-.49-.67-1.06-.67-1.83 0-.51.13-.95.35-1.39.25-.5.32-1.05.26-1.56C15.21 3.52 14.27 2 12.5 2z" fill="#F0C800"/></svg>
+  ),
+  'chromeos': (s) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#4285F4"/>
+      <circle cx="12" cy="12" r="4.5" fill="white"/>
+      <path d="M12 7.5l6.93 4a10 10 0 0 0-.43-4H12z" fill="#EA4335"/>
+      <path d="M5.07 15.5l3.47-6A4.5 4.5 0 0 0 7.5 12c0 .92.28 1.77.75 2.49L5.07 15.5z" fill="#FBBC05"/>
+      <path d="M18.93 15.5H12l3.47 6A10 10 0 0 0 18.93 15.5z" fill="#34A853"/>
+      <circle cx="12" cy="12" r="3" fill="white"/>
+    </svg>
+  ),
+};
+
+/** Resolves the best brand logo for a login entry. Falls back to a generic Lucide icon. */
+const getBrandLogo = (entry: any, size: number): React.ReactNode => {
+  // Try exact brand match first
+  if (entry.brand && BRAND_LOGOS[entry.brand]) return BRAND_LOGOS[entry.brand](size);
+  // Try OS-based match
+  const osKey = (entry.os || '').toLowerCase();
+  for (const [prefix, renderer] of Object.entries(OS_LOGOS)) {
+    if (osKey.startsWith(prefix)) return renderer(size);
+  }
+  return null;
+};
+
+const getBrowserLogo = (browser: string, size: number): React.ReactNode => {
+  if (browser && BROWSER_LOGOS[browser]) return BROWSER_LOGOS[browser](size);
+  return null;
+};
+
 const StudentProfile: React.FC = () => {
   const { theme } = useTheme();
   const updateProfileMutation = useStudentProfileUpdateMutation();
