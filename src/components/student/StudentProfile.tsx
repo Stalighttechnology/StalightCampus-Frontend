@@ -25,6 +25,7 @@ const StudentProfile: React.FC = () => {
   const updateProfileMutation = useStudentProfileUpdateMutation();
 
   const [form, setForm] = useState<StudentForm>({
+    // Basic User Fields
     user_id: "",
     username: "",
     email: "",
@@ -33,60 +34,109 @@ const StudentProfile: React.FC = () => {
     phone: "",
     date_of_birth: "",
     address: "",
+    bio: "",
     about: "",
     profile_picture: "",
+    designation: "",
+    
+    // Student Fields
+    name: "",
+    usn: "",
     branch: "",
-    department: "",
+    batch: "",
+    course: "",
     semester: "",
     current_semester: "",
-    year_of_study: "",
     section: "",
-    usn: "",
     enrollment_year: "",
     expected_graduation: "",
     student_status: "",
     mode_of_admission: "",
-    name: "",
-    batch: "",
-    course: "",
     date_of_admission: "",
-    parent_name: "",
-    parent_contact: "",
-    emergency_contact: "",
+    year_of_study: "",
+    department: "",
+    proctor: {},
+    
+    // Personal Profile Fields
+    preferred_name: "",
+    nationality: "",
+    religion: "",
+    caste: "",
+    marital_status: "",
+    primary_language: "",
+    alternate_mobile: "",
+    personal_email: "",
+    institutional_email: "",
+    
+    // Official IDs
+    aadhaar_number: "",
+    passport_number: "",
+    pan_number: "",
+    
+    // Address Fields
+    address_permanent: "",
+    address_current: "",
+    city: "",
+    state: "",
+    country: "",
+    pin_code: "",
+    
+    // Social Links
+    linkedin: "",
+    github: "",
+    portfolio: "",
+    
+    // Parent Details
+    father_name: "",
+    father_contact: "",
+    mother_name: "",
+    mother_contact: "",
+    
+    // Guardian Details
+    guardian_name: "",
+    guardian_relationship: "",
+    guardian_phone: "",
+    guardian_email: "",
+    
+    // Socio-economic
+    occupation: "",
+    income_range: "",
+    
+    // Medical Information
     blood_group: "",
-    proctor: {}
+    emergency_contact: "",
+    allergies: "",
+    disabilities: "",
+    medical_history: "",
+    medical_conditions: ""
   });
-
-  const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'academic' | 'face' | 'personal'>('profile');
+  
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'profile'|'personal'|'academic'|'face'>('profile');
+  
+  // Toggle states for Guardian Details and Address
+  const [showGuardianDetails, setShowGuardianDetails] = useState(false);
+  const [sameAsPermament, setSameAsPermament] = useState(false);
 
-  // password dialog
+  // Face upload / training states
+  const [faceImages, setFaceImages] = useState<File[]>([]);
+  const [faceTrainingStatus, setFaceTrainingStatus] = useState<'idle'|'training'|'success'|'error'>('idle');
+  const [faceTrainingProgress, setFaceTrainingProgress] = useState<number>(0);
+  const [faceTrainingMessage, setFaceTrainingMessage] = useState<string>('');
+  const [hasFaceTrained, setHasFaceTrained] = useState<boolean>(false);
+
+  // Profile picture upload state
+  const [isUploadingPicture, setIsUploadingPicture] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const resetUpload = () => { setIsUploadingPicture(false); setUploadProgress(0); };
+
+  // Password dialog state
+  const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' });
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-
-  // face training
-  const [faceImages, setFaceImages] = useState<File[]>([]);
-  const [faceTrainingStatus, setFaceTrainingStatus] = useState<'idle' | 'training' | 'success' | 'error'>('idle');
-  const [faceTrainingProgress, setFaceTrainingProgress] = useState(0);
-  const [faceTrainingMessage, setFaceTrainingMessage] = useState('');
-  const [hasFaceTrained, setHasFaceTrained] = useState(false);
-
-  const {
-    uploadFile: uploadProfilePicture,
-    uploadProgress,
-    isUploading: isUploadingPicture,
-    reset: resetUpload
-  } = useFileUpload({
-    maxSizeMB: 0.5,
-    maxWidthOrHeight: 400,
-    compressImages: true,
-    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-    maxFileSize: 2 * 1024 * 1024
-  });
-
+  // Extended personal fields not previously exposed in the UI
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -100,13 +150,11 @@ const StudentProfile: React.FC = () => {
               return;
             }
 
-            // backend may return mobile_number in other endpoints; normalize to `phone`
             if (k === 'mobile_number') {
               newForm['phone'] = pd[k] ?? "";
               return;
             }
 
-            // normalize date_of_birth to ISO (YYYY-MM-DD) for <input type="date">
             if (k === 'date_of_birth' && pd[k]) {
               const raw = pd[k];
               let iso = raw;
@@ -126,7 +174,47 @@ const StudentProfile: React.FC = () => {
 
             newForm[k] = pd[k] ?? "";
           });
+
+          // Map structured/JSON fields into form-friendly fields
+          try {
+            if (pd.guardian) {
+              const g = typeof pd.guardian === 'string' ? JSON.parse(pd.guardian) : pd.guardian;
+              if (g) {
+                newForm.guardian_name = g.name || g.full_name || newForm.guardian_name || '';
+                newForm.guardian_relationship = g.relationship || newForm.guardian_relationship || '';
+                newForm.guardian_phone = g.phone || g.mobile || '';
+                newForm.guardian_email = g.email || '';
+              }
+            }
+          } catch (e) {
+            // ignore malformed guardian
+          }
+
+          // If backend provides combined parent_name / parent_contact, attempt to split into father/mother
+          try {
+            if (!newForm.father_name && pd.parent_name) {
+              const parts = String(pd.parent_name).split(/[,\/|&]| and /i).map(s => s.trim()).filter(Boolean);
+              if (parts.length >= 2) {
+                newForm.father_name = parts[0];
+                newForm.mother_name = parts.slice(1).join(' / ');
+              } else {
+                newForm.father_name = pd.parent_name;
+              }
+            }
+            if (!newForm.father_contact && pd.parent_contact) {
+              const parts = String(pd.parent_contact).split(/[,\/|&]| and /i).map(s => s.trim()).filter(Boolean);
+              if (parts.length >= 2) {
+                newForm.father_contact = parts[0];
+                newForm.mother_contact = parts.slice(1).join(' / ');
+              } else {
+                newForm.father_contact = pd.parent_contact;
+              }
+            }
+          } catch (e) {}
+
           setForm(newForm);
+          // Initialize guardian details visibility based on existing data
+          setShowGuardianDetails(!!(newForm.guardian_name || newForm.guardian_phone || newForm.guardian_email));
         }
       } catch (err) {
 
@@ -192,14 +280,97 @@ const StudentProfile: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      await updateProfileMutation.mutateAsync({
-        first_name: form.first_name,
-        last_name: form.last_name,
-        email: form.email,
-        mobile_number: form.phone,
-        address: form.address,
-        bio: form.about
-      });
+      // Send all editable fields from the form to backend. Backend will ignore unknown keys.
+      // assemble guardian object and attempt to parse JSON fields
+      const guardianObj = (form.guardian_name || form.guardian_phone || form.guardian_relationship || form.guardian_email) ? {
+        name: form.guardian_name || '',
+        relationship: form.guardian_relationship || '',
+        phone: form.guardian_phone || '',
+        email: form.guardian_email || ''
+      } : undefined;
+
+      const tryParseJson = (s: any) => {
+        if (!s && s !== '') return undefined;
+        if (typeof s === 'object') return s;
+        try { return JSON.parse(s); } catch (e) { return s; }
+      };
+
+      const payload = {
+        // Basic User Fields
+        first_name: form.first_name || '',
+        last_name: form.last_name || '',
+        email: form.email || '',
+        mobile_number: form.phone || '',
+        address: form.address || '',
+        bio: form.about || '',
+        date_of_birth: form.date_of_birth || '',
+        gender: form.gender || '',
+        designation: form.designation || '',
+        
+        // Personal Profile Fields (all optional, can be empty)
+        preferred_name: form.preferred_name || '',
+        nationality: form.nationality || '',
+        religion: form.religion || '',
+        caste: form.caste || '',
+        marital_status: form.marital_status || '',
+        primary_language: form.primary_language || '',
+        alternate_mobile: form.alternate_mobile || '',
+        personal_email: form.personal_email || '',
+        institutional_email: form.institutional_email || '',
+        
+        // Official IDs (all optional)
+        aadhaar_number: form.aadhaar_number || '',
+        passport_number: form.passport_number || '',
+        pan_number: form.pan_number || '',
+        
+        // Address Fields (all optional)
+        address_permanent: form.address_permanent || '',
+        address_current: form.address_current || '',
+        city: form.city || '',
+        state: form.state || '',
+        country: form.country || '',
+        pin_code: form.pin_code || '',
+        
+        // Social Links (all optional)
+        linkedin: form.linkedin || '',
+        github: form.github || '',
+        portfolio: form.portfolio || '',
+        
+        // Parent Details (all optional - can be empty)
+        father_name: form.father_name || '',
+        father_contact: form.father_contact || '',
+        mother_name: form.mother_name || '',
+        mother_contact: form.mother_contact || '',
+        
+        // Guardian Details (all optional)
+        guardian: guardianObj,
+        
+        // Socio-economic (all optional)
+        occupation: form.occupation || '',
+        income_range: form.income_range || '',
+        
+        // Medical Information (all optional - can be empty)
+        blood_group: form.blood_group || '',
+        emergency_contact: form.emergency_contact || '',
+        allergies: form.allergies || '',
+        disabilities: form.disabilities || '',
+        medical_history: form.medical_history || '',
+        medical_conditions: form.medical_conditions || ''
+      };
+
+      await updateProfileMutation.mutateAsync(payload);
+      
+      // Use the mutation response to update UI immediately (no extra GET call)
+      setForm(prev => ({
+        ...prev,
+        ...payload,
+        phone: payload.mobile_number,
+      }));
+      
+      // Update guardian details visibility based on saved data
+      setShowGuardianDetails(!!(payload.guardian_name || payload.guardian_phone || payload.guardian_email));
+      setSameAsPermament(false);
+
       showSuccessAlert('Profile Updated', 'Your profile has been successfully updated.');
       setEditing(false);
     } catch (err) {
@@ -395,28 +566,233 @@ const StudentProfile: React.FC = () => {
                 }
 
                 {activeTab === 'personal' &&
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Preferred Name</Label>
+                      <Input name="preferred_name" value={form.preferred_name || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                    </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Birth</Label>
                       <Input name="date_of_birth" type="date" value={form.date_of_birth || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
-                      <Input name="blood_group" value={form.blood_group} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Parent Name</Label>
-                      <Input name="parent_name" value={form.parent_name} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Primary Language</Label>
+                      <Input name="primary_language" value={form.primary_language || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Parent Contact</Label>
-                      <Input name="parent_contact" value={form.parent_contact} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Aadhaar Number</Label>
+                      <Input name="aadhaar_number" value={form.aadhaar_number || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                     <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Emergency Contact</Label>
-                      <Input name="emergency_contact" value={form.emergency_contact} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>PAN / Passport</Label>
+                      <Input name="pan_number" value={form.pan_number || ''} onChange={handleChange} placeholder="PAN" readOnly={!editing} className={`text-[16px] sm:text-sm mb-2 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="passport_number" value={form.passport_number || ''} onChange={handleChange} placeholder="Passport" readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                    </div>
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Nationality</Label>
+                      <Input name="nationality" value={form.nationality || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                    </div>
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Religion / Caste</Label>
+                      <Input name="religion" value={form.religion || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm mb-2 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="caste" value={form.caste || ''} onChange={handleChange} placeholder="Caste (optional)" readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Alternate Mobile</Label>
+                      <Input name="alternate_mobile" value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                    </div>
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Personal Email</Label>
+                      <Input name="personal_email" value={form.personal_email || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                    </div>
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Institutional Email</Label>
+                      <Input name="institutional_email" value={form.institutional_email || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                    </div>
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>City / State / PIN</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Input name="city" value={form.city || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="state" value={form.state || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="pin_code" value={form.pin_code || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Permanent Address</Label>
+                      <Textarea name="address_permanent" value={form.address_permanent || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Current Address</Label>
+                        {editing && (
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={sameAsPermament}
+                              onChange={(e) => {
+                                setSameAsPermament(e.target.checked);
+                                if (e.target.checked) {
+                                  setForm(prev => ({ ...prev, address_current: prev.address_permanent }));
+                                }
+                              }}
+                              className="w-4 h-4"
+                            />
+                            <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Same as Permanent</span>
+                          </label>
+                        )}
+                      </div>
+                      <Textarea name="address_current" value={form.address_current || ''} onChange={handleChange} readOnly={!editing || sameAsPermament} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>LinkedIn</Label>
+                      <div className="flex gap-2">
+                        <Input name="linkedin" value={form.linkedin || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm flex-1 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        {form.linkedin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(form.linkedin.startsWith('http') ? form.linkedin : `https://${form.linkedin}`, '_blank')}
+                            className="whitespace-nowrap"
+                          >
+                            View
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>GitHub / Portfolio</Label>
+                      <div className="flex gap-2 mb-2">
+                        <Input name="github" value={form.github || ''} onChange={handleChange} placeholder="GitHub" readOnly={!editing} className={`text-[16px] sm:text-sm flex-1 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        {form.github && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(form.github.startsWith('http') ? form.github : `https://${form.github}`, '_blank')}
+                            className="whitespace-nowrap"
+                          >
+                            View
+                          </Button>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input name="portfolio" value={form.portfolio || ''} onChange={handleChange} placeholder="Portfolio URL" readOnly={!editing} className={`text-[14px] sm:text-sm flex-1 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        {form.portfolio && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(form.portfolio.startsWith('http') ? form.portfolio : `https://${form.portfolio}`, '_blank')}
+                            className="whitespace-nowrap"
+                          >
+                            View
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="rounded-lg p-3 border bg-white dark:bg-card">
+                      <h4 className="font-semibold mb-2">Parents Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Father's Name</Label>
+                          <Input name="father_name" value={form.father_name || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                          <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Father's Contact</Label>
+                          <Input name="father_contact" value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        </div>
+                        <div>
+                          <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mother's Name</Label>
+                          <Input name="mother_name" value={form.mother_name || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                          <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Mother's Contact</Label>
+                          <Input name="mother_contact" value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg p-3 border bg-white dark:bg-card">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold">Guardian Details</h4>
+                        {editing && (
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={showGuardianDetails}
+                              onChange={(e) => {
+                                setShowGuardianDetails(e.target.checked);
+                                if (!e.target.checked) {
+                                  setForm(prev => ({
+                                    ...prev,
+                                    guardian_name: '',
+                                    guardian_relationship: '',
+                                    guardian_phone: '',
+                                    guardian_email: ''
+                                  }));
+                                }
+                              }}
+                              className="w-4 h-4"
+                            />
+                            <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Add Guardian</span>
+                          </label>
+                        )}
+                      </div>
+                      {showGuardianDetails && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Name</Label>
+                            <Input name="guardian_name" value={form.guardian_name || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                            <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Relationship</Label>
+                            <Input name="guardian_relationship" value={form.guardian_relationship || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                          </div>
+                          <div>
+                            <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Contact</Label>
+                            <Input name="guardian_phone" value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                            <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Guardian Email</Label>
+                            <Input name="guardian_email" value={form.guardian_email || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Medical info removed per request */}
+                  </div>
+
+                  <div className="rounded-lg p-3 border bg-white dark:bg-card">
+                    <h4 className="font-semibold mb-2">Medical Info</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
+                        <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Emergency Contact</Label>
+                        <Input name="emergency_contact" value={form.emergency_contact || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Allergies</Label>
+                        <Input name="allergies" value={form.allergies || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      </div>
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Disabilities</Label>
+                        <Input name="disabilities" value={form.disabilities || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Medical History / Notes</Label>
+                        <Textarea name="medical_history" value={form.medical_history || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 }
 
                 {activeTab === 'academic' &&

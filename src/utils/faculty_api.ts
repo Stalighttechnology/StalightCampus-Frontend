@@ -1104,6 +1104,7 @@ data: ManageProfileRequest)
     if (data.address) formData.append("address", data.address);
     if (data.bio) formData.append("bio", data.bio);
     if (data.profile_picture) formData.append("profile_picture", data.profile_picture);
+    if (data.profile_picture_url) formData.append("profile_picture_url", data.profile_picture_url);
     // Faculty-specific fields
     if (data.date_of_birth) formData.append("date_of_birth", data.date_of_birth);
     if (data.gender) formData.append("gender", data.gender);
