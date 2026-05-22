@@ -46,7 +46,7 @@ const FaceRecognition = () => {
       const response = await fetch(`${API_ENDPOINT}/student/upload-face-encodings/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         },
         body: formData,
       });

@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Search, MoreVertical, Building2, Trash2, Edit } from "lucide-react";
+import { Search, MoreVertical, Building2, Trash2, Edit, Eye } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import {
@@ -52,6 +52,8 @@ const Organizations = () => {
   const [planOrg, setPlanOrg] = useState<any>(null);
   const [newPlan, setNewPlan] = useState<string>("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [viewOrg, setViewOrg] = useState<any | null>(null);
+  const [viewOrgLoading, setViewOrgLoading] = useState(false);
 
   const fetchOrgs = async () => {
     try {
@@ -114,6 +116,26 @@ const Organizations = () => {
 
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const fetchOrgDetail = async (org: any) => {
+    setViewOrg(org); // show modal immediately with basic data
+    setViewOrgLoading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/organizations/${org.id}/`, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setViewOrg(data);
+      }
+    } catch (error) {
+      // fall back to list data already set
+    } finally {
+      setViewOrgLoading(false);
     }
   };
 
@@ -239,6 +261,9 @@ const Organizations = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => fetchOrgDetail(org)}>
+                          <Eye className="w-4 h-4 mr-2 text-indigo-500" /> View Details
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
                       setPlanOrg(org);
                       setNewPlan(org.plan_type);
@@ -314,6 +339,151 @@ const Organizations = () => {
             <Button onClick={handleChangePlan} disabled={actionLoading || newPlan === planOrg?.plan_type}>
               {actionLoading ? "Saving..." : "Save Changes"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Details Dialog */}
+      <Dialog open={!!viewOrg} onOpenChange={(open) => !open && setViewOrg(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <Building2 className="h-5 w-5 text-primary" />
+              <span>{viewOrg?.name} details</span>
+            </DialogTitle>
+            <DialogDescription>
+              Full profile, administrative POC, and subscription details.
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewOrgLoading && (
+            <div className="flex items-center justify-center py-10 text-muted-foreground gap-2">
+              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Loading organization details...
+            </div>
+          )}
+
+          {viewOrg && !viewOrgLoading && (
+            <div className="space-y-6 py-4">
+              {/* Institutional Details */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1 mb-3">
+                  Institutional Profile
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Institution Name</span>
+                    <span className="font-semibold text-foreground text-base">{viewOrg.name || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Email / Subdomain</span>
+                    <span className="font-medium text-foreground">{viewOrg.domain || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Accreditation ID</span>
+                    <span className="font-medium text-foreground">{viewOrg.accreditation_id || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Tax / GSTIN ID</span>
+                    <span className="font-medium text-foreground">{viewOrg.tax_id || "N/A"}</span>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Institution Address</span>
+                    <span className="font-medium text-foreground block whitespace-pre-line bg-muted/30 p-2.5 rounded border">{viewOrg.address || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Administrative Contact (Technical POC) */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1 mb-3">
+                  Technical Point of Contact (POC)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-muted/20 p-3.5 rounded border">
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">POC Name</span>
+                    <span className="font-semibold text-foreground">{viewOrg.tech_poc_name || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">POC Email</span>
+                    <span className="font-medium text-foreground break-all">{viewOrg.tech_poc_email || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">POC Mobile</span>
+                    <span className="font-medium text-foreground">{viewOrg.tech_poc_mobile || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Principal Administrator Details */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1 mb-3">
+                  Principal Administrator
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-indigo-50/10 dark:bg-indigo-950/15 p-3.5 rounded border border-indigo-100/30">
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Principal Name</span>
+                    <span className="font-semibold text-foreground">
+                      {viewOrg.principal?.name || "N/A"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Principal Email</span>
+                    <span className="font-medium text-foreground break-all">
+                      {viewOrg.principal?.email || "N/A"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Principal Mobile</span>
+                    <span className="font-medium text-foreground">
+                      {viewOrg.principal?.mobile_number || "N/A"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Username / Login ID</span>
+                    <span className="font-medium text-foreground font-mono text-xs tracking-tight">
+                      {viewOrg.principal?.username || "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subscription & User Details */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1 mb-3">
+                  Plan & Subscription Info
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Active Subscription Plan</span>
+                    <div className="mt-1">{getPlanBadge(viewOrg.plan_type)}</div>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Current Status</span>
+                    <div className="mt-1">{getStatusBadge(viewOrg)}</div>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Users Registered</span>
+                    <span className="font-semibold text-foreground">{viewOrg.user_count} users</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Onboarded Since</span>
+                    <span className="font-medium text-foreground">{new Date(viewOrg.created_at).toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Billing Address</span>
+                    <span className="font-medium text-foreground block whitespace-pre-line bg-muted/30 p-2.5 rounded border">{viewOrg.billing_address || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="border-t pt-3 mt-2">
+            <Button onClick={() => setViewOrg(null)}>Close Details</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

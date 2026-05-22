@@ -5,6 +5,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import DashboardCard from '../common/DashboardCard';
+import { useAuth } from "@/context/AuthContext";
 import {
   FileText,
   AlertTriangle,
@@ -95,6 +96,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
+  const { clearAuth } = useAuth();
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -120,7 +122,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
 
       if (!res.success) {
         if (res.message?.includes('401') || res.status === 401) {
-          localStorage.clear();
+          clearAuth();
           setPage("login");
           return;
         }

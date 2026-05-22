@@ -99,7 +99,7 @@ const UpgradeRequired = ({ featureName, role, onBack }: UpgradeRequiredProps) =>
         isOpen={isUpgradeOpen}
         onClose={() => setIsUpgradeOpen(false)}
         orgName={orgName}
-        currentPlan={localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!).org_plan : "basic"}
+        currentPlan={sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")!).org_plan : "basic"}
       />
     </div>
   );

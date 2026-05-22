@@ -217,7 +217,7 @@ export const getAdminStats = async (): Promise<AdminStatsResponse> => {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/stats-overview/`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         }
       });
@@ -242,7 +242,7 @@ export const enrollUser = async (data: EnrollUserRequest): Promise<EnrollUserRes
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/enroll-user/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -266,7 +266,7 @@ export const bulkUploadFaculty = async (file: File): Promise<BulkUploadFacultyRe
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/bulk-upload-faculty/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       },
       body: formData
     });
@@ -302,7 +302,7 @@ method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
     }
 
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
     };
     const bodyPayload = method !== "GET" && data ? JSON.stringify(data) : undefined;
     if (bodyPayload) headers['Content-Type'] = 'application/json';
@@ -363,7 +363,7 @@ data?: {page?: number;page_size?: number;search?: string;})
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       }
     });
@@ -403,7 +403,7 @@ method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method !== "GET" && data ? JSON.stringify(data) : undefined
@@ -438,7 +438,7 @@ method: "GET" | "POST" = "GET")
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method === "POST" && data ? JSON.stringify(data) : undefined
@@ -476,7 +476,7 @@ method: "GET" | "POST" = "GET")
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method === "POST" && data ? JSON.stringify(data) : undefined
@@ -515,7 +515,7 @@ method: "GET" | "POST" = "GET")
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method === "POST" && data ? JSON.stringify(data) : undefined
@@ -567,7 +567,7 @@ export const manageUserAction = async (data: ManageUserActionRequest): Promise<M
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -592,7 +592,7 @@ method: "GET" | "POST" = "POST")
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/profile/${data.user_id}/`, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       // avoid conditional requests for profile GETs in production
@@ -603,7 +603,7 @@ method: "GET" | "POST" = "POST")
     // Handle 304 Not Modified: return cached profile if available
     if (response.status === 304) {
       try {
-        const cached = localStorage.getItem('user');
+        const cached = sessionStorage.getItem("user");
         if (cached) {
           const parsed = JSON.parse(cached);
           return { success: true, profile: parsed } as ManageAdminProfileResponse;
@@ -670,7 +670,7 @@ export const bulkUserActions = async (data: BulkUserActionsRequest): Promise<Bul
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/bulk-actions/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -717,7 +717,7 @@ export const bulkProcessHODLeaves = async (data: BulkHODLeaveActionsRequest): Pr
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/hod-leaves/bulk-process/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -785,7 +785,7 @@ method: "GET" | "POST" = "GET")
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method === "POST" && data ? JSON.stringify(data) : undefined
@@ -833,7 +833,7 @@ export const manageAdminProfilePatch = async (data: ManageAdminProfilePatchReque
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/profile/${data.user_id}/`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
@@ -911,7 +911,7 @@ method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: method !== "GET" && data ? JSON.stringify(data) : undefined

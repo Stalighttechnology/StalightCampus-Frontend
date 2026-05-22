@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/button";
+import { API_BASE_URL } from "../../utils/config";
 
 interface User {
   username: string;
@@ -68,9 +69,20 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       }
     }
   };
-  const userStr = localStorage.getItem("user");
+  const userStr = sessionStorage.getItem("user");
   const userData = userStr ? JSON.parse(userStr) : null;
   const orgPlan = (userData?.org_plan || "basic").toLowerCase();
+
+  // Determine avatar source: prefer `user` prop, then localStorage cached user.
+  const rawAvatar = user?.profile_picture || user?.profile_image || userData?.profile_picture || userData?.profile_image || userData?.profile_picture_url || user?.profile_picture_url || null;
+  let avatarSrc: string | null = null;
+  if (rawAvatar) {
+    avatarSrc = String(rawAvatar);
+    // If backend returned a relative media path like `/media/...`, prefix with base URL
+    if (avatarSrc.startsWith('/media/')) {
+      avatarSrc = `${API_BASE_URL.replace('/api','')}${avatarSrc}`;
+    }
+  }
 
 
 
@@ -195,8 +207,8 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
               </div>
             </div>
             <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-xs shadow-inner overflow-hidden">
-              {user?.profile_picture ? (
-                <img src={user.profile_picture} alt="P" className="w-full h-full object-cover" />
+              {avatarSrc ? (
+                <img src={avatarSrc} alt="P" className="w-full h-full object-cover" />
               ) : (
                 user?.first_name?.[0] || role?.[0]?.toUpperCase()
               )}

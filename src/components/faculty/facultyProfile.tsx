@@ -42,6 +42,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<"personal" | "academic" | "contact" | "about">("personal");
   const { theme } = useTheme();
@@ -156,9 +157,9 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         if (res.success) {
           setFormData(prev => ({ ...prev, profile_picture: fileUrl }));
           // Update local storage
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          const user = JSON.parse(sessionStorage.getItem("user") || '{}');
           user.profile_picture = fileUrl;
-          localStorage.setItem('user', JSON.stringify(user));
+          sessionStorage.setItem("user", JSON.stringify(user));
           showSuccessAlert("Success", "Profile picture updated!");
         } else {
           showErrorAlert("Error", res.message || "Failed to update profile picture");
@@ -174,11 +175,13 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
   const handleSave = async () => {
     setError(null);
+    setIsSaving(true);
 
     // Prevent save if validation errors exist
     const hasErrors = Object.values(localErrors).some((msg) => msg);
     if (hasErrors) {
       setError("Please fix the errors before saving.");
+      setIsSaving(false);
       return;
     }
 
@@ -236,6 +239,8 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       }
     } catch (err) {
       setError("Network error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -395,7 +400,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
           <Button className="text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90" onClick={() => {if (isEditing) {handleSave();} else {setIsEditing(true);}}}>
             {isEditing ?
-            updateProfileMutation?.isPending ?
+            isSaving ?
             <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-white/40 animate-pulse" />
                   Saving...

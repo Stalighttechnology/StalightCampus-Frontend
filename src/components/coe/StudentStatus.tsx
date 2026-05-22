@@ -110,7 +110,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
 
   const handleExport = async () => {
     if (!filters.batch || !filters.exam_period || !filters.branch || !filters.semester) return;
-    const accessToken = localStorage.getItem('access_token');
+    const accessToken = sessionStorage.getItem("access_token");
     if (!accessToken) {
       toast.error("Authentication Required: You must be logged in to export.");
       return;

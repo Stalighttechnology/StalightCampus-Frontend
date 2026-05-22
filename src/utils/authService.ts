@@ -1,4 +1,4 @@
-import { API_ENDPOINT, TOKEN_REFRESH_TIMEOUT } from "./config";
+import { API_ENDPOINT, TOKEN_REFRESH_TIMEOUT, API_BASE_URL } from "./config";
 
 // Type definitions for request and response data
 interface AuthResponse {
@@ -98,41 +98,30 @@ const isTokenExpired = (token: string | null): boolean => {
 // Wrapper function to handle token refresh on 401 errors or proactively
 export const fetchWithTokenRefresh = async (url: string, options: RequestInit = {}): Promise<Response> => {
   try {
-    let accessToken = localStorage.getItem("access_token");
+    // Access token is now managed by AuthContext (in‑memory). We retrieve it from sessionStorage if available.
+    // Note: AuthContext will populate sessionStorage with a refreshed token via its refreshAccessToken method.
+    let accessToken = sessionStorage.getItem("access_token");
 
-    // Proactive refresh: if token is expired, refresh it before even trying the request
-    if (isTokenExpired(accessToken)) {
-      const refreshResult = await refreshToken();
-      if (refreshResult.success && refreshResult.access) {
-        accessToken = refreshResult.access;
-        localStorage.setItem("access_token", accessToken);
-      } else {
-        localStorage.clear();
-        stopTokenRefresh();
-        window.location.href = "/";
-        throw new Error("Session expired");
-      }
-    }
-
+    // Ensure Authorization header is set only when we have a token.
     const safeHeaders = {
-      ...(options.headers as Record<string, string> | undefined),
-      Authorization: `Bearer ${accessToken}`
+      ...(options.headers as Record<string, string | undefined>),
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     };
-    options.headers = safeHeaders;
+    options.headers = safeHeaders as Record<string, string>;
     options.credentials = 'include'; // Include cookies
     const response = await fetch(url, options);
 
     if (response.status === 401) {
       const refreshResult = await refreshToken();
       if (refreshResult.success && refreshResult.access) {
-        localStorage.setItem("access_token", refreshResult.access);
+        sessionStorage.setItem("access_token", refreshResult.access);
         options.headers = {
           ...options.headers,
           Authorization: `Bearer ${refreshResult.access}`
-        };
+        } as any;
         return fetch(url, options);
       } else {
-        localStorage.clear();
+        sessionStorage.clear();
         stopTokenRefresh();
         window.location.href = "/"; // Redirect to home
         throw new Error("Failed to refresh token");
@@ -155,7 +144,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
 
     return response;
   } catch (error) {
-    localStorage.clear();
+    sessionStorage.clear();
     stopTokenRefresh();
     window.location.href = "/"; // Redirect to home
     throw error;
@@ -195,7 +184,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
       };
     } catch (error: any) {
 
-      localStorage.clear();
+      sessionStorage.clear();
       stopTokenRefresh();
       return { success: false, message: error.message || "Network error" };
     } finally {
@@ -214,10 +203,10 @@ export const startTokenRefresh = () => {
   refreshInterval = setInterval(async () => {
     const refreshResult = await refreshToken();
     if (refreshResult.success && refreshResult.access) {
-      localStorage.setItem("access_token", refreshResult.access);
+      sessionStorage.setItem("access_token", refreshResult.access);
     } else {
 
-      localStorage.clear();
+      sessionStorage.clear();
       stopTokenRefresh();
       window.location.href = "/"; // Redirect to home
     }
@@ -255,13 +244,15 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
 
       // Convert relative profile_image URL to absolute URL
       if (result.profile && result.profile.profile_image && result.profile.profile_image.startsWith('/media/')) {
-        result.profile.profile_image = `http://127.0.0.1:8000${result.profile.profile_image}`;
+        result.profile.profile_image = `${API_BASE_URL}${result.profile.profile_image}`;
       }
 
-      localStorage.setItem("access_token", result.access || "");
-      localStorage.setItem("role", result.role || "");
-      localStorage.setItem("user", JSON.stringify(result.profile || {}));
-      startTokenRefresh();
+      // Store token in sessionStorage (non‑sensitive) for page reloads – actual access token lives in AuthContext memory
+      if (result.access) sessionStorage.setItem("access_token", result.access);
+      if (result.role) sessionStorage.setItem("role", result.role);
+      if (result.profile) sessionStorage.setItem("user", JSON.stringify(result.profile));
+      // AuthContext will start its own refresh interval based on the HttpOnly cookie
+      // No localStorage usage or startTokenRefresh here
     }
     return result;
   } catch (error: any) {
@@ -290,13 +281,15 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
     if (response.ok && result.success) {
       // Convert relative profile_image URL to absolute URL
       if (result.profile && result.profile.profile_image && result.profile.profile_image.startsWith('/media/')) {
-        result.profile.profile_image = `http://127.0.0.1:8000${result.profile.profile_image}`;
+        result.profile.profile_image = `${API_BASE_URL}${result.profile.profile_image}`;
       }
 
-      localStorage.setItem("access_token", result.access || "");
-      localStorage.setItem("role", result.role || "");
-      localStorage.setItem("user", JSON.stringify(result.profile || {}));
-      startTokenRefresh();
+      // Save refreshed token and user data to sessionStorage (access token stays in AuthContext memory)
+      if (result.access) sessionStorage.setItem("access_token", result.access);
+      if (result.role) sessionStorage.setItem("role", result.role);
+      if (result.profile) sessionStorage.setItem("user", JSON.stringify(result.profile));
+      // AuthContext will manage periodic refresh; no need to startTokenRefresh here
+
     }
     return result;
   } catch (error: any) {
@@ -386,27 +379,27 @@ export const resetPassword = async ({
 
 export const logoutUser = async (): Promise<GenericResponse> => {
   try {
+    // Logout endpoint clears the HttpOnly refresh token cookie on the server.
     const response = await fetch(`${API_ENDPOINT}/logout/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken || ""}`,
+        // No Authorization header needed – the server uses the HttpOnly cookie.
         "Content-Type": "application/json"
       },
-      credentials: "include", // Send HttpOnly refresh_token cookie to blacklist it
-      body: JSON.stringify({}) 
+      credentials: "include",
+      body: JSON.stringify({})
     });
-    localStorage.clear();
-    stopTokenRefresh();
+    // Clear any persisted non‑sensitive data.
+    sessionStorage.clear();
+    // AuthContext will stop its refresh interval after logout.
     if (!response.ok) {
-
       return { success: true, message: "Logged out successfully (server error ignored)" };
     }
     const result = await response.json();
-
     return result;
   } catch (error: any) {
 
-    localStorage.clear();
+    sessionStorage.clear();
     stopTokenRefresh();
     return { success: true, message: "Logged out successfully (error ignored)" };
   }

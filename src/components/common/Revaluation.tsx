@@ -22,7 +22,7 @@ type Filters = {usn: string;exam_period: string;};
 const Revaluation = () => {
   const [filters, setFilters] = useState<Filters>({ usn: "", exam_period: "" });
   const [students, setStudents] = useState<Array<{usn: string;name: string;student_id: number;subjects: Array<{subject_id: number;subject_name: string;cie_marks?: number;see_marks?: number;total_marks?: number;status: string;applied: boolean;subject_mark_id: number;}>;}>>([]);
-  const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.localStorage.getItem('role') : null;
+  const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.sessionStorage.getItem("role") : null;
   const [selectionMap, setSelectionMap] = useState<Record<number, {revaluation: boolean;photocopy: boolean;}>>({});
   const [viewModal, setViewModal] = useState<{open: boolean;request?: any;}>({ open: false });
   const [loading, setLoading] = useState(false);

@@ -2252,7 +2252,7 @@ method: "GET" | "PATCH" = "GET")
     // If server returned 304 Not Modified, try to use cached profile from localStorage
     if (response.status === 304) {
       try {
-        const cached = localStorage.getItem('user');
+        const cached = sessionStorage.getItem("user");
         if (cached) {
           const parsed = JSON.parse(cached);
           return { success: true, data: parsed } as ManageProfileResponse;
@@ -2650,7 +2650,7 @@ export const getFacultyAttendanceToday = async (params?: {
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     });
     return await response.json();
@@ -2680,7 +2680,7 @@ export const getFacultyAttendanceRecords = async (params?: {
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
       }
     });
     return await response.json();

@@ -18,7 +18,7 @@ import {
 
 
 const MakeupExam = () => {
-  const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.localStorage.getItem('role') : null;
+  const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.sessionStorage.getItem("role") : null;
   const { theme } = useTheme();
   const [filters, setFilters] = useState({ batch_id: "", branch_id: "", semester_id: "", section_id: "", exam_period: "" });
   const [usn, setUsn] = useState("");

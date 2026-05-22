@@ -28,8 +28,8 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
 
   useEffect(() => {
     // Check if there's a stored temp_user_id from a previous session
-    const tempUserId = localStorage.getItem("temp_user_id");
-    const passwordResetEmail = localStorage.getItem("password_reset_email");
+    const tempUserId = sessionStorage.getItem("temp_user_id");
+    const passwordResetEmail = sessionStorage.getItem("password_reset_email");
 
     if (tempUserId) {
       setUserId(String(tempUserId));
@@ -67,7 +67,7 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
       if (response.success) {
         const userIdString = String(response.user_id || "");
         setUserId(userIdString);
-        localStorage.setItem("temp_user_id", userIdString);
+        sessionStorage.setItem("temp_user_id", userIdString);
         setCurrentStep('otp');
       } else {
         setError(response.message || "Failed to send OTP");
@@ -131,8 +131,8 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
 
       if (response.success) {
         setCurrentStep('success');
-        localStorage.removeItem("temp_user_id");
-        localStorage.removeItem("password_reset_email");
+        sessionStorage.removeItem("temp_user_id");
+        sessionStorage.removeItem("password_reset_email");
         setTimeout(() => {
           setPage("login");
         }, 3000);

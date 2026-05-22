@@ -48,7 +48,7 @@ export const WardenProvider: React.FC<{children: React.ReactNode;}> = ({ childre
 
   useEffect(() => {
     // Only fetch if the user is actually a warden
-    const role = localStorage.getItem('role');
+    const role = sessionStorage.getItem("role");
     const isWardenPath = window.location.pathname.includes('/warden');
 
     if (!fetchRef.current && (role === 'warden' || isWardenPath)) {

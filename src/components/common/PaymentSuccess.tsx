@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Download, ArrowLeft } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/hooks/use-toast';
+import { API_ENDPOINT } from '@/utils/config';
 
 interface PaymentSuccessProps {
   setPage?: (page: string) => void;
@@ -22,8 +23,8 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
 
   // Check authentication on mount
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const role = localStorage.getItem('role');
+    const token = sessionStorage.getItem("access_token");
+    const role = sessionStorage.getItem("role");
 
     if (!token || role !== 'student') {
       // Don't redirect immediately, show error state instead
@@ -56,9 +57,9 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
     const poll = async () => {
       attempts += 1;
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/payments/status/${sessionId}/`, {
+        const response = await fetch(`${API_ENDPOINT}/payments/status/${sessionId}/`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            'Authorization': `Bearer ${sessionStorage.getItem("access_token")}`
           }
         });
 
@@ -124,9 +125,9 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
 
   const checkPaymentStatus = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/payments/status/${sessionId}/`, {
+      const response = await fetch(`${API_ENDPOINT}/payments/status/${sessionId}/`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem("access_token")}`
         }
       });
 
@@ -233,9 +234,9 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
               variant="outline"
               onClick={() => {
                 // Download receipt functionality
-                fetch(`http://127.0.0.1:8000/api/payments/receipt/${paymentDetails.payment_id}/`, {
+                fetch(`${API_ENDPOINT}/payments/receipt/${paymentDetails.payment_id}/`, {
                   headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem("access_token")}`
                   }
                 }).
                 then((response) => response.blob()).

@@ -73,7 +73,7 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
         setLocalError(null);
         if (setError) setError(null);
         try {
-          const userData = localStorage.getItem("user");
+          const userData = sessionStorage.getItem("user");
           if (userData) {
             const parsedUser = JSON.parse(userData);
             if (parsedUser.user_id) {
@@ -199,8 +199,8 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
         };
         setProfile(updatedProfile);
         showSuccessAlert("Success", "Profile saved successfully");
-        localStorage.setItem("user", JSON.stringify({
-          ...JSON.parse(localStorage.getItem("user") || "{}"),
+        sessionStorage.setItem("user", JSON.stringify({
+          ...JSON.parse(sessionStorage.getItem("user") || "{}"),
           ...result.data,
           user_id: currentUser.user_id
         }));

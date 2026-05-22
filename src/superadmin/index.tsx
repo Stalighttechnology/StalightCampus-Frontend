@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import SuperAdminLogin from "./SuperAdminLogin";
 import SuperAdminDashboard from "./SuperAdminDashboard";
-import { stopTokenRefresh, startTokenRefresh } from "../utils/authService";
 
 const SuperAdminIndex = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,10 +15,8 @@ const SuperAdminIndex = () => {
 
       if (token && role === "superadmin") {
         setIsAuthenticated(true);
-        startTokenRefresh(); // We can use the same token refresh logic if it works for superadmin, otherwise maybe not needed
       } else {
         setIsAuthenticated(false);
-        stopTokenRefresh();
       }
       setIsLoading(false);
     };

@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import UpgradePlanDialog from "@/components/common/UpgradePlanDialog";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 const TrialExpired = () => {
   const navigate = useNavigate();
+  const { clearAuth } = useAuth();
   const orgName = localStorage.getItem("org_name") || "Your Organization";
-  const role = localStorage.getItem("role");
+  const role = sessionStorage.getItem("role");
   const isAdmin = role === "admin" || role === "principal";
   
   const [isSubscription] = useState(() => {
     try {
-      const userData = JSON.parse(localStorage.getItem("user") || "{}");
+      const userData = JSON.parse(sessionStorage.getItem("user") || "{}");
       return userData.org_plan && userData.org_plan !== "basic";
     } catch (e) {
       return false;
@@ -23,7 +25,7 @@ const TrialExpired = () => {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.clear();
+    clearAuth();
     window.location.href = "/";
   };
 
@@ -140,7 +142,7 @@ const TrialExpired = () => {
         isOpen={isUpgradeModalOpen}
         onClose={() => setIsUpgradeModalOpen(false)}
         orgName={orgName}
-        currentPlan={localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!).org_plan : "basic"}
+        currentPlan={sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")!).org_plan : "basic"}
         onSuccess={() => {
           setTimeout(() => {
             window.location.href = "/dashboard";

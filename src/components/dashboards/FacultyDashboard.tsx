@@ -29,6 +29,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useProctorStudentsQuery } from "../../hooks/useApiQueries";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
+import { useAuth } from "../../context/AuthContext";
 
 interface FacultyDashboardProps {
   user: {
@@ -46,6 +47,7 @@ interface FacultyDashboardProps {
 const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { clearAuth } = useAuth();
   const [currentUser, setCurrentUser] = useState(user);
 
   const getActivePageFromPath = (pathname: string): string => {
@@ -137,7 +139,7 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
   const handleLogout = async () => {
     try {
       await logoutUser();
-      localStorage.clear();
+      clearAuth();
       navigate("/", { replace: true });
     } catch (error) {
 

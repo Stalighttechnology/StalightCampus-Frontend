@@ -67,7 +67,7 @@ data?: any)
     const response = await fetchWithTokenRefresh(url, {
       method,
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       },
       body: data ? JSON.stringify(data) : undefined

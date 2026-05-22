@@ -22,6 +22,7 @@ import {
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getDashboardOverview } from "../../utils/student_api";
 import { useTheme } from "@/context/ThemeContext";
+import { API_BASE_URL } from "../../utils/config";
 
 import { SkeletonStatsGrid, SkeletonChart, SkeletonPageHeader } from "../ui/skeleton";
 
@@ -179,7 +180,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           if (response.data.student_profile?.profile_picture &&
             response.data.student_profile.profile_picture.startsWith('/media/')) {
             response.data.student_profile.profile_picture =
-              `http://127.0.0.1:8000${response.data.student_profile.profile_picture}`;
+              `${API_BASE_URL}${response.data.student_profile.profile_picture}`;
           }
 
           setDashboardData(response.data);

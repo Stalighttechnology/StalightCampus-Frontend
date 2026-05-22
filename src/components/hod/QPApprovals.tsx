@@ -99,7 +99,7 @@ const QPApprovals = () => {
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/hod-pending/?page=${page}&page_size=10`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
         }
       });
       const responseData = await response.json();
@@ -128,7 +128,7 @@ const QPApprovals = () => {
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/hod-detail/`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
         }
       });
       const data = await response.json();
@@ -272,7 +272,7 @@ const QPApprovals = () => {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/hod-approve/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ comment })
@@ -323,7 +323,7 @@ const QPApprovals = () => {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpId}/hod-reject/`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ comment })

@@ -36,6 +36,7 @@ import UpgradeRequired from "../common/UpgradeRequired";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock } from "lucide-react";
 import { Button } from "../ui/button";
+import { useAuth } from "../../context/AuthContext";
 
 interface HODUser {
   username: string;
@@ -106,6 +107,7 @@ const validateUser = (user: HODUser): boolean => {
 const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { clearAuth } = useAuth();
 
   const getActivePageFromPath = (pathname: string): string => {
     const pathParts = pathname.split('/');
@@ -202,7 +204,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
     try {
       const response = await logoutUser();
       if (response.success) {
-        localStorage.clear();
+        clearAuth();
         navigate("/", { replace: true }); // Redirect to home
       } else {
         setError(response.message || "Failed to log out. Please try again.");

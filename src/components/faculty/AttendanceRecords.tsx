@@ -130,7 +130,7 @@ const AttendanceRecords = () => {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
             "Content-Type": "application/json",
           },
         }
