@@ -19,11 +19,29 @@ export const hodTour: Step[] = [
     route: '/hod/dashboard',
   },
   {
-    target: '#hod-leave-table',
+    target: '#hod-attendance-trends',
+    title: 'Attendance Trends',
+    content:
+      'Track and analyze weekly attendance trends for your department.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/dashboard',
+  },
+  {
+    target: '#hod-member-distribution',
+    title: 'Member Distribution',
+    content:
+      'View the proportion of faculty members and students in your department.',
+    placement: 'left' as const,
+    disableBeacon: false,
+    route: '/hod/dashboard',
+  },
+  {
+    target: '#hod-leave-header',
     title: 'Leave Requests',
     content:
       'Review and approve leave requests from your faculty members with ease.',
-    placement: 'top' as const,
+    placement: 'bottom' as const,
     disableBeacon: false,
     route: '/hod/dashboard',
   },

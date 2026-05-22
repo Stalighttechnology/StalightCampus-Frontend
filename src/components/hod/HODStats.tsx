@@ -382,7 +382,7 @@ const handleApprove = async (index: number) => {
       {/* Charts: Attendance Trends and Member Distribution */}
       <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         {/* Attendance Chart */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+        <div id="hod-attendance-trends" className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           <div className="flex justify-between items-center mb-2">
             <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Trends</h3>
           </div>
@@ -416,7 +416,7 @@ const handleApprove = async (index: number) => {
         </div>
 
         {/* Member Distribution Pie Chart */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+        <div id="hod-member-distribution" className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           <div className="flex justify-between items-center mb-2">
             <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Member Distribution</h3>
           </div>
@@ -473,7 +473,7 @@ const handleApprove = async (index: number) => {
 
       {/* Leave Requests */}
       <div id="hod-leave-table" className={`p-6 rounded-lg shadow-sm text-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-        <div className="flex justify-between items-center mb-4">
+        <div id="hod-leave-header" className="flex justify-between items-center mb-4">
           <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</h3>
           <button
             className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
