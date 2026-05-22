@@ -202,7 +202,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <Card ref={ref} className={`w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+      <CardHeader id="coe-profile-card" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
         <div className="flex-1 min-w-0">
           <CardTitle className="text-xl sm:text-xl md:text-2xl font-semibold">COE Profile</CardTitle>
           <p className={`text-[16px] sm:text-sm mt-1 line-clamp-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage your profile and account details</p>

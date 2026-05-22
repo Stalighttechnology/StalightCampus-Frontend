@@ -75,7 +75,7 @@ const DeanAttendance = () => {
     : 'rounded-lg border border-gray-200 bg-white p-4 shadow';
 
   return (
-    <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="dean-attendance-container" className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {loading ? (
         <div className="space-y-6">
           <SkeletonPageHeader />

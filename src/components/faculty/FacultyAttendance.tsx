@@ -232,153 +232,155 @@ const FacultyAttendance = () => {
     <div className={` md: space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Today's Attendance */}
       <Card id="admin-my-attendance-form" className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}>
-        <CardHeader>
-          <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-            Today's Attendance
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Animated Toggle Buttons */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="flex items-center space-x-4">
-              {/* Present Button */}
-              <motion.button
-                onClick={() => handleToggleAttendance("present")}
-                disabled={isSubmitting}
-                className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${markingStatus === 'present' ?
-                'bg-blue-500 text-white animate-pulse' :
-                attendanceStatus === 'present' ?
-                'bg-green-500 text-white scale-110' :
-                theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+        <div id="today-attendance-toggle-section">
+          <CardHeader>
+            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+              Today's Attendance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 pb-0">
+            {/* Animated Toggle Buttons */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="flex items-center space-x-4">
+                {/* Present Button */}
+                <motion.button
+                  onClick={() => handleToggleAttendance("present")}
+                  disabled={isSubmitting}
+                  className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${markingStatus === 'present' ?
+                  'bg-blue-500 text-white animate-pulse' :
+                  attendanceStatus === 'present' ?
+                  'bg-green-500 text-white scale-110' :
+                  theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                  }
+                  whileHover={{ scale: attendanceStatus === 'present' || markingStatus === 'present' ? 1.1 : 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  animate={{
+                    rotate: attendanceStatus === 'present' && !markingStatus ? [0, -10, 10, 0] : 0
+                  }}
+                  transition={{
+                    rotate: { duration: 0.5, ease: "easeInOut" }
+                  }}>
+                  
+                  {markingStatus === 'present' ?
+                  <Loader2 className="w-8 h-8 animate-spin" /> :
+
+                  <CheckCircle className="w-8 h-8" />
+                  }
+                </motion.button>
+
+                {/* Absent Button */}
+                <motion.button
+                  onClick={() => handleToggleAttendance("absent")}
+                  disabled={isSubmitting}
+                  className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${markingStatus === 'absent' ?
+                  'bg-blue-500 text-white animate-pulse' :
+                  attendanceStatus === 'absent' ?
+                  'bg-red-500 text-white scale-110' :
+                  theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                  }
+                  whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  animate={{
+                    rotate: attendanceStatus === 'absent' && !markingStatus ? [0, -10, 10, 0] : 0
+                  }}
+                  transition={{
+                    rotate: { duration: 0.5, ease: "easeInOut" }
+                  }}>
+                  
+                  {markingStatus === 'absent' ?
+                  <Loader2 className="w-8 h-8 animate-spin" /> :
+
+                  <XCircle className="w-8 h-8" />
+                  }
+                </motion.button>
+              </div>
+
+              {/* Button Labels */}
+              <div className="flex items-center space-x-8 text-sm font-medium">
+                <motion.span
+                  className={markingStatus === 'present' ? 'text-blue-500' : attendanceStatus === 'present' ? 'text-green-600' : 'text-gray-500'}
+                  animate={{
+                    scale: attendanceStatus === 'present' || markingStatus === 'present' ? 1.1 : 1
+                  }}
+                  transition={{ duration: 0.3 }}>
+                  
+                  {markingStatus === 'present' ? 'Marking...' : 'Present'}
+                </motion.span>
+                <motion.span
+                  className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
+                  animate={{
+                    scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1
+                  }}
+                  transition={{ duration: 0.3 }}>
+                  
+                  {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
+                </motion.span>
+              </div>
+
+              {/* Progress Message */}
+              <AnimatePresence>
+                {isSubmitting && loadingMessage &&
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-2 text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
+                  
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    {loadingMessage}
+                  </motion.div>
                 }
-                whileHover={{ scale: attendanceStatus === 'present' || markingStatus === 'present' ? 1.1 : 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                animate={{
-                  rotate: attendanceStatus === 'present' && !markingStatus ? [0, -10, 10, 0] : 0
-                }}
-                transition={{
-                  rotate: { duration: 0.5, ease: "easeInOut" }
-                }}>
-                
-                {markingStatus === 'present' ?
-                <Loader2 className="w-8 h-8 animate-spin" /> :
+              </AnimatePresence>
 
-                <CheckCircle className="w-8 h-8" />
+              {/* Status Indicator */}
+              <AnimatePresence mode="wait">
+                {attendanceStatus &&
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-center mt-4">
+                  
+                    <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${attendanceStatus === 'present' ?
+                  theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800' :
+                  theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800'}`
+                  }>
+                      {getStatusIcon(attendanceStatus)}
+                      <span className="font-medium capitalize">
+                        {attendanceStatus === 'present' ? 'Present' : 'Absent'}
+                      </span>
+                    </div>
+                  </motion.div>
                 }
-              </motion.button>
+              </AnimatePresence>
 
-              {/* Absent Button */}
-              <motion.button
-                onClick={() => handleToggleAttendance("absent")}
-                disabled={isSubmitting}
-                className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${markingStatus === 'absent' ?
-                'bg-blue-500 text-white animate-pulse' :
-                attendanceStatus === 'absent' ?
-                'bg-red-500 text-white scale-110' :
-                theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
-                }
-                whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                animate={{
-                  rotate: attendanceStatus === 'absent' && !markingStatus ? [0, -10, 10, 0] : 0
-                }}
-                transition={{
-                  rotate: { duration: 0.5, ease: "easeInOut" }
-                }}>
-                
-                {markingStatus === 'absent' ?
-                <Loader2 className="w-8 h-8 animate-spin" /> :
-
-                <XCircle className="w-8 h-8" />
-                }
-              </motion.button>
-            </div>
-
-            {/* Button Labels */}
-            <div className="flex items-center space-x-8 text-sm font-medium">
-              <motion.span
-                className={markingStatus === 'present' ? 'text-blue-500' : attendanceStatus === 'present' ? 'text-green-600' : 'text-gray-500'}
-                animate={{
-                  scale: attendanceStatus === 'present' || markingStatus === 'present' ? 1.1 : 1
-                }}
-                transition={{ duration: 0.3 }}>
-                
-                {markingStatus === 'present' ? 'Marking...' : 'Present'}
-              </motion.span>
-              <motion.span
-                className={markingStatus === 'absent' ? 'text-blue-500' : attendanceStatus === 'absent' ? 'text-red-600' : 'text-gray-500'}
-                animate={{
-                  scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1
-                }}
-                transition={{ duration: 0.3 }}>
-                
-                {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
-              </motion.span>
-            </div>
-
-            {/* Progress Message */}
-            <AnimatePresence>
-              {isSubmitting && loadingMessage &&
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="flex items-center gap-2 text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
-                
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  {loadingMessage}
-                </motion.div>
-              }
-            </AnimatePresence>
-
-            {/* Status Indicator */}
-            <AnimatePresence mode="wait">
+              {/* Reset Button */}
               {attendanceStatus &&
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-center mt-4">
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}>
                 
-                  <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${attendanceStatus === 'present' ?
-                theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800' :
-                theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800'}`
-                }>
-                    {getStatusIcon(attendanceStatus)}
-                    <span className="font-medium capitalize">
-                      {attendanceStatus === 'present' ? 'Present' : 'Absent'}
-                    </span>
-                  </div>
+                  <Button
+                  onClick={resetAttendance}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2">
+                  
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Reset</span>
+                  </Button>
                 </motion.div>
               }
-            </AnimatePresence>
-
-            {/* Reset Button */}
-            {attendanceStatus &&
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}>
-              
-                <Button
-                onClick={resetAttendance}
-                variant="outline"
-                size="sm"
-                className="flex items-center space-x-2">
-                
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Reset</span>
-                </Button>
-              </motion.div>
-            }
-          </div>
-
+            </div>
+          </CardContent>
+        </div>
+        <CardContent className="pt-4 space-y-6">
           {/* Notes Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}>
-            
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>
               Notes (Optional)
             </label>
@@ -490,7 +492,7 @@ const FacultyAttendance = () => {
       </Card>
 
       {/* Attendance History (paginated) */}
-      <Card className={`hidden md:block ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+      <Card id="faculty-attendance-history" className={`hidden md:block ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
         <CardHeader>
           <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
             Attendance History

@@ -68,7 +68,7 @@ export const TutorialTooltip = (props: TutorialTooltipProps) => {
 
         {/* Content */}
         <div className="overflow-y-auto max-h-[70px] pr-1">
-          <p className="text-[15px] text-slate-700 dark:text-slate-300 m-0 leading-relaxed">
+          <p className="text-[15px] text-slate-700 dark:text-slate-300 m-0 leading-relaxed whitespace-pre-line">
             {step.content}
           </p>
         </div>
@@ -115,7 +115,7 @@ export const TutorialTooltip = (props: TutorialTooltipProps) => {
 
       {/* Content */}
       <div className="px-6 py-4">
-        <p className="text-slate-700 dark:text-slate-300 text-sm m-0">
+        <p className="text-slate-700 dark:text-slate-300 text-sm m-0 whitespace-pre-line">
           {step.content}
         </p>
       </div>

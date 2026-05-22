@@ -1373,11 +1373,24 @@ const UploadMarks = () => {
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}>
-      <CardHeader>
-        <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Upload Marks</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <Tabs id="upload-marks-tabs" value={tabValue} onValueChange={(newTab) => {
+        // Prevent switching to Marks Entry or Bulk Upload if QP is not approved
+        if ((newTab === 'manual' || newTab === 'bulkUpload') && (!existingQpSummary || existingQpSummary.status !== 'approved')) {
+          toast({
+            title: 'Cannot Access Tab',
+            description: 'The question paper must be approved by COE before you can enter or upload marks.',
+            variant: 'destructive'
+          });
+          return;
+        }
+        setTabValue(newTab);
+      }} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+        <div id="upload-marks-header-section" className="border-b border-border/50 pb-4">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Upload Marks</CardTitle>
+          </CardHeader>
+          <CardContent className="pb-0 space-y-6">
+            <div id="upload-marks-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Select value={selected.subject_id?.toString()} onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select Subject" />
@@ -1439,28 +1452,19 @@ const UploadMarks = () => {
             </SelectContent>
           </Select>
         </div>
-        <Tabs value={tabValue} onValueChange={(newTab) => {
-          // Prevent switching to Marks Entry or Bulk Upload if QP is not approved
-          if ((newTab === 'manual' || newTab === 'bulkUpload') && (!existingQpSummary || existingQpSummary.status !== 'approved')) {
-            toast({
-              title: 'Cannot Access Tab',
-              description: 'The question paper must be approved by COE before you can enter or upload marks.',
-              variant: 'destructive'
-            });
-            return;
-          }
-          setTabValue(newTab);
-        }} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-          <TabsList className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-gray-100 border border-gray-300 text-gray-900'}>
+
+        <TabsList className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-gray-100 border border-gray-300 text-gray-900'}>
             {/* Question Format tab removed per UX simplification */}
             <TabsTrigger
               value="questionPaper"
+              id="upload-marks-tab-qp"
               className={`data-[state=active]:bg-primary data-[state=active]:text-white ${theme === 'dark' ? 'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' : 'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}>
               
               Question Paper
             </TabsTrigger>
             <TabsTrigger
               value="manual"
+              id="upload-marks-tab-manual"
               className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved' ?
               theme === 'dark' ?
               'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer' :
@@ -1474,6 +1478,7 @@ const UploadMarks = () => {
             </TabsTrigger>
             <TabsTrigger
               value="bulkUpload"
+              id="upload-marks-tab-bulk"
               className={`data-[state=active]:bg-primary data-[state=active]:text-white transition-all ${existingQpSummary?.status === 'approved' ?
               theme === 'dark' ?
               'data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground cursor-pointer' :
@@ -1486,7 +1491,10 @@ const UploadMarks = () => {
               Bulk Upload
             </TabsTrigger>
           </TabsList>
+          </CardContent>
+        </div>
 
+        <CardContent className="pt-6">
           <TabsContent value="manual">
             {!areAllDropdownsSelected() ?
             <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
@@ -2072,8 +2080,8 @@ const UploadMarks = () => {
               }
             </div>
           </TabsContent>
-        </Tabs>
-      </CardContent>
+        </CardContent>
+      </Tabs>
     </Card>);
 
 };

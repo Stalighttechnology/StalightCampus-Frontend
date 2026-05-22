@@ -178,7 +178,7 @@ const WardenDashboard = () => {
       variants={containerVariants}>
       
       {/* Overview & Hostels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div id="warden-stats-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Hostel Selection Cards */}
         {hostels.map((hostel) =>
         <motion.div
@@ -229,7 +229,7 @@ const WardenDashboard = () => {
       </div>
 
       {/* Room Matrix Visualization (Mirroring HMS Admin) */}
-      <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div id="warden-charts-container" className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
         <div className="p-6 border-b bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>

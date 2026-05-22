@@ -213,7 +213,7 @@ const DeanStats = () => {
             </Alert>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+              <div id="dean-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                 <DashboardCard
                   title="Branches"
                   value={totalBranches}
@@ -246,7 +246,7 @@ const DeanStats = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div id="dean-charts-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className={`rounded-xl shadow-sm p-6 border ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
                   <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch Distribution</h3>
                   <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Students and faculty across branches</p>

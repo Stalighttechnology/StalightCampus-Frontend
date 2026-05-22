@@ -587,16 +587,16 @@ const StudentProfile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-start">
+    <div id="student-profile-container" className="min-h-screen flex justify-center items-start">
       <Card className={`w-full max-w-none mx-auto ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+        <CardHeader id="student-profile-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
             <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile</CardTitle>
             <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            <Button size="sm" onClick={() => {if (editing) handleSave();else setEditing(true);}} className="text-md sm:text-xl px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">
+            <Button size="sm" onClick={() => {if (editing) handleSave();else setEditing(true);}} className="text-md sm:text-md px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">
               {editing ? updateProfileMutation.isPending ? 'Saving...' : 'Save' : 'Edit Profile'}
             </Button>
 

@@ -547,371 +547,374 @@ const TakeAttendance = () => {
   return (
     <div className={`w-full overflow-visible ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full`}>
-        <CardHeader>
-          <CardTitle>Take Attendance</CardTitle>
-          <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Record student attendance for your classes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 w-full max-w-full">
-            <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-5 w-full">
-              <Select value={subjectId?.toString()} onValueChange={(v) => setSubjectId(Number(v))}>
-                <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`}>
-                  <SelectValue placeholder="Select Subject" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                  {subjects.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={branchId?.toString()} onValueChange={(v) => setBranchId(Number(v))} disabled={!subjectId}>
-                <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!subjectId}>
-                  <SelectValue placeholder="Select Branch" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                  {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={semesterId?.toString()} onValueChange={(v) => setSemesterId(Number(v))} disabled={!branchId || semesters.length === 0}>
-                <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!branchId || semesters.length === 0}>
-                  <SelectValue placeholder="Select Semester" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                  {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={sectionId?.toString() || ""} onValueChange={(v) => setSectionId(v ? Number(v) : null)} disabled={!semesterId || sections.length === 0}>
-                <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!semesterId || sections.length === 0}>
-                  <SelectValue placeholder={subjectType === 'elective' ? "Select Section (Optional)" : "Select Section"} />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                  {sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !attendanceDate && "text-muted-foreground",
-                      theme === 'dark' ? 'bg-background border-input text-foreground' : 'bg-white border-gray-300 text-gray-900'
-                    )}>
-                    
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {attendanceDate ? format(parseISO(attendanceDate), "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={attendanceDate ? parseISO(attendanceDate) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setAttendanceDate(format(date, "yyyy-MM-dd"));
-                        setIsCalendarOpen(false);
-                      }
-                    }}
-                    initialFocus
-                    className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} />
-                  
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {recentRecords.length > 0 &&
-            <div className={`p-3 rounded-md flex items-center justify-between ${theme === 'dark' ? 'bg-muted/50 border border-border' : 'bg-blue-50 border border-blue-100'}`}>
-                <div className="text-sm font-medium">
-                  Daily Sessions for {attendanceDate}: <span className="text-primary font-bold">{recentRecords.filter((r) => r.date === attendanceDate).length} / 3</span>
+        <Tabs defaultValue="manual">
+          <div id="take-attendance-header-section" className="border-b border-border/50 pb-4">
+            <CardHeader>
+              <CardTitle>Take Attendance</CardTitle>
+              <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Record student attendance for your classes</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-0">
+              <div className="space-y-4 w-full max-w-full">
+                <div id="take-attendance-selectors" className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-5 w-full">
+                  <Select value={subjectId?.toString()} onValueChange={(v) => setSubjectId(Number(v))}>
+                    <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`}>
+                      <SelectValue placeholder="Select Subject" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                      {subjects.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={branchId?.toString()} onValueChange={(v) => setBranchId(Number(v))} disabled={!subjectId}>
+                    <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!subjectId}>
+                      <SelectValue placeholder="Select Branch" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                      {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={semesterId?.toString()} onValueChange={(v) => setSemesterId(Number(v))} disabled={!branchId || semesters.length === 0}>
+                    <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!branchId || semesters.length === 0}>
+                      <SelectValue placeholder="Select Semester" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                      {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={sectionId?.toString() || ""} onValueChange={(v) => setSectionId(v ? Number(v) : null)} disabled={!semesterId || sections.length === 0}>
+                    <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!semesterId || sections.length === 0}>
+                      <SelectValue placeholder={subjectType === 'elective' ? "Select Section (Optional)" : "Select Section"} />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                      {sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !attendanceDate && "text-muted-foreground",
+                          theme === 'dark' ? 'bg-background border-input text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                        )}>
+                        
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {attendanceDate ? format(parseISO(attendanceDate), "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={attendanceDate ? parseISO(attendanceDate) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setAttendanceDate(format(date, "yyyy-MM-dd"));
+                            setIsCalendarOpen(false);
+                          }
+                        }}
+                        initialFocus
+                        className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} />
+                      
+                    </PopoverContent>
+                  </Popover>
                 </div>
-                {recentRecords.filter((r) => r.date === attendanceDate).length >= 3 &&
-              <div className="text-xs text-red-500 font-semibold animate-pulse">Daily limit reached!</div>
-              }
+
+                {recentRecords.length > 0 &&
+                <div className={`p-3 rounded-md flex items-center justify-between ${theme === 'dark' ? 'bg-muted/50 border border-border' : 'bg-blue-50 border border-blue-100'}`}>
+                    <div className="text-sm font-medium">
+                      Daily Sessions for {attendanceDate}: <span className="text-primary font-bold">{recentRecords.filter((r) => r.date === attendanceDate).length} / 3</span>
+                    </div>
+                    {recentRecords.filter((r) => r.date === attendanceDate).length >= 3 &&
+                  <div className="text-xs text-red-500 font-semibold animate-pulse">Daily limit reached!</div>
+                  }
+                  </div>
+                }
+
+                <TabsList className={`inline-flex h-10 items-center justify-start gap-2 rounded-md p-1 overflow-auto ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-500'}`}>
+                  <TabsTrigger
+                    value="manual"
+                    className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm ${theme === 'dark' ?
+                    'data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' :
+                    'data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}>
+                    
+                    Manual Entry
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="ai"
+                    className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm ${theme === 'dark' ?
+                    'data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' :
+                    'data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}>
+                    
+                    AI Processing
+                  </TabsTrigger>
+                </TabsList>
               </div>
-            }
+            </CardContent>
+          </div>
 
-            <Tabs defaultValue="manual">
-              <TabsList className={`inline-flex h-10 items-center justify-start gap-2 rounded-md p-1 overflow-auto ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-500'}`}>
-                <TabsTrigger
-                  value="manual"
-                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm ${theme === 'dark' ?
-                  'data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' :
-                  'data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}>
-                  
-                  Manual Entry
-                </TabsTrigger>
-                <TabsTrigger
-                  value="ai"
-                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm ${theme === 'dark' ?
-                  'data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground' :
-                  'data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900'}`}>
-                  
-                  AI Processing
-                </TabsTrigger>
-              </TabsList>
+          <CardContent className="pt-4">
+            {/* Manual Entry Tab */}
+            <TabsContent value="manual" className="mt-0">
+              {loadingStudents ?
+              <div className="mt-4">
+                  <SkeletonTable rows={10} cols={5} />
+                </div> :
+              students.length > 0 ?
+              <div id="take-attendance-roster" className={`border rounded-md mt-4 w-full max-w-full overflow-hidden min-h-0 ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
+                  <div className={`p-3 sm:p-4 font-semibold border-b ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Student Attendance</div>
 
-              {/* Manual Entry Tab */}
-              <TabsContent value="manual">
-                {loadingStudents ?
-                <div className="mt-4">
-                    <SkeletonTable rows={10} cols={5} />
-                  </div> :
-                students.length > 0 ?
-                <div className={`border rounded-md mt-4 w-full max-w-full overflow-hidden min-h-0 ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
-                    <div className={`p-3 sm:p-4 font-semibold border-b ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Student Attendance</div>
+                  {/* Scrollable area - ONLY the table lives inside this (mobile-only max height) */}
+                  <div className="overflow-y-auto w-full overscroll-contain min-h-0 max-h-[50vh] md:max-h-none md:overflow-visible" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+                    <div className="w-full overflow-x-auto">
+                      <table className="w-full text-sm sm:text-base">
+                        <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}>
+                          <tr>
+                            <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} sm:hidden`}>Student</th>
+                            <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} hidden sm:table-cell`}>#</th>
+                            <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} hidden sm:table-cell`}>USN</th>
+                            <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} hidden sm:table-cell`}>Name</th>
+                            <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {students.map((s, idx) =>
+                        <tr
+                          key={s.id}
+                          className={`border-t ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+                          
+                              {/* Mobile stacked student cell */}
+                              <td className="px-3 py-3 sm:hidden w-[65%] align-top">
+                                <div className="text-sm font-medium">{s.usn}</div>
+                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{s.name}</div>
+                              </td>
+                              <td className="px-4 py-3 text-sm sm:text-base hidden sm:table-cell">{idx + 1}</td>
+                              <td className="px-4 py-3 font-medium text-sm sm:text-base hidden sm:table-cell">{s.usn}</td>
+                              <td className="px-4 py-3 text-sm sm:text-base break-words truncate hidden sm:table-cell">{s.name}</td>
+                              <td className="px-3 py-3 w-[35%] align-top">
+                                <div className="flex items-center gap-2 flex-wrap justify-end sm:justify-start">
+                                  <button
+                                 onClick={() => handleAttendance(s.id, true)}
+                                 className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 ${attendance[s.id] === true ?
+                                 theme === 'dark' ?
+                                 "bg-green-500/20 text-green-400 border-2 border-green-500/50" :
+                                 "bg-green-100 text-green-600 border-2 border-green-200" :
+                                 theme === 'dark' ?
+                                 "bg-muted text-muted-foreground hover:bg-green-500/10 hover:text-green-400 border border-border" :
+                                 "bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-600 border border-gray-200"}`
+                                 }
+                                 title="Mark Present">
+                                 
+                                    <Check size={16} />
+                                  </button>
+                                  <button
+                                 onClick={() => handleAttendance(s.id, false)}
+                                 className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 ${attendance[s.id] === false ?
+                                 theme === 'dark' ?
+                                 "bg-red-500/20 text-red-400 border-2 border-red-500/50" :
+                                 "bg-red-100 text-red-600 border-2 border-red-200" :
+                                 theme === 'dark' ?
+                                 "bg-muted text-muted-foreground hover:bg-red-50/10 hover:text-red-400 border border-border" :
+                                 "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 border border-gray-200"}`
+                                 }
+                                 title="Mark Absent">
+                                 
+                                    <X size={16} />
+                                  </button>
+                                  <div className="ml-2 text-xs sm:text-sm">
+                                    {attendance[s.id] === true ?
+                                <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-800'}`}>Present</span> :
+                                attendance[s.id] === false ?
+                                <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-800'}`}>Absent</span> :
 
-                    {/* Scrollable area - ONLY the table lives inside this (mobile-only max height) */}
-                    <div className="overflow-y-auto w-full overscroll-contain min-h-0 max-h-[50vh] md:max-h-none md:overflow-visible" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-                      <div className="w-full overflow-x-auto">
-                        <table className="w-full text-sm sm:text-base">
-                          <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}>
-                            <tr>
-                              <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} sm:hidden`}>Student</th>
-                              <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} hidden sm:table-cell`}>#</th>
-                              <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} hidden sm:table-cell`}>USN</th>
-                              <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} hidden sm:table-cell`}>Name</th>
-                              <th className={`text-left px-4 py-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {students.map((s, idx) =>
-                          <tr
-                            key={s.id}
-                            className={`border-t ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
-                            
-                                {/* Mobile stacked student cell */}
-                                <td className="px-3 py-3 sm:hidden w-[65%] align-top">
-                                  <div className="text-sm font-medium">{s.usn}</div>
-                                  <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{s.name}</div>
-                                </td>
-                                <td className="px-4 py-3 text-sm sm:text-base hidden sm:table-cell">{idx + 1}</td>
-                                <td className="px-4 py-3 font-medium text-sm sm:text-base hidden sm:table-cell">{s.usn}</td>
-                                <td className="px-4 py-3 text-sm sm:text-base break-words truncate hidden sm:table-cell">{s.name}</td>
-                                <td className="px-3 py-3 w-[35%] align-top">
-                                  <div className="flex items-center gap-2 flex-wrap justify-end sm:justify-start">
-                                    <button
-                                  onClick={() => handleAttendance(s.id, true)}
-                                  className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 ${attendance[s.id] === true ?
-                                  theme === 'dark' ?
-                                  "bg-green-500/20 text-green-400 border-2 border-green-500/50" :
-                                  "bg-green-100 text-green-600 border-2 border-green-200" :
-                                  theme === 'dark' ?
-                                  "bg-muted text-muted-foreground hover:bg-green-500/10 hover:text-green-400 border border-border" :
-                                  "bg-gray-100 text-gray-500 hover:bg-green-50 hover:text-green-600 border border-gray-200"}`
-                                  }
-                                  title="Mark Present">
-                                  
-                                      <Check size={16} />
-                                    </button>
-                                    <button
-                                  onClick={() => handleAttendance(s.id, false)}
-                                  className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 ${attendance[s.id] === false ?
-                                  theme === 'dark' ?
-                                  "bg-red-500/20 text-red-400 border-2 border-red-500/50" :
-                                  "bg-red-100 text-red-600 border-2 border-red-200" :
-                                  theme === 'dark' ?
-                                  "bg-muted text-muted-foreground hover:bg-red-500/10 hover:text-red-400 border border-border" :
-                                  "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600 border border-gray-200"}`
-                                  }
-                                  title="Mark Absent">
-                                  
-                                      <X size={16} />
-                                    </button>
-                                    <div className="ml-2 text-xs sm:text-sm">
-                                      {attendance[s.id] === true ?
-                                  <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-800'}`}>Present</span> :
-                                  attendance[s.id] === false ?
-                                  <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-800'}`}>Absent</span> :
-
-                                  <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-500'}`}>Not marked</span>
-                                  }
-                                    </div>
+                                <span className={`px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-500'}`}>Not marked</span>
+                                }
                                   </div>
-                                </td>
-                              </tr>
-                          )}
-                          </tbody>
-                        </table>
+                                </div>
+                              </td>
+                            </tr>
+                        )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Fixed controls outside scroll area */}
+                  <div className="p-3 sm:p-4 space-y-4">
+                    <AdminPagination pagination={paginationState} onPageChange={goToPage} />
+
+                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+                      <div className={`text-sm sm:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        {Object.keys(attendance).filter((key) => attendance[Number(key)] === true).length} Present,
+                        {Object.keys(attendance).filter((key) => attendance[Number(key)] === false).length} Absent
                       </div>
+                      <Button
+                        id="take-attendance-submit"
+                        onClick={handleSubmit}
+                      disabled={submitting || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-md">
+                      
+                        {submitting ?
+                      <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Submitting...
+                          </> :
+
+                      "Submit Attendance"
+                      }
+                      </Button>
                     </div>
 
-                    {/* Fixed controls outside scroll area */}
-                    <div className="p-3 sm:p-4 space-y-4">
-                      <AdminPagination pagination={paginationState} onPageChange={goToPage} />
 
-                      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-                        <div className={`text-sm sm:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          {Object.keys(attendance).filter((key) => attendance[Number(key)] === true).length} Present,
-                          {Object.keys(attendance).filter((key) => attendance[Number(key)] === false).length} Absent
-                        </div>
-                        <Button
-                        onClick={handleSubmit}
-                        disabled={submitting || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-md">
+                  </div>
+                </div> :
+
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
+              }>
+                  <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <UsersIcon className="w-12 h-12 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Ready to take attendance?</h3>
+                  <p className="max-w-xs text-base leading-relaxed">
+                    Select your <span className="font-semibold text-primary">subject</span> and <span className="font-semibold text-primary">class details</span> above to load the student roster.
+                  </p>
+                </div>
+              }
+            </TabsContent>
+
+            {/* AI Tab */}
+            <TabsContent value="ai" id="take-attendance-ai-panel" className="mt-0">
+              {loadingStudents ?
+              <div className="mt-4">
+                  <SkeletonTable rows={10} cols={5} />
+                </div> :
+              students.length > 0 ?
+              <div className={`border rounded-md mt-4 w-full max-w-full ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
+                  <div className={`p-3 font-semibold border-b ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>AI Attendance Processing</div>
+                  <div className="p-4">
+                    <div className="flex flex-col items-center justify-center py-6">
+                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-14 h-14 flex items-center justify-center mb-4">
+                        <UploadCloud className={`w-8 h-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+                      </div>
+                      <h3 className={`text-base font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AI Attendance Processing</h3>
+                      <p className={`text-sm mb-4 text-center max-w-full ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        Upload a class photo for automatic attendance marking using facial recognition technology.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3 w-full">
+                        <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                        id="photo-upload" />
+                      
+                        <label
+                        htmlFor="photo-upload"
+                        className={`w-full flex-1 px-4 py-2 text-sm font-medium rounded-md border cursor-pointer text-center transition ${theme === 'dark' ?
+                        'border-border text-foreground hover:bg-accent' :
+                        'border-gray-300 text-gray-700 hover:bg-gray-100'}`
+                        }>
                         
-                          {submitting ?
+                          {aiPhoto ? aiPhoto.name : 'Upload Photo'}
+                        </label>
+                        <Button
+                        onClick={handleAIProcess}
+                        disabled={processingAI || !aiPhoto || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+                        
+                          {processingAI ?
                         <>
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Submitting...
+                              Processing...
                             </> :
 
-                        "Submit Attendance"
+                        "Process Attendance"
                         }
                         </Button>
                       </div>
-
-
                     </div>
-                  </div> :
 
-                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
-                }>
-                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                      <UsersIcon className="w-12 h-12 opacity-80" />
-                    </div>
-                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Ready to take attendance?</h3>
-                    <p className="max-w-xs text-base leading-relaxed">
-                      Select your <span className="font-semibold text-primary">subject</span> and <span className="font-semibold text-primary">class details</span> above to load the student roster.
-                    </p>
-                  </div>
-                }
-              </TabsContent>
-
-              {/* AI Tab */}
-              <TabsContent value="ai">
-                {loadingStudents ?
-                <div className="mt-4">
-                    <SkeletonTable rows={10} cols={5} />
-                  </div> :
-                students.length > 0 ?
-                <div className={`border rounded-md mt-4 w-full max-w-full ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
-                    <div className={`p-3 font-semibold border-b ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>AI Attendance Processing</div>
-                    <div className="p-4">
-                      <div className="flex flex-col items-center justify-center py-6">
-                        <div className="bg-gray-200 border-2 border-dashed rounded-xl w-14 h-14 flex items-center justify-center mb-4">
-                          <UploadCloud className={`w-8 h-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+                    {aiResults &&
+                  <div className={`mt-6 p-3 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
+                        <h4 className={`font-medium mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AI Processing Results:</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                          <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
+                            <div className="text-2xl font-bold text-green-600">{aiResults.present_count}</div>
+                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</div>
+                          </div>
+                          <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
+                            <div className="text-2xl font-bold text-red-600">{aiResults.absent_count}</div>
+                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</div>
+                          </div>
+                          <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
+                            <div className="text-2xl font-bold text-blue-600">{aiResults.total_students}</div>
+                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Students</div>
+                          </div>
                         </div>
-                        <h3 className={`text-base font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AI Attendance Processing</h3>
-                        <p className={`text-sm mb-4 text-center max-w-full ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          Upload a class photo for automatic attendance marking using facial recognition technology.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 w-full">
-                          <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoUpload}
-                          className="hidden"
-                          id="photo-upload" />
-                        
-                          <label
-                          htmlFor="photo-upload"
-                          className={`w-full flex-1 px-4 py-2 text-sm font-medium rounded-md border cursor-pointer text-center transition ${theme === 'dark' ?
-                          'border-border text-foreground hover:bg-accent' :
-                          'border-gray-300 text-gray-700 hover:bg-gray-100'}`
-                          }>
-                          
-                            {aiPhoto ? aiPhoto.name : 'Upload Photo'}
-                          </label>
-                          <Button
-                          onClick={handleAIProcess}
-                          disabled={processingAI || !aiPhoto || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
-                          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-                          
-                            {processingAI ?
-                          <>
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                Processing...
-                              </> :
 
-                          "Process Attendance"
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Present Students:</h5>
+                            <div className={`max-h-32 overflow-y-auto p-2 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
+                              {aiResults.present_students.length > 0 ?
+                          aiResults.present_students.map((student: any) =>
+                          <div key={student.id} className="text-sm break-words">
+                                    {student.name} ({student.usn})
+                                  </div>
+                          ) :
+
+                          <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No students detected as present</div>
                           }
-                          </Button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h5 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Absent Students:</h5>
+                            <div className={`max-h-32 overflow-y-auto p-2 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
+                              {aiResults.absent_students.length > 0 ?
+                          aiResults.absent_students.map((student: any) =>
+                          <div key={student.id} className="text-sm break-words">
+                                    {student.name} ({student.usn})
+                                  </div>
+                          ) :
+
+                          <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>All students detected as present</div>
+                          }
+                            </div>
+                          </div>
                         </div>
                       </div>
+                  }
 
-                      {aiResults &&
                     <div className={`mt-6 p-3 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                          <h4 className={`font-medium mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AI Processing Results:</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                            <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                              <div className="text-2xl font-bold text-green-600">{aiResults.present_count}</div>
-                              <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</div>
-                            </div>
-                            <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                              <div className="text-2xl font-bold text-red-600">{aiResults.absent_count}</div>
-                              <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</div>
-                            </div>
-                            <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                              <div className="text-2xl font-bold text-blue-600">{aiResults.total_students}</div>
-                              <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Students</div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-3">
-                            <div>
-                              <h5 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Present Students:</h5>
-                              <div className={`max-h-32 overflow-y-auto p-2 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                                {aiResults.present_students.length > 0 ?
-                            aiResults.present_students.map((student: any) =>
-                            <div key={student.id} className="text-sm break-words">
-                                      {student.name} ({student.usn})
-                                    </div>
-                            ) :
-
-                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No students detected as present</div>
-                            }
-                              </div>
-                            </div>
-
-                            <div>
-                              <h5 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Absent Students:</h5>
-                              <div className={`max-h-32 overflow-y-auto p-2 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                                {aiResults.absent_students.length > 0 ?
-                            aiResults.absent_students.map((student: any) =>
-                            <div key={student.id} className="text-sm break-words">
-                                      {student.name} ({student.usn})
-                                    </div>
-                            ) :
-
-                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>All students detected as present</div>
-                            }
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                    }
-
-                      <div className={`mt-6 p-3 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                        <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>How it works:</h4>
-                        <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          <li>• Take a clear photo of your entire class</li>
-                          <li>• Upload the image using the button above</li>
-                          <li>• Our AI will recognize students and mark attendance automatically</li>
-                          <li>• Review and confirm the results before submitting</li>
-                        </ul>
-                      </div>
+                      <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>How it works:</h4>
+                      <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        <li>• Take a clear photo of your entire class</li>
+                        <li>• Upload the image using the button above</li>
+                        <li>• Our AI will recognize students and mark attendance automatically</li>
+                        <li>• Review and confirm the results before submitting</li>
+                      </ul>
                     </div>
-
-                  </div> :
-
-                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
-                }>
-                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                      <UsersIcon className="w-12 h-12 opacity-80" />
-                    </div>
-                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Found</h3>
-                    <p className="max-w-xs text-base leading-relaxed">
-                      Please select your <span className="font-semibold text-primary">subject</span> and <span className="font-semibold text-primary">class details</span> above to load students for AI processing.
-                    </p>
                   </div>
-                }
-              </TabsContent>
 
-            </Tabs>
+                </div> :
 
-          </div>
-        </CardContent>
+              <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
+              }>
+                  <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <UsersIcon className="w-12 h-12 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Found</h3>
+                  <p className="max-w-xs text-base leading-relaxed">
+                    Please select your <span className="font-semibold text-primary">subject</span> and <span className="font-semibold text-primary">class details</span> above to load students for AI processing.
+                  </p>
+                </div>
+              }
+            </TabsContent>
+          </CardContent>
+        </Tabs>
       </Card>
-    </div>);
-
+    </div>
+  );
 };
 
 export default TakeAttendance;

@@ -129,36 +129,39 @@ const ManageStudentLeave = () => {
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 shadow-sm'}`}>
-        <CardHeader className="border-b">
-          <CardTitle>Leave Approvals</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
-            <Input
-              placeholder="Search student..."
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
-            />
-            <Select
-              value={filterStatus}
-              onValueChange={handleFilterChange}
-            >
-              <SelectTrigger className={`w-full sm:w-auto min-w-[140px] text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                {statusOptions.map(opt => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt === "All" ? "All Status" : opt.charAt(0) + opt.slice(1).toLowerCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <Card id="manage-student-leave-card" className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 shadow-sm'}`}>
+        <div id="manage-student-leave-header-section">
+          <CardHeader className="border-b">
+            <CardTitle>Leave Approvals</CardTitle>
+          </CardHeader>
+          <div className="p-4 sm:p-6">
+            {/* Search Bar */}
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <Input
+                placeholder="Search student..."
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
+              />
+              <Select
+                value={filterStatus}
+                onValueChange={handleFilterChange}
+              >
+                <SelectTrigger className={`w-full sm:w-auto min-w-[140px] text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
+                  {statusOptions.map(opt => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt === "All" ? "All Status" : opt.charAt(0) + opt.slice(1).toLowerCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-
+        </div>
+        <CardContent className="p-4 sm:p-6 pt-0">
           {/* Mobile: Stacked Cards View */}
           <div className="md:hidden space-y-3">
             {isLoading ? (

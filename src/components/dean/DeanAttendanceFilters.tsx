@@ -156,7 +156,7 @@ const DeanAttendanceFilters = () => {
   }
 
   return (
-    <div className={`space-y-4  ${theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"}`}>
+    <div id="dean-attendance-filters-container" className={`space-y-4  ${theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"}`}>
       {loading ? (
         <div className="space-y-6">
           <SkeletonPageHeader />

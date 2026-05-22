@@ -28,13 +28,114 @@ const ROLE_TO_TOUR_MAP: Record<string, any> = {
   hms_admin: { steps: hmsTour, keys: TUTORIAL_KEYS.HMS },
 };
 
-const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean): any[] => {
+const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, role: string): any[] => {
   const steps: any[] = [];
 
   for (const step of originalSteps) {
     const target = step.target;
 
     if (typeof target === 'string') {
+      if (target === '#sidebar-student-status') {
+        steps.push({
+          ...step,
+          target: '#coe-student-status-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-course-statistics') {
+        steps.push({
+          ...step,
+          target: '#coe-course-statistics-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-publish-results') {
+        steps.push({
+          ...step,
+          target: '#coe-publish-results-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-attendance' && role.toLowerCase() === 'dean') {
+        steps.push({
+          ...step,
+          target: '#dean-attendance-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-attendance-filters') {
+        steps.push({
+          ...step,
+          target: '#dean-attendance-filters-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-finance') {
+        steps.push(
+          {
+            ...step,
+            target: '#dean-finance-stats-grid',
+            title: 'Financial Overview',
+            content: 'Monitor key financial analytics and metrics at a glance.',
+            placement: isMobile ? step.placement : 'bottom',
+          },
+          {
+            ...step,
+            target: '#dean-finance-charts-container',
+            title: 'Financial Trends',
+            content: 'Analyze historical revenue and trend data.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-residents') {
+        steps.push({
+          ...step,
+          target: '#warden-residents-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-issues' && role.toLowerCase() === 'warden') {
+        steps.push({
+          ...step,
+          target: '#warden-issues-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-invoices') {
+        steps.push({
+          ...step,
+          target: '#feesmanager-invoices-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-payments') {
+        steps.push({
+          ...step,
+          target: '#feesmanager-payments-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
       if (target === '#sidebar-attendance') {
         steps.push(
           {
@@ -63,13 +164,15 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean): a
       }
 
       if (target === '#sidebar-timetable') {
-        steps.push({
-          ...step,
-          target: isMobile ? '#timetable-card' : '#timetable-card-header',
-          title: 'Weekly Timetable',
-          content: 'View your complete class and exam schedule here.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: isMobile ? '#timetable-card' : '#timetable-card-header',
+            title: 'Weekly Timetable',
+            content: 'View your complete class and exam schedule here.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
@@ -148,90 +251,106 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean): a
       }
 
       if (target === '#sidebar-enroll-user') {
-        steps.push({
-          ...step,
-          target: '#enroll-user-header',
-          title: 'Enroll Staff',
-          content: 'Fill out this form to enroll new HODs, faculty members, Deans, COE, or Fees Managers.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#enroll-user-header',
+            title: 'Enroll Staff',
+            content: 'Fill out this form to enroll new HODs, faculty members, Deans, COE, or Fees Managers.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
       if (target === '#sidebar-branches') {
-        steps.push({
-          ...step,
-          target: '#branches-management-header-section',
-          title: 'Branch Management',
-          content: 'View and manage all institutional branches, assign department heads, and export records.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#branches-management-header-section',
+            title: 'Branch Management',
+            content: 'View and manage all institutional branches, assign department heads, and export records.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
       if (target === '#sidebar-bulk-upload') {
-        steps.push({
-          ...step,
-          target: '#bulk-upload-form-section',
-          title: 'Bulk Upload Faculty',
-          content: 'Upload CSV or Excel files to bulk enroll faculty members into the system.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#bulk-upload-form-section',
+            title: 'Bulk Upload Faculty',
+            content: 'Upload CSV or Excel files to bulk enroll faculty members into the system.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
       if (target === '#sidebar-teacher-assignments') {
-        steps.push({
-          ...step,
-          target: '#teacher-assignments-header-section',
-          title: 'Faculty Assignments',
-          content: 'Assign primary branches and departments to faculty members.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#teacher-assignments-header-section',
+            title: 'Faculty Assignments',
+            content: 'Assign primary branches and departments to faculty members.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
       if (target === '#sidebar-qp-approvals') {
-        steps.push({
-          ...step,
-          target: '#qp-approvals-header-section',
-          title: 'Question Paper Approvals',
-          content: 'Review and approve question papers pending administrative oversight.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#qp-approvals-header-section',
+            title: 'Question Paper Approvals',
+            content: 'Review and approve question papers pending administrative oversight.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
       if (target === '#sidebar-batches') {
-        steps.push({
-          ...step,
-          target: '#add-new-batch-card',
-          title: 'Batches Management',
-          content: 'Configure academic batches, cohort details, and sections.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#add-new-batch-card',
+            title: 'Batches Management',
+            content: 'Configure academic batches, cohort details, and sections.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
       if (target === '#sidebar-announcement-management') {
-        steps.push({
-          ...step,
-          target: '#announcement-header-section',
-          title: 'Announcement Management',
-          content: 'Broadcast campus news and updates to students and staff.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#announcement-header-section',
+            title: 'Announcement Management',
+            content: 'Broadcast campus news and updates to students and staff.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
       if (target === '#sidebar-hod-leaves') {
-        steps.push({
-          ...step,
-          target: '#hod-leaves-header-section',
-          title: 'HOD Leave Requests',
-          content: 'Review and manage leave applications submitted by department heads.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#hod-leaves-header-section',
+            title: 'HOD Leave Requests',
+            content: 'Review and manage leave applications submitted by department heads.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
@@ -257,13 +376,15 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean): a
       }
 
       if (target === '#sidebar-my-attendance') {
-        steps.push({
-          ...step,
-          target: '#admin-my-attendance-form',
-          title: 'My Attendance',
-          content: 'Mark your attendance as present or absent for today and optionally add notes.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#admin-my-attendance-form',
+            title: 'My Attendance',
+            content: 'Mark your attendance as present or absent for today and optionally add notes.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
@@ -287,25 +408,225 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean): a
         continue;
       }
 
+      if (target === '#sidebar-student-leave') {
+        steps.push(
+          {
+            ...step,
+            target: '#manage-student-leave-header-section',
+            title: 'Manage Student Leave',
+            content: '• Search student: Search for student leave applications by name or USN.\n• Filter status: Filter applications by Pending, Approved, or Rejected.\n• Actions: Review the details, view the leave reasons, and approve or reject requests directly.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
       if (target === '#sidebar-users') {
-        steps.push({
-          ...step,
-          target: '#users-management-header-filters',
-          title: 'Users Directory',
-          content: 'View, edit, or deactivate any user profile within the institution.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        steps.push(
+          {
+            ...step,
+            target: '#users-management-header-filters',
+            title: 'Users Directory',
+            content: 'View, edit, or deactivate any user profile within the institution.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
       if (target === '#sidebar-profile') {
-        steps.push({
-          ...step,
-          target: '#admin-profile-header',
-          title: 'Admin Profile Information',
-          content: 'Manage your profile details, change passwords, and configure settings.',
-          placement: isMobile ? step.placement : 'top',
-        });
+        if (role.toLowerCase() === 'student') {
+          steps.push(
+            {
+              ...step,
+              target: '#student-profile-header',
+              title: 'Manage Your Profile',
+              content: 'Update your contact details, personal details, academic details, and set up your face recognition for attendance.',
+              placement: isMobile ? step.placement : 'top',
+            }
+          );
+        } else {
+          steps.push(
+            {
+              ...step,
+              target: '#admin-profile-header',
+              title: 'Admin Profile Information',
+              content: 'Manage your profile details, change passwords, and configure settings.',
+              placement: isMobile ? step.placement : 'top',
+            }
+          );
+        }
+        continue;
+      }
+
+      if (target === '#sidebar-take-attendance') {
+        steps.push(
+          {
+            ...step,
+            target: '#take-attendance-header-section',
+            title: 'Take Attendance',
+            content: 'Record student attendance for your classes manually or using the AI attendance mode.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-attendance-records') {
+        steps.push(
+          {
+            ...step,
+            target: '#attendance-records-header',
+            title: 'Attendance Logs',
+            content: 'Search, view, and export historical student attendance logs for any date range.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-faculty-attendance') {
+        if (role.toLowerCase() === 'hod') {
+          steps.push(
+            {
+              ...step,
+              target: '#hod-faculty-attendance-tabs',
+              title: 'Faculty Attendance Tabs',
+              content: '• Faculty Attendance: Toggle between Today\'s attendance dashboard and historical Records.\n• Today: View today\'s overall department statistics and table.\n• Records: Review monthly attendance patterns and filter by dates.',
+              placement: isMobile ? step.placement : 'top',
+            },
+            {
+              ...step,
+              target: '#hod-faculty-attendance-summary',
+              title: 'Department Attendance Summary',
+              content: '• Department Attendance Summary: Track total faculty strength, present count, absent count, and unmarked list in real-time.',
+              placement: isMobile ? step.placement : 'top',
+            },
+            {
+              ...step,
+              target: '#hod-faculty-attendance-table',
+              title: 'Today\'s Attendance Details',
+              content: '• Attendance Details: Review faculty names, mark times, and check location verification reports.',
+              placement: isMobile ? step.placement : 'top',
+            }
+          );
+        } else {
+          steps.push(
+            {
+              ...step,
+              target: '#today-attendance-toggle-section',
+              title: 'Daily Self-Attendance',
+              content: 'Mark your own daily attendance check-in and check campus location verification.',
+              placement: isMobile ? step.placement : 'top',
+            },
+            {
+              ...step,
+              target: '#faculty-attendance-history',
+              title: 'Monthly Attendance History',
+              content: 'Review your paginated monthly attendance logs and history.',
+              placement: isMobile ? step.placement : 'top',
+            }
+          );
+        }
+        continue;
+      }
+
+      if (target === '#sidebar-upload-marks') {
+        steps.push(
+          {
+            ...step,
+            target: '#upload-marks-header-section',
+            title: 'Upload Marks',
+            content: 'Select the Subject, Branch, Semester, Section, and Test Type. You can configure and view the Question Paper format details from this active tab.',
+            placement: isMobile ? step.placement : 'top',
+          },
+          {
+            ...step,
+            target: '#upload-marks-tab-manual',
+            title: 'Marks Entry',
+            content: 'Marks Entry (to enter grades manually)',
+            placement: isMobile ? step.placement : 'top',
+          },
+          {
+            ...step,
+            target: '#upload-marks-tab-bulk',
+            title: 'Bulk Upload',
+            content: 'Bulk Upload (to download templates and import scores via Excel)',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-upload-qp') {
+        steps.push(
+          {
+            ...step,
+            target: '#upload-qp-header-section',
+            title: 'Upload QP Pattern',
+            content: '• Select the Branch, Subject, and Test Type.\n• Use these tabs to manage the question paper:\n  - Question Format: configure questions and max marks.\n  - Question Paper: preview and submit for approval.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-co-attainment') {
+        steps.push(
+          {
+            ...step,
+            target: '#co-attainment-selectors',
+            title: 'Calculate CO Attainment',
+            content: '• Select a Subject to view and calculate Course Outcome (CO) attainment levels.\n• Configure the Target Threshold percentage (default 60%) to establish student grade targets.\n• Once a subject is selected, overall attainment results and reports will display below.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-statistics') {
+        steps.push(
+          {
+            ...step,
+            target: '#statistics-charts-container',
+            title: 'Attendance Overview & Average Marks',
+            content: '• Attendance Overview: View real-time line charts for student attendance tracking.\n• Average Marks: View interactive bar charts for average marks analysis.',
+            placement: isMobile ? step.placement : 'top',
+          },
+          {
+            ...step,
+            target: '#statistics-table-header',
+            title: 'Proctor Students & Export PDF',
+            content: '• Proctor Students: Review complete proctor student details in the summary table.\n• Export PDF: Use this button to download a comprehensive proctor student statistics report.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-faculty-announcement-management') {
+        steps.push(
+          {
+            ...step,
+            target: '#announcement-header-section',
+            title: 'Announcements for Proctor Students',
+            content: '• Announcements for Proctor Students: View and manage announcements for your proctor group.\n• New Announcement: Click this button to create a new announcement.\n• My Announcements: View all the announcements that you have created.\n• Received: View the announcements that you have received.\n• Show Archive: Toggle this button to show or hide expired/archived announcements.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-faculty-profile') {
+        steps.push(
+          {
+            ...step,
+            target: '#faculty-profile-header-section',
+            title: 'Faculty Profile',
+            content: '• Faculty Profile: Manage your profile and academic details.\n• Edit Profile: Click this button to modify your details.\n• Change Password: Click this button to update your account password.',
+            placement: isMobile ? step.placement : 'top',
+          }
+        );
         continue;
       }
 
@@ -403,7 +724,7 @@ export const useTutorial = () => {
     };
 
     // Transform steps for both mobile and laptop to highlight actual page sections
-    const processedSteps = transformStepsForHighlights(tourConfig.steps, isMobile);
+    const processedSteps = transformStepsForHighlights(tourConfig.steps, isMobile, role);
 
     // Force skipBeacon: true on all steps to avoid pulsing dots (beacons)
     const stepsWithDisabledBeacons = processedSteps.map((step: any) => ({

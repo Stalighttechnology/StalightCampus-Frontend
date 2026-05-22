@@ -14,7 +14,7 @@ const AdminDashboard = lazy(() => import("./components/dashboards/AdminDashboard
 const HODDashboard = lazy(() => import("./components/dashboards/HODDashboard"));
 const FacultyDashboard = lazy(() => import("./components/dashboards/FacultyDashboard"));
 const COEDashboard = lazy(() => import("./components/dashboards/COEDashboard"));
-const FeesManagerDashboard = lazy(() => import("./components/FeesManager/FeesManagerDashboard"));
+const FeesManagerDashboard = lazy(() => import("./components/dashboards/FeesManagerDashboard"));
 const DeanDashboard = lazy(() => import("./components/dashboards/DeanDashboard"));
 const HMSDashboard = lazy(() => import("./components/dashboards/HMSDashboard"));
 const WardenDashboard = lazy(() => import("./components/dashboards/WardenDashboard"));

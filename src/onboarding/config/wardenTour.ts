@@ -10,7 +10,7 @@ export const wardenTour: Step[] = [
     disableBeacon: true,
   },
   {
-    target: '#admin-stats-grid',
+    target: '#warden-stats-grid',
     title: 'Hostel Overview',
     content:
       'View occupancy status, allocations, and key hostel management metrics.',
@@ -19,7 +19,7 @@ export const wardenTour: Step[] = [
     route: '/warden',
   },
   {
-    target: '#admin-charts',
+    target: '#warden-charts-container',
     title: 'Occupancy Analytics',
     content:
       'Monitor hostel utilization, room allocations, and resident management statistics.',
@@ -28,22 +28,22 @@ export const wardenTour: Step[] = [
     route: '/warden',
   },
   {
-    target: '#sidebar-users-management',
+    target: '#sidebar-residents',
     title: 'Resident Management',
     content:
       'Manage hostel resident profiles, allocations, and permissions.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/warden/users-management',
+    route: '/warden/residents',
   },
   {
-    target: '#sidebar-reports',
-    title: 'Generate Reports',
+    target: '#sidebar-issues',
+    title: 'Issue Tracking',
     content:
-      'Create reports on occupancy, complaints, and hostel operations.',
+      'Track and manage complaints, maintenance issues, and resident tickets.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/warden/reports',
+    route: '/warden/issues',
   },
 ];
 

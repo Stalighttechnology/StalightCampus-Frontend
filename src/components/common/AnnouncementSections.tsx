@@ -31,6 +31,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { SkeletonList } from "@/components/ui/skeleton";
 
 interface PaginationData {
   count: number;
@@ -221,8 +222,8 @@ export const AnnouncementSections = ({
         <SectionContentWrapper header={header} className="announcements-card-content pt-0">
         <TabsContent value="my" className="space-y-4 mt-6">
         {loading ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Loading announcements...</p>
+          <div className="py-4">
+            <SkeletonList items={5} />
           </div>
         ) : myAnnouncements.length === 0 ? (
           <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
@@ -489,8 +490,8 @@ export const AnnouncementSections = ({
 
       <TabsContent value="received" className="space-y-4 mt-6">
         {loading ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Loading announcements...</p>
+          <div className="py-4">
+            <SkeletonList items={5} />
           </div>
         ) : receivedAnnouncements.length === 0 ? (
           <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>

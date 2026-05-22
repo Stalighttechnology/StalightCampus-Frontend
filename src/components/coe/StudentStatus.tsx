@@ -156,7 +156,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
   };
 
   return (
-    <div ref={ref} className="student-status-main-container w-full max-w-full">
+    <div ref={ref} id="coe-student-status-container" className="student-status-main-container w-full max-w-full">
       <div className="space-y-4 sm:space-y-6">
       {/* Filters */}
       <Card>

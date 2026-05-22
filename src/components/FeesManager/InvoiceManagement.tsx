@@ -375,7 +375,7 @@ const InvoiceManagement: React.FC = () => {
   };
 
   return (
-    <div>
+    <div id="feesmanager-invoices-container">
       <Card>
         <CardHeader className="border-b bg-muted/20 pb-6 px-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

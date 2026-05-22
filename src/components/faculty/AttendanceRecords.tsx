@@ -154,8 +154,8 @@ const AttendanceRecords = () => {
 
   return (
     <div className={`space-y-3 md:space-y-3 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-        <CardHeader>
+      <Card id="attendance-records-card" className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+        <CardHeader id="attendance-records-header">
           <CardTitle>Attendance Records</CardTitle>
         </CardHeader>
         <CardContent>

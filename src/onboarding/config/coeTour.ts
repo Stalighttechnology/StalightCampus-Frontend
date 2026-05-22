@@ -10,7 +10,7 @@ export const coeTour: Step[] = [
     disableBeacon: true,
   },
   {
-    target: '#admin-stats-grid',
+    target: '#coe-stats-grid',
     title: 'Quality Metrics',
     content:
       'View key quality assurance metrics and compliance indicators across the institution.',
@@ -19,7 +19,7 @@ export const coeTour: Step[] = [
     route: '/coe/dashboard',
   },
   {
-    target: '#admin-charts',
+    target: '#coe-charts-container',
     title: 'Compliance Analytics',
     content:
       'Monitor compliance with academic standards and quality benchmarks.',
@@ -28,22 +28,31 @@ export const coeTour: Step[] = [
     route: '/coe/dashboard',
   },
   {
-    target: '#sidebar-reports',
-    title: 'Generate Reports',
+    target: '#sidebar-student-status',
+    title: 'Student Status',
     content:
-      'Create comprehensive academic quality reports and compliance documentation.',
+      'View and verify the graduation/examination eligibility and status of students.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/coe/reports',
+    route: '/coe/student-status',
   },
   {
-    target: '#sidebar-users-management',
-    title: 'User Management',
+    target: '#sidebar-course-statistics',
+    title: 'Course Statistics',
     content:
-      'Manage user roles and permissions for quality assurance activities.',
+      'Check academic performance statistics and grade distributions across courses.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/coe/users-management',
+    route: '/coe/course-statistics',
+  },
+  {
+    target: '#sidebar-publish-results',
+    title: 'Publish Results',
+    content:
+      'Announce and publish examination results officially to the student portal.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/coe/publish-results',
   },
 ];
 

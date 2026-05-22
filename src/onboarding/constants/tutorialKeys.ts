@@ -73,8 +73,9 @@ export const TUTORIAL_SELECTORS = {
 
   // Dashboard overview cards — Faculty
   FACULTY_STATS_CARDS: '#faculty-stats-cards',
-  FACULTY_CHARTS: '#faculty-charts',
+  FACULTY_CHARTS: '#faculty-charts-header',
   FACULTY_LIVE_TIMER: '#faculty-live-timer',
+  FACULTY_ACTION_CARDS: '#faculty-action-cards',
 
   // Dashboard overview cards — HOD
   HOD_STATS_CARDS: '#hod-stats-cards',

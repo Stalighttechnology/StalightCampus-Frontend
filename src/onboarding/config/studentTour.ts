@@ -89,4 +89,13 @@ export const studentTour: Step[] = [
     disableBeacon: false,
     route: '/leave-request',
   },
+  {
+    target: '#sidebar-profile',
+    title: 'Manage Your Profile',
+    content:
+      'Update your contact details, personal details, academic details, and set up your face recognition for attendance.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/profile',
+  },
 ];

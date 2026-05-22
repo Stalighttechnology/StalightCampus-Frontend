@@ -406,6 +406,30 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     ],
   };
 
+  // Automatically scroll active sidebar item into view
+  useEffect(() => {
+    const roleItems = menuItems[role];
+    if (!roleItems) return;
+
+    const activeItem = roleItems.find((item) => isItemActive(item.page));
+    if (!activeItem) return;
+
+    const scrollTimeout = setTimeout(() => {
+      try {
+        const activeElement = document.getElementById(getSidebarId(activeItem.page));
+        if (activeElement) {
+          activeElement.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to scroll active sidebar item into view:", err);
+      }
+    }, 150);
+
+    return () => clearTimeout(scrollTimeout);
+  }, [activePage, role]);
 
   const sidebarContent = (
     <motion.div

@@ -128,7 +128,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div ref={ref} className={`space-y-6 font-sans min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="coe-stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
         {
           title: "Total Applications",
@@ -175,7 +175,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div id="coe-charts-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Application Trend Chart */}
         <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border`}>
           <div className="flex justify-between items-center mb-2">

@@ -318,176 +318,171 @@ const FacultyAnnouncementManagement = () => {
       `}</style>
 
       <div className="announcements-container w-full max-w-none mx-auto">
-        <Card className={`announcements-card ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-          <CardHeader className="announcements-card-header p-4 border-b">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <CardTitle className={`announcements-card-title text-xl sm:text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Announcements for Proctor Students
-                </CardTitle>
-                <p className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                  Create and manage announcements for your proctor group
-                </p>
-              </div>
-              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogTrigger asChild>
-                  <Button
-                    onClick={() => resetForm()}
-                    className="gap-2 bg-primary text-white hover:bg-primary/90 transition-colors w-full sm:w-auto">
-                    
-                    <Plus className="w-4 h-4" />
-                    New Announcement
-                  </Button>
-                </DialogTrigger>
-                <DialogContent
-                  className="mobile-modal max-w-2xl max-h-[90vh] overflow-y-auto">
-                  
-                <DialogHeader>
-                  <DialogTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    {editingId ?
-                      "Edit Announcement" :
-                      "Create Announcement for Proctor Students"}
-                  </DialogTitle>
-                  <DialogDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
-                    {editingId ?
-                      "Update the announcement details below" :
-                      "Create a new announcement that will be sent to your proctor students"}
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Title *</Label>
-                    <Input
-                        id="title"
-                        placeholder="Announcement title"
-                        value={formData.title}
-                        onChange={(e) =>
-                        setFormData({ ...formData, title: e.target.value })
-                        } />
-                      
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message *</Label>
-                    <Textarea
-                        id="message"
-                        placeholder="Type your announcement message here..."
-                        value={formData.message}
-                        onChange={(e) =>
-                        setFormData({ ...formData, message: e.target.value })
-                        }
-                        className="resize-none h-20 overflow-y-auto focus-visible:ring-primary/20 custom-scrollbar" />
-                      
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="priority">Priority</Label>
-                      <Select
-                          value={formData.priority}
-                          onValueChange={(value: any) =>
-                          setFormData({ ...formData, priority: value })
-                          }>
-                          
-                        <SelectTrigger className="h-10">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="normal">Normal</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="urgent">Urgent</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="expires_at" className="block text-sm font-medium mt-1">Expires At</Label>
-                      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start text-left font-normal h-10 px-3",
-                                !formData.expires_at && "text-muted-foreground",
-                                theme === 'dark' ?
-                                'bg-background border-border text-foreground hover:bg-muted/50' :
-                                'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                              )}>
-                              
-                            <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
-                            <span className="truncate">
-                              {formData.expires_at ?
-                                format(new Date(formData.expires_at), "PPP") :
-
-                                "Pick a date"
-                                }
-                            </span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
-                          <Calendar
-                              mode="single"
-                              selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
-                              onSelect={(date) => {
-                                setFormData({
-                                  ...formData,
-                                  expires_at: date ? format(date, "yyyy-MM-dd") : ""
-                                });
-                                setIsCalendarOpen(false);
-                              }}
-                              initialFocus />
-                            
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-muted">
-                    <p className="text-sm text-muted-foreground">
-                      ℹ️ This announcement will be visible to your proctor students only
-                    </p>
-                  </div>
-
-                  <div className="flex gap-3 justify-end pt-4">
-                    <Button
-                        variant="outline"
-                        onClick={() => setShowCreateDialog(false)}>
-                        
-                      Cancel
-                    </Button>
-                    <Button
-                        onClick={handleCreateOrUpdate}
-                        className="bg-primary text-white hover:bg-primary/90 transition-colors">
-                        
-                      {editingId ? "Update" : "Create"} Announcement
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-4 sm:p-6">
-          {/* Loading State */}
-          {loading &&
-            <div className="py-4">
-              <SkeletonList items={5} />
-            </div>
-            }
-
+        <Card id="faculty-announcement-card" className={`announcements-card ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
           {/* Error State */}
           {error &&
-            <div className="p-4 rounded-lg bg-destructive/10 text-destructive mb-6">
-              <p className="font-medium">{error}</p>
-            </div>
+            <CardContent className="p-4 sm:p-6">
+              <div className="p-4 rounded-lg bg-destructive/10 text-destructive mb-6">
+                <p className="font-medium">{error}</p>
+              </div>
+            </CardContent>
             }
 
           {/* Announcement Sections */}
-          {!loading && !error &&
+          {!error &&
             <AnnouncementSections
+              header={
+                <CardHeader className="announcements-card-header p-4 border-b">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <CardTitle className={`announcements-card-title text-xl sm:text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        Announcements for Proctor Students
+                      </CardTitle>
+                      <p className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        Create and manage announcements for your proctor group
+                      </p>
+                    </div>
+                    <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                      <DialogTrigger asChild>
+                        <Button
+                          onClick={() => resetForm()}
+                          className="gap-2 bg-primary text-white hover:bg-primary/90 transition-colors w-full sm:w-auto">
+                          
+                          <Plus className="w-4 h-4" />
+                          New Announcement
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent
+                        className="mobile-modal max-w-2xl max-h-[90vh] overflow-y-auto">
+                        
+                      <DialogHeader>
+                        <DialogTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {editingId ?
+                            "Edit Announcement" :
+                            "Create Announcement for Proctor Students"}
+                        </DialogTitle>
+                        <DialogDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+                          {editingId ?
+                            "Update the announcement details below" :
+                            "Create a new announcement that will be sent to your proctor students"}
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="title">Title *</Label>
+                          <Input
+                              id="title"
+                              placeholder="Announcement title"
+                              value={formData.title}
+                              onChange={(e) =>
+                              setFormData({ ...formData, title: e.target.value })
+                              } />
+                            
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="message">Message *</Label>
+                          <Textarea
+                              id="message"
+                              placeholder="Type your announcement message here..."
+                              value={formData.message}
+                              onChange={(e) =>
+                              setFormData({ ...formData, message: e.target.value })
+                              }
+                              className="resize-none h-20 overflow-y-auto focus-visible:ring-primary/20 custom-scrollbar" />
+                            
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="priority">Priority</Label>
+                            <Select
+                                value={formData.priority}
+                                onValueChange={(value: any) =>
+                                setFormData({ ...formData, priority: value })
+                                }>
+                                
+                              <SelectTrigger className="h-10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="low">Low</SelectItem>
+                                <SelectItem value="normal">Normal</SelectItem>
+                                <SelectItem value="high">High</SelectItem>
+                                <SelectItem value="urgent">Urgent</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="expires_at" className="block text-sm font-medium mt-1">Expires At</Label>
+                            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal h-10 px-3",
+                                      !formData.expires_at && "text-muted-foreground",
+                                      theme === 'dark' ?
+                                      'bg-background border-border text-foreground hover:bg-muted/50' :
+                                      'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                                    )}>
+                                    
+                                  <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                                  <span className="truncate">
+                                    {formData.expires_at ?
+                                      format(new Date(formData.expires_at), "PPP") :
+
+                                      "Pick a date"
+                                      }
+                                  </span>
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
+                                    onSelect={(date) => {
+                                      setFormData({
+                                        ...formData,
+                                        expires_at: date ? format(date, "yyyy-MM-dd") : ""
+                                      });
+                                      setIsCalendarOpen(false);
+                                    }}
+                                    initialFocus />
+                                  
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-lg bg-muted">
+                          <p className="text-sm text-muted-foreground">
+                            ℹ️ This announcement will be visible to your proctor students only
+                          </p>
+                        </div>
+
+                        <div className="flex gap-3 justify-end pt-4">
+                          <Button
+                              variant="outline"
+                              onClick={() => setShowCreateDialog(false)}>
+                              
+                            Cancel
+                          </Button>
+                          <Button
+                              onClick={handleCreateOrUpdate}
+                              className="bg-primary text-white hover:bg-primary/90 transition-colors">
+                              
+                            {editingId ? "Update" : "Create"} Announcement
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  </div>
+                </CardHeader>
+              }
               myAnnouncements={myAnnouncements}
               receivedAnnouncements={receivedAnnouncements}
               onEdit={handleEdit}
@@ -506,10 +501,9 @@ const FacultyAnnouncementManagement = () => {
               onPageChange={handlePageChange}
               activeTab={activeTab}
               onTabChange={setActiveTab} />
-
             }
-        </CardContent>
-      </Card>
+        </Card>
+
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>

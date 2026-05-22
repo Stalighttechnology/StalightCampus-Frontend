@@ -145,7 +145,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
   );
 
   return (
-    <div ref={ref} className="course-statistics-main space-y-6">
+    <div ref={ref} id="coe-course-statistics-container" className="course-statistics-main space-y-6">
       {/* Filters */}
       <Card className="course-statistics-filters">
         <CardContent className="p-6 course-statistics-filters-content">

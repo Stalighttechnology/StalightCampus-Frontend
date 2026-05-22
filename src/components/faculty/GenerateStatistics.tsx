@@ -130,9 +130,9 @@ const GenerateStatistics: React.FC = () => {
   }
 
   return (
-    <div className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} space-y-4 sm:space-y-6 min-h-screen`}>
+    <div id="generate-statistics-container" className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'} space-y-4 sm:space-y-6 min-h-screen`}>
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
+      <div id="statistics-charts-container" className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
         {/* Attendance Overview */}
         <Card className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg`}>
           <CardHeader>
@@ -220,8 +220,8 @@ const GenerateStatistics: React.FC = () => {
       </div>
 
       {/* Table */}
-      <Card className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg`}>
-        <CardHeader className="flex flex-row justify-between items-center gap-3 p-3 sm:p-6">
+      <Card id="statistics-table-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg`}>
+        <CardHeader id="statistics-table-header" className="flex flex-row justify-between items-center gap-3 p-3 sm:p-6">
           <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
           <Button
             variant="outline"

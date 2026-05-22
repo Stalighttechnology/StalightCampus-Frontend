@@ -254,7 +254,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
   return (
     <div ref={ref} className={`space-y-6 w-full max-w-full min-h-0 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Top Stats Cards (admin style) */}
-      <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+      <motion.div id="faculty-stats-cards" className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <DashboardCard
             title="Total Proctor Students"
@@ -289,8 +289,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
       {/* Main Content - stacked full-width rows */}
       <div className="flex flex-col gap-6 w-full">
         {/* Performance Trends (full width) */}
-        <Card className={`h-full flex flex-col w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} shadow-sm`}>
-          <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-3">
+        <Card id="faculty-charts" className={`h-full flex flex-col w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} shadow-sm`}>
+          <CardHeader id="faculty-charts-header" className="flex flex-col md:flex-row items-start md:items-center justify-between ">
             <div className="flex-1 text-left">
               <CardTitle>Performance Trends</CardTitle>
               <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Average Attendance and IA marks per subject</p>
@@ -308,7 +308,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
               </Select>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 h-full">
+          <CardContent className="flex-1 h-full mt-3">
             <div className="h-full flex flex-col md:flex-row gap-4 items-stretch">
               {/* Bar chart - Average Attendance */}
               <div className="flex-1 min-h-[240px]">
@@ -344,7 +344,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
         </Card>
 
         {/* Current & Next Session (full width row) */}
-        <section className="w-full">
+        <section id="faculty-live-timer" className="w-full">
           <Card className={`h-full flex flex-col justify-between w-full ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
             <CardHeader className="p-3 md:p-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 sm:gap-0">
@@ -453,6 +453,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
 
       {/* Action Cards */}
       <motion.div
+        id="faculty-action-cards"
         className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

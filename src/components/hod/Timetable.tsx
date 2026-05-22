@@ -894,8 +894,8 @@ const Timetable = () => {
 
   return (
     <div className="bg-background text-foreground">
-      <Card className="shadow-xl">
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-4">
+      <Card id="timetable-card" className="shadow-xl">
+        <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-4">
           <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button

@@ -457,7 +457,7 @@ const FacultyAttendanceView: React.FC = () => {
     <>
     <div className={` sm: space-y-4 sm:space-y-6 min-h-screen max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Tab Navigation */}
-      <div className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
+      <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
         <button
             onClick={() => setActiveTab('today')}
             className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
@@ -497,7 +497,7 @@ const FacultyAttendanceView: React.FC = () => {
       {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 &&
         <>
           {/* Today's Stats Cards */}
-          <div className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+          <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
             <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                 <div>
@@ -539,7 +539,7 @@ const FacultyAttendanceView: React.FC = () => {
           {/* Pagination controls moved below the table for better UX */}
 
           {/* Today's Attendance Table */}
-          <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
+          <div id="hod-faculty-attendance-table" className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
             <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h3 className={`text-sm sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Today's Faculty Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})
@@ -689,7 +689,7 @@ const FacultyAttendanceView: React.FC = () => {
       {activeTab === 'records' && !isLoading &&
         <>
           {/* Date Range Filter */}
-          <div className={`p-3 sm:p-4 rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+          <div id="hod-faculty-attendance-filters" className={`p-3 sm:p-4 rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-end">
               <div className="w-full sm:w-auto">
                 <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>

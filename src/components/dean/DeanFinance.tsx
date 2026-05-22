@@ -89,7 +89,7 @@ const DeanFinance = () => {
       className="space-y-8 pb-10"
     >
       {/* Dashboard Cards - Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="dean-finance-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <DashboardCard
           title="Total Collected"
           value={formatCurrency(dashboardData?.stats?.total_collected || 0)}
@@ -118,7 +118,7 @@ const DeanFinance = () => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Revenue Trend Chart */}
-        <div className={`lg:col-span-2 rounded-lg shadow p-6 ${theme === 'dark' ? 'border border-border bg-card' : 'border border-gray-200 bg-white'}`}>
+        <div id="dean-finance-charts-container" className={`lg:col-span-2 rounded-lg shadow p-6 ${theme === 'dark' ? 'border border-border bg-card' : 'border border-gray-200 bg-white'}`}>
           <div className="flex flex-row items-center justify-between mb-6">
             <div>
               <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Revenue Trends</h3>

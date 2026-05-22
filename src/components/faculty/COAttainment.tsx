@@ -326,47 +326,49 @@ const COAttainment = () => {
   };
 
   return (
-    <div>
+    <div id="co-attainment-container">
       <Card>
         <CardContent className="pt-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Subject</label>
-              {assignmentsLoading ?
-              <div className="h-11 bg-muted animate-pulse rounded-md" /> :
+            <div id="co-attainment-selectors" className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Subject</label>
+                {assignmentsLoading ?
+                <div className="h-11 bg-muted animate-pulse rounded-md" /> :
 
-              <Select onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
-                  <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
-                    <SelectValue placeholder="Select Subject" />
-                  </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
-                    {dropdownData.subject.map((item) =>
-                  <SelectItem key={item.id} value={item.id.toString()}>
-                        {item.name}
-                      </SelectItem>
-                  )}
-                  </SelectContent>
-                </Select>
-              }
-            </div>
+                <Select onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
+                    <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
+                      <SelectValue placeholder="Select Subject" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
+                      {dropdownData.subject.map((item) =>
+                    <SelectItem key={item.id} value={item.id.toString()}>
+                          {item.name}
+                        </SelectItem>
+                    )}
+                    </SelectContent>
+                  </Select>
+                }
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Target Threshold</label>
-              <div className="relative">
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={targetThreshold}
-                  onChange={(e) => handleTargetThresholdChange(e.target.value)}
-                  className={`h-11 pr-8 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`} />
-                
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Target Threshold</label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={targetThreshold}
+                    onChange={(e) => handleTargetThresholdChange(e.target.value)}
+                    className={`h-11 pr-8 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`} />
+                  
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
+                </div>
               </div>
             </div>
 
             {selected.subject_id &&
-            <div className="lg:col-span-2 flex items-end gap-3 h-full">
+            <div className="col-span-1 md:col-span-2 lg:col-span-2 flex items-end gap-3 h-full">
                 <Button
                 onClick={handleExportPDF}
                 className="flex-1 h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200">

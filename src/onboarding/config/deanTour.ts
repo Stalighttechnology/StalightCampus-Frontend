@@ -10,7 +10,7 @@ export const deanTour: Step[] = [
     disableBeacon: true,
   },
   {
-    target: '#admin-stats-grid',
+    target: '#dean-stats-grid',
     title: 'Institution Overview',
     content:
       'Get a comprehensive view of key institutional metrics and performance indicators.',
@@ -19,7 +19,7 @@ export const deanTour: Step[] = [
     route: '/dean/dashboard',
   },
   {
-    target: '#admin-charts',
+    target: '#dean-charts-container',
     title: 'Academic Analytics',
     content:
       'Analyze trends in academic performance, enrollment, and institutional health.',
@@ -28,22 +28,31 @@ export const deanTour: Step[] = [
     route: '/dean/dashboard',
   },
   {
-    target: '#sidebar-reports',
-    title: 'Generate Reports',
+    target: '#sidebar-attendance',
+    title: 'Today\'s Attendance',
     content:
-      'Create executive reports on academic performance and institutional operations.',
+      'View real-time student attendance percentages and snapshots across departments.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/dean/reports',
+    route: '/dean/attendance',
   },
   {
-    target: '#sidebar-users-management',
-    title: 'User Management',
+    target: '#sidebar-attendance-filters',
+    title: 'Attendance Filters',
     content:
-      'Manage administrators, faculty, and staff roles across the institution.',
+      'Filter and analyze attendance data historically by date, branch, and section.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/dean/users-management',
+    route: '/dean/attendance-filters',
+  },
+  {
+    target: '#sidebar-finance',
+    title: 'Finance',
+    content:
+      'Monitor institutional fee collections, outstanding amounts, and payment trends.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/dean/finance',
   },
 ];
 

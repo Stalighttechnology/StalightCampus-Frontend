@@ -10,7 +10,7 @@ export const feesManagerTour: Step[] = [
     disableBeacon: true,
   },
   {
-    target: '#admin-stats-grid',
+    target: '#feesmanager-stats-grid',
     title: 'Financial Overview',
     content:
       'View key financial metrics including total collections, pending payments, and revenue.',
@@ -19,16 +19,7 @@ export const feesManagerTour: Step[] = [
     route: '/fees-manager',
   },
   {
-    target: '#admin-search-bar',
-    title: 'Search Students',
-    content:
-      'Quickly find student records and their fee payment status.',
-    placement: 'bottom' as const,
-    disableBeacon: false,
-    route: '/fees-manager',
-  },
-  {
-    target: '#admin-charts',
+    target: '#feesmanager-charts-container',
     title: 'Financial Analytics',
     content:
       'Track payment trends, fee collection patterns, and financial forecasts.',
@@ -37,13 +28,22 @@ export const feesManagerTour: Step[] = [
     route: '/fees-manager',
   },
   {
-    target: '#sidebar-reports',
-    title: 'Generate Reports',
+    target: '#sidebar-invoices',
+    title: 'Invoice Management',
     content:
-      'Create detailed financial reports and fee collection summaries.',
+      'Track and manage student fee payments, collections, and issue invoices.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/fees-manager/reports',
+    route: '/fees-manager/invoices',
+  },
+  {
+    target: '#sidebar-payments',
+    title: 'Payment Monitoring',
+    content:
+      'Track and manage all fee payments, methods, and transaction history.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/fees-manager/payments',
   },
 ];
 
