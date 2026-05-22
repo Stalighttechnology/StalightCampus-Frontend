@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import FeesManagerDashboard from "../FeesManager/FeesManagerDashboard";
@@ -86,13 +87,15 @@ const FeesManagerDashboardWrapper: React.FC<FeesManagerDashboardProps> = ({ user
   }
 
   return (
-    <DashboardLayout
-      role="fees_manager"
-      user={user}
-      activePage="dashboard"
-      onPageChange={() => {}}
-      pageTitle="Fees Manager Dashboard"
-    >
+    <>
+      <TutorialController />
+      <DashboardLayout
+        role="fees_manager"
+        user={user}
+        activePage="dashboard"
+        onPageChange={() => {}}
+        pageTitle="Fees Manager Dashboard"
+      >
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
@@ -100,6 +103,7 @@ const FeesManagerDashboardWrapper: React.FC<FeesManagerDashboardProps> = ({ user
       )}
       <FeesManagerDashboard user={user} setPage={setPage} />
     </DashboardLayout>
+    </>
   );
 };
 

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 import WardenDashboardOverview from "../warden/WardenDashboard";
 import WardenIssueManagement from "../warden/WardenIssueManagement";
 import WardenHostelOverview from "../warden/WardenHostelOverview";
@@ -48,13 +49,15 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
   };
 
   return (
-    <DashboardLayout
-      role="warden"
-      user={user}
-      activePage={activePage}
-      onPageChange={handlePageChange}
-      pageTitle="Warden Dashboard"
-    >
+    <>
+      <TutorialController />
+      <DashboardLayout
+        role="warden"
+        user={user}
+        activePage={activePage}
+        onPageChange={handlePageChange}
+        pageTitle="Warden Dashboard"
+      >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -65,6 +68,7 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
         </div>
       </motion.div>
     </DashboardLayout>
+    </>
   );
 };
 

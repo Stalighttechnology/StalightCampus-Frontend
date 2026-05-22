@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 import StudentStatus from "../coe/StudentStatus";
 import CourseStatistics from "../coe/CourseStatistics";
 import COEDashboardStats from "../coe/COEDashboardStats";
@@ -139,12 +140,14 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
   };
 
   return (
-    <DashboardLayout
-      role="coe"
-      user={currentUser}
-      activePage={activePage}
-      onPageChange={handlePageChange}
-      pageTitle="COE Dashboard">
+    <>
+      <TutorialController />
+      <DashboardLayout
+        role="coe"
+        user={currentUser}
+        activePage={activePage}
+        onPageChange={handlePageChange}
+        pageTitle="COE Dashboard">
       
       {error &&
       <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -152,7 +155,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         </div>
       }
       {renderContent()}
-    </DashboardLayout>);
+    </DashboardLayout>
+    </>);
 
 };
 

@@ -188,7 +188,7 @@ const SubmitLeaveRequest = () => {
       {/* Main Container with Flex Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+        <Card id="leave-form-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader>
             <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
           </CardHeader>
@@ -196,7 +196,7 @@ const SubmitLeaveRequest = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Error Message */}
               {error &&
-              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
                   {error}
                 </div>
               }
@@ -211,7 +211,7 @@ const SubmitLeaveRequest = () => {
                   placeholder="Brief title for your leave request"
                   className={theme === 'dark' ? 'w-full px-3 py-2 bg-background text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring' : 'w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'}
                   required />
-                
+
               </div>
 
               <div className="space-y-2">
@@ -221,18 +221,18 @@ const SubmitLeaveRequest = () => {
                     <Button
                       variant="outline"
                       className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}>
-                      
+
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateRange?.from ?
-                      dateRange.to ?
-                      <>
+                        dateRange.to ?
+                          <>
                             {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
                           </> :
 
-                      format(dateRange.from, "PPP") :
+                          format(dateRange.from, "PPP") :
 
 
-                      <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date or date range</span>
+                        <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date or date range</span>
                       }
                     </Button>
                   </PopoverTrigger>
@@ -246,7 +246,7 @@ const SubmitLeaveRequest = () => {
                       disabled={(date) => date < today} // Disable dates before today
                       initialFocus
                       className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'} />
-                    
+
                   </PopoverContent>
                 </Popover>
               </div>
@@ -260,14 +260,14 @@ const SubmitLeaveRequest = () => {
                   placeholder="Please provide a detailed reason for your leave request"
                   className={theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border' : 'min-h-[100px] bg-white text-gray-900 border-gray-300'}
                   required />
-                
+
               </div>
 
               <Button
                 type="submit"
                 className={theme === 'dark' ? 'w-full text-white bg-primary hover:bg-[#9147e0] border-border' : 'w-full text-white bg-primary hover:bg-[#9147e0] border-primary'}
                 disabled={leaveRequestMutation.isPending}>
-                
+
                 {leaveRequestMutation.isPending ? "Submitting..." : "Submit Request"}
               </Button>
             </form>
@@ -275,7 +275,7 @@ const SubmitLeaveRequest = () => {
         </Card>
 
         {/* Your Leave Requests - Right Side */}
-        <Card className={theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}>
+        <Card id="leave-status-list" className={theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Your Leave Requests</CardTitle>
@@ -284,25 +284,25 @@ const SubmitLeaveRequest = () => {
                   size="sm"
                   onClick={() => setShowFilter(!showFilter)}
                   className="bg-primary text-white">
-                  
+
                   <Filter className="w-4 h-4 mr-1" />
                   Filter
                 </Button>
                 {showFilter &&
-                <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-10`}>
+                  <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-md shadow-lg z-10`}>
                     <div className="py-1">
                       {['All', 'PENDING', 'APPROVED', 'REJECTED'].map((status) =>
-                    <button
-                      key={status}
-                      className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${statusFilter === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
-                      onClick={() => {
-                        setStatusFilter(status);
-                        setShowFilter(false);
-                      }}>
-                      
+                        <button
+                          key={status}
+                          className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${statusFilter === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setShowFilter(false);
+                          }}>
+
                           {status === 'All' ? 'All' : status.charAt(0) + status.slice(1).toLowerCase()}
                         </button>
-                    )}
+                      )}
                     </div>
                   </div>
                 }
@@ -313,12 +313,12 @@ const SubmitLeaveRequest = () => {
           <CardContent className="max-h-[500px] overflow-y-auto thin-scrollbar">
             {/* Error Message */}
             {leavesError &&
-            <div className={`p-3 rounded-lg mb-4 shadow ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+              <div className={`p-3 rounded-lg mb-4 shadow ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
                 An error occurred while fetching leave requests.
                 <Button
-                variant="link"
-                className="p-0 ml-2"
-                onClick={() => refetchLeaves()}>
+                  variant="link"
+                  className="p-0 ml-2"
+                  onClick={() => refetchLeaves()}>
                   Try again
                 </Button>
               </div>
@@ -326,97 +326,97 @@ const SubmitLeaveRequest = () => {
 
             {/* Loading State */}
             {leavesLoading ?
-            <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Loading leave requests...</div> :
-            filteredLeaves.length === 0 ?
-            <div className="py-24 flex flex-col items-center justify-center text-center">
-                <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
-                  <CalendarIcon className="h-16 w-16 text-primary/30" />
-                </div>
-                <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Leave Requests</h3>
-                <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  You haven't submitted any leave requests yet. Your future requests will appear here.
-                </p>
-              </div> :
-
-            <>
-                <Table>
-                  <TableHeader>
-                    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                      <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</TableHead>
-                      <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</TableHead>
-                      <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</TableHead>
-                      <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLeaves.map((item) =>
-                  <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
-                        <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
-                        </TableCell>
-                        <TableCell className={`text-[14px] sm:text-sm whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {item.start_date && item.end_date ?
-                      `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
-                      'N/A'}
-                        </TableCell>
-                        <TableCell className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setViewReason(item.reason)}
-                        className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}>
-                        
-                            <Eye className="w-3 h-3 mr-1" />
-                            View
-                          </Button>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                        className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}>
-                        
-                            <div className="flex items-center gap-1">
-                              {getStatusStyles(theme, item.status).icon}
-                              {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
-                            </div>
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                  )}
-                  </TableBody>
-                </Table>
-
-                {/* Pagination Controls */}
-                {pagination.totalPages > 1 &&
-              <div className="flex items-center justify-between mt-6 px-2">
-                    <p className={`text-[12px] sm:text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      Page {pagination.page} of {pagination.totalPages} ({pagination.totalItems} total)
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!pagination.hasPrevious}
-                    onClick={() => pagination.prevPage()}
-                    className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4 text-[13px] sm:text-sm">
-                    
-                        Previous
-                      </Button>
-                      <span className={`px-3 text-sm font-bold ${theme === 'dark' ? 'text-primary' : 'text-primary'}`}>
-                        {pagination.page}
-                      </span>
-                      <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!pagination.hasNext}
-                    onClick={() => pagination.nextPage()}
-                    className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4 text-[13px] sm:text-sm">
-                    
-                        Next
-                      </Button>
-                    </div>
+              <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Loading leave requests...</div> :
+              filteredLeaves.length === 0 ?
+                <div className="py-24 flex flex-col items-center justify-center text-center">
+                  <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
+                    <CalendarIcon className="h-16 w-16 text-primary/30" />
                   </div>
-              }
-              </>
+                  <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Leave Requests</h3>
+                  <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                    You haven't submitted any leave requests yet. Your future requests will appear here.
+                  </p>
+                </div> :
+
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                        <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</TableHead>
+                        <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</TableHead>
+                        <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</TableHead>
+                        <TableHead className={`font-semibold text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredLeaves.map((item) =>
+                        <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
+                          <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
+                          </TableCell>
+                          <TableCell className={`text-[14px] sm:text-sm whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                            {item.start_date && item.end_date ?
+                              `${format(parseISO(item.start_date), 'MMM dd')} - ${format(parseISO(item.end_date), 'MMM dd, yyyy')}` :
+                              'N/A'}
+                          </TableCell>
+                          <TableCell className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setViewReason(item.reason)}
+                              className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}>
+
+                              <Eye className="w-3 h-3 mr-1" />
+                              View
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${getStatusStyles(theme, item.status).bg} ${getStatusStyles(theme, item.status).color}`}>
+
+                              <div className="flex items-center gap-1">
+                                {getStatusStyles(theme, item.status).icon}
+                                {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
+                              </div>
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+
+                  {/* Pagination Controls */}
+                  {pagination.totalPages > 1 &&
+                    <div className="flex items-center justify-between mt-6 px-2">
+                      <p className={`text-[12px] sm:text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        Page {pagination.page} of {pagination.totalPages} ({pagination.totalItems} total)
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!pagination.hasPrevious}
+                          onClick={() => pagination.prevPage()}
+                          className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4 text-[13px] sm:text-sm">
+
+                          Previous
+                        </Button>
+                        <span className={`px-3 text-sm font-bold ${theme === 'dark' ? 'text-primary' : 'text-primary'}`}>
+                          {pagination.page}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!pagination.hasNext}
+                          onClick={() => pagination.nextPage()}
+                          className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4 text-[13px] sm:text-sm">
+
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  }
+                </>
             }
           </CardContent>
         </Card>
@@ -432,7 +432,7 @@ const SubmitLeaveRequest = () => {
           <div
             className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
                       max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            
+
             {viewReason}
           </div>
 
@@ -440,7 +440,7 @@ const SubmitLeaveRequest = () => {
             <Button
               className="bg-primary"
               onClick={() => setViewReason(null)}>
-              
+
               Close
             </Button>
           </DialogFooter>

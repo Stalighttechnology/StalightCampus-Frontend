@@ -1,6 +1,6 @@
 //sidebar.tsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 // Use public directory asset via URL
 import { Button } from "../ui/button";
@@ -56,11 +56,39 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { theme } = useTheme();
 
+  // Event listener for onboarding system to control sidebar visibility
+  useEffect(() => {
+    const openHandler = () => setPage('dashboard');  // Trigger open
+    const closeHandler = () => {
+      // Could implement close logic if needed
+    };
+    window.addEventListener('neurocampus_open_sidebar', openHandler);
+    window.addEventListener('neurocampus_close_sidebar', closeHandler);
+    return () => {
+      window.removeEventListener('neurocampus_open_sidebar', openHandler);
+      window.removeEventListener('neurocampus_close_sidebar', closeHandler);
+    };
+  }, [setPage]);
+
   const handlePageChange = (page: string) => {
     setPage(page);
     if (isMobile) {
       toggleCollapse();
     }
+  };
+
+  // Helper function to generate sidebar item ID from page name
+  const getSidebarId = (page: string): string => {
+    return `sidebar-${page.toLowerCase().replace(/_/g, '-')}`;
+  };
+
+  // Helper function to determine if a sidebar item should be highlighted as active
+  const isItemActive = (page: string): boolean => {
+    if (activePage === page) return true;
+    if (role === "student" && page === "leave-request" && ["leave", "leave-status"].includes(activePage)) {
+      return true;
+    }
+    return false;
   };
 
   const handleLogoutClick = () => {
@@ -320,7 +348,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Announcements", page: "announcements" },
 
       // Leave Management
-      { name: "Leaves", page: "leave" },
+      { name: "Leaves", page: "leave-request" },
 
       // Profile
       { name: "Profile", page: "profile" },
@@ -441,8 +469,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
                 transition={{ duration: 0.3, delay: 0.1 * index }}
               >
                 <Button
-                  variant={activePage === item.page ? "default" : "ghost"}
-                  className={`w-full justify-start gap-3 h-10 transition-all duration-200 ${activePage === item.page
+                  id={getSidebarId(item.page)}
+                  variant={isItemActive(item.page) ? "default" : "ghost"}
+                  className={`w-full justify-start gap-3 h-10 transition-all duration-200 ${isItemActive(item.page)
                     ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
                     : theme === 'dark'
                       ? "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -473,6 +502,27 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
               </motion.div>
             ))}
         </div>
+      </motion.div>
+
+      {/* Restart Tour Button */}
+      <motion.div
+        className={`px-3 py-2 border-t ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.45 }}
+      >
+        <button
+          onClick={() => {
+            const role = localStorage.getItem('role') || '';
+            localStorage.removeItem(`tutorial_${role}_completed`);
+            localStorage.removeItem(`tutorial_${role}_active`);
+            localStorage.removeItem(`tutorial_${role}_step`);
+            window.location.reload();
+          }}
+          className="text-xs text-purple-400 hover:text-purple-300 underline block w-full text-center"
+        >
+          Restart Tour
+        </button>
       </motion.div>
 
       {/* Logout Button */}

@@ -690,3 +690,58 @@ html {
     overscroll-behavior-y: none;
   }
 }
+
+/* Disable layout and sidebar transitions during active onboarding to prevent Joyride coordinate mismatches */
+body.tutorial-active .transition-all,
+body.tutorial-active .sidebar,
+body.tutorial-active aside {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Mobile onboarding bottom sheet styling overrides */
+@media (max-width: 768px) {
+  /* Force Joyride floater parent to stay fixed at bottom */
+  .react-joyride__floater,
+  .react-joyride__tooltip,
+  div[class*="react-joyride__floater"],
+  div[class*="react-joyride__tooltip"] {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 99999 !important;
+  }
+
+  /* Hide default Popper arrow on mobile */
+  .react-joyride__arrow,
+  [data-popper-arrow],
+  div[class*="react-joyride__arrow"] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  /* Ensure overlay layer behaves nicely with the bottom sheet */
+  .react-joyride__overlay {
+    z-index: 99998 !important;
+  }
+}
+
+/* Disable react-joyride beacons/dots completely globally */
+.react-joyride__beacon,
+.react-joyride__beacon *,
+[class*="react-joyride__beacon"],
+[class*="react-joyride__beacon"] * {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}

@@ -151,8 +151,8 @@ const VirtualizedAttendanceTable = React.memo(({
                 <div className="flex justify-center">
                   <span
                     className={`text-[12px] sm:text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap shadow-sm ${status === "Good"
-                        ? (theme === 'dark' ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-600 border border-emerald-100")
-                        : (theme === 'dark' ? "bg-red-500/20 text-red-400 border border-red-500/20" : "bg-red-50 text-red-600 border border-red-100")
+                      ? (theme === 'dark' ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/20" : "bg-emerald-50 text-emerald-600 border border-emerald-100")
+                      : (theme === 'dark' ? "bg-red-500/20 text-red-400 border border-red-500/20" : "bg-red-50 text-red-600 border border-red-100")
                       }`}
                   >
                     {status}
@@ -278,7 +278,7 @@ const StudentAttendance = () => {
       {Object.keys(attendanceData).length > 0 ? (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <Card className={theme === 'dark' ? 'col-span-2 bg-card text-card-foreground border-border' : 'col-span-2 bg-white text-gray-900 border-gray-200'}>
+            <Card id="attendance-trends-card" className={theme === 'dark' ? 'col-span-2 bg-card text-card-foreground border-border' : 'col-span-2 bg-white text-gray-900 border-gray-200'}>
               <CardHeader>
                 <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Trends</CardTitle>
               </CardHeader>
@@ -287,7 +287,7 @@ const StudentAttendance = () => {
               </CardContent>
             </Card>
 
-            <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+            <Card id="attendance-overview-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
               <CardHeader className="pb-2">
                 <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Overview</CardTitle>
               </CardHeader>
@@ -342,8 +342,8 @@ const StudentAttendance = () => {
             </Card>
           </div>
 
-          <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-            <CardHeader>
+          <Card id="attendance-subject-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+            <CardHeader id="attendance-subject-card-header">
               <CardTitle className={theme === 'dark' ? 'text-base text-card-foreground' : 'text-base text-gray-900'}>Subject-wise Attendance</CardTitle>
             </CardHeader>
             <CardContent>

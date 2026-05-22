@@ -3,6 +3,7 @@
 import { useState, useEffect, Component, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 import HODStats from "../hod/HODStats";
 import LowAttendance from "../hod/LowAttendance";
 import SemesterManagement from "../hod/SemesterManagement";
@@ -277,6 +278,7 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
 
   return (
     <HODBootstrapProvider value={bootstrap}>
+      <TutorialController />
       <DashboardLayout
         role="hod"
         user={user}

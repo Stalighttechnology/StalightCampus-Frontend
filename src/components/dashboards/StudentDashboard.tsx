@@ -7,6 +7,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { SkeletonCard } from "../ui/skeleton";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 
 // Lazy load student components for code splitting
 const StudentStats = lazy(() => import("../student/StudentStats"));
@@ -140,13 +141,15 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
   };
 
   return (
-    <DashboardLayout
-      role="student"
-      user={user}
-      activePage={activePage}
-      onPageChange={handlePageChange}
-      onNotificationClick={handleNotificationClick}
-      pageTitle="Student Dashboard">
+    <>
+      <TutorialController />
+      <DashboardLayout
+        role="student"
+        user={user}
+        activePage={activePage}
+        onPageChange={handlePageChange}
+        onNotificationClick={handleNotificationClick}
+        pageTitle="Student Dashboard">
       
       {error &&
       <div className={`p-3 rounded-lg mb-4 shadow ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
@@ -156,7 +159,8 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
       <Suspense fallback={<LoadingFallback />}>
         <div className="grid gap-6">{renderContent()}</div>
       </Suspense>
-    </DashboardLayout>);
+    </DashboardLayout>
+    </>);
 
 };
 

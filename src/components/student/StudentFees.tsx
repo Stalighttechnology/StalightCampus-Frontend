@@ -275,8 +275,8 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
         body: JSON.stringify({
           payment_type: paymentType,
           selected_components: paymentType === 'component' && currentInvoice?.components ?
-          Array.from(selectedComponents).map((idx: any) => currentInvoice.components[idx as number]?.id) :
-          null
+            Array.from(selectedComponents).map((idx: any) => currentInvoice.components[idx as number]?.id) :
+            null
         })
       });
 
@@ -362,8 +362,8 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   };
 
   const currentInvoice = selectedInvoiceId === 0 ?
-  { id: 0, balance_amount: feeData?.fee_summary?.remaining_fees || 0, invoice_number: 'ALL' } :
-  feeData?.invoices?.find((inv) => inv.id === selectedInvoiceId);
+    { id: 0, balance_amount: feeData?.fee_summary?.remaining_fees || 0, invoice_number: 'ALL' } :
+    feeData?.invoices?.find((inv) => inv.id === selectedInvoiceId);
 
   // Animation variants
   const containerVariants = {
@@ -396,7 +396,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}>
-      
+
       <Card className={`overflow-hidden ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
         <CardHeader className="border-b">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-1 sm:gap-4">
@@ -412,463 +412,464 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
         </CardHeader>
         <CardContent className="p-6 space-y-8">
 
-      {/* Student Info Section */}
-      <motion.div variants={cardVariants} initial="hidden" animate="visible">
-        <Card className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-          <CardHeader>
-            <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-              <CreditCard className="h-5 w-5" />
-              Student Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              <motion.div variants={itemVariants}>
-                <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
-                  Student Name
-                </label>
-                <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                  {feeData?.student?.name || 'N/A'}
-                </p>
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
-                  USN
-                </label>
-                <p className={`text-base sm:text-lg font-semibold mt-1 font-mono ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                  {feeData?.student?.usn || 'N/A'}
-                </p>
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
-                  Department
-                </label>
-                <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                  {feeData?.student?.dept || 'N/A'}
-                </p>
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
-                  Current Semester
-                </label>
-                <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                  Semester {feeData?.student?.semester || 'N/A'}
-                </p>
-              </motion.div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+          {/* Student Info Section */}
+          <motion.div variants={cardVariants} initial="hidden" animate="visible">
+            <Card id="fees-details-card" className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+              <CardHeader>
+                <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                  <CreditCard className="h-5 w-5" />
+                  Student Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                  <motion.div variants={itemVariants}>
+                    <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
+                      Student Name
+                    </label>
+                    <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                      {feeData?.student?.name || 'N/A'}
+                    </p>
+                  </motion.div>
+                  <motion.div variants={itemVariants}>
+                    <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
+                      USN
+                    </label>
+                    <p className={`text-base sm:text-lg font-semibold mt-1 font-mono ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                      {feeData?.student?.usn || 'N/A'}
+                    </p>
+                  </motion.div>
+                  <motion.div variants={itemVariants}>
+                    <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
+                      Department
+                    </label>
+                    <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                      {feeData?.student?.dept || 'N/A'}
+                    </p>
+                  </motion.div>
+                  <motion.div variants={itemVariants}>
+                    <label className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-500'}`}>
+                      Current Semester
+                    </label>
+                    <p className={`text-base sm:text-lg font-semibold mt-1 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                      Semester {feeData?.student?.semester || 'N/A'}
+                    </p>
+                  </motion.div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-      {/* Fee Summary Cards */}
-      <motion.div
+          {/* Fee Summary Cards */}
+          <motion.div
+            id="fees-summary-card"
             className="grid grid-cols-1 md:grid-cols-3 gap-6"
             variants={containerVariants}
             initial="hidden"
             animate="visible">
-            
-        {/* Total Fees Card */}
-        <motion.div
+
+            {/* Total Fees Card */}
+            <motion.div
               variants={cardVariants}
               whileHover={{ y: -4, scale: 1.02 }}
               className="h-full">
-              
-          <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
-                    Total Fees
-                  </p>
-                  <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                    {formatCurrency(feeData?.fee_summary?.total_fees || 0)}
-                  </p>
-                </div>
-                <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
-                  <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
-                </motion.div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
 
-        {/* Amount Paid Card */}
-        <motion.div
-              variants={cardVariants}
-              whileHover={{ y: -4, scale: 1.02 }}
-              className="h-full">
-              
-          <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
-                    Amount Paid
-                  </p>
-                  <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
-                    {formatCurrency(feeData?.fee_summary?.amount_paid || 0)}
-                  </p>
-                </div>
-                <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-green-50 text-green-600 border border-green-100'}`}>
-                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
-                </motion.div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Remaining Fees Card */}
-        <motion.div
-              variants={cardVariants}
-              whileHover={{ y: -4, scale: 1.02 }}
-              className="h-full">
-              
-          <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
-                    Remaining Fees
-                  </p>
-                  <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
-                    {formatCurrency(feeData?.fee_summary?.remaining_fees || 0)}
-                  </p>
-                </div>
-                <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-destructive/10 text-destructive border border-destructive/20' : 'bg-red-50 text-red-600 border border-red-100'}`}>
-                  <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6" />
-                </motion.div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
-
-      {/* Status Section */}
-      <motion.div variants={cardVariants} initial="hidden" animate="visible">
-        <Card className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-          <CardHeader>
-            <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-              {getStatusIcon(feeData?.fee_summary?.remaining_fees || 0)}
-              Payment Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <motion.div variants={itemVariants} className="space-y-1">
-                <Badge className={`mb-2 ${getStatusColor(feeData?.fee_summary?.remaining_fees || 0)} px-4 py-1.5 text-sm sm:text-base font-semibold shadow-sm`}>
-                  {(feeData?.fee_summary?.remaining_fees || 0) === 0 ? '✓ All Paid' : '● Pending Payment'}
-                </Badge>
-                {feeData?.fee_summary?.due_date && (
-                  <p className={`text-sm flex items-center gap-2 mt-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                    <Calendar className="h-4 w-4 text-primary" />
-                    Due Date: <span className="text-foreground">{new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                  </p>
-                )}
-              </motion.div>
-              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3">
-                {(feeData?.fee_summary?.remaining_fees || 0) > 0 && (
-                  <>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-                      <Button
-                        className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold h-11 px-6 shadow-lg shadow-primary/20"
-                        onClick={() => handlePaymentClick(0)}>
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Pay Full Amount
-                      </Button>
+              <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
+                        Total Fees
+                      </p>
+                      <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                        {formatCurrency(feeData?.fee_summary?.total_fees || 0)}
+                      </p>
+                    </div>
+                    <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                      <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6" />
                     </motion.div>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-                      <Button
-                        variant="outline"
-                        className={`w-full sm:w-auto h-11 px-6 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
-                        onClick={() => {
-                          const inv = feeData?.invoices?.find((inv) => inv.balance_amount > 0);
-                          if (inv) handleComponentPaymentClick(inv.id);
-                        }}>
-                        <Receipt className="h-4 w-4 mr-2" />
-                        Pay by Component
-                      </Button>
-                    </motion.div>
-                  </>
-                )}
-              </motion.div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-      {/* Invoices Section */}
-      <motion.div variants={cardVariants} initial="hidden" animate="visible">
-        <Card className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-          <CardHeader>
-            <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-              <Receipt className="h-5 w-5" />
-              Fee Invoices ({feeData?.statistics?.total_invoices || 0})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {feeData?.invoices?.length ?
-                <motion.div
-                  className="space-y-4"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible">
-                  
-                <AnimatePresence>
-                  {feeData.invoices.map((invoice) =>
-                    <motion.div
-                      key={invoice.id}
-                      variants={itemVariants}
-                      layout
-                      className={`border rounded-lg p-4 transition-all ${theme === 'dark' ? 'border-border hover:border-primary/50 hover:bg-card/50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
-                      whileHover={{ x: 4 }}>
-                      
-                      <div className="flex justify-between items-start mb-4">
-                        <motion.div variants={itemVariants}>
-                          <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                            Semester {invoice.semester} • {invoice.academic_year}
-                          </h3>
-                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            Invoice #{invoice.invoice_number}
-                          </p>
+            {/* Amount Paid Card */}
+            <motion.div
+              variants={cardVariants}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="h-full">
+
+              <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
+                        Amount Paid
+                      </p>
+                      <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
+                        {formatCurrency(feeData?.fee_summary?.amount_paid || 0)}
+                      </p>
+                    </div>
+                    <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-green-50 text-green-600 border border-green-100'}`}>
+                      <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
+                    </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Remaining Fees Card */}
+            <motion.div
+              variants={cardVariants}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="h-full">
+
+              <Card className={`shadow-none border h-full ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-1 sm:mb-2 ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
+                        Remaining Fees
+                      </p>
+                      <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
+                        {formatCurrency(feeData?.fee_summary?.remaining_fees || 0)}
+                      </p>
+                    </div>
+                    <motion.div whileHover={{ rotate: 10 }} className={`p-2.5 sm:p-3 rounded-xl shadow-sm ${theme === 'dark' ? 'bg-destructive/10 text-destructive border border-destructive/20' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                      <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6" />
+                    </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+
+          {/* Status Section */}
+          <motion.div variants={cardVariants} initial="hidden" animate="visible">
+            <Card className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+              <CardHeader>
+                <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                  {getStatusIcon(feeData?.fee_summary?.remaining_fees || 0)}
+                  Payment Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                  <motion.div variants={itemVariants} className="space-y-1">
+                    <Badge className={`mb-2 ${getStatusColor(feeData?.fee_summary?.remaining_fees || 0)} px-4 py-1.5 text-sm sm:text-base font-semibold shadow-sm`}>
+                      {(feeData?.fee_summary?.remaining_fees || 0) === 0 ? '✓ All Paid' : '● Pending Payment'}
+                    </Badge>
+                    {feeData?.fee_summary?.due_date && (
+                      <p className={`text-sm flex items-center gap-2 mt-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        <Calendar className="h-4 w-4 text-primary" />
+                        Due Date: <span className="text-foreground">{new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                      </p>
+                    )}
+                  </motion.div>
+                  <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3">
+                    {(feeData?.fee_summary?.remaining_fees || 0) > 0 && (
+                      <>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                          <Button
+                            className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold h-11 px-6 shadow-lg shadow-primary/20"
+                            onClick={() => handlePaymentClick(0)}>
+                            <CreditCard className="h-4 w-4 mr-2" />
+                            Pay Full Amount
+                          </Button>
                         </motion.div>
-                        <motion.div whileHover={{ scale: 1.1 }}>
-                          <Badge
-                            variant={invoice.status === 'paid' ? 'default' : 'destructive'}
-                            className={`font-semibold ${invoice.status === 'paid' ? 'bg-green-600 text-white' : ''}`}>
-                            
-                            {invoice.status.toUpperCase()}
-                          </Badge>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                          <Button
+                            variant="outline"
+                            className={`w-full sm:w-auto h-11 px-6 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
+                            onClick={() => {
+                              const inv = feeData?.invoices?.find((inv) => inv.balance_amount > 0);
+                              if (inv) handleComponentPaymentClick(inv.id);
+                            }}>
+                            <Receipt className="h-4 w-4 mr-2" />
+                            Pay by Component
+                          </Button>
                         </motion.div>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 p-4 rounded-xl border border-dashed" style={{ backgroundColor: theme === 'dark' ? 'rgba(99, 102, 241, 0.05)' : 'rgba(59, 130, 246, 0.05)', borderColor: theme === 'dark' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(59, 130, 246, 0.2)' }}>
-                        <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1">
-                          <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
-                            Total
-                          </p>
-                          <p className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                            {formatCurrency(invoice.total_amount)}
-                          </p>
-                        </motion.div>
-                        <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1">
-                          <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
-                            Paid
-                          </p>
-                          <p className={`font-semibold text-base ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
-                            {formatCurrency(invoice.paid_amount)}
-                          </p>
-                        </motion.div>
-                        <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1 border-t sm:border-t-0 pt-2 sm:pt-0 mt-1 sm:mt-0 border-dashed border-border/50">
-                          <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
-                            Balance
-                          </p>
-                          <p className={`font-semibold text-base ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
-                            {formatCurrency(invoice.balance_amount)}
-                          </p>
-                        </motion.div>
-                      </div>
-                      {invoice.balance_amount > 0 && (
+                      </>
+                    )}
+                  </motion.div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Invoices Section */}
+          <motion.div variants={cardVariants} initial="hidden" animate="visible">
+            <Card id="fees-invoices-card" className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+              <CardHeader id="fees-invoices-card-header">
+                <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                  <Receipt className="h-5 w-5" />
+                  Fee Invoices ({feeData?.statistics?.total_invoices || 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {feeData?.invoices?.length ?
+                  <motion.div
+                    className="space-y-4"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible">
+
+                    <AnimatePresence>
+                      {feeData.invoices.map((invoice) =>
                         <motion.div
+                          key={invoice.id}
                           variants={itemVariants}
-                          className="flex flex-col sm:flex-row gap-2">
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-                            <Button
-                              size="sm"
-                              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold h-10 px-4"
-                              onClick={() => handlePaymentClick(invoice.id)}>
-                              <CreditCard className="h-3.5 w-3.5 mr-1.5" />
-                              Pay Full
-                            </Button>
-                          </motion.div>
-                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className={`w-full sm:w-auto h-10 px-4 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
-                              onClick={() => handleComponentPaymentClick(invoice.id)}>
-                              <Receipt className="h-3.5 w-3.5 mr-1.5" />
-                              Pay Component
-                            </Button>
-                          </motion.div>
+                          layout
+                          className={`border rounded-lg p-4 transition-all ${theme === 'dark' ? 'border-border hover:border-primary/50 hover:bg-card/50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
+                          whileHover={{ x: 4 }}>
+
+                          <div className="flex justify-between items-start mb-4">
+                            <motion.div variants={itemVariants}>
+                              <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                                Semester {invoice.semester} • {invoice.academic_year}
+                              </h3>
+                              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                Invoice #{invoice.invoice_number}
+                              </p>
+                            </motion.div>
+                            <motion.div whileHover={{ scale: 1.1 }}>
+                              <Badge
+                                variant={invoice.status === 'paid' ? 'default' : 'destructive'}
+                                className={`font-semibold ${invoice.status === 'paid' ? 'bg-green-600 text-white' : ''}`}>
+
+                                {invoice.status.toUpperCase()}
+                              </Badge>
+                            </motion.div>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 p-4 rounded-xl border border-dashed" style={{ backgroundColor: theme === 'dark' ? 'rgba(99, 102, 241, 0.05)' : 'rgba(59, 130, 246, 0.05)', borderColor: theme === 'dark' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(59, 130, 246, 0.2)' }}>
+                            <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1">
+                              <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
+                                Total
+                              </p>
+                              <p className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                                {formatCurrency(invoice.total_amount)}
+                              </p>
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1">
+                              <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
+                                Paid
+                              </p>
+                              <p className={`font-semibold text-base ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
+                                {formatCurrency(invoice.paid_amount)}
+                              </p>
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-start gap-1 border-t sm:border-t-0 pt-2 sm:pt-0 mt-1 sm:mt-0 border-dashed border-border/50">
+                              <p className={`text-[10px] font-semibold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/60' : 'text-gray-600'}`}>
+                                Balance
+                              </p>
+                              <p className={`font-semibold text-base ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>
+                                {formatCurrency(invoice.balance_amount)}
+                              </p>
+                            </motion.div>
+                          </div>
+                          {invoice.balance_amount > 0 && (
+                            <motion.div
+                              variants={itemVariants}
+                              className="flex flex-col sm:flex-row gap-2">
+                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                                <Button
+                                  size="sm"
+                                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold h-10 px-4"
+                                  onClick={() => handlePaymentClick(invoice.id)}>
+                                  <CreditCard className="h-3.5 w-3.5 mr-1.5" />
+                                  Pay Full
+                                </Button>
+                              </motion.div>
+                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className={`w-full sm:w-auto h-10 px-4 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
+                                  onClick={() => handleComponentPaymentClick(invoice.id)}>
+                                  <Receipt className="h-3.5 w-3.5 mr-1.5" />
+                                  Pay Component
+                                </Button>
+                              </motion.div>
+                            </motion.div>
+                          )}
                         </motion.div>
                       )}
-                    </motion.div>
-                    )}
-                </AnimatePresence>
+                    </AnimatePresence>
 
-                {/* Invoice Pagination */}
-                {feeData && feeData.statistics.total_invoices > 10 &&
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      Showing {(invoicePage - 1) * 10 + 1} to {Math.min(invoicePage * 10, feeData.statistics.total_invoices)} of {feeData.statistics.total_invoices} invoices
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInvoicePage((p) => Math.max(1, p - 1))}
-                        disabled={invoicePage === 1}
-                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                        
-                        Previous
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInvoicePage((p) => p + 1)}
-                        disabled={invoicePage * 10 >= feeData.statistics.total_invoices}
-                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                        
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                  }
-              </motion.div> :
+                    {/* Invoice Pagination */}
+                    {feeData && feeData.statistics.total_invoices > 10 &&
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          Showing {(invoicePage - 1) * 10 + 1} to {Math.min(invoicePage * 10, feeData.statistics.total_invoices)} of {feeData.statistics.total_invoices} invoices
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setInvoicePage((p) => Math.max(1, p - 1))}
+                            disabled={invoicePage === 1}
+                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
 
-                <div className="py-24 flex flex-col items-center justify-center text-center">
-                <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
-                  <Receipt className="h-16 w-16 text-primary/30" />
-                </div>
-                <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Invoices Found</h3>
-                <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Your fee invoices will appear here once they are generated by the finance department.
-                </p>
-              </div>
-                }
-          </CardContent>
-        </Card>
-      </motion.div>
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setInvoicePage((p) => p + 1)}
+                            disabled={invoicePage * 10 >= feeData.statistics.total_invoices}
+                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
 
-      {/* Payment History Section */}
-      <motion.div variants={cardVariants} initial="hidden" animate="visible">
-        <Card className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-          <CardHeader>
-            <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-              <CreditCard className="h-5 w-5" />
-              Payment History ({feeData?.statistics?.total_payments || 0})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {feeData?.payments?.length ?
-                <motion.div
-                  className="space-y-3"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible">
-                  
-                <AnimatePresence>
-                  {feeData.payments.map((payment) =>
-                    <motion.div
-                      key={payment.id}
-                      variants={itemVariants}
-                      layout
-                      className={`border rounded-lg p-4 transition-all ${theme === 'dark' ? 'border-border hover:border-primary/50 hover:bg-card/50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
-                      whileHover={{ x: 4 }}>
-                      
-                      <div className="flex justify-between items-start gap-4">
-                        <motion.div variants={itemVariants} className="flex-1">
-                          <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                            {formatCurrency(payment.amount)}
-                          </h3>
-                          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {new Date(payment.timestamp).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })} • {payment.mode}
-                          </p>
-                        </motion.div>
-                        <motion.div variants={itemVariants} className="flex gap-2 flex-shrink-0">
-                          <Badge
-                            variant={payment.status === 'success' ? 'default' : payment.status === 'failed' ? 'destructive' : 'secondary'}
-                            className={
-                            payment.status === 'success' ? 'bg-green-600 text-white' :
-                            payment.status === 'failed' ? '' : 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                            }>
-                            
-                            {payment.status === 'success' ? '✓ Success' : payment.status === 'failed' ? 'Failed' : 'Pending'}
-                          </Badge>
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}
-                              onClick={() => handleDownloadReceipt(payment.id)}
-                              title="Download Receipt">
-                              
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </motion.div>
-                        </motion.div>
+                            Next
+                          </Button>
+                        </div>
                       </div>
-                    </motion.div>
-                    )}
-                </AnimatePresence>
+                    }
+                  </motion.div> :
 
-                {/* Payment Pagination */}
-                {feeData && feeData.statistics.total_payments > 10 &&
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      Showing {(paymentPage - 1) * 10 + 1} to {Math.min(paymentPage * 10, feeData.statistics.total_payments)} of {feeData.statistics.total_payments} payments
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPaymentPage((p) => Math.max(1, p - 1))}
-                        disabled={paymentPage === 1}
-                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                        
-                        Previous
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPaymentPage((p) => p + 1)}
-                        disabled={paymentPage * 10 >= feeData.statistics.total_payments}
-                        className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                        
-                        Next
-                      </Button>
+                  <div className="py-24 flex flex-col items-center justify-center text-center">
+                    <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
+                      <Receipt className="h-16 w-16 text-primary/30" />
                     </div>
+                    <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Invoices Found</h3>
+                    <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Your fee invoices will appear here once they are generated by the finance department.
+                    </p>
                   </div>
-                  }
-              </motion.div> :
-
-                <div className="py-24 flex flex-col items-center justify-center text-center">
-                <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
-                  <CreditCard className="h-16 w-16 text-primary/30" />
-                </div>
-                <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Payment History</h3>
-                <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  You haven't made any fee payments yet. Your transaction history will be displayed here.
-                </p>
-              </div>
                 }
-          </CardContent>
-        </Card>
-      </motion.div>
-    </CardContent>
-  </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-  {/* Payment Modal and other overlays */}
-  <AnimatePresence>
+          {/* Payment History Section */}
+          <motion.div variants={cardVariants} initial="hidden" animate="visible">
+            <Card id="fees-history-card" className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+              <CardHeader id="fees-history-card-header">
+                <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                  <CreditCard className="h-5 w-5" />
+                  Payment History ({feeData?.statistics?.total_payments || 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {feeData?.payments?.length ?
+                  <motion.div
+                    className="space-y-3"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible">
+
+                    <AnimatePresence>
+                      {feeData.payments.map((payment) =>
+                        <motion.div
+                          key={payment.id}
+                          variants={itemVariants}
+                          layout
+                          className={`border rounded-lg p-4 transition-all ${theme === 'dark' ? 'border-border hover:border-primary/50 hover:bg-card/50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`}
+                          whileHover={{ x: 4 }}>
+
+                          <div className="flex justify-between items-start gap-4">
+                            <motion.div variants={itemVariants} className="flex-1">
+                              <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                                {formatCurrency(payment.amount)}
+                              </h3>
+                              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                {new Date(payment.timestamp).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })} • {payment.mode}
+                              </p>
+                            </motion.div>
+                            <motion.div variants={itemVariants} className="flex gap-2 flex-shrink-0">
+                              <Badge
+                                variant={payment.status === 'success' ? 'default' : payment.status === 'failed' ? 'destructive' : 'secondary'}
+                                className={
+                                  payment.status === 'success' ? 'bg-green-600 text-white' :
+                                    payment.status === 'failed' ? '' : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                                }>
+
+                                {payment.status === 'success' ? '✓ Success' : payment.status === 'failed' ? 'Failed' : 'Pending'}
+                              </Badge>
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className={theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}
+                                  onClick={() => handleDownloadReceipt(payment.id)}
+                                  title="Download Receipt">
+
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </motion.div>
+                            </motion.div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Payment Pagination */}
+                    {feeData && feeData.statistics.total_payments > 10 &&
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          Showing {(paymentPage - 1) * 10 + 1} to {Math.min(paymentPage * 10, feeData.statistics.total_payments)} of {feeData.statistics.total_payments} payments
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPaymentPage((p) => Math.max(1, p - 1))}
+                            disabled={paymentPage === 1}
+                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPaymentPage((p) => p + 1)}
+                            disabled={paymentPage * 10 >= feeData.statistics.total_payments}
+                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    }
+                  </motion.div> :
+
+                  <div className="py-24 flex flex-col items-center justify-center text-center">
+                    <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} mb-6 shadow-sm`}>
+                      <CreditCard className="h-16 w-16 text-primary/30" />
+                    </div>
+                    <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Payment History</h3>
+                    <p className={`text-base mt-2 max-w-sm mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      You haven't made any fee payments yet. Your transaction history will be displayed here.
+                    </p>
+                  </div>
+                }
+              </CardContent>
+            </Card>
+          </motion.div>
+        </CardContent>
+      </Card>
+
+      {/* Payment Modal and other overlays */}
+      <AnimatePresence>
         {paymentModalOpen &&
-        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+          <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
             {/* ... Modal content remains same ... */}
             <DialogContent className={`max-w-md ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader>
                 <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                   {selectedInvoiceId === 0 ?
-                '💳 Pay Total Remaining Balance' :
-                paymentType === 'full' ? '💳 Pay Full Amount' : '🧩 Pay by Component'
-                }
+                    '💳 Pay Total Remaining Balance' :
+                    paymentType === 'full' ? '💳 Pay Full Amount' : '🧩 Pay by Component'
+                  }
                 </DialogTitle>
               </DialogHeader>
 
               {paymentType === 'full' ?
-            <motion.div
-              className="space-y-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}>
-              
+                <motion.div
+                  className="space-y-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}>
+
                   <div className={`p-4 rounded-lg border-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-300'}`}>
                     <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Total Amount to Pay
@@ -879,46 +880,46 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   </div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                  onClick={initiateRazorpayPayment}
-                  disabled={isProcessingPayment}
-                  className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
-                  
+                      onClick={initiateRazorpayPayment}
+                      disabled={isProcessingPayment}
+                      className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
+
                       {isProcessingPayment ?
-                  <>
+                        <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Processing...
                         </> :
 
-                  <>
+                        <>
                           <CreditCard className="h-4 w-4 mr-2" />
                           Proceed to Payment
                         </>
-                  }
+                      }
                     </Button>
                   </motion.div>
                 </motion.div> :
 
-            <motion.div
-              className="space-y-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}>
-              
+                <motion.div
+                  className="space-y-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}>
+
                   <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                     Select components to pay:
                   </p>
                   <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                     {currentInvoice?.components?.map((component, idx) =>
-                <motion.div
-                  key={idx}
-                  variants={itemVariants}
-                  className={`flex items-center space-x-3 p-3 border rounded-lg ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                  
+                      <motion.div
+                        key={idx}
+                        variants={itemVariants}
+                        className={`flex items-center space-x-3 p-3 border rounded-lg ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}`}>
+
                         <Checkbox
-                    checked={selectedComponents.has(idx)}
-                    onCheckedChange={() => handleComponentToggle(idx)}
-                    className={`w-5 h-5 ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`} />
-                  
+                          checked={selectedComponents.has(idx)}
+                          onCheckedChange={() => handleComponentToggle(idx)}
+                          className={`w-5 h-5 ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`} />
+
                         <Label className={`flex-1 cursor-pointer ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           <div>
                             <p className="font-medium text-sm">{component.component_name}</p>
@@ -928,49 +929,49 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                           </div>
                         </Label>
                       </motion.div>
-                )}
+                    )}
                   </div>
 
                   {selectedComponents.size > 0 &&
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-4 rounded-lg border-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-300'}`}>
-                
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`p-4 rounded-lg border-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-300'}`}>
+
                       <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Total Selected
                       </p>
                       <p className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         {formatCurrency(
-                    (currentInvoice?.components || []).
-                    filter((_, idx) => selectedComponents.has(idx)).
-                    reduce((sum, comp) => sum + comp.balance_amount, 0)
-                  )}
+                          (currentInvoice?.components || []).
+                            filter((_, idx) => selectedComponents.has(idx)).
+                            reduce((sum, comp) => sum + comp.balance_amount, 0)
+                        )}
                       </p>
                     </motion.div>
-              }
+                  }
 
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
-                  onClick={initiateRazorpayPayment}
-                  disabled={isProcessingPayment || selectedComponents.size === 0}
-                  className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
-                  
+                      onClick={initiateRazorpayPayment}
+                      disabled={isProcessingPayment || selectedComponents.size === 0}
+                      className={`bg-primary hover:bg-primary/90 text-white w-full font-semibold py-6 text-base disabled:opacity-50`}>
+
                       {isProcessingPayment ?
-                  <>
+                        <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Processing...
                         </> :
 
-                  <>
+                        <>
                           <CreditCard className="h-4 w-4 mr-2" />
                           Proceed to Payment
                         </>
-                  }
+                      }
                     </Button>
                   </motion.div>
                 </motion.div>
-            }
+              }
             </DialogContent>
           </Dialog>
         }

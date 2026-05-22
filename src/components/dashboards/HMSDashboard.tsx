@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 import HMSOverview from "../hms/HMSOverview";
 import HostelManagement from "../hms/HostelManagement";
 import RoomManagement from "../hms/RoomManagement";
@@ -96,14 +97,16 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
   };
 
   return (
-    <DashboardLayout
-      role="hms"
-      user={user}
-      activePage={activePage}
-      onPageChange={handlePageChange}
-      onNotificationClick={handleNotificationClick}
-      pageTitle="HMS Dashboard"
-    >
+    <>
+      <TutorialController />
+      <DashboardLayout
+        role="hms"
+        user={user}
+        activePage={activePage}
+        onPageChange={handlePageChange}
+        onNotificationClick={handleNotificationClick}
+        pageTitle="HMS Dashboard"
+      >
       <div className="space-y-4">
         {/* Page content rendered below */}
 
@@ -122,6 +125,7 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         </div>
       </div>
     </DashboardLayout>
+    </>
   );
 };
 

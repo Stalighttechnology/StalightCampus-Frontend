@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 import FacultyStats from "../faculty/FacultyStats";
 import TakeAttendance from "../faculty/TakeAttendance";
 import UploadMarks from "../faculty/UploadMarks";
@@ -205,13 +206,15 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
   };
 
   return (
-    <DashboardLayout
-      role="faculty"
-      user={currentUser}
-      activePage={activePage}
-      onPageChange={handlePageChange}
-      onNotificationClick={handleNotificationClick}
-      pageTitle="Faculty Dashboard">
+    <>
+      <TutorialController />
+      <DashboardLayout
+        role="faculty"
+        user={currentUser}
+        activePage={activePage}
+        onPageChange={handlePageChange}
+        onNotificationClick={handleNotificationClick}
+        pageTitle="Faculty Dashboard">
       
       {error &&
       <div className={`p-3 rounded-lg mb-4 ${theme === 'dark' ? 'bg-destructive/10 border border-destructive/20 text-destructive-foreground' : 'bg-red-100 border border-red-200 text-red-700'}`}>
@@ -219,7 +222,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         </div>
       }
       {renderContent()}
-    </DashboardLayout>);
+    </DashboardLayout>
+    </>);
 
 };
 

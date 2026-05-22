@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 import AdminStats from "../admin/AdminStats";
 import AdminHODAttendance from "../admin/HODAttendanceView";
 import EnrollUser from "../admin/EnrollUser";
@@ -189,18 +190,21 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
   };
 
   return (
-    <DashboardLayout
-      role="admin"
-      user={user}
-      activePage={activePage}
-      onPageChange={handlePageChange}
-      onNotificationClick={handleNotificationClick}
-      pageTitle="Principal Dashboard">
+    <>
+      <TutorialController />
+      <DashboardLayout
+        role="admin"
+        user={user}
+        activePage={activePage}
+        onPageChange={handlePageChange}
+        onNotificationClick={handleNotificationClick}
+        pageTitle="Principal Dashboard">
       
       <div key={activePage}>
         {renderContent()}
       </div>
-    </DashboardLayout>);
+    </DashboardLayout>
+    </>);
 
 };
 

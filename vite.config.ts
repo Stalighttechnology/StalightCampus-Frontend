@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', '@radix-ui/react-toast', 'next-themes', 'sonner'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom'],
+    include: ['react', 'react-dom', 'react-joyride'],
     exclude: ['@zxing/library', '@zxing/browser']
   },
   // Build optimizations for production chunking

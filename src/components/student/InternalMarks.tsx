@@ -366,8 +366,8 @@ const InternalMarks = () => {
   return (
     <div className={`min-h-screen w-full overflow-x-hidden space-y-4 px-4 sm:px-0 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Chart Section */}
-      <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader className={theme === 'dark' ? 'bg-card text-card-foreground border-b border-border' : 'bg-white text-gray-900 border-b border-gray-200'}>
+      <Card id="marks-overview-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <CardHeader id="marks-overview-card-header" className={theme === 'dark' ? 'bg-card text-card-foreground border-b border-border' : 'bg-white text-gray-900 border-b border-gray-200'}>
           <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}> Performance Overview</CardTitle>
         </CardHeader>
         <CardContent className={`p-0 sm:p-6 ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
@@ -429,7 +429,7 @@ const InternalMarks = () => {
       </div>
 
       {/* Table */}
-      <div className={`rounded-lg border overflow-hidden w-full ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
+      <div id="marks-table-card" className={`rounded-lg border overflow-hidden w-full ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
         <div className="w-full overflow-x-auto custom-scrollbar-premium">
           <table className="w-full  text-left border-collapse">
             <thead className={`sticky top-0 z-10 text-md whitespace-nowrap ${theme === 'dark' ? 'bg-[#232326] text-gray-400' : 'bg-gray-50 text-gray-600'}`}>

@@ -143,7 +143,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   // Close sidebar when page changes on mobile/tablet only
   useEffect(() => {
-    if (window.innerWidth < 1024) {
+    const isTutorialActive = document.body.classList.contains('tutorial-active');
+    if (window.innerWidth < 1024 && !isTutorialActive) {
       setSidebarCollapsed(true);
     }
     // Always scroll to top when page changes
@@ -151,6 +152,26 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       mainContentRef.current.scrollTo({ top: 0, behavior: "instant" });
     }
   }, [activePage]);
+
+  // Listen for onboarding system events to open/close sidebar drawer on mobile/tablet
+  useEffect(() => {
+    const handleOpen = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(false);
+      }
+    };
+    const handleClose = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(true);
+      }
+    };
+    window.addEventListener('neurocampus_open_sidebar', handleOpen);
+    window.addEventListener('neurocampus_close_sidebar', handleClose);
+    return () => {
+      window.removeEventListener('neurocampus_open_sidebar', handleOpen);
+      window.removeEventListener('neurocampus_close_sidebar', handleClose);
+    };
+  }, []);
 
   const toggleSidebar = () => {
     // Only allow toggling on mobile/tablet (< 1024px)
@@ -188,9 +209,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const formatTitle = (title: string) => {
     if (title === "dashboard") return `${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`;
     return title.
-    split("-").
-    map((word) => word.charAt(0).toUpperCase() + word.slice(1)).
-    join(" ");
+      split("-").
+      map((word) => word.charAt(0).toUpperCase() + word.slice(1)).
+      join(" ");
   };
 
   const isNoAnimation = role === 'admin' || role === 'principal' || role === 'hms' || role === 'warden';
@@ -198,13 +219,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   return (
     <motion.div
       className={`flex h-screen h-[100dvh] overflow-hidden ${theme === "dark" ?
-      "dark bg-background text-foreground" :
-      "bg-gray-50 text-gray-900"}`
+        "dark bg-background text-foreground" :
+        "bg-gray-50 text-gray-900"}`
       }
       initial={isNoAnimation ? false : { opacity: 0 }}
       animate={isNoAnimation ? false : { opacity: 1 }}
       transition={{ duration: 0.5 }}>
-      
+
       {/* Sidebar */}
       <Sidebar
         role={role}
@@ -213,17 +234,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         logout={handleLogout}
         collapsed={sidebarCollapsed}
         toggleCollapse={toggleSidebar} />
-      
+
 
       {/* Main Content Area */}
       <div
         className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-64'}`
         }>
-        
+
         {/* Navbar */}
         <div
           className={`z-10 shadow-sm transition-all duration-300 w-full`}>
-          
+
           <Navbar
             role={role}
             user={user}
@@ -232,7 +253,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             showHamburger={sidebarCollapsed && window.innerWidth < 1024}
             onHamburgerClick={toggleSidebar}
             unreadCount={unreadCount} />
-          
+
         </div>
 
         {/* Page Content */}
@@ -243,38 +264,38 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           initial={isNoAnimation ? false : { opacity: 0, y: 20 }}
           animate={isNoAnimation ? false : { opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}>
-          
+
           {/* Page Header */}
 
 
           {/* Error Message */}
           {error &&
-          <motion.div
-            className={`p-3 rounded-lg mb-4 ${theme === "dark" ?
-            "bg-destructive/10 border border-destructive/20 text-destructive-foreground" :
-            "bg-red-100 border border-red-200 text-red-700"}`
-            }
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            onAnimationComplete={() => setTimeout(() => setError(null), 3000)}>
-            
+            <motion.div
+              className={`p-3 rounded-lg mb-4 ${theme === "dark" ?
+                "bg-destructive/10 border border-destructive/20 text-destructive-foreground" :
+                "bg-red-100 border border-red-200 text-red-700"}`
+              }
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              onAnimationComplete={() => setTimeout(() => setError(null), 3000)}>
+
               {error}
             </motion.div>
           }
 
           {isNoAnimation ?
-          <div className="w-full">{children}</div> :
+            <div className="w-full">{children}</div> :
 
-          <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="popLayout">
               <motion.div
-              key={activePage}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="w-full">
-              
+                key={activePage}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="w-full">
+
                 {children}
               </motion.div>
             </AnimatePresence>

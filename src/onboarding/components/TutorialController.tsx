@@ -1,0 +1,551 @@
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { Joyride, ACTIONS, STATUS, EVENTS } from 'react-joyride';
+import { useNavigate } from 'react-router-dom';
+import { useTutorial } from '../hooks/useTutorial';
+import { TutorialTooltip } from './TutorialTooltip';
+import { TutorialModal } from './TutorialModal';
+import { TUTORIAL_CONFIG } from '../constants/tutorialConfig';
+
+const DummyBeacon = () => null;
+
+const scrollTargetIntoView = (selector: string) => {
+  try {
+    if (selector === 'body') return;
+    const el = document.querySelector(selector);
+    if (!el) return;
+
+    // Use smooth centering scroll to ensure targets are fully visible and centered
+    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    console.log('[ONBOARDING DEBUG] Programmatically scrolled target into view:', selector);
+  } catch (err) {
+    console.error('[ONBOARDING DEBUG] Failed to scroll target into view:', err);
+  }
+};
+
+// CRITICAL: Check if element is actually visible (not just in DOM)
+const isElementActuallyVisible = (selector: string): boolean => {
+  if (selector === 'body') return true;
+
+  const el = document.querySelector(selector);
+  if (!el) return false;
+
+  const rect = el.getBoundingClientRect();
+  const style = window.getComputedStyle(el);
+
+  // Basic visibility checks: must be in DOM, have size, and not be hidden via CSS
+  const hasSizeAndNotHidden =
+    rect.width > 0 &&
+    rect.height > 0 &&
+    style.display !== 'none' &&
+    style.visibility !== 'hidden' &&
+    parseFloat(style.opacity || '1') > 0;
+
+  if (!hasSizeAndNotHidden) return false;
+
+  // For sidebar steps, we must also ensure they are inside the viewport horizontally
+  // to verify that the sidebar has actually finished opening/sliding in.
+  if (selector.startsWith('#sidebar-')) {
+    return rect.left >= -5 && rect.right <= window.innerWidth + 5;
+  }
+
+  // For main page elements, we don't enforce viewport check, because
+  // Joyride will automatically scroll to them when it resumes.
+  return true;
+};
+
+// Returns the correct home path for each role so tour completion never
+// lands a non-student user on the student-only /dashboard route.
+const getHomePath = (role: string): string => {
+  const roleMap: Record<string, string> = {
+    student: '/dashboard',
+    hod: '/hod',
+    teacher: '/faculty',
+    faculty: '/faculty',
+    admin: '/admin',
+    principal: '/admin',
+    coe: '/coe',
+    dean: '/dean',
+    fees_manager: '/fees-manager',
+    feesmanager: '/fees-manager',
+    warden: '/warden',
+    hms: '/hms',
+    hms_admin: '/hms',
+  };
+  return roleMap[role.toLowerCase()] || '/dashboard';
+};
+
+export const TutorialController = () => {
+  const navigate = useNavigate();
+  const {
+    role,
+    steps,
+    isActive,
+    setIsActive,
+    stepIndex,
+    setStepIndex,
+    showWelcomeModal,
+    setShowWelcomeModal,
+    handleStartTour,
+    handleSkipTour,
+    handleCompleteTour,
+    handleStepChange,
+  } = useTutorial();
+
+  console.log('[ONBOARDING DEBUG] Current steps list in controller:', steps);
+
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+  const [transitioningStep, setTransitioningStep] = useState<any>(null);
+  const transitionLockRef = useRef(false);
+  const hasInitializedRef = useRef(false);
+  const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const loaderTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pollCountRef = useRef(0);
+
+  // Wait for element to become visible with polling and timeout
+  const waitForElementVisible = useCallback(
+    (selector: string, onReady: () => void, onTimeout: () => void) => {
+      console.log('[ONBOARDING DEBUG] 🔄 waitForElementVisible started', { selector });
+      const startTime = Date.now();
+      const timeoutMs = 6000; // Hardcoded timeout for stability
+      pollCountRef.current = 0;
+
+      const poll = () => {
+        const now = Date.now();
+        const elapsed = now - startTime;
+
+        const el = document.querySelector(selector);
+        const exists = !!el;
+        const visible = isElementActuallyVisible(selector);
+        const rect = el ? el.getBoundingClientRect() : null;
+
+        let computedStyles = null;
+        if (el) {
+          const style = window.getComputedStyle(el);
+          computedStyles = {
+            display: style.display,
+            visibility: style.visibility,
+            opacity: style.opacity,
+          };
+        }
+
+        // Determine sidebar state by inspecting common sidebar containers
+        const sidebarEl =
+          document.querySelector('[data-sidebar]') ||
+          document.querySelector('.sidebar') ||
+          document.querySelector('aside') ||
+          document.getElementById('sidebar');
+
+        const sidebarState = sidebarEl
+          ? {
+              present: true,
+              className: sidebarEl.className,
+              rect: {
+                left: sidebarEl.getBoundingClientRect().left,
+                right: sidebarEl.getBoundingClientRect().right,
+                width: sidebarEl.getBoundingClientRect().width,
+              },
+            }
+          : { present: false };
+
+        console.log(
+          `[ONBOARDING DEBUG] poll #${pollCountRef.current} for selector "${selector}" (elapsed: ${elapsed}ms)`,
+          {
+            selector,
+            exists,
+            visible,
+            rectValues: rect
+              ? {
+                  left: rect.left,
+                  top: rect.top,
+                  right: rect.right,
+                  bottom: rect.bottom,
+                  width: rect.width,
+                  height: rect.height,
+                }
+              : null,
+            computedStyles,
+            sidebarState,
+            pollCount: pollCountRef.current,
+          }
+        );
+
+        if (visible) {
+          console.log(
+            `[ONBOARDING DEBUG] ✅ visible=true after ${pollCountRef.current} polls — transition allowed`
+          );
+          if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+          onReady();
+          return;
+        }
+
+        if (elapsed > timeoutMs) {
+          console.log(
+            `[ONBOARDING DEBUG] ⏱️ timeout after ${pollCountRef.current} polls — skipping to next step`
+          );
+          if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+          onTimeout();
+          return;
+        }
+
+        pollCountRef.current += 1;
+        pollTimeoutRef.current = setTimeout(poll, TUTORIAL_CONFIG.POLL_INTERVAL_MS);
+      };
+
+      poll();
+    },
+    []
+  );
+
+  // Transition to a new step
+  const performTransition = useCallback((targetIndex: number) => {
+    console.log('[ONBOARDING DEBUG] performTransition called', { targetIndex });
+    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+    if (loaderTimerRef.current) {
+      clearTimeout(loaderTimerRef.current);
+      loaderTimerRef.current = null;
+    }
+    
+    // Hide the loader so the user can see the smooth scroll
+    setShowLoader(false);
+    setTransitioningStep(null);
+
+    const targetStep = steps[targetIndex];
+    if (targetStep) {
+      // 1. Scroll first, while Joyride is still paused (isNavigating is true)
+      scrollTargetIntoView(targetStep.target);
+      
+      // 2. Wait for the smooth scroll to finish (400ms)
+      setTimeout(() => {
+        console.log('[ONBOARDING DEBUG] Smooth scroll finished, resuming Joyride for step:', targetIndex);
+        setIsNavigating(false);
+        handleStepChange(targetIndex);
+        
+        // Trigger a post-scroll resize to ensure charts/components align correctly
+        window.dispatchEvent(new Event('resize'));
+      }, 400);
+    } else {
+      setIsNavigating(false);
+      handleStepChange(targetIndex);
+    }
+  }, [handleStepChange, steps]);
+
+  // Start deferred transition (handle sidebar, routing, polling)
+  const startDeferredTransition = useCallback(
+    (targetIndex: number) => {
+      console.log('[ONBOARDING DEBUG] 🚀 startDeferredTransition CALLED', { targetIndex, transitionLocked: transitionLockRef.current });
+      if (transitionLockRef.current) {
+        console.log('[ONBOARDING DEBUG] ⚠️ transitionLock already active, skipping');
+        return;
+      }
+      transitionLockRef.current = true;
+
+      const targetStep = steps[targetIndex];
+      if (!targetStep) {
+        console.log('[ONBOARDING DEBUG] ❌ No target step found at index', targetIndex);
+        transitionLockRef.current = false;
+        return;
+      }
+
+      setTransitioningStep(targetStep);
+
+      const isSidebarStep = typeof targetStep.target === 'string' && targetStep.target.startsWith('#sidebar-');
+      const needsRouteTransition = targetStep.route && targetStep.route !== window.location.pathname;
+
+      console.log('[ONBOARDING DEBUG] 📍 startDeferredTransition starting', {
+        targetIndex,
+        selector: targetStep.target,
+        isSidebarStep,
+        needsNav: needsRouteTransition,
+      });
+
+      setShowLoader(false);
+
+      // Fast Path: if same page, not sidebar, and element is already visible, transition instantly without loader
+      if (!needsRouteTransition && !isSidebarStep && isElementActuallyVisible(targetStep.target)) {
+        console.log('[ONBOARDING DEBUG] Fast Path: same route and element is already visible. Directly changing step index.');
+        
+        // Pause Joyride (hide spotlight) during the scroll
+        setIsNavigating(true);
+        
+        // 1. Scroll first
+        scrollTargetIntoView(targetStep.target);
+        
+        // 2. Wait for the smooth scroll to finish (400ms)
+        setTimeout(() => {
+          console.log('[ONBOARDING DEBUG] Fast Path scroll finished, resuming Joyride for step:', targetIndex);
+          setIsNavigating(false);
+          handleStepChange(targetIndex);
+          window.dispatchEvent(new Event('resize'));
+          transitionLockRef.current = false;
+        }, 400);
+        return;
+      }
+
+      if (isSidebarStep) {
+        // Dispatch sidebar open and immediately start polling
+        console.log('[ONBOARDING DEBUG] dispatching neurocampus_open_sidebar');
+        window.dispatchEvent(new Event('neurocampus_open_sidebar'));
+        
+        // scroll sidebarItem into view and freeze sidebar scroll after
+        setTimeout(() => {
+          try {
+            const sidebarItem = document.querySelector(targetStep.target) as HTMLElement;
+            if (sidebarItem) {
+              sidebarItem.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+            const sidebarEl = document.querySelector('[data-sidebar], .sidebar, aside, #sidebar') as HTMLElement;
+            if (sidebarEl) {
+              sidebarEl.style.overflow = 'hidden';
+            }
+          } catch (e) {
+            console.error('[ONBOARDING DEBUG] Failed to scroll/freeze sidebar:', e);
+          }
+        }, 100);
+      } else {
+        // Close sidebar for non-sidebar steps
+        window.dispatchEvent(new Event('neurocampus_close_sidebar'));
+        const sidebarEl = document.querySelector('[data-sidebar], .sidebar, aside, #sidebar') as HTMLElement;
+        if (sidebarEl) {
+          sidebarEl.style.overflow = '';
+        }
+      }
+
+      // Navigate if needed
+      if (needsRouteTransition) {
+        console.log('[ONBOARDING DEBUG] navigating to', targetStep.route);
+        navigate(targetStep.route);
+      }
+
+      // Pause Joyride and start polling
+      setIsNavigating(true);
+      console.log('[ONBOARDING DEBUG] pausing Joyride — polling for visibility...');
+
+      // Start the 200ms deferred loader timer to avoid flashing for fast loads
+      if (loaderTimerRef.current) clearTimeout(loaderTimerRef.current);
+      loaderTimerRef.current = setTimeout(() => {
+        console.log('[ONBOARDING DEBUG] Deferred loader timeout fired, showing loader');
+        setShowLoader(true);
+      }, 200);
+
+      waitForElementVisible(
+        targetStep.target,
+        () => {
+          console.log('[ONBOARDING DEBUG] ✅ Element visible! Calling performTransition');
+          performTransition(targetIndex);
+          transitionLockRef.current = false;
+        },
+        () => {
+          console.log('[ONBOARDING DEBUG] ⏱️ Element visibility timeout! Skipping to next step');
+          if (loaderTimerRef.current) {
+            clearTimeout(loaderTimerRef.current);
+            loaderTimerRef.current = null;
+          }
+          setShowLoader(false);
+          transitionLockRef.current = false;
+          // Timeout: skip to next step
+          if (targetIndex + 1 < steps.length) {
+            setTransitioningStep(null);
+            startDeferredTransition(targetIndex + 1);
+          } else {
+            // Last step, finish tour
+            handleCompleteTour();
+            setTransitioningStep(null);
+            navigate(getHomePath(role));
+          }
+        }
+      );
+    },
+    [steps, navigate, waitForElementVisible, performTransition, handleStepChange, handleCompleteTour]
+  );
+
+  // Handle Joyride callbacks
+  const handleJoyrideCallback = useCallback(
+    (data: any) => {
+      const { action, type, index, status } = data;
+
+      console.log('[ONBOARDING DEBUG] 📞 Joyride callback FIRED', {
+        action,
+        type,
+        index,
+        status,
+        allData: JSON.stringify(data, null, 2)
+      });
+
+      if (type === EVENTS.STEP_AFTER) {
+        console.log('[ONBOARDING DEBUG] ➡️ STEP_AFTER detected', { action, index });
+        
+        // Prevent overlay clicks or close actions from advancing/disrupting steps
+        if (action === ACTIONS.CLOSE) {
+          console.log('[ONBOARDING DEBUG] 🛑 Ignoring CLOSE action on STEP_AFTER to remain in current state');
+          return;
+        }
+
+        // Move to next step
+        let nextIndex = index + (action === ACTIONS.PREV ? -1 : 1);
+        console.log('[ONBOARDING DEBUG] calculated nextIndex:', nextIndex);
+        // Don't allow going back to step 0 (the body welcome step)
+        if (nextIndex === 0 && action === ACTIONS.PREV) {
+          console.log('[ONBOARDING DEBUG] prevented going back to step 0');
+          return;
+        }
+        if (nextIndex < steps.length) {
+          console.log('[ONBOARDING DEBUG] ✅ Calling startDeferredTransition with nextIndex:', nextIndex);
+          startDeferredTransition(nextIndex);
+        } else {
+          console.log('[ONBOARDING DEBUG] 🏁 Reached end, calling handleCompleteTour');
+          handleCompleteTour();
+          navigate(getHomePath(role));
+        }
+      }
+
+      if (type === EVENTS.TARGET_NOT_FOUND) {
+        console.warn(
+          `[ONBOARDING DEBUG] target not found at index ${index}, skipping...`
+        );
+        if (index + 1 < steps.length) {
+          handleStepChange(index + 1);
+        } else {
+          handleCompleteTour();
+          navigate(getHomePath(role));
+        }
+      }
+
+      if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+        console.log('[ONBOARDING DEBUG] Tour finished/skipped with status:', status);
+        window.dispatchEvent(new Event('neurocampus_close_sidebar'));
+        const sidebarEl = document.querySelector('[data-sidebar], .sidebar, aside, #sidebar') as HTMLElement;
+        if (sidebarEl) {
+          sidebarEl.style.overflow = '';
+        }
+        handleCompleteTour();
+        navigate('/dashboard');
+      }
+
+      if (action === ACTIONS.CLOSE) {
+        console.log('[ONBOARDING DEBUG] Close action detected (ignored to prevent closing on outside clicks)');
+        return;
+      }
+    },
+    [steps, startDeferredTransition, handleStepChange, handleCompleteTour, handleSkipTour]
+  );
+
+  // Toggle body class based on isActive state
+  useEffect(() => {
+    if (isActive) {
+      document.body.classList.add('tutorial-active');
+    } else {
+      document.body.classList.remove('tutorial-active');
+    }
+    return () => {
+      document.body.classList.remove('tutorial-active');
+    };
+  }, [isActive]);
+
+  // Handle startup and resume states with double requestAnimationFrame to ensure layout readiness
+  useEffect(() => {
+    if (isActive) {
+      if (!hasInitializedRef.current && steps.length > 0) {
+        hasInitializedRef.current = true;
+        const targetStep = stepIndex === 0 ? 1 : stepIndex;
+        console.log(`[ONBOARDING DEBUG] ✅ Tour activated/resumed! Performing initial checks before transitioning to step ${targetStep}`);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            startDeferredTransition(targetStep);
+          });
+        });
+      }
+    } else {
+      hasInitializedRef.current = false;
+    }
+  }, [isActive, stepIndex, steps.length, startDeferredTransition]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+      if (loaderTimerRef.current) clearTimeout(loaderTimerRef.current);
+    };
+  }, []);
+
+  if (!isActive || steps.length === 0) {
+    return (
+      <TutorialModal
+        isOpen={showWelcomeModal}
+        onStart={handleStartTour}
+        onSkip={handleSkipTour}
+        role={role}
+      />
+    );
+  }
+
+  return (
+    <>
+      <TutorialModal
+        isOpen={showWelcomeModal}
+        onStart={handleStartTour}
+        onSkip={handleSkipTour}
+        role={role}
+      />
+
+      {showLoader && isNavigating && transitioningStep && (
+        <div className="fixed inset-0 bg-slate-950/50 flex flex-col items-center justify-center z-[999999] animate-fadeIn">
+          <div className="bg-white/80 dark:bg-slate-900/80 border border-purple-200/50 dark:border-purple-800/50 p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 flex flex-col items-center text-center gap-6">
+            <div className="relative w-16 h-16">
+              {/* Spinning gradient border */}
+              <div className="absolute inset-0 rounded-full border-4 border-purple-200 dark:border-purple-900"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-purple-600 dark:border-t-purple-400 animate-spin"></div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <h3 className="text-[18px] font-semibold text-slate-800 dark:text-slate-100 m-0 leading-tight">
+                Opening {transitioningStep.title || 'Page'}
+              </h3>
+              <p className="text-[15px] text-slate-500 dark:text-slate-400 m-0 leading-relaxed">
+                Preparing page elements, please wait...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Joyride
+        steps={steps}
+        run={isActive && !isNavigating}
+        stepIndex={stepIndex}
+        continuous
+        hideCloseButton
+        disableOverlayClose={true}
+        overlayClickAction={false}
+        spotlightClicks={false}
+        showSkipButton
+        disableScrolling={true} // Disable internal Joyride scrolling to prevent conflicts and ensure ultra-smooth centering scroll
+        options={{
+          skipBeacon: true,
+          overlayClickAction: false,
+          disableOverlayClose: true,
+        }} // Make sure all steps default to skipping beacons and ignoring overlay clicks
+        beaconComponent={DummyBeacon} // Completely suppress all beacons/dots
+        debug={true}
+        tooltipComponent={TutorialTooltip}
+        onEvent={handleJoyrideCallback}
+        callback={handleJoyrideCallback}
+        styles={{
+          options: {
+            zIndex: 10000,
+            primaryColor: '#a855f7',
+            backgroundColor: '#ffffff',
+            textColor: '#1f2937',
+          },
+        }}
+        floaterProps={{
+          disableAnimation: true,
+          styles: {
+            floater: {
+              filter: 'drop-shadow(0 20px 25px rgba(0, 0, 0, 0.15))',
+            },
+          },
+        }}
+      />
+    </>
+  );
+};

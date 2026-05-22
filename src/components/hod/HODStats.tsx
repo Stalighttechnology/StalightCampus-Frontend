@@ -332,7 +332,7 @@ const handleApprove = async (index: number) => {
       )}
 
       {/* Stats Cards */}
-      <div className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+      <div id="hod-stats-cards" className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         {[
           {
             title: "Total Faculty",
@@ -472,7 +472,7 @@ const handleApprove = async (index: number) => {
       </div>
 
       {/* Leave Requests */}
-      <div className={`p-6 rounded-lg shadow-sm text-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+      <div id="hod-leave-table" className={`p-6 rounded-lg shadow-sm text-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
         <div className="flex justify-between items-center mb-4">
           <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</h3>
           <button

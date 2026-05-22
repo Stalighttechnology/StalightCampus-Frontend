@@ -1,6 +1,7 @@
 import { useState, useEffect, Component, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 import DeanStats from "../dean/DeanStats";
 import DeanAttendance from "../dean/DeanAttendance";
 import DeanAttendanceFilters from "../dean/DeanAttendanceFilters";
@@ -103,17 +104,20 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
   };
 
   return (
-    <DashboardLayout
-      role={"dean" as any}
-      user={user}
-      activePage={activePage}
-      onPageChange={handlePageChange}
-      onNotificationClick={() => {}}
-      pageTitle={undefined}
-      headerActions={undefined}
-    >
-      {renderContent()}
-    </DashboardLayout>
+    <>
+      <TutorialController />
+      <DashboardLayout
+        role={"dean" as any}
+        user={user}
+        activePage={activePage}
+        onPageChange={handlePageChange}
+        onNotificationClick={() => {}}
+        pageTitle={undefined}
+        headerActions={undefined}
+      >
+        {renderContent()}
+      </DashboardLayout>
+    </>
   );
 };
 
