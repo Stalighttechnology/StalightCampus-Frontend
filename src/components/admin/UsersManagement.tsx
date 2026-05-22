@@ -455,64 +455,68 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         }
       `}</style>
       <div className={`users-container text-sm sm:text-base max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-        <Card className={`users-card ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-          <CardHeader className="users-card-header">
-            <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
-            <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
-          </CardHeader>
-          <CardContent className="users-card-content">
-            <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
-              {/* Filters Section */}
-              <div className="flex-1 w-full">
-                <div className="flex flex-row items-end gap-3 sm:gap-6 w-full max-w-4xl">
-                  <div className="flex flex-col gap-2 flex-1 min-w-0">
-                    <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
-                    <SelectMenu
-                      label=""
-                      value={roleFilter}
-                      onChange={setRoleFilter}
-                      options={roles} />
-                    
-                  </div>
-
-                  <div className="flex flex-col gap-2 flex-1 min-w-0">
-                    <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
-                    <SelectMenu
-                      label=""
-                      value={departmentFilter}
-                      onChange={setDepartmentFilter}
-                      options={departments} />
-                    
-                  </div>
-                </div>
-              </div>
-              {/* Search Section */}
-              <div className="w-full xl:w-auto xl:min-w-[320px]">
-                <div className="flex flex-col gap-2">
-                  <label className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Global Search</label>
-                  <div className="search-wrapper flex gap-2">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
-                      <Input
-                        placeholder="Search name, email or USN..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyPress={(e) => {if (e.key === 'Enter') {setAppliedSearch(searchQuery.trim());setCurrentPage(1);}}}
-                        className={`search-input h-10 w-full pl-10 rounded-md shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`} />
+        <Card id="users-management-card" className={`users-card ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+          <div id="users-management-header-filters">
+            <CardHeader className="users-card-header">
+              <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
+              <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
+            </CardHeader>
+            <CardContent className="users-card-content pb-0">
+              <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
+                {/* Filters Section */}
+                <div className="flex-1 w-full">
+                  <div className="flex flex-row items-end gap-3 sm:gap-6 w-full max-w-4xl">
+                    <div className="flex flex-col gap-2 flex-1 min-w-0">
+                      <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
+                      <SelectMenu
+                        label=""
+                        value={roleFilter}
+                        onChange={setRoleFilter}
+                        options={roles} />
                       
                     </div>
-                    <Button
-                      onClick={() => {setAppliedSearch(searchQuery.trim());setCurrentPage(1);}}
-                      className={`h-10 px-6 font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>
+
+                    <div className="flex flex-col gap-2 flex-1 min-w-0">
+                      <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
+                      <SelectMenu
+                        label=""
+                        value={departmentFilter}
+                        onChange={setDepartmentFilter}
+                        options={departments} />
                       
-                      Search
-                    </Button>
+                    </div>
+                  </div>
+                </div>
+                {/* Search Section */}
+                <div className="w-full xl:w-auto xl:min-w-[320px]">
+                  <div className="flex flex-col gap-2">
+                    <label className={`filter-label text-[11px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Global Search</label>
+                    <div className="search-wrapper flex gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
+                        <Input
+                          placeholder="Search name, email or USN..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyPress={(e) => {if (e.key === 'Enter') {setAppliedSearch(searchQuery.trim());setCurrentPage(1);}}}
+                          className={`search-input h-10 w-full pl-10 rounded-md shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`} />
+                        
+                      </div>
+                      <Button
+                        onClick={() => {setAppliedSearch(searchQuery.trim());setCurrentPage(1);}}
+                        className={`h-10 px-6 font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>
+                        
+                        Search
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </div>
 
-          {(() => {
+          <CardContent className="users-card-content pt-0">
+            {(() => {
               const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
               const isAnyFilterActive =
               roleFilter !== "All" && (

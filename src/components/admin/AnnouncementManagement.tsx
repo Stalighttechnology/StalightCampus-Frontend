@@ -309,6 +309,206 @@ const AdminAnnouncementManagement = () => {
 
   const roles = ["student", "hod", "faculty", "principal"];
 
+  const renderHeader = (
+    <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="min-w-0">
+        <CardTitle className={`announcements-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Announcement Management</CardTitle>
+        <p className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
+      </div>
+      <div className="announce-actions">
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button
+              onClick={() => resetForm()}
+              className={`gap-2 ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
+              
+              <Plus className="w-4 h-4" />
+              New Announcement
+            </Button>
+          </DialogTrigger>
+          <DialogContent
+            className="mobile-modal max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            
+            <DialogHeader>
+              <DialogTitle>
+                {editingId ? "Edit Announcement" : "Create Announcement"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingId ?
+                "Update the announcement details below" :
+                "Create a new announcement visible to selected roles"}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  placeholder="Announcement title"
+                  value={formData.title}
+                  onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                  } />
+                
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="message">Message *</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Announcement message"
+                  value={formData.message}
+                  onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                  }
+                  rows={6}
+                  className="resize-none max-h-24 overflow-auto custom-scrollbar" />
+                
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value: any) =>
+                    setFormData({ ...formData, priority: value })
+                    }>
+                    
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="expires_at">Expires At</Label>
+                  <Popover open={expiresOpen} onOpenChange={setExpiresOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}>
+                        
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.expires_at ?
+                        (() => {
+                          try {
+                            return format(new Date(formData.expires_at), 'PPP');
+                          } catch (e) {
+                            return formData.expires_at;
+                          }
+                        })() :
+
+                        <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select date</span>
+                        }
+                      </Button>
+                    </PopoverTrigger>
+
+                    <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
+                      <div className="p-2">
+                        <Calendar
+                          mode="single"
+                          selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
+                          onSelect={(date: Date | undefined) => {
+                            if (date) {
+                              setFormData({ ...formData, expires_at: format(date, 'yyyy-MM-dd') });
+                            } else {
+                              setFormData({ ...formData, expires_at: '' });
+                            }
+                            setExpiresOpen(false);
+                          }}
+                          className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'} />
+                        
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Scope</Label>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="is_global"
+                      checked={formData.is_global}
+                      onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        is_global: checked as boolean
+                      })
+                      } />
+                    
+                    <Label htmlFor="is_global" className="font-normal">
+                      Global (All branches)
+                    </Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Target Roles *</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {roles.map((role) =>
+                  <div key={role} className="flex items-center gap-2">
+                      <Checkbox
+                      id={role}
+                      checked={formData.target_roles?.includes(role) || false}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setFormData({
+                            ...formData,
+                            target_roles: [
+                            ...(formData.target_roles || []),
+                            role]
+
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            target_roles: (formData.target_roles || []).filter(
+                              (r) => r !== role
+                            )
+                          });
+                        }
+                      }} />
+                    
+                      <Label htmlFor={role} className="font-normal capitalize">
+                        {role}
+                      </Label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateDialog(false)}>
+                  
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateOrUpdate}
+                  className={`${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
+                  
+                  {editingId ? "Update" : "Create"} Announcement
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </CardHeader>
+  );
+
   return (
     <>
       <style>{`
@@ -327,236 +527,49 @@ const AdminAnnouncementManagement = () => {
       `}</style>
 
       <div className={`announcements-container py-6 px-4 sm:px-6 text-sm sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-        <Card className={`announcements-card shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-          <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="min-w-0">
-              <CardTitle className={`announcements-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Announcement Management</CardTitle>
-              <p className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create and manage system announcements</p>
-            </div>
-            <div className="announce-actions">
-              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogTrigger asChild>
-                  <Button
-                    onClick={() => resetForm()}
-                    className={`gap-2 ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
-                    
-                    <Plus className="w-4 h-4" />
-                    New Announcement
-                  </Button>
-                </DialogTrigger>
-                <DialogContent
-                  className="mobile-modal max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-                  
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingId ? "Edit Announcement" : "Create Announcement"}
-                    </DialogTitle>
-                    <DialogDescription>
-                      {editingId ?
-                      "Update the announcement details below" :
-                      "Create a new announcement visible to selected roles"}
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Title *</Label>
-                      <Input
-                        id="title"
-                        placeholder="Announcement title"
-                        value={formData.title}
-                        onChange={(e) =>
-                        setFormData({ ...formData, title: e.target.value })
-                        } />
-                      
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="message">Message *</Label>
-                      <Textarea
-                        id="message"
-                        placeholder="Announcement message"
-                        value={formData.message}
-                        onChange={(e) =>
-                        setFormData({ ...formData, message: e.target.value })
-                        }
-                        rows={6}
-                        className="resize-none max-h-24 overflow-auto custom-scrollbar" />
-                      
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="priority">Priority</Label>
-                        <Select
-                          value={formData.priority}
-                          onValueChange={(value: any) =>
-                          setFormData({ ...formData, priority: value })
-                          }>
-                          
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="normal">Normal</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="urgent">Urgent</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="expires_at">Expires At</Label>
-                        <Popover open={expiresOpen} onOpenChange={setExpiresOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}>
-                              
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {formData.expires_at ?
-                              (() => {
-                                try {
-                                  return format(new Date(formData.expires_at), 'PPP');
-                                } catch (e) {
-                                  return formData.expires_at;
-                                }
-                              })() :
-
-                              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select date</span>
-                              }
-                            </Button>
-                          </PopoverTrigger>
-
-                          <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
-                            <div className="p-2">
-                              <Calendar
-                                mode="single"
-                                selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
-                                onSelect={(date: Date | undefined) => {
-                                  if (date) {
-                                    setFormData({ ...formData, expires_at: format(date, 'yyyy-MM-dd') });
-                                  } else {
-                                    setFormData({ ...formData, expires_at: '' });
-                                  }
-                                  setExpiresOpen(false);
-                                }}
-                                className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'} />
-                              
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Scope</Label>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id="is_global"
-                            checked={formData.is_global}
-                            onCheckedChange={(checked) =>
-                            setFormData({
-                              ...formData,
-                              is_global: checked as boolean
-                            })
-                            } />
-                          
-                          <Label htmlFor="is_global" className="font-normal">
-                            Global (All branches)
-                          </Label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Target Roles *</Label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {roles.map((role) =>
-                        <div key={role} className="flex items-center gap-2">
-                            <Checkbox
-                            id={role}
-                            checked={formData.target_roles?.includes(role) || false}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setFormData({
-                                  ...formData,
-                                  target_roles: [
-                                  ...(formData.target_roles || []),
-                                  role]
-
-                                });
-                              } else {
-                                setFormData({
-                                  ...formData,
-                                  target_roles: (formData.target_roles || []).filter(
-                                    (r) => r !== role
-                                  )
-                                });
-                              }
-                            }} />
-                          
-                            <Label htmlFor={role} className="font-normal capitalize">
-                              {role}
-                            </Label>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 justify-end pt-4">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowCreateDialog(false)}>
-                        
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleCreateOrUpdate}
-                        className={`${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
-                        
-                        {editingId ? "Update" : "Create"} Announcement
-                      </Button>
-                    </div>
+        <Card id="announcement-management-card" className={`announcements-card shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+          {loading ? (
+            <>
+              {renderHeader}
+              <CardContent className="announcements-card-content">
+                <div className="space-y-6">
+                  <SkeletonTable rows={5} cols={6} />
+                </div>
+              </CardContent>
+            </>
+          ) : error ? (
+            <>
+              {renderHeader}
+              <CardContent className="announcements-card-content">
+                <div className="space-y-6">
+                  <div className="p-4 rounded-lg bg-destructive/10 text-destructive">
+                    <p className="font-medium">{error}</p>
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-          <CardContent className="announcements-card-content">
-            <div className="space-y-6">
-              {loading ?
-              <SkeletonTable rows={5} cols={6} /> :
-              error ?
-              <div className="p-4 rounded-lg bg-destructive/10 text-destructive">
-                  <p className="font-medium">{error}</p>
-                </div> :
-
-              <AnnouncementSections
-                myAnnouncements={myAnnouncements}
-                receivedAnnouncements={receivedAnnouncements}
-                onEdit={handleEdit}
-                onDelete={(id) => setDeletingId(id)}
-                onToggleActive={handleToggleActive}
-                onMarkRead={handleMarkRead}
-                loading={loading}
-                showActions={true}
-                myPagination={{ count: totalMyCount, page: myPage, pageSize }}
-                receivedPagination={{
-                  count: totalReceivedCount,
-                  page: receivedPage,
-                  pageSize,
-                  unreadCount: unreadReceivedCount
-                }}
-                onPageChange={handlePageChange}
-                activeTab={activeTab}
-                onTabChange={setActiveTab} />
-
-              }
-            </div>
-          </CardContent>
+                </div>
+              </CardContent>
+            </>
+          ) : (
+            <AnnouncementSections
+              header={renderHeader}
+              myAnnouncements={myAnnouncements}
+              receivedAnnouncements={receivedAnnouncements}
+              onEdit={handleEdit}
+              onDelete={(id) => setDeletingId(id)}
+              onToggleActive={handleToggleActive}
+              onMarkRead={handleMarkRead}
+              loading={loading}
+              showActions={true}
+              myPagination={{ count: totalMyCount, page: myPage, pageSize }}
+              receivedPagination={{
+                count: totalReceivedCount,
+                page: receivedPage,
+                pageSize,
+                unreadCount: unreadReceivedCount
+              }}
+              onPageChange={handlePageChange}
+              activeTab={activeTab}
+              onTabChange={setActiveTab} />
+          )}
         </Card>
       </div>
 

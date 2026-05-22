@@ -13,13 +13,15 @@ interface DashboardCardProps {
   };
   onClick?: () => void;
   className?: string;
+  id?: string;
 }
 
-const DashboardCard = ({ title, description, value, icon, trend, onClick, className }: DashboardCardProps) => {
+const DashboardCard = ({ title, description, value, icon, trend, onClick, className, id }: DashboardCardProps) => {
   const { theme } = useTheme();
 
   return (
     <motion.div
+      id={id}
       className={`rounded-lg ${className || ""}`}
       whileHover={onClick ? { scale: 1.01, y: -2 } : {}}
       whileTap={onClick ? { scale: 0.99 } : {}}

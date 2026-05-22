@@ -220,6 +220,19 @@ const AdminHODAttendance: React.FC = () => {
     }
   }, [activeTab, hasSearched, recordsPagination.page, recordsPagination.page_size]);
 
+  // Listen for onboarding tour tab-switch events so the tour can reveal the
+  // Attendance Records filter panel without manual user interaction.
+  useEffect(() => {
+    const handleTourTabSwitch = (e: Event) => {
+      const tab = (e as CustomEvent<{ tab: string }>).detail?.tab;
+      if (tab === 'today' || tab === 'records') {
+        setActiveTab(tab as 'today' | 'records');
+      }
+    };
+    window.addEventListener('neurocampus_switch_tab', handleTourTabSwitch);
+    return () => window.removeEventListener('neurocampus_switch_tab', handleTourTabSwitch);
+  }, []);
+
   const formatDate = (dateString: string) => {
     try {return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });} catch {return dateString;}
   };
@@ -262,15 +275,15 @@ const AdminHODAttendance: React.FC = () => {
           letter-spacing: 0.05em !important;
         }
       `}</style>
-      <div className={`space-y-4 sm:space-y-6 text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Tabs */}
-      <div className={`flex space-x-1 p-1 rounded-lg ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-        <button onClick={() => setActiveTab('today')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'today' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Today's Attendance</button>
-        <button onClick={() => setActiveTab('records')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'records' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Attendance Records</button>
-      </div>
+      <div id="hod-attendance-container" className={`space-y-4 sm:space-y-6 text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
 
       {isLoading &&
         <div className="space-y-6">
+          {/* Tab bar shown during loading too */}
+          <div className={`flex space-x-1 p-1 rounded-lg ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+            <button onClick={() => setActiveTab('today')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'today' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Today's Attendance</button>
+            <button onClick={() => setActiveTab('records')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'records' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Attendance Records</button>
+          </div>
           <SkeletonStatsGrid items={4} />
           <SkeletonTable rows={10} cols={6} />
         </div>
@@ -278,35 +291,43 @@ const AdminHODAttendance: React.FC = () => {
 
       {activeTab === 'today' && !isLoading &&
         <>
-          <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4`}>
-            <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total HODs</p>
-                  <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_hods}</p>
-                </div>
-                <Users className="w-8 h-8 text-blue-600" />
-              </div>
+          {/* Step 1 spotlight: tab bar + stats cards + Today's table header */}
+          <div id="hod-attendance-today-section" className="space-y-4">
+            {/* Tab bar */}
+            <div className={`flex space-x-1 p-1 rounded-lg ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+              <button onClick={() => setActiveTab('today')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'today' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Today's Attendance</button>
+              <button onClick={() => setActiveTab('records')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'records' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Attendance Records</button>
             </div>
-            <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
-                  <p className={`text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
+            {/* Stats grid */}
+            <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4`}>
+              <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total HODs</p>
+                    <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_hods}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-blue-600" />
                 </div>
-                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-            </div>
-            <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
-                  <p className={`text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
+              <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
+                    <p className={`text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
+                  </div>
+                  <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
-                <XCircle className="w-8 h-8 text-red-600" />
               </div>
-            </div>
-            <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+              <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
+                    <p className={`text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
+                  </div>
+                  <XCircle className="w-8 h-8 text-red-600" />
+                </div>
+              </div>
+              <div className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
@@ -314,11 +335,14 @@ const AdminHODAttendance: React.FC = () => {
                   </div>
                   <Users className="w-8 h-8 text-gray-400" />
                 </div>
+              </div>
+            </div>
+            <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
+              <div className="px-6 py-4 border-b border-gray-200"><h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Today's HOD Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</h3></div>
             </div>
           </div>
 
           <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-            <div className="px-6 py-4 border-b border-gray-200"><h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Today's HOD Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</h3></div>
             <div className="hidden md:block overflow-x-auto">
               {todayRows.length === 0 ?
               <div className={`flex flex-col items-center justify-center py-20 px-4 ${theme === 'dark' ? 'bg-card/30' : 'bg-white'}`}>
@@ -442,8 +466,15 @@ const AdminHODAttendance: React.FC = () => {
 
       {activeTab === 'records' && !isLoading &&
         <>
-          {/* Filters */}
-          <div className={`p-4 rounded-lg shadow-sm mb-6 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+          {/* Step 2 spotlight: tab bar + filter panel */}
+          <div id="hod-attendance-records-section" className="space-y-4">
+            {/* Tab bar */}
+            <div className={`flex space-x-1 p-1 rounded-lg ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+              <button onClick={() => setActiveTab('today')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'today' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Today's Attendance</button>
+              <button onClick={() => setActiveTab('records')} className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${activeTab === 'records' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Attendance Records</button>
+            </div>
+            {/* Date range filter */}
+            <div id="hod-attendance-filter-section" className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
             <div className="flex flex-col sm:flex-row items-end gap-4">
               <div className="w-full sm:w-auto">
                 <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Start Date</label>
@@ -523,6 +554,7 @@ const AdminHODAttendance: React.FC = () => {
                 Apply Filter
               </Button>
             </div>
+          </div>
           </div>
 
           {!hasSearched ?

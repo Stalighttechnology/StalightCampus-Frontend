@@ -12,6 +12,7 @@ const roleMessages: Record<string, string> = {
   faculty: "Let's show you around your faculty dashboard",
   hod: "Let's show you around your HOD dashboard",
   admin: "Let's show you around your admin dashboard",
+  principal: "Let's show you around your admin dashboard",
   coe: "Let's show you around your COE dashboard",
   dean: "Let's show you around your Dean dashboard",
   feesmanager: "Let's show you around your Fees Manager dashboard",

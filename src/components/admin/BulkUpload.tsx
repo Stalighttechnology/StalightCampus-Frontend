@@ -197,88 +197,92 @@ const BulkUpload = ({ setError, toast }: BulkUploadProps) => {
 
   return (
     <div className={` w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-      <Card >
-        <CardHeader>
-          <CardTitle>Bulk Upload Faculty</CardTitle>
-          <CardDescription className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            Upload CSV or Excel files to bulk enroll faculty members
-          </CardDescription>
-        </CardHeader>
+      <Card id="bulk-upload-card">
+        <div id="bulk-upload-form-section">
+          <CardHeader>
+            <CardTitle>Bulk Upload Faculty</CardTitle>
+            <CardDescription className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Upload CSV or Excel files to bulk enroll faculty members
+            </CardDescription>
+          </CardHeader>
 
-        <CardContent className="space-y-6">
-          <div
-            onDrop={handleDrop}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={() => setDragActive(false)}
-            onClick={() => inputRef.current?.click()}
-            className={clsx(
-              "border-2 border-dashed rounded-md px-6 py-10 text-center cursor-pointer transition-all duration-200 relative",
-              dragActive
-                ? (theme === 'dark' ? "border-primary bg-primary/10 ring-2 ring-primary/20" : "border-blue-400 bg-blue-50 ring-2 ring-blue-200")
-                : (theme === 'dark' ? "border-border" : "border-gray-400")
-            )}
-          >
-            <Upload className={`mx-auto mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-400'}`} size={28} />
-            <p className={theme === 'dark' ? 'text-foreground' : 'text-gray-400'}>Drag & drop file here</p>
-            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>Supports CSV, XLS, XLSX (max 5MB)</p>
-            <div className="mt-3">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-              >
-                Select File
-              </Button>
-            </div>
-            {file && (
-              <div className="mt-4 flex items-center justify-center gap-2">
-                <span className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-400'}`}>{file.name}</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFile(null);
-                    if (inputRef.current) inputRef.current.value = "";
-                  }}
-                  className={theme === 'dark' ? 'text-muted-foreground hover:text-destructive' : 'text-gray-500 hover:text-red-500'}
+          <CardContent className="space-y-6">
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onClick={() => inputRef.current?.click()}
+              className={clsx(
+                "border-2 border-dashed rounded-md px-6 py-10 text-center cursor-pointer transition-all duration-200 relative",
+                dragActive
+                  ? (theme === 'dark' ? "border-primary bg-primary/10 ring-2 ring-primary/20" : "border-blue-400 bg-blue-50 ring-2 ring-blue-200")
+                  : (theme === 'dark' ? "border-border" : "border-gray-400")
+              )}
+            >
+              <Upload className={`mx-auto mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-400'}`} size={28} />
+              <p className={theme === 'dark' ? 'text-foreground' : 'text-gray-400'}>Drag & drop file here</p>
+              <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>Supports CSV, XLS, XLSX (max 5MB)</p>
+              <div className="mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
                 >
-                  <X size={16} />
-                </button>
+                  Select File
+                </Button>
               </div>
+              {file && (
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <span className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-400'}`}>{file.name}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFile(null);
+                      if (inputRef.current) inputRef.current.value = "";
+                    }}
+                    className={theme === 'dark' ? 'text-muted-foreground hover:text-destructive' : 'text-gray-500 hover:text-red-500'}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+              <Input
+                ref={inputRef}
+                id="file"
+                type="file"
+                accept=".csv,.xls,.xlsx"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+
+            <Button
+              className="w-full text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
+              onClick={handleUpload}
+              disabled={loading || !file}
+            >
+              {loading ? "Uploading..." : "Upload File"}
+            </Button>
+
+            {(uploadedCount > 0 || updatedCount > 0) && successMessage && (
+              <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                {successMessage}
+              </p>
             )}
-            <Input
-              ref={inputRef}
-              id="file"
-              type="file"
-              accept=".csv,.xls,.xlsx"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </div>
 
-          <Button
-            className="w-full text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-            onClick={handleUpload}
-            disabled={loading || !file}
-          >
-            {loading ? "Uploading..." : "Upload File"}
-          </Button>
+            {localError && (
+              <p className={`text-sm mt-2 font-medium ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
+                {localError}
+              </p>
+            )}
+          </CardContent>
+        </div>
 
-          {(uploadedCount > 0 || updatedCount > 0) && successMessage && (
-            <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
-              {successMessage}
-            </p>
-          )}
-
-          {localError && (
-            <p className={`text-sm mt-2 font-medium ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
-              {localError}
-            </p>
-          )}
-
+        <CardContent className="pt-0">
           <div>
             <p className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Upload Instructions</p>
             <ul className={`list-disc pl-5 text-sm space-y-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

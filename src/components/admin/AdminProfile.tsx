@@ -785,8 +785,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
 
   return (
     <div className={`flex justify-center items-start ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-      <Card className={`w-full max-w-none mx-auto my-2  ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+      <Card id="admin-profile-card" className={`w-full max-w-none mx-auto my-2  ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+        <CardHeader id="admin-profile-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
             <CardTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile Information</CardTitle>
             <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>

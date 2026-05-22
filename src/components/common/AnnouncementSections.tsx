@@ -53,6 +53,7 @@ interface AnnouncementSectionsProps {
   onPageChange?: (page: number, type: 'my' | 'received') => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  header?: React.ReactNode;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -107,7 +108,20 @@ const isRecent = (dateString: string) => {
   return diffInHours < 48; // New if less than 48 hours old
 };
 
-
+const SectionContentWrapper = ({
+  header,
+  children,
+  className
+}: {
+  header: React.ReactNode | undefined;
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  if (header) {
+    return <CardContent className={className}>{children}</CardContent>;
+  }
+  return <>{children}</>;
+};
 
 export const AnnouncementSections = ({
   myAnnouncements,
@@ -123,6 +137,7 @@ export const AnnouncementSections = ({
   onPageChange,
   activeTab,
   onTabChange,
+  header,
 }: AnnouncementSectionsProps) => {
   const { theme } = useTheme();
   const [showExpired, setShowExpired] = useState(false);
@@ -159,7 +174,9 @@ export const AnnouncementSections = ({
         }
       `}</style>
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div id={header ? "announcement-header-section" : undefined} className={header ? "flex flex-col" : undefined}>
+          {header}
+          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${header ? 'px-6 pb-4' : ''}`}>
         <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl">
           <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
             <span className="text-sm font-semibold">My Announcements</span>
@@ -198,9 +215,11 @@ export const AnnouncementSections = ({
         >
           {showExpired ? "Hide Archive" : "Show Archive"}
         </Button>
-      </div>
+          </div>
+        </div>
 
-      <TabsContent value="my" className="space-y-4 mt-6">
+        <SectionContentWrapper header={header} className="announcements-card-content pt-0">
+        <TabsContent value="my" className="space-y-4 mt-6">
         {loading ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">Loading announcements...</p>
@@ -663,6 +682,7 @@ export const AnnouncementSections = ({
           </div>
         )}
       </TabsContent>
+        </SectionContentWrapper>
       {/* View Announcement Dialog */}
       <Dialog open={!!viewingAnnouncement} onOpenChange={(open) => !open && setViewingAnnouncement(null)}>
         <DialogContent className="w-[92vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl p-0 border-none shadow-2xl">

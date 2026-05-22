@@ -288,9 +288,9 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
         }
       `}</style>
 
-      <div className={` max-w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+      <div id="batch-management-card" className={` max-w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       {/* Add New Batch Card */}
-      <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm mb-6' : 'bg-white border border-gray-200 shadow-sm mb-6'}>
+      <Card id="add-new-batch-card" className={theme === 'dark' ? 'bg-card border border-border shadow-sm mb-6' : 'bg-white border border-gray-200 shadow-sm mb-6'}>
         <CardHeader className="batch-card-header pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="w-full">
             <CardTitle className="batch-title">

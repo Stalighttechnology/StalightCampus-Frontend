@@ -311,6 +311,13 @@ export const TutorialController = () => {
         }
       }
 
+      // If the step requires switching an in-page tab, dispatch the event now
+      // so the target element is rendered before the visibility poll starts.
+      if ((targetStep as any).switchTab) {
+        console.log('[ONBOARDING DEBUG] dispatching neurocampus_switch_tab:', (targetStep as any).switchTab);
+        window.dispatchEvent(new CustomEvent('neurocampus_switch_tab', { detail: { tab: (targetStep as any).switchTab } }));
+      }
+
       // Navigate if needed
       if (needsRouteTransition) {
         console.log('[ONBOARDING DEBUG] navigating to', targetStep.route);
@@ -419,7 +426,7 @@ export const TutorialController = () => {
           sidebarEl.style.overflow = '';
         }
         handleCompleteTour();
-        navigate('/dashboard');
+        navigate(getHomePath(role));
       }
 
       if (action === ACTIONS.CLOSE) {
@@ -427,7 +434,7 @@ export const TutorialController = () => {
         return;
       }
     },
-    [steps, startDeferredTransition, handleStepChange, handleCompleteTour, handleSkipTour]
+    [steps, startDeferredTransition, handleStepChange, handleCompleteTour, handleSkipTour, role]
   );
 
   // Toggle body class based on isActive state

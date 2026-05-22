@@ -231,7 +231,7 @@ const FacultyAttendance = () => {
   return (
     <div className={` md: space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Today's Attendance */}
-      <Card className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}>
+      <Card id="admin-my-attendance-form" className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}>
         <CardHeader>
           <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
             Today's Attendance

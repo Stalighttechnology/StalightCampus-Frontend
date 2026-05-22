@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { TUTORIAL_KEYS } from '../constants/tutorialKeys';
 import { tutorialAnalytics } from '../services/tutorialAnalytics';
 import { studentTour } from '../config/studentTour';
@@ -14,13 +15,17 @@ import { hmsTour } from '../config/hmsTour';
 const ROLE_TO_TOUR_MAP: Record<string, any> = {
   student: { steps: studentTour, keys: TUTORIAL_KEYS.STUDENT },
   faculty: { steps: facultyTour, keys: TUTORIAL_KEYS.FACULTY },
+  teacher: { steps: facultyTour, keys: TUTORIAL_KEYS.FACULTY },
   hod: { steps: hodTour, keys: TUTORIAL_KEYS.HOD },
   admin: { steps: adminTour, keys: TUTORIAL_KEYS.ADMIN },
+  principal: { steps: adminTour, keys: TUTORIAL_KEYS.ADMIN },
   coe: { steps: coeTour, keys: TUTORIAL_KEYS.COE },
   dean: { steps: deanTour, keys: TUTORIAL_KEYS.DEAN },
   feesmanager: { steps: feesManagerTour, keys: TUTORIAL_KEYS.FEES },
+  fees_manager: { steps: feesManagerTour, keys: TUTORIAL_KEYS.FEES },
   warden: { steps: wardenTour, keys: TUTORIAL_KEYS.WARDEN },
   hms: { steps: hmsTour, keys: TUTORIAL_KEYS.HMS },
+  hms_admin: { steps: hmsTour, keys: TUTORIAL_KEYS.HMS },
 };
 
 const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean): any[] => {
@@ -142,6 +147,168 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean): a
         continue;
       }
 
+      if (target === '#sidebar-enroll-user') {
+        steps.push({
+          ...step,
+          target: '#enroll-user-header',
+          title: 'Enroll Staff',
+          content: 'Fill out this form to enroll new HODs, faculty members, Deans, COE, or Fees Managers.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-branches') {
+        steps.push({
+          ...step,
+          target: '#branches-management-header-section',
+          title: 'Branch Management',
+          content: 'View and manage all institutional branches, assign department heads, and export records.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-bulk-upload') {
+        steps.push({
+          ...step,
+          target: '#bulk-upload-form-section',
+          title: 'Bulk Upload Faculty',
+          content: 'Upload CSV or Excel files to bulk enroll faculty members into the system.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-teacher-assignments') {
+        steps.push({
+          ...step,
+          target: '#teacher-assignments-header-section',
+          title: 'Faculty Assignments',
+          content: 'Assign primary branches and departments to faculty members.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-qp-approvals') {
+        steps.push({
+          ...step,
+          target: '#qp-approvals-header-section',
+          title: 'Question Paper Approvals',
+          content: 'Review and approve question papers pending administrative oversight.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-batches') {
+        steps.push({
+          ...step,
+          target: '#add-new-batch-card',
+          title: 'Batches Management',
+          content: 'Configure academic batches, cohort details, and sections.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-announcement-management') {
+        steps.push({
+          ...step,
+          target: '#announcement-header-section',
+          title: 'Announcement Management',
+          content: 'Broadcast campus news and updates to students and staff.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-hod-leaves') {
+        steps.push({
+          ...step,
+          target: '#hod-leaves-header-section',
+          title: 'HOD Leave Requests',
+          content: 'Review and manage leave applications submitted by department heads.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-hod-attendance') {
+        steps.push(
+          {
+            ...step,
+            target: '#hod-attendance-today-section',
+            title: "Today's HOD Attendance",
+            content: "View today's attendance snapshot — total HODs, present, absent, and unmarked counts at a glance.",
+            placement: isMobile ? step.placement : 'top',
+          },
+          {
+            ...step,
+            target: '#hod-attendance-records-section',
+            title: 'Attendance Records Filter',
+            content: 'Select a start and end date, then apply the filter to view historical HOD attendance records.',
+            placement: isMobile ? step.placement : 'top',
+            switchTab: 'records',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-my-attendance') {
+        steps.push({
+          ...step,
+          target: '#admin-my-attendance-form',
+          title: 'My Attendance',
+          content: 'Mark your attendance as present or absent for today and optionally add notes.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-apply-leave') {
+        steps.push(
+          {
+            ...step,
+            target: '#apply-leave-form-card',
+            title: 'Apply for Leave',
+            content: 'Fill out this form and submit your leave requests.',
+            placement: isMobile ? step.placement : 'right',
+          },
+          {
+            ...step,
+            target: '#recent-leaves-card',
+            title: 'Recent Leaves',
+            content: 'Track the status of your submitted leave requests.',
+            placement: isMobile ? step.placement : 'left',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-users') {
+        steps.push({
+          ...step,
+          target: '#users-management-header-filters',
+          title: 'Users Directory',
+          content: 'View, edit, or deactivate any user profile within the institution.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-profile') {
+        steps.push({
+          ...step,
+          target: '#admin-profile-header',
+          title: 'Admin Profile Information',
+          content: 'Manage your profile details, change passwords, and configure settings.',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
       // Fallback for other sidebar items if any
       if (target.startsWith('#sidebar-')) {
         steps.push({
@@ -212,7 +379,8 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean): a
 };
 
 export const useTutorial = () => {
-  const [role, setRole] = useState<string>('');
+  const { role: authRole } = useAuth();
+  const [role, setRole] = useState<string>(authRole || '');
   const [isActive, setIsActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -253,12 +421,14 @@ export const useTutorial = () => {
     };
   }, [role, isMobile]);
 
-  // Initialize on mount: read role, check completed status, set modal
+  // Initialize and track role updates from context
   useEffect(() => {
-    const storedRole = localStorage.getItem('role') || 'student';
-    setRole(storedRole);
+    const resolvedRole = authRole || sessionStorage.getItem('role') || localStorage.getItem('role') || '';
+    if (!resolvedRole) return;
 
-    const tourConfig = ROLE_TO_TOUR_MAP[storedRole.toLowerCase()] || {
+    setRole(resolvedRole);
+
+    const tourConfig = ROLE_TO_TOUR_MAP[resolvedRole.toLowerCase()] || {
       steps: [],
       keys: TUTORIAL_KEYS.STUDENT,
     };
@@ -276,7 +446,7 @@ export const useTutorial = () => {
       setIsActive(true);
       setStepIndex(savedStep === 0 ? 1 : savedStep);
     }
-  }, []);
+  }, [authRole]);
 
   const handleStartTour = () => {
     setShowWelcomeModal(false);

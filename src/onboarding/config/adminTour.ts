@@ -3,7 +3,7 @@ import { Step } from 'react-joyride';
 export const adminTour: Step[] = [
   {
     target: 'body',
-    title: 'Welcome to NeuroCampus!',
+    title: 'Welcome to Stalight Campus!',
     content:
       'Let\'s show you around your admin dashboard to help you manage the entire institution.',
     placement: 'center' as const,
@@ -19,19 +19,37 @@ export const adminTour: Step[] = [
     route: '/admin',
   },
   {
-    target: '#admin-search-bar',
-    title: 'Global Search',
+    target: '#branch-distribution-chart',
+    title: 'Branch Distribution',
     content:
-      'Quickly find users, courses, and resources across the entire system.',
-    placement: 'bottom' as const,
+      'Analyze the count of students and faculty members distributed across various branches.',
+    placement: 'right' as const,
     disableBeacon: false,
     route: '/admin',
   },
   {
-    target: '#admin-charts',
-    title: 'Analytics Dashboard',
+    target: '#role-distribution-chart',
+    title: 'Role Distribution',
     content:
-      'View comprehensive analytics and reports about institutional performance.',
+      'Monitor the system user count distribution grouped by their roles.',
+    placement: 'left' as const,
+    disableBeacon: false,
+    route: '/admin',
+  },
+  {
+    target: '#branch-statistics-table',
+    title: 'Branch Statistics',
+    content:
+      'View the detailed breakdown of student and faculty numbers for each branch.',
+    placement: 'top' as const,
+    disableBeacon: false,
+    route: '/admin',
+  },
+  {
+    target: '#admin-action-cards',
+    title: 'Quick Actions',
+    content:
+      'Use these quick shortcuts to perform key administrative actions like enrolling users, managing branches, and assigning faculty.',
     placement: 'top' as const,
     disableBeacon: false,
     route: '/admin',
@@ -46,13 +64,111 @@ export const adminTour: Step[] = [
     route: '/admin/enroll-user',
   },
   {
-    target: '#sidebar-branch-management',
+    target: '#sidebar-bulk-upload',
+    title: 'Bulk Upload Faculty',
+    content:
+      'Quickly import large numbers of faculty members using standard CSV or Excel files.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/bulk-upload',
+  },
+  {
+    target: '#sidebar-branches',
     title: 'Branch Management',
     content:
       'Manage different branches or campuses and their respective configurations.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/admin/branch-management',
+    route: '/admin/branches',
+  },
+  {
+    target: '#sidebar-teacher-assignments',
+    title: 'Faculty Assignments',
+    content:
+      'Assign primary branches and departments to faculty members across the institution.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/teacher-assignments',
+  },
+  {
+    target: '#sidebar-qp-approvals',
+    title: 'Question Paper Approvals',
+    content:
+      'Review and approve question papers pending administrative oversight.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/qp-approvals',
+  },
+  {
+    target: '#sidebar-batches',
+    title: 'Batches Management',
+    content:
+      'Set up and configure academic cohorts, terms, and sections.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/batches',
+  },
+  {
+    target: '#sidebar-announcement-management',
+    title: 'Announcement Management',
+    content:
+      'Broadcast institutional news, alerts, and general updates to students and staff.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/announcement-management',
+  },
+  {
+    target: '#sidebar-hod-leaves',
+    title: 'HOD Leaves',
+    content:
+      'Review, approve, or reject leave applications submitted by Department Heads.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/hod-leaves',
+  },
+  {
+    target: '#sidebar-hod-attendance',
+    title: 'HOD Attendance',
+    content:
+      'Monitor and track HOD attendance records, checks-in, and statuses.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/hod-attendance',
+  },
+  {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content:
+      'Check your personal attendance logs and administrative schedule tracking.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/my-attendance',
+  },
+  {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Submit your own leave requests and view your leave applications history.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/apply-leave',
+  },
+  {
+    target: '#sidebar-users',
+    title: 'Users Directory',
+    content:
+      'View, edit, deactivate, or delete any user profile within the institution.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/users',
+  },
+  {
+    target: '#sidebar-profile',
+    title: 'Admin Profile',
+    content:
+      'Manage your personal details, credentials, and configuration settings.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/profile',
   },
 ];
-

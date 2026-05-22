@@ -239,31 +239,31 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
       `}</style>
 
       <div className={`${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-      <Card className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
-        <CardHeader className="assignment-card-header">
-          <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className={`assignment-title text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty-Branch Assignments</CardTitle>
-              <p className={`assignment-desc block text-xs md:text-base text-gray-500 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Assign primary branches to faculty members</p>
+      <Card id="teacher-assignments-card" className={theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}>
+        <div id="teacher-assignments-header-section" className="flex flex-col">
+          <CardHeader className="assignment-card-header">
+            <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className={`assignment-title text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty-Branch Assignments</CardTitle>
+                <p className={`assignment-desc block text-xs md:text-base text-gray-500 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Assign primary branches to faculty members</p>
+              </div>
+              <div className="w-full sm:w-auto">
+                <Button
+                    onClick={() => {
+                      setSelectedTeacher(null);
+                      setSelectedBranch("");
+                      setShowBranchDialog(true);
+                    }}
+                    className="assign-btn-mobile w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white">
+                    
+                  <Building className="h-4 w-4" />
+                  Assign Primary Branch
+                </Button>
+              </div>
             </div>
-            <div className="w-full sm:w-auto">
-              <Button
-                  onClick={() => {
-                    setSelectedTeacher(null);
-                    setSelectedBranch("");
-                    setShowBranchDialog(true);
-                  }}
-                  className="assign-btn-mobile w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white">
-                  
-                <Building className="h-4 w-4" />
-                Assign Primary Branch
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="assignment-card-content">
+          </CardHeader>
           {/* Search and Filter Controls */}
-          <div className="controls-wrapper flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="controls-wrapper px-4 sm:px-6 flex flex-col sm:flex-row gap-4 mb-4">
             <div className="search-container flex gap-2">
               <Input
                   placeholder="Search teachers by name or email..."
@@ -297,7 +297,8 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
               </Select>
             </div>
           </div>
-
+        </div>
+        <CardContent className="assignment-card-content">
           <div>
             {loading ?
               <SkeletonTable rows={5} cols={1} /> :

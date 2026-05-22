@@ -226,7 +226,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       <div>
         
         {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div id="admin-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           <DashboardCard
             title="Branches"
             value={stats.total_branches || 0}
@@ -261,7 +261,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
         {/* Search and Export */}
         <div className="flex justify-between items-center flex-wrap gap-4 mt-8">
-          <div className={`flex items-center w-full sm:w-1/2 rounded-lg px-4 py-2 shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+          <div id="admin-search-bar" className={`flex items-center w-full sm:w-1/2 rounded-lg px-4 py-2 shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
             <FiSearch className={theme === 'dark' ? "text-foreground mr-3" : "text-gray-500 mr-3"} />
             <input
               type="text"
@@ -281,9 +281,10 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <div id="admin-charts" className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
           {/* Bar Chart */}
           <div
+            id="branch-distribution-chart"
             className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
             
             <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -381,6 +382,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
           {/* Pie Chart */}
           <div
+            id="role-distribution-chart"
             className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
             
             <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -412,6 +414,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
         {/* Branch Statistics Table */}
         <div
+          id="branch-statistics-table"
           className={`rounded-lg shadow p-6 mt-5 ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
           
           <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -455,51 +458,60 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       </div>
       {/* Action Cards */}
         <div
+        id="admin-action-cards"
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         
           <DashboardCard
+          id="enroll-user-card"
           title="Enroll User"
           description="Add new HOD or faculty"
           icon={<User size={20} />}
           onClick={() => handleCardClick("enroll-user")} />
         
           <DashboardCard
+          id="bulk-upload-card"
           title="Bulk Upload Faculty"
           description="Upload faculty list"
           icon={<ClipboardList size={20} />}
           onClick={() => handleCardClick("bulk-upload")} />
         
           <DashboardCard
+          id="manage-branches-card"
           title="Manage Branches"
           description="View or edit branches"
           icon={<GitBranch size={20} />}
           onClick={() => handleCardClick("branches")} />
         
           <DashboardCard
+          id="faculty-assignments-card"
           title="Faculty Assignments"
           description="Assign teachers to branches & subjects"
           icon={<UserCheck size={20} />}
           onClick={() => handleCardClick("teacher-assignments")} />
         
           <DashboardCard
+          id="manage-batches-card"
           title="Manage Batches"
           description="View or manage batches"
           icon={<ClipboardList size={20} />}
           onClick={() => handleCardClick("batches")} />
         
           <DashboardCard
+          id="notifications-card"
           title="Notifications"
           description="Send or view notifications"
           icon={<Bell size={20} />}
           onClick={() => handleCardClick("notifications")} />
         
           <DashboardCard
+          id="hod-leaves-card"
           title="HOD Leaves"
           description="Manage HOD leave requests"
           icon={<UserCheck size={20} />}
           onClick={() => handleCardClick("hod-leaves")} />
         
           <DashboardCard
+          id="users-management-card"
           title="Users Management"
           description="Manage all system users"
           icon={<Users size={20} />}

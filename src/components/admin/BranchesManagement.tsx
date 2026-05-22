@@ -451,52 +451,52 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
       `}</style>
 
       <div className={`mx-auto w-full max-w-[400px] sm:max-w-full text-sm sm:text-base ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        <Card className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-280px)] min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-280px)] min-h-[550px]'}>
-          <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="w-full">
-              <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Branch Management
-              </CardTitle>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1">
-                <p className={`block text-xs md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Manage branches and assign department heads
-                </p>
+        <Card id="branches-management-card" className={theme === 'dark' ? 'branches-card w-full bg-card border border-border flex flex-col h-[calc(100vh-280px)] min-h-[550px]' : 'branches-card w-full bg-white border border-gray-200 flex flex-col h-[calc(100vh-280px)] min-h-[550px]'}>
+          <div id="branches-management-header-section" className="flex flex-col">
+            <CardHeader className="pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="w-full">
+                <CardTitle className={`text-2xl font-semibold leading-none tracking-tight mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Branch Management
+                </CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1">
+                  <p className={`block text-xs md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Manage branches and assign department heads
+                  </p>
 
+                </div>
               </div>
-            </div>
 
-            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-              <Button
-                size="sm"
-                className="flex items-center justify-center gap-1 w-full md:w-auto"
-                onClick={() => setIsAddDialogOpen(true)}
-                disabled={loading}>
+              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                <Button
+                  size="sm"
+                  className="flex items-center justify-center gap-1 w-full md:w-auto"
+                  onClick={() => setIsAddDialogOpen(true)}
+                  disabled={loading}>
 
-                <PlusIcon className="w-4 h-4" /> Add Branch
-              </Button>
+                  <PlusIcon className="w-4 h-4" /> Add Branch
+                </Button>
 
-              <Button
-                size="sm"
-                className="flex items-center justify-center gap-1 w-full md:w-auto"
-                onClick={() => setIsAssignDialogOpen(true)}
-                disabled={loading}>
+                <Button
+                  size="sm"
+                  className="flex items-center justify-center gap-1 w-full md:w-auto"
+                  onClick={() => setIsAssignDialogOpen(true)}
+                  disabled={loading}>
 
-                <UserPlus2Icon className="w-4 h-4" /> Assign HOD
-              </Button>
+                  <UserPlus2Icon className="w-4 h-4" /> Assign HOD
+                </Button>
 
-              <Button
-                size="sm"
-                className="flex items-center justify-center gap-1 w-full md:w-auto"
-                onClick={exportToPDF}
-                disabled={loading}>
+                <Button
+                  size="sm"
+                  className="flex items-center justify-center gap-1 w-full md:w-auto"
+                  onClick={exportToPDF}
+                  disabled={loading}>
 
-                <FileDownIcon className="w-4 h-4" /> Export PDF
-              </Button>
-            </div>
-          </CardHeader>
+                  <FileDownIcon className="w-4 h-4" /> Export PDF
+                </Button>
+              </div>
+            </CardHeader>
 
-          <CardContent className="flex-1 overflow-hidden flex flex-col px-2 sm:px-4 pt-0">
-            <div className="pt-3 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="px-2 sm:px-4 pt-3 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <Input
                 placeholder="Search by branch name..."
                 value={filter}
@@ -504,6 +504,9 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                 className={theme === 'dark' ? 'w-full sm:w-64 bg-card text-foreground py-1' : 'w-full sm:w-64 bg-white text-gray-900 py-1'} />
 
             </div>
+          </div>
+
+          <CardContent className="flex-1 overflow-hidden flex flex-col px-2 sm:px-4 pt-0">
 
             {loading && branches.length === 0 ?
               <SkeletonTable rows={pageSize} cols={4} /> :
