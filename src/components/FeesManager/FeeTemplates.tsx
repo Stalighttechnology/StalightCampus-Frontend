@@ -412,7 +412,7 @@ const FeeTemplates: React.FC = () => {
 
 
   return (
-    <div className="mx-auto">
+    <div id="feesmanager-templates-container" className="mx-auto">
       {error &&
       <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
@@ -421,7 +421,7 @@ const FeeTemplates: React.FC = () => {
       }
 
       <Card className={`${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <CardHeader id="feesmanager-templates-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <CardTitle className="flex items-center gap-2">
             Fee Templates List
           </CardTitle>

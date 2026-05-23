@@ -259,20 +259,21 @@ const BulkAssignment: React.FC = () => {
     selectedFilters.admissionMode;
 
   return (
-    <div>
+    <div id="feesmanager-bulk-assignment-container">
       <Card>
-        <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-2xl font-semibold flex items-center gap-2">
-                Bulk Fee Assignment
-              </CardTitle>
-              <p className="text-muted-foreground mt-1 text-sm">Mass assign fee templates to specific student cohorts</p>
+        <div id="feesmanager-bulk-assignment-filters">
+          <CardHeader id="feesmanager-bulk-assignment-header" className="border-b bg-muted/20 pb-6 px-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-2xl font-semibold flex items-center gap-2">
+                  Bulk Fee Assignment
+                </CardTitle>
+                <p className="text-muted-foreground mt-1 text-sm">Mass assign fee templates to specific student cohorts</p>
+              </div>
             </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="p-6">
+          <CardContent className="p-6">
           {/* Operational Safety Note */}
           <div className="mb-8 p-4 bg-primary/5 rounded-xl border border-primary/10">
             <h4 className="text-sm font-semibold text-primary flex items-center gap-2 mb-1">
@@ -366,7 +367,10 @@ const BulkAssignment: React.FC = () => {
               </Select>
             </div>
           </div>
+          </CardContent>
+        </div>
 
+        <CardContent className="p-6 pt-0">
           {!allFiltersSelected ? (
             <div className="min-h-[400px] py-10 flex flex-col items-center justify-center bg-muted/5 px-4 text-center rounded-xl border border-dashed">
               <div className="relative mb-6">

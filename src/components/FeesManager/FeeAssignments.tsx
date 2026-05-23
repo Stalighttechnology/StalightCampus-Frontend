@@ -312,31 +312,32 @@ const FeeAssignments: React.FC = () => {
   };
 
   return (
-    <div>
+    <div id="feesmanager-assignments-container">
       <Card className="border-border/50 shadow-sm overflow-hidden">
-        <CardHeader className="border-b bg-muted/10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Fee Assignments</CardTitle>
-              <p className="text-muted-foreground mt-1">Structured student selection and bulk fee template assignment</p>
+        <div id="feesmanager-assignments-filters">
+          <CardHeader className="border-b bg-muted/10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle>Fee Assignments</CardTitle>
+                <p className="text-muted-foreground mt-1">Structured student selection and bulk fee template assignment</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="px-3 py-1 font-medium h-9">
+                  {pagination.totalCount} Students Found
+                </Badge>
+                <Button
+                  disabled={selectedStudentIds.size === 0}
+                  onClick={() => setIsAssignDialogOpen(true)}
+                  className="bg-primary text-white hover:bg-primary/90 shadow-md transition-all active:scale-95 h-9">
+                  
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Assign ({selectedStudentIds.size})
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="px-3 py-1 font-medium h-9">
-                {pagination.totalCount} Students Found
-              </Badge>
-              <Button
-                disabled={selectedStudentIds.size === 0}
-                onClick={() => setIsAssignDialogOpen(true)}
-                className="bg-primary text-white hover:bg-primary/90 shadow-md transition-all active:scale-95 h-9">
-                
-                <UserCheck className="h-4 w-4 mr-2" />
-                Assign ({selectedStudentIds.size})
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="p-6">
+          <div className="p-6 pb-0">
           {/* Filters Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">
@@ -432,7 +433,10 @@ const FeeAssignments: React.FC = () => {
               
             </div>
           </div>
+        </div>
+      </div>
 
+        <CardContent className="p-6 pt-0">
           <div className="border rounded-xl overflow-hidden shadow-sm">
             {!allFiltersSelected ? (
               <div className="min-h-[400px] py-10 flex flex-col items-center justify-center bg-muted/5 px-4 text-center">

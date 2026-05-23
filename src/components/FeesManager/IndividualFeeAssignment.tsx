@@ -258,25 +258,26 @@ const IndividualFeeAssignment: React.FC = () => {
   };
 
   return (
-    <div>
+    <div id="feesmanager-individual-fees-container">
       <Card className="overflow-hidden">
-        <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle>
-                Individual Fee Management
-              </CardTitle>
-              <p className="text-muted-foreground mt-1 text-md sm:text-sm">Review and manage existing student fee assignments</p>
+        <div id="feesmanager-individual-assignments-filters">
+          <CardHeader className="border-b bg-muted/20 pb-6 px-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle>
+                  Individual Fee Management
+                </CardTitle>
+                <p className="text-muted-foreground mt-1 text-md sm:text-sm">Review and manage existing student fee assignments</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="px-3 py-1 font-medium h-9">
+                  {pagination.totalCount} Assignments Found
+                </Badge>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="px-3 py-1 font-medium h-9">
-                {pagination.totalCount} Assignments Found
-              </Badge>
-            </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="p-6">
+          <CardContent className="p-6">
           {/* Filters Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">
@@ -372,7 +373,10 @@ const IndividualFeeAssignment: React.FC = () => {
               
             </div>
           </div>
+          </CardContent>
+        </div>
 
+        <CardContent className="p-6 pt-0">
           <div className="border rounded-xl overflow-hidden shadow-sm">
             {!allFiltersSelected ? (
               <div className="min-h-[400px] py-10 flex flex-col items-center justify-center bg-muted/5 px-4 text-center">

@@ -148,9 +148,9 @@ const FeesManagerProfile: React.FC = () => {
 
 
   return (
-    <div className="flex justify-center items-start">
-      <Card className={`w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+    <div id="feesmanager-profile-container" className="flex justify-center items-start">
+      <Card id="feesmanager-profile-card" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+        <CardHeader id="feesmanager-profile-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
             <CardTitle>Fees Manager Profile</CardTitle>
             <p className="text-sm sm:text-sm mt-2 text-gray-500">Manage your account and contact details</p>

@@ -14,12 +14,68 @@ const scrollTargetIntoView = (selector: string) => {
     const el = document.querySelector(selector);
     if (!el) return;
 
+    // Scroll to top for top-level stats grids or stats headers to avoid scrollIntoView viewport bugs
+    const isTopElement =
+      selector.includes('stats-grid') ||
+      selector === '#feesmanager-invoices-header' ||
+      selector === '#feesmanager-payments-header';
+
+    if (isTopElement) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      console.log('[ONBOARDING DEBUG] Scrolled to top of scroll parent for element:', selector);
+      return;
+    }
+
     // Use smooth centering scroll to ensure targets are fully visible and centered
     el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
     console.log('[ONBOARDING DEBUG] Programmatically scrolled target into view:', selector);
   } catch (err) {
     console.error('[ONBOARDING DEBUG] Failed to scroll target into view:', err);
   }
+};
+
+const shouldScrollStep = (targetStep: any): boolean => {
+  const isMobile = window.innerWidth < 768;
+  const target = targetStep.target;
+
+  if (isMobile) {
+    // 1. Dashboard Chart Containers
+    const isChart =
+      target === '#feesmanager-charts-container' ||
+      target === '#dean-finance-charts-container' ||
+      target === '#dean-charts-container' ||
+      target === '#warden-charts-container' ||
+      target === '#statistics-charts-container' ||
+      target === '#admin-charts' ||
+      target === '#hod-attendance-trends' ||
+      target === '#hod-member-distribution';
+
+    // 2. Dashboard Card/Content components
+    const isDashboardCard =
+      target === '#feesmanager-recent-transactions' ||
+      target === '#feesmanager-action-cards' ||
+      target === '#student-schedule-card' ||
+      target === '#student-attendance-card' ||
+      target === '#student-timeline-card' ||
+      target === '#student-performance-card' ||
+      target === '#hod-leave-header' ||
+      target === '#admin-search-bar';
+
+    // 3. Stats grids & headers (which are at top of pages or dashboard)
+    const isStats =
+      typeof target === 'string' &&
+      (target.includes('stats') ||
+       target === '#feesmanager-invoices-header' ||
+       target === '#feesmanager-payments-header');
+
+    // 4. Recent Leave Applications lists (below forms)
+    const isRecentLeaves =
+      typeof target === 'string' &&
+      (target.includes('recent-leave') || target.includes('recent-leaves'));
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves;
+  }
+  return !targetStep.disableScrolling;
 };
 
 // CRITICAL: Check if element is actually visible (not just in DOM)
@@ -213,9 +269,11 @@ export const TutorialController = () => {
     const targetStep = steps[targetIndex];
     if (targetStep) {
       // 1. Scroll first, while Joyride is still paused (isNavigating is true)
-      scrollTargetIntoView(targetStep.target);
+      if (shouldScrollStep(targetStep)) {
+        scrollTargetIntoView(targetStep.target);
+      }
       
-      // 2. Wait for the smooth scroll to finish (400ms)
+      // 2. Wait for the smooth scroll to finish (600ms)
       setTimeout(() => {
         console.log('[ONBOARDING DEBUG] Smooth scroll finished, resuming Joyride for step:', targetIndex);
         setIsNavigating(false);
@@ -223,7 +281,7 @@ export const TutorialController = () => {
         
         // Trigger a post-scroll resize to ensure charts/components align correctly
         window.dispatchEvent(new Event('resize'));
-      }, 400);
+      }, 600);
     } else {
       setIsNavigating(false);
       handleStepChange(targetIndex);
@@ -269,16 +327,18 @@ export const TutorialController = () => {
         setIsNavigating(true);
         
         // 1. Scroll first
-        scrollTargetIntoView(targetStep.target);
+        if (shouldScrollStep(targetStep)) {
+          scrollTargetIntoView(targetStep.target);
+        }
         
-        // 2. Wait for the smooth scroll to finish (400ms)
+        // 2. Wait for the smooth scroll to finish (600ms)
         setTimeout(() => {
           console.log('[ONBOARDING DEBUG] Fast Path scroll finished, resuming Joyride for step:', targetIndex);
           setIsNavigating(false);
           handleStepChange(targetIndex);
           window.dispatchEvent(new Event('resize'));
           transitionLockRef.current = false;
-        }, 400);
+        }, 600);
         return;
       }
 

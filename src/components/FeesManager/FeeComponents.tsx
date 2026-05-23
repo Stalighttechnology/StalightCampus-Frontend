@@ -230,7 +230,7 @@ const FeeComponents: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto">
+    <div id="feesmanager-components-container" className="mx-auto">
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
@@ -239,7 +239,7 @@ const FeeComponents: React.FC = () => {
       )}
 
       <Card className={`${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="flex flex-row items-center justify-between max-[480px]:flex-col max-[480px]:items-start gap-4">
+        <CardHeader id="feesmanager-components-header" className="flex flex-row items-center justify-between max-[480px]:flex-col max-[480px]:items-start gap-4">
           <div>
             <CardTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Fee Components List
