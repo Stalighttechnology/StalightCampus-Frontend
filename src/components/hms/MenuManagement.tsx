@@ -497,7 +497,7 @@ const MenuManagement: React.FC = () => {
     <div className="space-y-8 pb-10">
       {/* Header */}
       <Card className="border-primary/10 shadow-sm overflow-hidden">
-        <CardHeader className="pb-6 border-b bg-muted/30">
+        <CardHeader id="hms-menu-card" className="pb-6 border-b bg-muted/30">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="space-y-1">
               <CardTitle className="text-2xl font-semibold tracking-tight">Menu Management</CardTitle>

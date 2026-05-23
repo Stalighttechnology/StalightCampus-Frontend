@@ -13,6 +13,7 @@ import { coeTransform } from './coeTransform';
 import { deanTransform } from './deanTransform';
 import { wardenTransform } from './wardenTransform';
 import { feesManagerTransform } from './feesManagerTransform';
+import { hmsTransform } from './hmsTransform';
 
 export { applyMobileLabels } from './mobileLabels';
 
@@ -42,8 +43,8 @@ export const ROLE_TRANSFORM_MAP: Record<string, RoleTransformFn> = {
   fees_manager: feesManagerTransform,
 
   warden: wardenTransform,
-  hms: wardenTransform,
-  hms_admin: wardenTransform,
+  hms: hmsTransform,
+  hms_admin: hmsTransform,
 };
 
 /**

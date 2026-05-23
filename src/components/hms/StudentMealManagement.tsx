@@ -96,7 +96,7 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
 
   return (
     <Card className="border-primary/10 shadow-sm overflow-hidden">
-      <CardHeader className="pb-4">
+      <CardHeader id="hms-meals-card" className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-orange-500/10 p-2 rounded-lg">

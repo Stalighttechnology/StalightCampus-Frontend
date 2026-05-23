@@ -146,7 +146,7 @@ const HostelManagement: React.FC = () => {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader id="hms-hostels-card" className="pb-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
               <Building className="w-5 h-5 text-primary" />

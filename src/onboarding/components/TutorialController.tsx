@@ -104,7 +104,11 @@ const shouldScrollStep = (targetStep: any): boolean => {
       typeof target === 'string' &&
       (target.includes('recent-leave') || target.includes('recent-leaves') || target.includes('pending-leaves') || target.includes('admin-leaves'));
 
-    return isChart || isDashboardCard || isStats || isRecentLeaves;
+    // 5. HMS Admin tour targets
+    const isHMS =
+      typeof target === 'string' && target.startsWith('#hms-');
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS;
   }
   return !targetStep.disableScrolling;
 };

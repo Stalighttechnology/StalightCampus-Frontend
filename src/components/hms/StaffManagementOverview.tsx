@@ -193,7 +193,7 @@ const StaffManagementOverview: React.FC = () => {
     <div className="space-y-8">
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 gap-6">
+      <div id="hms-staff-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 gap-6">
         <DashboardCard
           title="Total Wardens"
           value={isSkeleton ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : wardensTotal.toString()}
@@ -206,7 +206,7 @@ const StaffManagementOverview: React.FC = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div id="hms-staff-lists-container" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Wardens List */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3 border-b">

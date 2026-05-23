@@ -255,7 +255,7 @@ const StudentManagement: React.FC = () => {
   return (
     <div className="space-y-4">
       <Card className="border-primary/10 shadow-sm overflow-hidden">
-        <CardHeader className="bg-muted/30 pb-4 border-b">
+        <CardHeader id="hms-students-card" className="bg-muted/30 pb-4 border-b">
           <div className="flex flex-col space-y-6">
             <div className="flex flex-col space-y-1">
               <h2 className="text-2xl font-semibold leading-none tracking-tight">Student Management</h2>
