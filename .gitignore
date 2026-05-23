@@ -106,3 +106,36 @@ bun.lockb
 
 # Agent
 .agent
+# ==========================
+# Code Review Graph
+# ==========================
+.code-review-graph/
+
+# Local AI tooling folders
+.claude/
+.gemini/
+.qoder/
+.cursor/
+.kiro/
+.opencode/
+
+# MCP configs (machine-specific)
+.mcp.json
+.opencode.json
+.vscode/mcp.json
+.cursor/mcp.json
+.qoder/mcp.json
+
+# Generated runtime / hooks / skills
+crg-session-start.sh
+crg-updates.sh
+skills/
+hooks/
+
+# Optional generated AI instruction files
+CLAUDE.md
+GEMINI.md
+QODER.md
+.cursorrules
+.windsurfrules
+.github/code-review-graph.instruction.md
