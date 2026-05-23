@@ -359,9 +359,9 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   }
 
   return (
-    <div ref={ref} className="space-y-6">
+    <div ref={ref} id="coe-qp-approvals-container" className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader id="coe-qp-approvals-card">
           <CardTitle>Question Paper Final Approvals</CardTitle>
         </CardHeader>
         <CardContent>

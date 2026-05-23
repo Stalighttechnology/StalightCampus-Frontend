@@ -238,9 +238,9 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div ref={ref} className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div ref={ref} id="coe-exam-scheduling-container" className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`w-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b">
+        <CardHeader id="coe-exam-scheduling-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b">
           <div className="flex-1 min-w-0">
             <CardTitle>Exam Scheduling</CardTitle>
             <p className={`text-xs sm:text-sm mt-1 line-clamp-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

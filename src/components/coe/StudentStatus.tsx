@@ -159,8 +159,11 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
     <div ref={ref} id="coe-student-status-container" className="student-status-main-container w-full max-w-full">
       <div className="space-y-4 sm:space-y-6">
       {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
+      <Card id="coe-student-status-filters">
+        <CardHeader className="pb-2">
+          <CardTitle>Student Application Status</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Batch</label>

@@ -287,11 +287,11 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div ref={ref} className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div ref={ref} id="coe-apply-leave-container" className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Main Container with Responsive Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Leave Application Form - Left Side */}
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
+        <Card id="coe-leave-application-form" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
             <CardTitle className={`text-xl sm:text-xl lg:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
           </CardHeader>
@@ -379,7 +379,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
         </Card>
 
         {/* Leave Requests List - Right Side */}
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
+        <Card id="coe-recent-leave-applications" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
             <div>
               <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
