@@ -174,85 +174,92 @@ const DeanAttendanceFilters = () => {
         </Alert>
       ) : (
         <>
-          {/* Filter Controls Card */}
-          <div className={`p-4 rounded-lg shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"}`}>
-            <div className="flex flex-wrap lg:flex-nowrap items-end justify-between gap-4">
-              {/* Left Side: Role & Select */}
-              <div className="flex gap-4 items-end flex-wrap w-full">
-                <div className="w-full lg:w-auto">
-                  <label htmlFor="dean-filter-role" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
-                    Role
-                  </label>
-                  <Select value={selectedRole} onValueChange={(value) => {
-                    setSelectedRole(value);
-                    setSelectedPersonId(null);
-                  }}>
-                    <SelectTrigger className={`w-full lg:w-[120px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hod">HOD</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <div id="dean-attendance-filters-card">
+            <div className="mb-4">
+              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Filters</h2>
+              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter and analyze attendance data historically by date and role</p>
+            </div>
+
+            {/* Filter Controls Card */}
+            <div className={`p-4 rounded-lg shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"}`}>
+              <div className="flex flex-wrap lg:flex-nowrap items-end justify-between gap-4">
+                {/* Left Side: Role & Select */}
+                <div className="flex gap-4 items-end flex-wrap w-full">
+                  <div className="w-full lg:w-auto">
+                    <label htmlFor="dean-filter-role" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
+                      Role
+                    </label>
+                    <Select value={selectedRole} onValueChange={(value) => {
+                      setSelectedRole(value);
+                      setSelectedPersonId(null);
+                    }}>
+                      <SelectTrigger className={`w-full lg:w-[120px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hod">HOD</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="w-full lg:w-auto">
+                    <label htmlFor="dean-filter-person" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
+                      Select
+                    </label>
+                    <Select value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value || null)}>
+                      <SelectTrigger className={`w-full lg:w-[180px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
+                        <SelectValue placeholder={selectedRole === "hod" ? "Select hod" : "Select admin"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectedRole === "hod" && hodList.map((h: any) => (
+                          <SelectItem key={h.id} value={h.id}>
+                            {h.name} {h.branch ? `• ${h.branch}` : ""}
+                          </SelectItem>
+                        ))}
+                        {selectedRole === "admin" && adminList.map((a: any) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="w-full lg:w-auto">
-                  <label htmlFor="dean-filter-person" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
-                    Select
+                {/* Right Side: Date Range & Clear */}
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full lg:w-auto">
+                  <label className={`text-sm font-semibold whitespace-nowrap ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
+                    Date Range to filter
                   </label>
-                  <Select value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value || null)}>
-                    <SelectTrigger className={`w-full lg:w-[180px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
-                      <SelectValue placeholder={selectedRole === "hod" ? "Select hod" : "Select admin"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedRole === "hod" && hodList.map((h: any) => (
-                        <SelectItem key={h.id} value={h.id}>
-                          {h.name} {h.branch ? `• ${h.branch}` : ""}
-                        </SelectItem>
-                      ))}
-                      {selectedRole === "admin" && adminList.map((a: any) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDateModalOpen(true)}
+                    disabled={!selectedPersonId}
+                    className={cn(
+                      "w-full lg:w-auto justify-start text-left font-normal gap-2",
+                      !startDate && "text-muted-foreground",
+                      theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"
+                    )}
+                  >
+                    <Calendar className="h-4 w-4" />
+                    {startDate && endDate
+                      ? `${startDate} to ${endDate}`
+                      : "Select dates"}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    disabled={!startDate && !endDate}
+                    onClick={() => {
+                      setStartDate("");
+                      setEndDate("");
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Clear
+                  </Button>
                 </div>
-              </div>
-
-              {/* Right Side: Date Range & Clear */}
-              <div className="flex flex-col lg:flex-row lg:items-center gap-4 w-full lg:w-auto">
-                <label className={`text-sm font-semibold whitespace-nowrap ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
-                  Date Range to filter
-                </label>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDateModalOpen(true)}
-                  disabled={!selectedPersonId}
-                  className={cn(
-                    "w-full lg:w-auto justify-start text-left font-normal gap-2",
-                    !startDate && "text-muted-foreground",
-                    theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"
-                  )}
-                >
-                  <Calendar className="h-4 w-4" />
-                  {startDate && endDate
-                    ? `${startDate} to ${endDate}`
-                    : "Select dates"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={!startDate && !endDate}
-                  onClick={() => {
-                    setStartDate("");
-                    setEndDate("");
-                  }}
-                  className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Clear
-                </Button>
               </div>
             </div>
           </div>

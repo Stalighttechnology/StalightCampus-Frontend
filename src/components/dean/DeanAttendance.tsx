@@ -92,31 +92,38 @@ const DeanAttendance = () => {
         </Alert>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <DashboardCard
-              title={`HODs Present ${isMonthly ? 'Days' : ''}`}
-              value={hodPresentCount}
-              description={`Total HODs: ${totalHods}`}
-              icon={<FaUserTie className={theme === 'dark' ? 'text-green-400 text-3xl' : 'text-green-500 text-3xl'} />}
-            />
-            <DashboardCard
-              title={`HODs Absent ${isMonthly ? 'Days' : ''}`}
-              value={hodAbsentCount}
-              description={isMonthly ? 'Absent days in period' : 'Absent today'}
-              icon={<FaUserSlash className={theme === 'dark' ? 'text-red-400 text-3xl' : 'text-red-500 text-3xl'} />}
-            />
-            <DashboardCard
-              title="Admins Present"
-              value={adminPresentCount}
-              description={`Admin presence ${isMonthly ? 'in period' : '(today)'}`}
-              icon={<FaUserShield className={theme === 'dark' ? 'text-indigo-400 text-3xl' : 'text-indigo-500 text-3xl'} />}
-            />
-            <DashboardCard
-              title="Admins Absent"
-              value={isMonthly ? '—' : adminAbsentCount}
-              description={isMonthly ? '(not tracked)' : 'Absent today'}
-              icon={<FaUserSlash className={theme === 'dark' ? 'text-gray-400 text-3xl' : 'text-gray-500 text-3xl'} />}
-            />
+          <div id="dean-attendance-stats-grid">
+            <div className="mb-4">
+              <h2 className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Today's Attendance</h2>
+              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Real-time presence summary of HODs and Admins</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <DashboardCard
+                title={`HODs Present ${isMonthly ? 'Days' : ''}`}
+                value={hodPresentCount}
+                description={`Total HODs: ${totalHods}`}
+                icon={<FaUserTie className={theme === 'dark' ? 'text-green-400 text-3xl' : 'text-green-500 text-3xl'} />}
+              />
+              <DashboardCard
+                title={`HODs Absent ${isMonthly ? 'Days' : ''}`}
+                value={hodAbsentCount}
+                description={isMonthly ? 'Absent days in period' : 'Absent today'}
+                icon={<FaUserSlash className={theme === 'dark' ? 'text-red-400 text-3xl' : 'text-red-500 text-3xl'} />}
+              />
+              <DashboardCard
+                title="Admins Present"
+                value={adminPresentCount}
+                description={`Admin presence ${isMonthly ? 'in period' : '(today)'}`}
+                icon={<FaUserShield className={theme === 'dark' ? 'text-indigo-400 text-3xl' : 'text-indigo-500 text-3xl'} />}
+              />
+              <DashboardCard
+                title="Admins Absent"
+                value={isMonthly ? '—' : adminAbsentCount}
+                description={isMonthly ? '(not tracked)' : 'Absent today'}
+                icon={<FaUserSlash className={theme === 'dark' ? 'text-gray-400 text-3xl' : 'text-gray-500 text-3xl'} />}
+              />
+            </div>
           </div>
 
 

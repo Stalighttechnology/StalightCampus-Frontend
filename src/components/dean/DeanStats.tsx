@@ -247,7 +247,7 @@ const DeanStats = () => {
               </div>
 
               <div id="dean-charts-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className={`rounded-xl shadow-sm p-6 border ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
+                <div id="dean-branch-distribution-card" className={`rounded-xl shadow-sm p-6 border ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
                   <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch Distribution</h3>
                   <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Students and faculty across branches</p>
                   <div className="h-80">
@@ -255,7 +255,7 @@ const DeanStats = () => {
                   </div>
                 </div>
 
-                <div className={`rounded-xl shadow-sm p-6 border ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
+                <div id="dean-role-distribution-card" className={`rounded-xl shadow-sm p-6 border ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
                   <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Role Distribution</h3>
                   <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Current user role composition</p>
                   <div className="h-80">
@@ -264,7 +264,7 @@ const DeanStats = () => {
                 </div>
               </div>
 
-              <div className={`rounded-xl shadow-sm overflow-hidden border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+              <div id="dean-branch-summary-card" className={`rounded-xl shadow-sm overflow-hidden border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
                 <div className="px-6 py-4 border-b bg-muted/20">
                   <h3 className={`text-base font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch Summary</h3>
                 </div>

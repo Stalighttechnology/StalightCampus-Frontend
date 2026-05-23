@@ -14,15 +14,38 @@ const scrollTargetIntoView = (selector: string) => {
     const el = document.querySelector(selector);
     if (!el) return;
 
-    // Scroll to top for top-level stats grids or stats headers to avoid scrollIntoView viewport bugs
+    // Scroll to top for top-level stats grids, header elements, or filters cards to avoid being cut off by the sticky topbar.
+    // Exclude selectors that contain 'stats-grid' but are nested BELOW a header (e.g. faculty stats, which are inside a profile card).
+    const isNestedStatsGrid =
+      selector === '#dean-faculty-stats-grid';
+
     const isTopElement =
-      selector.includes('stats-grid') ||
+      (!isNestedStatsGrid && selector.includes('stats-grid')) ||
+      selector.includes('filters-card') ||
+      selector.includes('filters-header-wrapper') ||
+      selector.includes('locations-header') ||
       selector === '#feesmanager-invoices-header' ||
       selector === '#feesmanager-payments-header';
 
     if (isTopElement) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      console.log('[ONBOARDING DEBUG] Scrolled to top of scroll parent for element:', selector);
+      // Find scroll parent and scroll it to top
+      const scrollParent = (() => {
+        let parent = el.parentElement;
+        while (parent) {
+          const style = window.getComputedStyle(parent);
+          if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            return parent;
+          }
+          parent = parent.parentElement;
+        }
+        return null;
+      })();
+
+      if (scrollParent) {
+        scrollParent.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      console.log('[ONBOARDING DEBUG] Scrolled parent and window to top for element:', selector);
       return;
     }
 
@@ -43,7 +66,8 @@ const shouldScrollStep = (targetStep: any): boolean => {
     const isChart =
       target === '#feesmanager-charts-container' ||
       target === '#dean-finance-charts-container' ||
-      target === '#dean-charts-container' ||
+      target === '#dean-branch-distribution-card' ||
+      target === '#dean-role-distribution-card' ||
       target === '#warden-charts-container' ||
       target === '#statistics-charts-container' ||
       target === '#admin-charts' ||
@@ -59,7 +83,14 @@ const shouldScrollStep = (targetStep: any): boolean => {
       target === '#student-timeline-card' ||
       target === '#student-performance-card' ||
       target === '#hod-leave-header' ||
-      target === '#admin-search-bar';
+      target === '#admin-search-bar' ||
+      target === '#hod-search-student-card' ||
+      target === '#dean-attendance-filters-card' ||
+      target === '#dean-faculty-filters-header-wrapper' ||
+      target === '#dean-campus-locations-header' ||
+      target === '#dean-profile-card' ||
+      target === '#dean-branch-summary-card' ||
+      target === '#dean-recent-leaves';
 
     // 3. Stats grids & headers (which are at top of pages or dashboard)
     const isStats =
@@ -71,7 +102,7 @@ const shouldScrollStep = (targetStep: any): boolean => {
     // 4. Recent Leave Applications lists (below forms)
     const isRecentLeaves =
       typeof target === 'string' &&
-      (target.includes('recent-leave') || target.includes('recent-leaves'));
+      (target.includes('recent-leave') || target.includes('recent-leaves') || target.includes('pending-leaves') || target.includes('admin-leaves'));
 
     return isChart || isDashboardCard || isStats || isRecentLeaves;
   }
