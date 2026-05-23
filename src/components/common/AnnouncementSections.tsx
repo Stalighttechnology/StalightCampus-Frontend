@@ -178,7 +178,7 @@ export const AnnouncementSections = ({
         <div id={header ? "announcement-header-section" : undefined} className={header ? "flex flex-col" : undefined}>
           {header}
           <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${header ? 'px-6 pb-4' : ''}`}>
-        <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl">
+        <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl mt-5">
           <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
             <span className="text-sm font-semibold">My Announcements</span>
             {myPagination && myPagination.count > 0 && (
@@ -209,7 +209,7 @@ export const AnnouncementSections = ({
           variant="outline"
           size="sm"
           onClick={() => setShowExpired(!showExpired)}
-          className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed hover:border-solid ${showExpired
+          className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed mt-5 hover:border-solid ${showExpired
               ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
               : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
             }`}

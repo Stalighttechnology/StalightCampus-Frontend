@@ -9,6 +9,7 @@ export const hodTour: Step[] = [
     placement: 'center' as const,
     disableBeacon: true,
   },
+  // ── Dashboard ────────────────────────────────────────────────
   {
     target: '#hod-stats-cards',
     title: 'Department Statistics',
@@ -45,14 +46,69 @@ export const hodTour: Step[] = [
     disableBeacon: false,
     route: '/hod/dashboard',
   },
+  // ── Academic Management ──────────────────────────────────────
   {
-    target: '#sidebar-faculty-attendance',
-    title: 'Faculty Attendance',
+    target: '#sidebar-semesters',
+    title: 'Semester Management',
     content:
-      'Monitor attendance records for all faculty members in your department.',
+      'Add, edit, and manage semesters and sections for your department. Keep your academic calendar organized.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/hod/faculty-attendance',
+    route: '/hod/semesters',
+  },
+  {
+    target: '#sidebar-students',
+    title: 'Student Enrollment',
+    content:
+      'View and manage student profiles, enrollment status, and assignments across all semesters.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/students',
+  },
+  {
+    target: '#student-list-header-section',
+    title: 'Student List & Search',
+    content:
+      'View enrolled students, perform bulk uploads, search for specific students, and filter by semester/section.',
+    placement: 'top' as const,
+    disableBeacon: false,
+    route: '/hod/students',
+  },
+  {
+    target: '#sidebar-student-enrollment',
+    title: 'Elective Course Enrollment',
+    content:
+      'Manage elective and open-elective course enrollment for students in your department.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/student-enrollment',
+  },
+  {
+    target: '#sidebar-subjects',
+    title: 'Courses / Subjects',
+    content:
+      'Add and manage courses and subjects offered by your department, including subject codes and credits.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/subjects',
+  },
+  {
+    target: '#sidebar-faculty-assignments',
+    title: 'Faculty Assignments',
+    content:
+      'Assign faculty members to subjects, sections, and semesters. Manage teaching loads across your department.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/faculty-assignments',
+  },
+  {
+    target: '#sidebar-qp-approvals',
+    title: 'Question Paper Approvals',
+    content:
+      'Review and approve question papers submitted by faculty before they are forwarded to administration.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/qp-approvals',
   },
   {
     target: '#sidebar-timetable',
@@ -64,13 +120,117 @@ export const hodTour: Step[] = [
     route: '/hod/timetable',
   },
   {
-    target: '#sidebar-users-management',
-    title: 'User Management',
+    target: '#sidebar-proctors',
+    title: 'Proctors',
     content:
-      'Manage faculty and student profiles, assign roles, and control access permissions.',
+      'Assign and manage faculty proctors for student mentorship and academic guidance.',
     placement: 'right' as const,
     disableBeacon: false,
-    route: '/hod/students',
+    route: '/hod/proctors',
+  },
+  {
+    target: '#proctors-header-filters-section',
+    title: 'Manage Proctor Assignments',
+    content:
+      'Filter students by semester and section, search by name or USN, and assign them to proctors.',
+    placement: 'top' as const,
+    disableBeacon: false,
+    route: '/hod/proctors',
+  },
+  // ── Attendance & Marks ───────────────────────────────────────
+  {
+    target: '#sidebar-low-attendance',
+    title: 'Low Attendance',
+    content:
+      'Identify students with attendance below the required threshold and take corrective action.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/low-attendance',
+  },
+  {
+    target: '#sidebar-faculty-attendance',
+    title: 'Faculty Attendance',
+    content:
+      'Monitor attendance records for all faculty members in your department.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/faculty-attendance',
+  },
+  {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content:
+      'View and track your own personal attendance records.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/my-attendance',
+  },
+  {
+    target: '#sidebar-promotion-management',
+    title: 'Promotion Management',
+    content:
+      'Promote or demote students between semesters based on their academic performance.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/promotion-management',
+  },
+  // ── Leaves ────────────────────────────────────────────────────
+  {
+    target: '#sidebar-leaves',
+    title: 'Faculty Leaves',
+    content:
+      'Review and approve leave requests submitted by faculty members in your department.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/leaves',
+  },
+  {
+    target: '#sidebar-apply-leaves',
+    title: 'Apply Leaves',
+    content:
+      'Submit your own leave applications and track their approval status.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/apply-leaves',
+  },
+  // ── Resources & Communication ────────────────────────────────
+  {
+    target: '#sidebar-study-materials',
+    title: 'Study Material',
+    content:
+      'Upload and manage study resources, notes, and reference materials for students.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/study-materials',
+  },
+  {
+    target: '#sidebar-scan-student-info',
+    title: 'Scan for Student Info',
+    content:
+      'Quickly look up student information by scanning QR codes or searching by name/USN.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/scan-student-info',
+  },
+  {
+    target: '#sidebar-hod-announcement-management',
+    title: 'Branch Announcements',
+    content:
+      'Create and broadcast announcements to students and faculty within your branch.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/hod-announcement-management',
+  },
+  // ── Profile ───────────────────────────────────────────────────
+  {
+    target: '#sidebar-hod-profile',
+    title: 'HOD Profile',
+    content:
+      'View and update your personal information, change your password, and manage your profile picture.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/hod-profile',
   },
 ];
+
 

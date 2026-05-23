@@ -840,7 +840,7 @@ const StudentManagement = () => {
   // Chart removed
 
   return (
-    <div className={` sm: md: lg: space-y-6 md:space-y-5 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-students-container" className={` sm: md: lg: space-y-6 md:space-y-5 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {state.successMessage &&
       <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{state.successMessage}</p>
       }
@@ -853,7 +853,7 @@ const StudentManagement = () => {
       }
 
       {/* Add Student Manually Form */}
-      <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+      <Card id="add-student-manually-card" className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
           <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Add Student Manually</CardTitle>
         </CardHeader>
@@ -1134,107 +1134,111 @@ const StudentManagement = () => {
       </Card>
 
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader>
-          <div className="flex flex-row justify-between items-center gap-2 md:gap-4">
-            <CardTitle>Student List</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => updateState({ addStudentModal: true })}
-                className="flex-shrink-0 flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap"
-                disabled={state.isLoading || !state.branchId}>
-                
-                <Upload className="w-4 h-4" />
-                <span className="hidden sm:inline">Bulk Upload</span>
-                <span className="sm:hidden">Upload</span>
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-4 mb-4">
-            {/* Left side: Search input and button */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Search students..."
-                className={`flex-1 md:w-48 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-                value={state.search}
-                onChange={(e) => updateState({ search: e.target.value })}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
-              
-              <Button onClick={handleSearch} variant="outline" className="text-xs md:text-sm">
-                Search
-              </Button>
-            </div>
-
-            {/* Right side: Dropdowns */}
-            <div className="flex gap-2 md:gap-4">
-              <Select
-                value={state.semesterFilter}
-                onValueChange={(value) =>
-                updateState({
-                  semesterFilter: value,
-                  sectionFilter: "All",
-                  currentPage: 1,
-                  listSections: []
-                })
-                }
-                disabled={state.isLoading || state.semesters.length === 0}>
-                
-                <SelectTrigger className={`flex-1 md:w-40 md:max-w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                  <SelectValue
-                    placeholder={
-                    state.semesters.length === 0 ?
-                    "No semesters available" :
-                    "Select Semester"
-                    } />
+        <div id="student-list-header-section">
+          <CardHeader>
+            <div className="flex flex-row justify-between items-center gap-2 md:gap-4">
+              <CardTitle>Student List</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => updateState({ addStudentModal: true })}
+                  className="flex-shrink-0 flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap"
+                  disabled={state.isLoading || !state.branchId}>
                   
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Choose Semesters</SelectItem>
-                  {state.semesters.map((s) =>
-                  <SelectItem key={s.id} value={s.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
-                      Semester {s.number}
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                  <Upload className="w-4 h-4" />
+                  <span className="hidden sm:inline">Bulk Upload</span>
+                  <span className="sm:hidden">Upload</span>
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
 
-              <Select
-                value={state.sectionFilter}
-                onValueChange={(value) =>
-                updateState({ sectionFilter: value, currentPage: 1 })
-                }
-                disabled={
-                state.isLoading ||
-                state.semesterFilter === "All" ||
-                state.listSections.length === 0
-                }>
+          <CardContent className="pb-4">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-4">
+              {/* Left side: Search input and button */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search students..."
+                  className={`flex-1 md:w-48 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                  value={state.search}
+                  onChange={(e) => updateState({ search: e.target.value })}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
                 
-                <SelectTrigger className={`flex-1 md:w-40 md:max-w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                  <SelectValue
-                    placeholder={
-                    state.listSections.length === 0 ||
-                    state.semesterFilter === "All" ?
-                    "Select semester first" :
-                    "Select Section"
-                    } />
+                <Button onClick={handleSearch} variant="outline" className="text-xs md:text-sm">
+                  Search
+                </Button>
+              </div>
+
+              {/* Right side: Dropdowns */}
+              <div className="flex gap-2 md:gap-4">
+                <Select
+                  value={state.semesterFilter}
+                  onValueChange={(value) =>
+                  updateState({
+                    semesterFilter: value,
+                    sectionFilter: "All",
+                    currentPage: 1,
+                    listSections: []
+                  })
+                  }
+                  disabled={state.isLoading || state.semesters.length === 0}>
                   
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                  <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>All Sections</SelectItem>
-                  {state.listSections.
-                  filter((section) => section.semester_id === state.semesterFilter).
-                  map((section) =>
-                  <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
-                        Section {section.name}
+                  <SelectTrigger className={`flex-1 md:w-40 md:max-w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                    <SelectValue
+                      placeholder={
+                      state.semesters.length === 0 ?
+                      "No semesters available" :
+                      "Select Semester"
+                      } />
+                    
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                    <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Choose Semesters</SelectItem>
+                    {state.semesters.map((s) =>
+                    <SelectItem key={s.id} value={s.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
+                        Semester {s.number}
                       </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                    )}
+                  </SelectContent>
+                </Select>
 
+                <Select
+                  value={state.sectionFilter}
+                  onValueChange={(value) =>
+                  updateState({ sectionFilter: value, currentPage: 1 })
+                  }
+                  disabled={
+                  state.isLoading ||
+                  state.semesterFilter === "All" ||
+                  state.listSections.length === 0
+                  }>
+                  
+                  <SelectTrigger className={`flex-1 md:w-40 md:max-w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                    <SelectValue
+                      placeholder={
+                      state.listSections.length === 0 ||
+                      state.semesterFilter === "All" ?
+                      "Select semester first" :
+                      "Select Section"
+                      } />
+                    
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                    <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>All Sections</SelectItem>
+                    {state.listSections.
+                    filter((section) => section.semester_id === state.semesterFilter).
+                    map((section) =>
+                    <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
+                          Section {section.name}
+                        </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </div>
+
+        <CardContent className="pt-0">
           {state.isLoading ?
           <div className="py-4">
               <SkeletonTable rows={10} cols={7} />

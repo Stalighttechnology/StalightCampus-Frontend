@@ -262,12 +262,13 @@ const StudentEnrollment = () => {
   };
 
   return (
-    <div className="w-full mx-auto max-w-none">
+    <div id="hod-student-enrollment-container" className="w-full mx-auto max-w-none">
       <Card className="shadow-lg">
-        <CardHeader className="pb-4 md:pb-2 lg:pb-4">
-          <CardTitle>Student Enrollment (Elective / Open Elective)</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6">
+        <div id="elective-enrollment-filters-section">
+          <CardHeader className="pb-4 md:pb-2 lg:pb-4">
+            <CardTitle>Student Enrollment (Elective / Open Elective)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pb-0">
             <div className="w-full">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                 <div className="space-y-2">
@@ -394,7 +395,10 @@ const StudentEnrollment = () => {
               </label>
             </div>
           </div>
+          </CardContent>
+        </div>
 
+        <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pt-0">
           <div>
             {isLoading ?
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

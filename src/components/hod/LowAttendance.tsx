@@ -10,8 +10,9 @@ import {
   SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectValue } from
-"@/components/ui/select";
+  SelectValue
+} from
+  "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { SkeletonCard, SkeletonTable } from "../ui/skeleton";
 import { manageSections, sendNotification, getLowAttendanceStudents, getHODDashboardBootstrap } from "../../utils/hod_api";
@@ -94,7 +95,7 @@ const AttendanceTable = React.memo(({
 
 
 
-}: {students: Student[];theme: string;notifyingStudents: Record<string, boolean>;notifiedStudents: Record<string, boolean>;onNotifyStudent: (student: Student) => void;}) => {
+}: { students: Student[]; theme: string; notifyingStudents: Record<string, boolean>; notifiedStudents: Record<string, boolean>; onNotifyStudent: (student: Student) => void; }) => {
   const getAttendanceColorClass = (attendance: number | string): string => {
     if (attendance === "NA" || attendance === null || attendance === undefined) {
       return "text-gray-400";
@@ -132,10 +133,10 @@ const AttendanceTable = React.memo(({
         </thead>
         <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
           {students.map((student, idx) =>
-          <tr
-            key={`${student.student_id}-${student.subject}-${idx}`}
-            className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-gray-50'}`}>
-            
+            <tr
+              key={`${student.student_id}-${student.subject}-${idx}`}
+              className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent/50' : 'hover:bg-gray-50'}`}>
+
               <td className="py-3 px-4 font-semibold whitespace-nowrap">{student.usn}</td>
               <td className="py-3 px-4 font-semibold whitespace-nowrap">{student.name}</td>
               <td className="py-3 px-4 whitespace-nowrap">{student.subject}</td>
@@ -144,28 +145,28 @@ const AttendanceTable = React.memo(({
               </td>
               <td className="py-3 px-4 text-center">
                 <Button
-                size="sm"
-                onClick={() => onNotifyStudent(student)}
-                className={`px-4 py-1 text-xs min-w-[90px] flex items-center justify-center gap-1 mx-auto rounded-md shadow-sm border transition-all duration-200 ease-in-out transform hover:scale-105
+                  size="sm"
+                  onClick={() => onNotifyStudent(student)}
+                  className={`px-4 py-1 text-xs min-w-[90px] flex items-center justify-center gap-1 mx-auto rounded-md shadow-sm border transition-all duration-200 ease-in-out transform hover:scale-105
                     ${notifiedStudents?.[student.student_id] ?
-                "bg-green-700 border-green-600 text-white cursor-default" :
-                "bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"}`
-                }
-                disabled={
-                notifyingStudents?.[student.student_id] ||
-                notifiedStudents?.[student.student_id]
-                }>
-                
+                      "bg-green-700 border-green-600 text-white cursor-default" :
+                      "bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"}`
+                  }
+                  disabled={
+                    notifyingStudents?.[student.student_id] ||
+                    notifiedStudents?.[student.student_id]
+                  }>
+
                   {notifyingStudents?.[student.student_id] ?
-                <>
+                    <>
                       <Loader2 className="w-3 h-3 animate-spin" />
                       Sending...
                     </> :
-                notifiedStudents?.[student.student_id] ?
-                <><CheckCircle className="w-3 h-3" /> Notified</> :
+                    notifiedStudents?.[student.student_id] ?
+                      <><CheckCircle className="w-3 h-3" /> Notified</> :
 
-                "Notify"
-                }
+                      "Notify"
+                  }
                 </Button>
               </td>
             </tr>
@@ -434,11 +435,11 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
         startY: 20,
         head: [["USN", "Name", "Subject", "Section", "Attendance %"]],
         body: chunk.map((student) => [
-        student.usn,
-        student.name,
-        student.subject,
-        student.section,
-        formatAttendancePercentage(student.attendance_percentage)]
+          student.usn,
+          student.name,
+          student.subject,
+          student.section,
+          formatAttendancePercentage(student.attendance_percentage)]
         ),
         theme: "striped",
         headStyles: { fillColor: [200, 200, 200], textColor: "black" },
@@ -552,22 +553,22 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
   const totalStudents = state.totalCount;
   const lowAttendanceCount = state.students.length;
   const avgAttendance = state.students.length > 0 ?
-  Math.round(state.students.reduce((sum, s) => sum + (typeof s.attendance_percentage === 'number' ? s.attendance_percentage : 0), 0) / state.students.filter((s) => typeof s.attendance_percentage === 'number').length) :
-  0;
+    Math.round(state.students.reduce((sum, s) => sum + (typeof s.attendance_percentage === 'number' ? s.attendance_percentage : 0), 0) / state.students.filter((s) => typeof s.attendance_percentage === 'number').length) :
+    0;
 
   return (
     <ErrorBoundary>
-      <div className={`text-base w-full max-w-none mx-auto sm:px-0 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+      <div id="hod-low-attendance-container" className={`text-base w-full max-w-none mx-auto sm:px-0 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div id="low-attendance-stats-cards" className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
           {state.loading && state.students.length === 0 ?
-          <>
+            <>
               <SkeletonCard className="h-32" />
               <SkeletonCard className="h-32" />
               <SkeletonCard className="h-32" />
             </> :
 
-          <>
+            <>
               <Card className={`${theme === 'dark' ? 'bg-card border border-border shadow-sm' : 'bg-white border border-gray-200 shadow-sm'} w-full relative`}>
                 <CardHeader className="pb-2 px-3 sm:px-4">
                   <CardTitle className={`text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Students</CardTitle>
@@ -609,6 +610,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
         {/* Main Management Card */}
         <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm' : 'bg-white border border-gray-200 shadow-sm'}>
+          <div id="low-attendance-dashboard-header">
           <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex-1">
               <CardTitle className={`text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -622,11 +624,12 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
               onClick={exportPDF}
               disabled={state.loading || state.students.length === 0}
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto">
-              
+
               <FileDown className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
           </CardHeader>
+          </div>
 
           {/* Filters */}
           <div className={`px-4 sm:px-6 py-3 border-t ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
@@ -638,13 +641,13 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   <Select
                     value={state.selectedSemester}
                     onValueChange={handleSemesterChange}>
-                    
+
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder="Select Semester" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
                       {state.semesters.map((semester) =>
-                      <SelectItem key={semester.id} value={semester.id}>
+                        <SelectItem key={semester.id} value={semester.id}>
                           Sem {semester.number}
                         </SelectItem>
                       )}
@@ -659,13 +662,13 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                     value={state.selectedSection}
                     onValueChange={handleSectionChange}
                     disabled={!state.selectedSemester}>
-                    
+
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder="Select Section" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
                       {state.sections.map((section) =>
-                      <SelectItem key={section.id} value={section.id}>
+                        <SelectItem key={section.id} value={section.id}>
                           {section.name}
                         </SelectItem>
                       )}
@@ -679,103 +682,103 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
           <CardContent className="pt-4">
             {/* Students Table */}
             {state.loading ?
-            <div className="py-4">
+              <div className="py-4">
                 <SkeletonTable rows={10} cols={5} />
               </div> :
-            state.students.length > 0 ?
-            <div className="space-y-4">
-                <div className="flex flex-row justify-between items-center gap-4 mb-2 ml-1">
-                  <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    Students List
-                  </h2>
-                  <Button
-                  onClick={notifyAllStudents}
-                  disabled={state.loading || state.students.length === 0}
-                  variant="outline"
-                  className={`text-xs sm:text-sm font-semibold flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md transform hover:scale-105 active:scale-95`}>
-                  
-                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                    Notify All
-                  </Button>
-                </div>
-                <div className="border rounded-lg overflow-hidden">
-                  <AttendanceTable
-                  students={state.students}
-                  theme={theme}
-                  notifyingStudents={state.notifyingStudents}
-                  notifiedStudents={state.notifiedStudents}
-                  onNotifyStudent={notifyStudent} />
-                
-                </div>
+              state.students.length > 0 ?
+                <div className="space-y-4">
+                  <div className="flex flex-row justify-between items-center gap-4 mb-2 ml-1">
+                    <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      Students List
+                    </h2>
+                    <Button
+                      onClick={notifyAllStudents}
+                      disabled={state.loading || state.students.length === 0}
+                      variant="outline"
+                      className={`text-xs sm:text-sm font-semibold flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md transform hover:scale-105 active:scale-95`}>
 
-                {/* Pagination Controls */}
-                {state.totalCount > state.pageSize &&
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-                    <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      Showing {state.students.length} of {state.totalCount} students
-                    </div>
-                    <div className="flex gap-2 items-center justify-center sm:justify-end flex-wrap">
-                      <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={goToPreviousPage}
-                    disabled={!state.previous || state.loading}
-                    className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
-                    
-                        <ChevronLeft className="w-3 h-3 mr-1" />
-                        Prev
-                      </Button>
-
-                      <div className="flex items-center space-x-1">
-                        {Array.from(
-                      { length: Math.min(5, Math.ceil(state.totalCount / state.pageSize)) },
-                      (_, i) => {
-                        const pageNum = Math.max(1, state.currentPage - 2) + i;
-                        if (pageNum > Math.ceil(state.totalCount / state.pageSize)) return null;
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={pageNum === state.currentPage ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => goToPage(pageNum)}
-                            disabled={state.loading}
-                            className="text-sm">
-                            
-                                {pageNum}
-                              </Button>);
-
-                      }
-                    )}
-                      </div>
-
-                      <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={goToNextPage}
-                    disabled={!state.next || state.loading}
-                    className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
-                    
-                        Next
-                        <ChevronRight className="w-3 h-3 ml-1" />
-                      </Button>
-                    </div>
+                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                      Notify All
+                    </Button>
                   </div>
-              }
-              </div> :
+                  <div className="border rounded-lg overflow-hidden">
+                    <AttendanceTable
+                      students={state.students}
+                      theme={theme}
+                      notifyingStudents={state.notifyingStudents}
+                      notifiedStudents={state.notifiedStudents}
+                      onNotifyStudent={notifyStudent} />
 
-            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
-                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
-                  <AlertTriangle className="w-12 h-12 opacity-80" />
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {state.totalCount > state.pageSize &&
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                      <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        Showing {state.students.length} of {state.totalCount} students
+                      </div>
+                      <div className="flex gap-2 items-center justify-center sm:justify-end flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={goToPreviousPage}
+                          disabled={!state.previous || state.loading}
+                          className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
+
+                          <ChevronLeft className="w-3 h-3 mr-1" />
+                          Prev
+                        </Button>
+
+                        <div className="flex items-center space-x-1">
+                          {Array.from(
+                            { length: Math.min(5, Math.ceil(state.totalCount / state.pageSize)) },
+                            (_, i) => {
+                              const pageNum = Math.max(1, state.currentPage - 2) + i;
+                              if (pageNum > Math.ceil(state.totalCount / state.pageSize)) return null;
+                              return (
+                                <Button
+                                  key={pageNum}
+                                  variant={pageNum === state.currentPage ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => goToPage(pageNum)}
+                                  disabled={state.loading}
+                                  className="text-sm">
+
+                                  {pageNum}
+                                </Button>);
+
+                            }
+                          )}
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={goToNextPage}
+                          disabled={!state.next || state.loading}
+                          className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
+
+                          Next
+                          <ChevronRight className="w-3 h-3 ml-1" />
+                        </Button>
+                      </div>
+                    </div>
+                  }
+                </div> :
+
+                <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                    <AlertTriangle className="w-12 h-12 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {state.selectedSemester && state.selectedSection ? "No Low Attendance" : "View Attendance Reports"}
+                  </h3>
+                  <p className="max-w-xs text-base leading-relaxed">
+                    {state.selectedSemester && state.selectedSection ?
+                      "Great! No students have low attendance in the selected section." :
+                      "Select a semester and section above to identify students who may require attendance interventions."}
+                  </p>
                 </div>
-                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {state.selectedSemester && state.selectedSection ? "No Low Attendance" : "View Attendance Reports"}
-                </h3>
-                <p className="max-w-xs text-base leading-relaxed">
-                  {state.selectedSemester && state.selectedSection ?
-                "Great! No students have low attendance in the selected section." :
-                "Select a semester and section above to identify students who may require attendance interventions."}
-                </p>
-              </div>
             }
           </CardContent>
         </Card>

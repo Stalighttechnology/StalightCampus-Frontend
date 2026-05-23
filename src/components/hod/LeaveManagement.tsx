@@ -301,38 +301,41 @@ const LeaveManagement = () => {
   };
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-leave-management-container" className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-        <CardHeader className="border-b">
-          <CardTitle>Leave Approvals</CardTitle>
-        </CardHeader>
-        <CardContent className="p-2 sm:p-6">
-          {/* Search Bar */}
-          <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
-            <Input
-              placeholder="Search faculty..."
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-              className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`} />
-            
-            <Select
-              value={filterStatus}
-              onValueChange={(value) => {
-                setFilterStatus(value as "All" | "Pending" | "Approved" | "Rejected");
-              }}>
+        <div id="hod-leave-approvals-header-section">
+          <CardHeader className="border-b">
+            <CardTitle>Leave Approvals</CardTitle>
+          </CardHeader>
+        <CardContent className="p-2 sm:p-4">
+            {/* Search Bar */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
+              <Input
+                placeholder="Search faculty..."
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`} />
               
-              <SelectTrigger className={`w-full sm:w-auto min-w-[140px] text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                <SelectItem value="All">All Status</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Approved">Approved</SelectItem>
-                <SelectItem value="Rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
+              <Select
+                value={filterStatus}
+                onValueChange={(value) => {
+                  setFilterStatus(value as "All" | "Pending" | "Approved" | "Rejected");
+                }}>
+                
+                <SelectTrigger className={`w-full sm:w-auto min-w-[140px] text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
+                  <SelectItem value="All">All Status</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                  <SelectItem value="Rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </div>
+        <CardContent >
           {/* Errors */}
           {errors.length > 0 &&
           <div className={`mb-4 p-3 rounded-md ${theme === 'dark' ? 'bg-red-900/30 border border-red-700' : 'bg-red-50 border border-red-200'}`}>
@@ -343,7 +346,7 @@ const LeaveManagement = () => {
               </ul>
             </div>
           }
-
+ 
           {/* Mobile: Stacked Cards View */}
           <div className="md:hidden space-y-3">
             {isLoading ?

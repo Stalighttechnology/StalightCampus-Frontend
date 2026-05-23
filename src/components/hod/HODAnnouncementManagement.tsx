@@ -321,217 +321,208 @@ const HODAnnouncementManagement = () => {
         }
       `}</style>
 
-      <div className="w-full max-w-none mx-auto space-y-6">
+      <div id="hod-announcements-container" className="w-full max-w-none mx-auto space-y-6">
         <Card className={`announcements-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
-          <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 gap-4">
-            <div className="space-y-1">
-              <CardTitle className="announcements-card-title text-xl font-semibold">Branch Announcements</CardTitle>
-              <CardDescription className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Create and manage announcements for your branch
-              </CardDescription>
+          {/* Error State */}
+          {error &&
+            <div className="p-4 rounded-lg bg-destructive/10 text-destructive m-6">
+              <p className="font-medium">{error}</p>
             </div>
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={() => resetForm()}
-                  className="w-full sm:w-auto gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200 shadow-md">
-                  
-                  <Plus className="w-4 h-4" />
-                  New Announcement
-                </Button>
-              </DialogTrigger>
-              <DialogContent
-                className="mobile-modal w-[90%] sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl custom-scrollbar">
-                
-              <DialogHeader>
-                <DialogTitle>
-                  {editingId ? "Edit Announcement" : "Create Announcement"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingId ?
-                    "Update the announcement details below" :
-                    "Create a new announcement for your branch"}
-                </DialogDescription>
-              </DialogHeader>
+          }
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                      id="title"
-                      placeholder="Announcement title"
-                      value={formData.title}
-                      onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                      } />
-                    
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message *</Label>
-                  <Textarea
-                      id="message"
-                      placeholder="Announcement message"
-                      value={formData.message}
-                      onChange={(e) =>
-                      setFormData({ ...formData, message: e.target.value })
-                      }
-                      className={`h-20 resize-none overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`} />
-                    
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="priority">Priority</Label>
-                    <Select
-                        value={formData.priority}
-                        onValueChange={(value: any) =>
-                        setFormData({ ...formData, priority: value })
-                        }>
-                        
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
+          {/* Announcement Sections */}
+          {!error &&
+            <AnnouncementSections
+              header={
+                <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 gap-4 border-b ">
+                  <div className="space-y-1">
+                    <CardTitle className="announcements-card-title text-xl font-semibold">Branch Announcements</CardTitle>
+                    <CardDescription className={`announcements-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      Create and manage announcements for your branch
+                    </CardDescription>
                   </div>
+                  <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                    <DialogTrigger asChild>
+                      <Button
+                        onClick={() => resetForm()}
+                        className="w-full sm:w-auto gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200 shadow-md">
+                        
+                        <Plus className="w-4 h-4" />
+                        New Announcement
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent
+                      className="mobile-modal w-[90%] sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl custom-scrollbar">
+                      
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingId ? "Edit Announcement" : "Create Announcement"}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {editingId ?
+                            "Update the announcement details below" :
+                            "Create a new announcement for your branch"}
+                        </DialogDescription>
+                      </DialogHeader>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="expires_at">Expires At</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !formData.expires_at && "text-muted-foreground",
-                              theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'
-                            )}>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="title">Title *</Label>
+                          <Input
+                              id="title"
+                              placeholder="Announcement title"
+                              value={formData.title}
+                              onChange={(e) =>
+                              setFormData({ ...formData, title: e.target.value })
+                              } />
                             
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.expires_at ? format(new Date(formData.expires_at), "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
-                            onSelect={(date) =>
-                            setFormData({ ...formData, expires_at: date ? format(date, "yyyy-MM-dd") : "" })
-                            }
-                            initialFocus />
-                          
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
+                        </div>
 
-                <div className="p-3 rounded-lg bg-muted">
-                  <p className="text-sm text-muted-foreground">
-                    ℹ️ This announcement will be visible to your branch only
-                  </p>
-                </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="message">Message *</Label>
+                          <Textarea
+                              id="message"
+                              placeholder="Announcement message"
+                              value={formData.message}
+                              onChange={(e) =>
+                              setFormData({ ...formData, message: e.target.value })
+                              }
+                              className={`h-20 resize-none overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}`} />
+                            
+                        </div>
 
-                <div className="space-y-2">
-                  <Label>Target Roles *</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {roles.map((role) =>
-                      <div key={role} className="flex items-center gap-2">
-                        <Checkbox
-                          id={role}
-                          checked={formData.target_roles?.includes(role) || false}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setFormData({
-                                ...formData,
-                                target_roles: [
-                                ...(formData.target_roles || []),
-                                role]
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="priority">Priority</Label>
+                            <Select
+                                value={formData.priority}
+                                onValueChange={(value: any) =>
+                                setFormData({ ...formData, priority: value })
+                                }>
+                                
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="low">Low</SelectItem>
+                                <SelectItem value="normal">Normal</SelectItem>
+                                <SelectItem value="high">High</SelectItem>
+                                <SelectItem value="urgent">Urgent</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                              });
-                            } else {
-                              setFormData({
-                                ...formData,
-                                target_roles: (formData.target_roles || []).filter(
-                                  (r) => r !== role
-                                )
-                              });
-                            }
-                          }} />
-                        
-                        <Label htmlFor={role} className="font-normal capitalize">
-                          {role}
-                        </Label>
+                          <div className="space-y-2">
+                            <Label htmlFor="expires_at">Expires At</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !formData.expires_at && "text-muted-foreground",
+                                      theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'
+                                    )}>
+                                    
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {formData.expires_at ? format(new Date(formData.expires_at), "PPP") : <span>Pick a date</span>}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={formData.expires_at ? new Date(formData.expires_at) : undefined}
+                                    onSelect={(date) =>
+                                    setFormData({ ...formData, expires_at: date ? format(date, "yyyy-MM-dd") : "" })
+                                    }
+                                    initialFocus />
+                                  
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-lg bg-muted">
+                          <p className="text-sm text-muted-foreground">
+                            ℹ️ This announcement will be visible to your branch only
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Target Roles *</Label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {roles.map((role) =>
+                              <div key={role} className="flex items-center gap-2">
+                                <Checkbox
+                                  id={role}
+                                  checked={formData.target_roles?.includes(role) || false}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setFormData({
+                                        ...formData,
+                                        target_roles: [
+                                        ...(formData.target_roles || []),
+                                        role]
+
+                                      });
+                                    } else {
+                                      setFormData({
+                                        ...formData,
+                                        target_roles: (formData.target_roles || []).filter(
+                                          (r) => r !== role
+                                        )
+                                      });
+                                    }
+                                  }} />
+                                
+                                <Label htmlFor={role} className="font-normal capitalize">
+                                  {role}
+                                </Label>
+                              </div>
+                              )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end pt-4">
+                          <Button
+                              variant="outline"
+                              onClick={() => setShowCreateDialog(false)}>
+                              
+                            Cancel
+                          </Button>
+                          <Button
+                              onClick={handleCreateOrUpdate}
+                              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200">
+                              
+                            {editingId ? "Update" : "Create"} Announcement
+                          </Button>
+                        </div>
                       </div>
-                      )}
-                  </div>
-                </div>
-
-                <div className="flex gap-3 justify-end pt-4">
-                  <Button
-                      variant="outline"
-                      onClick={() => setShowCreateDialog(false)}>
-                      
-                    Cancel
-                  </Button>
-                  <Button
-                      onClick={handleCreateOrUpdate}
-                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200">
-                      
-                    {editingId ? "Update" : "Create"} Announcement
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-      </Card>
-
-      {/* Loading State */}
-      {loading &&
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
-        }
-
-      {/* Error State */}
-      {error &&
-        <div className="p-4 rounded-lg bg-destructive/10 text-destructive">
-          <p className="font-medium">{error}</p>
-        </div>
-        }
-
-      {/* Announcement Sections */}
-      {!loading && !error &&
-        <AnnouncementSections
-          myAnnouncements={myAnnouncements}
-          receivedAnnouncements={receivedAnnouncements}
-          onEdit={handleEdit}
-          onDelete={(id) => setDeletingId(id)}
-          onToggleActive={handleToggleActive}
-          onMarkRead={handleMarkRead}
-          loading={loading}
-          showActions={true}
-          myPagination={{ count: totalMyCount, page: myPage, pageSize }}
-          receivedPagination={{
-            count: totalReceivedCount,
-            page: receivedPage,
-            pageSize,
-            unreadCount: unreadReceivedCount
-          }}
-          onPageChange={handlePageChange}
-          activeTab={activeTab}
-          onTabChange={setActiveTab} />
-
-        }
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+              }
+              myAnnouncements={myAnnouncements}
+              receivedAnnouncements={receivedAnnouncements}
+              onEdit={handleEdit}
+              onDelete={(id) => setDeletingId(id)}
+              onToggleActive={handleToggleActive}
+              onMarkRead={handleMarkRead}
+              loading={loading}
+              showActions={true}
+              myPagination={{ count: totalMyCount, page: myPage, pageSize }}
+              receivedPagination={{
+                count: totalReceivedCount,
+                page: receivedPage,
+                pageSize,
+                unreadCount: unreadReceivedCount
+              }}
+              onPageChange={handlePageChange}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          }
+        </Card>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>

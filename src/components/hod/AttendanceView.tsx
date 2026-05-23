@@ -288,7 +288,7 @@ const AttendanceView = () => {
   }
 
   return (
-    <Card className={`shadow-md border rounded-lg ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-50 text-gray-900'}`}>
+    <Card id="hod-attendance-container" className={`shadow-md border rounded-lg ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-50 text-gray-900'}`}>
       <CardHeader>
         <CardTitle className="text-2xl font-semibold mb-4">All Students Attendance</CardTitle>
         <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

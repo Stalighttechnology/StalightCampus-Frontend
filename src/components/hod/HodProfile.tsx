@@ -389,9 +389,9 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start">
+    <div id="hod-profile-container" className="min-h-screen flex justify-center items-start">
       <Card className={`w-full max-w-none mx-auto my-2 ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+        <CardHeader id="hod-profile-header-section" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
             <CardTitle className={`text-lg sm:text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile Information</CardTitle>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>

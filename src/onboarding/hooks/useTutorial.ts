@@ -164,15 +164,23 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, ro
       }
 
       if (target === '#sidebar-timetable') {
-        steps.push(
-          {
+        if (role.toLowerCase() === 'hod') {
+          steps.push({
             ...step,
-            target: isMobile ? '#timetable-card' : '#timetable-card-header',
-            title: 'Weekly Timetable',
-            content: 'View your complete class and exam schedule here.',
+            target: '#timetable-header-filters-section',
             placement: isMobile ? step.placement : 'top',
-          }
-        );
+          });
+        } else {
+          steps.push(
+            {
+              ...step,
+              target: isMobile ? '#timetable-card' : '#timetable-card-header',
+              title: 'Weekly Timetable',
+              content: 'View your complete class and exam schedule here.',
+              placement: isMobile ? step.placement : 'top',
+            }
+          );
+        }
         continue;
       }
 
@@ -302,7 +310,7 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, ro
         continue;
       }
 
-      if (target === '#sidebar-qp-approvals') {
+      if (target === '#sidebar-qp-approvals' && role.toLowerCase() !== 'hod') {
         steps.push(
           {
             ...step,
@@ -375,7 +383,7 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, ro
         continue;
       }
 
-      if (target === '#sidebar-my-attendance') {
+      if (target === '#sidebar-my-attendance' && role.toLowerCase() !== 'hod') {
         steps.push(
           {
             ...step,
@@ -490,24 +498,18 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, ro
           steps.push(
             {
               ...step,
-              target: '#hod-faculty-attendance-tabs',
-              title: 'Faculty Attendance Tabs',
-              content: '• Faculty Attendance: Toggle between Today\'s attendance dashboard and historical Records.\n• Today: View today\'s overall department statistics and table.\n• Records: Review monthly attendance patterns and filter by dates.',
+              target: '#hod-faculty-attendance-header-section',
+              title: 'Faculty Attendance',
+              content: 'Monitor today\'s faculty attendance summary and toggle between Today\'s Attendance and Attendance Records.',
               placement: isMobile ? step.placement : 'top',
             },
             {
               ...step,
-              target: '#hod-faculty-attendance-summary',
-              title: 'Department Attendance Summary',
-              content: '• Department Attendance Summary: Track total faculty strength, present count, absent count, and unmarked list in real-time.',
+              target: '#hod-faculty-attendance-filters',
+              title: 'Attendance Records',
+              content: 'Select the Start Date and End Date range, then click Apply Filter to view attendance records or click Export Report to download as PDF.',
               placement: isMobile ? step.placement : 'top',
-            },
-            {
-              ...step,
-              target: '#hod-faculty-attendance-table',
-              title: 'Today\'s Attendance Details',
-              content: '• Attendance Details: Review faculty names, mark times, and check location verification reports.',
-              placement: isMobile ? step.placement : 'top',
+              switchTab: 'records',
             }
           );
         } else {
@@ -630,6 +632,191 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, ro
         continue;
       }
 
+      if (target === '#sidebar-semesters' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#semester-list-header',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-students' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#add-student-manually-card',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-student-enrollment' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#elective-enrollment-filters-section',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-subjects' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#courses-header-filters-section',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-faculty-assignments' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#add-faculty-assignment-card',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-qp-approvals' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#qp-approvals-header-section',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-proctors' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#proctors-stats-cards',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      // Mobile-only placement fix for Proctor Assignments header (step 14)
+      // On mobile, 'top' clips the tooltip — override to 'bottom' so it stays visible
+      if (target === '#proctors-header-filters-section' && isMobile) {
+        steps.push({
+          ...step,
+          placement: 'bottom' as const,
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-low-attendance' && role.toLowerCase() === 'hod') {
+        steps.push(
+          {
+            ...step,
+            target: '#low-attendance-stats-cards',
+            title: 'Low Attendance Overview',
+            content: 'Quickly see Total Students, how many have Low Attendance, and the Average Attendance percentage for the selected section.',
+            placement: isMobile ? 'bottom' as const : 'top' as const,
+          },
+          {
+            ...step,
+            target: '#low-attendance-dashboard-header',
+            title: 'Low Attendance Management',
+            content: 'Identify students below the attendance threshold. Use the filters to select a semester and section, then export a PDF report or notify students directly.',
+            placement: isMobile ? 'bottom' as const : 'top' as const,
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-my-attendance' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#today-attendance-toggle-section',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-promotion-management' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#hod-promotion-cards-wrapper',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-leaves' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#hod-leave-approvals-header-section',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-apply-leaves' && role.toLowerCase() === 'hod') {
+        steps.push(
+          {
+            ...step,
+            target: '#hod-leave-application-form',
+            title: 'Leave Application Form',
+            content: 'Fill in the leave details (title, dates, and reason) to submit a new leave request.',
+            placement: isMobile ? step.placement : 'right',
+          },
+          {
+            ...step,
+            target: '#hod-recent-leave-applications',
+            title: 'Recent Leave Applications',
+            content: 'Track and review the approval status of your submitted leave requests here.',
+            placement: isMobile ? step.placement : 'left',
+          }
+        );
+        continue;
+      }
+
+      if (target === '#sidebar-study-materials' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#hod-study-materials-header-section',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-scan-student-info' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#hod-search-student-card',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-hod-announcement-management' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#announcement-header-section',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-hod-profile' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#hod-profile-header-section',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
+      if (target === '#sidebar-notifications' && role.toLowerCase() === 'hod') {
+        steps.push({
+          ...step,
+          target: '#hod-notifications-container',
+          placement: isMobile ? step.placement : 'top',
+        });
+        continue;
+      }
+
       // Fallback for other sidebar items if any
       if (target.startsWith('#sidebar-')) {
         steps.push({
@@ -638,6 +825,7 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, ro
         });
         continue;
       }
+
     }
 
     // Default mapping for non-sidebar steps (wording improvements ONLY for mobile)

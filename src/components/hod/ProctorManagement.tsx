@@ -385,7 +385,7 @@ const ProctorStudents = () => {
 
   if (state.loading && !state.students.length && !state.branchId) {
     return (
-      <div className="space-y-6">
+      <div id="hod-proctors-container" className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <SkeletonCard />
           <SkeletonCard />
@@ -403,9 +403,9 @@ const ProctorStudents = () => {
   }
 
   return (
-    <div className={`sm: min-h-screen text-base sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+    <div id="hod-proctors-container" className={`sm: min-h-screen text-base sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div id="proctors-stats-cards" className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div>
           <DashboardCard
             title="Total Students"
@@ -439,7 +439,8 @@ const ProctorStudents = () => {
 
       {/* Main Management Card */}
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm' : 'bg-white border border-gray-200 shadow-sm'}>
-        <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div id="proctors-header-filters-section">
+          <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1">
             <CardTitle className={`text-lg sm:text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Proctor Assignment - {state.branchName}
@@ -585,9 +586,10 @@ const ProctorStudents = () => {
                   Search
                 </Button>
               </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <CardContent className="pt-4">
           {currentStudents.length === 0 && !state.loading ? (
