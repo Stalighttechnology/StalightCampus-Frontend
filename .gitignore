@@ -130,7 +130,7 @@ bun.lockb
 crg-session-start.sh
 crg-updates.sh
 skills/
-hooks/
+/hooks/
 
 # Optional generated AI instruction files
 CLAUDE.md
