@@ -581,12 +581,69 @@ const StudentProfile: React.FC = () => {
 
   const removeFaceImage = (index: number) => setFaceImages((p) => p.filter((_, i) => i !== index));
 
+  const compressImage = (file: File, maxWidth = 1000, maxHeight = 1000, quality = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(file);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name.substring(0, file.name.lastIndexOf('.')) + '.jpg', {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file);
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
   const trainFace = async () => {
     if (faceImages.length < 3) {showErrorAlert('Error', 'Please upload at least 3 face images');return;}
     setFaceTrainingStatus('training');setFaceTrainingProgress(0);setFaceTrainingMessage('Preparing images...');
     try {
+      // Compress all files in parallel
+      const compressedFiles = await Promise.all(faceImages.map(f => compressImage(f)));
+      
       const fd = new FormData();
-      faceImages.forEach((f) => fd.append('images', f));
+      compressedFiles.forEach((f) => fd.append('images', f));
       setFaceTrainingProgress(25);setFaceTrainingMessage('Uploading images...');
       const resp = await fetch(`${API_ENDPOINT}/student/train-face/`, { method: 'POST', headers: { 'Authorization': `Bearer ${sessionStorage.getItem("access_token")}` }, body: fd });
       const j = await resp.json();
