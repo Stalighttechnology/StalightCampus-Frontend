@@ -375,68 +375,72 @@ const SubjectManagement = () => {
   };
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-subjects-container" className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
 
       {state.error && <div className={`mb-4 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{state.error}</div>}
       {state.success && <div className={`mb-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{state.success}</div>}
 
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
-            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Manage Courses</CardTitle>
-            <Button
-              onClick={() => {
-                updateState({
-                  showModal: "add",
-                  newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                  currentSubject: null
-                });
-              }}
-              className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-              disabled={state.loading || !state.branchId}>
-              
-              + Add Course
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="w-full md:w-48">
-              <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Semester</label>
-              <Select
-                value={state.filters.semester_id}
-                onValueChange={(val) => updateState({ filters: { ...state.filters, semester_id: val }, currentPage: 1 })}>
+        <div id="courses-header-filters-section">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
+              <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Manage Courses</CardTitle>
+              <Button
+                onClick={() => {
+                  updateState({
+                    showModal: "add",
+                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                    currentSubject: null
+                  });
+                }}
+                className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
+                disabled={state.loading || !state.branchId}>
                 
-                <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                  <SelectValue placeholder="All Semesters" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                  <SelectItem value="all">All Semesters</SelectItem>
-                  {state.semesters.map((sem) =>
-                  <SelectItem key={sem.id} value={sem.id}>Semester {sem.number}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                + Add Course
+              </Button>
             </div>
-            <div className="w-full md:w-48">
-              <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Type</label>
-              <Select
-                value={state.filters.subject_type}
-                onValueChange={(val) => updateState({ filters: { ...state.filters, subject_type: val }, currentPage: 1 })}>
-                
-                <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="elective">Elective</SelectItem>
-                  <SelectItem value="open_elective">Open Elective</SelectItem>
-                </SelectContent>
-              </Select>
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="w-full md:w-48">
+                <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Semester</label>
+                <Select
+                  value={state.filters.semester_id}
+                  onValueChange={(val) => updateState({ filters: { ...state.filters, semester_id: val }, currentPage: 1 })}>
+                  
+                  <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+                    <SelectValue placeholder="All Semesters" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+                    <SelectItem value="all">All Semesters</SelectItem>
+                    {state.semesters.map((sem) =>
+                    <SelectItem key={sem.id} value={sem.id}>Semester {sem.number}</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full md:w-48">
+                <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Type</label>
+                <Select
+                  value={state.filters.subject_type}
+                  onValueChange={(val) => updateState({ filters: { ...state.filters, subject_type: val }, currentPage: 1 })}>
+                  
+                  <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="regular">Regular</SelectItem>
+                    <SelectItem value="elective">Elective</SelectItem>
+                    <SelectItem value="open_elective">Open Elective</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </div>
 
+        <CardContent className="pt-0">
           {state.loading ?
           <div className="py-4">
               <SkeletonTable rows={10} cols={6} />

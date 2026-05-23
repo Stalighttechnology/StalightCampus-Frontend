@@ -340,9 +340,9 @@ const StudentInfoScanner = () => {
   };
 
   return (
-    <div className={`sm: min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-scan-student-container" className={`sm: min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Search Card */}
-      <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm mb-6' : 'bg-white text-gray-900 border-gray-200 shadow-sm mb-6'}`}>
+      <Card id="hod-search-student-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm mb-6' : 'bg-white text-gray-900 border-gray-200 shadow-sm mb-6'}`}>
         <CardHeader>
           <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900'}`}>Search Student</CardTitle>
           <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Enter USN or use scanner to find student information</p>

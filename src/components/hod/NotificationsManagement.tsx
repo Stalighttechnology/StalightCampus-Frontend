@@ -222,7 +222,7 @@ const NotificationsManagement = () => {
   }
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 p-6 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-notifications-container" className={`grid grid-cols-1 md:grid-cols-3 gap-6 p-6 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`md:col-span-2 shadow-sm ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
         <CardHeader>
           <CardTitle className={`text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Received Notifications</CardTitle>

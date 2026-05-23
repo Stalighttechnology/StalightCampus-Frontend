@@ -334,7 +334,7 @@ const MarksView = () => {
   };
 
   return (
-    <div className={`p-6 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`} ref={reportRef}>
+    <div id="hod-marks-container" className={`p-6 min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`} ref={reportRef}>
       <div>
         <h2 className="text-2xl font-semibold">Internal Marks & Attendance</h2>
         <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>

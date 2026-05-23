@@ -358,10 +358,10 @@ const QPApprovals = () => {
   }
 
   return (
-    <div className={`w-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-qp-approvals-container" className={`w-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col h-[calc(100vh-280px)] min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col h-[calc(100vh-280px)] min-h-[550px]'}>
         <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+          <div id="qp-approvals-header-section" className="flex items-center justify-between">
             <div>
               <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
               <div className="flex items-center gap-3">

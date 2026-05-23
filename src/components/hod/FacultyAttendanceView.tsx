@@ -17,8 +17,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter } from
-"@/components/ui/dialog";
+  DialogFooter
+} from
+  "@/components/ui/dialog";
 
 interface FacultyAttendanceTodayRecord {
   id: string;
@@ -294,10 +295,10 @@ const FacultyAttendanceView: React.FC = () => {
 
     const tableColumn = ["Faculty Name", "Status", "Marked At", "Notes"];
     const tableRows = todayAttendance.map((record) => [
-    record.faculty_name,
-    record.status,
-    record.marked_at ? new Date(record.marked_at).toLocaleString() : 'Not marked',
-    record.notes || '-']
+      record.faculty_name,
+      record.status,
+      record.marked_at ? new Date(record.marked_at).toLocaleString() : 'Not marked',
+      record.notes || '-']
     );
 
     autoTable(doc, {
@@ -326,11 +327,11 @@ const FacultyAttendanceView: React.FC = () => {
 
     const tableColumn = ["Faculty Name", "Total Days", "Present", "Absent", "Percentage"];
     const tableRows = facultySummary.map((summary) => [
-    summary.name,
-    summary.total_days,
-    summary.present_days,
-    summary.absent_days,
-    `${summary.attendance_percentage.toFixed(1)}%`]
+      summary.name,
+      summary.total_days,
+      summary.present_days,
+      summary.absent_days,
+      `${summary.attendance_percentage.toFixed(1)}%`]
     );
 
     autoTable(doc, {
@@ -374,6 +375,17 @@ const FacultyAttendanceView: React.FC = () => {
       fetchAttendanceRecords(recordsPagination.page, recordsPagination.page_size);
     }
   }, [activeTab, dateRange, todayPagination.page, todayPagination.page_size, recordsPagination.page, recordsPagination.page_size]);
+
+  useEffect(() => {
+    const handleTourTabSwitch = (e: Event) => {
+      const tab = (e as CustomEvent<{ tab: string }>).detail?.tab;
+      if (tab === 'today' || tab === 'records') {
+        setActiveTab(tab as 'today' | 'records');
+      }
+    };
+    window.addEventListener('neurocampus_switch_tab', handleTourTabSwitch);
+    return () => window.removeEventListener('neurocampus_switch_tab', handleTourTabSwitch);
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -455,546 +467,548 @@ const FacultyAttendanceView: React.FC = () => {
 
   return (
     <>
-    <div className={` sm: space-y-4 sm:space-y-6 min-h-screen max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Tab Navigation */}
-      <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
-        <button
-            onClick={() => setActiveTab('today')}
-            className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
-            'bg-primary text-white' :
-            theme === 'dark' ?
-            'text-muted-foreground hover:text-foreground' :
-            'text-gray-600 hover:text-gray-900'}`
-            }>
-            
-          Today's Attendance
-        </button>
-        <button
-            onClick={() => setActiveTab('records')}
-            className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'records' ?
-            'bg-primary text-white' :
-            theme === 'dark' ?
-            'text-muted-foreground hover:text-foreground' :
-            'text-gray-600 hover:text-gray-900'}`
-            }>
-            
-          Attendance Records
-        </button>
-      </div>
-
-      {isLoading &&
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-          <SkeletonTable rows={10} cols={4} />
-        </div>
-        }
-
-      {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 &&
-        <>
-          {/* Today's Stats Cards */}
-          <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-            <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                <div>
-                  <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
-                  <p className={`text-lg sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
-                </div>
-                <Users className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600 flex-shrink-0" />
-              </div>
-            </div>
-            <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                <div>
-                  <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
-                  <p className={`text-lg sm:text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
-                </div>
-                <CheckCircle className="w-6 sm:w-8 h-6 sm:h-8 text-green-600 flex-shrink-0" />
-              </div>
-            </div>
-            <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                <div>
-                  <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
-                  <p className={`text-lg sm:text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
-                </div>
-                <XCircle className="w-6 sm:w-8 h-6 sm:h-8 text-red-600 flex-shrink-0" />
-              </div>
-            </div>
-            <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                <div>
-                  <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
-                  <p className={`text-lg sm:text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
-                </div>
-                <Clock className="w-6 sm:w-8 h-6 sm:h-8 text-gray-600 flex-shrink-0" />
-              </div>
-            </div>
-          </div>
-
-          {/* Pagination controls moved below the table for better UX */}
-
-          {/* Today's Attendance Table */}
-          <div id="hod-faculty-attendance-table" className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h3 className={`text-sm sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Today's Faculty Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})
-              </h3>
-              <button
-                onClick={handleExportTodayPDF}
-                className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium`}>
-                
-                <FileDown className="w-4 h-4" />
-                <span>Export PDF</span>
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                  <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                    <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
-                    <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
-                    <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
-                    <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Notes</th>
-                  </tr>
-                </thead>
-                <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                  {todayAttendance.length === 0 ?
-                  <tr>
-                      <td colSpan={4} className="py-12">
-                        <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                          <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                            <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-                          </div>
-                          <div className="text-center">
-                            <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
-                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
-                          </div>
-                        </div>
-                      </td>
-                    </tr> :
-
-                  todayAttendance.map((record) =>
-                  <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
-                        <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          <div className="font-medium">{record.faculty_name}</div>
-                        </td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1 sm:gap-2">
-                            {getStatusIcon(record.status)}
-                            <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
-                          </div>
-                        </td>
-                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
-                          {record.location ?
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                              {record.location.inside ?
-                        <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
-
-                        <>Outside campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
-                        }
-                              {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
-                            </div> :
-
-                      <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</div>
-                      }
-                        </td>
-                        <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {record.notes || '-'}
-                        </td>
-                      </tr>
-                  )
-                  }
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-        }
-
-      {/* Today's Pagination Controls (moved to bottom) */}
-      {activeTab === 'today' && !isLoading &&
-        <div className={`flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 p-3 sm:p-4 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} rounded-lg mt-4`}>
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-              Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to{' '}
-              {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of{' '}
-              {todayPagination.total_items} faculty
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-            {todayPagination.total_items > todayPagination.page_size &&
+      <div className={` sm: space-y-4 sm:space-y-6 min-h-screen max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+        <div id="hod-faculty-attendance-header-section" className="space-y-4 sm:space-y-6">
+          {/* Tab Navigation */}
+          <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
             <button
-              onClick={loadAllData}
-              disabled={isLoading}
-              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border border-green-500 text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 whitespace-nowrap ${theme === 'dark' ? 'hover:bg-accent' : ''}`
+              onClick={() => setActiveTab('today')}
+              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
+                'bg-primary text-white' :
+                theme === 'dark' ?
+                  'text-muted-foreground hover:text-foreground' :
+                  'text-gray-600 hover:text-gray-900'}`
               }>
-              
-                {isLoading ? 'Loading...' : 'Load All'}
-              </button>
-            }
 
-            <button
-              onClick={() => handlePageChange(todayPagination.page - 1)}
-              disabled={!todayPagination.has_prev || isLoading}
-              className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${todayPagination.has_prev && !isLoading ?
-              'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
-              'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
-              }>
-              
-              Previous
+              Today's Attendance
             </button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, todayPagination.total_pages) }, (_, i) => {
-                const pageNum = Math.max(1, Math.min(todayPagination.total_pages - 4, todayPagination.page - 2)) + i;
-                if (pageNum > todayPagination.total_pages) return null;
-
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => handlePageChange(pageNum)}
-                    disabled={isLoading}
-                    className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${pageNum === todayPagination.page ?
-                    'bg-white text-primary font-semibold' :
-                    `bg-white text-gray-600 hover:text-primary ${theme === 'dark' ? 'hover:bg-accent' : ''}`}`
-                    }>
-                    
-                    {pageNum}
-                  </button>);
-
-              })}
-            </div>
-
             <button
-              onClick={() => handlePageChange(todayPagination.page + 1)}
-              disabled={!todayPagination.has_next || isLoading}
-              className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${todayPagination.has_next && !isLoading ?
-              'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
-              'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
+              onClick={() => setActiveTab('records')}
+              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'records' ?
+                'bg-primary text-white' :
+                theme === 'dark' ?
+                  'text-muted-foreground hover:text-foreground' :
+                  'text-gray-600 hover:text-gray-900'}`
               }>
-              
-              Next
+
+              Attendance Records
             </button>
           </div>
-        </div>
-        }
 
-      {activeTab === 'records' && !isLoading &&
-        <>
-          {/* Date Range Filter */}
-          <div id="hod-faculty-attendance-filters" className={`p-3 sm:p-4 rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-end">
-              <div className="w-full sm:w-auto">
-                <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
-                  Start Date
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
-                        !dateRange.start_date && "text-muted-foreground",
-                        theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                      )}>
-                      
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <ShadcnCalendar
-                      mode="single"
-                      selected={new Date(dateRange.start_date)}
-                      onSelect={(date) => date && setDateRange((prev) => ({ ...prev, start_date: date.toLocaleDateString('sv-SE') }))}
-                      initialFocus />
-                    
-                  </PopoverContent>
-                </Popover>
+          {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 && (
+            /* Today's Stats Cards */
+            <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                  <div>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
+                    <p className={`text-lg sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
+                  </div>
+                  <Users className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600 flex-shrink-0" />
+                </div>
               </div>
-              <div className="w-full sm:w-auto">
-                <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
-                  End Date
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
-                        !dateRange.end_date && "text-muted-foreground",
-                        theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                      )}>
-                      
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <ShadcnCalendar
-                      mode="single"
-                      selected={new Date(dateRange.end_date)}
-                      onSelect={(date) => date && setDateRange((prev) => ({ ...prev, end_date: date.toLocaleDateString('sv-SE') }))}
-                      disabled={(date) => {
-                        const start = new Date(dateRange.start_date);
-                        return isBefore(date, start) || isSameDay(date, start);
-                      }}
-                      initialFocus />
-                    
-                  </PopoverContent>
-                </Popover>
+              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                  <div>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
+                    <p className={`text-lg sm:text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
+                  </div>
+                  <CheckCircle className="w-6 sm:w-8 h-6 sm:h-8 text-green-600 flex-shrink-0" />
+                </div>
               </div>
-              <div className="w-full sm:w-auto pt-4 sm:pt-0 ml-auto">
-                <button
-                  onClick={handleExportRecordsPDF}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium">
-                  
-                  <FileDown className="w-4 h-4" />
-                  <span>Export Report</span>
-                </button>
+              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                  <div>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
+                    <p className={`text-lg sm:text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
+                  </div>
+                  <XCircle className="w-6 sm:w-8 h-6 sm:h-8 text-red-600 flex-shrink-0" />
+                </div>
+              </div>
+              <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                  <div>
+                    <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
+                    <p className={`text-lg sm:text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
+                  </div>
+                  <Clock className="w-6 sm:w-8 h-6 sm:h-8 text-gray-600 flex-shrink-0" />
+                </div>
               </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Faculty Summary */}
-          {facultySummary.length > 0 ?
-          <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Faculty Attendance Summary
+        {isLoading &&
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+            <SkeletonTable rows={10} cols={4} />
+          </div>
+        }
+
+        {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 &&
+          <>
+            {/* Today's Attendance Table */}
+            <div id="hod-faculty-attendance-table" className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
+              <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h3 className={`text-sm sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Today's Faculty Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})
                 </h3>
+                <button
+                  onClick={handleExportTodayPDF}
+                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium`}>
+
+                  <FileDown className="w-4 h-4" />
+                  <span>Export PDF</span>
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
                     <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
-                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
-                      <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
+                      <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
+                      <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
+                      <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
+                      <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Notes</th>
                     </tr>
                   </thead>
                   <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                    {facultySummary.map((summary) =>
-                  <React.Fragment key={summary.id}>
-                        <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
-                          <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            {summary.name}
+                    {todayAttendance.length === 0 ?
+                      <tr>
+                        <td colSpan={4} className="py-12">
+                          <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                            <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                              <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                            </div>
+                            <div className="text-center">
+                              <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
+                              <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr> :
+
+                      todayAttendance.map((record) =>
+                        <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
+                          <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            <div className="font-medium">{record.faculty_name}</div>
                           </td>
-                          <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            {summary.total_days}
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              {getStatusIcon(record.status)}
+                              <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
-                            {summary.present_days}
+                          <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
+                            {record.location ?
+                              <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                {record.location.inside ?
+                                  <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
+
+                                  <>Outside campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
+                                }
+                                {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
+                              </div> :
+
+                              <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</div>
+                            }
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
-                            {summary.absent_days}
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
-                      summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
-                      }>
-                            {summary.attendance_percentage.toFixed(1)}%
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <button
-                          onClick={() => fetchFacultyDetails(summary)}
-                          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ?
-                          'bg-primary/20 text-primary hover:bg-primary/30' :
-                          'bg-primary text-white hover:bg-primary/90'}`
-                          }>
-                          
-                              {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
-                            </button>
+                          <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                            {record.notes || '-'}
                           </td>
                         </tr>
-                      </React.Fragment>
-                  )}
+                      )
+                    }
                   </tbody>
                 </table>
               </div>
-
-              {/* Pagination for Records */}
-              <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center border-t border-gray-200 gap-4">
-                <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                  Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                  onClick={() => handleRecordsPageChange(recordsPagination.page - 1)}
-                  disabled={!recordsPagination.has_prev || isLoading}
-                  className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${recordsPagination.has_prev && !isLoading ?
-                  'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
-                  'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
-                  }>
-                  
-                    Previous
-                  </button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, recordsPagination.total_pages) }, (_, i) => {
-                    const pageNum = Math.max(1, Math.min(recordsPagination.total_pages - 4, recordsPagination.page - 2)) + i;
-                    if (pageNum < 1 || pageNum > recordsPagination.total_pages) return null;
-
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handleRecordsPageChange(pageNum)}
-                        disabled={isLoading}
-                        className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${pageNum === recordsPagination.page ?
-                        'bg-white text-primary font-semibold' :
-                        `bg-white text-gray-600 hover:text-primary ${theme === 'dark' ? 'hover:bg-accent' : ''}`}`
-                        }>
-                        
-                          {pageNum}
-                        </button>);
-
-                  })}
-                  </div>
-
-                  <button
-                  onClick={() => handleRecordsPageChange(recordsPagination.page + 1)}
-                  disabled={!recordsPagination.has_next || isLoading}
-                  className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${recordsPagination.has_next && !isLoading ?
-                  'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
-                  'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
-                  }>
-                  
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div> :
-
-          <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-              <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                <ClipboardX className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-              </div>
-              <div className="text-center">
-                <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records found</p>
-                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Try adjusting your date range or faculty filters</p>
-              </div>
             </div>
-          }
-
-        </>
+          </>
         }
-    </div>
 
-    {/* Attendance Details Modal */}
-    <Dialog open={!!selectedFaculty} onOpenChange={(open) => !open && setSelectedFaculty(null)}>
-      <DialogContent className={`max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar rounded-xl w-[90%] ${theme === 'dark' ? 'bg-slate-950 border-white/10' : 'bg-white'}`}>
-        <DialogHeader className="pb-4 border-b border-border/50">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <DialogTitle>
-                {selectedFaculty?.name}'s Attendance
-              </DialogTitle>
-              <p className={`text-sm mt-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                {formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}
-              </p>
-            </div>
-            <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-xl border border-border/50">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Present</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Absent</span>
+        {/* Today's Pagination Controls (moved to bottom) */}
+        {activeTab === 'today' && !isLoading &&
+          <div className={`flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 p-3 sm:p-4 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} rounded-lg mt-4`}>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to{' '}
+                {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of{' '}
+                {todayPagination.total_items} faculty
               </div>
             </div>
-          </div>
-        </DialogHeader>
 
-        <div className={`p-4 sm:p-6 rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-muted/20 border border-white/5' : 'bg-gray-50 border border-gray-100'}`}>
-          {isDetailLoading ?
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-              <p className="text-sm font-semibold animate-pulse text-muted-foreground">Syncing attendance data...</p>
-            </div> :
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+              {todayPagination.total_items > todayPagination.page_size &&
+                <button
+                  onClick={loadAllData}
+                  disabled={isLoading}
+                  className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border border-green-500 text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 whitespace-nowrap ${theme === 'dark' ? 'hover:bg-accent' : ''}`
+                  }>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
-              {(() => {
-                const start = new Date(dateRange.start_date);
-                const end = new Date(dateRange.end_date);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const days = [];
-                for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                  days.push(new Date(d));
-                }
+                  {isLoading ? 'Loading...' : 'Load All'}
+                </button>
+              }
 
-                return days.map((date) => {
-                  const dateStr = date.toLocaleDateString('sv-SE');
-                  const record = facultyAttendanceDetails.find((r) => r.date === dateStr);
-                  const isFuture = date > today;
+              <button
+                onClick={() => handlePageChange(todayPagination.page - 1)}
+                disabled={!todayPagination.has_prev || isLoading}
+                className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${todayPagination.has_prev && !isLoading ?
+                  'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
+                  'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
+                }>
 
-                  const isPresent = record?.status?.toLowerCase() === 'present';
-                  const isAbsent = record?.status?.toLowerCase() === 'absent' || !record && !isFuture;
+                Previous
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, todayPagination.total_pages) }, (_, i) => {
+                  const pageNum = Math.max(1, Math.min(todayPagination.total_pages - 4, todayPagination.page - 2)) + i;
+                  if (pageNum > todayPagination.total_pages) return null;
 
                   return (
-                    <div
-                      key={dateStr}
-                      className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent ?
-                      'bg-green-500/10 border-green-500/30 text-green-600' :
-                      isAbsent ?
-                      'bg-red-500/10 border-red-500/30 text-red-600' :
-                      theme === 'dark' ?
-                      'bg-white/5 border-white/5 text-muted-foreground/30' :
-                      'bg-gray-100 border-gray-200 text-gray-300'}`
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      disabled={isLoading}
+                      className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${pageNum === todayPagination.page ?
+                        'bg-white text-primary font-semibold' :
+                        `bg-white text-gray-600 hover:text-primary ${theme === 'dark' ? 'hover:bg-accent' : ''}`}`
                       }>
-                      
-                      <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">
-                        {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                      </span>
-                      <span className="text-xl font-black leading-tight">{date.getDate()}</span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">
-                        {date.toLocaleDateString('en-US', { month: 'short' })}
-                      </span>
 
-                      {record ?
-                      <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`
+                      {pageNum}
+                    </button>);
+
+                })}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(todayPagination.page + 1)}
+                disabled={!todayPagination.has_next || isLoading}
+                className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${todayPagination.has_next && !isLoading ?
+                  'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
+                  'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
+                }>
+
+                Next
+              </button>
+            </div>
+          </div>
+        }
+
+        {activeTab === 'records' && !isLoading &&
+          <>
+            {/* Date Range Filter */}
+            <div id="hod-faculty-attendance-filters" className={`p-3 sm:p-4 rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-end">
+                <div className="w-full sm:w-auto">
+                  <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                    Start Date
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                          !dateRange.start_date && "text-muted-foreground",
+                          theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                        )}>
+
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <ShadcnCalendar
+                        mode="single"
+                        selected={new Date(dateRange.start_date)}
+                        onSelect={(date) => date && setDateRange((prev) => ({ ...prev, start_date: date.toLocaleDateString('sv-SE') }))}
+                        initialFocus />
+
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                    End Date
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                          !dateRange.end_date && "text-muted-foreground",
+                          theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                        )}>
+
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <ShadcnCalendar
+                        mode="single"
+                        selected={new Date(dateRange.end_date)}
+                        onSelect={(date) => date && setDateRange((prev) => ({ ...prev, end_date: date.toLocaleDateString('sv-SE') }))}
+                        disabled={(date) => {
+                          const start = new Date(dateRange.start_date);
+                          return isBefore(date, start) || isSameDay(date, start);
+                        }}
+                        initialFocus />
+
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="w-full sm:w-auto pt-4 sm:pt-0 ml-auto">
+                  <button
+                    onClick={handleExportRecordsPDF}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium">
+
+                    <FileDown className="w-4 h-4" />
+                    <span>Export Report</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Faculty Summary */}
+            {facultySummary.length > 0 ?
+              <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    Faculty Attendance Summary
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                      <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
+                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
+                        <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                      {facultySummary.map((summary) =>
+                        <React.Fragment key={summary.id}>
+                          <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
+                            <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              {summary.name}
+                            </td>
+                            <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              {summary.total_days}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
+                              {summary.present_days}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
+                              {summary.absent_days}
+                            </td>
+                            <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
+                              summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
+                            }>
+                              {summary.attendance_percentage.toFixed(1)}%
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                              <button
+                                onClick={() => fetchFacultyDetails(summary)}
+                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ?
+                                  'bg-primary/20 text-primary hover:bg-primary/30' :
+                                  'bg-primary text-white hover:bg-primary/90'}`
+                                }>
+
+                                {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
+                              </button>
+                            </td>
+                          </tr>
+                        </React.Fragment>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination for Records */}
+                <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center border-t border-gray-200 gap-4">
+                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleRecordsPageChange(recordsPagination.page - 1)}
+                      disabled={!recordsPagination.has_prev || isLoading}
+                      className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${recordsPagination.has_prev && !isLoading ?
+                        'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
+                        'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
                       }>
-                          {record.status[0]}
-                        </div> :
 
-                      !isFuture &&
-                      <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+                      Previous
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, recordsPagination.total_pages) }, (_, i) => {
+                        const pageNum = Math.max(1, Math.min(recordsPagination.total_pages - 4, recordsPagination.page - 2)) + i;
+                        if (pageNum < 1 || pageNum > recordsPagination.total_pages) return null;
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handleRecordsPageChange(pageNum)}
+                            disabled={isLoading}
+                            className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${pageNum === recordsPagination.page ?
+                              'bg-white text-primary font-semibold' :
+                              `bg-white text-gray-600 hover:text-primary ${theme === 'dark' ? 'hover:bg-accent' : ''}`}`
+                            }>
+
+                            {pageNum}
+                          </button>);
+
+                      })}
+                    </div>
+
+                    <button
+                      onClick={() => handleRecordsPageChange(recordsPagination.page + 1)}
+                      disabled={!recordsPagination.has_next || isLoading}
+                      className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${recordsPagination.has_next && !isLoading ?
+                        'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
+                        'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
+                      }>
+
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div> :
+
+              <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                  <ClipboardX className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                </div>
+                <div className="text-center">
+                  <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records found</p>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Try adjusting your date range or faculty filters</p>
+                </div>
+              </div>
+            }
+
+          </>
+        }
+      </div>
+
+      {/* Attendance Details Modal */}
+      <Dialog open={!!selectedFaculty} onOpenChange={(open) => !open && setSelectedFaculty(null)}>
+        <DialogContent className={`max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar rounded-xl w-[90%] ${theme === 'dark' ? 'bg-slate-950 border-white/10' : 'bg-white'}`}>
+          <DialogHeader className="pb-4 border-b border-border/50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <DialogTitle>
+                  {selectedFaculty?.name}'s Attendance
+                </DialogTitle>
+                <p className={`text-sm mt-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  {formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}
+                </p>
+              </div>
+              <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-xl border border-border/50">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Present</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Absent</span>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className={`p-4 sm:p-6 rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-muted/20 border border-white/5' : 'bg-gray-50 border border-gray-100'}`}>
+            {isDetailLoading ?
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                <p className="text-sm font-semibold animate-pulse text-muted-foreground">Syncing attendance data...</p>
+              </div> :
+
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
+                {(() => {
+                  const start = new Date(dateRange.start_date);
+                  const end = new Date(dateRange.end_date);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const days = [];
+                  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                    days.push(new Date(d));
+                  }
+
+                  return days.map((date) => {
+                    const dateStr = date.toLocaleDateString('sv-SE');
+                    const record = facultyAttendanceDetails.find((r) => r.date === dateStr);
+                    const isFuture = date > today;
+
+                    const isPresent = record?.status?.toLowerCase() === 'present';
+                    const isAbsent = record?.status?.toLowerCase() === 'absent' || !record && !isFuture;
+
+                    return (
+                      <div
+                        key={dateStr}
+                        className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent ?
+                          'bg-green-500/10 border-green-500/30 text-green-600' :
+                          isAbsent ?
+                            'bg-red-500/10 border-red-500/30 text-red-600' :
+                            theme === 'dark' ?
+                              'bg-white/5 border-white/5 text-muted-foreground/30' :
+                              'bg-gray-100 border-gray-200 text-gray-300'}`
+                        }>
+
+                        <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">
+                          {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                        </span>
+                        <span className="text-xl font-black leading-tight">{date.getDate()}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                          {date.toLocaleDateString('en-US', { month: 'short' })}
+                        </span>
+
+                        {record ?
+                          <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`
+                          }>
+                            {record.status[0]}
+                          </div> :
+
+                          !isFuture &&
+                          <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">
                             A
                           </div>
 
-                      }
+                        }
 
-                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
-                        <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
-                        {!record && !isFuture && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
-                        {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
-                      </div>
-                    </div>);
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
+                          <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
+                          {!record && !isFuture && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
+                          {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
+                        </div>
+                      </div>);
 
-                });
-              })()}
-            </div>
+                  });
+                })()}
+              </div>
             }
-        </div>
-
-        <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
-          <div className="text-[11px] text-muted-foreground italic font-medium">
-            Note: "A" indicates auto-marked absence due to missing records.
           </div>
-          <Button onClick={() => setSelectedFaculty(null)} className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90">Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+
+          <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
+            <div className="text-[11px] text-muted-foreground italic font-medium">
+              Note: "A" indicates auto-marked absence due to missing records.
+            </div>
+            <Button onClick={() => setSelectedFaculty(null)} className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90">Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>);
 
 };

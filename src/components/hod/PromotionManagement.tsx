@@ -82,7 +82,7 @@ const PromotionManagement = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div id="hod-promotion-container" className="space-y-4">
       {renderContent()}
     </div>);
 
@@ -90,77 +90,79 @@ const PromotionManagement = () => {
 
 const PromotionOverview = ({ onTabChange, theme }: {onTabChange: (tab: "overview" | "promote" | "demote") => void;theme: string;}) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Promotion Card */}
-      <Card className={`h-full flex flex-col ${theme === 'dark' ? 'bg-card text-foreground border-border hover:border-green-500' : 'bg-white text-gray-900 border-gray-200 hover:border-green-500'}`}>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-600 rounded-lg">
-              <UserCheck className="h-6 w-6 text-white" />
+    <div className="space-y-6">
+      <div id="hod-promotion-cards-wrapper" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Promotion Card */}
+        <Card className={`h-full flex flex-col ${theme === 'dark' ? 'bg-card text-foreground border-border hover:border-green-500' : 'bg-white text-gray-900 border-gray-200 hover:border-green-500'}`}>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-green-600 rounded-lg">
+                <UserCheck className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Student Promotion</CardTitle>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Promote eligible students to next semester</p>
+              </div>
             </div>
-            <div>
-              <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Student Promotion</CardTitle>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Promote eligible students to next semester</p>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Bulk promote students</span>
+                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Promote selected students</span>
+                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>View promotion history</span>
+                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Bulk promote students</span>
-              <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Promote selected students</span>
-              <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>View promotion history</span>
-              <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-            </div>
-          </div>
-          <Button onClick={() => onTabChange("promote")} className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white">
-            Manage Promotions
-          </Button>
-        </CardContent>
-      </Card>
+            <Button onClick={() => onTabChange("promote")} className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white">
+              Manage Promotions
+            </Button>
+          </CardContent>
+        </Card>
 
-      {/* Demotion Card */}
-      <Card className={`h-full flex flex-col ${theme === 'dark' ? 'bg-card text-foreground border-border hover:border-red-500' : 'bg-white text-gray-900 border-gray-200 hover:border-red-500'}`}>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-red-600 rounded-lg">
-              <UserX className="h-6 w-6 text-white" />
+        {/* Demotion Card */}
+        <Card className={`h-full flex flex-col ${theme === 'dark' ? 'bg-card text-foreground border-border hover:border-red-500' : 'bg-white text-gray-900 border-gray-200 hover:border-red-500'}`}>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-red-600 rounded-lg">
+                <UserX className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Student Demotion</CardTitle>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Demote students to previous semester</p>
+              </div>
             </div>
-            <div>
-              <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Student Demotion</CardTitle>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Demote students to previous semester</p>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Individual demotion</span>
+                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Bulk demotion</span>
+                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Track demotion reasons</span>
+                <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Individual demotion</span>
-              <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Bulk demotion</span>
-              <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Track demotion reasons</span>
-              <ArrowRight className={`h-4 w-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-            </div>
-          </div>
-          <Button onClick={() => onTabChange("demote")} className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white">
-            Manage Demotions
-          </Button>
-        </CardContent>
-      </Card>
+            <Button onClick={() => onTabChange("demote")} className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white">
+              Manage Demotions
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Quick Stats */}
-      <Card className={theme === 'dark' ? 'bg-card text-foreground border-border md:col-span-2' : 'bg-white text-gray-900 border-gray-200 md:col-span-2'}>
+      <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
           <CardTitle className={`flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             <Users className="h-5 w-5" />
@@ -184,7 +186,8 @@ const PromotionOverview = ({ onTabChange, theme }: {onTabChange: (tab: "overview
           </div>
         </CardContent>
       </Card>
-    </div>);
+    </div>
+  );
 
 };
 

@@ -895,78 +895,84 @@ const Timetable = () => {
   return (
     <div className="bg-background text-foreground">
       <Card id="timetable-card" className="shadow-xl">
-        <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-4">
-          <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
-              onClick={handleExportPDF}>
-              
-              <DownloadIcon className="w-4 h-4" />
-              <span className="whitespace-nowrap">Export PDF</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
-              onClick={handleEdit}>
-              
-              <EditIcon className="w-4 h-4" />
-              <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
-            </Button>
-          </div>
-        </CardHeader>
+        <div id="timetable-header-filters-section">
+          <CardHeader id="timetable-card-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card px-4 py-3 rounded-t-md gap-4">
+            <CardTitle className="text-2xl font-semibold text-foreground">Timetable</CardTitle>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
+                onClick={handleExportPDF}>
+                
+                <DownloadIcon className="w-4 h-4" />
+                <span className="whitespace-nowrap">Export PDF</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
+                onClick={handleEdit}>
+                
+                <EditIcon className="w-4 h-4" />
+                <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
+              </Button>
+            </div>
+          </CardHeader>
 
-        <CardContent className="bg-card">
-          <div className="border border-border rounded-lg p-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
-              <div className="flex flex-col sm:flex-row md:flex-row gap-2 sm:gap-4 w-full md:flex-1 md:items-center md:flex-nowrap">
-                <div className="w-full sm:w-auto md:flex-none">
-                  <Select
-                    value={state.semesterId}
-                    onValueChange={(value) =>
-                    updateState({ semesterId: value, sectionId: "", timetable: [] })
-                    }>
-                    
-                    <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
-                      <SelectValue placeholder="Select Semester" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card text-foreground border-border">
-                      {state.semesters.map((semester) =>
-                      <SelectItem key={semester.id} value={semester.id} className="text-foreground">
-                          {semester.number} Semester
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
+          <CardContent className="bg-card pb-0">
+            <div className="border border-border rounded-lg p-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+                <div className="flex flex-col sm:flex-row md:flex-row gap-2 sm:gap-4 w-full md:flex-1 md:items-center md:flex-nowrap">
+                  <div className="w-full sm:w-auto md:flex-none">
+                    <Select
+                      value={state.semesterId}
+                      onValueChange={(value) =>
+                      updateState({ semesterId: value, sectionId: "", timetable: [] })
+                      }>
+                      
+                      <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
+                        <SelectValue placeholder="Select Semester" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card text-foreground border-border">
+                        {state.semesters.map((semester) =>
+                        <SelectItem key={semester.id} value={semester.id} className="text-foreground">
+                            {semester.number} Semester
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-full sm:w-auto md:flex-none">
+                    <Select
+                      value={state.sectionId}
+                      onValueChange={(value) => updateState({ sectionId: value, timetable: [] })}
+                      disabled={!state.semesterId}>
+                      
+                      <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
+                        <SelectValue placeholder="Select Section" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card text-foreground border-border">
+                        {state.sections.map((section) =>
+                        <SelectItem key={section.id} value={section.id} className="text-foreground">
+                            Section {section.name}
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="w-full sm:w-auto md:flex-none">
-                  <Select
-                    value={state.sectionId}
-                    onValueChange={(value) => updateState({ sectionId: value, timetable: [] })}
-                    disabled={!state.semesterId}>
-                    
-                    <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
-                      <SelectValue placeholder="Select Section" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card text-foreground border-border">
-                      {state.sections.map((section) =>
-                      <SelectItem key={section.id} value={section.id} className="text-foreground">
-                          Section {section.name}
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="text-sm text-muted-foreground mt-2 md:mt-0 md:ml-4 md:whitespace-nowrap md:flex-none">
-                {state.semesterId && state.sectionId ?
-                `${state.semesters.find((s) => s.id === state.semesterId)?.number} Semester - Section ${state.sections.find((s) => s.id === state.sectionId)?.name}` :
+                <div className="text-sm text-muted-foreground mt-2 md:mt-0 md:ml-4 md:whitespace-nowrap md:flex-none">
+                  {state.semesterId && state.sectionId ?
+                  `${state.semesters.find((s) => s.id === state.semesterId)?.number} Semester - Section ${state.sections.find((s) => s.id === state.sectionId)?.name}` :
 
-                "Select Semester and Section"}
+                  "Select Semester and Section"}
+                </div>
               </div>
             </div>
+          </CardContent>
+        </div>
 
+        <CardContent className="bg-card pt-0">
+          <div className="border border-border rounded-lg p-4">
             {!state.semesterId || !state.sectionId ?
             <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                 <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>

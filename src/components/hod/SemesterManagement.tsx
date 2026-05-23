@@ -334,10 +334,10 @@ const SemesterManagement = () => {
   );
 
   return (
-    <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="hod-semester-container" className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
-          <div className="flex items-center justify-between w-full">
+          <div id="semester-list-header" className="flex items-center justify-between w-full">
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Semester List</CardTitle>
             <Button
               onClick={() => openModal()}
