@@ -9,6 +9,8 @@ import {
 
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#f43f5e'];
 
+import { API_BASE_URL } from "@/utils/config";
+
 const Overview = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,7 @@ const Overview = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/stats/`, {
+        const response = await fetch(`${API_BASE_URL}/api/superadmin/stats/`, {
           headers: {
             "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
           }

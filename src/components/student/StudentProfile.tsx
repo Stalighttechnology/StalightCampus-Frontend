@@ -383,15 +383,46 @@ const StudentProfile: React.FC = () => {
   const fetchLoginHistory = async () => {
     setLoginHistoryLoading(true);
     try {
-      const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/login-history/`, {
-        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+      const currentSessionId = localStorage.getItem('session_id') || undefined;
+      const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/sessions/`, {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+          ...(currentSessionId ? { 'X-Session-Id': currentSessionId } : {})
+        }
       });
       const j = await resp.json();
-      if (j.success) setLoginHistory(j.history || []);
+      // Support both legacy `history` and new `sessions` payloads
+      if (j.success) {
+        const sessions = j.sessions || j.history || [];
+        setLoginHistory(sessions || []);
+        if (j.currentSessionId) localStorage.setItem('session_id', j.currentSessionId);
+      }
     } catch (err) {
       // silent
     } finally {
       setLoginHistoryLoading(false);
+    }
+  };
+
+  const terminateSession = async (sessionId: string) => {
+    try {
+      const currentSessionId = localStorage.getItem('session_id') || undefined;
+      const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/sessions/${sessionId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(currentSessionId ? { 'X-Session-Id': currentSessionId } : {})
+        }
+      });
+      const j = await resp.json();
+      if (j.success) {
+        // Refresh list
+        fetchLoginHistory();
+      } else {
+        console.error('Failed to revoke session', j.message);
+      }
+    } catch (err) {
+      console.error('Network error terminating session', err);
     }
   };
 
@@ -1120,9 +1151,12 @@ const StudentProfile: React.FC = () => {
                     {!loginHistoryLoading && loginHistory.length > 0 && (
                       <div className="space-y-3">
                         {loginHistory.map((entry: any, idx: number) => {
-                          const dt = new Date(entry.timestamp);
+                          // Prefer last_seen_at then created_at then timestamp for backwards compatibility
+                          const iso = entry.last_seen_at || entry.last_seen || entry.created_at || entry.timestamp || null;
+                          const dt = iso ? new Date(iso) : null;
                           const isRecent = idx === 0;
                           const timeAgo = (() => {
+                            if (!dt || Number.isNaN(dt.getTime())) return '';
                             const diff = Date.now() - dt.getTime();
                             const mins = Math.floor(diff / 60000);
                             const hrs = Math.floor(mins / 60);
@@ -1169,6 +1203,17 @@ const StudentProfile: React.FC = () => {
                                   Latest
                                 </span>
                               )}
+
+                              {/* Logout button */}
+                              <div className="absolute top-3 right-3">
+                                <button
+                                  onClick={() => terminateSession(entry.id)}
+                                  disabled={!!entry.is_current}
+                                  className={`text-xs px-2 py-1 rounded ${entry.is_current ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}
+                                >
+                                  {entry.is_current ? 'Current' : 'Logout'}
+                                </button>
+                              </div>
 
                               {/* Device Icon */}
                               <div className={`flex-shrink-0 h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>

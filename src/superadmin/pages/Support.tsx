@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../componen
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from "@/utils/config";
 
 const getPriorityClass = (p: string) =>
 p === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :

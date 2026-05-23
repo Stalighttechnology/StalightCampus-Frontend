@@ -26,8 +26,7 @@ import {
   ExternalLink,
   ShieldAlert
 } from "lucide-react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { API_BASE_URL } from "@/utils/config";
 
 interface OrgItem {
   id: number;
@@ -60,6 +59,10 @@ const Monitoring = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [organizations, setOrganizations] = useState<OrgItem[]>([]);
+
+  // Login history (last N) for current user
+  const [loginHistory, setLoginHistory] = useState<any[]>([]);
+  const [loadingLoginHistory, setLoadingLoginHistory] = useState<boolean>(false);
 
   // Pagination states
   const [logPage, setLogPage] = useState(1);
@@ -108,7 +111,7 @@ const Monitoring = () => {
   const fetchHealthData = async () => {
     setLoadingHealth(true);
     try {
-      const response = await fetch(`${API_BASE}/api/superadmin/monitoring/system/`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/monitoring/system/`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -125,7 +128,7 @@ const Monitoring = () => {
   // 2. Fetch Organizations list (for filters)
   const fetchOrganizations = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/superadmin/organizations/?page_size=100`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/?page_size=100`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -141,7 +144,7 @@ const Monitoring = () => {
   const fetchStats = async () => {
     setLoadingStats(true);
     try {
-      const response = await fetch(`${API_BASE}/api/superadmin/system-logs/stats/`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/system-logs/stats/`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -172,7 +175,7 @@ const Monitoring = () => {
       if (errorStartDate) queryParams.append("start_date", errorStartDate);
       if (errorEndDate) queryParams.append("end_date", errorEndDate);
 
-      const response = await fetch(`${API_BASE}/api/superadmin/system-logs/?${queryParams.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/system-logs/?${queryParams.toString()}`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -201,7 +204,7 @@ const Monitoring = () => {
       if (auditAction !== "All") queryParams.append("action", auditAction);
       if (auditSearch) queryParams.append("search", auditSearch);
 
-      const response = await fetch(`${API_BASE}/api/superadmin/system-logs/audit-logs/?${queryParams.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/system-logs/audit-logs/?${queryParams.toString()}`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -218,11 +221,61 @@ const Monitoring = () => {
     }
   };
 
+  // 6. Fetch Login History (last 20 from backend) but frontend will show last 5
+  const fetchLoginHistory = async () => {
+    setLoadingLoginHistory(true);
+    try {
+      const currentSessionId = localStorage.getItem('session_id') || undefined;
+      const response = await fetch(`${API_BASE_URL}/api/profile/sessions/`, {
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+          ...(currentSessionId ? { 'X-Session-Id': currentSessionId } : {})
+        }
+      });
+      if (response.ok) {
+        const res = await response.json();
+        setLoginHistory(res.sessions || []);
+        // store currentSessionId from server response if provided
+        if (res.currentSessionId) localStorage.setItem('session_id', res.currentSessionId);
+      }
+    } catch (error) {
+      console.error('Error fetching login history:', error);
+    } finally {
+      setLoadingLoginHistory(false);
+    }
+  };
+
+  const terminateSession = async (loginId: string) => {
+    try {
+      const currentSessionId = localStorage.getItem('session_id') || undefined;
+      const response = await fetch(`${API_BASE_URL}/api/sessions/${loginId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
+          ...(currentSessionId ? { 'X-Session-Id': currentSessionId } : {})
+        }
+      });
+      if (response.ok) {
+        const res = await response.json();
+        showToast(res.message || 'Session terminated');
+        // Refresh list
+        fetchLoginHistory();
+      } else {
+        const res = await response.json();
+        showToast(res.message || 'Failed to terminate session');
+      }
+    } catch (error) {
+      console.error('Error terminating session:', error);
+      showToast('Network error');
+    }
+  };
+
   // 6. Handle Log Resolution toggle
   const handleResolveLog = async (logId: number, setResolved: boolean) => {
     setResolvingState(true);
     try {
-      const response = await fetch(`${API_BASE}/api/superadmin/system-logs/${logId}/resolve/`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/system-logs/${logId}/resolve/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -322,6 +375,7 @@ const Monitoring = () => {
   useEffect(() => {
     if (activeTab === "audit") {
       fetchAuditLogs(auditPage);
+      fetchLoginHistory();
     }
   }, [activeTab, auditPage, auditOrgId, auditAction]);
 
@@ -1180,6 +1234,50 @@ const Monitoring = () => {
                     Reset Filter Fields
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Recent Login Activity (last 5) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border border-slate-100 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900/50 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">Recent Login Activity</h3>
+                  <button
+                    onClick={fetchLoginHistory}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Refresh
+                  </button>
+                </div>
+                  {loadingLoginHistory ? (
+                  <div className="animate-pulse space-y-2">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="h-8 bg-gray-100 dark:bg-slate-800 rounded" />
+                    ))}
+                  </div>
+                ) : (loginHistory.length === 0 ? (
+                  <div className="text-xs text-gray-500">No recent login activity.</div>
+                ) : (
+                  <ul className="space-y-2 text-xs">
+                    {loginHistory.map((h: any) => (
+                      <li key={h.id} className="flex items-center justify-between">
+                        <div className="truncate">
+                          <div className="font-semibold text-[13px] text-gray-800 dark:text-slate-200">{h.device || h.browser || 'Unknown'}</div>
+                          <div className="text-gray-500 dark:text-gray-400 text-[11px]">{formatTime(h.last_seen_at || h.created_at)} • {h.ip_address || '-'}</div>
+                        </div>
+                        <div className="ml-3">
+                          <button
+                            onClick={() => terminateSession(h.id)}
+                            disabled={!!h.is_current}
+                            className={`text-xs px-2 py-1 rounded ${h.is_current ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}
+                          >
+                            {h.is_current ? 'Current' : 'Logout'}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ))}
               </div>
             </div>
 

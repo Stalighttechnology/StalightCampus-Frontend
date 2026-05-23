@@ -5,6 +5,8 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { LockKeyhole, User, ShieldAlert, Eye, EyeOff } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
+import { API_BASE_URL } from "@/utils/config";
+import { getOrCreateDeviceId } from "@/utils/authService";
 
 interface Props {
   setIsAuthenticated: (val: boolean) => void;
@@ -27,9 +29,10 @@ const SuperAdminLogin = ({ setIsAuthenticated }: Props) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/login/`, {
+      const deviceId = getOrCreateDeviceId();
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/login/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Device-Id": deviceId },
         body: JSON.stringify({ username, password }),
       });
 

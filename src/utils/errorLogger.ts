@@ -1,6 +1,6 @@
 // Global Frontend Error Logger for Stalight Campus
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from "./config";
+const API_URL = API_BASE_URL;
 let errorCount = 0;
 const MAX_ERRORS_PER_SESSION = 10;
 

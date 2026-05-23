@@ -1,5 +1,20 @@
 import { API_ENDPOINT, TOKEN_REFRESH_TIMEOUT, API_BASE_URL } from "./config";
 
+// Persist a client-side device identifier used to group sessions per device.
+const DEVICE_ID_KEY = 'device_id';
+
+export const getOrCreateDeviceId = (): string => {
+  try {
+    const existing = localStorage.getItem(DEVICE_ID_KEY);
+    if (existing) return existing;
+    const id = (typeof crypto !== 'undefined' && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : `dev-${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(DEVICE_ID_KEY, id);
+    return id;
+  } catch (e) {
+    return `dev-${Math.random().toString(36).slice(2, 10)}`;
+  }
+};
+
 // Type definitions for request and response data
 interface AuthResponse {
   success: boolean;
@@ -102,10 +117,14 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     // Note: AuthContext will populate sessionStorage with a refreshed token via its refreshAccessToken method.
     let accessToken = sessionStorage.getItem("access_token");
 
-    // Ensure Authorization header is set only when we have a token.
+    // Ensure Authorization header is set only when we have a token. Also include session/device identifiers.
+    const sessionId = (typeof window !== 'undefined') ? localStorage.getItem('session_id') : undefined;
+    const deviceId = getOrCreateDeviceId();
     const safeHeaders = {
       ...(options.headers as Record<string, string | undefined>),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(sessionId ? { 'X-Session-Id': sessionId } : {}),
+      ...(deviceId ? { 'X-Device-Id': deviceId } : {}),
     };
     options.headers = safeHeaders as Record<string, string>;
     options.credentials = 'include'; // Include cookies
@@ -227,11 +246,10 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
   }
   try {
 
+    const deviceId = getOrCreateDeviceId();
     const response = await fetch(`${API_ENDPOINT}/login/`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json", "X-Device-Id": deviceId },
       credentials: "include", // Receive HttpOnly refresh_token cookie
       body: JSON.stringify({ username, password })
     });
@@ -245,6 +263,10 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
       // Convert relative profile_image URL to absolute URL
       if (result.profile && result.profile.profile_image && result.profile.profile_image.startsWith('/media/')) {
         result.profile.profile_image = `${API_BASE_URL}${result.profile.profile_image}`;
+      }
+      // Store server-provided session id (used to identify current session)
+      if ((result as any).session_id) {
+        try { localStorage.setItem('session_id', (result as any).session_id); } catch (e) { /* ignore */ }
       }
 
       // Store token in sessionStorage (non‑sensitive) for page reloads – actual access token lives in AuthContext memory
@@ -268,11 +290,10 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
   }
   try {
 
+    const deviceId = getOrCreateDeviceId();
     const response = await fetch(`${API_ENDPOINT}/verify-otp/`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json", "X-Device-Id": deviceId },
       credentials: "include", // Receive HttpOnly refresh_token cookie
       body: JSON.stringify({ user_id, otp })
     });
@@ -290,6 +311,10 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
       if (result.profile) sessionStorage.setItem("user", JSON.stringify(result.profile));
       // AuthContext will manage periodic refresh; no need to startTokenRefresh here
 
+        // Store server-provided session id (used to identify current session)
+        if ((result as any).session_id) {
+          try { localStorage.setItem('session_id', (result as any).session_id); } catch (e) { /* ignore */ }
+        }
     }
     return result;
   } catch (error: any) {
@@ -320,10 +345,8 @@ export const resendOTP = async ({ user_id }: ResendOTPRequest): Promise<GenericR
     return { success: false, message: error.response?.data?.message || "Failed to connect to the server" };
   }
 };
-
 export const forgotPassword = async ({ email }: ForgotPasswordRequest): Promise<GenericResponse> => {
   if (!email?.trim()) {
-
     return { success: false, message: "Email required" };
   }
   try {

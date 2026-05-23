@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/utils/config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { useTheme } from "../../context/ThemeContext";
@@ -11,7 +12,7 @@ const Subscriptions = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/subscriptions/`, {
+        const response = await fetch(`${API_BASE_URL}/api/superadmin/subscriptions/`, {
           headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
         });
         const res = await response.json();
