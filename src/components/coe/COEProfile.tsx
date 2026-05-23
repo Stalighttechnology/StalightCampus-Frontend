@@ -11,6 +11,7 @@ import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonCard } from '../ui/skeleton';
 import Swal from "sweetalert2";
+import LoginActivity from '../common/LoginActivity';
 
 interface COEProfile {
   user_id: number;
@@ -35,7 +36,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [profile, setProfile] = useState<COEProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"personal" | "contact">("personal");
+  const [activeTab, setActiveTab] = useState<"personal" | "contact" | "activity">("personal");
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -345,6 +346,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
               <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
               <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
+              <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[15px] sm:text-md rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
             </div>
 
             <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
@@ -412,6 +414,15 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="text-[18px] sm:text-sm" />
                   
+                  </div>
+                </div>
+              }
+
+              {activeTab === 'activity' &&
+                <div>
+                  <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Login Activity</h3>
+                  <div>
+                    <LoginActivity />
                   </div>
                 </div>
               }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/utils/config";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { useTheme } from "../../context/ThemeContext";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
@@ -13,7 +14,7 @@ const UserAnalytics = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/analytics/users/`, {
+        const response = await fetch(`${API_BASE_URL}/api/superadmin/analytics/users/`, {
           headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
         });
         const res = await response.json();

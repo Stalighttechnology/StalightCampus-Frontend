@@ -22,6 +22,7 @@ import {
   SkeletonCard,
   SkeletonForm } from
 "@/components/ui/skeleton";
+import LoginActivity from '../common/LoginActivity';
 
 
 const FeesManagerProfile: React.FC = () => {
@@ -30,6 +31,7 @@ const FeesManagerProfile: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({ first_name: "", last_name: "", email: "", phone: "", address: "", bio: "" });
+  const [activeTab, setActiveTab] = useState<'details' | 'activity'>('details');
 
   // Change password state
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -237,43 +239,53 @@ const FeesManagerProfile: React.FC = () => {
 
             <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
-                <button onClick={() => {/* single tab only for simplicity */}} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${'bg-primary text-white'}`}>Details</button>
+                <button onClick={() => setActiveTab('details')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'details' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Details</button>
+                <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
-                <div className="space-y-4 sm:space-y-5 md:space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-                    <div>
-                      <Label htmlFor="first_name" className="text-md sm:text-sm">First Name</Label>
-                      <Input id="first_name" value={formData.first_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
+                {activeTab === 'details' ? (
+                  <div className="space-y-4 sm:space-y-5 md:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
+                      <div>
+                        <Label htmlFor="first_name" className="text-md sm:text-sm">First Name</Label>
+                        <Input id="first_name" value={formData.first_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
+                      </div>
+                      <div>
+                        <Label htmlFor="last_name" className="text-md sm:text-sm">Last Name</Label>
+                        <Input id="last_name" value={formData.last_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
+                      </div>
                     </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="email" className="text-md sm:text-sm">Email</Label>
+                        <Input id="email" value={formData.email} disabled={!editing} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone" className="text-md sm:text-sm">Mobile</Label>
+                        <Input id="phone" value={formData.phone} disabled={!editing} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
+                      </div>
+                    </div>
+
                     <div>
-                      <Label htmlFor="last_name" className="text-md sm:text-sm">Last Name</Label>
-                      <Input id="last_name" value={formData.last_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
+                      <Label htmlFor="address" className="text-md sm:text-sm">Address</Label>
+                      <Textarea id="address" rows={3} value={formData.address} disabled={!editing} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="text-md sm:text-sm w-full" />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="bio" className="text-md sm:text-sm">Bio</Label>
+                      <Textarea id="bio" rows={4} value={formData.bio} disabled={!editing} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="text-md sm:text-sm w-full" />
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="email" className="text-md sm:text-sm">Email</Label>
-                      <Input id="email" value={formData.email} disabled={!editing} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone" className="text-md sm:text-sm">Mobile</Label>
-                      <Input id="phone" value={formData.phone} disabled={!editing} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
-                    </div>
-                  </div>
-
+                ) : (
                   <div>
-                    <Label htmlFor="address" className="text-md sm:text-sm">Address</Label>
-                    <Textarea id="address" rows={3} value={formData.address} disabled={!editing} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="text-md sm:text-sm w-full" />
+                    <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Login Activity</h3>
+                    <div className="mt-3">
+                      <LoginActivity />
+                    </div>
                   </div>
-
-                  <div>
-                    <Label htmlFor="bio" className="text-md sm:text-sm">Bio</Label>
-                    <Textarea id="bio" rows={4} value={formData.bio} disabled={!editing} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="text-md sm:text-sm w-full" />
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

@@ -40,6 +40,8 @@ import {
   SelectValue } from
 "../../components/ui/select";
 
+import { API_BASE_URL } from "@/utils/config";
+
 const Organizations = () => {
   const [orgs, setOrgs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ const Organizations = () => {
 
   const fetchOrgs = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/organizations/`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/`, {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
         }
@@ -79,7 +81,7 @@ const Organizations = () => {
     if (!deleteOrg) return;
     setActionLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/organizations/${deleteOrg.id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/${deleteOrg.id}/`, {
         method: 'DELETE',
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
@@ -100,7 +102,7 @@ const Organizations = () => {
     if (!planOrg || !newPlan) return;
     setActionLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/organizations/${planOrg.id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/${planOrg.id}/`, {
         method: 'PUT',
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +125,7 @@ const Organizations = () => {
     setViewOrg(org); // show modal immediately with basic data
     setViewOrgLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/superadmin/organizations/${org.id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/${org.id}/`, {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
         }

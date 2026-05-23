@@ -4,7 +4,8 @@ import { Download, Building2, CreditCard, Users, BadgeCheck, Ticket, Loader2 } f
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from "@/utils/config";
+const API_BASE = API_BASE_URL;
 
 const REPORTS = [
 {

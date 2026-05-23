@@ -14,6 +14,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { SkeletonCard, SkeletonPageHeader } from "../ui/skeleton";
+import LoginActivity from '../common/LoginActivity';
 
 interface DeanProfileShape {
   id: number;
@@ -56,7 +57,7 @@ const DeanProfile = () => {
     confirm: false
   });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity'>('personal');
 
   const getInitials = (p: DeanProfileShape) => {
     const fn = p.first_name || "";
@@ -374,6 +375,15 @@ const DeanProfile = () => {
                 
                 Contact
               </button>
+              <button
+                onClick={() => setActiveTab('activity')}
+                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'activity' ?
+                'bg-primary text-white shadow-sm' :
+                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+                }>
+                
+                Login Activity
+              </button>
             </div>
 
             <div className={`p-4 sm:p-6 rounded-xl border flex-1 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
@@ -494,6 +504,14 @@ const DeanProfile = () => {
 
 
                 </div>
+              }
+              {activeTab === 'activity' &&
+              <div>
+                <h3 className={`font-semibold text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Login Activity</h3>
+                <div className="mt-3">
+                  <LoginActivity />
+                </div>
+              </div>
               }
             </div>
           </div>
