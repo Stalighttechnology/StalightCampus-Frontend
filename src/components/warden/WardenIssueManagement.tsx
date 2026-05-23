@@ -165,8 +165,8 @@ const WardenIssueManagement = () => {
   };
 
   return (
-    <div id="warden-issues-container" className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-6">
+      <div id="warden-issues-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
           title="Total Issues"
           value={totalCount}
@@ -197,7 +197,7 @@ const WardenIssueManagement = () => {
         {/* Issues List */}
         <div className="lg:col-span-5 space-y-4">
           <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
-            <CardHeader className="pb-4 border bg-muted/30">
+            <CardHeader id="warden-issues-list-header" className="pb-4 border bg-muted/30">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">Recent Issues</CardTitle>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>

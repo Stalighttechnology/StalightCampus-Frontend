@@ -334,9 +334,9 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
   return (
     <div className="flex justify-center items-start">
       <Card className={`w-full max-w-none mx-auto my-2 ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+        <CardHeader id="admin-profile-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
-            <CardTitle className={`text-2xl sm:text-xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile Information</CardTitle>
+            <CardTitle className={`text-2xl sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile Information</CardTitle>
             <p className={`text-base sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
@@ -444,11 +444,11 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
                 {profile.first_name && profile.first_name[0] || ''}{profile.last_name && profile.last_name[0] || ''}
               </div>
 
-              <div className="text-xl sm:text-lg font-bold text-center mb-1">{profile.first_name} {profile.last_name}</div>
+              <div className="text-xl sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
               <div className={`text-base sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Warden</div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
-                <h4 className={`text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+                <h4 className={`text-sm font-semibold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
                 <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                     <div className="flex flex-col justify-start">

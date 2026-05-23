@@ -108,7 +108,12 @@ const shouldScrollStep = (targetStep: any): boolean => {
     const isHMS =
       typeof target === 'string' && target.startsWith('#hms-');
 
-    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS;
+    // 6. Warden tour targets
+    const isWarden =
+      typeof target === 'string' &&
+      (target.startsWith('#warden-') || target === '#admin-profile-header');
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden;
   }
   return !targetStep.disableScrolling;
 };
