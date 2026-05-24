@@ -256,7 +256,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       </div>
 
       {/* Recent Transactions Table */}
-      <div className={`rounded-lg shadow mt-5 overflow-hidden ${theme === 'dark' ? 'border border-border bg-card' : 'border border-gray-200 bg-white'}`}>
+      <div id="feesmanager-recent-transactions" className={`rounded-lg shadow mt-5 overflow-hidden ${theme === 'dark' ? 'border border-border bg-card' : 'border border-gray-200 bg-white'}`}>
         <div className="flex flex-row items-center justify-between p-6 border-b dark:border-slate-800">
           <div>
             <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Transactions</h3>
@@ -306,7 +306,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       </div>
 
       {/* Action Cards Grid - Replaces Quick Actions Sidebar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+      <div id="feesmanager-action-cards" className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
         <DashboardCard
           title="Bulk Assignment"
           description="Assign fees to batches"
@@ -354,12 +354,6 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
           description="Individual student ledgers"
           icon={<UserCheck size={20} />}
           onClick={() => handlePageChange("student-reports")}
-        />
-        <DashboardCard
-          title="Leave Requests"
-          description="Manage your leave"
-          icon={<Calendar size={20} />}
-          onClick={() => handlePageChange("leave")}
         />
       </div>
     </div>

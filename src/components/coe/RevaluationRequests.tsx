@@ -205,14 +205,14 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div ref={ref} className="space-y-6">
-      <Card>
-        <CardHeader>
+    <div ref={ref} id="coe-revaluation-requests-container" className="space-y-6">
+      <Card id="coe-revaluation-requests-filters">
+        <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
             Revaluation Requests
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 pt-2">
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <div>
@@ -292,7 +292,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
 
           {/* Search */}
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-4 mb-0">
             <div className="flex-1">
               <Label htmlFor="search">Search</Label>
               <Input
@@ -303,22 +303,26 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
               
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Requests Table */}
-          {!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ?
-          <Card className="border-dashed border-2 shadow-none bg-transparent">
-                <CardContent className="flex flex-col items-center justify-center py-24 text-center">
-                  <div className="bg-primary/5 p-6 rounded-full mb-4">
-                    <Search className="w-12 h-12 text-primary/40" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Select filters to view requests</h3>
-                  <p className="text-muted-foreground max-w-sm mx-auto">
-                    Please select a batch, branch, semester, and exam period from the dropdowns above to load the revaluation requests.
-                  </p>
-                </CardContent>
-             </Card> :
-
-          <div className="border rounded-lg">
+      {/* Requests Table */}
+      {!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ? (
+        <Card className="border-dashed border-2 shadow-none bg-transparent">
+          <CardContent className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="bg-primary/5 p-6 rounded-full mb-4">
+              <Search className="w-12 h-12 text-primary/40" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Select filters to view requests</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">
+              Please select a batch, branch, semester, and exam period from the dropdowns above to load the revaluation requests.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-6">
+            <div className="border rounded-lg">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -332,19 +336,19 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loading ?
-                <TableRow>
+                  {loading ? (
+                    <TableRow>
                       <TableCell colSpan={7} className="p-0 border-none">
                         <SkeletonTable rows={pageSize} cols={7} />
                       </TableCell>
-                    </TableRow> :
-                requests.length === 0 ?
-                <TableRow>
+                    </TableRow>
+                  ) : requests.length === 0 ? (
+                    <TableRow>
                       <TableCell colSpan={7} className="text-center py-8">No revaluation requests found</TableCell>
-                    </TableRow> :
-
-                requests.map((request) =>
-                <TableRow key={request.id}>
+                    </TableRow>
+                  ) : (
+                    requests.map((request) => (
+                      <TableRow key={request.id}>
                         <TableCell>
                           <div>
                             <div className="font-medium">{request.student_name}</div>
@@ -374,128 +378,124 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedRequest(request)}>
-                        
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedRequest(request)}>
                               <Eye className="w-4 h-4" />
                             </Button>
-                            {request.attachment &&
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(request.attachment!, '_blank')}>
-                        
+                            {request.attachment && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(request.attachment!, '_blank')}>
                                 <Download className="w-4 h-4" />
                               </Button>
-                      }
-                            {request.status === 'pending' &&
-                      <>
+                            )}
+                            {request.status === 'pending' && (
+                              <>
                                 <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAction(request, 'approve')}
-                          className="text-green-700 border-green-600 hover:bg-green-100">
-                          
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAction(request, 'approve')}
+                                  className="text-green-700 border-green-600 hover:bg-green-100">
                                   Approve
                                 </Button>
                                 <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAction(request, 'reject')}
-                          className="text-red-700 border-red-600 hover:bg-red-100">
-                          
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAction(request, 'reject')}
+                                  className="text-red-700 border-red-600 hover:bg-red-100">
                                   Reject
                                 </Button>
                               </>
-                      }
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
-                )
-                }
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
-          }
 
-          {/* Pagination Controls */}
-          {totalPages > 1 &&
-          <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="page-size">Items per page:</Label>
-                <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(parseInt(value))}>
-                  <SelectTrigger className="w-20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="page-size">Items per page:</Label>
+                  <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(parseInt(value))}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  Showing {requests.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} results
-                </span>
-              </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    Showing {requests.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} results
+                  </span>
+                </div>
 
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                    onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                    className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                  
-                  </PaginationItem>
-
-                  {/* Page numbers */}
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <PaginationItem key={pageNum}>
-                        <PaginationLink
-                        onClick={() => setCurrentPage(pageNum)}
-                        isActive={currentPage === pageNum}
-                        className="cursor-pointer">
-                        
-                          {pageNum}
-                        </PaginationLink>
-                      </PaginationItem>);
-
-                })}
-
-                  {totalPages > 5 && currentPage < totalPages - 2 &&
-                <PaginationItem>
-                      <PaginationEllipsis />
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                        className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
                     </PaginationItem>
-                }
 
-                  <PaginationItem>
-                    <PaginationNext
-                    onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-                    className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                  
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          }
-        </CardContent>
-      </Card>
+                    {/* Page numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <PaginationItem key={pageNum}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(pageNum)}
+                            isActive={currentPage === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+
+                    {totalPages > 5 && currentPage < totalPages - 2 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                        className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Request Details Dialog */}
       <Dialog open={!!selectedRequest && !actionDialogOpen} onOpenChange={() => setSelectedRequest(null)}>

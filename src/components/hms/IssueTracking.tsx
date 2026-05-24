@@ -224,7 +224,7 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
   return (
     <div className="space-y-4">
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="hms-issues-stats-grid" className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
           title="Total Issues"
           value={loading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : totalCount}
@@ -255,7 +255,7 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
         {/* Issues List */}
         <div className="lg:col-span-5 space-y-4">
           <Card className="border-primary/10 shadow-sm overflow-hidden">
-            <CardHeader className="pb-4 border-b bg-muted/30">
+            <CardHeader id="hms-issues-card" className="pb-4 border-b bg-muted/30">
               <div className="flex flex-col space-y-4">
                 <div className="space-y-1">
                   <CardTitle>Issue Tracking</CardTitle>

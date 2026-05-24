@@ -14,12 +14,108 @@ const scrollTargetIntoView = (selector: string) => {
     const el = document.querySelector(selector);
     if (!el) return;
 
+    // Scroll to top for top-level stats grids, header elements, or filters cards to avoid being cut off by the sticky topbar.
+    // Exclude selectors that contain 'stats-grid' but are nested BELOW a header (e.g. faculty stats, which are inside a profile card).
+    const isNestedStatsGrid =
+      selector === '#dean-faculty-stats-grid';
+
+    const isTopElement =
+      (!isNestedStatsGrid && selector.includes('stats-grid')) ||
+      selector.includes('filters-card') ||
+      selector.includes('filters-header-wrapper') ||
+      selector.includes('locations-header') ||
+      selector === '#feesmanager-invoices-header' ||
+      selector === '#feesmanager-payments-header';
+
+    if (isTopElement) {
+      // Find scroll parent and scroll it to top
+      const scrollParent = (() => {
+        let parent = el.parentElement;
+        while (parent) {
+          const style = window.getComputedStyle(parent);
+          if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            return parent;
+          }
+          parent = parent.parentElement;
+        }
+        return null;
+      })();
+
+      if (scrollParent) {
+        scrollParent.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      console.log('[ONBOARDING DEBUG] Scrolled parent and window to top for element:', selector);
+      return;
+    }
+
     // Use smooth centering scroll to ensure targets are fully visible and centered
     el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
     console.log('[ONBOARDING DEBUG] Programmatically scrolled target into view:', selector);
   } catch (err) {
     console.error('[ONBOARDING DEBUG] Failed to scroll target into view:', err);
   }
+};
+
+const shouldScrollStep = (targetStep: any): boolean => {
+  const isMobile = window.innerWidth < 768;
+  const target = targetStep.target;
+
+  if (isMobile) {
+    // 1. Dashboard Chart Containers
+    const isChart =
+      target === '#feesmanager-charts-container' ||
+      target === '#dean-finance-charts-container' ||
+      target === '#dean-branch-distribution-card' ||
+      target === '#dean-role-distribution-card' ||
+      target === '#warden-charts-container' ||
+      target === '#statistics-charts-container' ||
+      target === '#admin-charts' ||
+      target === '#hod-attendance-trends' ||
+      target === '#hod-member-distribution';
+
+    // 2. Dashboard Card/Content components
+    const isDashboardCard =
+      target === '#feesmanager-recent-transactions' ||
+      target === '#feesmanager-action-cards' ||
+      target === '#student-schedule-card' ||
+      target === '#student-attendance-card' ||
+      target === '#student-timeline-card' ||
+      target === '#student-performance-card' ||
+      target === '#hod-leave-header' ||
+      target === '#admin-search-bar' ||
+      target === '#hod-search-student-card' ||
+      target === '#dean-attendance-filters-card' ||
+      target === '#dean-faculty-filters-header-wrapper' ||
+      target === '#dean-campus-locations-header' ||
+      target === '#dean-profile-card' ||
+      target === '#dean-branch-summary-card' ||
+      target === '#dean-recent-leaves';
+
+    // 3. Stats grids & headers (which are at top of pages or dashboard)
+    const isStats =
+      typeof target === 'string' &&
+      (target.includes('stats') ||
+       target === '#feesmanager-invoices-header' ||
+       target === '#feesmanager-payments-header');
+
+    // 4. Recent Leave Applications lists (below forms)
+    const isRecentLeaves =
+      typeof target === 'string' &&
+      (target.includes('recent-leave') || target.includes('recent-leaves') || target.includes('pending-leaves') || target.includes('admin-leaves'));
+
+    // 5. HMS Admin tour targets
+    const isHMS =
+      typeof target === 'string' && target.startsWith('#hms-');
+
+    // 6. Warden tour targets
+    const isWarden =
+      typeof target === 'string' &&
+      (target.startsWith('#warden-') || target === '#admin-profile-header');
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden;
+  }
+  return !targetStep.disableScrolling;
 };
 
 // CRITICAL: Check if element is actually visible (not just in DOM)
@@ -213,9 +309,11 @@ export const TutorialController = () => {
     const targetStep = steps[targetIndex];
     if (targetStep) {
       // 1. Scroll first, while Joyride is still paused (isNavigating is true)
-      scrollTargetIntoView(targetStep.target);
+      if (shouldScrollStep(targetStep)) {
+        scrollTargetIntoView(targetStep.target);
+      }
       
-      // 2. Wait for the smooth scroll to finish (400ms)
+      // 2. Wait for the smooth scroll to finish (600ms)
       setTimeout(() => {
         console.log('[ONBOARDING DEBUG] Smooth scroll finished, resuming Joyride for step:', targetIndex);
         setIsNavigating(false);
@@ -223,7 +321,7 @@ export const TutorialController = () => {
         
         // Trigger a post-scroll resize to ensure charts/components align correctly
         window.dispatchEvent(new Event('resize'));
-      }, 400);
+      }, 600);
     } else {
       setIsNavigating(false);
       handleStepChange(targetIndex);
@@ -269,16 +367,18 @@ export const TutorialController = () => {
         setIsNavigating(true);
         
         // 1. Scroll first
-        scrollTargetIntoView(targetStep.target);
+        if (shouldScrollStep(targetStep)) {
+          scrollTargetIntoView(targetStep.target);
+        }
         
-        // 2. Wait for the smooth scroll to finish (400ms)
+        // 2. Wait for the smooth scroll to finish (600ms)
         setTimeout(() => {
           console.log('[ONBOARDING DEBUG] Fast Path scroll finished, resuming Joyride for step:', targetIndex);
           setIsNavigating(false);
           handleStepChange(targetIndex);
           window.dispatchEvent(new Event('resize'));
           transitionLockRef.current = false;
-        }, 400);
+        }, 600);
         return;
       }
 

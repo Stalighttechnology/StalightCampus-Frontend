@@ -33,7 +33,7 @@ const getActivePageFromPath = (pathname: string): string => {
   const pathMap: { [key: string]: string } = {
     'dashboard': 'dashboard',
     'profile': 'profile',
-      'campus-locations': 'campus-locations',
+    'campus-locations': 'campus-locations',
     'attendance': 'attendance',
     'attendance-filters': 'attendance-filters',
     'performance': 'performance',
@@ -67,7 +67,7 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
 
   const renderContent = () => {
     const orgPlan = (user as any)?.org_plan || "basic";
-    
+
     if (!activePage.includes('dashboard') && !isPageAllowed(activePage, orgPlan)) {
       return <UpgradeRequired featureName={activePage} role={user.role} onBack={() => handlePageChange('dashboard')} />;
     }
@@ -111,7 +111,7 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         user={user}
         activePage={activePage}
         onPageChange={handlePageChange}
-        onNotificationClick={() => {}}
+        onNotificationClick={() => { }}
         pageTitle={undefined}
         headerActions={undefined}
       >

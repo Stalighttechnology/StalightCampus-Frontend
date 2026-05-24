@@ -375,18 +375,19 @@ const PaymentMonitoring: React.FC = () => {
   return (
     <div id="feesmanager-payments-container">
       <Card>
-        <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle>
-                Payment Monitoring
-              </CardTitle>
-              <p className="text-muted-foreground mt-1 text-sm">Track and manage all fee payments and transactions</p>
+        <div id="feesmanager-payments-header">
+          <CardHeader className="border-b bg-muted/20 pb-6 px-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle>
+                  Payment Monitoring
+                </CardTitle>
+                <p className="text-muted-foreground mt-1 text-sm">Track and manage all fee payments and transactions</p>
+              </div>
             </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="p-6">
+          <CardContent className="p-6 pb-0">
           {/* Stats Overview */}
           {stats &&
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -416,7 +417,10 @@ const PaymentMonitoring: React.FC = () => {
             
             </div>
           }
+          </CardContent>
+        </div>
 
+        <CardContent className="p-6">
           {/* Control Row */}
           <div className="space-y-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

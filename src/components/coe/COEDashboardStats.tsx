@@ -177,7 +177,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
       {/* Charts */}
       <div id="coe-charts-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Application Trend Chart */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border`}>
+        <div id="coe-application-trends-chart" className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border`}>
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-[20px] sm:text-lg font-semibold">Application Trends</h3>
           </div>
@@ -199,7 +199,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
 
         {/* Status Distribution Pie Chart */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border`}>
+        <div id="coe-application-status-chart" className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border`}>
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-[20px] sm:text-lg font-semibold">Application Status</h3>
           </div>
@@ -250,7 +250,7 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
       {/* Tables Section */}
       <div className="grid grid-cols-1 gap-6">
         {/* Recent Published Results Table */}
-        <div className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border flex flex-col h-full`}>
+        <div id="coe-recent-results-table" className={`p-6 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border flex flex-col h-full`}>
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-[20px] sm:text-lg font-semibold">Recent Published Results</h3>
             <a href="/coe/publish-results" className={`text-[16px] sm:text-sm font-medium border border-border px-4 py-2 rounded-md transition ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>

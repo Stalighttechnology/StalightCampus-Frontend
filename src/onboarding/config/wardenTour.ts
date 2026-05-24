@@ -45,5 +45,14 @@ export const wardenTour: Step[] = [
     disableBeacon: false,
     route: '/warden/issues',
   },
+  {
+    target: '#sidebar-profile',
+    title: 'Profile',
+    content:
+      'Manage your account details, edit contact information, and change passwords.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/profile',
+  },
 ];
 

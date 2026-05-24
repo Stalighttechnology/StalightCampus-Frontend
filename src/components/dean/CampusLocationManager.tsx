@@ -344,9 +344,9 @@ const CampusLocationManager: React.FC = () => {
   }, []);
 
   return (
-    <div className={`flex flex-col h-[100dvh] overflow-hidden p-4 sm:p-4 text-sm sm:text-base w-full max-w-[412px] sm:max-w-none sm:min-h-screen mx-auto ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 rounded-lg'}`}>
+    <div id="dean-campus-locations-container" className={`flex flex-col h-[100dvh] overflow-hidden p-4 sm:p-4 text-sm sm:text-base w-full max-w-[412px] sm:max-w-none sm:min-h-screen mx-auto ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 rounded-lg'}`}>
       {/* Header area (fixed) */}
-      <div className="shrink-0 space-y-6">
+      <div id="dean-campus-locations-header" className="shrink-0 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-4">
           <div className="flex-1">
             <h2 className={`text-lg sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus Location Management</h2>

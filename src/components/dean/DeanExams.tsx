@@ -205,7 +205,7 @@ const DeanExams: React.FC = () => {
 
   return (
     <div className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card className={theme === 'dark' ? 'bg-card border border-border shadow-md' : 'bg-white border border-gray-200 shadow-md'}>
+      <Card id="dean-exams-container" className={theme === 'dark' ? 'bg-card border border-border shadow-md' : 'bg-white border border-gray-200 shadow-md'}>
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
           {firstLoad ?
           <div className="space-y-6">
@@ -223,7 +223,7 @@ const DeanExams: React.FC = () => {
 
 
               {/* Stats Cards Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div id="dean-exams-stats-grid" className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {countCards.map((c) =>
               <div key={c.key} className={`p-6 rounded-xl border shadow-sm transition-all hover:shadow-md flex items-center gap-6 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-300'}`
               }>

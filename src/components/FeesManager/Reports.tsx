@@ -169,7 +169,7 @@ const Reports: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div id="feesmanager-reports-container" className="space-y-6 animate-in fade-in duration-500">
       {error &&
       <Alert variant="destructive" className="rounded-xl border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900/20">
           <AlertCircle className="h-4 w-4" />
@@ -178,36 +178,37 @@ const Reports: React.FC = () => {
       }
 
       <Card>
-        <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-2xl sm:text-2xl font-semibold flex items-center gap-2 tracking-tight">
-                Staff Attendance Audit
-              </CardTitle>
-              <p className="text-muted-foreground mt-1.5 text-sm sm:text-md font-medium">Monitor attendance across all institutional roles</p>
+        <div id="feesmanager-reports-header">
+          <CardHeader className="border-b bg-muted/20 pb-6 px-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-2xl sm:text-2xl font-semibold flex items-center gap-2 tracking-tight">
+                  Staff Attendance Audit
+                </CardTitle>
+                <p className="text-muted-foreground mt-1.5 text-sm sm:text-md font-medium">Monitor attendance across all institutional roles</p>
+              </div>
+              <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadReport('pdf')}
+                  className="h-10 sm:h-9 px-3 sm:px-4 font-semibold uppercase text-[16px] sm:text-[13px] tracking-widest rounded-xl sm:rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-sm">
+                  <Download className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                  <span className="truncate">PDF</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadReport('excel')}
+                  className="h-10 sm:h-9 px-3 sm:px-4 font-semibold uppercase text-[16px] sm:text-[13px] tracking-widest rounded-xl sm:rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-sm">
+                  <FileText className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                  <span className="truncate">Excel</span>
+                </Button>
+              </div>
             </div>
-            <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => downloadReport('pdf')}
-                className="h-10 sm:h-9 px-3 sm:px-4 font-semibold uppercase text-[16px] sm:text-[13px] tracking-widest rounded-xl sm:rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-sm">
-                <Download className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                <span className="truncate">PDF</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => downloadReport('excel')}
-                className="h-10 sm:h-9 px-3 sm:px-4 font-semibold uppercase text-[16px] sm:text-[13px] tracking-widest rounded-xl sm:rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-sm">
-                <FileText className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                <span className="truncate">Excel</span>
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="p-6 space-y-6">
+          <CardContent className="p-6 pb-4">
           {/* Filters Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-muted/10 p-5 rounded-2xl border border-border/50">
             <div className="space-y-2">
@@ -290,7 +291,10 @@ const Reports: React.FC = () => {
               </Popover>
             </div>
           </div>
+          </CardContent>
+        </div>
 
+        <CardContent className="p-6 pt-4">
           {/* Table Section */}
           <div className="rounded-xl border border-border/50 overflow-x-auto bg-card/30 backdrop-blur-md custom-scrollbar">
             <Table>

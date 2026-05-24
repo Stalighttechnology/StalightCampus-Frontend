@@ -147,8 +147,11 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div ref={ref} id="coe-course-statistics-container" className="course-statistics-main space-y-6">
       {/* Filters */}
-      <Card className="course-statistics-filters">
-        <CardContent className="p-6 course-statistics-filters-content">
+      <Card id="coe-course-statistics-filters" className="course-statistics-filters">
+        <CardHeader className="pb-2">
+          <CardTitle>Course Statistics</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 pt-2 course-statistics-filters-content">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 course-statistics-filter-grid">
             <div>
               <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Batch</label>

@@ -132,7 +132,7 @@ const Enrollment: React.FC = () => {
   return (
     <div className="space-y-8">
       <Card className="border-primary/10 shadow-xl overflow-hidden">
-        <CardHeader className="bg-muted/30">
+        <CardHeader id="hms-enrollment-card" className="bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <CardTitle>

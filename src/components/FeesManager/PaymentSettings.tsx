@@ -93,10 +93,10 @@ const PaymentSettings: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center">
+    <div id="feesmanager-payment-settings-container" className="flex justify-center">
       <div className="w-full max-w-5xl">
         <Card className="mb-4">
-          <CardHeader className="px-4 py-4 border-b flex items-start justify-between gap-4">
+          <CardHeader id="feesmanager-payment-settings-header" className="px-4 py-4 border-b flex items-start justify-between gap-4">
             <div>
               <CardTitle>Payment Settings</CardTitle>
               <p className="text-sm text-gray-500 mt-1">Configure Razorpay integration for your college (organization-level)</p>

@@ -99,31 +99,38 @@ const WardenHostelOverview = () => {
   }
 
   return (
-    <div id="warden-residents-container" className="space-y-6">
-      <div className="flex flex-col md:flex-row items-center gap-4">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search residents..."
-            className="pl-10 h-10 rounded-xl"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+    <div className="space-y-6">
+      <div id="warden-residents-container" className="space-y-4">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-2xl font-semibold leading-none tracking-tight">Resident Management</h2>
+          <p className="text-sm text-muted-foreground">Manage and track student occupancy, profiles, and contact details by floor.</p>
         </div>
 
-        <Select value={selectedFloor} onValueChange={setSelectedFloor}>
-          <SelectTrigger className="w-full md:w-[220px] h-10 rounded-xl">
-            <SelectValue placeholder="Select Floor to View" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Floors</SelectItem>
-            {hostelFloors.map(floor => (
-              <SelectItem key={floor} value={floor.toString()}>
-                Floor {floor}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search residents..."
+              className="pl-10 h-10 rounded-xl"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <Select value={selectedFloor} onValueChange={setSelectedFloor}>
+            <SelectTrigger className="w-full md:w-[220px] h-10 rounded-xl">
+              <SelectValue placeholder="Select Floor to View" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Floors</SelectItem>
+              {hostelFloors.map(floor => (
+                <SelectItem key={floor} value={floor.toString()}>
+                  Floor {floor}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

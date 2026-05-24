@@ -196,7 +196,7 @@ const HMSOverview = () => {
   return (
     <div className="space-y-8">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div id="hms-stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <DashboardCard
           title="Total Hostels"
           value={isSkeleton ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats.totalHostels}
@@ -238,7 +238,7 @@ const HMSOverview = () => {
       <div
         className={`rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden`}>
 
-        <div className="p-6 border-b bg-muted/30">
+        <div id="hms-occupancy-matrix" className="p-6 border-b bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-semibold">Room Occupancy Matrix</h2>

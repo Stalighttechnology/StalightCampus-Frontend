@@ -25,8 +25,9 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  XCircle } from
-'lucide-react';
+  XCircle
+} from
+  'lucide-react';
 import { motion } from "framer-motion";
 import {
   getStudentFeeReport,
@@ -39,8 +40,9 @@ import {
   Branch,
   Semester,
   Section,
-  sendFeeReminder } from
-'../../utils/fees_manager_api';
+  sendFeeReminder
+} from
+  '../../utils/fees_manager_api';
 import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
 import {
   Skeleton,
@@ -48,8 +50,9 @@ import {
   SkeletonTable,
   SkeletonList,
   SkeletonPageHeader,
-  SkeletonCard } from
-"@/components/ui/skeleton";
+  SkeletonCard
+} from
+  "@/components/ui/skeleton";
 
 
 const StudentFeeReports: React.FC = () => {
@@ -64,7 +67,7 @@ const StudentFeeReports: React.FC = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
-  const [batches, setBatches] = useState<{id: number;name: string;}[]>([]);
+  const [batches, setBatches] = useState<{ id: number; name: string; }[]>([]);
   const [admissionModes, setAdmissionModes] = useState<string[]>([]);
   const [selectedBatch, setSelectedBatch] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('');
@@ -149,11 +152,11 @@ const StudentFeeReports: React.FC = () => {
   // Automatic data loading when filters are selected
   useEffect(() => {
     const isAcademicHierarchySelected =
-    selectedBatch !== '' &&
-    selectedBranch !== '' &&
-    selectedSemester !== '' &&
-    selectedSection !== '' &&
-    selectedAdmissionMode !== '';
+      selectedBatch !== '' &&
+      selectedBranch !== '' &&
+      selectedSemester !== '' &&
+      selectedSection !== '' &&
+      selectedAdmissionMode !== '';
 
     if (isAcademicHierarchySelected) {
       handleBulkSearch(1);
@@ -268,77 +271,78 @@ const StudentFeeReports: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div id="feesmanager-student-reports-container" className="space-y-6 animate-in fade-in duration-500">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
-          <TabsTrigger
-            value="individual"
-            className="flex items-center gap-2 rounded-lg transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold">
-            <User className="w-4 h-4" />
-            Individual Search
-          </TabsTrigger>
-          <TabsTrigger
-            value="bulk"
-            className="flex items-center gap-2 rounded-lg transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold">
-            <Users className="w-4 h-4" />
-            Bulk Reports
-          </TabsTrigger>
-        </TabsList>
+        <div id="feesmanager-student-reports-search-header" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
+            <TabsTrigger
+              value="individual"
+              className="flex items-center gap-2 rounded-lg transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold">
+              <User className="w-4 h-4" />
+              Individual Search
+            </TabsTrigger>
+            <TabsTrigger
+              value="bulk"
+              className="flex items-center gap-2 rounded-lg transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold">
+              <Users className="w-4 h-4" />
+              Bulk Reports
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="individual" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  Search Student
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="searchTerm">USN or Student Name</Label>
+                    <Input
+                      id="searchTerm"
+                      placeholder="Enter USN or student name"
+                      value={typeof searchTerm === 'string' ? searchTerm : ''}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleIndividualSearch()} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      onClick={() => handleIndividualSearch()}
+                      disabled={searchLoading}
+                      className="w-full">
+                      {searchLoading ?
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          Searching...
+                        </div> :
+                        'Search'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </div>
 
         <TabsContent value="individual" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Search Student
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="searchTerm">USN or Student Name</Label>
-                  <Input
-                    id="searchTerm"
-                    placeholder="Enter USN or student name"
-                    value={typeof searchTerm === 'string' ? searchTerm : ''}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleIndividualSearch()} />
-                  
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    onClick={() => handleIndividualSearch()}
-                    disabled={searchLoading}
-                    className="w-full">
-                    
-                    {searchLoading ?
-                    <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                        Searching...
-                      </div> :
-                    'Search'}
-                  </Button>
-                </div>
+          {/* Individual Search Empty State */}
+          {!studentReport && !searchLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="py-12 flex flex-col items-center justify-center text-center border-2 border-dashed rounded-2xl bg-muted/5 border-muted-foreground/20">
+              <div className="p-3 rounded-full bg-primary/10 mb-4">
+                <Search className="h-10 w-10 text-primary opacity-50" />
               </div>
+              <h3 className="text-xl font-semibold tracking-tight">Search Required</h3>
+              <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
+                Enter a student's USN or name above to view their comprehensive fee report and payment history.
+              </p>
+            </motion.div>
+          )}
 
-              {/* Individual Search Empty State */}
-              {!studentReport && !searchLoading && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="py-12 flex flex-col items-center justify-center text-center border-2 border-dashed rounded-2xl bg-muted/5 border-muted-foreground/20">
-                  <div className="p-3 rounded-full bg-primary/10 mb-4">
-                    <Search className="h-10 w-10 text-primary opacity-50" />
-                  </div>
-                  <h3 className="text-xl font-semibold tracking-tight">Search Required</h3>
-                  <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
-                    Enter a student's USN or name above to view their comprehensive fee report and payment history.
-                  </p>
-                </motion.div>
-              )}
-
-              {/* Search Error Handled by SweetAlert */}
-            </CardContent>
-          </Card>
 
           {/* Student Details View */}
           {studentReport && (
@@ -659,13 +663,13 @@ const StudentFeeReports: React.FC = () => {
                   <Select
                     value={selectedBatch || undefined}
                     onValueChange={setSelectedBatch}>
-                    
+
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Batch" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       {batches.map((batch) =>
-                      <SelectItem key={batch.id} value={batch.id.toString()} className="rounded-lg">
+                        <SelectItem key={batch.id} value={batch.id.toString()} className="rounded-lg">
                           {batch.name}
                         </SelectItem>
                       )}
@@ -679,13 +683,13 @@ const StudentFeeReports: React.FC = () => {
                     value={selectedBranch || undefined}
                     onValueChange={setSelectedBranch}
                     disabled={selectedBatch === ''}>
-                    
+
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Branch" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       {branches.map((branch) =>
-                      <SelectItem key={branch.id} value={branch.id.toString()} className="rounded-lg">
+                        <SelectItem key={branch.id} value={branch.id.toString()} className="rounded-lg">
                           {branch.name}
                         </SelectItem>
                       )}
@@ -699,13 +703,13 @@ const StudentFeeReports: React.FC = () => {
                     value={selectedSemester || undefined}
                     onValueChange={setSelectedSemester}
                     disabled={selectedBranch === ''}>
-                    
+
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Semester" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       {semesters.map((semester) =>
-                      <SelectItem key={semester.id} value={semester.id.toString()} className="rounded-lg">
+                        <SelectItem key={semester.id} value={semester.id.toString()} className="rounded-lg">
                           Semester {semester.number}
                         </SelectItem>
                       )}
@@ -719,13 +723,13 @@ const StudentFeeReports: React.FC = () => {
                     value={selectedSection || undefined}
                     onValueChange={setSelectedSection}
                     disabled={selectedSemester === ''}>
-                    
+
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       {sections.map((section) =>
-                      <SelectItem key={section.id} value={section.id.toString()} className="rounded-lg">
+                        <SelectItem key={section.id} value={section.id.toString()} className="rounded-lg">
                           {section.name}
                         </SelectItem>
                       )}
@@ -739,14 +743,14 @@ const StudentFeeReports: React.FC = () => {
                     value={selectedAdmissionMode || undefined}
                     onValueChange={setSelectedAdmissionMode}
                     disabled={selectedSection === ''}>
-                    
+
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Admission Mode" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       <SelectItem value="all" className="rounded-lg font-medium text-primary">All Admission Modes</SelectItem>
                       {admissionModes.map((mode) =>
-                      <SelectItem key={mode} value={mode} className="rounded-lg">
+                        <SelectItem key={mode} value={mode} className="rounded-lg">
                           {mode}
                         </SelectItem>
                       )}
@@ -759,7 +763,7 @@ const StudentFeeReports: React.FC = () => {
 
           {/* Cohort Stats */}
           {cohortStats && bulkReports.length > 0 &&
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/20 shadow-none">
                 <CardContent className="p-4">
                   <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Students</p>
@@ -815,7 +819,7 @@ const StudentFeeReports: React.FC = () => {
 
           {/* Bulk Reports Table */}
           {bulkReports.length > 0 && !bulkLoading &&
-          <div className="space-y-4">
+            <div className="space-y-4">
 
               <Card>
                 <CardHeader>
@@ -845,7 +849,7 @@ const StudentFeeReports: React.FC = () => {
                     </TableHeader>
                     <TableBody>
                       {bulkReports.map((report) =>
-                    <TableRow key={report.student.id}>
+                        <TableRow key={report.student.id}>
                           <TableCell className="font-medium">{report.student.usn}</TableCell>
                           <TableCell>{report.student.name}</TableCell>
                           <TableCell>{report.student.branch}</TableCell>
@@ -859,18 +863,18 @@ const StudentFeeReports: React.FC = () => {
                           <TableCell>{report.fee_summary.invoice_count}</TableCell>
                           <TableCell>
                             <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setActiveTab('individual');
-                            handleIndividualSearch(report.student.usn);
-                          }}>
-                          
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setActiveTab('individual');
+                                handleIndividualSearch(report.student.usn);
+                              }}>
+
                               <Eye className="w-4 h-4" />
                             </Button>
                           </TableCell>
                         </TableRow>
-                    )}
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>

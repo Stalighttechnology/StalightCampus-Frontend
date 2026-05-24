@@ -377,18 +377,19 @@ const InvoiceManagement: React.FC = () => {
   return (
     <div id="feesmanager-invoices-container">
       <Card>
-        <CardHeader className="border-b bg-muted/20 pb-6 px-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle>
-                Invoice Management
-              </CardTitle>
-              <p className="text-muted-foreground mt-1 text-sm">Track and manage student fee payments and collections</p>
+        <div id="feesmanager-invoices-header">
+          <CardHeader className="border-b bg-muted/20 pb-6 px-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle>
+                  Invoice Management
+                </CardTitle>
+                <p className="text-muted-foreground mt-1 text-sm">Track and manage student fee payments and collections</p>
+              </div>
             </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="p-6">
+          <CardContent className="p-6 pb-0">
           {/* Stats Overview */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <DashboardCard
@@ -416,7 +417,10 @@ const InvoiceManagement: React.FC = () => {
               icon={<Users className="h-5 w-5" />} />
             
           </div>
+          </CardContent>
+        </div>
 
+        <CardContent className="p-6">
           {/* Cascading Filters Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">

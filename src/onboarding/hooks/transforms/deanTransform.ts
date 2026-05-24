@@ -12,8 +12,8 @@ export function deanTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#dean-attendance-container',
-        placement: isMobile ? step.placement : 'top',
+        target: '#dean-attendance-stats-grid',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }
@@ -22,8 +22,40 @@ export function deanTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#dean-attendance-filters-container',
-        placement: isMobile ? step.placement : 'top',
+        target: '#dean-attendance-filters-card',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-performance') {
+    return [
+      {
+        ...step,
+        target: '#hod-search-student-card',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-exams') {
+    return [
+      {
+        ...step,
+        target: '#dean-exams-stats-grid',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-faculty') {
+    return [
+      {
+        ...step,
+        target: '#dean-faculty-filters-header-wrapper',
+        title: 'Filter Faculty Profiles',
+        content: 'Select a branch and faculty member to load their detailed academic dashboard.',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }
@@ -43,6 +75,36 @@ export function deanTransform(step: any, isMobile: boolean): any[] | null {
         title: 'Financial Trends',
         content: 'Analyze historical revenue and trend data.',
         placement: isMobile ? step.placement : 'top',
+        disableScrolling: !isMobile,
+      },
+    ];
+  }
+
+  if (target === '#sidebar-campus-locations') {
+    return [
+      {
+        ...step,
+        target: '#dean-campus-locations-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-admin-leaves') {
+    return [
+      {
+        ...step,
+        target: '#dean-pending-leaves',
+        title: 'Pending Leave Requests',
+        content: 'Review and approve or reject leave applications submitted by administrative staff.',
+        placement: isMobile ? step.placement : 'top',
+      },
+      {
+        ...step,
+        target: '#dean-recent-leaves',
+        title: 'Recent Leave History',
+        content: 'Track and review the status of processed leave requests here.',
+        placement: isMobile ? step.placement : 'top',
       },
     ];
   }
@@ -51,10 +113,8 @@ export function deanTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#admin-profile-header',
-        title: 'Admin Profile Information',
-        content: 'Manage your profile details, change passwords, and configure settings.',
-        placement: isMobile ? step.placement : 'top',
+        target: '#dean-profile-card',
+        placement: isMobile ? step.placement : 'bottom',
       },
     ];
   }

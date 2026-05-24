@@ -229,8 +229,8 @@ const WardenDashboard = () => {
       </div>
 
       {/* Room Matrix Visualization (Mirroring HMS Admin) */}
-      <div id="warden-charts-container" className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-        <div className="p-6 border-b bg-muted/30">
+      <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+        <div id="warden-charts-container" className="p-6 border-b bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl sm:text-xl font-semibold">Room Occupancy Matrix</h2>

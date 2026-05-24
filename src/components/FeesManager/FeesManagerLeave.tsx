@@ -185,12 +185,12 @@ const FeesManagerLeave = () => {
   };
 
   return (
-    <div className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+    <div id="feesmanager-leave-container" className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
 
       {/* Main Container with Flex Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
-        <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+        <Card id="feesmanager-leave-form" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader>
             <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
           </CardHeader>
@@ -279,7 +279,7 @@ const FeesManagerLeave = () => {
         </Card>
 
         {/* Recent Leave Applications - Right Side */}
-        <Card className={theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}>
+        <Card id="feesmanager-recent-leaves" className={theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}>
           <CardHeader>
             <div>
               <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
