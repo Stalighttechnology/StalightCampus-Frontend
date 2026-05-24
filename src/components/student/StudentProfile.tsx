@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import HelpLearningCard from "../common/HelpLearningCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -255,7 +256,7 @@ const StudentProfile: React.FC = () => {
   
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile'|'personal'|'academic'|'face'|'activity'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile'|'personal'|'academic'|'face'|'activity' | 'help'>('profile');
   
   // Toggle states for Guardian Details and Address
   const [showGuardianDetails, setShowGuardianDetails] = useState(false);
@@ -774,6 +775,7 @@ const StudentProfile: React.FC = () => {
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
                 <button onClick={() => setActiveTab('academic')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'academic' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Academic</button>
                 <button onClick={() => setActiveTab('face')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'face' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Face Recognition</button>
+                <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
                 <button onClick={() => { setActiveTab('activity'); if (loginHistory.length === 0) fetchLoginHistory(); }} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>
 
@@ -1154,7 +1156,13 @@ const StudentProfile: React.FC = () => {
                   </div>
                 }
 
-                {activeTab === 'activity' && (
+                
+                {activeTab === 'help' && (
+                  <div className="animate-in fade-in duration-300">
+                    <HelpLearningCard />
+                  </div>
+                )}
+{activeTab === 'activity' &&  (
                   <div className="space-y-4">
                     {/* Header */}
                     <div className="flex items-center justify-between">

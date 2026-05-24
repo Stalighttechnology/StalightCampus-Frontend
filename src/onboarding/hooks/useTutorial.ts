@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { TUTORIAL_KEYS } from '../constants/tutorialKeys';
+import { TUTORIAL_KEYS, getUserScopedSeenKey } from '../constants/tutorialKeys';
+import { CURRENT_TOUR_VERSION } from '../constants/tutorialConfig';
 import { tutorialAnalytics } from '../services/tutorialAnalytics';
 import { studentTour } from '../config/studentTour';
 import { facultyTour } from '../config/facultyTour';
@@ -62,8 +63,27 @@ const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, ro
   return steps;
 };
 
+/**
+ * Resolves the user ID from the auth context or sessionStorage.
+ * The user object stored in sessionStorage contains user_id from the login response.
+ * Falls back to 'anonymous' if not available (e.g. during hydration).
+ */
+const resolveUserId = (authUser: Record<string, any> | null): string | null => {
+  if (authUser?.user_id) return String(authUser.user_id);
+  try {
+    const stored = sessionStorage.getItem('user');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed?.user_id) return String(parsed.user_id);
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return null;
+};
+
 export const useTutorial = () => {
-  const { role: authRole } = useAuth();
+  const { role: authRole, user: authUser } = useAuth();
   const [role, setRole] = useState<string>(authRole || '');
   const [isActive, setIsActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -105,7 +125,22 @@ export const useTutorial = () => {
     };
   }, [role, isMobile]);
 
-  // Initialize and track role updates from context
+  /**
+   * ACCOUNT-SCOPED ONBOARDING TRIGGER
+   *
+   * Auto-show logic uses TWO layers:
+   *  1. User-scoped seen key: tutorial_seen_{userId}_{version}
+   *     → Account-level. Different users on same machine get independent flags.
+   *     → This is the PRIMARY source of truth.
+   *
+   *  2. Role-scoped COMPLETED key (legacy backward compat):
+   *     → If a user already has tutorial_student_completed=true from before this
+   *       refactor, we respect that and never show again. No regressions.
+   *
+   * No browser-generic flags. No cross-user contamination.
+   *
+   * TODO: Replace with backend user.onboardingCompleted when API adds this field.
+   */
   useEffect(() => {
     const resolvedRole = authRole || sessionStorage.getItem('role') || localStorage.getItem('role') || '';
     if (!resolvedRole) return;
@@ -117,51 +152,119 @@ export const useTutorial = () => {
       keys: TUTORIAL_KEYS.STUDENT,
     };
 
-    const isCompleted = localStorage.getItem(tourConfig.keys.COMPLETED) === 'true';
-    const isSaved = localStorage.getItem(tourConfig.keys.ACTIVE) === 'true';
-    const savedStep = parseInt(
-      localStorage.getItem(tourConfig.keys.STEP) || '0',
-      10
-    );
+    const userId = resolveUserId(authUser);
+    const userScopedSeenKey = getUserScopedSeenKey(userId, CURRENT_TOUR_VERSION);
 
-    if (!isCompleted && !isSaved) {
-      setShowWelcomeModal(true);
-    } else if (isSaved) {
-      setIsActive(true);
-      setStepIndex(savedStep === 0 ? 1 : savedStep);
+    // Primary check: has this specific user already seen this version of the tour?
+    const hasSeenCurrentVersion = localStorage.getItem(userScopedSeenKey) === 'true';
+
+    // Legacy backward compatibility: respect old completed flag from pre-refactor users
+    const isLegacyCompleted = localStorage.getItem(tourConfig.keys.COMPLETED) === 'true';
+
+    if (hasSeenCurrentVersion || isLegacyCompleted) {
+      // Returning user — do NOT show onboarding automatically.
+      // Handle version mismatch: if legacy completed but older version, show once
+      if (isLegacyCompleted && !hasSeenCurrentVersion) {
+        const storedVersion = parseInt(localStorage.getItem(tourConfig.keys.VERSION) || '0', 10);
+        if (storedVersion < CURRENT_TOUR_VERSION) {
+          // New version released — clear stale step cache to prevent corruption
+          localStorage.removeItem(tourConfig.keys.STEP);
+          // Show modal once for the new version
+          setShowWelcomeModal(true);
+        }
+      }
+      return;
     }
-  }, [authRole]);
 
-  const handleStartTour = () => {
+    // NEW USER: neither user-scoped seen key nor legacy completed flag exists
+    // Check if tour was in progress (resume from saved step)
+    const savedStep = parseInt(localStorage.getItem(tourConfig.keys.STEP) || '0', 10);
+
+    if (savedStep > 0) {
+      // Resume in-progress tour (persisted step only, active is runtime-only)
+      setIsActive(true);
+      setStepIndex(savedStep);
+    } else {
+      // Brand new user — show welcome modal
+      setShowWelcomeModal(true);
+    }
+  }, [authRole, authUser]);
+
+  const handleStartTour = useCallback(() => {
     setShowWelcomeModal(false);
     setIsActive(true);
     setStepIndex(1);
-    localStorage.setItem(keys.ACTIVE, 'true');
+    // Store step for resume (NO active flag in localStorage — runtime only)
     localStorage.setItem(keys.STEP, '1');
     tutorialAnalytics.trackTourStart(role);
-  };
+  }, [keys, role]);
 
-  const handleSkipTour = () => {
+  const handleSkipTour = useCallback(() => {
+    const userId = resolveUserId(authUser);
+    const userScopedSeenKey = getUserScopedSeenKey(userId, CURRENT_TOUR_VERSION);
+
     setShowWelcomeModal(false);
     setIsActive(false);
-    localStorage.removeItem(keys.ACTIVE);
+
+    // Mark as seen (user-scoped) so it never auto-shows again for this account
+    localStorage.setItem(userScopedSeenKey, 'true');
+    localStorage.setItem(keys.VERSION, String(CURRENT_TOUR_VERSION));
+
+    // Clear resume state
     localStorage.removeItem(keys.STEP);
+
     tutorialAnalytics.trackTourSkip(role);
-  };
+  }, [authUser, keys, role]);
 
-  const handleCompleteTour = () => {
+  const handleCompleteTour = useCallback(() => {
+    const userId = resolveUserId(authUser);
+    const userScopedSeenKey = getUserScopedSeenKey(userId, CURRENT_TOUR_VERSION);
+
     setIsActive(false);
-    localStorage.setItem(keys.COMPLETED, 'true');
-    localStorage.removeItem(keys.ACTIVE);
-    localStorage.removeItem(keys.STEP);
-    tutorialAnalytics.trackTourComplete(role);
-  };
 
-  const handleStepChange = (index: number) => {
+    // Mark as seen (user-scoped) so it never auto-shows again for this account
+    localStorage.setItem(userScopedSeenKey, 'true');
+    localStorage.setItem(keys.VERSION, String(CURRENT_TOUR_VERSION));
+
+    // Also set legacy completed for backward compat (future rollback safety)
+    localStorage.setItem(keys.COMPLETED, 'true');
+
+    // Clear resume state
+    localStorage.removeItem(keys.STEP);
+
+    tutorialAnalytics.trackTourComplete(role);
+  }, [authUser, keys, role]);
+
+  const handleStepChange = useCallback((index: number) => {
     setStepIndex(index);
+    // Persist step for resume after page refresh (runtime active state is NOT persisted)
     localStorage.setItem(keys.STEP, index.toString());
     tutorialAnalytics.trackStepView(role, index);
-  };
+  }, [keys, role]);
+
+  /**
+   * startTourAgain — called when user clicks "Take Product Tour Again" on Profile page.
+   *
+   * This is a MANUAL relaunch. It:
+   *  1. Clears runtime step (resume cache)
+   *  2. Resets stepIndex to 0
+   *  3. Does NOT clear the user-scoped seen key — completed stays true
+   *  4. Shows the welcome modal
+   *  5. Route navigation is handled by TutorialController after receiving the event
+   *
+   * Does NOT require a page refresh.
+   */
+  const startTourAgain = useCallback(() => {
+    // Clear stale resume state
+    localStorage.removeItem(keys.STEP);
+
+    // Reset runtime state
+    setIsActive(false);
+    setStepIndex(0);
+
+    // Show welcome modal to re-enter the tour
+    setShowWelcomeModal(true);
+  }, [keys]);
 
   return {
     role,
@@ -176,5 +279,6 @@ export const useTutorial = () => {
     handleSkipTour,
     handleCompleteTour,
     handleStepChange,
+    startTourAgain,
   };
 };

@@ -8,3 +8,10 @@ export const TUTORIAL_CONFIG = {
   MOBILE_MAX_WIDTH: 768,
   SCREEN_READER_ANNOUNCE_DELAY_MS: 150,
 };
+
+/**
+ * Bump this number when the tour content changes significantly.
+ * Any user whose stored onboarding version is lower than this value
+ * will see the welcome modal exactly once more after upgrading.
+ */
+export const CURRENT_TOUR_VERSION = 1;

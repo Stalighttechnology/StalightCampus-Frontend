@@ -1,3 +1,4 @@
+import HelpLearningCard from "../common/HelpLearningCard";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -58,7 +59,7 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity' | 'help'>('personal');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -303,7 +304,14 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
           </div>);
 
 
-      case 'contact':
+      
+      case 'help':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <HelpLearningCard />
+          </div>
+        );
+      case 'contact': 
         return (
           <div className="space-y-4 sm:space-y-5">
             <div>
@@ -468,6 +476,7 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0 custom-scrollbar">
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal Info</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact & Bio</button>
+                <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>

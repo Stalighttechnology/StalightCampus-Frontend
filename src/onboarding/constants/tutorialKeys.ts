@@ -3,47 +3,71 @@ export const TUTORIAL_KEYS = {
     COMPLETED: 'tutorial_student_completed',
     ACTIVE: 'tutorial_student_active',
     STEP: 'tutorial_student_step',
+    VERSION: 'tutorial_student_version',
   },
   FACULTY: {
     COMPLETED: 'tutorial_faculty_completed',
     ACTIVE: 'tutorial_faculty_active',
     STEP: 'tutorial_faculty_step',
+    VERSION: 'tutorial_faculty_version',
   },
   HOD: {
     COMPLETED: 'tutorial_hod_completed',
     ACTIVE: 'tutorial_hod_active',
     STEP: 'tutorial_hod_step',
+    VERSION: 'tutorial_hod_version',
   },
   ADMIN: {
     COMPLETED: 'tutorial_admin_completed',
     ACTIVE: 'tutorial_admin_active',
     STEP: 'tutorial_admin_step',
+    VERSION: 'tutorial_admin_version',
   },
   COE: {
     COMPLETED: 'tutorial_coe_completed',
     ACTIVE: 'tutorial_coe_active',
     STEP: 'tutorial_coe_step',
+    VERSION: 'tutorial_coe_version',
   },
   DEAN: {
     COMPLETED: 'tutorial_dean_completed',
     ACTIVE: 'tutorial_dean_active',
     STEP: 'tutorial_dean_step',
+    VERSION: 'tutorial_dean_version',
   },
   FEES: {
     COMPLETED: 'tutorial_fees_completed',
     ACTIVE: 'tutorial_fees_active',
     STEP: 'tutorial_fees_step',
+    VERSION: 'tutorial_fees_version',
   },
   WARDEN: {
     COMPLETED: 'tutorial_warden_completed',
     ACTIVE: 'tutorial_warden_active',
     STEP: 'tutorial_warden_step',
+    VERSION: 'tutorial_warden_version',
   },
   HMS: {
     COMPLETED: 'tutorial_hms_completed',
     ACTIVE: 'tutorial_hms_active',
     STEP: 'tutorial_hms_step',
+    VERSION: 'tutorial_hms_version',
   },
+};
+
+/**
+ * Returns a user-and-version-scoped localStorage key.
+ * Pattern: tutorial_seen_{userId}_{version}
+ * Example: tutorial_seen_42_1
+ *
+ * This prevents cross-user onboarding bugs on shared devices.
+ * If userId is unavailable during auth hydration, falls back to 'anonymous'.
+ *
+ * TODO: Replace with backend user.onboardingCompleted when API exposes this field.
+ */
+export const getUserScopedSeenKey = (userId: string | number | undefined | null, version: number): string => {
+  const safeId = userId ? String(userId) : 'anonymous';
+  return `tutorial_seen_${safeId}_${version}`;
 };
 
 export const TUTORIAL_SELECTORS = {

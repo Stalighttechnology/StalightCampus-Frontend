@@ -528,49 +528,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         </div>
       </motion.div>
 
-      {/* Restart Tour Button */}
-      <motion.div
-        className={`px-3 py-2 border-t ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.45 }}
-      >
-        <button
-          onClick={() => {
-            const rawRole = sessionStorage.getItem('role') || localStorage.getItem('role') || role || '';
-            const normalizedRole = (() => {
-              const r = rawRole.toLowerCase();
-              if (r === 'principal') return 'admin';
-              if (r === 'teacher') return 'faculty';
-              if (r === 'feesmanager' || r === 'fees_manager') return 'fees';
-              if (r === 'hms_admin') return 'hms';
-              return r;
-            })();
-
-            // Clear normalized role keys
-            localStorage.removeItem(`tutorial_${normalizedRole}_completed`);
-            localStorage.removeItem(`tutorial_${normalizedRole}_active`);
-            localStorage.removeItem(`tutorial_${normalizedRole}_step`);
-
-            // Clear raw role keys (case-insensitive conversion)
-            localStorage.removeItem(`tutorial_${rawRole.toLowerCase()}_completed`);
-            localStorage.removeItem(`tutorial_${rawRole.toLowerCase()}_active`);
-            localStorage.removeItem(`tutorial_${rawRole.toLowerCase()}_step`);
-
-            // Also search and clear any other active or step keys
-            Object.keys(localStorage).forEach(key => {
-              if (key.startsWith('tutorial_') && (key.includes('active') || key.includes('step'))) {
-                localStorage.removeItem(key);
-              }
-            });
-
-            window.location.reload();
-          }}
-          className="text-xs text-purple-400 hover:text-purple-300 underline block w-full text-center"
-        >
-          Restart Tour
-        </button>
-      </motion.div>
 
       {/* Logout Button */}
       <motion.div

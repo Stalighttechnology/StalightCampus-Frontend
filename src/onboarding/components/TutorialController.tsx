@@ -185,6 +185,7 @@ export const TutorialController = () => {
     handleSkipTour,
     handleCompleteTour,
     handleStepChange,
+    startTourAgain,
   } = useTutorial();
 
   console.log('[ONBOARDING DEBUG] Current steps list in controller:', steps);
@@ -574,6 +575,52 @@ export const TutorialController = () => {
       if (loaderTimerRef.current) clearTimeout(loaderTimerRef.current);
     };
   }, []);
+
+  /**
+   * neurocampus_restart_tour — Custom event listener for Profile page "Take Tour Again" button.
+   *
+   * Restart flow (must work from ANY route):
+   *  1. Close sidebar if open
+   *  2. Navigate to role home route (e.g. /dashboard, /faculty, /hod...)
+   *  3. Wait 300ms for DOM to settle after navigation
+   *  4. Call startTourAgain() → clears runtime state → shows welcome modal
+   *
+   * NO page refresh. Cleans up listener on unmount (no memory leaks).
+   */
+  useEffect(() => {
+    const handleRestartTourEvent = (e: Event) => {
+      const source = (e as CustomEvent).detail?.source || 'unknown';
+      console.log(`[ONBOARDING DEBUG] neurocampus_restart_tour received from source: ${source}`);
+
+      // Step 1: Close sidebar if open
+      window.dispatchEvent(new Event('neurocampus_close_sidebar'));
+      const sidebarEl = document.querySelector('[data-sidebar], .sidebar, aside, #sidebar') as HTMLElement | null;
+      if (sidebarEl) sidebarEl.style.overflow = '';
+
+      // Step 2: Stop any in-flight transitions
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+      if (loaderTimerRef.current) clearTimeout(loaderTimerRef.current);
+      transitionLockRef.current = false;
+      hasInitializedRef.current = false;
+      setIsNavigating(false);
+      setShowLoader(false);
+      setTransitioningStep(null);
+
+      // Step 3: Navigate to role home route
+      const homePath = getHomePath(role || sessionStorage.getItem('role') || '');
+      navigate(homePath);
+
+      // Step 4: Wait for DOM stabilization then restart
+      setTimeout(() => {
+        startTourAgain();
+      }, 300);
+    };
+
+    window.addEventListener('neurocampus_restart_tour', handleRestartTourEvent);
+    return () => {
+      window.removeEventListener('neurocampus_restart_tour', handleRestartTourEvent);
+    };
+  }, [role, navigate, startTourAgain]);
 
   if (!isActive || steps.length === 0) {
     return (

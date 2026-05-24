@@ -1,3 +1,4 @@
+import HelpLearningCard from "../common/HelpLearningCard";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -58,7 +59,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help'>('personal');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -215,7 +216,14 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             </div>
           </div>);
 
-      case 'contact':
+      
+      case 'help':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <HelpLearningCard />
+          </div>
+        );
+      case 'contact': 
         return (
           <div className="space-y-4 sm:space-y-5">
             <div>
@@ -353,6 +361,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
               <div className="flex gap-2 mb-4 border-b pb-2 overflow-x-auto custom-scrollbar">
                 <button onClick={() => setActiveTab('personal')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'personal' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Personal Info</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'contact' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Contact & Bio</button>
+                <button onClick={() => setActiveTab('help')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'help' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Help & Learning</button>
               </div>
               <div className={`p-4 sm:p-6 rounded-lg border min-h-[300px] ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 {renderTabContent()}

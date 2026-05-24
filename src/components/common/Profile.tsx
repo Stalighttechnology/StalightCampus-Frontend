@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
 import { performR2Upload } from "../../utils/common_api";
+import HelpLearningCard from "./HelpLearningCard";
 
 const API_BASE_URL = "http://127.0.0.1:8000/api/";
 
@@ -248,6 +249,9 @@ const Profile = ({ role, user }: ProfileProps) => {
           <Button className="w-full" onClick={handleSubmit} disabled={loading}>
             {loading ? "Updating..." : "Update Profile"}
           </Button>
+
+          {/* Help & Learning — Tour Restart */}
+          <HelpLearningCard />
         </div>
       </CardContent>
     </Card>);

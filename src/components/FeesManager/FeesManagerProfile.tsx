@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import HelpLearningCard from "../common/HelpLearningCard";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -241,10 +242,11 @@ const FeesManagerProfile: React.FC = () => {
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
                 <button onClick={() => setActiveTab('details')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'details' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Details</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
+                <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
               </div>
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
-                {activeTab === 'details' ? (
+                {activeTab === 'details' && (
                   <div className="space-y-4 sm:space-y-5 md:space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                       <div>
@@ -278,7 +280,9 @@ const FeesManagerProfile: React.FC = () => {
                       <Textarea id="bio" rows={4} value={formData.bio} disabled={!editing} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="text-md sm:text-sm w-full" />
                     </div>
                   </div>
-                ) : (
+                )}
+
+                {activeTab === 'activity' && (
                   <div>
                     <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Login Activity</h3>
                     <div className="mt-3">
@@ -286,6 +290,13 @@ const FeesManagerProfile: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {activeTab === 'help' && (
+                  <div className="animate-in fade-in duration-300">
+                    <HelpLearningCard />
+                  </div>
+                )}
+
               </div>
             </div>
           </div>

@@ -23,6 +23,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Skeleton, SkeletonForm } from "../ui/skeleton";
 import LoginActivity from '../common/LoginActivity';
+import HelpLearningCard from "../common/HelpLearningCard";
 
 interface AdminProfileProps {
   user: any;
@@ -65,7 +66,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
 
   // Tabs: details (Personal + Contact), other (Address + Bio), subscription (Plan Details)
-  const [activeTab, setActiveTab] = useState<'details' | 'other' | 'subscription' | 'support' | 'activity'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'other' | 'subscription' | 'support' | 'activity' | 'help'>('details');
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
@@ -769,6 +770,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       );
     }
 
+    if (activeTab === 'help') {
+      return (
+        <div className="animate-in fade-in duration-300">
+          <HelpLearningCard />
+        </div>
+      );
+    }
+
     // other tab: Address + Bio
     return (
       <div className="space-y-6">
@@ -972,6 +981,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 <button onClick={() => setActiveTab('subscription')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'subscription' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Plan Details</button>
                 <button onClick={() => setActiveTab('support')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'support' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Support Tickets</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
+                <button onClick={() => setActiveTab('help')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
               </div>
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
