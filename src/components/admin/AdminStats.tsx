@@ -169,7 +169,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
   // Pie chart data for role distribution
   const pieData = {
-    labels: ["Students", "Faculty", "HODs", "COE", "Fees Managers"],
+    labels: ["Students", "Faculty", "HODs", "COE", "Fees Managers", "Principals"],
     datasets: [
     {
       data: [
@@ -177,21 +177,24 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       stats?.role_distribution?.faculty || 0,
       stats?.role_distribution?.hods || 0,
       stats?.role_distribution?.coe || 0,
-      stats?.role_distribution?.fees_managers || 0],
+      stats?.role_distribution?.fees_managers || 0,
+      stats?.role_distribution?.principals || 0],
 
       backgroundColor: [
       "rgba(59, 130, 246, 0.6)",
       "rgba(168, 85, 247, 0.6)",
       "rgba(234, 179, 8, 0.6)",
       "rgba(34, 197, 94, 0.6)",
-      "rgba(249, 115, 22, 0.6)"],
+      "rgba(249, 115, 22, 0.6)",
+      "rgba(236, 72, 153, 0.6)"],
 
       borderColor: [
       "rgba(59, 130, 246, 1)",
       "rgba(168, 85, 247, 1)",
       "rgba(234, 179, 8, 1)",
       "rgba(34, 197, 94, 1)",
-      "rgba(249, 115, 22, 1)"],
+      "rgba(249, 115, 22, 1)",
+      "rgba(236, 72, 153, 1)"],
 
       borderWidth: 1
     }]
@@ -226,7 +229,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
       <div>
         
         {/* Dashboard Cards */}
-        <div id="admin-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div id="admin-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <DashboardCard
             title="Branches"
             value={stats.total_branches || 0}
@@ -257,6 +260,11 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             description="Exams controller"
             icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />} />
           
+          <DashboardCard
+            title="Principals"
+            value={stats.total_principals || 0}
+            description="Institution heads"
+            icon={<FaUserTie className={theme === 'dark' ? "text-pink-400 text-3xl" : "text-pink-500 text-3xl"} />} />
         </div>
 
         {/* Search and Export */}

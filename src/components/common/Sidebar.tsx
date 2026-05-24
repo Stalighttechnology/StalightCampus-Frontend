@@ -244,6 +244,13 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Users", page: "users" },
       { name: "Profile", page: "profile" },
     ],
+    org_admin: [
+      { name: "Dashboard", page: "dashboard" },
+      { name: "Users", page: "users" },
+      { name: "Enroll Staff", page: "enroll-user" },
+      { name: "Billing & Plans", page: "billing" },
+      { name: "Profile", page: "profile" },
+    ],
     admin: [
       // Main
       { name: "Dashboard", page: "dashboard" },

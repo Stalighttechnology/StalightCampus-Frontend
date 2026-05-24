@@ -27,6 +27,7 @@ import {
   ShieldAlert
 } from "lucide-react";
 import { API_BASE_URL } from "@/utils/config";
+import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 
 interface OrgItem {
   id: number;
@@ -111,7 +112,7 @@ const Monitoring = () => {
   const fetchHealthData = async () => {
     setLoadingHealth(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/monitoring/system/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/monitoring/system/`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -128,7 +129,7 @@ const Monitoring = () => {
   // 2. Fetch Organizations list (for filters)
   const fetchOrganizations = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/?page_size=100`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/?page_size=100`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -144,7 +145,7 @@ const Monitoring = () => {
   const fetchStats = async () => {
     setLoadingStats(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/system-logs/stats/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/system-logs/stats/`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -175,7 +176,7 @@ const Monitoring = () => {
       if (errorStartDate) queryParams.append("start_date", errorStartDate);
       if (errorEndDate) queryParams.append("end_date", errorEndDate);
 
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/system-logs/?${queryParams.toString()}`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/system-logs/?${queryParams.toString()}`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -204,7 +205,7 @@ const Monitoring = () => {
       if (auditAction !== "All") queryParams.append("action", auditAction);
       if (auditSearch) queryParams.append("search", auditSearch);
 
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/system-logs/audit-logs/?${queryParams.toString()}`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/system-logs/audit-logs/?${queryParams.toString()}`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       if (response.ok) {
@@ -226,7 +227,7 @@ const Monitoring = () => {
     setLoadingLoginHistory(true);
     try {
       const currentSessionId = localStorage.getItem('session_id') || undefined;
-      const response = await fetch(`${API_BASE_URL}/api/profile/sessions/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/profile/sessions/`, {
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`,
           ...(currentSessionId ? { 'X-Session-Id': currentSessionId } : {})
@@ -248,7 +249,7 @@ const Monitoring = () => {
   const terminateSession = async (loginId: string) => {
     try {
       const currentSessionId = localStorage.getItem('session_id') || undefined;
-      const response = await fetch(`${API_BASE_URL}/api/sessions/${loginId}/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/sessions/${loginId}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -275,7 +276,7 @@ const Monitoring = () => {
   const handleResolveLog = async (logId: number, setResolved: boolean) => {
     setResolvingState(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/system-logs/${logId}/resolve/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/system-logs/${logId}/resolve/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

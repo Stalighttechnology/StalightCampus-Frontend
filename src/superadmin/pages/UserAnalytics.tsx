@@ -3,6 +3,7 @@ import { API_BASE_URL } from "@/utils/config";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { useTheme } from "../../context/ThemeContext";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
+import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#f43f5e'];
 
@@ -14,7 +15,7 @@ const UserAnalytics = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/superadmin/analytics/users/`, {
+        const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/analytics/users/`, {
           headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
         });
         const res = await response.json();

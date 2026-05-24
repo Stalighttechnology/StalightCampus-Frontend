@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 
 import { API_BASE_URL } from "@/utils/config";
+import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 const API_BASE = API_BASE_URL;
 
 const REPORTS = [
@@ -67,7 +68,7 @@ const Reports = () => {
   const handleDownload = async (type: string, title: string) => {
     setDownloading(type);
     try {
-      const response = await fetch(
+      const response = await fetchWithSuperadminTokenRefresh(
         `${API_BASE}/api/superadmin/reports/download/?type=${type}`,
         { headers: { Authorization: `Bearer ${localStorage.getItem('superadmin_token')}` } }
       );

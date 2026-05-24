@@ -3,6 +3,7 @@ import { API_BASE_URL } from "@/utils/config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
 import { useTheme } from "../../context/ThemeContext";
+import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 
 const Billing = () => {
   const [data, setData] = useState<any[]>([]);
@@ -12,7 +13,7 @@ const Billing = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/superadmin/billing/`, {
+        const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/billing/`, {
           headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
         });
         const res = await response.json();

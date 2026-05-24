@@ -13,6 +13,7 @@ interface RoleDistribution {
   faculty: number;
   hods: number;
   coe: number;
+  principals: number;
 }
 
 interface AdminStatsResponse {
@@ -64,6 +65,61 @@ interface Branch {
   semesters: number[];
   sections: {name: string;semester: number;}[];
 }
+
+export interface ManageSupportTicketsResponse {
+  success: boolean;
+  message?: string;
+  tickets?: SupportTicket[];
+  ticket?: SupportTicket;
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  results?: SupportTicket[];
+}
+
+export interface BillingAndSupportResponse {
+  success: boolean;
+  message?: string;
+  org_details?: {
+    name: string;
+    created_at: string;
+    plan_type: string;
+    subscription_expires_at: string | null;
+    is_active: boolean;
+    accreditation_id: string | null;
+    billing_address: string | null;
+    tax_id: string | null;
+    tech_poc_name: string | null;
+    tech_poc_email: string | null;
+    tech_poc_mobile: string | null;
+    razorpay_order_id: string | null;
+  };
+  payment_history?: Array<{
+    id: number;
+    amount: string;
+    plan_type: string;
+    status: string;
+    transaction_id: string;
+    timestamp: string;
+  }>;
+  support_tickets?: Array<{
+    id: number;
+    ticket_id: string;
+    subject: string;
+    description: string;
+    priority: string;
+    status: string;
+    created_at: string;
+  }>;
+}
+
+export const getBillingAndSupport = async (): Promise<BillingAndSupportResponse> => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/billing-support/`, {
+    method: "GET"
+  });
+  const result = await response.json();
+  return result;
+};
 
 interface ManageBranchesResponse {
   success: boolean;

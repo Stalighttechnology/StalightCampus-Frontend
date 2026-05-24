@@ -10,6 +10,7 @@ import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { API_BASE_URL } from "@/utils/config";
+import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 
 const getPriorityClass = (p: string) =>
 p === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
@@ -44,7 +45,7 @@ const Support = () => {
         ...(priorityFilter !== 'All' && { priority: priorityFilter }),
         ...(statusFilter !== 'All' && { status: statusFilter })
       });
-      const response = await fetch(`${API_BASE}/api/superadmin/support/tickets/?${params}`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/support/tickets/?${params}`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}` }
       });
       const res = await response.json();
@@ -64,7 +65,7 @@ const Support = () => {
 
   const handleUpdate = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/superadmin/support/tickets/${selectedTicket.internal_id}/`, {
+      const res = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/support/tickets/${selectedTicket.internal_id}/`, {
         method: 'PUT',
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`,
