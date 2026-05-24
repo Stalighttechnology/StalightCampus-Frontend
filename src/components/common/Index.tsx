@@ -32,6 +32,9 @@ const Index = () => {
         currentPath.startsWith("/fees-manager") ||
         currentPath.startsWith("/hms") ||
         currentPath.startsWith("/warden") ||
+        currentPath.startsWith("/transport-admin") ||
+        currentPath.startsWith("/driver") ||
+        currentPath.startsWith("/transportation") ||
         currentPath.startsWith("/dashboard") ||
         currentPath.startsWith("/timetable") ||
         currentPath.startsWith("/attendance") ||
@@ -65,6 +68,12 @@ const Index = () => {
             break;
           case "warden":
             navigate("/warden", { replace: true });
+            break;
+          case "transport_admin":
+            navigate("/transport-admin", { replace: true });
+            break;
+          case "driver":
+            navigate("/driver", { replace: true });
             break;
           case "teacher":
             navigate("/faculty", { replace: true });
