@@ -202,6 +202,7 @@ const Profile = ({ role, user }: ProfileProps) => {
   
   const getRoleDisplayName = () => {
     if (role === 'transport_admin') return 'Transport Admin';
+    if (role === 'library_admin') return 'Library Admin';
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 

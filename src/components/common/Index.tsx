@@ -72,6 +72,9 @@ const Index = () => {
           case "transport_admin":
             navigate("/transport-admin", { replace: true });
             break;
+          case "library_admin":
+            navigate("/library-admin", { replace: true });
+            break;
           case "driver":
             navigate("/driver", { replace: true });
             break;
