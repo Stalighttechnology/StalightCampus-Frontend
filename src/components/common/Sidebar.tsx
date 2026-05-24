@@ -30,6 +30,7 @@ import {
   Utensils,
   AlertCircle,
   Shield,
+  Bus,
 } from "lucide-react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import {
@@ -175,9 +176,22 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "student-meals": <Utensils size={20} />,
       "announcement-management": <Bell size={20} />,
       "hod-announcement-management": <Bell size={20} />,
-      "faculty-announcement-management": <Bell size={20} />,
       "student-hostel-details": <Home size={20} />,
       "residents": <Users size={20} />,
+      "transportation": <Bus size={20} />,
+      "transport-buses": <Bus size={20} />,
+      "transport-routes": <GitBranch size={20} />,
+      "transport-drivers": <UserCheck size={20} />,
+      "transport-allocations": <Users size={20} />,
+      "transport-tracking": <BarChart2 size={20} />,
+      "transport-incidents": <AlertCircle size={20} />,
+      "driver-history": <Calendar size={20} />,
+      "driver-complaints": <AlertCircle size={20} />,
+      "library": <BookOpen size={20} />,
+      "library-books": <BookOpen size={20} />,
+      "library-circulation": <Users size={20} />,
+      "library-reserves": <ClipboardList size={20} />,
+      "library-fines": <CreditCard size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -340,6 +354,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Fees", page: "fees" },
       // Hostel Details
       { name: "Hostel Details", page: "student-hostel-details" },
+      // Transportation
+      { name: "Transportation", page: "transportation" },
+      // Library
+      { name: "Library", page: "library" },
 
       // Interview
       { name: "AI Interview", page: "ai-interview" },
@@ -402,6 +420,30 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Dashboard", page: "dashboard" },
       { name: "Resident Management", page: "residents" },
       { name: "Issue Tracking", page: "issues" },
+      { name: "Profile", page: "profile" },
+    ],
+    transport_admin: [
+      { name: "Overview", page: "dashboard" },
+      { name: "Buses", page: "transport-buses" },
+      { name: "Routes & Stops", page: "transport-routes" },
+      { name: "Drivers", page: "transport-drivers" },
+      { name: "Allocations", page: "transport-allocations" },
+      { name: "Live Tracking", page: "transport-tracking" },
+      { name: "Complaints", page: "transport-incidents" },
+      { name: "Profile", page: "profile" },
+    ],
+    driver: [
+      { name: "Dashboard", page: "dashboard" },
+      { name: "Trip History", page: "driver-history" },
+      { name: "Complaints", page: "driver-complaints" },
+      { name: "Profile", page: "profile" },
+    ],
+    library_admin: [
+      { name: "Overview", page: "dashboard" },
+      { name: "Books Catalog", page: "library-books" },
+      { name: "Circulation", page: "library-circulation" },
+      { name: "Holds Queue", page: "library-reserves" },
+      { name: "Fine Management", page: "library-fines" },
       { name: "Profile", page: "profile" },
     ],
   };

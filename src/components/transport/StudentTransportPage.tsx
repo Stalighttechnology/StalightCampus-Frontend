@@ -1,0 +1,292 @@
+import React, { useState, useEffect } from "react";
+import { useTheme } from "../../context/ThemeContext";
+import { useToast } from "../../hooks/use-toast";
+import {
+  fetchMyBusDetails, fetchMyTripHistory, submitStudentComplaint
+} from "../../utils/transport_api";
+import {
+  Bus, MapPin, Clock, Calendar, CheckCircle, XCircle,
+  AlertTriangle, Navigation, Send, ChevronRight, Activity, Radio
+} from "lucide-react";
+
+const StudentTransportPage: React.FC = () => {
+  const { theme } = useTheme();
+  const { toast } = useToast();
+  const [busData, setBusData] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'info' | 'history' | 'complaint'>('info');
+
+  const [complaintTitle, setComplaintTitle] = useState('');
+  const [complaintDesc, setComplaintDesc] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
+  const card = theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100';
+  const input = theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400';
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const [bd, hist] = await Promise.all([fetchMyBusDetails(), fetchMyTripHistory()]);
+      setBusData(bd);
+      if (hist.success) setHistory(hist.history || []);
+      setLoading(false);
+    })();
+  }, []);
+
+  const handleComplaint = async () => {
+    if (!complaintTitle.trim() || !complaintDesc.trim()) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Please fill in both fields.' });
+      return;
+    }
+    setSubmitting(true);
+    const res = await submitStudentComplaint(complaintTitle, complaintDesc);
+    setSubmitting(false);
+    if (res.success) {
+      toast({ title: 'Submitted', description: 'Your complaint has been filed.' });
+      setComplaintTitle('');
+      setComplaintDesc('');
+      if (res.complaint) {
+        setBusData((prev: any) => ({
+          ...prev,
+          recent_complaints: [res.complaint, ...(prev?.recent_complaints || [])].slice(0, 5)
+        }));
+      }
+    } else {
+      toast({ variant: 'destructive', title: 'Error', description: res.message || 'Submission failed.' });
+    }
+  };
+
+  const statusIcon = (s: string) => s === 'boarded' ? <CheckCircle size={14} className="text-emerald-500" /> : s === 'absent' ? <XCircle size={14} className="text-red-500" /> : <Clock size={14} className="text-amber-500" />;
+
+  return (
+    <div className={`min-h-screen ${bg} p-4 md:p-6`}>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Bus className="text-primary" size={26} /> My Transport</h1>
+        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Bus details, trip history, and support</p>
+      </div>
+
+      {/* Tabs */}
+      <div className={`flex gap-2 p-2 rounded-2xl mb-6 border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
+        {[{ id: 'info', label: '🚌 Bus Info' }, { id: 'history', label: '📅 Trip History' }, { id: 'complaint', label: '📢 Complaint' }].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id as any)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === t.id ? 'bg-primary text-white shadow-md' : theme === 'dark' ? 'text-muted-foreground hover:bg-accent' : 'text-gray-600 hover:bg-gray-100'}`}>{t.label}</button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+      ) : tab === 'info' ? (
+        <div className="space-y-4">
+          {!busData?.has_bus ? (
+            <div className={`rounded-2xl border shadow-sm p-12 text-center ${card}`}>
+              <Bus size={48} className="mx-auto mb-4 opacity-30" />
+              <p className="text-lg font-semibold mb-2">No Bus Assigned</p>
+              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{busData?.message || 'Contact your transport admin to get a bus assigned.'}</p>
+            </div>
+          ) : (
+            <>
+              {/* Emergency Banner */}
+              {busData.active_emergency && (
+                <div className={`rounded-2xl border-2 border-red-500 p-4 ${theme === 'dark' ? 'bg-red-900/30' : 'bg-red-50'} shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-pulse mb-4`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle size={18} className="text-red-600" />
+                    <p className="font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">{busData.active_emergency.title}</p>
+                  </div>
+                  <p className="text-sm text-red-600 dark:text-red-300 font-medium">
+                    The driver has reported an emergency. Administration has been notified.
+                  </p>
+                </div>
+              )}
+
+              {/* Active Trip Banner */}
+              {busData.active_trip && (
+                <div className={`rounded-2xl border-2 border-emerald-400 overflow-hidden ${theme === 'dark' ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
+                  <div className="p-4 border-b border-emerald-200 dark:border-emerald-800">
+                    <div className="flex items-center gap-2">
+                      <Radio size={16} className="text-emerald-500 animate-pulse" />
+                      <p className="font-bold text-emerald-700 dark:text-emerald-400">Your bus is currently running!</p>
+                    </div>
+                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      {busData.active_trip.trip_type === 'morning' ? '🌅 Morning' : '🌇 Evening'} trip started at {new Date(busData.active_trip.start_time).toLocaleTimeString()}
+                    </p>
+                  </div>
+                  {busData.active_trip.current_latitude && (
+                    <iframe
+                      title="Live Bus Location"
+                      width="100%"
+                      height="200"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      allowFullScreen
+                      src={`https://maps.google.com/maps?q=${busData.active_trip.current_latitude},${busData.active_trip.current_longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                    ></iframe>
+                  )}
+                </div>
+              )}
+
+              {/* Route Card */}
+              <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><Navigation size={22} className="text-primary" /></div>
+                  <div className="flex-1">
+                    <h2 className="font-bold text-base">{busData.allocation?.route_details?.route_name}</h2>
+                    <p className={`text-sm mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      {busData.allocation?.route_details?.start_location} → {busData.allocation?.route_details?.end_location}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 mt-3">
+                      <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+                        <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>🌅 Morning</p>
+                        <p className="font-semibold text-sm">{busData.allocation?.route_details?.morning_start_time || 'N/A'}</p>
+                      </div>
+                      <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+                        <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>🌇 Evening</p>
+                        <p className="font-semibold text-sm">{busData.allocation?.route_details?.evening_start_time || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Your Stop Card */}
+              <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><MapPin size={18} className="text-amber-600" /></div>
+                  <div>
+                    <p className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Your Boarding Stop</p>
+                    <p className="font-bold text-base">{busData.allocation?.stop_details?.stop_name}</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+                      🌅 {busData.allocation?.stop_details?.arrival_time_morning || 'N/A'} · 🌇 {busData.allocation?.stop_details?.arrival_time_evening || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bus & Driver Card */}
+              {busData.bus_assignment && (
+                <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
+                  <h3 className="font-semibold text-sm mb-3">Bus & Driver Details</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+                      <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Bus Number</p>
+                      <p className="font-bold text-sm">{busData.bus_assignment?.bus_details?.bus_number}</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{busData.bus_assignment?.bus_details?.model_name}</p>
+                    </div>
+                    <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+                      <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Driver</p>
+                      <p className="font-bold text-sm">{busData.bus_assignment?.driver_details?.first_name} {busData.bus_assignment?.driver_details?.last_name}</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{busData.bus_assignment?.driver_details?.mobile_number}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Stop Timeline */}
+              {busData.allocation?.route_details?.stops?.length > 0 && (
+                <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
+                  <h3 className="font-semibold text-sm mb-4 flex items-center gap-2"><MapPin size={14} className="text-primary" /> Route Stop Timeline</h3>
+                  <div className="ml-2 pl-4 border-l-2 border-primary/30 space-y-4">
+                    {busData.allocation.route_details.stops.map((s: any) => {
+                      const isMyStop = s.id === busData.allocation.stop;
+                      return (
+                        <div key={s.id} className="flex items-start gap-3 relative">
+                          <div className={`absolute -left-[1.35rem] w-3.5 h-3.5 rounded-full border-2 border-white mt-0.5 ${isMyStop ? 'bg-primary' : 'bg-gray-300'}`} />
+                          <div className={`flex-1 rounded-xl p-2.5 ${isMyStop ? theme === 'dark' ? 'bg-primary/20 border border-primary/40' : 'bg-primary/5 border border-primary/20' : ''}`}>
+                            <p className={`text-sm font-semibold ${isMyStop ? 'text-primary' : ''}`}>{s.stop_name} {isMyStop ? '← You' : ''}</p>
+                            <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>🌅 {s.arrival_time_morning || '—'} · 🌇 {s.arrival_time_evening || '—'}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ) : tab === 'history' ? (
+        <div className={`rounded-2xl border shadow-sm ${card}`}>
+          <div className="p-5 border-b border-inherit">
+            <h2 className="font-bold text-base flex items-center gap-2"><Calendar size={16} /> Trip Attendance History</h2>
+          </div>
+          {history.length === 0 ? (
+            <div className="p-12 text-center">
+              <Calendar size={40} className="mx-auto mb-3 opacity-30" />
+              <p className="text-sm opacity-60">No trip records found yet.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-inherit">
+              {history.map((h: any) => (
+                <div key={h.id} className="flex items-center justify-between px-5 py-4 hover:bg-primary/5 transition-all">
+                  <div className="flex items-center gap-3">
+                    {statusIcon(h.status)}
+                    <div>
+                      <p className="font-semibold text-sm">{h.trip_log_details?.route_details?.route_name}</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        {new Date(h.trip_log_details?.start_time).toLocaleDateString()} · {h.trip_log_details?.trip_type === 'morning' ? '🌅 Morning' : '🌇 Evening'} · 📍 {h.stop_details?.stop_name}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${h.status === 'boarded' ? 'bg-emerald-100 text-emerald-700' : h.status === 'absent' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>{h.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
+          <h2 className="font-bold text-base mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-amber-500" /> File a Transport Complaint</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold mb-1.5 block">Subject</label>
+              <input
+                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ${input}`}
+                placeholder="e.g. Bus arrived late"
+                value={complaintTitle}
+                onChange={e => setComplaintTitle(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1.5 block">Description</label>
+              <textarea
+                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ${input}`}
+                placeholder="Describe the issue in detail..."
+                rows={5}
+                value={complaintDesc}
+                onChange={e => setComplaintDesc(e.target.value)}
+              />
+            </div>
+            <button
+              disabled={submitting}
+              onClick={handleComplaint}
+              className="flex items-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-semibold hover:bg-primary/90 transition-all disabled:opacity-60 shadow-sm"
+            >
+              <Send size={16} /> {submitting ? 'Submitting...' : 'Submit Complaint'}
+            </button>
+          </div>
+
+          {/* Recent Complaints */}
+          {busData?.recent_complaints?.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-inherit">
+              <h3 className="font-bold text-sm mb-4">Recent Complaints</h3>
+              <div className="space-y-3">
+                {busData.recent_complaints.map((c: any) => (
+                  <div key={c.id} className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-semibold text-sm">{c.title}</p>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold capitalize ${c.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
+                    </div>
+                    <p className={`text-xs mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{c.description}</p>
+                    <p className={`text-[10px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{new Date(c.created_at).toLocaleString()}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default StudentTransportPage;

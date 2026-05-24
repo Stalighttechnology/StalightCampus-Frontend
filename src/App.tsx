@@ -18,6 +18,9 @@ const FeesManagerDashboard = lazy(() => import("./components/dashboards/FeesMana
 const DeanDashboard = lazy(() => import("./components/dashboards/DeanDashboard"));
 const HMSDashboard = lazy(() => import("./components/dashboards/HMSDashboard"));
 const WardenDashboard = lazy(() => import("./components/dashboards/WardenDashboard"));
+const TransportAdminDashboard = lazy(() => import("./components/dashboards/TransportAdminDashboard"));
+const DriverDashboard = lazy(() => import("./components/dashboards/DriverDashboard"));
+const LibraryAdminDashboard = lazy(() => import("./components/dashboards/LibraryAdminDashboard"));
 const Onboarding = lazy(() => import("./components/common/Onboarding"));
 const Pricing = lazy(() => import("./components/common/Pricing"));
 const FloatingAssistant = lazy(() => import("./components/common/FloatingAssistant"));
@@ -237,6 +240,24 @@ const AppContent = () => {
               </ProtectedRoute>
             } />
 
+            <Route path="/transportation" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+                <>
+                  <StudentDashboard user={userData} setPage={() => {}} />
+                  {shouldShowFloatingAssistant() && <FloatingAssistant />}
+                </>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/library" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+                <>
+                  <StudentDashboard user={userData} setPage={() => {}} />
+                  {shouldShowFloatingAssistant() && <FloatingAssistant />}
+                </>
+              </ProtectedRoute>
+            } />
+
             <Route path="/announcements" element={
             <ProtectedRoute allowedRoles={["student"]}>
                 <>
@@ -363,6 +384,33 @@ const AppContent = () => {
             <ProtectedRoute allowedRoles={["warden"]}>
                 <>
                   <WardenDashboard user={userData} setPage={() => {}} />
+                  {shouldShowFloatingAssistant() && <FloatingAssistant />}
+                </>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/transport-admin/*" element={
+            <ProtectedRoute allowedRoles={["transport_admin"]}>
+                <>
+                  <TransportAdminDashboard user={userData} setPage={() => {}} />
+                  {shouldShowFloatingAssistant() && <FloatingAssistant />}
+                </>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/library-admin/*" element={
+            <ProtectedRoute allowedRoles={["library_admin"]}>
+                <>
+                  <LibraryAdminDashboard user={userData} setPage={() => {}} />
+                  {shouldShowFloatingAssistant() && <FloatingAssistant />}
+                </>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/driver/*" element={
+            <ProtectedRoute allowedRoles={["driver"]}>
+                <>
+                  <DriverDashboard user={userData} setPage={() => {}} />
                   {shouldShowFloatingAssistant() && <FloatingAssistant />}
                 </>
               </ProtectedRoute>
