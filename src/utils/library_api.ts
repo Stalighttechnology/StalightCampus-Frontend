@@ -33,8 +33,8 @@ export const deleteLibraryBook = (id: number) =>
     headers: authHeaders(),
   }).then((r) => r.json());
 
-export const fetchBookCopies = (bookId: number) =>
-  fetch(`${API_BASE}/admin/books/${bookId}/copies/`, { headers: authHeaders() }).then((r) => r.json());
+export const fetchBookCopies = (bookId: number, page: number = 1) =>
+  fetch(`${API_BASE}/admin/books/${bookId}/copies/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
 export const searchBorrowers = (search = "") =>
   fetch(`${API_BASE}/admin/borrowers/search/?search=${encodeURIComponent(search)}`, { headers: authHeaders() }).then((r) => r.json());
@@ -59,11 +59,11 @@ export const renewBook = (id: number) =>
     headers: authHeaders(),
   }).then((r) => r.json());
 
-export const fetchActiveBorrows = () =>
-  fetch(`${API_BASE}/admin/borrows/`, { headers: authHeaders() }).then((r) => r.json());
+export const fetchActiveBorrows = (page: number = 1) =>
+  fetch(`${API_BASE}/admin/borrows/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
-export const fetchFines = () =>
-  fetch(`${API_BASE}/admin/fines/`, { headers: authHeaders() }).then((r) => r.json());
+export const fetchFines = (page: number = 1) =>
+  fetch(`${API_BASE}/admin/fines/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
 export const payFine = (id: number) =>
   fetch(`${API_BASE}/admin/fines/${id}/pay/`, {
@@ -71,8 +71,8 @@ export const payFine = (id: number) =>
     headers: authHeaders(),
   }).then((r) => r.json());
 
-export const fetchReservations = () =>
-  fetch(`${API_BASE}/admin/reservations/`, { headers: authHeaders() }).then((r) => r.json());
+export const fetchReservations = (page: number = 1) =>
+  fetch(`${API_BASE}/admin/reservations/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
 
 // ─── STUDENT LIBRARY ────────────────────────────────────────
@@ -80,11 +80,11 @@ export const fetchReservations = () =>
 export const fetchStudentLibraryDashboard = () =>
   fetch(`${API_BASE}/student/dashboard/`, { headers: authHeaders() }).then((r) => r.json());
 
-export const fetchStudentBorrows = (status = "taken") =>
-  fetch(`${API_BASE}/student/borrows/?status=${status}`, { headers: authHeaders() }).then((r) => r.json());
+export const fetchStudentBorrows = (status = "taken", page: number = 1) =>
+  fetch(`${API_BASE}/student/borrows/?status=${status}&page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
-export const searchCatalog = (search = "") =>
-  fetch(`${API_BASE}/student/catalog/?search=${encodeURIComponent(search)}`, { headers: authHeaders() }).then((r) => r.json());
+export const searchCatalog = (search = "", page: number = 1) =>
+  fetch(`${API_BASE}/student/catalog/?search=${encodeURIComponent(search)}&page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
 export const requestReservation = (bookId: number) =>
   fetch(`${API_BASE}/student/reserve/`, {
