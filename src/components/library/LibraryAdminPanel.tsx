@@ -21,6 +21,7 @@ import {
   renewBook,
   fetchActiveBorrows,
   fetchFines,
+  fetchBookCopies,
   payFine,
   fetchReservations
 } from "../../utils/library_api";
@@ -48,6 +49,11 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
   const [bookSearch, setBookSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState<any>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingBookCopies, setViewingBookCopies] = useState<any[]>([]);
+  const [loadingCopies, setLoadingCopies] = useState(false);
+  const [copiesPage, setCopiesPage] = useState(1);
+  const [copiesTotalPages, setCopiesTotalPages] = useState(1);
   
   // Add/Edit Book form
   const [bookForm, setBookForm] = useState({
@@ -62,6 +68,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
 
   // Circulation States
   const [activeBorrows, setActiveBorrows] = useState<any[]>([]);
+  const [borrowsPage, setBorrowsPage] = useState(1);
+  const [borrowsTotalPages, setBorrowsTotalPages] = useState(1);
   const [barcodeInput, setBarcodeInput] = useState("");
   const [borrowerSearchText, setBorrowerSearchText] = useState("");
   const [suggestedBorrowers, setSuggestedBorrowers] = useState<any[]>([]);
@@ -71,7 +79,12 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
 
   // Fines and Reservations
   const [fines, setFines] = useState<any[]>([]);
+  const [finesPage, setFinesPage] = useState(1);
+  const [finesTotalPages, setFinesTotalPages] = useState(1);
+  
   const [reservations, setReservations] = useState<any[]>([]);
+  const [reservationsPage, setReservationsPage] = useState(1);
+  const [reservationsTotalPages, setReservationsTotalPages] = useState(1);
 
   // Fetch initial dashboard stats and dynamic lists
   const loadStats = async () => {
@@ -99,12 +112,18 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
     }
   };
 
-  const loadCirculation = async () => {
+  const loadCirculation = async (page: number = 1) => {
     setLoading(true);
     try {
-      const res = await fetchActiveBorrows();
-      if (Array.isArray(res)) {
+      const res = await fetchActiveBorrows(page);
+      if (res && res.results) {
+        setActiveBorrows(res.results);
+        setBorrowsTotalPages(Math.ceil(res.count / 15) || 1);
+        setBorrowsPage(page);
+      } else if (Array.isArray(res)) {
         setActiveBorrows(res);
+        setBorrowsTotalPages(1);
+        setBorrowsPage(1);
       }
     } catch (err) {
       console.error(err);
@@ -113,12 +132,18 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
     }
   };
 
-  const loadReservations = async () => {
+  const loadReservations = async (page: number = 1) => {
     setLoading(true);
     try {
-      const res = await fetchReservations();
-      if (Array.isArray(res)) {
+      const res = await fetchReservations(page);
+      if (res && res.results) {
+        setReservations(res.results);
+        setReservationsTotalPages(Math.ceil(res.count / 15) || 1);
+        setReservationsPage(page);
+      } else if (Array.isArray(res)) {
         setReservations(res);
+        setReservationsTotalPages(1);
+        setReservationsPage(1);
       }
     } catch (err) {
       console.error(err);
@@ -127,12 +152,18 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
     }
   };
 
-  const loadFines = async () => {
+  const loadFines = async (page: number = 1) => {
     setLoading(true);
     try {
-      const res = await fetchFines();
-      if (Array.isArray(res)) {
+      const res = await fetchFines(page);
+      if (res && res.results) {
+        setFines(res.results);
+        setFinesTotalPages(Math.ceil(res.count / 15) || 1);
+        setFinesPage(page);
+      } else if (Array.isArray(res)) {
         setFines(res);
+        setFinesTotalPages(1);
+        setFinesPage(1);
       }
     } catch (err) {
       console.error(err);
@@ -142,7 +173,6 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
   };
 
   useEffect(() => {
-    loadStats();
     if (activeTab === "overview") {
       loadStats();
     } else if (activeTab === "catalog") {
@@ -206,13 +236,53 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
         total_copies: 1,
         physical_location: ""
       });
-      loadBooks(bookSearch);
-      loadStats();
+      if (selectedBook) {
+        setBooks(prev => prev.map(b => b.id === selectedBook.id ? { ...b, ...res } : b));
+        if (res.total_copies !== selectedBook.total_copies) {
+          const diff = res.total_copies - selectedBook.total_copies;
+          setStats(prev => ({ ...prev, total_copies: prev.total_copies + diff }));
+        }
+      } else {
+        setBooks(prev => [res, ...prev]);
+        setStats(prev => ({
+          ...prev,
+          total_books: prev.total_books + 1,
+          total_copies: prev.total_copies + (res.total_copies || bookForm.total_copies)
+        }));
+      }
     } catch (err) {
       Swal.fire("Error", "Failed to save book catalog item", "error");
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadBookCopiesPage = async (bookId: number, page: number) => {
+    setLoadingCopies(true);
+    try {
+      const res = await fetchBookCopies(bookId, page);
+      if (res && res.results) {
+        setViewingBookCopies(res.results);
+        setCopiesTotalPages(Math.ceil(res.count / 15) || 1);
+        setCopiesPage(page);
+      } else {
+        // Fallback if not paginated
+        setViewingBookCopies(Array.isArray(res) ? res : []);
+        setCopiesTotalPages(1);
+        setCopiesPage(1);
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Failed to load book copies", "error");
+    } finally {
+      setLoadingCopies(false);
+    }
+  };
+
+  const handleViewBookClick = (book: any) => {
+    setSelectedBook(book);
+    setShowViewModal(true);
+    loadBookCopiesPage(book.id, 1);
   };
 
   const handleEditBookClick = (book: any) => {
@@ -247,8 +317,12 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
           Swal.fire("Failed", res.message, "error");
         } else {
           Swal.fire("Deleted", "Book deleted successfully", "success");
-          loadBooks(bookSearch);
-          loadStats();
+          setBooks(prev => prev.filter(b => b.id !== book.id));
+          setStats(prev => ({
+            ...prev,
+            total_books: Math.max(0, prev.total_books - 1),
+            total_copies: Math.max(0, prev.total_copies - book.total_copies)
+          }));
         }
       } catch (err) {
         Swal.fire("Error", "Failed to delete book catalog", "error");
@@ -434,60 +508,6 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
           </Card>
         </div>
       )}
-
-      {/* Tabs */}
-      <div className={`flex border-b mb-6 overflow-x-auto whitespace-nowrap thin-scrollbar ${theme === 'dark' ? 'border-[#3a3a3c]' : 'border-gray-200'}`}>
-        <button
-          onClick={() => setActiveTab("overview")}
-          className={`py-3 px-4 md:px-6 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === "overview" 
-              ? "border-primary text-primary" 
-              : "border-transparent text-gray-500 hover:text-gray-300"
-          }`}
-        >
-          <BarChart2 className="w-4 h-4" /> Overview
-        </button>
-        <button
-          onClick={() => setActiveTab("catalog")}
-          className={`py-3 px-4 md:px-6 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === "catalog" 
-              ? "border-primary text-primary" 
-              : "border-transparent text-gray-500 hover:text-gray-300"
-          }`}
-        >
-          <BookIcon className="w-4 h-4" /> Books Catalog
-        </button>
-        <button
-          onClick={() => setActiveTab("circulation")}
-          className={`py-3 px-4 md:px-6 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === "circulation" 
-              ? "border-primary text-primary" 
-              : "border-transparent text-gray-500 hover:text-gray-300"
-          }`}
-        >
-          <RefreshCw className="w-4 h-4" /> Circulation (Issue/Return)
-        </button>
-        <button
-          onClick={() => setActiveTab("reserves")}
-          className={`py-3 px-4 md:px-6 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === "reserves" 
-              ? "border-primary text-primary" 
-              : "border-transparent text-gray-500 hover:text-gray-300"
-          }`}
-        >
-          <ClipboardList className="w-4 h-4" /> Holds Waitlist
-        </button>
-        <button
-          onClick={() => setActiveTab("fines")}
-          className={`py-3 px-4 md:px-6 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
-            activeTab === "fines" 
-              ? "border-primary text-primary" 
-              : "border-transparent text-gray-500 hover:text-gray-300"
-          }`}
-        >
-          <CreditCard className="w-4 h-4" /> Fine Records
-        </button>
-      </div>
 
       {/* Main Tab Content */}
       <AnimatePresence mode="wait">
@@ -720,7 +740,13 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                               </span>
                               <span className="opacity-50"> / {book.total_copies}</span>
                             </td>
-                            <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                            <td className="p-4 text-right space-x-3 whitespace-nowrap">
+                              <button
+                                onClick={() => handleViewBookClick(book)}
+                                className="text-xs text-blue-500 font-bold hover:underline"
+                              >
+                                View
+                              </button>
                               <button
                                 onClick={() => handleEditBookClick(book)}
                                 className="text-xs text-primary font-bold hover:underline"
@@ -800,15 +826,28 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
 
                         <div>
                           <label className="block text-xs uppercase tracking-wider font-semibold opacity-70 mb-1">Genre/Category</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. Science, Fiction, History"
+                          <select
                             value={bookForm.category}
                             onChange={(e) => setBookForm({ ...bookForm, category: e.target.value })}
                             className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
                               theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
                             }`}
-                          />
+                          >
+                            <option value="">Select Category</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Business & Management">Business & Management</option>
+                            <option value="Literature">Literature</option>
+                            <option value="History">History</option>
+                            <option value="General Fiction">General Fiction</option>
+                            <option value="Non-Fiction">Non-Fiction</option>
+                            <option value="Reference">Reference</option>
+                            <option value="Other">Other</option>
+                          </select>
                         </div>
 
                         <div>
@@ -867,6 +906,125 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                         </Button>
                       </div>
                     </form>
+                  </motion.div>
+                </div>
+              )}
+              {/* View Book Copies Modal */}
+              {showViewModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className={`w-full max-w-4xl p-6 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] ${
+                      theme === 'dark' ? 'bg-[#1c1c1e] text-white border border-[#3a3a3c]' : 'bg-white text-gray-900'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-6 border-b pb-3 border-gray-200 dark:border-[#3a3a3c]">
+                      <div>
+                        <h2 className="text-xl font-bold">{selectedBook?.title}</h2>
+                        <p className="text-sm opacity-70">Physical Copies & Circulation Status</p>
+                      </div>
+                      <button onClick={() => setShowViewModal(false)} className="opacity-70 hover:opacity-100 p-2">
+                        <X className="w-6 h-6" />
+                      </button>
+                    </div>
+
+                    {loadingCopies ? (
+                      <div className="p-10 text-center opacity-70">Loading barcode copies...</div>
+                    ) : (
+                      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-[#3a3a3c]">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className={`border-b text-xs uppercase tracking-wider font-bold ${
+                              theme === 'dark' ? 'bg-[#2c2c2e] text-gray-400' : 'bg-gray-50 text-gray-600'
+                            }`}>
+                              <th className="p-3">Barcode ID</th>
+                              <th className="p-3">Status</th>
+                              <th className="p-3">Current Borrower</th>
+                              <th className="p-3">Contact</th>
+                              <th className="p-3">Due Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {viewingBookCopies.length === 0 ? (
+                              <tr>
+                                <td colSpan={5} className="text-center p-6 opacity-60 text-sm">No physical copies generated for this book.</td>
+                              </tr>
+                            ) : (
+                              viewingBookCopies.map((copy) => (
+                                <tr key={copy.id} className={`border-b last:border-0 ${theme === 'dark' ? 'border-[#3a3a3c]' : 'border-gray-100'} hover:bg-black/5`}>
+                                  <td className="p-3 font-mono font-bold text-sm text-primary">{copy.barcode_id}</td>
+                                  <td className="p-3">
+                                    <span className={`px-2 py-1 text-[10px] font-bold uppercase rounded-full ${
+                                      copy.status === 'available' ? 'bg-emerald-500/20 text-emerald-500' :
+                                      copy.status === 'borrowed' ? 'bg-blue-500/20 text-blue-500' :
+                                      'bg-red-500/20 text-red-500'
+                                    }`}>
+                                      {copy.status}
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-sm">
+                                    {copy.current_borrower ? (
+                                      <span className="font-semibold">{copy.current_borrower.user_name}</span>
+                                    ) : (
+                                      <span className="opacity-40">-</span>
+                                    )}
+                                  </td>
+                                  <td className="p-3 text-sm">
+                                    {copy.current_borrower ? (
+                                      <div className="flex flex-col opacity-80 text-xs">
+                                        <span>{copy.current_borrower.user_email}</span>
+                                        <span>{copy.current_borrower.user_mobile}</span>
+                                      </div>
+                                    ) : (
+                                      <span className="opacity-40">-</span>
+                                    )}
+                                  </td>
+                                  <td className="p-3 text-sm">
+                                    {copy.current_borrower ? (
+                                      <div className="flex flex-col text-xs">
+                                        <span className="opacity-70">Due: {new Date(copy.current_borrower.due_date).toLocaleDateString()}</span>
+                                        {copy.current_borrower.overdue_days > 0 ? (
+                                          <span className="text-red-500 font-bold">{copy.current_borrower.overdue_days} days overdue (Fine: ₹{copy.current_borrower.fine_amount})</span>
+                                        ) : (
+                                          <span className="text-emerald-500">On time</span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="opacity-40">-</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    
+                    {!loadingCopies && copiesTotalPages > 1 && (
+                      <div className="flex justify-between items-center mt-4 text-sm">
+                        <span className="opacity-70">
+                          Page {copiesPage} of {copiesTotalPages}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button 
+                            disabled={copiesPage === 1}
+                            onClick={() => loadBookCopiesPage(selectedBook.id, copiesPage - 1)}
+                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
+                          >
+                            Previous
+                          </Button>
+                          <Button 
+                            disabled={copiesPage === copiesTotalPages}
+                            onClick={() => loadBookCopiesPage(selectedBook.id, copiesPage + 1)}
+                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 </div>
               )}
@@ -949,6 +1107,30 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       )}
                     </tbody>
                   </table>
+                  
+                  {!loading && borrowsTotalPages > 1 && (
+                    <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-[#3a3a3c] text-sm">
+                      <span className="opacity-70">
+                        Page {borrowsPage} of {borrowsTotalPages}
+                      </span>
+                      <div className="flex gap-2">
+                        <Button 
+                          disabled={borrowsPage === 1}
+                          onClick={() => loadCirculation(borrowsPage - 1)}
+                          className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
+                        >
+                          Previous
+                        </Button>
+                        <Button 
+                          disabled={borrowsPage === borrowsTotalPages}
+                          onClick={() => loadCirculation(borrowsPage + 1)}
+                          className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             </div>
@@ -1002,6 +1184,30 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                     )}
                   </tbody>
                 </table>
+                
+                {!loading && reservationsTotalPages > 1 && (
+                  <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-[#3a3a3c] text-sm">
+                    <span className="opacity-70">
+                      Page {reservationsPage} of {reservationsTotalPages}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button 
+                        disabled={reservationsPage === 1}
+                        onClick={() => loadReservations(reservationsPage - 1)}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
+                      >
+                        Previous
+                      </Button>
+                      <Button 
+                        disabled={reservationsPage === reservationsTotalPages}
+                        onClick={() => loadReservations(reservationsPage + 1)}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
           )}
@@ -1065,6 +1271,30 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                     )}
                   </tbody>
                 </table>
+                
+                {!loading && finesTotalPages > 1 && (
+                  <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-[#3a3a3c] text-sm">
+                    <span className="opacity-70">
+                      Page {finesPage} of {finesTotalPages}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button 
+                        disabled={finesPage === 1}
+                        onClick={() => loadFines(finesPage - 1)}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
+                      >
+                        Previous
+                      </Button>
+                      <Button 
+                        disabled={finesPage === finesTotalPages}
+                        onClick={() => loadFines(finesPage + 1)}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
           )}
