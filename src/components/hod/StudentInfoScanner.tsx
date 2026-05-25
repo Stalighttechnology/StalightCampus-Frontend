@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/context/ThemeContext";
-import { Search, User, Calendar, BookOpen, TrendingUp, CreditCard, Users, Clock, MapPin, Phone, Mail, Heart, QrCode, X, Camera, AlertCircle } from "lucide-react";
+import { Search, User, Calendar, BookOpen, TrendingUp, CreditCard, Users, Clock, MapPin, Phone, Mail, Heart, QrCode, X, Camera, AlertCircle, FileDown, Loader2 } from "lucide-react";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { showErrorAlert, showSuccessAlert } from "../../utils/sweetalert";
 import { BrowserMultiFormatReader, NotFoundException, ChecksumException, FormatException } from '@zxing/library';
@@ -128,6 +128,33 @@ const StudentInfoScanner = () => {
   const faceCanvasRef = useRef<HTMLCanvasElement>(null);
   const codeReader = useRef<BrowserMultiFormatReader | null>(null);
   const { theme } = useTheme();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!studentData || !studentData.student_info.usn) return;
+    setDownloadingPDF(true);
+    try {
+      const url = `${API_ENDPOINT}/public/student-data/export-pdf/?usn=${studentData.student_info.usn}`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `Student_Profile_${studentData.student_info.usn}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      showSuccessAlert("Success", "PDF downloaded successfully");
+    } catch (err: any) {
+      showErrorAlert("Error", err.message || "Failed to download PDF");
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   // Initialize code reader
   useEffect(() => {
@@ -343,9 +370,25 @@ const StudentInfoScanner = () => {
     <div id="hod-scan-student-container" className={`sm: min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Search Card */}
       <Card id="hod-search-student-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm mb-6' : 'bg-white text-gray-900 border-gray-200 shadow-sm mb-6'}`}>
-        <CardHeader>
-          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900'}`}>Search Student</CardTitle>
-          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Enter USN or use scanner to find student information</p>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <div className="space-y-1">
+            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900'}`}>Search Student</CardTitle>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Enter USN or use scanner to find student information</p>
+          </div>
+          {studentData && (
+            <Button
+              onClick={handleExportPDF}
+              disabled={downloadingPDF}
+              className="bg-primary hover:bg-[#9147e0] text-white flex items-center gap-2 h-10 px-4"
+            >
+              {downloadingPDF ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4" />
+              )}
+              {downloadingPDF ? "Downloading..." : "Download PDF"}
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">

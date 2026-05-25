@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileTextIcon } from "lucide-react";
+import { FileDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 import { ProctorStudent, getProctorStudentsForStats } from '../../utils/faculty_api';
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { paginationToUI } from '../../utils/paginationToUI';
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { API_ENDPOINT } from '../../utils/config';
+import { fetchWithTokenRefresh } from '../../utils/authService';
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonChart, SkeletonTable, SkeletonCard } from "@/components/ui/skeleton";
 
 const GenerateStatistics: React.FC = () => {
   const [proctorStudents, setProctorStudents] = useState<ProctorStudent[]>([]);
   const [proctorStudentsLoading, setProctorStudentsLoading] = useState<boolean>(true);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -69,32 +70,37 @@ const GenerateStatistics: React.FC = () => {
     return percentage;
   };
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Proctor Students Report", 14, 16);
-    const tableColumn = ["USN", "Name", "Attendance %", "Avg Mark"];
-    const tableRows = proctorStudents.map(student => [
-      student.usn,
-      student.name,
-      formatAttendancePercentage(student.attendance),
-      (() => {
-        const internalMarks = student.marks || [];
-        const iaMarks = student.ia_marks || [];
-        const allMarks = [
-          ...internalMarks.map(m => m.mark),
-          ...iaMarks.map(m => m.total_obtained)
-        ];
-        return allMarks.length > 0
-          ? (allMarks.reduce((sum, mark) => sum + (mark || 0), 0) / allMarks.length).toFixed(2)
-          : '0';
-      })(),
-    ]);
-    autoTable(doc, {
-      startY: 20,
-      head: [tableColumn],
-      body: tableRows,
-    });
-    doc.save("proctor_students_report.pdf");
+  const handleExportPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const response = await fetchWithTokenRefresh(
+        `${API_ENDPOINT}/faculty/proctor-students/export-pdf/`
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const cd = response.headers.get('Content-Disposition');
+        let filename = 'Proctor_Students_Report.pdf';
+        if (cd) {
+          const m = /filename="?([^"]+)"?/.exec(cd);
+          if (m && m[1]) filename = m[1];
+        }
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(err.message || 'Failed to export PDF');
+      }
+    } catch {
+      alert('Network error while exporting PDF');
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   // Prepare chart data
@@ -226,10 +232,15 @@ const GenerateStatistics: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
+            id="generate-stats-export-pdf-btn"
             onClick={handleExportPDF}
-            className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md"
+            disabled={downloadingPDF}
+            className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2"
           >
-            <FileTextIcon className="mr-2 h-4 w-4" />
+            {downloadingPDF
+              ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              : <FileDown className="h-4 w-4" />
+            }
             Export PDF
           </Button>
         </CardHeader>

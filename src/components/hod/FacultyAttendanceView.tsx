@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 import { Calendar, Users, CheckCircle, XCircle, Clock, FileDown, CalendarIcon, CalendarX, ClipboardX } from "lucide-react";
 import { getFacultyAttendanceToday, getFacultyAttendanceRecords } from "../../utils/hod_api";
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonCard, SkeletonTable } from "../ui/skeleton";
 import Swal from "sweetalert2";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, isBefore, isSameDay } from "date-fns";
@@ -20,6 +20,13 @@ import {
   DialogFooter
 } from
   "@/components/ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue
+} from "@/components/ui/select";
 
 interface FacultyAttendanceTodayRecord {
   id: string;
@@ -65,8 +72,32 @@ interface FacultySummary {
 
 const FacultyAttendanceView: React.FC = () => {
   const [todayAttendance, setTodayAttendance] = useState<FacultyAttendanceTodayRecord[]>([]);
+  const [exportingToday, setExportingToday] = useState(false);
+  const [exportingRecords, setExportingRecords] = useState(false);
   const [attendanceRecords, setAttendanceRecords] = useState<FacultyAttendanceRecord[]>([]);
   const [facultySummary, setFacultySummary] = useState<FacultySummary[]>([]);
+  const [selectedFacultyId, setSelectedFacultyId] = useState<string>("");
+
+  const uniqueFaculties = React.useMemo(() => {
+    const list: { id: string; name: string }[] = [];
+    const seen = new Set<string>();
+
+    todayAttendance.forEach(f => {
+      if (f.faculty_id && !seen.has(f.faculty_id)) {
+        seen.add(f.faculty_id);
+        list.push({ id: f.faculty_id, name: f.faculty_name });
+      }
+    });
+
+    facultySummary.forEach(f => {
+      if (f.id && !seen.has(f.id)) {
+        seen.add(f.id);
+        list.push({ id: f.id, name: f.name });
+      }
+    });
+
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+  }, [todayAttendance, facultySummary]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'records'>('today');
   const [dateRange, setDateRange] = useState({
@@ -283,66 +314,67 @@ const FacultyAttendanceView: React.FC = () => {
     }
   };
 
-  const handleExportTodayPDF = () => {
-    const doc = new jsPDF();
-    const todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-
-    doc.setFontSize(18);
-    doc.text("Today's Faculty Attendance Report", 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Date: ${todayStr}`, 14, 30);
-    doc.text(`Total Faculty: ${todaySummary.total_faculty} | Present: ${todaySummary.present} | Absent: ${todaySummary.absent}`, 14, 37);
-
-    const tableColumn = ["Faculty Name", "Status", "Marked At", "Notes"];
-    const tableRows = todayAttendance.map((record) => [
-      record.faculty_name,
-      record.status,
-      record.marked_at ? new Date(record.marked_at).toLocaleString() : 'Not marked',
-      record.notes || '-']
-    );
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 45,
-      theme: 'grid',
-      headStyles: { fillColor: [66, 133, 244] }
-    });
-
-    doc.save(`Faculty_Attendance_Today_${todayStr.replace(/ /g, '_')}.pdf`);
+  const handleExportTodayPDF = async () => {
+    setExportingToday(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/faculty-attendance-today/export-pdf/`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        a.download = `Faculty_Attendance_Today_${todayStr.replace(/ /g, '_')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        Swal.fire("Error", result.message || "Failed to export PDF", "error");
+      }
+    } catch (err) {
+      Swal.fire("Error", "Network error while exporting PDF", "error");
+    } finally {
+      setExportingToday(false);
+    }
   };
 
-  const handleExportRecordsPDF = () => {
+  const handleExportRecordsPDF = async () => {
     if (facultySummary.length === 0) {
       Swal.fire("Info", "No records to export", "info");
       return;
     }
 
-    const doc = new jsPDF();
-
-    doc.setFontSize(18);
-    doc.text("Faculty Attendance Summary Report", 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Period: ${formatDate(dateRange.start_date)} to ${formatDate(dateRange.end_date)}`, 14, 30);
-
-    const tableColumn = ["Faculty Name", "Total Days", "Present", "Absent", "Percentage"];
-    const tableRows = facultySummary.map((summary) => [
-      summary.name,
-      summary.total_days,
-      summary.present_days,
-      summary.absent_days,
-      `${summary.attendance_percentage.toFixed(1)}%`]
-    );
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 40,
-      theme: 'grid',
-      headStyles: { fillColor: [66, 133, 244] }
-    });
-
-    doc.save(`Faculty_Attendance_Summary_${dateRange.start_date}_to_${dateRange.end_date}.pdf`);
+    setExportingRecords(true);
+    try {
+      const params = new URLSearchParams({
+        start_date: dateRange.start_date,
+        end_date: dateRange.end_date,
+      });
+      if (selectedFacultyId && selectedFacultyId !== "all") {
+        params.append("faculty_id", selectedFacultyId);
+      }
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/faculty-attendance-records/export-pdf/?${params}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Faculty_Attendance_Summary_${dateRange.start_date}_to_${dateRange.end_date}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        Swal.fire("Error", result.message || "Failed to export PDF", "error");
+      }
+    } catch (err) {
+      Swal.fire("Error", "Network error while exporting PDF", "error");
+    } finally {
+      setExportingRecords(false);
+    }
   };
 
   const fetchFacultyDetails = async (faculty: FacultySummary) => {
@@ -560,10 +592,19 @@ const FacultyAttendanceView: React.FC = () => {
                 </h3>
                 <button
                   onClick={handleExportTodayPDF}
-                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium`}>
-
-                  <FileDown className="w-4 h-4" />
-                  <span>Export PDF</span>
+                  disabled={exportingToday}
+                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50`}>
+                  {exportingToday ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      <span>Downloading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileDown className="w-4 h-4" />
+                      <span>Export PDF</span>
+                    </>
+                  )}
                 </button>
               </div>
               <div className="overflow-x-auto">
@@ -598,10 +639,7 @@ const FacultyAttendanceView: React.FC = () => {
                             <div className="font-medium">{record.faculty_name}</div>
                           </td>
                           <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-1 sm:gap-2">
-                              {getStatusIcon(record.status)}
-                              <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
-                            </div>
+                            <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
                           </td>
                           <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                             {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
@@ -705,6 +743,29 @@ const FacultyAttendanceView: React.FC = () => {
             {/* Date Range Filter */}
             <div id="hod-faculty-attendance-filters" className={`p-3 sm:p-4 rounded-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-end">
+                <div className="w-full sm:w-[220px]">
+                  <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                    Faculty
+                  </label>
+                  <Select
+                    value={selectedFacultyId}
+                    onValueChange={setSelectedFacultyId}>
+                    <SelectTrigger className={cn(
+                      "w-full justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                      theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                    )}>
+                      <SelectValue placeholder="Choose Faculty" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                      <SelectItem value="all">All Faculty</SelectItem>
+                      {uniqueFaculties.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="w-full sm:w-auto">
                   <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
                     Start Date
@@ -768,17 +829,36 @@ const FacultyAttendanceView: React.FC = () => {
                 <div className="w-full sm:w-auto pt-4 sm:pt-0 ml-auto">
                   <button
                     onClick={handleExportRecordsPDF}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium">
-
-                    <FileDown className="w-4 h-4" />
-                    <span>Export Report</span>
+                    disabled={exportingRecords || facultySummary.length === 0}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50">
+                    {exportingRecords ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        <span>Downloading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4" />
+                        <span>Export Report</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Faculty Summary */}
-            {facultySummary.length > 0 ?
+            {!selectedFacultyId ? (
+              <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'} mt-4`}>
+                <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                  <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                </div>
+                <div className="text-center">
+                  <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Faculty Selected</p>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Please select a faculty member from the dropdown to view attendance summary</p>
+                </div>
+              </div>
+            ) : facultySummary.length > 0 ? (
               <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -798,7 +878,9 @@ const FacultyAttendanceView: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                      {facultySummary.map((summary) =>
+                      {facultySummary
+                        .filter(summary => selectedFacultyId === "all" || summary.id === selectedFacultyId)
+                        .map((summary) =>
                         <React.Fragment key={summary.id}>
                           <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
                             <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -886,8 +968,8 @@ const FacultyAttendanceView: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              </div> :
-
+              </div>
+            ) : (
               <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
                   <ClipboardX className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
@@ -897,7 +979,7 @@ const FacultyAttendanceView: React.FC = () => {
                   <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Try adjusting your date range or faculty filters</p>
                 </div>
               </div>
-            }
+            )}
 
           </>
         }

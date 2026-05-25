@@ -1,6 +1,6 @@
 import React, { useState, useEffect, ReactNode, Component } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { FileDown, Loader2, CheckCircle, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
@@ -217,7 +217,8 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     totalCount: 0,
     pageSize: 50,
     next: null as string | null,
-    previous: null as string | null
+    previous: null as string | null,
+    downloadingPDF: false
   });
 
   // Sync with bootstrap context if data arrives after mount
@@ -393,13 +394,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
   const currentStudents = filteredStudents;
 
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    const pageHeight = doc.internal.pageSize.height;
-    const margin = 14;
-    let currentPageNumber = 1;
-
-    // Use the current filtered students
+  const exportPDF = async () => {
     const studentsToExport = state.students;
 
     if (studentsToExport.length === 0) {
@@ -407,56 +402,42 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
       return;
     }
 
-    // Get semester and section info for the title
-    const semesterNumber = state.semesters.find((s) => s.id === state.selectedSemester)?.number;
-    const sectionName = state.sections.find((s) => s.id === state.selectedSection)?.name;
-
-    doc.setFontSize(16);
-    doc.text(`Low Attendance Students - Semester ${semesterNumber} Section ${sectionName}`, margin, 14);
-    doc.setFontSize(10);
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 180, 14);
-
-    const studentChunks = [];
-    for (let i = 0; i < studentsToExport.length; i += 40) {// 40 items per page for better readability
-      studentChunks.push(studentsToExport.slice(i, i + 40));
-    }
-
-    studentChunks.forEach((chunk, chunkIndex) => {
-      if (chunkIndex > 0) {
-        doc.addPage();
-        currentPageNumber++;
-        doc.setFontSize(16);
-        doc.text(`Low Attendance Students - Semester ${semesterNumber} Section ${sectionName} (Cont.)`, margin, 14);
-        doc.setFontSize(10);
-        doc.text(`Page ${currentPageNumber}`, 180, 14);
-      }
-
-      autoTable(doc, {
-        startY: 20,
-        head: [["USN", "Name", "Subject", "Section", "Attendance %"]],
-        body: chunk.map((student) => [
-          student.usn,
-          student.name,
-          student.subject,
-          student.section,
-          formatAttendancePercentage(student.attendance_percentage)]
-        ),
-        theme: "striped",
-        headStyles: { fillColor: [200, 200, 200], textColor: "black" },
-        bodyStyles: { fontSize: 10 },
-        margin: { top: 20, left: margin, right: margin },
-        didDrawPage: (data) => {
-          doc.setFontSize(8);
-          doc.text(
-            `Generated on ${new Date().toLocaleDateString()}`,
-            margin,
-            pageHeight - 10
-          );
-        }
+    updateState({ downloadingPDF: true });
+    try {
+      const params = new URLSearchParams({
+        branch_id: state.branchId,
+        semester_id: state.selectedSemester,
+        section_id: state.selectedSection,
       });
-    });
 
-    doc.save("low-attendance-report.pdf");
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/low-attendance/export-pdf/?${params}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const contentDisposition = response.headers.get("Content-Disposition");
+        let filename = `Low_Attendance_Report_${new Date().toISOString().slice(0, 10)}.pdf`;
+        if (contentDisposition) {
+          const matches = /filename="?([^"]+)"?/.exec(contentDisposition);
+          if (matches && matches[1]) {
+            filename = matches[1];
+          }
+        }
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        toast({ variant: "destructive", title: "Error", description: result.message || "Failed to export PDF" });
+      }
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error", description: "Network error while exporting PDF" });
+    } finally {
+      updateState({ downloadingPDF: false });
+    }
   };
 
   const notifyStudent = async (student: Student) => {
@@ -622,11 +603,19 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
             </div>
             <Button
               onClick={exportPDF}
-              disabled={state.loading || state.students.length === 0}
+              disabled={state.loading || state.students.length === 0 || state.downloadingPDF}
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto">
-
-              <FileDown className="w-4 h-4 mr-2" />
-              Export PDF
+              {state.downloadingPDF ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Export PDF
+                </>
+              )}
             </Button>
           </CardHeader>
           </div>

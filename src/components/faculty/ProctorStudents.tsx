@@ -8,11 +8,49 @@ import { SkeletonTable } from "@/components/ui/skeleton";
 import { useProctorStudentsQuery } from "@/hooks/useApiQueries";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
 import { AdminPagination } from "../common/AdminPagination";
-import { Search, Users } from "lucide-react";
+import { Search, Users, FileDown } from "lucide-react";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 
 const ProctorStudents = () => {
   const { theme } = useTheme();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const { value: search, debouncedValue: debouncedSearch, setValue: setSearch } = useDebouncedSearch('', 500);
+
+  const handleExportPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.append('search', debouncedSearch);
+      const response = await fetchWithTokenRefresh(
+        `${API_ENDPOINT}/faculty/proctor-students/export-pdf/?${params.toString()}`
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const cd = response.headers.get('Content-Disposition');
+        let filename = 'Proctor_Students.pdf';
+        if (cd) {
+          const m = /filename="?([^"]+)"?/.exec(cd);
+          if (m && m[1]) filename = m[1];
+        }
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(err.message || 'Failed to export PDF');
+      }
+    } catch {
+      alert('Network error while exporting PDF');
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   const includeFields = 'id,name,usn,semester,section,contact';
   const {
@@ -39,7 +77,21 @@ const ProctorStudents = () => {
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
       <CardHeader>
-        <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Proctor Students</CardTitle>
+        <div className="flex items-center justify-between gap-4">
+          <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Proctor Students</CardTitle>
+          <Button
+            id="proctor-export-pdf-btn"
+            onClick={handleExportPDF}
+            disabled={downloadingPDF}
+            className="h-9 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center gap-2 text-sm"
+          >
+            {downloadingPDF
+              ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              : <FileDown className="w-4 h-4" />
+            }
+            Export PDF
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="relative">

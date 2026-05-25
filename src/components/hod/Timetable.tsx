@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Skeleton, SkeletonTable } from "../ui/skeleton";
-import { DownloadIcon, EditIcon, User, Calendar } from "lucide-react";
+import { DownloadIcon, EditIcon, User, Calendar, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { useToast } from "../ui/use-toast";
 import { getSemesters, manageSections, manageSubjects, manageFaculties, manageTimetable, manageProfile, manageFacultyAssignments, getBranches, getHODTimetableBootstrap, getHODTimetableSemesterData } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 
 // Interfaces
 interface Semester {
@@ -406,6 +406,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
 const Timetable = () => {
   const { theme } = useTheme();
   const { toast } = useToast();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [state, setState] = useState({
     branchId: "" as string,
     branchName: "" as string,
@@ -814,68 +815,54 @@ const Timetable = () => {
     updateState({ selectedClass: null });
   };
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(16);
-
-    const branchName = state.branchName || "Branch";
-    const semesterNumber =
-    state.semesters.find((s) => s.id === state.semesterId)?.number || "Semester";
-    const sectionName =
-    state.sections.find((s) => s.id === state.sectionId)?.name || "Section";
-
-    const title =
-    state.semesterId && state.sectionId && state.branchId ?
-    `${branchName} - ${semesterNumber} Semester - Section ${sectionName} Timetable` :
-    "Timetable";
-
-    doc.text(title, 10, 15);
-
-    const headers = ["Time/Day", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const tableData = getTableData();
-
-    // Helper to format a cell's entries (array of timetable entries) into a printable string
-    const formatCell = (entries: any) => {
-      if (!entries || entries.length === 0) return "";
-      return entries.
-      map((entry: any) => {
-        const subj = entry.faculty_assignment?.subject || entry.subject || "";
-        const time = `${entry.start_time || ""} - ${entry.end_time || ""}`.trim();
-        const faculty = entry.faculty_assignment?.faculty || entry.faculty_name || "";
-        const room = entry.room ? `Room ${entry.room}` : "";
-        return [subj, time, faculty, room].filter(Boolean).join("\n");
-      }).
-      join("\n\n");
-    };
-
-    autoTable(doc, {
-      head: [headers],
-      body: tableData.map((row) => [
-      row.time,
-      formatCell(row.mon),
-      formatCell(row.tue),
-      formatCell(row.wed),
-      formatCell(row.thu),
-      formatCell(row.fri),
-      formatCell(row.sat)]
-      ),
-      startY: 25,
-      styles: { fontSize: 8, cellPadding: 2 },
-      columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 25 },
-        3: { cellWidth: 25 },
-        4: { cellWidth: 25 },
-        5: { cellWidth: 25 },
-        6: { cellWidth: 25 }
+  const handleExportPDF = async () => {
+    if (!state.semesterId || !state.sectionId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select a semester and section to export"
+      });
+      return;
+    }
+    setDownloadingPDF(true);
+    try {
+      const queryParams = `?semester_id=${state.semesterId}&section_id=${state.sectionId}`;
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/timetable/export-pdf/${queryParams}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const branchName = state.branchName || "Branch";
+        const semesterNumber = state.semesters.find((s) => s.id === state.semesterId)?.number || "Semester";
+        const sectionName = state.sections.find((s) => s.id === state.sectionId)?.name || "Section";
+        const safeBranch = branchName.replace(/\s+/g, "_");
+        a.download = `Timetable_${safeBranch}_${semesterNumber}_${sectionName}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        toast({
+          title: "Success",
+          description: "Timetable PDF exported successfully"
+        });
+      } else {
+        const result = await response.json().catch(() => ({}));
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to export PDF"
+        });
       }
-    });
-
-    // ✅ Save as (branch-semester-section).pdf
-    const safeBranch = branchName.replace(/\s+/g, "_");
-    doc.save(`${safeBranch}-${semesterNumber}-${sectionName}.pdf`);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error while exporting PDF"
+      });
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
 
@@ -902,10 +889,17 @@ const Timetable = () => {
               <Button
                 variant="outline"
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
-                onClick={handleExportPDF}>
+                onClick={handleExportPDF}
+                disabled={downloadingPDF || !state.semesterId || !state.sectionId}>
                 
-                <DownloadIcon className="w-4 h-4" />
-                <span className="whitespace-nowrap">Export PDF</span>
+                {downloadingPDF ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <DownloadIcon className="w-4 h-4" />
+                )}
+                <span className="whitespace-nowrap">
+                  {downloadingPDF ? "Exporting..." : "Export PDF"}
+                </span>
               </Button>
               <Button
                 variant="outline"

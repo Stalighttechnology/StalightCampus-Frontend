@@ -4,7 +4,9 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { useToast } from "../ui/use-toast";
-import { Pencil, Trash2, Plus, X } from "lucide-react";
+import { Pencil, Trash2, Plus, X, FileDown, Loader2 } from "lucide-react";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
 import { SkeletonTable } from "../ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "../ui/dialog";
 import { getSemesters, manageSemesters, manageSections, manageProfile, getSemesterBootstrap } from "../../utils/hod_api";
@@ -82,7 +84,45 @@ const SemesterManagement = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [editingSectionsSemesterId, setEditingSectionsSemesterId] = useState<string | null>(null);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const bootstrap = useHODBootstrap();
+
+  const handleExportPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/semesters/export-pdf/`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Semester_List_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        toast({
+          title: "Success",
+          description: "Semester list PDF exported successfully",
+        });
+      } else {
+        const result = await response.json().catch(() => ({}));
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to export PDF",
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error while exporting PDF",
+      });
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   // Derive NAME and YEAR from semester number
   const getSemesterName = (number: number) => {
@@ -339,13 +379,23 @@ const SemesterManagement = () => {
         <CardHeader>
           <div id="semester-list-header" className="flex items-center justify-between w-full">
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Semester List</CardTitle>
-            <Button
-              onClick={() => openModal()}
-              disabled={loading || !branchId}
-              className="text-foreground bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white justify-center ml-4"
-            >
-              + Add Semester
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => openModal()}
+                disabled={loading || !branchId}
+                className="text-foreground bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white justify-center"
+              >
+                + Add Semester
+              </Button>
+              <Button
+                onClick={handleExportPDF}
+                disabled={loading || !branchId || downloadingPDF}
+                className="flex items-center gap-1.5 bg-primary text-white border-primary hover:bg-primary/90"
+              >
+                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                {downloadingPDF ? "Exporting..." : "Export PDF"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

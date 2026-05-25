@@ -11,7 +11,7 @@ import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
-import { Loader2, Users, UserX, UserCheck } from "lucide-react";
+import { Loader2, Users, UserX, UserCheck, FileDown } from "lucide-react";
 
 const StudentEnrollment = () => {
   useHODBootstrap();
@@ -33,6 +33,48 @@ const StudentEnrollment = () => {
   const [saving, setSaving] = useState(false);
   const [resultModalOpen, setResultModalOpen] = useState(false);
   const [resultData, setResultData] = useState<{added: number;removed: number;failed: any[];}>({ added: 0, removed: 0, failed: [] });
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!selectedSubjectId) return;
+    setDownloadingPDF(true);
+    try {
+      const params = new URLSearchParams({
+        subject_id: selectedSubjectId,
+        semester_id: semesterId,
+        section_id: sectionId,
+        search: searchTerm,
+      });
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/elective-enrollment/export-pdf/?${params}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const contentDisposition = response.headers.get("Content-Disposition");
+        let filename = `Elective_Enrollment_${new Date().toISOString().slice(0, 10)}.pdf`;
+        if (contentDisposition) {
+          const matches = /filename="?([^"]+)"?/.exec(contentDisposition);
+          if (matches && matches[1]) {
+            filename = matches[1];
+          }
+        }
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        alert(result.message || "Failed to export PDF");
+      }
+    } catch (err) {
+      alert("Network error while exporting PDF");
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -371,6 +413,17 @@ const StudentEnrollment = () => {
                 className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95">
                 
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Enrollment"}
+              </Button>
+              <Button
+                onClick={handleExportPDF}
+                disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
+                className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
+                {downloadingPDF ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileDown className="h-4.5 w-4.5" />
+                )}
+                <span>Export PDF</span>
               </Button>
             </div>
             <div className="flex flex-row items-center justify-center sm:justify-start gap-4 sm:gap-6 text-sm pt-2 sm:pt-0 border-t sm:border-none border-gray-200 dark:border-gray-800 mt-2 sm:mt-0">
