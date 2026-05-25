@@ -10,6 +10,7 @@ import UserAnalytics from "./pages/UserAnalytics";
 import Support from "./pages/Support";
 import Monitoring from "./pages/Monitoring";
 import Reports from "./pages/Reports";
+import Profile from "./pages/Profile";
 import { useTheme } from "../context/ThemeContext";
 
 interface Props {
@@ -65,9 +66,13 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
                 <p className="text-sm font-medium leading-none">Super Admin</p>
                 <p className="text-xs text-muted-foreground">HQ Access</p>
               </div>
-              <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold shadow-sm">
+              <button
+                onClick={() => handlePageChange('profile')}
+                title="My Profile"
+                className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold shadow-sm hover:bg-primary/20 transition-colors"
+              >
                 SA
-              </div>
+              </button>
             </div>
           </div>
         </header>
@@ -91,6 +96,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
                 <Route path="support" element={<Support />} />
                 <Route path="monitoring" element={<Monitoring />} />
                 <Route path="reports" element={<Reports />} />
+                <Route path="profile" element={<Profile />} />
                 <Route path="*" element={
                   <div className="flex flex-col items-center justify-center h-[60vh]">
                     <h2 className="text-2xl font-bold text-muted-foreground mb-4">Coming Soon</h2>

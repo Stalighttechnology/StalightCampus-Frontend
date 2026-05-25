@@ -11,7 +11,8 @@ import {
   BarChart3, 
   LogOut,
   Menu,
-  ShieldCheck
+  ShieldCheck,
+  UserCircle2
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -43,6 +44,7 @@ const menuItems = [
   { id: "support", label: "Support Panel", icon: <LifeBuoy size={20} /> },
   { id: "monitoring", label: "System Monitor", icon: <Activity size={20} /> },
   { id: "reports", label: "Reports", icon: <BarChart3 size={20} /> },
+  { id: "profile", label: "My Profile", icon: <UserCircle2 size={20} /> },
 ];
 
 const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollapse }: SidebarProps) => {
