@@ -18,13 +18,16 @@ import DashboardCard from "../common/DashboardCard";
 import { getAdminStats } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
 import {
   Users,
   User,
   ClipboardList,
   Bell,
   GitBranch,
-  UserCheck } from
+  UserCheck,
+  Loader2 } from
 "lucide-react";
 import {
   SkeletonPageHeader,
@@ -120,21 +123,43 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   [];
 
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("Branch Statistics - Current Term", 14, 20);
-    autoTable(doc, {
-      startY: 30,
-      head: [["Branch", "Student Count", "Faculty Count"]],
-      body: filteredBranches.map((b: any) => [
-      b.name || "N/A",
-      b.students || 0,
-      b.faculty || 0]
-      ),
-      styles: { fontSize: 11 }
-    });
-    doc.save("branch_statistics_current_term.pdf");
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/branch-stats-pdf/`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `branch_statistics_current_term.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast({
+          title: "Success",
+          description: "Branch statistics PDF exported successfully",
+        });
+      } else {
+        const result = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to export PDF",
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error while exporting PDF",
+      });
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   const filteredLabels = filteredBranches.map((b: any) => b.name);
@@ -281,10 +306,11 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           </div>
           <button
             onClick={handleExportPDF}
-            className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-lg shadow-md transition duration-200 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+            disabled={downloadingPDF}
+            className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-lg shadow-md transition duration-200 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
             
-            <FiDownload />
-            Export PDF
+            {downloadingPDF ? <Loader2 className="animate-spin" size={16} /> : <FiDownload />}
+            {downloadingPDF ? "Exporting..." : "Export PDF"}
           </button>
         </div>
 

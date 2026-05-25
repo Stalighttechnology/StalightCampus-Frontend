@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import * as Select from "@radix-ui/react-select";
 import { ChevronDownIcon, CheckIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Search } from "lucide-react";
+import { Search, FileDownIcon, Loader2 } from "lucide-react";
 import { Input } from "../ui/input";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -95,6 +97,61 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [pageSize] = useState(10); // Fixed page size for consistency
   const normalize = (str: string) => str.toLowerCase().trim();
   const { theme } = useTheme();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
+  const isAnyFilterActive =
+    (roleFilter !== "All" && (!rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All")) ||
+    (roleFilter === "All" && departmentFilter !== "All") ||
+    appliedSearch !== "";
+
+  const handleDownloadPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      let queryParams = `?page_size=5000`;
+      if (roleFilter !== "All") {
+        queryParams += `&role=${roleMap[roleFilter]}`;
+      }
+      if (departmentFilter !== "All") {
+        queryParams += `&department=${encodeURIComponent(departmentFilter)}`;
+      }
+      if (appliedSearch.trim()) {
+        queryParams += `&search=${encodeURIComponent(appliedSearch.trim())}`;
+      }
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/users/export-pdf/${queryParams}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `User_List_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        toast({
+          title: "Success",
+          description: "User list PDF exported successfully",
+        });
+      } else {
+        const result = await response.json().catch(() => ({}));
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to export PDF",
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error while exporting PDF",
+      });
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   // Reset current page when filters change
   useEffect(() => {
@@ -123,18 +180,6 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      // Smart Filter Logic:
-      // 1. If searching, always fetch.
-      // 2. If a role is selected:
-      //    - If it's a role needing a department (Student, Teacher, HOD), require department too.
-      //    - If it's a role that doesn't use department (Principal, COE, etc.), fetch immediately.
-      const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
-      const isAnyFilterActive =
-      roleFilter !== "All" && (
-      !rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All") ||
-
-      roleFilter === "All" && departmentFilter !== "All" || appliedSearch !== "";
-
       if (!isAnyFilterActive) {
         setUsers([]);
         setTotalUsers(0);
@@ -458,9 +503,21 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       <div className={`users-container text-sm sm:text-base max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         <Card id="users-management-card" className={`users-card ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           <div id="users-management-header-filters">
-            <CardHeader className="users-card-header">
-              <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
-              <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
+            <CardHeader className="users-card-header flex flex-row items-center justify-between gap-4">
+              <div>
+                <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
+                <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
+              </div>
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={!isAnyFilterActive || downloadingPDF}
+                className={`flex items-center gap-2 px-4 py-2 font-medium transition-all duration-200 shrink-0 ${
+                  theme === 'dark' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                }`}
+              >
+                {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
+                {downloadingPDF ? "Exporting..." : "Download PDF"}
+              </Button>
             </CardHeader>
             <CardContent className="users-card-content pb-0">
               <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
@@ -518,13 +575,6 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
           <CardContent className="users-card-content pt-0">
             {(() => {
-              const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
-              const isAnyFilterActive =
-              roleFilter !== "All" && (
-              !rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All") ||
-
-              roleFilter === "All" && departmentFilter !== "All" || appliedSearch !== "";
-
               if (!isAnyFilterActive) {
                 const needsDept = rolesNeedingDept.includes(roleFilter) && departmentFilter === "All";
 
