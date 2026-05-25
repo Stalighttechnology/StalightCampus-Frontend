@@ -11,6 +11,7 @@ const PaymentCancel = lazy(() => import("./components/common/PaymentCancel"));
 const ResultsView = lazy(() => import("./components/common/ResultsView"));
 const StudentDashboard = lazy(() => import("./components/dashboards/StudentDashboard"));
 const AdminDashboard = lazy(() => import("./components/dashboards/AdminDashboard"));
+const OrgAdminDashboard = lazy(() => import("./components/dashboards/OrgAdminDashboard"));
 const HODDashboard = lazy(() => import("./components/dashboards/HODDashboard"));
 const FacultyDashboard = lazy(() => import("./components/dashboards/FacultyDashboard"));
 const COEDashboard = lazy(() => import("./components/dashboards/COEDashboard"));
@@ -335,6 +336,16 @@ const AppContent = () => {
             <ProtectedRoute allowedRoles={["admin", "principal"]}>
                 <>
                   <AdminDashboard user={userData} setPage={() => {}} />
+                  {shouldShowFloatingAssistant() && <FloatingAssistant />}
+                </>
+              </ProtectedRoute>
+            } />
+
+            {/* Org Admin routes */}
+            <Route path="/org-admin/*" element={
+            <ProtectedRoute allowedRoles={["org_admin"]}>
+                <>
+                  <OrgAdminDashboard user={userData} setPage={() => {}} />
                   {shouldShowFloatingAssistant() && <FloatingAssistant />}
                 </>
               </ProtectedRoute>

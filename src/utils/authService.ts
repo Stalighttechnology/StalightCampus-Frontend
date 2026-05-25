@@ -427,3 +427,31 @@ export const logoutUser = async (): Promise<GenericResponse> => {
     return { success: true, message: "Logged out successfully (error ignored)" };
   }
 };
+export const fetchWithSuperadminTokenRefresh = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  let accessToken = localStorage.getItem("superadmin_token");
+  const safeHeaders = {
+    ...(options.headers as Record<string, string | undefined>),
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  };
+  options.headers = safeHeaders as Record<string, string>;
+  options.credentials = 'include';
+  
+  let response = await fetch(url, options);
+  
+  if (response.status === 401) {
+    const refreshResult = await refreshToken();
+    if (refreshResult.success && refreshResult.access) {
+      localStorage.setItem("superadmin_token", refreshResult.access);
+      options.headers = {
+        ...options.headers,
+        Authorization: `Bearer ${refreshResult.access}`
+      } as any;
+      return fetch(url, options);
+    } else {
+      localStorage.removeItem("superadmin_token");
+      window.location.href = "/superadmin/login";
+      throw new Error("Failed to refresh token");
+    }
+  }
+  return response;
+};

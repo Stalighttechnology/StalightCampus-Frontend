@@ -24,7 +24,7 @@ interface User {
 }
 
 interface DashboardLayoutProps {
-  role: "admin" | "principal" | "hod" | "faculty" | "student" | "fees_manager" | "coe" | "dean" | "hms" | "warden" | "transport_admin" | "driver" | "library_admin";
+  role: "admin" | "principal" | "org_admin" | "hod" | "faculty" | "student" | "fees_manager" | "coe" | "dean" | "hms" | "warden" | "transport_admin" | "driver" | "library_admin";
   user: User;
   activePage: string;
   onPageChange: (page: string) => void;
@@ -104,7 +104,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const adminQuery = useQuery({
     queryKey: ["dashboard", "admin", "stats"],
     queryFn: getAdminStats,
-    enabled: role === 'admin' || role === 'principal',
+    enabled: role === 'admin' || role === 'principal' || role === 'org_admin',
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: 5 * 60 * 1000
@@ -120,7 +120,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         count = facultyQuery.data.data.unread_announcement_count || 0;
       } else if (role === 'hod' && hodQuery.data?.success && hodQuery.data.data) {
         count = hodQuery.data.data.unread_announcement_count || 0;
-      } else if ((role === 'admin' || role === 'principal') && adminQuery.data?.success && adminQuery.data.data) {
+      } else if ((role === 'admin' || role === 'principal' || role === 'org_admin') && adminQuery.data?.success && adminQuery.data.data) {
         count = adminQuery.data.data.unread_announcement_count || 0;
       }
       setUnreadCount(count);
@@ -215,7 +215,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       join(" ");
   };
 
-  const isNoAnimation = role === 'admin' || role === 'principal' || role === 'hms' || role === 'warden' || role === 'transport_admin' || role === 'driver' || role === 'library_admin';
+  const isNoAnimation = role === 'admin' || role === 'principal' || role === 'org_admin' || role === 'hms' || role === 'warden' || role === 'transport_admin' || role === 'driver' || role === 'library_admin';
 
   return (
     <motion.div

@@ -26,6 +26,7 @@ const Index = () => {
       // Only redirect if we're not already on a dashboard route
       const currentPath = window.location.pathname;
       const isOnDashboard =
+        currentPath.startsWith("/org-admin") ||
         currentPath.startsWith("/admin") ||
         currentPath.startsWith("/hod") ||
         currentPath.startsWith("/faculty") ||
@@ -53,6 +54,9 @@ const Index = () => {
       if (!isOnDashboard) {
         // Redirect to appropriate dashboard based on role
         switch (role) {
+          case "org_admin":
+            navigate("/org-admin", { replace: true });
+            break;
           case "admin":
           case "principal":
             navigate("/admin", { replace: true });

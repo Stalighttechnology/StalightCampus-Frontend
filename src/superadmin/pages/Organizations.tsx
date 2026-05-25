@@ -41,6 +41,7 @@ import {
 "../../components/ui/select";
 
 import { API_BASE_URL } from "@/utils/config";
+import { fetchWithSuperadminTokenRefresh } from "../../utils/authService";
 
 const Organizations = () => {
   const [orgs, setOrgs] = useState<any[]>([]);
@@ -59,7 +60,7 @@ const Organizations = () => {
 
   const fetchOrgs = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/`, {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
         }
@@ -81,7 +82,7 @@ const Organizations = () => {
     if (!deleteOrg) return;
     setActionLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/${deleteOrg.id}/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/${deleteOrg.id}/`, {
         method: 'DELETE',
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
@@ -102,7 +103,7 @@ const Organizations = () => {
     if (!planOrg || !newPlan) return;
     setActionLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/${planOrg.id}/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/${planOrg.id}/`, {
         method: 'PUT',
         headers: {
           "Content-Type": "application/json",
@@ -125,7 +126,7 @@ const Organizations = () => {
     setViewOrg(org); // show modal immediately with basic data
     setViewOrgLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/superadmin/organizations/${org.id}/`, {
+      const response = await fetchWithSuperadminTokenRefresh(`${API_BASE_URL}/api/superadmin/organizations/${org.id}/`, {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("superadmin_token")}`
         }
@@ -420,26 +421,59 @@ const Organizations = () => {
                 </div>
               </div>
 
-              {/* Principal Administrator Details */}
+              {/* Organization Admin Details */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1 mb-3">
+                  Organization Admin
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-indigo-50/10 dark:bg-indigo-950/15 p-3.5 rounded border border-indigo-100/30">
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Name</span>
+                    <span className="font-semibold text-foreground">
+                      {viewOrg.org_admin?.name || "N/A"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Email</span>
+                    <span className="font-medium text-foreground break-all">
+                      {viewOrg.org_admin?.email || "N/A"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Mobile</span>
+                    <span className="font-medium text-foreground">
+                      {viewOrg.org_admin?.mobile_number || "N/A"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Username / Login ID</span>
+                    <span className="font-medium text-foreground font-mono text-xs tracking-tight">
+                      {viewOrg.org_admin?.username || "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Principal Details */}
               <div>
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1 mb-3">
                   Principal Administrator
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-indigo-50/10 dark:bg-indigo-950/15 p-3.5 rounded border border-indigo-100/30">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-slate-50/50 dark:bg-slate-900/50 p-3.5 rounded border border-slate-200 dark:border-slate-800">
                   <div>
-                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Principal Name</span>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Name</span>
                     <span className="font-semibold text-foreground">
                       {viewOrg.principal?.name || "N/A"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Principal Email</span>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Email</span>
                     <span className="font-medium text-foreground break-all">
                       {viewOrg.principal?.email || "N/A"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Principal Mobile</span>
+                    <span className="text-[11px] text-muted-foreground block uppercase font-medium">Mobile</span>
                     <span className="font-medium text-foreground">
                       {viewOrg.principal?.mobile_number || "N/A"}
                     </span>
