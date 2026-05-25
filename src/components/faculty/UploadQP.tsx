@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Layers } from "lucide-react";
+import { Plus, Trash2, Layers, Loader2, FileDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
 import { createQuestionPaper, updateQuestionPaper, getQuestionPapers, submitQPForApproval, getQuestionPaperDetail } from "../../utils/faculty_api";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 
 interface QuestionRow {
   id: string;
@@ -99,6 +101,7 @@ const UploadQP = () => {
   // start empty; populate only after Branch+Subject+TestType selection
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [currentQPMeta, setCurrentQPMeta] = useState<QPMetadata | null>(null);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   const [tabValue, setTabValue] = useState('questionFormat');
   const [qpId, setQpId] = useState<number | null>(null);
@@ -376,28 +379,44 @@ const UploadQP = () => {
     }
   };
 
-  const downloadPDF = () => {
-    const doc = new jsPDF();
-    let y = 10;
-    doc.setFontSize(14);
-    doc.text('Question Paper', 14, y);
-    y += 8;
-    questions.forEach((q) => {
-      doc.setFontSize(12);
-      doc.text(`${q.number}. ${q.content}`, 14, y);
-      y += 6;
-      doc.setFontSize(10);
-      doc.text(`(${q.maxMarks} marks)`, 14, y);
-      y += 6;
-      doc.text(`CO: ${q.co}`, 14, y);
-      y += 6;
-      doc.text(`Blooms: ${q.bloomsLevel}`, 14, y);
-      y += 8;
-      if (y > 270) {doc.addPage();y = 10;}
-    });
-    doc.setFontSize(12);
-    doc.text(`Total Marks: ${totalMarks}`, 14, y);
-    doc.save('question-paper.pdf');
+  const downloadPDF = async () => {
+    if (!qpId) {
+      toast({
+        title: "Error",
+        description: "Question Paper is not saved or loaded yet.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setDownloadingPDF(true);
+    try {
+      const url = `${API_ENDPOINT}/admin/qps/${qpId}/export-pdf/`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to download PDF from backend");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `Question_Paper_${qpId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      toast({
+        title: "Success",
+        description: "Question Paper PDF downloaded successfully"
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to download PDF",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   const getButtonClassName = (): string => `text-sm ml-2 font-medium ${theme === 'dark' ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`;
@@ -656,8 +675,14 @@ const UploadQP = () => {
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                       <Button
                         onClick={downloadPDF}
-                        className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200">
-                        Download PDF
+                        disabled={downloadingPDF}
+                        className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 transition-all duration-200 flex items-center gap-2">
+                        {downloadingPDF ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <FileDown className="h-4 w-4" />
+                        )}
+                        {downloadingPDF ? "Downloading..." : "Download PDF"}
                       </Button>
                       {qpId ?
                         (() => {

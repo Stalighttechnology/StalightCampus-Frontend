@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard, Receipt, AlertCircle, CheckCircle, Calendar, IndianRupee, Download, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2, CreditCard, Receipt, AlertCircle, CheckCircle, Calendar, IndianRupee, Download, TrendingUp, TrendingDown, FileDown } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -110,12 +110,33 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [invoicePage, setInvoicePage] = useState(1);
   const [paymentPage, setPaymentPage] = useState(1);
+  const [exportingPDF, setExportingPDF] = useState(false);
   const { theme } = useTheme();
   const queryClient = useQueryClient();
 
-
-
-
+  const handleExportPDF = async () => {
+    setExportingPDF(true);
+    try {
+      const url = `${API_ENDPOINT}/student/fee-data/export-pdf/`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to download PDF from backend");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `Student_Fees_${feeData?.student?.usn || 'Report'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      alert("Failed to download PDF report.");
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   // Fetch complete fee data from Django backend
   const { data: feeData, isLoading, error } = useQuery<FeeDataResponse>({
@@ -408,6 +429,19 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                 View and manage your fee payments
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-white border-primary"
+              disabled={exportingPDF}
+              onClick={handleExportPDF}>
+              {exportingPDF ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4 mr-2" />
+              )}
+              {exportingPDF ? "Exporting..." : "Export PDF"}
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-8">
