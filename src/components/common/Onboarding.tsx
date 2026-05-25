@@ -83,6 +83,16 @@ const Onboarding = () => {
   const prevStep = () => setCurrentStep(prev => prev - 1);
 
   const handleRazorpayPayment = async (orderId: string, keyId: string, orgData: any) => {
+    // Load Razorpay checkout script dynamically
+    await new Promise<void>((resolve, reject) => {
+      if (window.Razorpay) return resolve();
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Razorpay checkout'));
+      document.body.appendChild(script);
+    });
+
     const options = {
       key: keyId,
       amount: formData.plan === 'pro' ? 100000 : 500000, // Amount in paise (₹1,000 for pro, ₹5,000 for advance)

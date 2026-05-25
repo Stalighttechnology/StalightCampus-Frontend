@@ -25,15 +25,27 @@ const StudentTransportPage: React.FC = () => {
   const card = theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100';
   const input = theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400';
 
+  const [historyLoading, setHistoryLoading] = useState(false);
+
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [bd, hist] = await Promise.all([fetchMyBusDetails(), fetchMyTripHistory()]);
+      const bd = await fetchMyBusDetails();
       setBusData(bd);
-      if (hist.success) setHistory(hist.history || []);
       setLoading(false);
     })();
   }, []);
+
+  useEffect(() => {
+    if (tab === 'history' && history.length === 0) {
+      (async () => {
+        setHistoryLoading(true);
+        const hist = await fetchMyTripHistory();
+        if (hist.success) setHistory(hist.history || []);
+        setHistoryLoading(false);
+      })();
+    }
+  }, [tab]);
 
   const handleComplaint = async () => {
     if (!complaintTitle.trim() || !complaintDesc.trim()) {
@@ -209,7 +221,9 @@ const StudentTransportPage: React.FC = () => {
           <div className="p-5 border-b border-inherit">
             <h2 className="font-bold text-base flex items-center gap-2"><Calendar size={16} /> Trip Attendance History</h2>
           </div>
-          {history.length === 0 ? (
+          {historyLoading ? (
+            <div className="flex justify-center p-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+          ) : history.length === 0 ? (
             <div className="p-12 text-center">
               <Calendar size={40} className="mx-auto mb-3 opacity-30" />
               <p className="text-sm opacity-60">No trip records found yet.</p>

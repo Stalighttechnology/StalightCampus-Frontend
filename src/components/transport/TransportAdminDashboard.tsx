@@ -7,7 +7,7 @@ import {
   fetchAssignments, createBus, updateBus, deleteBus, createRoute, updateRoute,
   deleteRoute, updateRouteStops, enrollDriver, createAllocation, deleteAllocation,
   createAssignment, deleteAssignment, resolveIncident, fetchDriverAssignment,
-  fetchTransportFilters
+  fetchTransportFilters, fetchAssignmentOptions, fetchBranchSemesters, fetchRouteOptions, fetchRouteStops
 } from "../../utils/transport_api";
 import {
   Bus, Navigation, MapPin, Users, UserCheck, AlertTriangle,
@@ -92,8 +92,12 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
   const [showDriverForm, setShowDriverForm] = useState(false);
   const [driverForm, setDriverForm] = useState({ first_name: '', last_name: '', email: '', phone: '', designation: 'Driver' });
   const [assignForm, setAssignForm] = useState({ driver_id: '', bus_id: '', route_id: '' });
+  const [showAssignForm, setShowAssignForm] = useState(false);
+  const [assignOptions, setAssignOptions] = useState({ drivers: [] as any[], routes: [] as any[], buses: [] as any[] });
   const [assignments, setAssignments] = useState<any[]>([]);
   const [allocationForm, setAllocationForm] = useState({ student: '', route: '', stop: '' });
+  const [allocOptions, setAllocOptions] = useState({ routes: [] as any[], stops: [] as any[] });
+  const [branchSemesters, setBranchSemesters] = useState<any[]>([]);
   const [resolveText, setResolveText] = useState('');
 
   const [editBusId, setEditBusId] = useState<number | null>(null);
@@ -119,20 +123,13 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
         const r = await fetchRoutes();
         if (r.results || Array.isArray(r)) setRoutes(r.results || r);
       } else if (tab === 'drivers') {
-        const [d, a, b, r] = await Promise.all([
-          fetchDrivers(), fetchAssignments(), fetchBuses(), fetchRoutes()
-        ]);
-        if (d.success) setDrivers(d.drivers || []);
+        const a = await fetchAssignments();
         if (a.results || Array.isArray(a)) setAssignments(a.results || a);
-        if (b.results || Array.isArray(b)) setBuses(b.results || b);
-        if (r.results || Array.isArray(r)) setRoutes(r.results || r);
       } else if (tab === 'allocations') {
-        const [r, filters] = await Promise.all([
-          fetchRoutes(), fetchTransportFilters()
-        ]);
-        if (r.results || Array.isArray(r)) setRoutes(r.results || r);
-        if (filters.success) {
-          setFilterOptions({ branches: filters.branches || [], batches: filters.batches || [], semesters: filters.semesters || [] });
+        const al = await fetchAllocations(allocPage, allocFilters.route, allocFilters.status, allocFilters.search);
+        if (al.results || Array.isArray(al)) {
+          setAllocations(al.results || al);
+          setAllocTotalPages(Math.ceil((al.count || 1) / 20));
         }
       } else if (tab === 'incidents') {
         const inc = await fetchIncidents();
@@ -187,6 +184,28 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
     }
   }, [tab, showAllocForm, eligiblePage, eligibleFilters]);
 
+  useEffect(() => {
+    if (eligibleFilters.branch) {
+      fetchBranchSemesters(parseInt(eligibleFilters.branch)).then(res => {
+        if (res.success) setBranchSemesters(res.semesters);
+      });
+    } else {
+      setBranchSemesters([]);
+      setEligibleFilters(f => ({ ...f, semester: "" }));
+    }
+  }, [eligibleFilters.branch]);
+
+  useEffect(() => {
+    if (allocationForm.route) {
+      fetchRouteStops(parseInt(allocationForm.route)).then(res => {
+        if (res.success) setAllocOptions(prev => ({ ...prev, stops: res.stops }));
+      });
+    } else {
+      setAllocOptions(prev => ({ ...prev, stops: [] }));
+      setAllocationForm(f => ({ ...f, stop: "" }));
+    }
+  }, [allocationForm.route]);
+
   const ok = (msg: string) => toast({ title: 'Success', description: msg });
   const err = (msg: string) => toast({ variant: 'destructive', title: 'Error', description: msg });
 
@@ -223,6 +242,18 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
   const handleDeleteRoute = async (id: number) => { await deleteRoute(id); ok('Route removed'); setRoutes(routes.filter(r => r.id !== id)); };
 
 
+  const handleOpenAssignForm = async () => {
+    setShowAssignForm(true);
+    if (assignOptions.drivers.length === 0) {
+      const res = await fetchAssignmentOptions();
+      if (res.success) {
+        setAssignOptions({ drivers: res.drivers, routes: res.routes, buses: res.buses });
+      } else {
+        err("Failed to load options");
+      }
+    }
+  };
+
   const handleAssignDriver = async () => {
     if (!assignForm.driver_id || !assignForm.bus_id || !assignForm.route_id) {
       err('Select a driver, bus, and route.');
@@ -235,8 +266,10 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
     });
     if (res.id) {
       ok('Driver assigned successfully');
+      // Prepend the new assignment to state instead of re-fetching
       setAssignments(prev => [res, ...prev]);
       setAssignForm({ driver_id: '', bus_id: '', route_id: '' });
+      setShowAssignForm(false);
     } else {
       err(res.message || 'Failed to assign driver');
     }
@@ -284,24 +317,28 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
   };
 
   // ─── Allocation handlers ───────────────────────────────────────────
+  const handleOpenAllocForm = async () => {
+    setShowAllocForm(true);
+    if (filterOptions.branches.length === 0) {
+      const filters = await fetchTransportFilters();
+      if (filters.success) {
+        setFilterOptions({ branches: filters.branches || [], batches: filters.batches || [], semesters: [] });
+      }
+    }
+    if (allocOptions.routes.length === 0) {
+      const routeOps = await fetchRouteOptions();
+      if (routeOps.success) {
+        setAllocOptions(prev => ({ ...prev, routes: routeOps.routes || [] }));
+      }
+    }
+  };
+
   const handleAllocate = async () => {
     const res = await createAllocation({ student: parseInt(allocationForm.student), route: parseInt(allocationForm.route), stop: parseInt(allocationForm.stop) });
     if (res.id) { 
       ok('Student allocated'); 
       setShowAllocForm(false); 
-      const sObj = eligibleStudents.find(s => s.id === parseInt(allocationForm.student));
-      const rObj = routes.find(r => r.id === parseInt(allocationForm.route));
-      const stopObj = rObj?.stops?.find(s => s.id === parseInt(allocationForm.stop));
-      setAllocations([{
-        id: res.id,
-        student: parseInt(allocationForm.student),
-        student_details: sObj,
-        route: parseInt(allocationForm.route),
-        route_details: rObj,
-        stop: parseInt(allocationForm.stop),
-        stop_details: stopObj,
-        status: 'allocated'
-      }, ...allocations]);
+      setAllocations(prev => [res, ...prev]);
       setAllocationForm({ student: '', route: '', stop: '' }); 
     }
     else err(res.detail || res.message || 'Failed');
@@ -544,7 +581,10 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
         <div className={`rounded-2xl border shadow-sm ${card}`}>
           <div className="flex items-center justify-between p-5 border-b border-inherit">
             <h2 className="font-bold text-base">Driver Management</h2>
-            <button onClick={() => setShowDriverForm(true)} className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all"><Plus size={15} /> Enroll Driver</button>
+            <div className="flex gap-2">
+              <button onClick={handleOpenAssignForm} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${theme === 'dark' ? 'bg-accent/50 hover:bg-accent text-foreground' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}><CheckCircle size={15} /> Assign Driver</button>
+              <button onClick={() => setShowDriverForm(true)} className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all"><Plus size={15} /> Enroll Driver</button>
+            </div>
           </div>
 
           {showDriverForm && (
@@ -565,69 +605,67 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
             </div>
           )}
 
-          <div className="m-5 mb-0 p-5 rounded-xl border bg-gray-50 dark:bg-accent/20">
-            <h3 className="font-semibold mb-4 text-sm">Assign Driver to Route</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-medium mb-1 block">Select Driver</label>
-                <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={assignForm.driver_id} onChange={e => setAssignForm(f => ({...f, driver_id: e.target.value}))}>
-                  <option value="">-- Driver --</option>
-                  {drivers.map(d => <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>)}
-                </select>
+          {showAssignForm && (
+            <div className="m-5 mb-0 p-5 rounded-xl border bg-gray-50 dark:bg-accent/20">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-sm">Assign Driver to Route</h3>
+                <button onClick={() => setShowAssignForm(false)} className="text-gray-500 hover:text-gray-700"><X size={16} /></button>
               </div>
-              <div>
-                <label className="text-xs font-medium mb-1 block">Select Route</label>
-                <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={assignForm.route_id} onChange={e => setAssignForm(f => ({...f, route_id: e.target.value}))}>
-                  <option value="">-- Route --</option>
-                  {routes.map(r => <option key={r.id} value={r.id}>{r.route_name}</option>)}
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Select Driver</label>
+                  <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={assignForm.driver_id} onChange={e => setAssignForm(f => ({...f, driver_id: e.target.value}))}>
+                    <option value="">-- Driver --</option>
+                    {assignOptions.drivers.map(d => <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Select Route</label>
+                  <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={assignForm.route_id} onChange={e => setAssignForm(f => ({...f, route_id: e.target.value}))}>
+                    <option value="">-- Route --</option>
+                    {assignOptions.routes.map(r => <option key={r.id} value={r.id}>{r.route_name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Select Bus</label>
+                  <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={assignForm.bus_id} onChange={e => setAssignForm(f => ({...f, bus_id: e.target.value}))}>
+                    <option value="">-- Bus --</option>
+                    {assignOptions.buses.map(b => <option key={b.id} value={b.id}>{b.bus_number}</option>)}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-medium mb-1 block">Select Bus</label>
-                <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={assignForm.bus_id} onChange={e => setAssignForm(f => ({...f, bus_id: e.target.value}))}>
-                  <option value="">-- Bus --</option>
-                  {buses.map(b => <option key={b.id} value={b.id}>{b.bus_number}</option>)}
-                </select>
+              <div className="mt-4 flex gap-2">
+                <button onClick={handleAssignDriver} className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90"><CheckCircle size={14} /> Assign Driver</button>
+                <button onClick={() => setShowAssignForm(false)} className={`px-4 py-2 rounded-lg text-sm font-semibold border ${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}>Cancel</button>
               </div>
             </div>
-            <div className="mt-4">
-              <button onClick={handleAssignDriver} className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90"><CheckCircle size={14} /> Assign Driver</button>
-            </div>
-          </div>
+          )}
 
           <div className="divide-y divide-inherit">
-            {drivers.length === 0 ? <p className="p-5 text-sm text-center opacity-60">No drivers enrolled yet.</p> : drivers.map(d => {
-              const driverAssignments = assignments.filter(a => a.driver === d.id || a.driver_details?.id === d.id);
+            {assignments.length === 0 ? <p className="p-5 text-sm text-center opacity-60">No driver assignments found.</p> : assignments.map(a => {
+              const d = a.driver_details;
               return (
-                <div key={d.id} className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 hover:bg-primary/5 transition-all">
+                <div key={a.id} className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 hover:bg-primary/5 transition-all">
                   <div className="flex items-center gap-4 flex-1">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700 text-sm">{d.first_name[0]}{d.last_name?.[0] || ''}</div>
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-700 text-sm">{d?.first_name?.[0]}{d?.last_name?.[0] || ''}</div>
                     <div>
-                      <p className="font-semibold text-sm">{d.first_name} {d.last_name}</p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}><Mail size={10} className="inline mr-1" />{d.email} {d.mobile_number && <><Phone size={10} className="inline mx-1" />{d.mobile_number}</>}</p>
+                      <p className="font-semibold text-sm">{d?.first_name} {d?.last_name}</p>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}><Mail size={10} className="inline mr-1" />{d?.email} {d?.mobile_number && <><Phone size={10} className="inline mx-1" />{d?.mobile_number}</>}</p>
                     </div>
                   </div>
                   
                   <div className="flex-1">
-                    {driverAssignments.length > 0 ? (
-                      <div className="space-y-2">
-                        {driverAssignments.map(a => (
-                          <div key={a.id} className="flex items-center justify-between bg-primary/10 px-3 py-1.5 rounded-lg text-xs">
-                            <div>
-                              <strong className="text-primary">{a.route_details?.route_name || 'Route'}</strong>
-                              <span className="opacity-70 ml-2">Bus {a.bus_details?.bus_number || a.bus}</span>
-                            </div>
-                            <button onClick={() => handleRemoveAssignment(a.id)} className="text-red-500 hover:bg-red-100 p-1 rounded-md transition-all"><X size={13} /></button>
-                          </div>
-                        ))}
+                    <div className="flex items-center justify-between bg-primary/10 px-3 py-1.5 rounded-lg text-xs">
+                      <div>
+                        <strong className="text-primary">{a.route_details?.route_name || 'Route'}</strong>
+                        <span className="opacity-70 ml-2">Bus {a.bus_details?.bus_number || a.bus}</span>
                       </div>
-                    ) : (
-                      <Badge label="Not Assigned" color="pending" />
-                    )}
+                      <button onClick={() => handleRemoveAssignment(a.id)} className="text-red-500 hover:bg-red-100 p-1 rounded-md transition-all"><X size={13} /></button>
+                    </div>
                   </div>
                   
                   <div className="flex-shrink-0 text-right">
-                    <Badge label={d.designation || 'Driver'} color="allocated" />
+                    <Badge label={d?.designation || 'Driver'} color="allocated" />
                   </div>
                 </div>
               );
@@ -641,7 +679,7 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
         <div className={`rounded-2xl border shadow-sm ${card} overflow-hidden`}>
           <div className="flex items-center justify-between p-5 border-b border-inherit bg-primary/5">
             <h2 className="font-bold text-base flex items-center gap-2"><Users size={18} className="text-primary" /> Student Allocations</h2>
-            <button onClick={() => setShowAllocForm(true)} className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all"><Plus size={15} /> Allocate Student</button>
+            <button onClick={handleOpenAllocForm} className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all"><Plus size={15} /> Allocate Student</button>
           </div>
 
           {/* Filters Bar */}
@@ -682,9 +720,9 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
                   <option value="">Select Batch...</option>
                   {filterOptions.batches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
-                <select className={`border rounded-lg px-3 py-1.5 text-sm ${input} disabled:opacity-50`} value={eligibleFilters.semester} onChange={e => setEligibleFilters(f => ({ ...f, semester: e.target.value }))} disabled={!eligibleFilters.branch || !eligibleFilters.batch}>
+                <select className={`border rounded-lg px-3 py-1.5 text-sm ${input} disabled:opacity-50`} value={eligibleFilters.semester} onChange={e => setEligibleFilters(f => ({ ...f, semester: e.target.value }))} disabled={!eligibleFilters.branch || !eligibleFilters.batch || branchSemesters.length === 0}>
                   <option value="">{(!eligibleFilters.branch || !eligibleFilters.batch) ? 'Select Branch & Batch first...' : 'Select Semester...'}</option>
-                  {filterOptions.semesters.filter((s: any) => String(s.branch__id) === eligibleFilters.branch).map((s: any) => <option key={s.id} value={s.id}>Sem {s.number}</option>)}
+                  {branchSemesters.map((s: any) => <option key={s.id} value={s.id}>Sem {s.number}</option>)}
                 </select>
                 <div className="flex-1 relative min-w-[200px]">
                   <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -713,14 +751,14 @@ const TransportAdminDashboard: React.FC<TransportAdminDashboardProps> = ({ initi
                   <label className="text-xs font-medium mb-1 block">Route</label>
                   <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={allocationForm.route} onChange={e => setAllocationForm(f => ({ ...f, route: e.target.value, stop: '' }))}>
                     <option value="">Select route...</option>
-                    {routes.map(r => <option key={r.id} value={r.id}>{r.route_name}</option>)}
+                    {allocOptions.routes.map((r: any) => <option key={r.id} value={r.id}>{r.route_name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs font-medium mb-1 block">Stop</label>
-                  <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={allocationForm.stop} onChange={e => setAllocationForm(f => ({ ...f, stop: e.target.value }))}>
+                  <select className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} value={allocationForm.stop} onChange={e => setAllocationForm(f => ({ ...f, stop: e.target.value }))} disabled={!allocationForm.route || allocOptions.stops.length === 0}>
                     <option value="">Select stop...</option>
-                    {(routes.find(r => r.id === parseInt(allocationForm.route))?.stops || []).map(s => <option key={s.id} value={s.id}>{s.stop_name}</option>)}
+                    {allocOptions.stops.map((s: any) => <option key={s.id} value={s.id}>{s.stop_name}</option>)}
                   </select>
                 </div>
               </div>
