@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "../ui/dialog";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { useTheme } from "@/context/ThemeContext";
 import { API_ENDPOINT, API_BASE_URL } from "@/utils/config";
@@ -167,23 +167,13 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
 
   const handleDirectDownload = async (student: ProctorStudent) => {
     setDownloadingId(student.usn);
-    setIsDirectDownload(true);
-    await openFor(student);
+    try {
+      await exportPdf(student);
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
-  // Auto-trigger export for direct downloads
-  useEffect(() => {
-    if (isDirectDownload && open && studentDetails && semesterSubjects.length > 0) {
-      const timer = setTimeout(() => {
-        exportPdf().then(() => {
-          setIsDirectDownload(false);
-          setDownloadingId(null);
-          setOpen(false);
-        });
-      }, 1000); // Wait for content to render
-      return () => clearTimeout(timer);
-    }
-  }, [isDirectDownload, open, studentDetails, semesterSubjects]);
 
   useEffect(() => {
     if (!open || !selectedStudent) return;
@@ -382,84 +372,53 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
     }
   };
 
-  const exportPdf = async () => {
-    if (!printRef.current) return;
+  const exportPdf = async (studentToExport?: ProctorStudent) => {
+    const student = studentToExport || selectedStudent;
+    if (!student) return;
     setExporting(true);
     try {
-      const [jspdfModule, html2canvasModule] = await Promise.all([
-      import('jspdf'),
-      import('html2canvas')]
-      );
-
-      // Resolve default vs named exports for html2canvas
-      const html2canvasFn = (html2canvasModule && (html2canvasModule.default || html2canvasModule)) as any;
-
-      // Resolve jsPDF constructor from various module shapes
-      let jsPDFCtor: any = null;
-      if (jspdfModule) {
-        if ((jspdfModule as any).jsPDF) jsPDFCtor = (jspdfModule as any).jsPDF;else
-        if (jspdfModule.default && (jspdfModule.default as any).jsPDF) jsPDFCtor = (jspdfModule.default as any).jsPDF;else
-        if (jspdfModule.default) jsPDFCtor = jspdfModule.default;else
-        jsPDFCtor = jspdfModule;
-      }
-
-      const element = printRef.current as HTMLElement;
-      // Render element to canvas at higher scale for better quality
-      const canvas = await html2canvasFn(element, { scale: 2, useCORS: true, logging: false });
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-      const pdf = new jsPDFCtor('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10; // mm
-      const contentWidth = pdfWidth - margin * 2;
-      const imgWidth = contentWidth; // mm
-      const imgHeight = canvas.height * imgWidth / canvas.width; // mm
-      const contentHeight = pdfHeight - margin * 2;
-
-      // If content fits on one page
-      if (imgHeight <= contentHeight) {
-        pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
-        pdf.save(`exam-application-${selectedStudent?.usn || 'student'}.pdf`);
-      } else {
-        // Split into pages
-        const totalPages = Math.ceil(imgHeight / contentHeight);
-
-        // compute page slice height in pixels
-        const pxPerMm = canvas.width / imgWidth; // pixels per mm
-        const sliceHeightPx = Math.floor(contentHeight * pxPerMm);
-
-        for (let page = 0; page < totalPages; page++) {
-          const sourceY = page * sliceHeightPx;
-          const canvasPage = document.createElement('canvas');
-          canvasPage.width = canvas.width;
-          // last page may be shorter
-          const remaining = canvas.height - sourceY;
-          canvasPage.height = remaining < sliceHeightPx ? remaining : sliceHeightPx;
-
-          const ctx = canvasPage.getContext('2d');
-          if (ctx) {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvasPage.width, canvasPage.height);
-            ctx.drawImage(canvas, 0, sourceY, canvas.width, canvasPage.height, 0, 0, canvasPage.width, canvasPage.height);
-          }
-
-          const pageData = canvasPage.toDataURL('image/jpeg', 1.0);
-          const pageImgHeightMm = canvasPage.height * imgWidth / canvas.width;
-
-          if (page > 0) pdf.addPage();
-          pdf.addImage(pageData, 'JPEG', margin, margin, imgWidth, pageImgHeightMm);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/exam-applications/${student.id}/export-pdf/?exam_period=${examPeriod}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
+      });
 
-        pdf.save(`exam-application-${selectedStudent?.usn || 'student'}.pdf`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to export exam application PDF');
       }
-    } catch (err) {
 
-      alert('Export failed. Please ensure jsPDF is installed (npm install jspdf)');
+      const blob = await response.blob();
+      let filename = `exam-application-${student.usn}.pdf`;
+      try {
+        const cd = response.headers.get('content-disposition') || response.headers.get('Content-Disposition');
+        if (cd) {
+          const m = cd.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+          if (m && m[1]) filename = decodeURIComponent(m[1]);
+        }
+      } catch (e) {
+        // ignore and use fallback filename
+      }
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to export PDF",
+        variant: "destructive"
+      });
     } finally {
       setExporting(false);
     }
   };
+
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
@@ -631,6 +590,9 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[70vw] max-h-[90vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar">
+            <DialogTitle className="sr-only">
+              Exam Application — {selectedStudent?.name || 'Student'}
+            </DialogTitle>
             <div className="p-1 md:p-2 lg:p-4">
               {/* Existing Applications UI removed — statuses shown via checkboxes */}
 
@@ -690,31 +652,37 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                   <div className="flex items-center gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 lg:mb-4">
 
                     <div>
-                      <Avatar className="w-16 md:w-16 lg:w-20 h-16 md:h-16 lg:h-20 rounded-md overflow-hidden">
-                        {
-                        studentDetails?.student_info && studentDetails.student_info.photo_url ||
-                        studentDetails?.student && (studentDetails.student.profile_picture || studentDetails.student.photo_url) ||
-                        selectedStudent && ((selectedStudent as any).photo || (selectedStudent as any).photo_url || (selectedStudent as any).profile_picture) ?
+                      {(() => {
+                        // Resolve photo URL with priority chain:
+                        // 1. student_meta.profile_picture (R2/Cloudinary/local, resolved by backend)
+                        // 2. student_meta.profile_picture_url
+                        // 3. student_meta.photo_url
+                        // 4. selectedStudent photo fields
+                        const photoUrl =
+                          studentDetails?.student?.profile_picture ||
+                          studentDetails?.student?.profile_picture_url ||
+                          studentDetails?.student?.photo_url ||
+                          studentDetails?.student_info?.photo_url ||
+                          (selectedStudent as any)?.profile_picture ||
+                          (selectedStudent as any)?.profile_picture_url ||
+                          (selectedStudent as any)?.photo_url ||
+                          (selectedStudent as any)?.photo;
 
-                        <img
-                          src={
-                          // Priority: studentDetails.student_info.photo_url -> studentDetails.student.profile_picture -> selectedStudent.profile_picture -> legacy photo/photo_url
-                          studentDetails?.student_info?.photo_url ?
-                          studentDetails.student_info.photo_url.startsWith('http') ?
-                          studentDetails.student_info.photo_url :
-                          `${API_BASE_URL}${studentDetails.student_info.photo_url}` :
-                          studentDetails?.student?.profile_picture ? studentDetails.student.profile_picture :
-                          (selectedStudent as any).profile_picture || (selectedStudent as any).photo || (selectedStudent as any).photo_url
-                          }
-                          alt={selectedStudent?.name || studentDetails?.student_info?.name || 'Student'}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> :
-
-
-                        <AvatarFallback className="text-xl md:text-lg lg:text-2xl font-medium">
-                            {(selectedStudent?.name || studentDetails?.name || 'U')[0]?.toUpperCase()}
-                          </AvatarFallback>
-                        }
-                      </Avatar>
+                        return photoUrl ? (
+                          <img
+                            src={photoUrl.startsWith('http') ? photoUrl : `${API_BASE_URL}${photoUrl}`}
+                            alt={selectedStudent?.name || 'Student'}
+                            className="w-16 md:w-16 lg:w-20 h-16 md:h-16 lg:h-20 rounded-md overflow-hidden object-cover border border-gray-200"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <Avatar className="w-16 md:w-16 lg:w-20 h-16 md:h-16 lg:h-20 rounded-md overflow-hidden">
+                            <AvatarFallback className="text-xl md:text-lg lg:text-2xl font-medium">
+                              {(selectedStudent?.name || studentDetails?.name || 'U')[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        );
+                      })()}
                     </div>
                     <div className="flex-1 grid grid-cols-2 gap-2 md:gap-3 lg:gap-4">
                       <div>
@@ -845,38 +813,6 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                       ) :
                       <tr><td colSpan={4} style={{ padding: 12 }}>No registered open electives.</td></tr>
                       }
-                    </tbody>
-                  </table>
-
-                  <h4 className="font-medium mt-6 mb-2">Fees Details</h4>
-                  <table className="w-full border-collapse mb-4" style={{ border: '1px solid #ddd' }}>
-                    <thead>
-                      <tr style={{ background: '#f3f4f6' }}>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Fee Type</th>
-                        <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Amount (₹)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Registration</td>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>100</td>
-                      </tr>
-                      <tr>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Exam fees for regular Courses</td>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>2000</td>
-                      </tr>
-                      <tr>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Marks card fees</td>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>300</td>
-                      </tr>
-                      <tr>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Arrear course fees</td>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>0</td>
-                      </tr>
-                      <tr style={{ background: '#f3f4f6', fontWeight: 'bold' }}>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>Total</td>
-                        <td style={{ border: '1px solid #ddd', padding: 8 }}>2400</td>
-                      </tr>
                     </tbody>
                   </table>
                 </div>
