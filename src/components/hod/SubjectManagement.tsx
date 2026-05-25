@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Pencil, Trash2, BookOpen } from "lucide-react";
+import { Pencil, Trash2, BookOpen, FileDown, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Input } from "../ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { manageSubjects, getSemesters, manageProfile, getHODSubjectBootstrap } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 import Swal from "sweetalert2";
 
 interface Subject {
@@ -97,6 +99,34 @@ const SubjectManagement = () => {
   });
 
   const totalPages = state.totalPages;
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      let queryParams = `?semester_id=${state.filters.semester_id}&subject_type=${state.filters.subject_type}`;
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/subjects/export-pdf/${queryParams}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Course_List_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        updateState({ success: "Course list PDF exported successfully" });
+      } else {
+        const result = await response.json().catch(() => ({}));
+        updateState({ error: result.message || "Failed to export PDF" });
+      }
+    } catch (err) {
+      updateState({ error: "Network error while exporting PDF" });
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   // Helper to update state
   const updateState = (newState: Partial<SubjectManagementState>) => {
@@ -149,6 +179,15 @@ const SubjectManagement = () => {
 
   // Fetch subjects with pagination
   const fetchSubjects = async (branchId: string, page: number = 1, pageSize: number = 10, filters = state.filters) => {
+    if (filters.semester_id === "all") {
+      updateState({
+        subjects: [],
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: 1
+      });
+      return;
+    }
     updateState({ loading: true });
     try {
       const subjectsRes = await manageSubjects({
@@ -186,7 +225,7 @@ const SubjectManagement = () => {
     const initialize = async () => {
       updateState({ loading: true });
       const branchId = await fetchBootstrap();
-      if (branchId) {
+      if (branchId && state.filters.semester_id !== "all") {
         await fetchSubjects(branchId, state.currentPage, state.pageSize);
       }
       updateState({ loading: false });
@@ -196,8 +235,15 @@ const SubjectManagement = () => {
 
   // Fetch subjects when pagination or filters change (but not on initial mount)
   useEffect(() => {
-    if (state.branchId) {
+    if (state.branchId && state.filters.semester_id !== "all") {
       fetchSubjects(state.branchId, state.currentPage, state.pageSize, state.filters);
+    } else if (state.filters.semester_id === "all" && state.subjects.length > 0) {
+      updateState({
+        subjects: [],
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: 1
+      });
     }
   }, [state.currentPage, state.pageSize, state.filters]);
 
@@ -385,19 +431,32 @@ const SubjectManagement = () => {
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
               <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Manage Courses</CardTitle>
-              <Button
-                onClick={() => {
-                  updateState({
-                    showModal: "add",
-                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                    currentSubject: null
-                  });
-                }}
-                className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-                disabled={state.loading || !state.branchId}>
-                
-                + Add Course
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                <Button
+                  onClick={handleExportPDF}
+                  disabled={state.loading || downloadingPDF || state.filters.semester_id === "all"}
+                  className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+                  {downloadingPDF ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileDown className="h-4 w-4" />
+                  )}
+                  <span>Export PDF</span>
+                </Button>
+                <Button
+                  onClick={() => {
+                    updateState({
+                      showModal: "add",
+                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                      currentSubject: null
+                    });
+                  }}
+                  className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
+                  disabled={state.loading || !state.branchId}>
+                  
+                  + Add Course
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pb-4">
@@ -441,15 +500,24 @@ const SubjectManagement = () => {
         </div>
 
         <CardContent className="pt-0">
-          {state.loading ?
-          <div className="py-4">
+          {state.loading ? (
+            <div className="py-4">
               <SkeletonTable rows={10} cols={6} />
-            </div> :
-
-          <>
+            </div>
+          ) : state.filters.semester_id === "all" ? (
+            <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+              <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <BookOpen className="w-12 h-12 opacity-80" />
+              </div>
+              <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Semester Selected</h3>
+              <p className="max-w-xs text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                Please select a <strong className="font-semibold text-foreground">Semester</strong> above to load and view the courses.
+              </p>
+            </div>
+          ) : (
             <>
-              {state.subjects.length > 0 ?
-              <>
+              {state.subjects.length > 0 ? (
+                <>
                   {/* Desktop/Table for md+ */}
                   <div className="overflow-x-auto hidden md:block">
                     <table className="w-full table-auto text-sm">
@@ -465,12 +533,11 @@ const SubjectManagement = () => {
                       </thead>
                       <tbody className={theme === 'dark' ? 'bg-background' : 'bg-white'}>
                         {state.subjects.map((subject, index) =>
-                      <tr
-                        key={subject.id}
-                        className={
-                        index % 2 === 0 ? theme === 'dark' ? 'bg-card' : 'bg-gray-50' : theme === 'dark' ? 'bg-background' : 'bg-white'
-                        }>
-                        
+                          <tr
+                            key={subject.id}
+                            className={
+                              index % 2 === 0 ? theme === 'dark' ? 'bg-card' : 'bg-gray-50' : theme === 'dark' ? 'bg-background' : 'bg-white'
+                            }>
                             <td className="px-4 py-3">{subject.subject_code}</td>
                             <td className="px-4 py-3">{subject.name}</td>
                             <td className="px-4 py-3">{getSemesterNumber(subject.semester_id)}</td>
@@ -478,16 +545,14 @@ const SubjectManagement = () => {
                             <td className="px-4 py-3">{subject.credits ?? 0}</td>
                             <td className="px-4 py-3 flex gap-5">
                               <Pencil
-                            className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
-                            onClick={() => handleEdit(subject)} />
-                          
+                                className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
+                                onClick={() => handleEdit(subject)} />
                               <Trash2
-                            className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}`}
-                            onClick={() => handleDelete(subject.id)} />
-                          
+                                className={`w-4 h-4 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}`}
+                                onClick={() => handleDelete(subject.id)} />
                             </td>
                           </tr>
-                      )}
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -495,10 +560,9 @@ const SubjectManagement = () => {
                   {/* Mobile: card list (only visible on small screens) */}
                   <div className="md:hidden space-y-3">
                     {state.subjects.map((subject) =>
-                  <div
-                    key={subject.id}
-                    className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                    
+                      <div
+                        key={subject.id}
+                        className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                         <div className="flex justify-between items-start">
                           <div className="flex-1 pr-3">
                             <div className="text-xs text-gray-500 mb-1">{subject.subject_code} • {getSemesterNumber(subject.semester_id)}</div>
@@ -507,21 +571,19 @@ const SubjectManagement = () => {
                           </div>
                           <div className="flex items-start gap-3">
                             <Pencil
-                          className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
-                          onClick={() => handleEdit(subject)} />
-                        
+                              className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}`}
+                              onClick={() => handleEdit(subject)} />
                             <Trash2
-                          className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'} }`}
-                          onClick={() => handleDelete(subject.id)} />
-                        
+                              className={`w-5 h-5 cursor-pointer ${theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'} }`}
+                              onClick={() => handleDelete(subject.id)} />
                           </div>
                         </div>
                       </div>
-                  )}
+                    )}
                   </div>
-                </> :
-
-              <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-xl border-2 border-dashed transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 hover:bg-card/50' : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'}`}>
+                </>
+              ) : (
+                <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-xl border-2 border-dashed transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 hover:bg-card/50' : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'}`}>
                   <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-50 text-blue-600'}`}>
                     <BookOpen className="w-10 h-10" />
                   </div>
@@ -530,41 +592,39 @@ const SubjectManagement = () => {
                     It looks like there are no courses matching your criteria. Try adjusting your filters or add a new course to get started.
                   </p>
                   <Button
-                  onClick={() => updateState({
-                    showModal: "add",
-                    newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                    currentSubject: null
-                  })}
-                  className="bg-primary text-white hover:bg-primary/90 transition-all transform hover:scale-105 active:scale-95 shadow-lg">
-                  
+                    onClick={() => updateState({
+                      showModal: "add",
+                      newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                      currentSubject: null
+                    })}
+                    className="bg-primary text-white hover:bg-primary/90 transition-all transform hover:scale-105 active:scale-95 shadow-lg">
                     + Add Your First Course
                   </Button>
                 </div>
-              }
+              )}
             </>
-            </>
-          }
+          )}
 
           {/* Pagination */}
-          <div className="mt-4 flex justify-end items-center gap-2">
-            <Button
-              onClick={() => updateState({ currentPage: Math.max(state.currentPage - 1, 1) })}
-              disabled={state.currentPage === 1 || state.loading}
-              className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-              
-              Previous
-            </Button>
-            <div className={`px-4 text-center text-sm font-medium py-1.5 rounded-md min-w-12 ${theme === 'dark' ? 'text-foreground bg-card border border-border' : 'text-gray-900 bg-white border border-gray-300'}`}>
-              {state.currentPage}
+          {state.filters.semester_id !== "all" && (
+            <div className="mt-4 flex justify-end items-center gap-2">
+              <Button
+                onClick={() => updateState({ currentPage: Math.max(state.currentPage - 1, 1) })}
+                disabled={state.currentPage === 1 || state.loading}
+                className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+                Previous
+              </Button>
+              <div className={`px-4 text-center text-sm font-medium py-1.5 rounded-md min-w-12 ${theme === 'dark' ? 'text-foreground bg-card border border-border' : 'text-gray-900 bg-white border border-gray-300'}`}>
+                {state.currentPage}
+              </div>
+              <Button
+                onClick={() => updateState({ currentPage: Math.min(state.currentPage + 1, totalPages) })}
+                disabled={state.currentPage === totalPages || state.loading || totalPages === 0}
+                className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+                Next
+              </Button>
             </div>
-            <Button
-              onClick={() => updateState({ currentPage: Math.min(state.currentPage + 1, totalPages) })}
-              disabled={state.currentPage === totalPages || state.loading || totalPages === 0}
-              className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-              
-              Next
-            </Button>
-          </div>
+          )}
         </CardContent>
       </Card>
 

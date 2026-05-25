@@ -16,7 +16,9 @@ import {
   Upload,
   Trash2,
   Edit,
-  X } from
+  X,
+  Loader2,
+  FileDown } from
 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
@@ -49,6 +51,8 @@ import {
   AssignedSubject } from
 "../../utils/faculty_api";
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
+import { API_ENDPOINT } from '../../utils/config';
+import { fetchWithTokenRefresh } from '../../utils/authService';
 
 const FacultyAssignments = () => {
   const { theme } = useTheme();
@@ -85,10 +89,40 @@ const FacultyAssignments = () => {
   const [pendingList, setPendingList] = useState<any[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [activeTab, setActiveTab] = useState<'submitted' | 'pending'>('submitted');
+  const [exportingPDF, setExportingPDF] = useState(false);
 
   // Filter State
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSubject, setFilterSubject] = useState('all');
+
+  const handleExportPDF = async () => {
+    if (!selectedAssignment) return;
+    setExportingPDF(true);
+    try {
+      const url = `${API_ENDPOINT}/faculty/assignments/${selectedAssignment.id}/export-pdf/`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to download PDF from backend");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `Assignment_Submissions_${selectedAssignment.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to download submissions PDF report.",
+        variant: "destructive",
+      });
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1110,8 +1144,20 @@ const FacultyAssignments = () => {
               }
               </div>
 
-              <div className="p-4 border-t border-border flex justify-end">
-                <Button variant="outline" onClick={() => setShowSubmissionsModal(false)} className='bg-primary hover:bg-primary/90 text-white hover:text-white'>
+              <div className="p-4 border-t border-border flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleExportPDF}
+                  disabled={exportingPDF}
+                  className="bg-primary hover:bg-primary/90 text-white hover:text-white">
+                  {exportingPDF ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4 mr-2" />
+                  )}
+                  {exportingPDF ? "Exporting..." : "Export PDF"}
+                </Button>
+                <Button variant="outline" onClick={() => setShowSubmissionsModal(false)} className="border-border">
                   Close
                 </Button>
               </div>

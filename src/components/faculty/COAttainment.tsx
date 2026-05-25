@@ -14,8 +14,8 @@ import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
 import { getUploadMarksBootstrap, GetUploadMarksBootstrapResponse, getQuestionPapers, getCOAttainment } from "../../utils/faculty_api";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 
 // Component shows aggregated CO results only — per-question and per-student types removed
 
@@ -43,6 +43,7 @@ const COAttainment = () => {
   // per-student marks removed: UI shows aggregated CO data from server
   const [errorMessage, setErrorMessage] = useState("");
   const { theme } = useTheme();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   // CO Attainment calculation states
   const [coAttainment, setCoAttainment] = useState<Record<string, {
@@ -230,94 +231,46 @@ const COAttainment = () => {
     }
   };
 
-  // CSV Export Function
-  const handleExportCSV = () => {
-    const csvData = [
-    ['CO', 'Max Marks', 'Target Marks', 'Avg Marks', 'Students ≥ Target', 'Method 1 %', 'Method 1 Level', 'Method 2 %', 'Method 2 Level', 'Indirect', 'Final', 'Level'],
-    ...Object.values(coAttainment).map((co) => [
-    co.co,
-    co.maxMarks,
-    co.targetMarks.toFixed(1),
-    co.avgMarks.toFixed(2),
-    `${co.studentsAboveTarget}/${co.totalStudents} (${co.totalStudents > 0 ? (co.studentsAboveTarget / co.totalStudents * 100).toFixed(1) : 0}%)`,
-    `${co.percentage.toFixed(1)}%`,
-    `Level ${co.attainmentLevel}`,
-    `${co.method2Percentage.toFixed(1)}%`,
-    `Level ${co.method2Level}`,
-    indirectAttainment[co.co] || 0,
-    finalAttainment[co.co] ? finalAttainment[co.co].final.toFixed(2) : "N/A",
-    finalAttainment[co.co] ? `Level ${finalAttainment[co.co].level}` : "N/A"]
-    )];
-
-
-    const csvContent = csvData.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `CO_Attainment_Report_${selected.subject}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   // PDF Export Function
-  const handleExportPDF = () => {
-    const doc = new jsPDF('p', 'mm', 'a4') as jsPDF & {lastAutoTable?: {finalY: number;};};
+  const handleExportPDF = async () => {
+    if (!selected.subject_id) return;
+    setDownloadingPDF(true);
+    setErrorMessage("");
+    try {
+      const params = new URLSearchParams({
+        subject_id: selected.subject_id.toString(),
+        target_pct: targetThreshold.toString(),
+        indirect_attainment: JSON.stringify(indirectAttainment)
+      });
 
-    // Add title
-    doc.setFontSize(18);
-    doc.text("CO Attainment Report", 14, 20);
-
-    // Add selected filters information (subject only)
-    doc.setFontSize(12);
-    doc.text(`Subject: ${selected.subject}`, 14, 30);
-    doc.text(`Target Threshold: ${targetThreshold}%`, 14, 37);
-
-    // Add CO Attainment Results table
-    autoTable(doc, {
-      startY: 70,
-      head: [['CO', 'Max Marks', 'Target Marks', 'Avg Marks', 'Students ≥ Target', 'Method 1 %', 'Method 1 Level', 'Method 2 %', 'Method 2 Level', 'Indirect', 'Final', 'Level']],
-      body: Object.values(coAttainment).map((co) => [
-      co.co,
-      co.maxMarks,
-      co.targetMarks.toFixed(1),
-      co.avgMarks.toFixed(2),
-      `${co.studentsAboveTarget}/${co.totalStudents} (${co.totalStudents > 0 ? (co.studentsAboveTarget / co.totalStudents * 100).toFixed(1) : 0}%)`,
-      `${co.percentage.toFixed(1)}%`,
-      `Level ${co.attainmentLevel}`,
-      `${co.method2Percentage.toFixed(1)}%`,
-      `Level ${co.method2Level}`,
-      indirectAttainment[co.co] || 0,
-      finalAttainment[co.co] ? finalAttainment[co.co].final.toFixed(2) : "N/A",
-      finalAttainment[co.co] ? `Level ${finalAttainment[co.co].level}` : "N/A"]
-      ),
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [162, 89, 255] } // Purple color to match theme
-    });
-
-    // Add Overall Course Attainment with highlighting
-    let finalY = doc.lastAutoTable?.finalY || 70;
-    doc.setFontSize(16);
-    doc.setTextColor(162, 89, 255); // Purple color
-    doc.text("Overall Course Attainment", 14, finalY + 15);
-
-    // Highlight the attainment level with a colored box
-    const attainmentLevel = overallAttainment >= 2.7 ? 3 : overallAttainment >= 2.0 ? 2 : 1;
-    const attainmentText = `${overallAttainment.toFixed(2)} (Level ${attainmentLevel})`;
-
-    doc.setFillColor(162, 89, 255); // Purple background
-    doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(14);
-    doc.rect(14, finalY + 20, 60, 10, 'F'); // Filled rectangle
-    doc.text(attainmentText, 44, finalY + 27, { align: 'center' });
-
-    // Reset colors
-    doc.setTextColor(0, 0, 0);
-
-    // Save the PDF (student-level marks omitted — aggregated CO results only)
-    doc.save(`CO_Attainment_Report_${selected.branch}_${selected.subject}_${selected.testType}.pdf`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/co-attainment/export-pdf/?${params.toString()}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const contentDisposition = response.headers.get("Content-Disposition");
+        let filename = `CO_Attainment_Report_${selected.subject.replace(/\s+/g, '_')}.pdf`;
+        if (contentDisposition) {
+          const matches = /filename="?([^"]+)"?/.exec(contentDisposition);
+          if (matches && matches[1]) {
+            filename = matches[1];
+          }
+        }
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        setErrorMessage(result.error || "Failed to export PDF report");
+      }
+    } catch (err) {
+      setErrorMessage("Network error while exporting PDF");
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   // Check if all dropdowns are selected
@@ -368,19 +321,13 @@ const COAttainment = () => {
             </div>
 
             {selected.subject_id &&
-            <div className="col-span-1 md:col-span-2 lg:col-span-2 flex items-end gap-3 h-full">
+            <div className="col-span-1 md:col-span-2 lg:col-span-2 flex items-end h-full">
                 <Button
                 onClick={handleExportPDF}
-                className="flex-1 h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200">
-                
+                disabled={downloadingPDF}
+                className="w-full h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center justify-center gap-2">
+                  {downloadingPDF && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
                   Download PDF Report
-                </Button>
-                <Button
-                onClick={handleExportCSV}
-                variant="outline"
-                className="flex-1 h-11 border-primary text-primary hover:bg-primary/10 shadow-sm">
-                
-                  Export CSV
                 </Button>
               </div>
             }

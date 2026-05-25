@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { FaDownload } from 'react-icons/fa';
 import { getTimetable, TimetableEntry } from '../../utils/faculty_api';
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
-import { CalendarCheck2 } from "lucide-react";
+import { CalendarCheck2, Loader2, Download } from "lucide-react";
+import { API_ENDPOINT } from '../../utils/config';
+import { fetchWithTokenRefresh } from '../../utils/authService';
 
 interface TimetableProps {
   role: string;
@@ -36,6 +35,7 @@ const Timetable = ({ role }: TimetableProps) => {
   const [timetableData, setTimetableData] = useState<TimetableDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -93,41 +93,29 @@ const Timetable = ({ role }: TimetableProps) => {
     slots: day.slots
   }));
 
-  const exportPDF = useCallback(() => {
-    const doc = new jsPDF("landscape");
-    doc.setFontSize(14);
-    doc.text(`1st Semester Timetable - ${role}`, 14, 15);
-
-    const head = [["Time/Day", ...filteredData.map((d) => d.day)]];
-
-    const body = timeSlots.map((hour) => {
-      const row = [hour];
-      for (const day of filteredData) {
-        // Find classes starting in this hour
-        const slots = day.slots.filter((s) => s.time.startsWith(hour.split(":")[0]));
-        if (slots.length === 0) {
-          row.push("-");
-        } else {
-          row.push(slots.map((s) => `${s.subject}\n${s.time}\nRoom ${s.room}`).join("\n\n"));
-        }
+  const exportPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/timetable/export-pdf/`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Faculty_Timetable_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert("Failed to export PDF");
       }
-      return row;
-    });
-
-    autoTable(doc, {
-      head,
-      body,
-      startY: 25,
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-        halign: "center",
-        valign: "middle"
-      }
-    });
-
-    doc.save(`${role}_Timetable.pdf`);
-  }, [filteredData, role]);
+    } catch (err) {
+      alert("Network error while exporting PDF");
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   return (
     <Card id="timetable-card" className={`shadow-xl ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
@@ -136,10 +124,17 @@ const Timetable = ({ role }: TimetableProps) => {
         <div className="flex space-x-2">
           <Button
             onClick={exportPDF}
+            disabled={downloadingPDF}
             className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 transition-all duration-200 ease-in-out shadow-md">
             
-            <FaDownload />
-            <span className="ml-2 hidden sm:inline">Export PDF</span>
+            {downloadingPDF ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            <span className="ml-2 hidden sm:inline">
+              {downloadingPDF ? "Exporting..." : "Export PDF"}
+            </span>
           </Button>
         </div>
       </CardHeader>

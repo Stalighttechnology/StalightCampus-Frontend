@@ -15,7 +15,9 @@ import {
   DialogTitle,
   DialogFooter } from
 "../ui/dialog";
-import { Pencil, Trash2, UploadCloud, Upload, Loader2 } from "lucide-react";
+import { Pencil, Trash2, UploadCloud, Upload, Loader2, FileDown, Search } from "lucide-react";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
 // Removed chart imports; performance chart is no longer shown on this page
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
@@ -105,6 +107,39 @@ const StudentManagement = () => {
   const [sectionsCache, setSectionsCache] = useState<Record<string, Section[]>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      let queryParams = `?semester_id=${state.semesterFilter}&section_id=${state.sectionFilter}`;
+      if (state.search.trim()) {
+        queryParams += `&search=${encodeURIComponent(state.search.trim())}`;
+      }
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/students/export-pdf/${queryParams}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Student_List_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        updateState({ successMessage: "Student list PDF exported successfully" });
+        setTimeout(() => updateState({ successMessage: "" }), 3000);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        updateState({ uploadErrors: [result.message || "Failed to export PDF"] });
+      }
+    } catch (err) {
+      updateState({ uploadErrors: ["Network error while exporting PDF"] });
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   // Helper to update state
   const updateState = (newState: Partial<typeof state>) => {
@@ -113,6 +148,10 @@ const StudentManagement = () => {
 
   // Fetch students
   const fetchStudents = async (branchId: string, page: number = 1, pageSize: number = 50, search: string = '', sectionId: string = '', forceRefresh: boolean = false) => {
+    if (state.semesterFilter === "All" || state.sectionFilter === "All") {
+      updateState({ students: [], totalStudents: 0, totalPages: 0, isLoading: false });
+      return;
+    }
     try {
       const params: any = {
         branch_id: branchId,
@@ -1140,6 +1179,15 @@ const StudentManagement = () => {
               <CardTitle>Student List</CardTitle>
               <div className="flex gap-2">
                 <Button
+                  onClick={handleExportPDF}
+                  className="flex-shrink-0 flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap disabled:opacity-50"
+                  disabled={state.isLoading || !state.branchId || state.semesterFilter === "All" || state.sectionFilter === "All" || downloadingPDF}
+                >
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                  <span className="hidden sm:inline">{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
+                  <span className="sm:hidden">{downloadingPDF ? "Exporting..." : "Export"}</span>
+                </Button>
+                <Button
                   onClick={() => updateState({ addStudentModal: true })}
                   className="flex-shrink-0 flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap"
                   disabled={state.isLoading || !state.branchId}>
@@ -1239,91 +1287,101 @@ const StudentManagement = () => {
         </div>
 
         <CardContent className="pt-0">
-          {state.isLoading ?
-          <div className="py-4">
-              <SkeletonTable rows={10} cols={7} />
-            </div> :
-
-          <div className="overflow-x-auto">
-              <table className="min-w-full text-sm md:text-base text-left">
-                <thead className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-100 text-gray-900 border-gray-300'}>
-                  <tr className="border-b">
-                    <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">USN</th>
-                    <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Name</th>
-                    <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Email</th>
-                    <th className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Phone</th>
-                    <th className="hidden md:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Section</th>
-                    <th className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Mode</th>
-                    <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Semester</th>
-                    <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className={theme === 'dark' ? 'divide-y divide-border' : 'divide-y divide-gray-200'}>
-                  {paginatedFilteredStudents.map((student) =>
-                <tr key={student.usn} className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'} align-middle`}>
-                      <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.usn}</td>
-                      <td className="py-3 px-3 md:px-4 text-sm md:text-base whitespace-nowrap">{student.name}</td>
-                      <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.email}</td>
-                      <td className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.phone && student.phone.trim() ? student.phone : '-'}</td>
-                      <td className="hidden md:table-cell py-3 px-3 md:px-4 text-sm md:text-base">Section {student.section}</td>
-                      <td className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.mode_of_admission || 'KCET'}</td>
-                      <td className="py-3 px-3 md:px-4 text-sm md:text-base whitespace-nowrap">{formatSemesterDisplay(student)}</td>
-                      <td className="py-3 px-3 md:px-4 text-sm md:text-base flex gap-2 md:gap-3 items-center">
-                        <button
-                      onClick={() => openEdit(student)}
-                      className={theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}
-                      aria-label="Edit student">
-                      
-                          <Pencil className="w-4 h-4 md:w-5 md:h-5" />
-                        </button>
-                        <button
-                      onClick={() =>
-                      updateState({
-                        selectedStudent: student,
-                        confirmDelete: true
-                      })
-                      }
-                      className={theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}
-                      aria-label="Delete student">
-                      
-                          <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
-                        </button>
-                      </td>
-                    </tr>
-                )}
-                </tbody>
-              </table>
-
-              {paginatedFilteredStudents.length === 0 &&
-            <p className={`text-center mt-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No students found</p>
-            }
-
-              <div className="text-sm text-gray-500 mt-4">
-                Showing {Math.min((state.currentPage - 1) * state.pageSize + 1, state.totalStudents)} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents}{" "}
-                students (Page {state.currentPage} of {totalFilteredPages})
+          {state.semesterFilter === "All" || state.sectionFilter === "All" ? (
+            <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                <Search className="w-10 h-10 text-primary opacity-50" />
               </div>
+              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Semester and Section Selection Required
+              </h3>
+              <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Please select a <strong className="font-semibold text-foreground">Semester</strong> and a <strong className="font-semibold text-foreground">Section</strong> above to load and view the students.
+              </p>
             </div>
-          }
+          ) : state.isLoading ? (
+            <div className="py-4">
+              <SkeletonTable rows={10} cols={7} />
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm md:text-base text-left">
+                  <thead className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-gray-100 text-gray-900 border-gray-300'}>
+                    <tr className="border-b">
+                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">USN</th>
+                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Name</th>
+                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Email</th>
+                      <th className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Phone</th>
+                      <th className="hidden md:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Section</th>
+                      <th className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base font-medium">Mode</th>
+                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Semester</th>
+                      <th className="py-3 px-3 md:px-4 text-sm md:text-base font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className={theme === 'dark' ? 'divide-y divide-border' : 'divide-y divide-gray-200'}>
+                    {paginatedFilteredStudents.map((student) =>
+                      <tr key={student.usn} className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'} align-middle`}>
+                        <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.usn}</td>
+                        <td className="py-3 px-3 md:px-4 text-sm md:text-base whitespace-nowrap">{student.name}</td>
+                        <td className="py-3 px-3 md:px-4 text-sm md:text-base">{student.email}</td>
+                        <td className="hidden sm:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.phone && student.phone.trim() ? student.phone : '-'}</td>
+                        <td className="hidden md:table-cell py-3 px-3 md:px-4 text-sm md:text-base">Section {student.section}</td>
+                        <td className="hidden lg:table-cell py-3 px-3 md:px-4 text-sm md:text-base">{student.mode_of_admission || 'KCET'}</td>
+                        <td className="py-3 px-3 md:px-4 text-sm md:text-base whitespace-nowrap">{formatSemesterDisplay(student)}</td>
+                        <td className="py-3 px-3 md:px-4 text-sm md:text-base flex gap-2 md:gap-3 items-center">
+                          <button
+                            onClick={() => openEdit(student)}
+                            className={theme === 'dark' ? 'text-primary hover:text-primary/80' : 'text-blue-600 hover:text-blue-800'}
+                            aria-label="Edit student">
+                            <Pencil className="w-4 h-4 md:w-5 md:h-5" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              updateState({
+                                selectedStudent: student,
+                                confirmDelete: true
+                              })
+                            }
+                            className={theme === 'dark' ? 'text-destructive hover:text-destructive/80' : 'text-red-600 hover:text-red-800'}
+                            aria-label="Delete student">
+                            <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
 
-          <div className="flex justify-end items-center gap-2 md:gap-3 mt-4">
-            <Button
-              onClick={() => handlePageChange(state.currentPage - 1)}
-              disabled={state.currentPage === 1}
-              className="w-20 md:w-24 flex items-center justify-center gap-1 text-xs md:text-sm font-medium py-1.5 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-              
-              Previous
-            </Button>
-            <div className={`w-12 md:w-16 text-center text-xs md:text-sm font-medium py-1.5 rounded-md ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
-              {state.currentPage}
-            </div>
-            <Button
-              onClick={() => handlePageChange(state.currentPage + 1)}
-              disabled={state.currentPage === totalFilteredPages}
-              className="w-20 md:w-24 flex items-center justify-center gap-1 text-xs md:text-sm font-medium py-1.5 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-              
-              Next
-            </Button>
-          </div>
+                {paginatedFilteredStudents.length === 0 &&
+                  <p className={`text-center mt-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No students found</p>
+                }
+
+                <div className="text-sm text-gray-500 mt-4">
+                  Showing {Math.min((state.currentPage - 1) * state.pageSize + 1, state.totalStudents)} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents}{" "}
+                  students (Page {state.currentPage} of {totalFilteredPages})
+                </div>
+              </div>
+
+              <div className="flex justify-end items-center gap-2 md:gap-3 mt-4">
+                <Button
+                  onClick={() => handlePageChange(state.currentPage - 1)}
+                  disabled={state.currentPage === 1}
+                  className="w-20 md:w-24 flex items-center justify-center gap-1 text-xs md:text-sm font-medium py-1.5 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+                  Previous
+                </Button>
+                <div className={`w-12 md:w-16 text-center text-xs md:text-sm font-medium py-1.5 rounded-md ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
+                  {state.currentPage}
+                </div>
+                <Button
+                  onClick={() => handlePageChange(state.currentPage + 1)}
+                  disabled={state.currentPage === totalFilteredPages}
+                  className="w-20 md:w-24 flex items-center justify-center gap-1 text-xs md:text-sm font-medium py-1.5 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+                  Next
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

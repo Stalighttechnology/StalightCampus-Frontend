@@ -7,11 +7,11 @@ import {
 } from
   "../ui/card";
 import { Button } from "../ui/button";
-import { CalendarDays, FileDown, Calendar } from "lucide-react";
+import { CalendarDays, FileDown, Calendar, Loader2 } from "lucide-react";
 import { getTimetable, type TimetableEntry } from "@/utils/student_api";
 import { useTheme } from "@/context/ThemeContext";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { API_ENDPOINT } from "@/utils/config";
+import { fetchWithTokenRefresh } from "@/utils/authService";
 import styles from './StudentTimetable.module.css';
 
 const StudentTimetable = () => {
@@ -19,6 +19,7 @@ const StudentTimetable = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { theme } = useTheme();
   const tableRef = useRef<HTMLDivElement>(null);
+  const [exportingPDF, setExportingPDF] = useState(false);
 
   // Predefined time slots for the grid (9:00 AM to 5:00 PM)
   // Reference hours for the vertical axis
@@ -99,28 +100,26 @@ const StudentTimetable = () => {
   };
 
   const exportToPDF = async () => {
-    if (!tableRef.current) return;
-
+    setExportingPDF(true);
     try {
-      const canvas = await html2canvas(tableRef.current, {
-        backgroundColor: theme === 'dark' ? '#1a1a1a' : '#ffffff',
-        scale: 2
-      });
-
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 280;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-      pdf.save('timetable.pdf');
+      const url = `${API_ENDPOINT}/student/timetable/export-pdf/`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to download PDF from backend");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `Student_Timetable.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-
+      // Non-blocking catch
+    } finally {
+      setExportingPDF(false);
     }
   };
 
@@ -135,9 +134,15 @@ const StudentTimetable = () => {
             variant="outline"
             size="sm"
             className={`${styles.exportButton} bg-primary hover:bg-primary/90 text-white border-primary`}
+            disabled={exportingPDF}
             onClick={exportToPDF}>
 
-            <FileDown className="w-4 h-4 mr-2" /> Export
+            {exportingPDF ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <FileDown className="w-4 h-4 mr-2" />
+            )}
+            {exportingPDF ? "Exporting..." : "Export"}
           </Button>
         }
       </CardHeader>

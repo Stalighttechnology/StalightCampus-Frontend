@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Users } from "lucide-react";
+import { Loader2, Users, Download } from "lucide-react";
 import { Skeleton, SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import DashboardCard from "../common/DashboardCard";
 import { FaUserGraduate, FaUserCheck, FaUserTimes } from "react-icons/fa";
@@ -41,6 +41,7 @@ interface Section {
 const ProctorStudents = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [state, setState] = useState({
     students: [] as Student[],
     proctors: [] as Proctor[],
@@ -62,11 +63,13 @@ const ProctorStudents = () => {
     filters: {
       semester_id: "all",
       section_id: "all",
+      proctor_id: "all",
     },
     saving: false,
     cancelling: false,
   });
   const [localSearch, setLocalSearch] = useState("");
+  const [proctorSearch, setProctorSearch] = useState("");
 
   const studentsPerPage = 20;
 
@@ -75,11 +78,68 @@ const ProctorStudents = () => {
     setState((prev) => ({ ...prev, ...newState }));
   };
 
-  // Load metadata (profile, semesters, sections) on mount
+  const handleExportPDF = async () => {
+    if (state.filters.semester_id === "all" || state.filters.section_id === "all" || state.filters.proctor_id === "all") {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please select a semester, section, and proctor to export"
+      });
+      return;
+    }
+    setDownloadingPDF(true);
+    try {
+      const params = new URLSearchParams({
+        semester_id: state.filters.semester_id,
+        section_id: state.filters.section_id,
+      });
+      if (state.filters.proctor_id !== "all") {
+        params.append("proctor_id", state.filters.proctor_id);
+      }
+      if (state.search.trim()) {
+        params.append("search", state.search.trim());
+      }
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctors/export-pdf/?${params}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const branchName = state.branchName || "Branch";
+        const safeBranch = branchName.replace(/\s+/g, "_");
+        a.download = `Proctor_Assignments_${safeBranch}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        toast({
+          title: "Success",
+          description: "Proctor assignments PDF exported successfully"
+        });
+      } else {
+        const result = await response.json().catch(() => ({}));
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to export PDF"
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error while exporting PDF"
+      });
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
+
+  // Load metadata (profile, semesters, sections, proctors) on mount
   const loadMetadata = async () => {
     try {
       updateState({ loading: true });
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctor-bootstrap/?include=profile,semesters,sections`, {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctor-bootstrap/?include=profile,semesters,sections,proctors`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -95,6 +155,7 @@ const ProctorStudents = () => {
         branchName: data.data.profile.branch,
         semesters: data.data.semesters,
         sections: data.data.sections,
+        proctors: data.data.proctors.map((f: any) => ({ id: f.id, name: f.name })),
       });
     } catch (error) {
       const errorMessage = (error as Error).message || "Network error";
@@ -158,6 +219,10 @@ const ProctorStudents = () => {
         params.append("section_id", state.filters.section_id);
       }
 
+      if (state.filters.proctor_id !== "all") {
+        params.append("proctor_id", state.filters.proctor_id);
+      }
+
       const searchValue = searchTerm !== undefined ? searchTerm : state.search;
       if (searchValue.trim()) {
         params.append("search", searchValue.trim());
@@ -216,19 +281,20 @@ const ProctorStudents = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reload when pagination or filters change — only load students when both semester and section are selected
+  // Reload when pagination or filters change — only load students when semester, section, and proctor are all selected
   useEffect(() => {
     if (!mountedRef.current) return;
     const sem = state.filters.semester_id;
     const sec = state.filters.section_id;
-    if (sem !== "all" && sec !== "all") {
+    const proc = state.filters.proctor_id;
+    if (sem !== "all" && sec !== "all" && proc !== "all") {
       loadStudents();
     } else {
       // clear students if selection is incomplete
       updateState({ students: [], totalCount: 0, totalAssigned: 0, totalUnassigned: 0 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.currentPage, state.filters.semester_id, state.filters.section_id]);
+  }, [state.currentPage, state.filters.semester_id, state.filters.section_id, state.filters.proctor_id]);
 
   const handleFilterChange = (field: string, value: string) => {
     const newFilters = {
@@ -449,21 +515,35 @@ const ProctorStudents = () => {
               View and manage student-proctor assignments
             </p>
           </div>
-          <Button
-            onClick={async () => {
-              if (!state.semesters.length || !state.sections.length || !state.branchId) {
-                await loadMetadata();
-              }
-              if (!state.proctors.length) {
-                await loadProctors();
-              }
-              updateState({ editMode: true });
-            }}
-            className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto"
-            disabled={state.loading || state.filters.semester_id === "all" || state.filters.section_id === "all"}
-          >
-            Manage Assignments
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <Button
+              onClick={handleExportPDF}
+              disabled={downloadingPDF || state.filters.semester_id === "all" || state.filters.section_id === "all"}
+              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-4"
+            >
+              {downloadingPDF ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!state.semesters.length || !state.sections.length || !state.branchId) {
+                  await loadMetadata();
+                }
+                if (!state.proctors.length) {
+                  await loadProctors();
+                }
+                updateState({ editMode: true });
+              }}
+              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto h-10 px-4"
+              disabled={state.loading || state.filters.semester_id === "all" || state.filters.section_id === "all"}
+            >
+              Manage Assignments
+            </Button>
+          </div>
         </CardHeader>
 
         {/* Edit Mode Controls */}
@@ -548,7 +628,7 @@ const ProctorStudents = () => {
                   <Select
                     value={state.filters.section_id}
                     onValueChange={(value) => handleFilterChange("section_id", value)}
-                    disabled={state.loading || state.sections.length === 0}
+                    disabled={state.loading || state.sections.length === 0 || state.filters.semester_id === "all"}
                   >
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder="All Sections" />
@@ -560,6 +640,42 @@ const ProctorStudents = () => {
                         .map((section) => (
                           <SelectItem key={section.id} value={section.id}>
                             Section {section.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Proctor Filter */}
+                <div className="flex flex-col w-full sm:flex-1 lg:w-56">
+                  <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Proctor</label>
+                  <Select
+                    value={state.filters.proctor_id}
+                    onValueChange={(value) => handleFilterChange("proctor_id", value)}
+                    disabled={state.loading || state.proctors.length === 0 || state.filters.section_id === "all"}
+                  >
+                    <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
+                      <SelectValue placeholder="All Proctors" />
+                    </SelectTrigger>
+                    <SelectContent className={`max-h-60 overflow-y-auto ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
+                      <div className="p-2 border-b border-border">
+                        <input
+                          type="text"
+                          placeholder="Search proctor..."
+                          className={`w-full p-2 text-xs rounded border outline-none ${theme === 'dark' ? 'bg-muted border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                          value={proctorSearch}
+                          onChange={(e) => setProctorSearch(e.target.value)}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      <SelectItem value="all">All Proctors</SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {state.proctors
+                        .filter((proctor) => proctor.name.toLowerCase().includes(proctorSearch.toLowerCase()))
+                        .map((proctor) => (
+                          <SelectItem key={proctor.id} value={proctor.id}>
+                            {proctor.name}
                           </SelectItem>
                         ))}
                     </SelectContent>

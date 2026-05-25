@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from "react";
-import { Pencil, Plus, Trash2, Layers, Settings2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Layers, Settings2, FileDown } from "lucide-react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +41,8 @@ import { useTheme } from "@/context/ThemeContext";
 import { normalizePaginatedResponse } from "../../utils/normalizePagination";
 import { useToast } from "@/hooks/use-toast";
 import { SkeletonTable } from "@/components/ui/skeleton";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 
 const MySwal = withReactContent(Swal);
 
@@ -109,6 +111,7 @@ const formatTestType = (testType: string): string => {
 const UploadMarks = () => {
   const { data: assignments = [], isLoading: assignmentsLoading, error: assignmentsError } = useFacultyAssignmentsQuery();
   const { toast } = useToast();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [dropdownData, setDropdownData] = useState({
     branch: [] as {id: number;name: string;}[],
     semester: [] as {id: number;number: number;}[],
@@ -1279,96 +1282,44 @@ const UploadMarks = () => {
   // Remove the old areAllDropdownsSelected (we've moved it up)
 
   // Add the download PDF function inside the component
-  const downloadQuestionPaperPDF = () => {
-    const doc = new jsPDF();
-
-    // Set font properties
-    doc.setFont('helvetica');
-
-    // Add title
-    doc.setFontSize(22);
-    doc.setFont(undefined, 'bold');
-    doc.text('Question Paper Format', 105, 20, { align: 'center' });
-
-    // Add horizontal line
-    doc.setDrawColor(162, 89, 255); // Purple color
-    doc.line(20, 25, 190, 25);
-
-    // Add subject and test type info
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'normal');
-    doc.setTextColor(0, 0, 0); // Black color
-    doc.text(`Subject: ${selected.subject}`, 20, 35);
-    doc.text(`Test Type: ${selected.testType}`, 20, 42);
-    doc.text(`Total Marks: ${totalMarks}`, 20, 49);
-
-    // Add questions header
-    doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.setTextColor(162, 89, 255); // Purple color
-    doc.text('Questions:', 20, 65);
-
-    // Add questions with improved formatting
-    let yPosition = 75;
-    questions.forEach((question, index) => {
-      // Check if we need a new page
-      if (yPosition > 250) {
-        doc.addPage();
-        yPosition = 20;
-      }
-
-      // Add question number with purple color
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(162, 89, 255); // Purple color
-      doc.text(`${question.number}.`, 20, yPosition);
-
-      // Add question content
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(0, 0, 0); // Black color
-      const questionText = question.content || "No question content entered";
-      const splitText = doc.splitTextToSize(questionText, 120);
-      doc.text(splitText, 35, yPosition);
-
-      // Calculate text height for proper positioning of metadata
-      const textHeight = splitText.length * 5;
-      const metadataYPosition = yPosition + textHeight + 5;
-
-      // Add CO, Blooms Level, and marks information below the question text
-      let additionalInfo = `Marks: ${question.maxMarks}`;
-      if (question.co) {
-        additionalInfo += ` | CO: ${question.co}`;
-      }
-      if (question.bloomsLevel) {
-        additionalInfo += ` | Blooms: ${question.bloomsLevel}`;
-      }
-
-      doc.setFont(undefined, 'italic');
-      doc.setTextColor(100, 100, 100); // Gray color
-      doc.text(additionalInfo, 35, metadataYPosition);
-
-      // Calculate new Y position based on text height with proper spacing
-      const metadataHeight = 5; // Height of metadata line
-      yPosition += Math.max(textHeight, 10) + metadataHeight + 15;
-
-      // Add a subtle separator line
-      doc.setDrawColor(200, 200, 200); // Light gray
-      doc.line(25, yPosition - 8, 185, yPosition - 8);
-    });
-
-    // Add footer with page numbers
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(150, 150, 150); // Light gray
-      doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+  const downloadQuestionPaperPDF = async () => {
+    if (!existingQpSummary?.id) {
+      toast({
+        title: "Error",
+        description: "Question Paper is not saved or loaded yet.",
+        variant: "destructive"
+      });
+      return;
     }
-
-    // Save the PDF
-    const fileName = `Question_Paper_Format_${selected.subject}_${selected.testType}.pdf`;
-    doc.save(fileName);
+    setDownloadingPDF(true);
+    try {
+      const url = `${API_ENDPOINT}/admin/qps/${existingQpSummary.id}/export-pdf/`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to download PDF from backend");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `Question_Paper_${selected.subject}_${selected.testType}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      toast({
+        title: "Success",
+        description: "Question Paper PDF downloaded successfully"
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to download PDF",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   return (
@@ -1790,9 +1741,14 @@ const UploadMarks = () => {
                     <h3 className="text-lg font-semibold">Question Paper Format</h3>
                     <Button
                     onClick={downloadQuestionPaperPDF}
-                    className="bg-primary text-white hover:bg-primary/90">
-                    
-                      Download PDF
+                    disabled={downloadingPDF}
+                    className="bg-primary text-white hover:bg-primary/90 flex items-center gap-2">
+                      {downloadingPDF ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileDown className="h-4 w-4" />
+                      )}
+                      {downloadingPDF ? "Downloading..." : "Download PDF"}
                     </Button>
                   </div>
 

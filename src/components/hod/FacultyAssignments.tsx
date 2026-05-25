@@ -4,10 +4,12 @@ import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { useToast } from "../ui/use-toast";
-import { Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, Search, FileDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "../ui/dialog";
 import { manageFacultyAssignments, manageSections, getFacultyAssignmentsBootstrap, getHODTimetableSemesterData, listFacultyBranches, manageFaculties } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
+import { API_ENDPOINT } from "../../utils/config";
+import { fetchWithTokenRefresh } from "../../utils/authService";
 import Swal from "sweetalert2";
 
 // Interfaces
@@ -200,6 +202,35 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     assignmentsTotalPages: 1
   });
   const [localFacultySearch, setLocalFacultySearch] = useState("");
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!state.filterSemesterId || !state.filterSectionId) return;
+    setDownloadingPDF(true);
+    try {
+      const queryParams = `?semester_id=${state.filterSemesterId}&section_id=${state.filterSectionId}`;
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/faculty-assignments/export-pdf/${queryParams}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Faculty_Assignments_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        toast({ title: "Success", description: "Faculty assignments PDF exported successfully", className: "bg-green-100 text-green-800" });
+      } else {
+        const result = await response.json().catch(() => ({}));
+        toast({ variant: "destructive", title: "Error", description: result.message || "Failed to export PDF" });
+      }
+    } catch (err) {
+      toast({ variant: "destructive", title: "Error", description: "Network error while exporting PDF" });
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   // Helper to update state (stable reference for hooks)
   const updateState = useCallback((newState: Partial<typeof state>) => {
@@ -910,7 +941,20 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
 
         <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
           <CardHeader>
-            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Faculty Assignments List</CardTitle>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
+              <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Faculty Assignments List</CardTitle>
+              <Button
+                onClick={handleExportPDF}
+                disabled={state.loading || downloadingPDF || !state.filterSemesterId || !state.filterSectionId}
+                className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
+                {downloadingPDF ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileDown className="h-4 w-4" />
+                )}
+                <span>Export PDF</span>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
