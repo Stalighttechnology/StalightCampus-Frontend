@@ -19,12 +19,14 @@ import {
 } from
   "../ui/select";
 import { SkeletonTable } from "../ui/skeleton";
-import { PencilIcon, TrashIcon, PlusIcon, UserPlus2Icon, FileDownIcon } from "lucide-react";
+import { PencilIcon, TrashIcon, PlusIcon, UserPlus2Icon, FileDownIcon, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { manageBranches, manageUsers, getBranchesWithHODs } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 
@@ -50,6 +52,7 @@ interface User {
 
 const BranchesManagement = ({ setError, toast }: { setError: (error: string | null) => void; toast: (options: any) => void; }) => {
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [filter, setFilter] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -387,21 +390,41 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
     }
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Branch Management", 14, 15);
-    autoTable(doc, {
-      startY: 20,
-      head: [["ID", "Branch", "Branch Code", "Assigned HOD", "HOD Contact No"]],
-      body: branches.map((branch) => [
-        branch.id || "",
-        branch.name || "--",
-        branch.branch_code || "--",
-        branch.hod || "--",
-        branch.hod_contact || "--"]
-      )
-    });
-    doc.save("Branch_list.pdf");
+  const exportToPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/branch-list-pdf/`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Branch_list.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast({
+          title: "Success",
+          description: "Branch list PDF exported successfully",
+        });
+      } else {
+        const result = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.message || "Failed to export PDF",
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error while exporting PDF",
+      });
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   return (
@@ -489,9 +512,10 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                   size="sm"
                   className="flex items-center justify-center gap-1 w-full md:w-auto"
                   onClick={exportToPDF}
-                  disabled={loading}>
+                  disabled={loading || downloadingPDF}>
 
-                  <FileDownIcon className="w-4 h-4" /> Export PDF
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDownIcon className="w-4 h-4" />}
+                  {downloadingPDF ? "Exporting..." : "Export PDF"}
                 </Button>
               </div>
             </CardHeader>
