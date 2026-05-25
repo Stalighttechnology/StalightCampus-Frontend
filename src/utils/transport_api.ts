@@ -46,6 +46,9 @@ export const updateRouteStops = (routeId: number, stops: any[]) =>
 export const fetchAssignments = (page = 1) =>
   fetch(`${API_BASE}/assignments/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
+export const fetchAssignmentOptions = () =>
+  fetch(`${API_BASE}/admin/assignment-options/`, { headers: authHeaders() }).then((r) => r.json());
+
 export const createAssignment = (data: any) =>
   fetch(`${API_BASE}/assignments/`, { method: "POST", headers: authHeaders(), body: JSON.stringify(data) }).then((r) => r.json());
 
@@ -85,6 +88,15 @@ export const fetchEligibleStudents = (page = 1, branch = "", batch = "", semeste
 
 export const fetchTransportFilters = () =>
   fetch(`${API_BASE}/admin/filters/`, { headers: authHeaders() }).then((r) => r.json());
+
+export const fetchBranchSemesters = (branchId: number) =>
+  fetch(`${API_BASE}/admin/semesters/?branch_id=${branchId}`, { headers: authHeaders() }).then((r) => r.json());
+
+export const fetchRouteOptions = () =>
+  fetch(`${API_BASE}/admin/route-options/`, { headers: authHeaders() }).then((r) => r.json());
+
+export const fetchRouteStops = (routeId: number) =>
+  fetch(`${API_BASE}/admin/route-stops/?route_id=${routeId}`, { headers: authHeaders() }).then((r) => r.json());
 
 // Incidents
 export const fetchIncidents = (page = 1) =>
