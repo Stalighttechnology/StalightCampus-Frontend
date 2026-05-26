@@ -7,7 +7,8 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { FaUserTie, FaUserCheck, FaUserSlash, FaUserShield } from "react-icons/fa";
 import { AlertCircle } from "lucide-react";
 import DashboardCard from "../common/DashboardCard";
-import { Card, CardContent } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+import { Button } from "../ui/button";
 
 const DeanAttendance = () => {
   const { theme } = useTheme();
@@ -128,132 +129,162 @@ const DeanAttendance = () => {
 
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="text-lg font-semibold mb-3">HODs — {isMonthly ? 'Monthly Report' : 'Today'}</div>
-              <div className="grid grid-cols-1 gap-3">
-                {hodList.length > 0 ? hodList.map((h: any) => (
-                  <div key={h.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                    <div className="min-w-0 flex-1 mr-2">
-                      <div className="font-medium break-words">{h.name}</div>
-                      {isMonthly ? (
-                        <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          Present: {h.present_days} days • Absent: {h.absent_days} days • Branch: {h.branch}
-                        </div>
-                      ) : (
-                        <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          {h.status === 'present' ? 'Present' : 'Absent'}{h.marked_at ? ` • ${new Date(h.marked_at).toLocaleTimeString()}` : ''}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-shrink-0">
-                      {isMonthly ? (
-                        <div className="text-xs flex gap-2">
-                          <span className={`px-2 py-1 rounded-full font-semibold ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>
-                            P: {h.present_days}
-                          </span>
-                          <span className={`px-2 py-1 rounded-full font-semibold ${theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800'}`}>
-                            A: {h.absent_days}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          h.status === 'present' 
-                            ? (theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800') 
-                            : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
-                        }`}>
-                          {h.status === 'present' ? 'Present' : 'Absent'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )) : (
-                  <Card className="border-dashed border-2 shadow-none bg-transparent">
-                    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                      <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
-                        <FaUserTie className="w-8 h-8 text-primary/40" />
+            <Card className={`flex flex-col shadow ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">HODs — {isMonthly ? 'Monthly Report' : 'Today'}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <div className="grid grid-cols-1 gap-3">
+                  {hodList.length > 0 ? hodList.map((h: any) => (
+                    <div key={h.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
+                      <div className="min-w-0 flex-1 mr-2">
+                        <div className="font-medium break-words">{h.name}</div>
+                        {isMonthly ? (
+                          <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            Present: {h.present_days} days • Absent: {h.absent_days} days • Branch: {h.branch}
+                          </div>
+                        ) : (
+                          <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            {h.status === 'present' ? 'Present' : 'Absent'}{h.marked_at ? ` • ${new Date(h.marked_at).toLocaleTimeString()}` : ''}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground font-semibold">No HOD records found</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-              {hodPagination.total_pages > 1 && (
-                <div className="flex items-center justify-between mt-6 pt-4 border-t border-border text-sm">
-                  <button
-                    disabled={hodPage === 1 || loading}
-                    onClick={() => setHodPage(p => Math.max(1, p - 1))}
-                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
-                  >
-                    Previous
-                  </button>
-                  <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
-                    Page {hodPage} of {hodPagination.total_pages}
-                  </span>
-                  <button
-                    disabled={hodPage === hodPagination.total_pages || loading}
-                    onClick={() => setHodPage(p => p + 1)}
-                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-              <div className="text-lg font-semibold mb-3">Admins — {isMonthly ? 'In Period' : 'Today'}</div>
-              <div className="grid grid-cols-1 gap-3">
-                {allAdmins.length > 0 ? allAdmins.map((a: any) => {
-                  const isPresent = a.is_present || false;
-                  return (
-                  <div key={a.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                    <div className="min-w-0 flex-1 mr-2">
-                      <div className="font-medium break-words">{a.name}</div>
-                      <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
+                      <div className="flex-shrink-0">
+                        {isMonthly ? (
+                          <div className="text-xs flex gap-2">
+                            <span className={`px-2 py-1 rounded-full font-semibold ${theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>
+                              P: {h.present_days}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full font-semibold ${theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800'}`}>
+                              A: {h.absent_days}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            h.status === 'present' 
+                              ? (theme === 'dark' ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800') 
+                              : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
+                          }`}>
+                            {h.status === 'present' ? 'Present' : 'Absent'}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-shrink-0">
-                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        isPresent 
-                          ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800') 
-                          : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
-                      }`}>
-                        {isPresent ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : 'Absent')}
+                  )) : (
+                    <Card className="border-dashed border-2 shadow-none bg-transparent">
+                      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
+                          <FaUserTie className="w-8 h-8 text-primary/40" />
+                        </div>
+                        <p className="text-sm text-muted-foreground font-semibold">No HOD records found</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </CardContent>
+              {hodPagination.total_pages > 1 && (
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto w-full">
+                  <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Showing Page {hodPage} of {hodPagination.total_pages}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={hodPage === 1 || loading}
+                      onClick={() => setHodPage(p => Math.max(1, p - 1))}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {hodPage}
                       </span>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={hodPage === hodPagination.total_pages || loading}
+                      onClick={() => setHodPage(p => p + 1)}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Next
+                    </Button>
                   </div>
-                )}) : (
-                  <Card className="border-dashed border-2 shadow-none bg-transparent">
-                    <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                      <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
-                        <FaUserShield className="w-8 h-8 text-primary/40" />
-                      </div>
-                      <p className="text-sm text-muted-foreground font-semibold">No admin records found</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-              {adminPagination.total_pages > 1 && (
-                <div className="flex items-center justify-between mt-6 pt-4 border-t border-border text-sm">
-                  <button
-                    disabled={adminPage === 1 || loading}
-                    onClick={() => setAdminPage(p => Math.max(1, p - 1))}
-                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
-                  >
-                    Previous
-                  </button>
-                  <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
-                    Page {adminPage} of {adminPagination.total_pages}
-                  </span>
-                  <button
-                    disabled={adminPage === adminPagination.total_pages || loading}
-                    onClick={() => setAdminPage(p => p + 1)}
-                    className="px-3 py-1 rounded border border-border hover:bg-muted disabled:opacity-50 transition-colors"
-                  >
-                    Next
-                  </button>
-                </div>
+                </CardFooter>
               )}
-            </div>
+            </Card>
+
+            <Card className={`flex flex-col shadow ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">Admins — {isMonthly ? 'In Period' : 'Today'}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <div className="grid grid-cols-1 gap-3">
+                  {allAdmins.length > 0 ? allAdmins.map((a: any) => {
+                    const isPresent = a.is_present || false;
+                    return (
+                    <div key={a.id} className={`flex items-center justify-between p-3 rounded ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
+                      <div className="min-w-0 flex-1 mr-2">
+                        <div className="font-medium break-words">{a.name}</div>
+                        <div className={`text-xs break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{a.email || a.mobile || ''}</div>
+                      </div>
+                      <div className="flex-shrink-0">
+                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          isPresent 
+                            ? (theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-800') 
+                            : (theme === 'dark' ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800')
+                        }`}>
+                          {isPresent ? (isMonthly ? 'Active in Period' : 'Present') : (isMonthly ? 'Inactive' : 'Absent')}
+                        </span>
+                      </div>
+                    </div>
+                  )}) : (
+                    <Card className="border-dashed border-2 shadow-none bg-transparent">
+                      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className={`p-4 rounded-full bg-primary/10 mb-3`}>
+                          <FaUserShield className="w-8 h-8 text-primary/40" />
+                        </div>
+                        <p className="text-sm text-muted-foreground font-semibold">No admin records found</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </CardContent>
+              {adminPagination.total_pages > 1 && (
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto w-full">
+                  <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Showing Page {adminPage} of {adminPagination.total_pages}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={adminPage === 1 || loading}
+                      onClick={() => setAdminPage(p => Math.max(1, p - 1))}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {adminPage}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={adminPage === adminPagination.total_pages || loading}
+                      onClick={() => setAdminPage(p => p + 1)}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
+            </Card>
           </div>
         </>
       )}

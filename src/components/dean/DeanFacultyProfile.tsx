@@ -1,55 +1,16 @@
-/**
- * DeanFacultyProfile — FIXED
- *
- * ROOT CAUSES ELIMINATED:
- *
- * BUG 1 — isInitialLoading cascade skeleton (PRIMARY CAUSE)
- *   BEFORE: isInitialLoading = branchesLoading || (selectedBranch && facultiesLoading) || (selectedFaculty && !profile && profileLoading)
- *   Each auto-select effect (branch → faculties → profile) cascaded back through this expression,
- *   causing the skeleton to re-appear 2-3 times on every page load.
- *   FIX: Replace with a single `hasCompletedInitialLoad` ref that latches true once and never
- *   reverts. Subsequent branch/faculty changes show localized inline spinners, not the full skeleton.
- *
- * BUG 2 — setError passed as useEffect dependency (SECONDARY CAUSE)
- *   BEFORE: useEffect([..., setError]) — setError was in dep arrays of all three custom hooks.
- *   Although React guarantees setState stability, it is an anti-pattern and can fire extra effects
- *   in certain React versions or if the caller ever wraps the setter.
- *   FIX: Remove setError from all dep arrays. Use a stable onError callback ref pattern instead.
- *
- * BUG 3 — Auto-select cascade (SECONDARY CAUSE)
- *   BEFORE: Three cascading useEffects auto-selected branch → faculty → loaded profile, each
- *   triggering a new loading state that turned isInitialLoading true again.
- *   FIX: Auto-select logic moved into the data-loading hooks themselves. The branch/faculty
- *   auto-selection is batched with the load completion, so no extra render cycle fires.
- *
- * BUG 4 — Profile nulled before refetch (TERTIARY CAUSE)
- *   BEFORE: On facultyId change, setProfile(null) fired before new data arrived, causing a
- *   "no profile" frame to flash before the skeleton could catch up.
- *   FIX: Profile state is only cleared AFTER the new fetch succeeds, never before.
- *   A separate `isFetching` flag handles the spinner without destroying stale content.
- *
- * BUG 5 — Global skeleton on manual branch change
- *   BEFORE: Changing branch after initial load retriggered isInitialLoading=true → full skeleton.
- *   FIX: hasCompletedInitialLoad ref is sticky; only inline spinners show for subsequent changes.
- *
- * BUG 6 — Mounted/cleanup race condition (MINOR)
- *   BEFORE: setLoading(false) could race with mounted=false in edge cases.
- *   FIX: All state setters are guarded with if(mounted) before every call.
- */
-
 import { useEffect, useState, useCallback, useRef } from "react";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar as CalendarComponent } from "../ui/calendar";
-import { Calendar as CalendarIcon, Sliders, AlertCircle } from "lucide-react";
+import { Calendar as CalendarIcon, Sliders, AlertCircle, FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Label } from "../ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "../ui/dialog";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonStatsGrid, SkeletonTable, SkeletonPageHeader, SkeletonCard, SkeletonList } from "../ui/skeleton";
 import { Alert, AlertDescription } from "../ui/alert";
@@ -384,9 +345,50 @@ const DeanFacultyProfile = ({
   const [endDatePopoverOpen, setEndDatePopoverOpen] = useState(false);
   const { theme } = useTheme();
   const [leavesPage, setLeavesPage] = useState(1);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const { profile, loading: profileLoading, isFetching: profileFetching } =
     useFacultyProfile(selectedFaculty, startDate, endDate, leavesPage, reloadKey, setError);
+
+  const handleExportPDF = async () => {
+    if (!selectedFaculty) return;
+    setExportLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append("start_date", startDate);
+      if (endDate) params.append("end_date", endDate);
+
+      const response = await fetchWithTokenRefresh(
+        `${API_ENDPOINT}/dean/faculty/${selectedFaculty}/export-pdf/?${params.toString()}`
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const contentDisposition = response.headers.get("Content-Disposition");
+        let filename = `Faculty_Profile_${selectedFaculty}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        if (contentDisposition) {
+          const matches = /filename="?([^"]+)"?/.exec(contentDisposition);
+          if (matches && matches[1]) {
+            filename = matches[1];
+          }
+        }
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        setError(result.message || "Failed to export PDF");
+      }
+    } catch (err) {
+      setError("Network error while exporting PDF");
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   /**
    * FIX (BUG 1 + BUG 5): Replace the volatile isInitialLoading expression with a
@@ -716,6 +718,35 @@ const DeanFacultyProfile = ({
                       </DialogContent>
                     </Dialog>
                   </div>
+
+                  {/* Export PDF button */}
+                  <div className="flex-shrink-0 flex items-end mt-2 lg:mt-0">
+                    <Button
+                      onClick={handleExportPDF}
+                      variant="outline"
+                      className="flex items-center gap-2 px-4 h-10 bg-primary text-white hover:bg-primary/90 hover:text-white"
+                      disabled={
+                        !selectedBranch || !selectedFaculty || facultiesLoading || exportLoading
+                      }
+                      title={
+                        !selectedBranch || !selectedFaculty
+                          ? "Select branch and faculty to enable export"
+                          : undefined
+                      }
+                    >
+                      {exportLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Exporting...
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="h-4 w-4" />
+                          Export PDF
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -969,51 +1000,58 @@ interface AssignmentsListProps {
 }
 
 function AssignmentsList({ assignments, theme }: AssignmentsListProps) {
-  if (!assignments || assignments.length === 0) {
-    return (
-      <div
-        className={`col-span-full text-center py-8 ${
-          theme === "dark" ? "text-muted-foreground" : "text-gray-500"
-        }`}
-      >
-        <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
-        No assignments found
-      </div>
-    );
-  }
+  const list = assignments || [];
 
   return (
     <>
-      {assignments.map((a, idx) => {
-        const key = a.subject
-          ? `${a.subject}-${a.branch ?? ""}-${a.section ?? ""}`
-          : `assignment-${idx}`;
-        return (
-          <div
-            key={key}
-            className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
-              theme === "dark"
-                ? "bg-muted/50 border-border"
-                : "bg-gray-50 border-gray-200"
-            }`}
-          >
+      {list.length === 0 ? (
+        <div
+          className={`col-span-full flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${
+            theme === "dark" ? "border-border bg-card/30 text-muted-foreground" : "border-gray-200 bg-gray-50/50 text-gray-500"
+          }`}
+        >
+          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+            <svg className="w-8 h-8 text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            No assignments found
+          </h3>
+          <p className={`text-center max-w-sm text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            There are currently no assignments listed for this faculty member.
+          </p>
+        </div>
+      ) : (
+        list.map((a, idx) => {
+          const key = a.subject
+            ? `${a.subject}-${a.branch ?? ""}-${a.section ?? ""}`
+            : `assignment-${idx}`;
+          return (
             <div
-              className={`font-semibold mb-1 ${
-                theme === "dark" ? "text-foreground" : "text-gray-800"
+              key={key}
+              className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                theme === "dark"
+                  ? "bg-muted/50 border-border"
+                  : "bg-gray-50 border-gray-200"
               }`}
             >
-              {a.subject}
+              <div
+                className={`font-semibold mb-1 ${
+                  theme === "dark" ? "text-foreground" : "text-gray-800"
+                }`}
+              >
+                {a.subject}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-blue-900/30 text-blue-300" : "bg-blue-100 text-blue-800"}`}>{a.branch}</span>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-800"}`}>Semester {a.semester}</span>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-purple-900/30 text-purple-300" : "bg-purple-100 text-purple-800"}`}>Section {a.section}</span>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-blue-900/30 text-blue-300" : "bg-blue-100 text-blue-800"}`}>{a.branch}</span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-800"}`}>Semester {a.semester}</span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-purple-900/30 text-purple-300" : "bg-purple-100 text-purple-800"}`}>Section {a.section}</span>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })
+      )}
     </>
   );
 }
@@ -1025,55 +1063,83 @@ interface ScheduledClassesTableProps {
   readonly theme: string;
 }
 
+const SCHEDULE_PAGE_SIZE = 10;
+
 function ScheduledClassesTable({ classesList, theme }: ScheduledClassesTableProps) {
-  if (!classesList || classesList.length === 0) {
-    return (
-      <div
-        className={`text-center py-8 ${
-          theme === "dark" ? "text-muted-foreground" : "text-gray-500"
-        }`}
-      >
-        <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        No scheduled classes found
-      </div>
-    );
-  }
+  const list = classesList || [];
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(list.length / SCHEDULE_PAGE_SIZE));
+  const paginated = list.slice((currentPage - 1) * SCHEDULE_PAGE_SIZE, currentPage * SCHEDULE_PAGE_SIZE);
 
   return (
-    <div
-      className={`overflow-x-auto border rounded-lg ${
-        theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"
-      }`}
-    >
-      <table className="w-full">
-        <thead className={theme === "dark" ? "bg-muted/50" : "bg-gray-50"}>
-          <tr>
-            {["Day", "Time", "Subject", "Section", "Hours"].map((h) => (
-              <th key={h} className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className={`divide-y ${theme === "dark" ? "divide-border" : "divide-gray-200"}`}>
-          {classesList.map((s) => (
-            <tr key={s.id} className={`transition-colors`}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-blue-900/30 text-blue-300" : "bg-blue-100 text-blue-800"}`}>{s.day}</span>
-              </td>
-              <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>{s.start_time} - {s.end_time}</td>
-              <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>{s.subject}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-800"}`}>{s.section}</span>
-              </td>
-              <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>{s.duration_hours} hrs</td>
+    <Card className={`shadow-none border overflow-hidden ${theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"}`}>
+      <CardContent className="p-0 overflow-x-auto">
+        <table className="w-full">
+          <thead className={theme === "dark" ? "bg-muted/50" : "bg-gray-50"}>
+            <tr>
+              {["Day", "Time", "Subject", "Section", "Hours"].map((h) => (
+                <th key={h} className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className={`divide-y ${theme === "dark" ? "divide-border" : "divide-gray-200"}`}>
+            {list.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="p-4">
+                  <div
+                    className={`flex flex-col items-center justify-center py-12 px-4 rounded-xl border-2 border-dashed ${
+                      theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+                    }`}
+                  >
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                      <svg className="w-8 h-8 text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      No scheduled classes found
+                    </h3>
+                    <p className={`text-center max-w-sm text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      There are no classes scheduled for this faculty member.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              paginated.map((s) => (
+                <tr key={s.id} className="transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-blue-900/30 text-blue-300" : "bg-blue-100 text-blue-800"}`}>{s.day}</span>
+                  </td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>{s.start_time} - {s.end_time}</td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>{s.subject}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme === "dark" ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-800"}`}>{s.section}</span>
+                  </td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>{s.duration_hours} hrs</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </CardContent>
+      {totalPages > 1 && (
+        <CardFooter className="flex flex-col sm:flex-row items-center justify-between p-6 border-t border-border mt-auto gap-4">
+          <div className={`text-xs font-medium ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>
+            Showing Page {currentPage} of {totalPages} ({list.length} records)
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg">Previous</Button>
+            <div className={`flex items-center justify-center min-w-[40px] h-9 px-3 text-sm font-semibold rounded-lg border ${theme === "dark" ? "bg-card border-border text-foreground" : "bg-white border-gray-200 text-gray-900"}`}>{currentPage}</div>
+            <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg">Next</Button>
+          </div>
+        </CardFooter>
+      )}
+    </Card>
   );
 }
+
 
 // ─── Subcomponent: Attendance Log Table ──────────────────────────────────────
 
@@ -1138,13 +1204,9 @@ interface LeaveRequestsTableProps {
 function LeaveRequestsTable({
   leaves, theme, pagination, currentPage, onPageChange,
 }: LeaveRequestsTableProps) {
-  if (!leaves || leaves.length === 0) {
-    return (
-      <div className={`text-center py-8 ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>
-        No leave requests found
-      </div>
-    );
-  }
+  const leavesList = leaves || [];
+  const [selectedLeave, setSelectedLeave] = useState<LeaveRecord | null>(null);
+  const [showReasonDialog, setShowReasonDialog] = useState(false);
 
   const getStatusColor = (status: string) => {
     const s = status.toUpperCase();
@@ -1155,29 +1217,55 @@ function LeaveRequestsTable({
   };
 
   return (
-    <div className={`overflow-x-auto border rounded-lg ${theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"}`}>
-      <table className="w-full">
-        <thead className={theme === "dark" ? "bg-muted/50" : "bg-gray-50"}>
-          <tr>
-            {["Period", "Status", "Reason"].map((h) => (
-              <th key={h} className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className={`divide-y ${theme === "dark" ? "divide-border" : "divide-gray-200"}`}>
-          {leaves.map((l) => (
-            <tr key={l.id} className="transition-colors">
-              <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>{l.start_date} to {l.end_date}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(l.status)}`}>{l.status}</span>
-              </td>
-              <td className={`px-6 py-4 text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-600"}`}>{l.reason || "-"}</td>
+    <Card className={`shadow-none border overflow-hidden ${theme === "dark" ? "bg-card border-border" : "bg-white border-gray-200"}`}>
+      <CardContent className="p-0 overflow-x-auto">
+        <table className="w-full">
+          <thead className={theme === "dark" ? "bg-muted/50" : "bg-gray-50"}>
+            <tr>
+              {["Period", "Status", "Reason"].map((h) => (
+                <th key={h} className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className={`divide-y ${theme === "dark" ? "divide-border" : "divide-gray-200"}`}>
+            {leavesList.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="py-8 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center space-y-2 opacity-65">
+                    <CalendarIcon className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm font-semibold uppercase tracking-wider">No Leave Requests Found</p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              leavesList.map((l) => (
+                <tr key={l.id} className="transition-colors">
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${theme === "dark" ? "text-foreground" : "text-gray-900"}`}>{l.start_date} to {l.end_date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(l.status)}`}>{l.status}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {l.reason ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => { setSelectedLeave(l); setShowReasonDialog(true); }}
+                        className={`text-xs ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
+                      >
+                        View
+                      </Button>
+                    ) : (
+                      <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}>-</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </CardContent>
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between p-6 border-t border-border gap-4">
+        <CardFooter className="flex flex-col sm:flex-row items-center justify-between p-6 border-t border-border mt-auto gap-4">
           <div className={`text-xs font-medium ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>
             Showing Page {currentPage} of {pagination.total_pages}
             {pagination.count !== undefined && ` (${pagination.count} records)`}
@@ -1187,9 +1275,26 @@ function LeaveRequestsTable({
             <div className={`flex items-center justify-center min-w-[40px] h-9 px-3 text-sm font-semibold rounded-lg border ${theme === "dark" ? "bg-card border-border text-foreground" : "bg-white border-gray-200 text-gray-900"}`}>{currentPage}</div>
             <Button variant="outline" size="sm" disabled={currentPage === pagination.total_pages} onClick={() => onPageChange(currentPage + 1)} className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg">Next</Button>
           </div>
-        </div>
+        </CardFooter>
       )}
-    </div>
+      <Dialog open={showReasonDialog} onOpenChange={setShowReasonDialog}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+          <DialogHeader>
+            <DialogTitle className={theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}>
+              Leave Reason
+            </DialogTitle>
+            <DialogDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
+              {selectedLeave && `Leave period: ${selectedLeave.start_date} to ${selectedLeave.end_date}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className={`text-sm ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-700'} whitespace-pre-wrap`}>
+              {selectedLeave?.reason}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 }
 

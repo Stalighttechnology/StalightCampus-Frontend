@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { useTheme } from "../../context/ThemeContext";
 import { CheckCircle, XCircle, Filter as FilterIcon, Loader2 } from 'lucide-react';
@@ -333,40 +333,40 @@ const ManageAdminLeavesDean = () => {
                     </table>
                   )}
                 </div>
-
-                {/* Pending Pagination Controls */}
-                {pendingPagination.totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                    <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      Showing {Math.min((pendingPage - 1) * 20 + 1, pendingPagination.totalItems)}-{Math.min(pendingPage * 20, pendingPagination.totalItems)} of {pendingPagination.totalItems}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={pendingPage === 1 || pendingLoading}
-                        onClick={() => setPendingPage(p => p - 1)}
-                        className="h-8 px-2"
-                      >
-                        Prev
-                      </Button>
-                      <span className={`text-xs font-medium px-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {pendingPage} / {pendingPagination.totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={pendingPage === pendingPagination.totalPages || pendingLoading}
-                        onClick={() => setPendingPage(p => p + 1)}
-                        className="h-8 px-2"
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
             </CardContent>
+            {pendingPagination.totalPages > 1 && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto w-full">
+                <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Showing {Math.min((pendingPage - 1) * 20 + 1, pendingPagination.totalItems)} to {Math.min(pendingPage * 20, pendingPagination.totalItems)} of {pendingPagination.totalItems} requests
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pendingPage === 1 || pendingLoading}
+                    onClick={() => setPendingPage(p => p - 1)}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {pendingPage}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pendingPage === pendingPagination.totalPages || pendingLoading}
+                    onClick={() => setPendingPage(p => p + 1)}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
           </Card>
         </div>
       </div>
@@ -478,41 +478,41 @@ const ManageAdminLeavesDean = () => {
                     </div>
                   ))}
                 </div>
-
-                {/* Recent Pagination Controls */}
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                  <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    Showing {Math.min((recentPage - 1) * 20 + 1, recentPagination.totalItems)}-{Math.min(recentPage * 20, recentPagination.totalItems)} of {recentPagination.totalItems}
-                  </div>
-                  {recentPagination.totalPages > 1 && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={recentPage === 1 || recentLoading}
-                        onClick={() => setRecentPage(p => p - 1)}
-                        className="h-8 px-2"
-                      >
-                        Prev
-                      </Button>
-                      <span className={`text-xs font-medium px-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {recentPage} / {recentPagination.totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={recentPage === recentPagination.totalPages || recentLoading}
-                        onClick={() => setRecentPage(p => p + 1)}
-                        className="h-8 px-2"
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  )}
-                </div>
               </>
             )}
           </CardContent>
+          {recentPagination.totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto w-full">
+              <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Showing {Math.min((recentPage - 1) * 20 + 1, recentPagination.totalItems)} to {Math.min(recentPage * 20, recentPagination.totalItems)} of {recentPagination.totalItems} requests
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={recentPage === 1 || recentLoading}
+                  onClick={() => setRecentPage(p => p - 1)}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {recentPage}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={recentPage === recentPagination.totalPages || recentLoading}
+                  onClick={() => setRecentPage(p => p + 1)}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
       <Dialog open={showReasonDialog} onOpenChange={setShowReasonDialog}>

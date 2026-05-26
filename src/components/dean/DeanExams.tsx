@@ -14,7 +14,7 @@ import { SkeletonStatsGrid, SkeletonTable, SkeletonPageHeader, SkeletonCard } fr
 import { Button } from "../ui/button";
 import { Alert, AlertDescription } from "../ui/alert";
 import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 
 type ExamEntry = {
@@ -381,40 +381,40 @@ const DeanExams: React.FC = () => {
 
               })}
 
-                {pagination.totalPages > 1 &&
-              <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-6 border-t border-border mt-8 gap-4">
-                    <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      Showing {(pagination.currentPage - 1) * 10 + 1} to {Math.min(pagination.currentPage * 10, pagination.totalItems)} of {pagination.totalItems} exams
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pagination.currentPage === 1 || loading}
-                    onClick={() => load(pagination.currentPage - 1)}
-                    className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg">
-                    
-                        Previous
-                      </Button>
-                      <div className={`flex items-center justify-center min-w-[40px] h-9 px-3 text-sm font-bold rounded-lg border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                        {pagination.currentPage}
-                      </div>
-                      <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pagination.currentPage === pagination.totalPages || loading}
-                    onClick={() => load(pagination.currentPage + 1)}
-                    className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg">
-                    
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-              }
               </div>
             </div>
           }
         </CardContent>
+        {pagination.totalPages > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-border mt-auto gap-4">
+            <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Showing {(pagination.currentPage - 1) * 10 + 1} to {Math.min(pagination.currentPage * 10, pagination.totalItems)} of {pagination.totalItems} exams
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.currentPage === 1 || loading}
+                onClick={() => load(pagination.currentPage - 1)}
+                className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
+              >
+                Previous
+              </Button>
+              <div className={`flex items-center justify-center min-w-[40px] h-9 px-3 text-sm font-bold rounded-lg border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                {pagination.currentPage}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.currentPage === pagination.totalPages || loading}
+                onClick={() => load(pagination.currentPage + 1)}
+                className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>);
 

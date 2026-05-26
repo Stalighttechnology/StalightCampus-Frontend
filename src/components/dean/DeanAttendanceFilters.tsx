@@ -27,6 +27,7 @@ import { Button } from "../ui/button";
 import { Calendar, Trash2, ChevronDown, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SkeletonStatsGrid, SkeletonPageHeader, SkeletonCard } from "../ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 const DeanAttendanceFilters = () => {
@@ -373,7 +374,8 @@ const DeanAttendanceFilters = () => {
           </Dialog>
 
           {selectedPersonId && selectedPersonSummary ? (
-            <div className={`mt-4 p-4 rounded-lg shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"}`}>
+            <Card className={`mt-4 shadow ${theme === "dark" ? "bg-card border border-border" : "bg-white border border-gray-200"}`}>
+              <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <div className={`text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-500"}`}>Selected</div>
@@ -457,36 +459,42 @@ const DeanAttendanceFilters = () => {
                     </table>
                   </div>
 
-                  {selectedPersonSummary.leaves_pagination?.total_pages > 1 && (
-                    <div className={`flex items-center justify-between p-2 rounded-lg border mt-4 ${theme === 'dark' ? 'bg-card/50 border-border' : 'bg-gray-50 border-gray-200'}`}>
-                      <button
-                        disabled={leavesPage === 1}
-                        onClick={() => setLeavesPage(p => Math.max(1, p - 1))}
-                        className={`px-3 py-1.5 text-xs font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${leavesPage > 1
-                            ? 'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm'
-                            : 'bg-primary opacity-50 text-white border-primary cursor-not-allowed'
-                          }`}
-                      >
-                        Previous
-                      </button>
-                      <span className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Page <span className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>{leavesPage}</span> of {selectedPersonSummary.leaves_pagination.total_pages}
-                      </span>
-                      <button
-                        disabled={leavesPage === selectedPersonSummary.leaves_pagination.total_pages}
-                        onClick={() => setLeavesPage(p => p + 1)}
-                        className={`px-3 py-1.5 text-xs font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${leavesPage < selectedPersonSummary.leaves_pagination.total_pages
-                            ? 'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm'
-                            : 'bg-primary opacity-50 text-white border-primary cursor-not-allowed'
-                          }`}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
-            </div>
+              </CardContent>
+              {selectedRole === "hod" && selectedPersonSummary?.leaves && selectedPersonSummary.leaves_pagination?.total_pages > 1 && (
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto w-full">
+                  <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Showing Page {leavesPage} of {selectedPersonSummary.leaves_pagination.total_pages}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={leavesPage === 1}
+                      onClick={() => setLeavesPage(p => Math.max(1, p - 1))}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {leavesPage}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={leavesPage === selectedPersonSummary.leaves_pagination.total_pages}
+                      onClick={() => setLeavesPage(p => p + 1)}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
+            </Card>
           ) : (
             <div className={`mt-4 flex flex-col items-center justify-center py-24 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
               <div className={`p-5 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
