@@ -91,9 +91,12 @@ const Organizations = () => {
       if (response.ok) {
         setOrgs(orgs.filter((o) => o.id !== deleteOrg.id));
         setDeleteOrg(null);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to delete organization');
       }
     } catch (error) {
-
+      alert('Error deleting organization');
     } finally {
       setActionLoading(false);
     }
@@ -274,10 +277,12 @@ const Organizations = () => {
                           <Edit className="w-4 h-4 mr-2 text-blue-500" /> Change Plan
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                      className="text-red-600 focus:text-red-600"
-                      onClick={() => setDeleteOrg(org)}>
+                      className={`${org.name === "Stalight HQ" ? "text-gray-400 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
+                      onClick={() => org.name !== "Stalight HQ" && setDeleteOrg(org)}
+                      disabled={org.name === "Stalight HQ"}>
                       
                           <Trash2 className="w-4 h-4 mr-2" /> Delete Organization
+                          {org.name === "Stalight HQ" && <span className="text-xs ml-auto">(System Org)</span>}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
