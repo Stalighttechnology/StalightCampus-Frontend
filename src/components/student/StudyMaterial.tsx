@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardFooter
 } from "@/components/ui/card";
 import {
   Select,
@@ -30,7 +31,7 @@ import {
 } from "@/utils/student_api";
 import { Button } from "@/components/ui/button";
 import { SkeletonList } from "../ui/skeleton";
-import { AdminPagination } from "../common/AdminPagination";
+
 import {
   Pagination,
   PaginationContent,
@@ -357,16 +358,42 @@ const StudyMaterialsStudent = () => {
             )}
           </div>
 
-          <AdminPagination
-            pagination={{
-              page: currentPage,
-              pageSize: 50,
-              totalPages: totalPages,
-              totalItems: totalCount
-            }}
-            onPageChange={handlePageChange}
-          />
         </CardContent>
+
+        {totalPages > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * 50 + 1, totalCount)} to {Math.min(currentPage * 50, totalCount)} of {totalCount} records
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage <= 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage >= totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

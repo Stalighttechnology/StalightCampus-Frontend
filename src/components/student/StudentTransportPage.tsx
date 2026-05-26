@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 import {
   fetchMyBusDetails, fetchMyTripHistory, submitStudentComplaint
 } from "../../utils/transport_api";
@@ -73,18 +74,26 @@ const StudentTransportPage: React.FC = () => {
   const statusIcon = (s: string) => s === 'boarded' ? <CheckCircle size={14} className="text-emerald-500" /> : s === 'absent' ? <XCircle size={14} className="text-red-500" /> : <Clock size={14} className="text-amber-500" />;
 
   return (
-    <div className={`min-h-screen ${bg} p-4 md:p-6`}>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Bus className="text-primary" size={26} /> My Transport</h1>
-        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Bus details, trip history, and support</p>
-      </div>
+    <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+      <Card className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
+        <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
+          <div className="flex items-center gap-3">
+            <div>
+              <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>My Transport</CardTitle>
+              <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
+                Bus details, trip history, and support
+              </CardDescription>
+            </div>
+          </div>
 
-      {/* Tabs */}
-      <div className={`flex gap-2 p-2 rounded-2xl mb-6 border ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}>
-        {[{ id: 'info', label: '🚌 Bus Info' }, { id: 'history', label: '📅 Trip History' }, { id: 'complaint', label: '📢 Complaint' }].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id as any)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === t.id ? 'bg-primary text-white shadow-md' : theme === 'dark' ? 'text-muted-foreground hover:bg-accent' : 'text-gray-600 hover:bg-gray-100'}`}>{t.label}</button>
-        ))}
-      </div>
+          {/* Tabs */}
+          <div className={`flex gap-2 p-2 rounded-2xl mt-6 border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-100'} shadow-sm`}>
+            {[{ id: 'info', label: 'Bus Info' }, { id: 'history', label: 'Trip History' }, { id: 'complaint', label: 'Complaint' }].map(t => (
+              <button key={t.id} onClick={() => setTab(t.id as any)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === t.id ? 'bg-primary text-white shadow-md' : theme === 'dark' ? 'text-muted-foreground hover:bg-accent' : 'text-gray-600 hover:bg-gray-100'}`}>{t.label}</button>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
 
       {loading ? (
         <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
@@ -103,7 +112,7 @@ const StudentTransportPage: React.FC = () => {
                 <div className={`rounded-2xl border-2 border-red-500 p-4 ${theme === 'dark' ? 'bg-red-900/30' : 'bg-red-50'} shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-pulse mb-4`}>
                   <div className="flex items-center gap-2 mb-2">
                     <AlertTriangle size={18} className="text-red-600" />
-                    <p className="font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">{busData.active_emergency.title}</p>
+                    <p className="font-semibold text-red-700 dark:text-red-400 uppercase tracking-wider">{busData.active_emergency.title}</p>
                   </div>
                   <p className="text-sm text-red-600 dark:text-red-300 font-medium">
                     The driver has reported an emergency. Administration has been notified.
@@ -117,7 +126,7 @@ const StudentTransportPage: React.FC = () => {
                   <div className="p-4 border-b border-emerald-200 dark:border-emerald-800">
                     <div className="flex items-center gap-2">
                       <Radio size={16} className="text-emerald-500 animate-pulse" />
-                      <p className="font-bold text-emerald-700 dark:text-emerald-400">Your bus is currently running!</p>
+                      <p className="font-semibold text-emerald-700 dark:text-emerald-400">Your bus is currently running!</p>
                     </div>
                     <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       {busData.active_trip.trip_type === 'morning' ? '🌅 Morning' : '🌇 Evening'} trip started at {new Date(busData.active_trip.start_time).toLocaleTimeString()}
@@ -142,7 +151,7 @@ const StudentTransportPage: React.FC = () => {
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><Navigation size={22} className="text-primary" /></div>
                   <div className="flex-1">
-                    <h2 className="font-bold text-base">{busData.allocation?.route_details?.route_name}</h2>
+                    <h2 className="font-semibold text-base">{busData.allocation?.route_details?.route_name}</h2>
                     <p className={`text-sm mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       {busData.allocation?.route_details?.start_location} → {busData.allocation?.route_details?.end_location}
                     </p>
@@ -166,7 +175,7 @@ const StudentTransportPage: React.FC = () => {
                   <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"><MapPin size={18} className="text-amber-600" /></div>
                   <div>
                     <p className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Your Boarding Stop</p>
-                    <p className="font-bold text-base">{busData.allocation?.stop_details?.stop_name}</p>
+                    <p className="font-semibold text-base">{busData.allocation?.stop_details?.stop_name}</p>
                     <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
                       🌅 {busData.allocation?.stop_details?.arrival_time_morning || 'N/A'} · 🌇 {busData.allocation?.stop_details?.arrival_time_evening || 'N/A'}
                     </p>
@@ -181,12 +190,12 @@ const StudentTransportPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
                       <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Bus Number</p>
-                      <p className="font-bold text-sm">{busData.bus_assignment?.bus_details?.bus_number}</p>
+                      <p className="font-semibold text-sm">{busData.bus_assignment?.bus_details?.bus_number}</p>
                       <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{busData.bus_assignment?.bus_details?.model_name}</p>
                     </div>
                     <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
                       <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Driver</p>
-                      <p className="font-bold text-sm">{busData.bus_assignment?.driver_details?.first_name} {busData.bus_assignment?.driver_details?.last_name}</p>
+                      <p className="font-semibold text-sm">{busData.bus_assignment?.driver_details?.first_name} {busData.bus_assignment?.driver_details?.last_name}</p>
                       <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{busData.bus_assignment?.driver_details?.mobile_number}</p>
                     </div>
                   </div>
@@ -219,7 +228,7 @@ const StudentTransportPage: React.FC = () => {
       ) : tab === 'history' ? (
         <div className={`rounded-2xl border shadow-sm ${card}`}>
           <div className="p-5 border-b border-inherit">
-            <h2 className="font-bold text-base flex items-center gap-2"><Calendar size={16} /> Trip Attendance History</h2>
+            <h2 className="font-semibold text-base flex items-center gap-2"><Calendar size={16} /> Trip Attendance History</h2>
           </div>
           {historyLoading ? (
             <div className="flex justify-center p-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
@@ -241,7 +250,7 @@ const StudentTransportPage: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${h.status === 'boarded' ? 'bg-emerald-100 text-emerald-700' : h.status === 'absent' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>{h.status}</span>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${h.status === 'boarded' ? 'bg-emerald-100 text-emerald-700' : h.status === 'absent' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>{h.status}</span>
                 </div>
               ))}
             </div>
@@ -249,7 +258,7 @@ const StudentTransportPage: React.FC = () => {
         </div>
       ) : (
         <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
-          <h2 className="font-bold text-base mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-amber-500" /> File a Transport Complaint</h2>
+          <h2 className="font-semibold text-base mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-amber-500" /> File a Transport Complaint</h2>
           <div className="space-y-4">
             <div>
               <label className="text-xs font-semibold mb-1.5 block">Subject</label>
@@ -282,13 +291,13 @@ const StudentTransportPage: React.FC = () => {
           {/* Recent Complaints */}
           {busData?.recent_complaints?.length > 0 && (
             <div className="mt-8 pt-6 border-t border-inherit">
-              <h3 className="font-bold text-sm mb-4">Recent Complaints</h3>
+              <h3 className="font-semibold text-sm mb-4">Recent Complaints</h3>
               <div className="space-y-3">
                 {busData.recent_complaints.map((c: any) => (
                   <div key={c.id} className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <p className="font-semibold text-sm">{c.title}</p>
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold capitalize ${c.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-semibold capitalize ${c.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
                     </div>
                     <p className={`text-xs mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{c.description}</p>
                     <p className={`text-[10px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{new Date(c.created_at).toLocaleString()}</p>
@@ -299,6 +308,8 @@ const StudentTransportPage: React.FC = () => {
           )}
         </div>
       )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

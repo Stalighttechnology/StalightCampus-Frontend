@@ -79,11 +79,11 @@ const ProctorStudents = () => {
   };
 
   const handleExportPDF = async () => {
-    if (state.filters.semester_id === "all" || state.filters.section_id === "all" || state.filters.proctor_id === "all") {
+    if (!state.search.trim() && (state.filters.semester_id === "all" || state.filters.section_id === "all" || state.filters.proctor_id === "all")) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please select a semester, section, and proctor to export"
+        description: "Please select a semester, section, and proctor, or perform a search to export"
       });
       return;
     }
@@ -287,10 +287,10 @@ const ProctorStudents = () => {
     const sem = state.filters.semester_id;
     const sec = state.filters.section_id;
     const proc = state.filters.proctor_id;
-    if (sem !== "all" && sec !== "all" && proc !== "all") {
+    if (state.search.trim() || (sem !== "all" && sec !== "all" && proc !== "all")) {
       loadStudents();
     } else {
-      // clear students if selection is incomplete
+      // clear students if selection is incomplete and no search is active
       updateState({ students: [], totalCount: 0, totalAssigned: 0, totalUnassigned: 0 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -518,7 +518,7 @@ const ProctorStudents = () => {
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <Button
               onClick={handleExportPDF}
-              disabled={downloadingPDF || state.filters.semester_id === "all" || state.filters.section_id === "all"}
+              disabled={downloadingPDF || state.loading || state.students.length === 0}
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-4"
             >
               {downloadingPDF ? (
@@ -539,7 +539,7 @@ const ProctorStudents = () => {
                 updateState({ editMode: true });
               }}
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto h-10 px-4"
-              disabled={state.loading || state.filters.semester_id === "all" || state.filters.section_id === "all"}
+              disabled={state.loading || state.students.length === 0}
             >
               Manage Assignments
             </Button>

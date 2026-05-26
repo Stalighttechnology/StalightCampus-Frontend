@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  BookOpen, Users, ClipboardList, CreditCard, 
-  Search, Plus, Check, X, RefreshCw, AlertTriangle, 
+import {
+  BookOpen, Users, ClipboardList, CreditCard,
+  Search, Plus, Check, X, RefreshCw, AlertTriangle,
   Calendar, MapPin, Tag, BarChart2, BookOpen as BookIcon
 } from "lucide-react";
 import Swal from "sweetalert2";
@@ -34,7 +34,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [loading, setLoading] = useState(false);
-  
+
   // Dashboard stats
   const [stats, setStats] = useState({
     total_books: 0,
@@ -54,7 +54,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
   const [loadingCopies, setLoadingCopies] = useState(false);
   const [copiesPage, setCopiesPage] = useState(1);
   const [copiesTotalPages, setCopiesTotalPages] = useState(1);
-  
+
   // Add/Edit Book form
   const [bookForm, setBookForm] = useState({
     title: "",
@@ -81,7 +81,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
   const [fines, setFines] = useState<any[]>([]);
   const [finesPage, setFinesPage] = useState(1);
   const [finesTotalPages, setFinesTotalPages] = useState(1);
-  
+
   const [reservations, setReservations] = useState<any[]>([]);
   const [reservationsPage, setReservationsPage] = useState(1);
   const [reservationsTotalPages, setReservationsTotalPages] = useState(1);
@@ -224,7 +224,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
         res = await createLibraryBook(bookForm);
         Swal.fire("Success", "Book added and barcodes generated!", "success");
       }
-      
+
       setShowAddModal(false);
       setSelectedBook(null);
       setBookForm({
@@ -448,7 +448,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
 
   return (
     <div className={`p-1 md:p-4 min-h-screen ${theme === "dark" ? "text-white" : "text-gray-900"}`}>
-      
+
       {/* Metrics Cards */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -458,7 +458,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
               <h2 className="text-3xl font-extrabold mt-1">{stats.total_books}</h2>
             </div>
             <div className="flex items-center justify-between mt-4">
-              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">Catalog</span>
+              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-semibold">Catalog</span>
               <BookIcon className="w-5 h-5 opacity-60 text-blue-400" />
             </div>
           </Card>
@@ -469,7 +469,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
               <h2 className="text-3xl font-extrabold mt-1">{stats.total_copies}</h2>
             </div>
             <div className="flex items-center justify-between mt-4">
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">Copies</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-semibold">Copies</span>
               <Tag className="w-5 h-5 opacity-60 text-emerald-400" />
             </div>
           </Card>
@@ -480,7 +480,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
               <h2 className="text-3xl font-extrabold mt-1">{stats.active_borrows}</h2>
             </div>
             <div className="flex items-center justify-between mt-4">
-              <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-bold">On Loan</span>
+              <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-semibold">On Loan</span>
               <Users className="w-5 h-5 opacity-60 text-purple-400" />
             </div>
           </Card>
@@ -491,18 +491,18 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
               <h2 className="text-3xl font-extrabold mt-1 text-red-500">{stats.overdue_borrows}</h2>
             </div>
             <div className="flex items-center justify-between mt-4">
-              <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${stats.overdue_borrows > 0 ? 'bg-red-500/30 text-red-400 animate-pulse' : 'bg-gray-500/20 text-gray-400'}`}>Warning</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${stats.overdue_borrows > 0 ? 'bg-red-500/30 text-red-400 animate-pulse' : 'bg-gray-500/20 text-gray-400'}`}>Warning</span>
               <AlertTriangle className="w-5 h-5 opacity-60 text-red-500" />
             </div>
           </Card>
 
           <Card className={`p-5 flex flex-col justify-between border ${theme === 'dark' ? 'bg-[#2c2c2e]/60 border-[#3a3a3c] text-white' : 'bg-white border-gray-200'} shadow-md hover:shadow-lg transition-shadow`}>
             <div>
-              <p className="text-xs uppercase tracking-wider font-semibold opacity-70">Total Unpaid Fines</p>
-              <h2 className="text-3xl font-extrabold mt-1 text-amber-400">{stats.outstanding_fines.toFixed(2)}</h2>
+              <p className="text-md uppercase tracking-wider font-semibold opacity-70">Total Unpaid Fines</p>
+              <h2 className="text-3xl font-bold mt-1 text-amber-400">{stats.outstanding_fines.toFixed(2)}</h2>
             </div>
             <div className="flex items-center justify-between mt-4">
-              <span className="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-bold">Fines</span>
+              <span className="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-semibold">Fines</span>
               <CreditCard className="w-5 h-5 opacity-60 text-amber-400" />
             </div>
           </Card>
@@ -523,7 +523,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Quick Issue Panel */}
               <Card className={`p-6 border ${theme === 'dark' ? 'bg-[#2c2c2e]/60 border-[#3a3a3c] text-white' : 'bg-white border-gray-200'} shadow-md`}>
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-primary">
                   <BookIcon className="w-5 h-5" /> Book Issue Desk
                 </h3>
                 <form onSubmit={handleIssueBookSubmit} className="space-y-4">
@@ -536,14 +536,12 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                         placeholder="Search student USN, name, or email..."
                         value={borrowerSearchText}
                         onChange={(e) => setBorrowerSearchText(e.target.value)}
-                        className={`w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                          theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                        }`}
+                        className={`w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                          }`}
                       />
                       {suggestedBorrowers.length > 0 && (
-                        <div className={`absolute left-0 right-0 top-11 max-h-48 overflow-y-auto rounded-lg border z-10 ${
-                          theme === 'dark' ? 'bg-[#2c2c2e] border-[#3a3a3c]' : 'bg-white border-gray-200'
-                        } shadow-lg thin-scrollbar`}>
+                        <div className={`absolute left-0 right-0 top-11 max-h-48 overflow-y-auto rounded-lg border z-10 ${theme === 'dark' ? 'bg-[#2c2c2e] border-[#3a3a3c]' : 'bg-white border-gray-200'
+                          } shadow-lg thin-scrollbar`}>
                           {suggestedBorrowers.map((borrower) => (
                             <button
                               key={borrower.id}
@@ -553,9 +551,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                                 setBorrowerSearchText(`${borrower.first_name} ${borrower.last_name || ""}`);
                                 setSuggestedBorrowers([]);
                               }}
-                              className={`w-full text-left px-4 py-2.5 text-xs flex justify-between items-center transition-colors ${
-                                theme === 'dark' ? 'hover:bg-[#1c1c1e] text-white' : 'hover:bg-gray-100'
-                              }`}
+                              className={`w-full text-left px-4 py-2.5 text-xs flex justify-between items-center transition-colors ${theme === 'dark' ? 'hover:bg-[#1c1c1e] text-white' : 'hover:bg-gray-100'
+                                }`}
                             >
                               <span><b>{borrower.first_name} {borrower.last_name}</b> ({borrower.username})</span>
                               <span className="opacity-70 text-[10px] bg-primary/20 text-primary-foreground px-1.5 py-0.5 rounded capitalize">{borrower.role}</span>
@@ -579,9 +576,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       placeholder="e.g. BAR-1-001"
                       value={issueBarcode}
                       onChange={(e) => setIssueBarcode(e.target.value)}
-                      className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                        theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                      }`}
+                      className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                        }`}
                     />
                   </div>
 
@@ -591,9 +587,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       <select
                         value={durationDays}
                         onChange={(e) => setDurationDays(Number(e.target.value))}
-                        className={`w-full px-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                          theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                        }`}
+                        className={`w-full px-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                          }`}
                       >
                         <option value={7}>7 Days</option>
                         <option value={14}>14 Days</option>
@@ -606,7 +601,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-bold h-10 rounded-lg flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2"
                       >
                         <Plus className="w-4 h-4" /> Issue Book
                       </Button>
@@ -617,7 +612,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
 
               {/* Quick Return Panel */}
               <Card className={`p-6 border ${theme === 'dark' ? 'bg-[#2c2c2e]/60 border-[#3a3a3c] text-white' : 'bg-white border-gray-200'} shadow-md`}>
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-emerald-400">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-emerald-400">
                   <RefreshCw className="w-5 h-5" /> Book Return Desk
                 </h3>
                 <form onSubmit={handleReturnBookSubmit} className="space-y-4">
@@ -629,14 +624,13 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                         placeholder="Scan book barcode sticker..."
                         value={barcodeInput}
                         onChange={(e) => setBarcodeInput(e.target.value)}
-                        className={`flex-1 px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                          theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                        }`}
+                        className={`flex-1 px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                          }`}
                       />
                       <Button
                         type="submit"
                         disabled={loading}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 h-10 rounded-lg flex items-center gap-1.5"
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 h-10 rounded-lg flex items-center gap-1.5"
                       >
                         <Check className="w-4 h-4" /> Check-In
                       </Button>
@@ -669,9 +663,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       setBookSearch(e.target.value);
                       loadBooks(e.target.value);
                     }}
-                    className={`w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                      theme === 'dark' ? 'bg-[#2c2c2e]/60 border-[#3a3a3c] text-white' : 'bg-white border-gray-200'
-                    }`}
+                    className={`w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#2c2c2e]/60 border-[#3a3a3c] text-white' : 'bg-white border-gray-200'
+                      }`}
                   />
                 </div>
                 <Button
@@ -688,7 +681,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                     });
                     setShowAddModal(true);
                   }}
-                  className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" /> Add Book Title
                 </Button>
@@ -699,9 +692,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                 <div className="overflow-x-auto thin-scrollbar">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className={`border-b text-xs uppercase tracking-wider font-bold ${
-                        theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'
-                      }`}>
+                      <tr className={`border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'
+                        }`}>
                         <th className="p-4">Book Title</th>
                         <th className="p-4">Author</th>
                         <th className="p-4">ISBN</th>
@@ -720,21 +712,20 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                         </tr>
                       ) : (
                         books.map((book) => (
-                          <tr key={book.id} className={`border-b text-sm transition-colors ${
-                            theme === 'dark' ? 'border-[#3a3a3c] hover:bg-[#1c1c1e]/40' : 'border-gray-200 hover:bg-gray-50'
-                          }`}>
-                            <td className="p-4 font-bold">{book.title}</td>
+                          <tr key={book.id} className={`border-b text-sm transition-colors ${theme === 'dark' ? 'border-[#3a3a3c] hover:bg-[#1c1c1e]/40' : 'border-gray-200 hover:bg-gray-50'
+                            }`}>
+                            <td className="p-4 font-semibold">{book.title}</td>
                             <td className="p-4 opacity-80">{book.author}</td>
                             <td className="p-4 font-mono text-xs opacity-70">{book.isbn || "N/A"}</td>
                             <td className="p-4">
-                              <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-primary/20 text-primary-foreground capitalize">
+                              <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-primary/20 text-primary-foreground capitalize">
                                 {book.category || "General"}
                               </span>
                             </td>
                             <td className="p-4 text-xs font-semibold flex items-center gap-1 mt-1 opacity-70">
                               <MapPin className="w-3.5 h-3.5 text-primary" /> {book.physical_location || "Not set"}
                             </td>
-                            <td className="p-4 text-center font-bold">
+                            <td className="p-4 text-center font-semibold">
                               <span className={book.available_copies > 0 ? "text-emerald-500" : "text-red-500"}>
                                 {book.available_copies}
                               </span>
@@ -743,19 +734,19 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                             <td className="p-4 text-right space-x-3 whitespace-nowrap">
                               <button
                                 onClick={() => handleViewBookClick(book)}
-                                className="text-xs text-blue-500 font-bold hover:underline"
+                                className="text-xs text-blue-500 font-semibold hover:underline"
                               >
                                 View
                               </button>
                               <button
                                 onClick={() => handleEditBookClick(book)}
-                                className="text-xs text-primary font-bold hover:underline"
+                                className="text-xs text-primary font-semibold hover:underline"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteBookClick(book)}
-                                className="text-xs text-red-500 font-bold hover:underline"
+                                className="text-xs text-red-500 font-semibold hover:underline"
                               >
                                 Delete
                               </button>
@@ -774,12 +765,11 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                   <motion.div
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className={`w-full max-w-lg rounded-xl border p-6 shadow-2xl ${
-                      theme === 'dark' ? 'bg-[#2c2c2e] border-[#3a3a3c] text-white' : 'bg-white border-gray-200'
-                    }`}
+                    className={`w-full max-w-lg rounded-xl border p-6 shadow-2xl ${theme === 'dark' ? 'bg-[#2c2c2e] border-[#3a3a3c] text-white' : 'bg-white border-gray-200'
+                      }`}
                   >
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-bold">
+                      <h3 className="text-lg font-semibold">
                         {selectedBook ? "Edit Catalog Item" : "Add New Book Title"}
                       </h3>
                       <X className="w-5 h-5 cursor-pointer" onClick={() => setShowAddModal(false)} />
@@ -793,9 +783,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                             required
                             value={bookForm.title}
                             onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })}
-                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                              theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                            }`}
+                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                              }`}
                           />
                         </div>
 
@@ -806,9 +795,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                             required
                             value={bookForm.author}
                             onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })}
-                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                              theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                            }`}
+                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                              }`}
                           />
                         </div>
 
@@ -818,9 +806,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                             type="text"
                             value={bookForm.isbn}
                             onChange={(e) => setBookForm({ ...bookForm, isbn: e.target.value })}
-                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                              theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                            }`}
+                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                              }`}
                           />
                         </div>
 
@@ -829,9 +816,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                           <select
                             value={bookForm.category}
                             onChange={(e) => setBookForm({ ...bookForm, category: e.target.value })}
-                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                              theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                            }`}
+                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                              }`}
                           >
                             <option value="">Select Category</option>
                             <option value="Computer Science">Computer Science</option>
@@ -857,9 +843,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                             placeholder="e.g. Row 3, Rack A"
                             value={bookForm.physical_location}
                             onChange={(e) => setBookForm({ ...bookForm, physical_location: e.target.value })}
-                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                              theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                            }`}
+                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                              }`}
                           />
                         </div>
 
@@ -869,9 +854,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                             rows={3}
                             value={bookForm.description}
                             onChange={(e) => setBookForm({ ...bookForm, description: e.target.value })}
-                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                              theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                            }`}
+                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                              }`}
                           />
                         </div>
 
@@ -882,9 +866,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                             min={1}
                             value={bookForm.total_copies}
                             onChange={(e) => setBookForm({ ...bookForm, total_copies: Number(e.target.value) })}
-                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${
-                              theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
-                            }`}
+                            className={`w-full px-4 py-2 text-sm rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white' : 'bg-gray-50 border-gray-200'
+                              }`}
                           />
                         </div>
                       </div>
@@ -900,7 +883,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                         <Button
                           type="submit"
                           disabled={loading}
-                          className="bg-primary hover:bg-primary/90 text-white font-bold"
+                          className="bg-primary hover:bg-primary/90 text-white font-semibold"
                         >
                           Save Book Title
                         </Button>
@@ -915,13 +898,12 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                   <motion.div
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className={`w-full max-w-4xl p-6 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] ${
-                      theme === 'dark' ? 'bg-[#1c1c1e] text-white border border-[#3a3a3c]' : 'bg-white text-gray-900'
-                    }`}
+                    className={`w-full max-w-4xl p-6 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] ${theme === 'dark' ? 'bg-[#1c1c1e] text-white border border-[#3a3a3c]' : 'bg-white text-gray-900'
+                      }`}
                   >
                     <div className="flex justify-between items-center mb-6 border-b pb-3 border-gray-200 dark:border-[#3a3a3c]">
                       <div>
-                        <h2 className="text-xl font-bold">{selectedBook?.title}</h2>
+                        <h2 className="text-xl font-semibold">{selectedBook?.title}</h2>
                         <p className="text-sm opacity-70">Physical Copies & Circulation Status</p>
                       </div>
                       <button onClick={() => setShowViewModal(false)} className="opacity-70 hover:opacity-100 p-2">
@@ -935,9 +917,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-[#3a3a3c]">
                         <table className="w-full text-left border-collapse">
                           <thead>
-                            <tr className={`border-b text-xs uppercase tracking-wider font-bold ${
-                              theme === 'dark' ? 'bg-[#2c2c2e] text-gray-400' : 'bg-gray-50 text-gray-600'
-                            }`}>
+                            <tr className={`border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-[#2c2c2e] text-gray-400' : 'bg-gray-50 text-gray-600'
+                              }`}>
                               <th className="p-3">Barcode ID</th>
                               <th className="p-3">Status</th>
                               <th className="p-3">Current Borrower</th>
@@ -953,13 +934,12 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                             ) : (
                               viewingBookCopies.map((copy) => (
                                 <tr key={copy.id} className={`border-b last:border-0 ${theme === 'dark' ? 'border-[#3a3a3c]' : 'border-gray-100'} hover:bg-black/5`}>
-                                  <td className="p-3 font-mono font-bold text-sm text-primary">{copy.barcode_id}</td>
+                                  <td className="p-3 font-mono font-semibold text-sm text-primary">{copy.barcode_id}</td>
                                   <td className="p-3">
-                                    <span className={`px-2 py-1 text-[10px] font-bold uppercase rounded-full ${
-                                      copy.status === 'available' ? 'bg-emerald-500/20 text-emerald-500' :
-                                      copy.status === 'borrowed' ? 'bg-blue-500/20 text-blue-500' :
-                                      'bg-red-500/20 text-red-500'
-                                    }`}>
+                                    <span className={`px-2 py-1 text-[14px] font-semibold uppercase rounded-full ${copy.status === 'available' ? 'bg-emerald-500/20 text-emerald-500' :
+                                        copy.status === 'borrowed' ? 'bg-blue-500/20 text-blue-500' :
+                                          'bg-red-500/20 text-red-500'
+                                      }`}>
                                       {copy.status}
                                     </span>
                                   </td>
@@ -985,7 +965,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                                       <div className="flex flex-col text-xs">
                                         <span className="opacity-70">Due: {new Date(copy.current_borrower.due_date).toLocaleDateString()}</span>
                                         {copy.current_borrower.overdue_days > 0 ? (
-                                          <span className="text-red-500 font-bold">{copy.current_borrower.overdue_days} days overdue (Fine: ₹{copy.current_borrower.fine_amount})</span>
+                                          <span className="text-red-500 font-semibold">{copy.current_borrower.overdue_days} days overdue (Fine: ₹{copy.current_borrower.fine_amount})</span>
                                         ) : (
                                           <span className="text-emerald-500">On time</span>
                                         )}
@@ -1001,21 +981,21 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                         </table>
                       </div>
                     )}
-                    
+
                     {!loadingCopies && copiesTotalPages > 1 && (
                       <div className="flex justify-between items-center mt-4 text-sm">
                         <span className="opacity-70">
                           Page {copiesPage} of {copiesTotalPages}
                         </span>
                         <div className="flex gap-2">
-                          <Button 
+                          <Button
                             disabled={copiesPage === 1}
                             onClick={() => loadBookCopiesPage(selectedBook.id, copiesPage - 1)}
                             className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
                           >
                             Previous
                           </Button>
-                          <Button 
+                          <Button
                             disabled={copiesPage === copiesTotalPages}
                             onClick={() => loadBookCopiesPage(selectedBook.id, copiesPage + 1)}
                             className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
@@ -1037,8 +1017,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
               {/* List of active borrows */}
               <Card className={`border overflow-hidden ${theme === 'dark' ? 'bg-[#2c2c2e]/60 border-[#3a3a3c] text-white' : 'bg-white border-gray-200'} shadow-md`}>
                 <div className="p-4 border-b border-gray-200 dark:border-[#3a3a3c] flex justify-between items-center">
-                  <h3 className="text-md font-bold">Currently Lent Books</h3>
-                  <button 
+                  <h3 className="text-md font-semibold">Currently Lent Books</h3>
+                  <button
                     onClick={loadCirculation}
                     className="p-1.5 hover:bg-primary/10 rounded-full text-primary transition-colors"
                   >
@@ -1048,9 +1028,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                 <div className="overflow-x-auto thin-scrollbar">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className={`border-b text-xs uppercase tracking-wider font-bold ${
-                        theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'
-                      }`}>
+                      <tr className={`border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'
+                        }`}>
                         <th className="p-4">Borrower</th>
                         <th className="p-4">Book Details</th>
                         <th className="p-4 font-mono">Barcode ID</th>
@@ -1069,26 +1048,24 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                         </tr>
                       ) : (
                         activeBorrows.map((borrow) => (
-                          <tr key={borrow.id} className={`border-b text-sm transition-colors ${
-                            theme === 'dark' ? 'border-[#3a3a3c] hover:bg-[#1c1c1e]/40' : 'border-gray-200 hover:bg-gray-50'
-                          }`}>
+                          <tr key={borrow.id} className={`border-b text-sm transition-colors ${theme === 'dark' ? 'border-[#3a3a3c] hover:bg-[#1c1c1e]/40' : 'border-gray-200 hover:bg-gray-50'
+                            }`}>
                             <td className="p-4">
-                              <p className="font-bold">{borrow.user_details?.first_name} {borrow.user_details?.last_name}</p>
+                              <p className="font-semibold">{borrow.user_details?.first_name} {borrow.user_details?.last_name}</p>
                               <p className="text-xs opacity-60">{borrow.user_details?.email}</p>
                             </td>
                             <td className="p-4">
-                              <p className="font-bold">{borrow.book_copy_details?.book_details?.title}</p>
+                              <p className="font-semibold">{borrow.book_copy_details?.book_details?.title}</p>
                               <p className="text-xs opacity-60">{borrow.book_copy_details?.book_details?.author}</p>
                             </td>
                             <td className="p-4 font-mono text-xs font-semibold">{borrow.book_copy_details?.barcode_id}</td>
                             <td className="p-4 text-xs font-semibold">{new Date(borrow.issue_date).toLocaleDateString()}</td>
                             <td className="p-4 text-xs font-semibold">{new Date(borrow.due_date).toLocaleDateString()}</td>
                             <td className="p-4">
-                              <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold capitalize ${
-                                borrow.status === "overdue" 
-                                  ? "bg-red-500/20 text-red-400 animate-pulse" 
+                              <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold capitalize ${borrow.status === "overdue"
+                                  ? "bg-red-500/20 text-red-400 animate-pulse"
                                   : "bg-emerald-500/20 text-emerald-400"
-                              }`}>
+                                }`}>
                                 {borrow.status}
                               </span>
                             </td>
@@ -1097,7 +1074,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                                 size="sm"
                                 disabled={loading}
                                 onClick={() => handleRenewClick(borrow.id)}
-                                className="bg-primary/20 hover:bg-primary/30 text-primary-foreground font-bold px-3.5 py-1 text-xs rounded"
+                                className="bg-primary/20 hover:bg-primary/30 text-primary-foreground font-semibold px-3.5 py-1 text-xs rounded"
                               >
                                 Renew (14d)
                               </Button>
@@ -1107,21 +1084,21 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       )}
                     </tbody>
                   </table>
-                  
+
                   {!loading && borrowsTotalPages > 1 && (
                     <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-[#3a3a3c] text-sm">
                       <span className="opacity-70">
                         Page {borrowsPage} of {borrowsTotalPages}
                       </span>
                       <div className="flex gap-2">
-                        <Button 
+                        <Button
                           disabled={borrowsPage === 1}
                           onClick={() => loadCirculation(borrowsPage - 1)}
                           className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
                         >
                           Previous
                         </Button>
-                        <Button 
+                        <Button
                           disabled={borrowsPage === borrowsTotalPages}
                           onClick={() => loadCirculation(borrowsPage + 1)}
                           className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
@@ -1142,9 +1119,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
               <div className="overflow-x-auto thin-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className={`border-b text-xs uppercase tracking-wider font-bold ${
-                      theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'
-                    }`}>
+                    <tr className={`border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'
+                      }`}>
                       <th className="p-4">Student</th>
                       <th className="p-4">Requested Book</th>
                       <th className="p-4">Author</th>
@@ -1161,21 +1137,19 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       </tr>
                     ) : (
                       reservations.map((res) => (
-                        <tr key={res.id} className={`border-b text-sm transition-colors ${
-                          theme === 'dark' ? 'border-[#3a3a3c] hover:bg-[#1c1c1e]/40' : 'border-gray-200 hover:bg-gray-50'
-                        }`}>
-                          <td className="p-4 font-bold">{res.user_details?.first_name} {res.user_details?.last_name}</td>
-                          <td className="p-4 font-bold">{res.book_details?.title}</td>
+                        <tr key={res.id} className={`border-b text-sm transition-colors ${theme === 'dark' ? 'border-[#3a3a3c] hover:bg-[#1c1c1e]/40' : 'border-gray-200 hover:bg-gray-50'
+                          }`}>
+                          <td className="p-4 font-semibold">{res.user_details?.first_name} {res.user_details?.last_name}</td>
+                          <td className="p-4 font-semibold">{res.book_details?.title}</td>
                           <td className="p-4 opacity-70">{res.book_details?.author}</td>
                           <td className="p-4 text-xs opacity-70">{new Date(res.reserved_date).toLocaleDateString()}</td>
                           <td className="p-4">
-                            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold capitalize ${
-                              res.status === "allocated" 
-                                ? "bg-emerald-500/20 text-emerald-400" 
-                                : res.status === "pending" 
-                                ? "bg-amber-500/20 text-amber-400 animate-pulse" 
-                                : "bg-gray-500/20 text-gray-400"
-                            }`}>
+                            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold capitalize ${res.status === "allocated"
+                                ? "bg-emerald-500/20 text-emerald-400"
+                                : res.status === "pending"
+                                  ? "bg-amber-500/20 text-amber-400 animate-pulse"
+                                  : "bg-gray-500/20 text-gray-400"
+                              }`}>
                               {res.status}
                             </span>
                           </td>
@@ -1184,21 +1158,21 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                     )}
                   </tbody>
                 </table>
-                
+
                 {!loading && reservationsTotalPages > 1 && (
                   <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-[#3a3a3c] text-sm">
                     <span className="opacity-70">
                       Page {reservationsPage} of {reservationsTotalPages}
                     </span>
                     <div className="flex gap-2">
-                      <Button 
+                      <Button
                         disabled={reservationsPage === 1}
                         onClick={() => loadReservations(reservationsPage - 1)}
                         className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
                       >
                         Previous
                       </Button>
-                      <Button 
+                      <Button
                         disabled={reservationsPage === reservationsTotalPages}
                         onClick={() => loadReservations(reservationsPage + 1)}
                         className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
@@ -1218,9 +1192,8 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
               <div className="overflow-x-auto thin-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className={`border-b text-xs uppercase tracking-wider font-bold ${
-                      theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'
-                    }`}>
+                    <tr className={`border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600'
+                      }`}>
                       <th className="p-4">Borrower</th>
                       <th className="p-4">Overdue Book Title</th>
                       <th className="p-4">Barcode ID</th>
@@ -1238,19 +1211,17 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                       </tr>
                     ) : (
                       fines.map((fine) => (
-                        <tr key={fine.id} className={`border-b text-sm transition-colors ${
-                          theme === 'dark' ? 'border-[#3a3a3c] hover:bg-[#1c1c1e]/40' : 'border-gray-200 hover:bg-gray-50'
-                        }`}>
-                          <td className="p-4 font-bold">{fine.borrow_record_details?.user_details?.first_name} {fine.borrow_record_details?.user_details?.last_name}</td>
+                        <tr key={fine.id} className={`border-b text-sm transition-colors ${theme === 'dark' ? 'border-[#3a3a3c] hover:bg-[#1c1c1e]/40' : 'border-gray-200 hover:bg-gray-50'
+                          }`}>
+                          <td className="p-4 font-semibold">{fine.borrow_record_details?.user_details?.first_name} {fine.borrow_record_details?.user_details?.last_name}</td>
                           <td className="p-4 font-semibold">{fine.borrow_record_details?.book_copy_details?.book_details?.title}</td>
                           <td className="p-4 font-mono text-xs opacity-70">{fine.borrow_record_details?.book_copy_details?.barcode_id}</td>
-                          <td className="p-4 font-bold text-red-500">{fine.amount} units</td>
+                          <td className="p-4 font-semibold text-red-500">{fine.amount} units</td>
                           <td className="p-4">
-                            <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold capitalize ${
-                              fine.is_paid 
-                                ? "bg-emerald-500/20 text-emerald-400" 
+                            <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold capitalize ${fine.is_paid
+                                ? "bg-emerald-500/20 text-emerald-400"
                                 : "bg-red-500/20 text-red-400 animate-pulse"
-                            }`}>
+                              }`}>
                               {fine.is_paid ? "Paid" : "Overdue (Unpaid)"}
                             </span>
                           </td>
@@ -1260,7 +1231,7 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                                 size="sm"
                                 disabled={loading}
                                 onClick={() => handlePayFineClick(fine.id, fine.amount)}
-                                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-1 text-xs rounded"
+                                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-1 text-xs rounded"
                               >
                                 Settle Payment
                               </Button>
@@ -1271,21 +1242,21 @@ const LibraryAdminPanel = ({ initialTab = "overview" }: LibraryAdminPanelProps) 
                     )}
                   </tbody>
                 </table>
-                
+
                 {!loading && finesTotalPages > 1 && (
                   <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-[#3a3a3c] text-sm">
                     <span className="opacity-70">
                       Page {finesPage} of {finesTotalPages}
                     </span>
                     <div className="flex gap-2">
-                      <Button 
+                      <Button
                         disabled={finesPage === 1}
                         onClick={() => loadFines(finesPage - 1)}
                         className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"
                       >
                         Previous
                       </Button>
-                      <Button 
+                      <Button
                         disabled={finesPage === finesTotalPages}
                         onClick={() => loadFines(finesPage + 1)}
                         className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-[#2c2c2e] dark:hover:bg-[#3a3a3c] dark:text-gray-200"

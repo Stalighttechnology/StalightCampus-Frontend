@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
@@ -141,9 +141,9 @@ const SubmitLeaveRequest = () => {
 
     try {
       await leaveRequestMutation.mutateAsync(requestData);
+      refetchLeaves();
 
-      // Show success toast and a subtle modal for confirmation
-      toast({ title: 'Leave Request Submitted', description: 'Your request was submitted successfully.' });
+      // Show success subtle modal for confirmation
 
       const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
       await MySwal.fire({
@@ -385,40 +385,42 @@ const SubmitLeaveRequest = () => {
                     </TableBody>
                   </Table>
 
-                  {/* Pagination Controls */}
-                  {pagination.totalPages > 1 &&
-                    <div className="flex items-center justify-between mt-6 px-2">
-                      <p className={`text-[12px] sm:text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        Page {pagination.page} of {pagination.totalPages} ({pagination.totalItems} total)
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!pagination.hasPrevious}
-                          onClick={() => pagination.prevPage()}
-                          className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4 text-[13px] sm:text-sm">
-
-                          Previous
-                        </Button>
-                        <span className={`px-3 text-sm font-bold ${theme === 'dark' ? 'text-primary' : 'text-primary'}`}>
-                          {pagination.page}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!pagination.hasNext}
-                          onClick={() => pagination.nextPage()}
-                          className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 h-8 rounded-lg px-4 text-[13px] sm:text-sm">
-
-                          Next
-                        </Button>
-                      </div>
-                    </div>
-                  }
                 </>
             }
           </CardContent>
+
+          {pagination && pagination.totalPages > 0 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {Math.min((pagination.page - 1) * 10 + 1, pagination.totalItems)} to {Math.min(pagination.page * 10, pagination.totalItems)} of {pagination.totalItems} results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!pagination.hasPrevious}
+                  onClick={() => pagination.prevPage()}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {pagination.page}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!pagination.hasNext}
+                  onClick={() => pagination.nextPage()}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
 
