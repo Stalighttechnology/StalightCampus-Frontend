@@ -2,7 +2,7 @@ import React, { useState, useEffect, ReactNode, Component } from "react";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { FileDown, Loader2, CheckCircle, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { FaUsers, FaExclamationTriangle, FaChartLine } from 'react-icons/fa';
 import {
@@ -343,7 +343,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
         // Backend response structure: { success: true, data: { students: [...], stats: {...} }, count, next, previous, ... }
         const studentsArray = studentsResponse?.data?.students || [];
         const statsObj = studentsResponse?.data?.stats || {};
-        
+
         const studentsData = studentsArray.map((student: any) => ({
           student_id: student.student_id,
           usn: student.usn,
@@ -584,7 +584,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
         });
         updateState({ notifiedStudents: newNotified });
       } else {
-         throw new Error(response.message || "Failed to send bulk notifications");
+        throw new Error(response.message || "Failed to send bulk notifications");
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to send notifications";
@@ -671,32 +671,32 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
         {/* Main Management Card */}
         <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm' : 'bg-white border border-gray-200 shadow-sm'}>
           <div id="low-attendance-dashboard-header">
-          <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex-1">
-              <CardTitle className={`text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Low Attendance Management
-              </CardTitle>
-              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Monitor and notify students with low attendance
-              </p>
-            </div>
-            <Button
-              onClick={exportPDF}
-              disabled={state.loading || state.students.length === 0 || state.downloadingPDF}
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto">
-              {state.downloadingPDF ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Downloading...
-                </>
-              ) : (
-                <>
-                  <FileDown className="w-4 h-4 mr-2" />
-                  Export PDF
-                </>
-              )}
-            </Button>
-          </CardHeader>
+            <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex-1">
+                <CardTitle className={`text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Low Attendance Management
+                </CardTitle>
+                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Monitor and notify students with low attendance
+                </p>
+              </div>
+              <Button
+                onClick={exportPDF}
+                disabled={state.loading || state.students.length === 0 || state.downloadingPDF}
+                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto">
+                {state.downloadingPDF ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="w-4 h-4 mr-2" />
+                    Export PDF
+                  </>
+                )}
+              </Button>
+            </CardHeader>
           </div>
 
           {/* Filters */}
@@ -858,6 +858,40 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                 </div>
             }
           </CardContent>
+          {!state.loading && state.students.length > 0 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing <span className="font-medium">{Math.min((state.currentPage - 1) * state.pageSize + 1, state.totalCount)}</span> to <span className="font-medium">{Math.min(state.currentPage * state.pageSize, state.totalCount)}</span> of <span className="font-medium">{state.totalCount}</span> students
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPreviousPage}
+                  disabled={!state.previous || state.loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {state.currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextPage}
+                  disabled={!state.next || state.loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
     </ErrorBoundary>);

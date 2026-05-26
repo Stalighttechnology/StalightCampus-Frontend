@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
@@ -9,7 +9,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { applyLeave, getApplyLeaveBootstrap } from '../../utils/faculty_api';
 import { useTheme } from '@/context/ThemeContext';
 import { SkeletonList } from '@/components/ui/skeleton';
@@ -267,7 +267,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       {/* Main Container with Responsive Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-6 lg:gap-8">
         {/* Leave Application Form - Left Side */}
-        <Card id="apply-leave-form-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
+        <Card id="apply-leave-form-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
             <CardTitle>Leave Application Form</CardTitle>
           </CardHeader>
@@ -380,7 +380,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         </Card>
 
         {/* Leave Requests List - Right Side */}
-        <Card id="recent-leaves-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
+        <Card id="recent-leaves-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
             {/* Title */}
             <CardTitle>
@@ -430,132 +430,172 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             </div>
 
           </CardHeader>
-          <CardContent className="p-2 sm:p-4 lg:p-6">
-            {loading ?
-            <SkeletonList count={3} /> :
-            filteredLeaveList.length === 0 ?
-            <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
-                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <CalendarCheck2 className="w-10 h-10" />
-                </div>
-                <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {filterStatus === 'All' ? 'No Leave Requests' : `No ${filterStatus} Requests`}
-                </h3>
-                <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  {filterStatus === 'All' ?
-                "Your leave history is currently empty. Any applications you submit will appear here." :
-                `There are currently no ${filterStatus.toLowerCase()} requests matching your filter.`}
-                </p>
-              </div> :
-
-            <div className="max-h-[480px] sm:max-h-[480px] lg:max-h-[520px] overflow-y-auto custom-scrollbar space-y-4 sm:space-y-3 lg:space-y-4 pr-2">
-                {filteredLeaveList.map((leave) => {
-                return (
-                  <div key={leave.id} className={`p-4 sm:p-3 lg:p-4 border rounded-xl ${theme === 'dark' ? 'bg-background border-border hover:bg-accent/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'} transition-all duration-200 shadow-sm hover:shadow-md`}>
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1 min-w-0 flex flex-col gap-2">
-                          <div>
-                            <div className={`font-semibold mb-1 text-md sm:text-base ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                              {leave.title}
-                            </div>
-                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} flex flex-col gap-1`}>
-                              {leave.from && leave.to ?
-                            <div className="flex items-center gap-2">
-                                  <span className="font-medium">From:</span> {leave.from} <span className="font-medium ml-1">To:</span> {leave.to}
-                                </div> :
-
-                            <div className="flex items-center gap-2">
-                                  <span className="font-medium">Date:</span> {leave.date}
-                                </div>
-                            }
-                            </div>
-                          </div>
-                          <div className={`text-xs mt-1 font-medium ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
-                            Applied: {leave.appliedOn}
-                          </div>
-                        </div>
-                        <div className="flex-shrink-0 flex flex-col justify-between items-end gap-2">
-                          <div className="flex-shrink-0">
-                            {renderStatus(leave.status)}
-                          </div>
-                          <button
-                          onClick={() => setViewReason(leave.reason)}
-                          className={`text-xs px-2 py-1 rounded-md transition-all duration-200 ${theme === 'dark' ?
-                          'bg-muted/10 text-foreground border border-border hover:bg-muted/20' :
-                          'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm'}`
-                          }>
-                          
-                            View Reason
-                          </button>
-                        </div>
-                      </div>
-                    </div>);
-
-              })}
-
-                {/* Pagination Controls */}
-                {pagination.paginationState.totalPages > 1 &&
-              <div className="flex flex-row items-center justify-between text-sm text-muted-foreground mt-6 pt-6 border-t border-border">
-                    <div className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} font-medium`}>
-                      Showing {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems}
+          <CardContent className="flex-1 p-2 sm:p-4 lg:p-6 max-h-[500px] overflow-y-auto custom-scrollbar">
+            <div className="overflow-x-auto thin-scrollbar">
+              {/* Mobile: stacked cards */}
+              <div className="md:hidden space-y-3">
+                {loading ? (
+                  <SkeletonList count={3} />
+                ) : filteredLeaveList.length === 0 ? (
+                  <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                      <CalendarCheck2 className="w-8 h-8 text-primary opacity-50" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => pagination.goToPage(Math.max(1, pagination.page - 1))}
-                    disabled={pagination.page === 1 || loading}
-                    className="bg-primary hover:bg-primary/90 text-white border-primary h-8 px-3 sm:h-9 sm:px-4 transition-all shadow-md shadow-primary/20 text-xs sm:text-sm">
-                    
-                        Previous
-                      </Button>
-
-                      <div className="flex items-center justify-center min-w-[1.5rem] sm:min-w-[2rem]">
-                        <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          {pagination.page}
-                        </span>
-                      </div>
-
-                      <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.page + 1))}
-                    disabled={pagination.page >= pagination.paginationState.totalPages || loading}
-                    className="bg-primary hover:bg-primary/90 text-white border-primary h-8 px-3 sm:h-9 sm:px-4 transition-all shadow-md shadow-primary/20 text-xs sm:text-sm">
-                    
-                        Next
-                      </Button>
-                    </div>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications</h3>
+                    <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      You haven't submitted any leave requests recently.
+                    </p>
                   </div>
-              }
+                ) : (
+                  filteredLeaveList.map((leave) => (
+                    <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-medium">{leave.title}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {leave.from && leave.to ? `${leave.from} to ${leave.to}` : leave.date}
+                          </div>
+                        </div>
+                        <div className="shrink-0">
+                          {renderStatus(leave.status)}
+                        </div>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={`flex-1 ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                          onClick={() => setViewReason(leave.reason)}>
+                          View Reason
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            }
+
+              {/* Desktop / Tablet: table */}
+              <table className="hidden md:table w-full text-sm text-left border-collapse">
+                <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                  <tr>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="p-4">
+                        <SkeletonList count={3} />
+                      </td>
+                    </tr>
+                  ) : filteredLeaveList.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-20 px-4">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                            <CalendarCheck2 className="w-10 h-10 text-primary opacity-50" />
+                          </div>
+                          <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications found</h3>
+                          <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            {filterStatus === 'All'
+                              ? 'Your leave history is currently empty. Any applications you submit will appear here.'
+                              : `There are no ${filterStatus.toLowerCase()} requests matching your filter.`}
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredLeaveList.map((leave) => (
+                      <tr
+                        key={leave.id}
+                        className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <td className={`py-3 px-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</td>
+                        <td className={`py-3 px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {leave.from && leave.to ? `${leave.from} to ${leave.to}` : leave.date}
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className={`${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                            onClick={() => setViewReason(leave.reason)}>
+                            View
+                          </Button>
+                        </td>
+                        <td className="py-3 px-4">
+                          {renderStatus(leave.status)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
+          {pagination.paginationState.totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {pagination.paginationState.totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} requests
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => pagination.goToPage(Math.max(1, pagination.page - 1))}
+                  disabled={pagination.page === 1 || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {pagination.page}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.page + 1))}
+                  disabled={pagination.page >= pagination.paginationState.totalPages || loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
 
       {/* View Reason Dialog */}
       <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[80%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
           <DialogHeader>
-            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
+            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
           </DialogHeader>
 
+          {/* Scrollable reason */}
           <div
-            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
-                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            
+            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words
+                    max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             {viewReason}
           </div>
 
-          <DialogFooter>
+          <div className="flex justify-end mt-4">
             <Button
-              className="bg-primary hover:bg-primary/90 text-white font-semibold transition-all duration-200 shadow-lg shadow-primary/20 px-6"
-              onClick={() => setViewReason(null)}>
-              
+              variant="outline"
+              onClick={() => setViewReason(null)}
+              className={theme === 'dark' ?
+              'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white' :
+              'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}>
               Close
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>);

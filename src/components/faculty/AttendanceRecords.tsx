@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
@@ -334,43 +334,41 @@ const AttendanceRecords = () => {
             </div>
           )}
         </CardContent>
-      </Card>
-
-      {/* Pagination Controls */}
-      {pagination.paginationState.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4 py-6 border-t border-border">
-          <div className={`${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} font-medium`}>
-            Showing {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} records
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => pagination.goToPage(Math.max(1, pagination.page - 1))}
-              disabled={pagination.page === 1 || loading}
-              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all shadow-md shadow-primary/20"
-            >
-              Previous
-            </Button>
-
-            <div className="flex items-center justify-center min-w-[2.5rem]">
-              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                {pagination.page}
-              </span>
+        {records.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {pagination.paginationState.totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1} to {Math.min(pagination.page * pagination.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} records
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => pagination.goToPage(Math.max(1, pagination.page - 1))}
+                disabled={pagination.page === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.page + 1))}
-              disabled={pagination.page >= pagination.paginationState.totalPages || loading}
-              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all shadow-md shadow-primary/20"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {pagination.page}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.page + 1))}
+                disabled={pagination.page >= pagination.paginationState.totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
+      </Card>
     </div>
   );
 };

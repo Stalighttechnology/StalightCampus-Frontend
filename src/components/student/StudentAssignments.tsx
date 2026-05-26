@@ -16,7 +16,7 @@ import {
 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { useTheme } from "../../context/ThemeContext";
@@ -349,49 +349,40 @@ const StudentAssignments = () => {
               </div>
             }
           </div>
-
-          {/* Pagination Footer */}
-          {pagination && pagination.total_pages > 1 &&
-          <div className={`mt-8 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4`}>
-              <p className="text-sm text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{(pagination.current_page - 1) * pagination.page_size + 1}</span> to <span className="font-semibold text-foreground">{Math.min(pagination.current_page * pagination.page_size, pagination.total_items)}</span> of <span className="font-semibold text-foreground">{pagination.total_items}</span> assignments
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                variant="outline"
-                size="sm"
-                disabled={!pagination.has_previous}
-                onClick={() => setCurrentPage((prev) => prev - 1)}
-                className="rounded-xl">
-                
-                  Previous
-                </Button>
-                <div className="flex items-center gap-1.5">
-                  {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map((p) =>
-                <Button
-                  key={p}
-                  variant={pagination.current_page === p ? "default" : "outline"}
-                  size="sm"
-                  className={`w-9 h-9 p-0 rounded-xl ${pagination.current_page === p ? 'shadow-lg shadow-primary/20' : ''}`}
-                  onClick={() => setCurrentPage(p)}>
-                  
-                      {p}
-                    </Button>
-                )}
-                </div>
-                <Button
-                variant="outline"
-                size="sm"
-                disabled={!pagination.has_next}
-                onClick={() => setCurrentPage((prev) => prev + 1)}
-                className="rounded-xl">
-                
-                  Next
-                </Button>
-              </div>
-            </div>
-          }
         </CardContent>
+
+        {pagination && pagination.total_pages > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((pagination.current_page - 1) * pagination.page_size + 1, pagination.total_items)} to {Math.min(pagination.current_page * pagination.page_size, pagination.total_items)} of {pagination.total_items} assignments
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination.has_previous || loading}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {pagination.current_page}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination.has_next || loading}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Details Modal */}

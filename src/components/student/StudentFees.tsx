@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
 import { Loader2, CreditCard, Receipt, AlertCircle, CheckCircle, Calendar, IndianRupee, Download, TrendingUp, TrendingDown, FileDown } from 'lucide-react';
@@ -730,34 +730,6 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                       )}
                     </AnimatePresence>
 
-                    {/* Invoice Pagination */}
-                    {feeData && feeData.statistics.total_invoices > 10 &&
-                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          Showing {(invoicePage - 1) * 10 + 1} to {Math.min(invoicePage * 10, feeData.statistics.total_invoices)} of {feeData.statistics.total_invoices} invoices
-                        </p>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setInvoicePage((p) => Math.max(1, p - 1))}
-                            disabled={invoicePage === 1}
-                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-
-                            Previous
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setInvoicePage((p) => p + 1)}
-                            disabled={invoicePage * 10 >= feeData.statistics.total_invoices}
-                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-
-                            Next
-                          </Button>
-                        </div>
-                      </div>
-                    }
                   </motion.div> :
 
                   <div className="py-24 flex flex-col items-center justify-center text-center">
@@ -771,6 +743,39 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   </div>
                 }
               </CardContent>
+
+              {feeData && feeData.statistics.total_invoices > 0 && (
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                  <div>
+                    Showing {(invoicePage - 1) * 10 + 1} to {Math.min(invoicePage * 10, feeData.statistics.total_invoices)} of {feeData.statistics.total_invoices} invoices
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setInvoicePage((p) => Math.max(1, p - 1))}
+                      disabled={invoicePage === 1}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {invoicePage}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setInvoicePage((p) => p + 1)}
+                      disabled={invoicePage * 10 >= feeData.statistics.total_invoices}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
             </Card>
           </motion.div>
 
@@ -836,34 +841,6 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                       )}
                     </AnimatePresence>
 
-                    {/* Payment Pagination */}
-                    {feeData && feeData.statistics.total_payments > 10 &&
-                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          Showing {(paymentPage - 1) * 10 + 1} to {Math.min(paymentPage * 10, feeData.statistics.total_payments)} of {feeData.statistics.total_payments} payments
-                        </p>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPaymentPage((p) => Math.max(1, p - 1))}
-                            disabled={paymentPage === 1}
-                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-
-                            Previous
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPaymentPage((p) => p + 1)}
-                            disabled={paymentPage * 10 >= feeData.statistics.total_payments}
-                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-
-                            Next
-                          </Button>
-                        </div>
-                      </div>
-                    }
                   </motion.div> :
 
                   <div className="py-24 flex flex-col items-center justify-center text-center">
@@ -877,6 +854,39 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   </div>
                 }
               </CardContent>
+
+              {feeData && feeData.statistics.total_payments > 0 && (
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                  <div>
+                    Showing {(paymentPage - 1) * 10 + 1} to {Math.min(paymentPage * 10, feeData.statistics.total_payments)} of {feeData.statistics.total_payments} payments
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPaymentPage((p) => Math.max(1, p - 1))}
+                      disabled={paymentPage === 1}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {paymentPage}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPaymentPage((p) => p + 1)}
+                      disabled={paymentPage * 10 >= feeData.statistics.total_payments}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
             </Card>
           </motion.div>
         </CardContent>

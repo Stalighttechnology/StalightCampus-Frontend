@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Card, CardContent, CardHeader } from "../ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "../ui/card";
 import { FileText, Download, UploadCloud, Trash2, Loader2, Search, BookOpen, X, CloudUpload } from "lucide-react";
 import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject, getR2PresignedUrl, deleteStudyMaterial } from "../../utils/faculty_api";
 import { useTheme } from "../../context/ThemeContext";
@@ -14,7 +14,7 @@ import {
   "@/components/ui/select";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { usePagination, useDebouncedSearch } from "@/hooks/useOptimizations";
-import { AdminPagination } from "../common/AdminPagination";
+
 import Swal from "sweetalert2";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -448,11 +448,42 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
             )}
           </div>
 
-          <AdminPagination
-            pagination={pagination.paginationState}
-            onPageChange={pagination.goToPage} />
-
         </CardContent>
+
+        {pagination?.paginationState && pagination.paginationState.totalItems > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((pagination.paginationState.page - 1) * pagination.paginationState.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.paginationState.page * pagination.paginationState.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} records
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => pagination.goToPage(Math.max(1, pagination.paginationState.page - 1))}
+                disabled={pagination.paginationState.page <= 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {pagination.paginationState.page}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.paginationState.page + 1))}
+                disabled={pagination.paginationState.page >= pagination.paginationState.totalPages}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       <Dialog open={showUploadModal} onOpenChange={(open) => {

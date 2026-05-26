@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
@@ -226,23 +226,39 @@ const GenerateStatistics: React.FC = () => {
       </div>
 
       {/* Table */}
-      <Card id="statistics-table-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg`}>
-        <CardHeader id="statistics-table-header" className="flex flex-row justify-between items-center gap-3 p-3 sm:p-6">
-          <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            id="generate-stats-export-pdf-btn"
-            onClick={handleExportPDF}
-            disabled={downloadingPDF}
-            className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2"
-          >
-            {downloadingPDF
-              ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              : <FileDown className="h-4 w-4" />
-            }
-            Export PDF
-          </Button>
+      <Card id="statistics-table-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg flex flex-col`}>
+        <CardHeader id="statistics-table-header" className="pb-2">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
+                {totalCount > 0 &&
+                  <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                    {totalCount} Total
+                  </span>
+                }
+              </div>
+              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                View and export performance and attendance statistics for your proctored students
+              </p>
+            </div>
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                id="generate-stats-export-pdf-btn"
+                onClick={handleExportPDF}
+                disabled={downloadingPDF}
+                className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2"
+              >
+                {downloadingPDF
+                  ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <FileDown className="h-4 w-4" />
+                }
+                Export PDF
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-2 sm:p-6">
           <div className="w-full overflow-x-auto">
@@ -277,42 +293,42 @@ const GenerateStatistics: React.FC = () => {
               </tbody>
             </table>
           </div>
+        </CardContent>
 
-          {/* Pagination controls */}
-          <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-              Showing {Math.min((page - 1) * pageSize + 1, totalCount)} to {Math.min(page * pageSize, totalCount)} of {totalCount}
+        {totalCount > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((page - 1) * pageSize + 1, totalCount)} to {Math.min(page * pageSize, totalCount)} of {totalCount} records
             </div>
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-2">
               <Button
-                size="sm"
                 variant="outline"
+                size="sm"
                 onClick={() => setPage(prev => Math.max(1, prev - 1))}
                 disabled={page <= 1}
-                className="text-xs px-2 sm:px-3 h-8 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
               >
-                Prev
+                Previous
               </Button>
 
-              {/* Current page indicator */}
-              <div className="flex items-center justify-center min-w-[32px]">
-                <span className={`text-base font-semibold ${theme === 'dark' ? 'text-primary' : 'text-primary'}`}>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   {page}
                 </span>
               </div>
 
               <Button
-                size="sm"
                 variant="outline"
+                size="sm"
                 onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={page >= totalPages}
-                className="text-xs px-2 sm:px-3 h-8 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
               >
                 Next
               </Button>
             </div>
-          </div>
-        </CardContent>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

@@ -535,7 +535,7 @@ const FacultyAttendance = () => {
           }
         </CardContent>
 
-        {!historyLoading && historyRecords.length > 0 && historyTotalPages > 1 &&
+        {!historyLoading && historyRecords.length > 0 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing <span className="font-medium">{Math.min((historyPage - 1) * historyPageSize + 1, historyTotalItems)}</span> to <span className="font-medium">{Math.min(historyPage * historyPageSize, historyTotalItems)}</span> of <span className="font-medium">{historyTotalItems}</span> records
@@ -566,7 +566,7 @@ const FacultyAttendance = () => {
               </Button>
             </div>
           </CardFooter>
-        }
+        )}
       </Card>
     </div>);
 

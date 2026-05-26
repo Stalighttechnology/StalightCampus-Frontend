@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { UploadIcon } from "lucide-react";
@@ -489,38 +489,6 @@ const MarksView = () => {
               </Button>
             </div>
 
-            {/* Pagination Controls */}
-            {state.totalPages > 1 &&
-          <div className="flex justify-between items-center mt-4">
-                <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Showing {(state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents} students
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                variant="outline"
-                size="sm"
-                onClick={() => updateState({ currentPage: state.currentPage - 1 })}
-                disabled={state.currentPage <= 1 || state.loading}
-                className={theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}>
-                
-                    Previous
-                  </Button>
-                  <span className={`text-sm px-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    Page {state.currentPage} of {state.totalPages}
-                  </span>
-                  <Button
-                variant="outline"
-                size="sm"
-                onClick={() => updateState({ currentPage: state.currentPage + 1 })}
-                disabled={state.currentPage >= state.totalPages || state.loading}
-                className={theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}>
-                
-                    Next
-                  </Button>
-                </div>
-              </div>
-          }
-
             <Card className={`mt-6 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-300'}`}>
               <CardContent className="p-0 rounded-xl overflow-x-auto custom-scrollbar">
                 <table className="min-w-full text-sm table-auto">
@@ -589,6 +557,36 @@ const MarksView = () => {
                   </tbody>
                 </table>
               </CardContent>
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {state.totalStudents === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents} students
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateState({ currentPage: Math.max(1, state.currentPage - 1) })}
+                      disabled={state.currentPage <= 1 || state.loading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {state.currentPage}
+                    </span>
+                  </div>
+
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateState({ currentPage: Math.min(state.totalPages, state.currentPage + 1) })}
+                      disabled={state.currentPage >= state.totalPages || state.loading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
             </Card>
 
           </TabsContent>
@@ -638,38 +636,6 @@ const MarksView = () => {
                 Export Attendance to PDF
               </Button>
             </div>
-
-            {/* Pagination Controls */}
-            {state.totalPages > 1 &&
-          <div className="flex justify-between items-center mt-4">
-                <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Showing {(state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents} students
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                variant="outline"
-                size="sm"
-                onClick={() => updateState({ currentPage: state.currentPage - 1 })}
-                disabled={state.currentPage <= 1 || state.loading}
-                className={theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}>
-                
-                    Previous
-                  </Button>
-                  <span className={`text-sm px-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                    Page {state.currentPage} of {state.totalPages}
-                  </span>
-                  <Button
-                variant="outline"
-                size="sm"
-                onClick={() => updateState({ currentPage: state.currentPage + 1 })}
-                disabled={state.currentPage >= state.totalPages || state.loading}
-                className={theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}>
-                
-                    Next
-                  </Button>
-                </div>
-              </div>
-          }
 
             <Card className={`mt-4 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-300'}`}>
               <CardContent className="overflow-x-auto">
@@ -721,6 +687,36 @@ const MarksView = () => {
                   </tbody>
                 </table>
               </CardContent>
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {state.totalStudents === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents} students
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateState({ currentPage: Math.max(1, state.currentPage - 1) })}
+                      disabled={state.currentPage <= 1 || state.loading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {state.currentPage}
+                    </span>
+                  </div>
+
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateState({ currentPage: Math.min(state.totalPages, state.currentPage + 1) })}
+                      disabled={state.currentPage >= state.totalPages || state.loading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>

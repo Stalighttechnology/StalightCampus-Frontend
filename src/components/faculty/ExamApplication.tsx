@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "../ui/dialog";
@@ -15,7 +15,6 @@ import type { ProctorStudent } from "@/utils/faculty_api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
-import { AdminPagination } from "../common/AdminPagination";
 import { FileDown, Loader2 } from "lucide-react";
 
 interface ExamApplicationProps {
@@ -581,14 +580,44 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
             </>
           }
         </div>
+      </CardContent>
 
-        {/* Pagination Controls */}
-        <AdminPagination
-          pagination={proctorPagination.paginationState}
-          onPageChange={proctorPagination.goToPage} />
-        
+      {proctorPagination?.paginationState && proctorPagination.paginationState.totalItems > 0 && (
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+          <div>
+            Showing {Math.min((proctorPagination.paginationState.page - 1) * proctorPagination.paginationState.pageSize + 1, proctorPagination.paginationState.totalItems)} to {Math.min(proctorPagination.paginationState.page * proctorPagination.paginationState.pageSize, proctorPagination.paginationState.totalItems)} of {proctorPagination.paginationState.totalItems} records
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => proctorPagination.goToPage(Math.max(1, proctorPagination.paginationState.page - 1))}
+              disabled={proctorPagination.paginationState.page <= 1}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Previous
+            </Button>
 
-        <Dialog open={open} onOpenChange={setOpen}>
+            <div className="flex items-center justify-center min-w-[2rem]">
+              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {proctorPagination.paginationState.page}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => proctorPagination.goToPage(Math.min(proctorPagination.paginationState.totalPages, proctorPagination.paginationState.page + 1))}
+              disabled={proctorPagination.paginationState.page >= proctorPagination.paginationState.totalPages}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Next
+            </Button>
+          </div>
+        </CardFooter>
+      )}
+
+      <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[70vw] max-h-[90vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar">
             <DialogTitle className="sr-only">
               Exam Application — {selectedStudent?.name || 'Student'}
@@ -996,8 +1025,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </CardContent>
-    </Card>);
+      </Card>);
 
 };
 

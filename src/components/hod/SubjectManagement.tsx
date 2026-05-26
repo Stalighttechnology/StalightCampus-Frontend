@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Pencil, Trash2, BookOpen, FileDown, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
@@ -605,27 +605,37 @@ const SubjectManagement = () => {
             </>
           )}
 
-          {/* Pagination */}
-          {state.filters.semester_id !== "all" && (
-            <div className="mt-4 flex justify-end items-center gap-2">
+        </CardContent>
+        {state.filters.semester_id !== "all" && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {state.totalCount === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalCount)} of {state.totalCount} courses
+            </div>
+            <div className="flex items-center gap-2">
               <Button
+                variant="outline"
+                size="sm"
                 onClick={() => updateState({ currentPage: Math.max(state.currentPage - 1, 1) })}
                 disabled={state.currentPage === 1 || state.loading}
-                className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                 Previous
               </Button>
-              <div className={`px-4 text-center text-sm font-medium py-1.5 rounded-md min-w-12 ${theme === 'dark' ? 'text-foreground bg-card border border-border' : 'text-gray-900 bg-white border border-gray-300'}`}>
-                {state.currentPage}
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {state.currentPage}
+                </span>
               </div>
               <Button
+                variant="outline"
+                size="sm"
                 onClick={() => updateState({ currentPage: Math.min(state.currentPage + 1, totalPages) })}
                 disabled={state.currentPage === totalPages || state.loading || totalPages === 0}
-                className="flex items-center justify-center gap-1 text-sm font-medium py-1.5 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                 Next
               </Button>
             </div>
-          )}
-        </CardContent>
+          </CardFooter>
+        )}
       </Card>
 
 

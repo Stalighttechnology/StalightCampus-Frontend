@@ -3,7 +3,8 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle } from
+  CardTitle,
+  CardFooter } from
 "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -1356,33 +1357,42 @@ const StudentManagement = () => {
                 {paginatedFilteredStudents.length === 0 &&
                   <p className={`text-center mt-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No students found</p>
                 }
-
-                <div className="text-sm text-gray-500 mt-4">
-                  Showing {Math.min((state.currentPage - 1) * state.pageSize + 1, state.totalStudents)} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents}{" "}
-                  students (Page {state.currentPage} of {totalFilteredPages})
-                </div>
-              </div>
-
-              <div className="flex justify-end items-center gap-2 md:gap-3 mt-4">
-                <Button
-                  onClick={() => handlePageChange(state.currentPage - 1)}
-                  disabled={state.currentPage === 1}
-                  className="w-20 md:w-24 flex items-center justify-center gap-1 text-xs md:text-sm font-medium py-1.5 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-                  Previous
-                </Button>
-                <div className={`w-12 md:w-16 text-center text-xs md:text-sm font-medium py-1.5 rounded-md ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
-                  {state.currentPage}
-                </div>
-                <Button
-                  onClick={() => handlePageChange(state.currentPage + 1)}
-                  disabled={state.currentPage === totalFilteredPages}
-                  className="w-20 md:w-24 flex items-center justify-center gap-1 text-xs md:text-sm font-medium py-1.5 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-                  Next
-                </Button>
               </div>
             </>
           )}
         </CardContent>
+        {state.semesterFilter !== "All" && state.sectionFilter !== "All" && state.students.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {state.totalStudents === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents} students
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(state.currentPage - 1)}
+                disabled={state.currentPage === 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {state.currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(state.currentPage + 1)}
+                disabled={state.currentPage === totalFilteredPages}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Student Performance Comparison chart removed to reduce calls and simplify page */}

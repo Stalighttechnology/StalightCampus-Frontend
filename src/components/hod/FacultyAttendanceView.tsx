@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, isBefore, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -584,12 +585,11 @@ const FacultyAttendanceView: React.FC = () => {
 
         {activeTab === 'today' && !isLoading && todaySummary.total_faculty > 0 &&
           <>
-            {/* Today's Attendance Table */}
-            <div id="hod-faculty-attendance-table" className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-              <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h3 className={`text-sm sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
+              <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <CardTitle className={`text-sm sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Today's Faculty Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})
-                </h3>
+                </CardTitle>
                 <button
                   onClick={handleExportTodayPDF}
                   disabled={exportingToday}
@@ -606,136 +606,114 @@ const FacultyAttendanceView: React.FC = () => {
                     </>
                   )}
                 </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                    <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                      <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
-                      <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
-                      <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
-                      <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                    {todayAttendance.length === 0 ?
-                      <tr>
-                        <td colSpan={4} className="py-12">
-                          <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                            <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                              <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                      <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
+                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Status</th>
+                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Marked At</th>
+                        <th className={`px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                      {todayAttendance.length === 0 ?
+                        <tr>
+                          <td colSpan={4} className="py-12">
+                            <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                              <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                                <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                              </div>
+                              <div className="text-center">
+                                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
+                                <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
+                              </div>
                             </div>
-                            <div className="text-center">
-                              <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
-                              <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty attendance hasn't been marked yet</p>
-                            </div>
-                          </div>
-                        </td>
-                      </tr> :
+                          </td>
+                        </tr> :
 
-                      todayAttendance.map((record) =>
-                        <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
-                          <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                            <div className="font-medium">{record.faculty_name}</div>
-                          </td>
-                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                            <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
-                            {record.location ?
-                              <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                                {record.location.inside ?
-                                  <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
+                        todayAttendance.map((record) =>
+                          <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
+                            <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              <div className="font-medium">{record.faculty_name}</div>
+                            </td>
+                            <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                              <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
+                            </td>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
+                              {record.location ?
+                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                  {record.location.inside ?
+                                    <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
 
-                                  <>Outside campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
-                                }
-                                {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
-                              </div> :
+                                    <>Outside campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</>
+                                  }
+                                  {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
+                                </div> :
 
-                              <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</div>
-                            }
-                          </td>
-                          <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {record.notes || '-'}
-                          </td>
-                        </tr>
-                      )
+                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</div>
+                              }
+                            </td>
+                            <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                              {record.notes || '-'}
+                            </td>
+                          </tr>
+                        )
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+              {todayAttendance.length > 0 && (
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                  <div>
+                    Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of {todayPagination.total_items} faculty
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {todayPagination.total_items > todayPagination.page_size &&
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={loadAllData}
+                        disabled={isLoading}
+                        className="border-green-500 text-green-600 hover:bg-green-50 h-9 px-4 transition-all"
+                      >
+                        {isLoading ? 'Loading...' : 'Load All'}
+                      </Button>
                     }
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(todayPagination.page - 1)}
+                      disabled={!todayPagination.has_prev || isLoading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Previous
+                    </Button>
+
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {todayPagination.page}
+                      </span>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(todayPagination.page + 1)}
+                      disabled={!todayPagination.has_next || isLoading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
+            </Card>
           </>
-        }
-
-        {/* Today's Pagination Controls (moved to bottom) */}
-        {activeTab === 'today' && !isLoading &&
-          <div className={`flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 p-3 sm:p-4 ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} rounded-lg mt-4`}>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to{' '}
-                {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of{' '}
-                {todayPagination.total_items} faculty
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-              {todayPagination.total_items > todayPagination.page_size &&
-                <button
-                  onClick={loadAllData}
-                  disabled={isLoading}
-                  className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border border-green-500 text-green-600 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50 whitespace-nowrap ${theme === 'dark' ? 'hover:bg-accent' : ''}`
-                  }>
-
-                  {isLoading ? 'Loading...' : 'Load All'}
-                </button>
-              }
-
-              <button
-                onClick={() => handlePageChange(todayPagination.page - 1)}
-                disabled={!todayPagination.has_prev || isLoading}
-                className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${todayPagination.has_prev && !isLoading ?
-                  'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
-                  'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
-                }>
-
-                Previous
-              </button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, todayPagination.total_pages) }, (_, i) => {
-                  const pageNum = Math.max(1, Math.min(todayPagination.total_pages - 4, todayPagination.page - 2)) + i;
-                  if (pageNum > todayPagination.total_pages) return null;
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      disabled={isLoading}
-                      className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${pageNum === todayPagination.page ?
-                        'bg-white text-primary font-semibold' :
-                        `bg-white text-gray-600 hover:text-primary ${theme === 'dark' ? 'hover:bg-accent' : ''}`}`
-                      }>
-
-                      {pageNum}
-                    </button>);
-
-                })}
-              </div>
-
-              <button
-                onClick={() => handlePageChange(todayPagination.page + 1)}
-                disabled={!todayPagination.has_next || isLoading}
-                className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${todayPagination.has_next && !isLoading ?
-                  'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
-                  'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
-                }>
-
-                Next
-              </button>
-            </div>
-          </div>
         }
 
         {activeTab === 'records' && !isLoading &&
@@ -859,116 +837,102 @@ const FacultyAttendanceView: React.FC = () => {
                 </div>
               </div>
             ) : facultySummary.length > 0 ? (
-              <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
+                <CardHeader className="px-6 py-4 border-b border-border">
+                  <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                     Faculty Attendance Summary
-                  </h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                      <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
-                        <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                      {facultySummary
-                        .filter(summary => selectedFacultyId === "all" || summary.id === selectedFacultyId)
-                        .map((summary) =>
-                        <React.Fragment key={summary.id}>
-                          <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
-                            <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                              {summary.name}
-                            </td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                              {summary.total_days}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
-                              {summary.present_days}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
-                              {summary.absent_days}
-                            </td>
-                            <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
-                              summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
-                            }>
-                              {summary.attendance_percentage.toFixed(1)}%
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <button
-                                onClick={() => fetchFacultyDetails(summary)}
-                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ?
-                                  'bg-primary/20 text-primary hover:bg-primary/30' :
-                                  'bg-primary text-white hover:bg-primary/90'}`
-                                }>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                        <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
+                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
+                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</th>
+                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</th>
+                          <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Attendance %</th>
+                          <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                        {facultySummary
+                          .filter(summary => selectedFacultyId === "all" || summary.id === selectedFacultyId)
+                          .map((summary) =>
+                          <React.Fragment key={summary.id}>
+                            <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
+                              <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {summary.name}
+                              </td>
+                              <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {summary.total_days}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-green-600 font-medium">
+                                {summary.present_days}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-red-600 font-medium">
+                                {summary.absent_days}
+                              </td>
+                              <td className={`px-6 py-4 whitespace-nowrap font-medium ${summary.attendance_percentage >= 75 ? 'text-green-600' :
+                                summary.attendance_percentage >= 60 ? 'text-yellow-600' : 'text-red-600'}`
+                              }>
+                                {summary.attendance_percentage.toFixed(1)}%
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <button
+                                  onClick={() => fetchFacultyDetails(summary)}
+                                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ?
+                                    'bg-primary/20 text-primary hover:bg-primary/30' :
+                                    'bg-primary text-white hover:bg-primary/90'}`
+                                  }>
 
-                                {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
-                              </button>
-                            </td>
-                          </tr>
-                        </React.Fragment>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination for Records */}
-                <div className="px-6 py-4 flex flex-col sm:flex-row justify-between items-center border-t border-gray-200 gap-4">
-                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                    Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items}
+                                  {selectedFaculty?.id === summary.id && isDetailLoading ? 'Loading...' : 'View'}
+                                </button>
+                              </td>
+                            </tr>
+                          </React.Fragment>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleRecordsPageChange(recordsPagination.page - 1)}
-                      disabled={!recordsPagination.has_prev || isLoading}
-                      className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${recordsPagination.has_prev && !isLoading ?
-                        'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
-                        'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
-                      }>
+                </CardContent>
 
-                      Previous
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, recordsPagination.total_pages) }, (_, i) => {
-                        const pageNum = Math.max(1, Math.min(recordsPagination.total_pages - 4, recordsPagination.page - 2)) + i;
-                        if (pageNum < 1 || pageNum > recordsPagination.total_pages) return null;
-
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => handleRecordsPageChange(pageNum)}
-                            disabled={isLoading}
-                            className={`px-3 py-1 text-sm font-medium transition-colors disabled:opacity-50 ${pageNum === recordsPagination.page ?
-                              'bg-white text-primary font-semibold' :
-                              `bg-white text-gray-600 hover:text-primary ${theme === 'dark' ? 'hover:bg-accent' : ''}`}`
-                            }>
-
-                            {pageNum}
-                          </button>);
-
-                      })}
+                {facultySummary.length > 0 && (
+                  <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                    <div>
+                      Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items} records
                     </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRecordsPageChange(recordsPagination.page - 1)}
+                        disabled={!recordsPagination.has_prev || isLoading}
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                      >
+                        Previous
+                      </Button>
 
-                    <button
-                      onClick={() => handleRecordsPageChange(recordsPagination.page + 1)}
-                      disabled={!recordsPagination.has_next || isLoading}
-                      className={`px-3 py-2 text-sm font-medium border rounded-md transition-all duration-200 whitespace-nowrap ${recordsPagination.has_next && !isLoading ?
-                        'bg-primary text-white border-primary hover:bg-primary/90 shadow-sm' :
-                        'bg-primary opacity-50 text-white border-primary cursor-not-allowed'}`
-                      }>
+                      <div className="flex items-center justify-center min-w-[2rem]">
+                        <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          {recordsPagination.page}
+                        </span>
+                      </div>
 
-                      Next
-                    </button>
-                  </div>
-                </div>
-              </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRecordsPageChange(recordsPagination.page + 1)}
+                        disabled={!recordsPagination.has_next || isLoading}
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </CardFooter>
+                )}
+              </Card>
             ) : (
               <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
