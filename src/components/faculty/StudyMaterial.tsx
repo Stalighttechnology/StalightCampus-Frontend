@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "../ui/card";
 import { FileText, Download, UploadCloud, Trash2, Loader2, Search, BookOpen, X, CloudUpload } from "lucide-react";
-import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject, getR2PresignedUrl, deleteStudyMaterial } from "../../utils/faculty_api";
+import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject, deleteStudyMaterial } from "../../utils/faculty_api";
+import { uploadFileViaBackendProxy, downloadFileViaBackendProxy } from "../../utils/common_api";
 import { useTheme } from "../../context/ThemeContext";
 import { toast } from "react-hot-toast";
 import {
@@ -94,6 +95,16 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
     });
   };
 
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!material.file_url) return;
+    if (material.file_url.includes('drive.google.com') || material.file_url.includes('docs.google.com')) {
+      window.open(material.file_url, '_blank', 'noopener,noreferrer');
+    } else {
+      await downloadFileViaBackendProxy(material.file_url, material.title);
+    }
+  };
+
   return (
     <TableRow className={`group ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'} hover:bg-muted/5 transition-colors`}>
       <TableCell className="w-[100px] px-6 py-4">
@@ -102,7 +113,10 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
         </div>
       </TableCell>
       <TableCell className="font-medium max-w-[250px] px-6 py-4">
-        <div className={`text-sm md:text-base lg:text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline cursor-pointer truncate font-semibold tracking-tight`}>
+        <div 
+          onClick={handleDownload}
+          className={`text-sm md:text-base lg:text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline cursor-pointer truncate font-semibold tracking-tight`}
+        >
           {material.title}
         </div>
       </TableCell>
@@ -122,15 +136,12 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
       </TableCell>
       <TableCell className="text-right px-6 py-4">
         <div className="flex justify-end items-center gap-3">
-          <a
-            href={material.file_url}
-            download={material.title + ".pdf"}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={handleDownload}
             className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
           >
             <Download size={22} />
-          </a>
+          </button>
           <button
             onClick={handleDelete}
             disabled={deleting}
@@ -639,23 +650,9 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 }
                 setUploading(true);
                 try {
-                  const presignedResp = await getR2PresignedUrl(uploadFile.name, uploadFile.type);
-                  if (!presignedResp.success || !presignedResp.data) {
-                    throw new Error(presignedResp.message || "Failed to get upload URL");
-                  }
-
-                  const { url: uploadUrl, file_url: finalFileUrl } = presignedResp.data;
-
-                  const uploadResp = await fetch(uploadUrl, {
-                    method: "PUT",
-                    body: uploadFile,
-                    headers: {
-                      "Content-Type": uploadFile.type
-                    }
-                  });
-
-                  if (!uploadResp.ok) {
-                    throw new Error("Failed to upload file to storage");
+                  const finalFileUrl = await uploadFileViaBackendProxy(uploadFile, 'study_materials');
+                  if (!finalFileUrl) {
+                    throw new Error("Failed to upload file to storage via proxy");
                   }
 
                   const subj = grouped.find((g) => String(g.subject_id) === uploadSubject);

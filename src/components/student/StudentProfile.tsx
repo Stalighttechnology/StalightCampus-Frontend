@@ -17,7 +17,7 @@ import { SkeletonForm } from "../ui/skeleton";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
-import { performR2Upload } from "../../utils/common_api";
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
 
 type StudentForm = Record<string, any>;
 
@@ -434,8 +434,8 @@ const StudentProfile: React.FC = () => {
 
   const uploadProfilePictureDirectly = async (file: File) => {
     try {
-      // Step 1 & 2: Upload to R2 via common utility
-      const fileUrl = await performR2Upload(file, 'profiles');
+      // Step 1 & 2: Upload to R2 via backend proxy
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
       
       if (fileUrl) {
         // Step 3: Finalize update with backend

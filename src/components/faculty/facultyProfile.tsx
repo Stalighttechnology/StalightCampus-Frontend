@@ -17,7 +17,7 @@ import { SkeletonCard } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 import { Camera, Upload } from "lucide-react";
 import LoginActivity from '../common/LoginActivity';
-import { performR2Upload } from "../../utils/common_api";
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Progress } from "../ui/progress";
 
@@ -151,7 +151,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     setIsUploading(true);
     setUploadProgress(10);
     try {
-      const fileUrl = await performR2Upload(file, 'profiles');
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
       setUploadProgress(90);
       if (fileUrl) {
         // Update backend immediately
@@ -195,7 +195,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         mobile: formData.mobile,
         address: formData.address,
         bio: formData.bio,
-        profile_picture: formData.profile_picture as any || undefined,
+        profile_picture_url: formData.profile_picture || undefined,
         // faculty specific
         department: formData.department || undefined,
         designation: formData.designation || undefined,

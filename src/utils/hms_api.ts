@@ -505,3 +505,12 @@ page: number = 1)
 export const getIssueTimeline = async (issueId: number): Promise<HMSResponse<any>> => {
   return hmsApiCall<any>(`issues/${issueId}/timeline/`, "GET");
 };
+
+// Visitor Logs API
+export const getHmsVisitorLogs = async (page: number = 1, search: string = ''): Promise<HMSResponse<any>> => {
+  let endpoint = `visitor-logs/?page=${page}`;
+  if (search) {
+    endpoint += `&search=${encodeURIComponent(search)}`;
+  }
+  return hmsApiCall<any>(endpoint, "GET");
+};

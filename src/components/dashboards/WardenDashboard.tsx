@@ -6,7 +6,9 @@ import WardenDashboardOverview from "../warden/WardenDashboard";
 import WardenIssueManagement from "../warden/WardenIssueManagement";
 import WardenHostelOverview from "../warden/WardenHostelOverview";
 import WardenProfile from "../warden/WardenProfile";
+import WardenVisitorLogs from "../warden/WardenVisitorLogs";
 import { HMSProvider } from "../../context/HMSContext";
+
 import { AcademicProvider } from "../../context/AcademicContext";
 
 interface WardenDashboardProps {
@@ -43,6 +45,8 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
         return <WardenHostelOverview />;
       case "profile":
         return <WardenProfile user={user} />;
+      case "visitor_logs":
+        return <WardenVisitorLogs />;
       default:
         return <WardenDashboardOverview />;
     }

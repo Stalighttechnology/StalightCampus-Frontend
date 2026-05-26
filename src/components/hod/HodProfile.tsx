@@ -15,7 +15,7 @@ import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { Camera, Upload } from "lucide-react";
 import LoginActivity from '../common/LoginActivity';
-import { performR2Upload } from "../../utils/common_api";
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Progress } from "../ui/progress";
 
@@ -38,6 +38,7 @@ interface Profile {
   mobile_number: string;
   address: string;
   bio: string;
+  profile_picture?: string;
 }
 
 const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error: string | null) => void;}) => {
@@ -174,7 +175,7 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
     setIsUploading(true);
     setUploadProgress(10);
     try {
-      const fileUrl = await performR2Upload(file, 'profiles');
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
       setUploadProgress(90);
       if (fileUrl) {
         // Update backend immediately
@@ -269,7 +270,8 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
           email: response.data.email || "",
           mobile_number: response.data.mobile_number || "",
           address: response.data.address || "",
-          bio: response.data.bio || ""
+          bio: response.data.bio || "",
+          profile_picture: response.data.profile_picture || profile.profile_picture || ""
         };
         setProfile(updatedProfile);
         showSuccessAlert("Success", "Profile saved successfully");

@@ -15,6 +15,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Do NOT intercept or cache any /api/ routes in the service worker
+  if (url.pathname.startsWith('/api/') || request.url.includes('/api/')) {
+    return;
+  }
+
   // Handle navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(

@@ -7,7 +7,7 @@ import { Textarea } from "../ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
-import { performR2Upload } from "../../utils/common_api";
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import HelpLearningCard from "./HelpLearningCard";
 import { useTheme } from "../../context/ThemeContext";
 import { Camera, Eye, EyeOff } from "lucide-react";
@@ -51,7 +51,7 @@ const Profile = ({ role, user }: ProfileProps) => {
     setIsUploading(true);
     setUploadProgress(10);
     try {
-      const fileUrl = await performR2Upload(file, 'profiles');
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
       setUploadProgress(90);
       if (fileUrl) {
         // Update backend immediately
