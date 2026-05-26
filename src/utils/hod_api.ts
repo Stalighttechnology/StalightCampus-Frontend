@@ -496,6 +496,7 @@ interface SendNotificationRequest {
   action: "notify" | "notify_all" | "notify_low_attendance";
   title: string;
   student_id?: string;
+  student_ids?: string[];
   message: string;
   target?: "student" | "teacher" | "all";
   branch_id: string;
@@ -508,6 +509,9 @@ interface SendNotificationRequest {
 interface SendNotificationResponse {
   success: boolean;
   message?: string;
+  task_id?: string;
+  success_count?: number;
+  failed_count?: number;
 }
 
 interface AssignProctorRequest {
@@ -1276,15 +1280,25 @@ filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold
       student_id: string;
       usn: string;
       name: string;
-      attendance_percentage: number;
+      attendance_percentage: number | string;
       total_sessions: number;
       present_sessions: number;
       semester: number | null;
       section: string | null;
       batch: string | null;
       subject: string;
+      recently_notified: boolean;
     }>;
+    stats?: {
+      total_students: number;
+      low_attendance_count: number;
+      avg_attendance: number;
+    };
   };
+  results?: {
+    students: Array<any>;
+    stats: any;
+  }
 }> => {
   try {
     const params: Record<string, string> = {};
@@ -1296,7 +1310,7 @@ filters: {semester_id?: string;section_id?: string;subject_id?: string;threshold
     if (filters.page) params.page = filters.page.toString();
     if (filters.page_size) params.page_size = filters.page_size.toString();
     const query = new URLSearchParams(params).toString();
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/low-attendance-students/${query ? '?' + query : ''}`, {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/low-attendance/${query ? '?' + query : ''}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" }
     });
@@ -2129,8 +2143,8 @@ export const sendNotification = async (data: SendNotificationRequest): Promise<S
     if (!data.branch_id || !data.title || !data.message) throw new Error("Branch ID, Title, and Message are required");
     if (data.action === "notify" && !data.student_id) throw new Error("Student ID is required for notify action");
     if (data.action === "notify_all" && !data.target) throw new Error("Target is required for notify_all action");
-    if (data.action === "notify_low_attendance" && (!data.semester_id || !data.section_id || !data.subject_id || !data.threshold)) {
-      throw new Error("Semester ID, Section ID, Subject ID, and Threshold are required for notify_low_attendance action");
+    if (data.action === "notify_low_attendance" && !data.student_ids && (!data.semester_id || !data.section_id || !data.subject_id || !data.threshold)) {
+      throw new Error("Student IDs or (Semester ID, Section ID, Subject ID, and Threshold) are required for notify_low_attendance action");
     }
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/notifications/`, {
       method: "POST",

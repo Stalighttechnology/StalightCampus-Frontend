@@ -15,7 +15,7 @@ import {
   "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { SkeletonCard, SkeletonTable } from "../ui/skeleton";
-import { manageSections, sendNotification, getLowAttendanceStudents, getHODDashboardBootstrap } from "../../utils/hod_api";
+import { manageSections, sendNotification, getLowAttendanceStudents, getHODDashboardBootstrap, getAttendanceBootstrap } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useHODBootstrap } from "../../context/HODBootstrapContext";
@@ -42,6 +42,7 @@ interface Student {
   section: string;
   semester: number;
   attendance_percentage: number | string;
+  recently_notified?: boolean;
 }
 
 interface Semester {
@@ -212,6 +213,11 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     branchId: bootstrap?.branch_id || "",
     notifyingStudents: {} as Record<string, boolean>,
     notifiedStudents: {} as Record<string, boolean>,
+    notifyingAll: false,
+    // Global stats
+    totalStudentsGlobal: 0,
+    lowAttendanceGlobal: 0,
+    avgAttendanceGlobal: 0,
     // Pagination state
     currentPage: 1,
     totalCount: 0,
@@ -331,28 +337,82 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
           page_size: state.pageSize
         });
 
-        if (!studentsResponse.success || !studentsResponse.data) {
-          throw new Error(studentsResponse.message || "Failed to fetch students");
-        }
+        // Log the response for debugging
+        console.log('API Response:', studentsResponse);
 
-        const studentsData = studentsResponse.data.students.map((student) => ({
+        // Backend response structure: { success: true, data: { students: [...], stats: {...} }, count, next, previous, ... }
+        const studentsArray = studentsResponse?.data?.students || [];
+        const statsObj = studentsResponse?.data?.stats || {};
+        
+        const studentsData = studentsArray.map((student: any) => ({
           student_id: student.student_id,
           usn: student.usn,
           name: student.name,
           subject: student.subject,
           section: student.section || "Section A",
           semester: student.semester || 0,
-          attendance_percentage: student.attendance_percentage
+          attendance_percentage: student.attendance_percentage,
+          recently_notified: student.recently_notified
         }));
+
+        // Map recently_notified students to the notifiedStudents state
+        const notifiedMap: Record<string, boolean> = {};
+        studentsArray.forEach((student: any) => {
+          if (student.recently_notified) {
+            notifiedMap[student.student_id] = true;
+          }
+        });
 
         updateState({
           students: studentsData,
           loading: false,
-          notifiedStudents: {},
-          totalCount: studentsResponse.count || 0,
-          next: studentsResponse.next,
-          previous: studentsResponse.previous
+          notifiedStudents: notifiedMap,
+          totalCount: studentsResponse?.count || 0,
+          // Prefer explicit stats from the backend, fall back to the paginated count or current data length
+          totalStudentsGlobal: statsObj.total_students || studentsResponse?.count || studentsData.length,
+          lowAttendanceGlobal: statsObj.low_attendance_count || (studentsResponse?.count || studentsData.length),
+          avgAttendanceGlobal: statsObj.avg_attendance || 0,
+          next: studentsResponse?.next,
+          previous: studentsResponse?.previous,
+          currentPage: studentsResponse?.current_page || state.currentPage
         });
+
+        // If backend did not provide global stats, fetch attendance bootstrap to compute totals/average
+        const needsFallbackStats = !statsObj || !statsObj.total_students || statsObj.avg_attendance === undefined || statsObj.avg_attendance === null;
+        if (needsFallbackStats && state.branchId && state.selectedSemester && state.selectedSection) {
+          try {
+            // Get total count first
+            const countResp = await getAttendanceBootstrap(state.branchId, {
+              semester_id: state.selectedSemester,
+              section_id: state.selectedSection,
+              page: 1,
+              page_size: 1
+            });
+            const totalStudentsCount = countResp?.count || 0;
+
+            // Fetch all attendance rows to compute average (only if count is reasonable)
+            if (totalStudentsCount > 0) {
+              const allResp = await getAttendanceBootstrap(state.branchId, {
+                semester_id: state.selectedSemester,
+                section_id: state.selectedSection,
+                page: 1,
+                page_size: totalStudentsCount
+              });
+
+              const attendanceRows = allResp?.data?.attendance?.students || [];
+              const numericVals = attendanceRows.map((s: any) => (typeof s.attendance_percentage === 'number' ? s.attendance_percentage : (typeof s.attendance_percentage === 'string' && s.attendance_percentage !== 'NA' ? parseFloat(s.attendance_percentage) : NaN))).filter((v: any) => !isNaN(v));
+              const avg = numericVals.length > 0 ? Math.round((numericVals.reduce((a: number, b: number) => a + b, 0) / numericVals.length) * 10) / 10 : 0;
+
+              updateState({
+                totalStudentsGlobal: totalStudentsCount,
+                avgAttendanceGlobal: avg
+              });
+            }
+          } catch (e) {
+            // fallback quietly — keep previous values
+            console.warn('Failed to fetch attendance bootstrap for stats fallback', e);
+          }
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch students";
         toast({ variant: "destructive", title: "Error", description: errorMessage });
@@ -495,21 +555,42 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
       return;
     }
 
-    updateState({ loading: true });
+    // Add confirmation
+    if (!window.confirm(`Are you sure you want to notify all ${studentsToNotify.length} students currently listed?`)) {
+      return;
+    }
+
+    updateState({ notifyingAll: true });
 
     try {
-      for (const student of studentsToNotify) {
-        await notifyStudent(student);
-      }
-
-      toast({
-        title: "Bulk Notification Complete",
-        description: `Notifications sent to all eligible students in the current view.`
+      const response = await sendNotification({
+        action: "notify_low_attendance",
+        title: "Low Attendance Alert",
+        student_ids: studentsToNotify.map(s => s.usn),
+        message: "Your attendance is below the required threshold. Please attend classes regularly.",
+        branch_id: state.branchId
       });
-    } catch (error) {
 
+      if (response.success) {
+        toast({
+          title: "Bulk Notification Sent",
+          description: response.message || `Notifications sent to ${response.success_count || studentsToNotify.length} students.`
+        });
+
+        // Mark all as notified in state
+        const newNotified = { ...state.notifiedStudents };
+        studentsToNotify.forEach(s => {
+          newNotified[s.student_id] = true;
+        });
+        updateState({ notifiedStudents: newNotified });
+      } else {
+         throw new Error(response.message || "Failed to send bulk notifications");
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to send notifications";
+      toast({ variant: "destructive", title: "Error", description: errorMessage });
     } finally {
-      updateState({ loading: false });
+      updateState({ notifyingAll: false });
     }
   };
 
@@ -530,12 +611,10 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     return "text-green-500";
   };
 
-  // Calculate stats
-  const totalStudents = state.totalCount;
-  const lowAttendanceCount = state.students.length;
-  const avgAttendance = state.students.length > 0 ?
-    Math.round(state.students.reduce((sum, s) => sum + (typeof s.attendance_percentage === 'number' ? s.attendance_percentage : 0), 0) / state.students.filter((s) => typeof s.attendance_percentage === 'number').length) :
-    0;
+  // Use global stats from state
+  const totalStudents = state.totalStudentsGlobal;
+  const lowAttendanceCount = state.lowAttendanceGlobal;
+  const avgAttendance = state.avgAttendanceGlobal;
 
   return (
     <ErrorBoundary>
@@ -682,12 +761,21 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                     </h2>
                     <Button
                       onClick={notifyAllStudents}
-                      disabled={state.loading || state.students.length === 0}
+                      disabled={state.loading || state.students.length === 0 || state.notifyingAll}
                       variant="outline"
                       className={`text-xs sm:text-sm font-semibold flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md transform hover:scale-105 active:scale-95`}>
 
-                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                      Notify All
+                      {state.notifyingAll ? (
+                        <>
+                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                          Notify All
+                        </>
+                      )}
                     </Button>
                   </div>
                   <div className="border rounded-lg overflow-hidden">
@@ -701,10 +789,10 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   </div>
 
                   {/* Pagination Controls */}
-                  {state.totalCount > state.pageSize &&
+                  {state.totalCount > 0 &&
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
                       <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Showing {state.students.length} of {state.totalCount} students
+                        Showing {Math.min((state.currentPage - 1) * state.pageSize + 1, state.totalCount)} to {Math.min(state.currentPage * state.pageSize, state.totalCount)} of {state.totalCount} students
                       </div>
                       <div className="flex gap-2 items-center justify-center sm:justify-end flex-wrap">
                         <Button

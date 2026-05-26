@@ -10,17 +10,11 @@ import {
   SelectItem } from
 "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
-import { getUploadMarksBootstrap, GetUploadMarksBootstrapResponse, getQuestionPapers, getCOAttainment } from "../../utils/faculty_api";
 import { useTheme } from "@/context/ThemeContext";
-import { SkeletonTable } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 
-// Component shows aggregated CO results only — per-question and per-student types removed
-
 const COAttainment = () => {
-  const { data: assignments = [], isLoading: assignmentsLoading } = useFacultyAssignmentsQuery();
   const [dropdownData, setDropdownData] = useState({
     branch: [] as {id: number;name: string;}[],
     semester: [] as {id: number;number: number;}[],
@@ -40,25 +34,14 @@ const COAttainment = () => {
     testType: "",
     question_paper_id: undefined as number | undefined
   });
-  // per-student marks removed: UI shows aggregated CO data from server
+
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
 
-  // CO Attainment calculation states
-  const [coAttainment, setCoAttainment] = useState<Record<string, {
-    co: string;
-    maxMarks: number;
-    targetMarks: number;
-    avgMarks: number;
-    percentage: number; // Method 1: Average percentage
-    studentsAboveTarget: number;
-    totalStudents: number;
-    attainmentLevel: number; // Method 1 attainment level
-    method2Percentage: number; // Method 2: Percentage of students above target
-    method2Level: number; // Method 2 attainment level
-  }>>({});
-
+  // CO results states
+  const [coAttainment, setCoAttainment] = useState<Record<string, any>>({});
   const [overallAttainment, setOverallAttainment] = useState<number>(0);
 
   // Indirect attainment states
@@ -72,16 +55,62 @@ const COAttainment = () => {
   
   // PO Attainment state
   const [poAttainment, setPoAttainment] = useState<Record<string, number>>({});
-  const [copoMapping, setCopoMapping] = useState<Record<string, Record<string, number | null>>>({});  // Target threshold (default 60%, but configurable)
+  const [copoMapping, setCopoMapping] = useState<Record<string, Record<string, number | null>>>({});
+
+  // Target threshold (default 60%, but configurable)
   const [targetThreshold, setTargetThreshold] = useState<number>(60);
 
-  // Update dropdown data when assignments change
+  // Initial data fetch
   useEffect(() => {
-    const subjects = Array.from(
-      new Map(assignments.map((a) => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values()
-    );
-    setDropdownData((prev) => ({ ...prev, subject: subjects }));
-  }, [assignments]);
+    const fetchBootstrapData = async () => {
+      try {
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/subject-bootstrap/?include=semesters`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setDropdownData(prev => ({
+              ...prev,
+              semester: data.data.semesters || [],
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load bootstrap data", err);
+      }
+    };
+    fetchBootstrapData();
+  }, []);
+
+  // Update subjects based on selected semester
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      if (!selected.semester_id) {
+        setDropdownData(prev => ({ ...prev, subject: [] }));
+        return;
+      }
+      try {
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/subjects/?semester_id=${selected.semester_id}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && Array.isArray(data.data)) {
+            setDropdownData(prev => ({
+              ...prev,
+              subject: data.data.map((sub: any) => ({ id: Number(sub.id), name: sub.name }))
+            }));
+          } else if (data.success && data.data && Array.isArray(data.data.subjects)) {
+            // Fallback just in case the API structure changes back
+            setDropdownData(prev => ({
+              ...prev,
+              subject: data.data.subjects.map((sub: any) => ({ id: Number(sub.id), name: sub.name }))
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load subjects", err);
+      }
+    };
+    fetchSubjects();
+  }, [selected.semester_id]);
 
   const handleSelectChange = async (field: string, value: string | number) => {
     setErrorMessage("");
@@ -108,14 +137,11 @@ const COAttainment = () => {
     // Only subject selection is required for CO attainment
     const { subject_id } = { ...updated };
     if (subject_id) {
-      // Fetch aggregated CO attainment from server (no per-student marks by default)
       try {
-        const data = await getCOAttainment({
-          subject_id,
-          target_pct: targetThreshold
-        });
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/co-attainment/?subject_id=${subject_id}&target_pct=${targetThreshold}`);
+        const data = await response.json();
 
-        if (!data || data.error) throw new Error(data.error || 'Failed to fetch CO attainment');
+        if (!response.ok || data.error) throw new Error(data.error || 'Failed to fetch CO attainment');
 
         const attainmentData: Record<string, any> = {};
         const finalAttainmentData: Record<string, any> = {};
@@ -155,7 +181,7 @@ const COAttainment = () => {
         if (data.po_attainment) setPoAttainment(data.po_attainment);
         
         // Fetch CO-PO mappings
-        const mappingRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/copo-mapping/?subject_id=${subject_id}`);
+        const mappingRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/copo-mapping/?subject_id=${subject_id}`);
         if (mappingRes.ok) {
             const mappingData = await mappingRes.json();
             if (mappingData.mappings) {
@@ -186,14 +212,15 @@ const COAttainment = () => {
 
     try {
       // Call backend API with indirect attainment
-      const data = await getCOAttainment({
-        subject_id: selected.subject_id,
-        question_paper_id: selected.question_paper_id,
-        target_pct: targetThreshold,
+      const params = new URLSearchParams({
+        subject_id: selected.subject_id.toString(),
+        target_pct: targetThreshold.toString(),
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/co-attainment/?${params.toString()}`);
+      const data = await response.json();
 
-      if (!data || data.error) throw new Error(data.error || 'Failed to fetch CO attainment');
+      if (!response.ok || data.error) throw new Error(data.error || 'Failed to fetch CO attainment');
 
       // Update state with backend results
       const attainmentData: Record<string, any> = {};
@@ -254,7 +281,7 @@ const COAttainment = () => {
         indirect_attainment: JSON.stringify(indirectAttainment)
       });
 
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/co-attainment/export-pdf/?${params.toString()}`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/co-attainment/export-pdf/?${params.toString()}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -294,25 +321,37 @@ const COAttainment = () => {
       <Card>
         <CardContent className="pt-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50">
-            <div id="co-attainment-selectors" className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div id="co-attainment-selectors" className="col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Semester</label>
+                <Select onValueChange={(value) => handleSelectChange('semester_id', Number(value))}>
+                  <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
+                    <SelectValue placeholder="Select Semester" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
+                    {dropdownData.semester.map((item) =>
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        Semester {item.number}
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Subject</label>
-                {assignmentsLoading ?
-                <div className="h-11 bg-muted animate-pulse rounded-md" /> :
-
-                <Select onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
-                    <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
-                      <SelectValue placeholder="Select Subject" />
-                    </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
-                      {dropdownData.subject.map((item) =>
-                    <SelectItem key={item.id} value={item.id.toString()}>
-                          {item.name}
-                        </SelectItem>
+                <Select onValueChange={(value) => handleSelectChange('subject_id', Number(value))} disabled={!selected.semester_id || dropdownData.subject.length === 0}>
+                  <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
+                    <SelectValue placeholder={!selected.semester_id ? "Select Semester First" : "Select Subject"} />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
+                    {dropdownData.subject.map((item) =>
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        {item.name}
+                      </SelectItem>
                     )}
-                    </SelectContent>
-                  </Select>
-                }
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -495,7 +534,7 @@ const COAttainment = () => {
                     <Button 
                       onClick={async () => {
                         try {
-                          await fetchWithTokenRefresh(`${API_ENDPOINT}/copo-mapping/`, {
+                          await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/copo-mapping/`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ subject_id: selected.subject_id, mappings: copoMapping })
