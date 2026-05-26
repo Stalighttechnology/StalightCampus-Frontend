@@ -27,11 +27,22 @@ export const getWardenDashboard = async (): Promise<WardenDashboardData> => {
   return response.json();
 };
 
-export const getWardenStudents = async (hostelId?: number, floor?: string) => {
+export const getWardenStudents = async (
+  hostelId?: number, 
+  floor?: string,
+  batch?: string,
+  branch?: string,
+  semester?: string,
+  page: number = 1
+) => {
   let url = `${API_ENDPOINT}/warden/students/`;
   const params = new URLSearchParams();
   if (hostelId) params.append('hostel_id', hostelId.toString());
   if (floor && floor !== 'all') params.append('floor', floor);
+  if (batch) params.append('batch', batch);
+  if (branch) params.append('branch', branch);
+  if (semester) params.append('semester', semester);
+  params.append('page', page.toString());
   
   if (params.toString()) {
     url += `?${params.toString()}`;
@@ -82,3 +93,35 @@ export const updateWardenIssue = async (issueId: number, data: { status: string;
   }
   return response.json();
 };
+
+export const getWardenVisitorLogs = async (page = 1, search = '') => {
+  let url = `${API_ENDPOINT}/warden/visitor-logs/?page=${page}`;
+  if (search) {
+    url += `&search=${encodeURIComponent(search)}`;
+  }
+  const response = await fetchWithTokenRefresh(url);
+  if (!response.ok) {
+    throw new Error("Failed to fetch visitor logs");
+  }
+  return response.json();
+};
+
+export const createWardenVisitorLog = async (data: {
+  student: number;
+  visitor_name: string;
+  contact_details: string;
+  purpose: string;
+}) => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/visitor-logs/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to create visitor log");
+  }
+  return response.json();
+};
+

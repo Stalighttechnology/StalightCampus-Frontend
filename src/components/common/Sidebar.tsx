@@ -174,6 +174,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "staff": <Users size={20} />,
       "wardens": <Shield size={20} />,
       "student-meals": <Utensils size={20} />,
+      "visitor_logs": <FileText size={20} />,
+
       "announcement-management": <Bell size={20} />,
       "hod-announcement-management": <Bell size={20} />,
       "student-hostel-details": <Home size={20} />,
@@ -423,12 +425,14 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Menu Management", page: "menu-management" },
       { name: "Today's Menu", page: "student-meals" },
       { name: "Issue Tracking", page: "issues" },
+      { name: "Visitor Logs", page: "visitor_logs" },
       { name: "Profile", page: "profile" },
     ],
     warden: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Resident Management", page: "residents" },
       { name: "Issue Tracking", page: "issues" },
+      { name: "Visitor Logs", page: "visitor_logs" },
       { name: "Profile", page: "profile" },
     ],
     transport_admin: [
