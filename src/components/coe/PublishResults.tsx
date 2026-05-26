@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -621,9 +621,28 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               })}
               </div>
             }
+            <div className="mt-4 flex items-center justify-end gap-2 border-t pt-4">
+              <Button
+                className="h-9 px-4 text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90"
+                onClick={handleSave}
+                disabled={saving || upload?.is_published}
+              >
+                {saving ? 'Saving...' : 'Save Marks'}
+              </Button>
+              {upload?.is_published && (
+                <Button
+                  onClick={() => setUnpublishModalOpen(true)}
+                  className={`flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                >
+                  Unpublish
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between mt-8 gap-6 border-t pt-6">
-            <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div className="text-sm text-muted-foreground text-center sm:text-left">
               {studentsPagination?.count > 0 ?
                 `Showing ${(studentsPage - 1) * studentsPageSize + 1} to ${Math.min(studentsPage * studentsPageSize, studentsPagination?.count || 0)} of ${studentsPagination?.count || 0} students` :
                 `Showing 0 students`}
@@ -632,61 +651,39 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
               <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (!upload) return;
-                      navigateToPage(Math.max(1, studentsPage - 1));
-                    }}
-                    disabled={studentsPage === 1}
-                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50">
-                    
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!upload) return;
+                    navigateToPage(Math.max(1, studentsPage - 1));
+                  }}
+                  disabled={studentsPage === 1}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
                   Prev
                 </Button>
 
-                <div className="flex items-center">
-                  <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary/5">
-                      
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className="text-sm font-semibold text-primary">
                     {studentsPage}
-                  </Button>
+                  </span>
                 </div>
 
                 <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (!upload) return;
-                      navigateToPage(studentsPage + 1);
-                    }}
-                    disabled={!studentsPagination?.next}
-                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50">
-                    
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!upload) return;
+                    navigateToPage(studentsPage + 1);
+                  }}
+                  disabled={!studentsPagination?.next}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
                   Next
                 </Button>
               </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button
-                    className="flex-1 sm:flex-none h-12 sm:h-9 px-6 sm:px-4 text-[18px] sm:text-sm font-bold sm:font-semibold bg-primary text-white border-primary hover:bg-primary/90"
-                    onClick={handleSave}
-                    disabled={saving || upload?.is_published}>
-                    
-                  {saving ? 'Saving...' : 'Save Marks'}
-                </Button>
-                {upload?.is_published &&
-                  <Button
-                    onClick={() => setUnpublishModalOpen(true)}
-                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
-                    
-                    Unpublish
-                  </Button>
-                  }
-              </div>
             </div>
-          </div>
+          </CardFooter>
           {/* Navigation confirmation modal */}
           <Dialog open={navModalOpen} onOpenChange={setNavModalOpen}>
             <DialogContent className={`max-w-xl ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
@@ -753,8 +750,6 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
         </DialogContent>
       </Dialog>
-        </div>
-          </CardContent>
         </Card>
       }
     </div>);

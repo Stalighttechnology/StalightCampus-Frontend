@@ -23,7 +23,7 @@ import withReactContent from 'sweetalert2-react-content';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "../ui/alert";
 import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History, Plus, Trash2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import {
@@ -450,12 +450,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
         <CardContent className="p-0">
           <div className="space-y-4">
-            {loading ?
-            <div className="p-6">
+            {loading ? (
+              <div className="p-6">
                 <SkeletonTable rows={10} cols={6} />
-              </div> :
-            exams.length === 0 ?
-            <div className="px-6 py-12">
+              </div>
+            ) : exams.length === 0 ? (
+              <div className="px-6 py-12">
                  <Card className="border-dashed border-2 shadow-none bg-transparent">
                     <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                       <div className="bg-primary/5 p-6 rounded-full mb-4">
@@ -467,9 +467,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                       </p>
                     </CardContent>
                  </Card>
-               </div> :
-
-            <>
+               </div>
+            ) : (
               <div className="space-y-4">
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full text-sm text-left">
@@ -591,47 +590,44 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                   )}
                 </div>
               </div>
-              
-              <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between px-6 py-6 gap-4 border-t border-border">
-                <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
-                  {pagination.totalItems > 0 ?
-                  `Showing ${(pagination.currentPage - 1) * 10 + 1} to ${Math.min(pagination.currentPage * 10, pagination.totalItems)} of ${pagination.totalItems} exams` :
-                  `Showing 0 exams`}
-                </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pagination.currentPage === 1 || loading}
-                    onClick={() => loadData(pagination.currentPage - 1)}
-                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
-                    
-                    Prev
-                  </Button>
-                  <div className="flex items-center">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default">
-                      
-                      {pagination.currentPage}
-                    </Button>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pagination.currentPage === pagination.totalPages || loading}
-                    onClick={() => loadData(pagination.currentPage + 1)}
-                    className="flex-1 sm:flex-none h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
-                    
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </>
-            }
+            )}
           </div>
         </CardContent>
+
+        {!loading && exams.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              {pagination.totalItems > 0 ?
+                `Showing ${(pagination.currentPage - 1) * 10 + 1} to ${Math.min(pagination.currentPage * 10, pagination.totalItems)} of ${pagination.totalItems} exams` :
+                `Showing 0 exams`}
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.currentPage === 1 || loading}
+                onClick={() => loadData(pagination.currentPage - 1)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Prev
+              </Button>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className="text-sm font-semibold text-primary">
+                  {pagination.currentPage}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.currentPage === pagination.totalPages || loading}
+                onClick={() => loadData(pagination.currentPage + 1)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>);
 
