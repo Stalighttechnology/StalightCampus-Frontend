@@ -12,11 +12,13 @@ import {
   MapPin,
   User as UserIcon,
   ChevronRight,
+  ChevronLeft,
   GraduationCap
 } from "lucide-react";
 import { getWardenStudents } from "../../utils/warden_api";
 import { useWardenContext } from "../../context/WardenContext";
 import { useToast } from "../../hooks/use-toast";
+import { useTheme } from "../../context/ThemeContext";
 import { Input } from "@/components/ui/input";
 import { SkeletonCard } from "../ui/skeleton";
 import {
@@ -38,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 
 const WardenHostelOverview = () => {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,6 +49,9 @@ const WardenHostelOverview = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { wardenFloorsMap, loading: contextLoading } = useWardenContext();
   const [hostelFloors, setHostelFloors] = useState<number[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     // Consolidate floors from all managed hostels in the map
@@ -56,19 +62,21 @@ const WardenHostelOverview = () => {
 
   useEffect(() => {
     if (selectedFloor) {
-      fetchStudents(selectedFloor);
+      fetchStudents(selectedFloor, page);
     } else {
       setStudents([]);
     }
-  }, [selectedFloor]);
+  }, [selectedFloor, page]);
 
-  const fetchStudents = async (floor: string) => {
+  const fetchStudents = async (floor: string, pageNum: number = 1) => {
     setLoading(true);
     try {
-      const result = await getWardenStudents(undefined, floor);
-      if (result.success) {
-        setStudents(result.students);
-      }
+      const result = await getWardenStudents(undefined, floor, undefined, undefined, undefined, pageNum);
+      const studentList = result.results || result.students || [];
+      setStudents(studentList);
+      const count = result.count || studentList.length;
+      setTotalCount(count);
+      setTotalPages(Math.ceil(count / 50) || 1);
     } catch (error) {
       toast({
         title: "Error",
@@ -117,7 +125,7 @@ const WardenHostelOverview = () => {
             />
           </div>
 
-          <Select value={selectedFloor} onValueChange={setSelectedFloor}>
+          <Select value={selectedFloor} onValueChange={(val) => { setSelectedFloor(val); setPage(1); }}>
             <SelectTrigger className="w-full md:w-[220px] h-10 rounded-xl">
               <SelectValue placeholder="Select Floor to View" />
             </SelectTrigger>
@@ -193,6 +201,41 @@ const WardenHostelOverview = () => {
           </motion.div>
         ))}
       </div>
+
+      {selectedFloor && filteredStudents.length > 0 && totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border rounded-2xl bg-card border-border mt-4">
+          <div>
+            Showing {Math.min((page - 1) * 50 + 1, totalCount)} to {Math.min(page * 50, totalCount)} of {totalCount} residents
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1 || loading}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
+            >
+              Previous
+            </Button>
+
+            <div className="flex items-center justify-center min-w-[2rem]">
+              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {page}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || loading}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       {!selectedFloor && (
         <div className="text-center py-24 bg-card/30 rounded-3xl border-2 border-dashed border-border">

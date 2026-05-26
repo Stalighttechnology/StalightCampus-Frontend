@@ -14,13 +14,16 @@ import {
   MoreVertical,
   History,
   CheckCircle,
-  AlertTriangle } from
+  AlertTriangle,
+  ChevronLeft,
+  Download } from
 'lucide-react';
-import { getWardenIssues, updateWardenIssue } from '../../utils/warden_api';
+import { getWardenIssues, updateWardenIssue, exportWardenIssuesPdf, exportWardenSingleIssuePdf } from '../../utils/warden_api';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { API_ENDPOINT } from '../../utils/config';
 import { useToast } from '../../hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useTheme } from '../../context/ThemeContext';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -77,29 +80,36 @@ const STATUS_CONFIG = {
 
 const WardenIssueManagement = () => {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIssue, setSelectedIssue] = useState<DetailedIssue | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [updatingIssueId, setUpdatingIssueId] = useState<number | null>(null);
   const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [exporting, setExporting] = useState(false);
+  const [exportingSingle, setExportingSingle] = useState(false);
   const detailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchIssues();
-  }, [statusFilter]);
+  }, [statusFilter, currentPage]);
 
   const fetchIssues = async () => {
     setLoading(true);
     try {
-      const response = await getWardenIssues();
+      const response = await getWardenIssues(statusFilter, currentPage);
       if (response.results) {
-        let filtered = response.results;
-        if (statusFilter !== 'all') {
-          filtered = filtered.filter((i: Issue) => i.status === statusFilter);
-        }
-        setIssues(filtered);
-        setTotalCount(response.count);
+        setIssues(response.results);
+        const count = response.count || response.results.length;
+        setTotalCount(count);
+        setTotalPages(Math.max(1, Math.ceil(count / 10)));
+      } else if (Array.isArray(response.data)) {
+        setIssues(response.data);
+        setTotalCount(response.data.length);
+        setTotalPages(1);
       }
     } catch (error) {
       toast({
@@ -109,6 +119,63 @@ const WardenIssueManagement = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportWardenIssuesPdf(statusFilter);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Warden_Issues.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'PDF report downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export PDF report',
+        variant: 'destructive'
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportSingleIssuePDF = async () => {
+    if (!selectedIssue) return;
+    setExportingSingle(true);
+    try {
+      const blob = await exportWardenSingleIssuePdf(selectedIssue.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Issue_${selectedIssue.id}_Report.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'Issue report PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export issue PDF',
+        variant: 'destructive'
+      });
+    } finally {
+      setExportingSingle(false);
     }
   };
 
@@ -198,19 +265,39 @@ const WardenIssueManagement = () => {
         <div className="lg:col-span-5 space-y-4">
           <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
             <CardHeader id="warden-issues-list-header" className="pb-4 border bg-muted/30">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">Recent Issues</CardTitle>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px] h-8 text-xs border-primary/10">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-col space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl">Recent Issues</CardTitle>
+                    <CardDescription>Manage and view student complaints.</CardDescription>
+                  </div>
+                  {totalCount > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportPDF}
+                      disabled={exporting}
+                      className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap rounded-xl"
+                    >
+                      {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                      Export PDF
+                    </Button>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Filter Status</span>
+                  <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setCurrentPage(1); }}>
+                    <SelectTrigger className="w-[140px] h-8 text-xs border-primary/10">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -256,6 +343,36 @@ const WardenIssueManagement = () => {
                 }
               </ScrollArea>
             </CardContent>
+            {totalCount > 0 && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {totalCount === 0 ? 0 : Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} issues
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1 || loading}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className="text-sm font-semibold">{currentPage}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages || loading}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
           </Card>
         </div>
 
@@ -281,6 +398,16 @@ const WardenIssueManagement = () => {
                           ID: #{selectedIssue.id}
                         </span>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportSingleIssuePDF}
+                        disabled={exportingSingle}
+                        className="h-8 gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shadow-sm bg-primary hover:bg-primary/90 text-white border-primary ml-auto rounded-xl"
+                      >
+                        {exportingSingle ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
+                        <span className="text-xs font-semibold">Export PDF</span>
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6 space-y-6">

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getWardenVisitorLogs } from '../../utils/warden_api';
 import { useToast } from '../../hooks/use-toast';
+import { useTheme } from '../../context/ThemeContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Search, ChevronLeft, ChevronRight, Users, Plus } from 'lucide-react';
+import { Loader2, Search, ChevronLeft, ChevronRight, Users, Plus, Download } from 'lucide-react';
 import DashboardCard from '../common/DashboardCard';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,9 +14,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { createWardenVisitorLog, getWardenStudents } from '../../utils/warden_api';
+import { createWardenVisitorLog, getWardenStudents, getWardenVisitorLogs, exportWardenVisitorLogsPdf } from '../../utils/warden_api';
 import { getAcademicInit } from '../../utils/hms_api';
 
 interface VisitorLog {
@@ -32,6 +40,7 @@ interface VisitorLog {
 
 const WardenVisitorLogs = () => {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [logs, setLogs] = useState<VisitorLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -41,6 +50,8 @@ const WardenVisitorLogs = () => {
   const [totalCount, setTotalCount] = useState(0);
 
   // Modal states
+  const [exporting, setExporting] = useState(false);
+  const [viewPurpose, setViewPurpose] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
@@ -148,6 +159,34 @@ const WardenVisitorLogs = () => {
     }
   };
 
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportWardenVisitorLogsPdf(debouncedSearch);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Visitor_Logs_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'Visitor logs PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export visitor logs PDF',
+        variant: 'destructive'
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleString('en-US', {
@@ -224,68 +263,91 @@ const WardenVisitorLogs = () => {
                     <div className="grid grid-cols-3 gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs">Batch</Label>
-                        <select
-                          className="w-full h-8 px-2 rounded-md border border-input bg-background text-xs"
-                          value={selectedBatch}
-                          onChange={(e) => {
-                            setSelectedBatch(e.target.value);
+                        <Select
+                          value={selectedBatch || "all"}
+                          onValueChange={(val) => {
+                            setSelectedBatch(val === "all" ? "" : val);
                             setFormData({...formData, student: ''});
                           }}
                         >
-                          <option value="">All Batches</option>
-                          {batches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                        </select>
+                          <SelectTrigger className="w-full h-8 text-xs">
+                            <SelectValue placeholder="All Batches" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Batches</SelectItem>
+                            {batches.map((b) => (
+                              <SelectItem key={b.id} value={b.id.toString()}>
+                                {b.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Branch</Label>
-                        <select
-                          className="w-full h-8 px-2 rounded-md border border-input bg-background text-xs"
-                          value={selectedBranch}
-                          onChange={(e) => {
-                            setSelectedBranch(e.target.value);
+                        <Select
+                          value={selectedBranch || "all"}
+                          onValueChange={(val) => {
+                            setSelectedBranch(val === "all" ? "" : val);
                             setSelectedSemester('');
                             setFormData({...formData, student: ''});
                           }}
                         >
-                          <option value="">All Branches</option>
-                          {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                        </select>
+                          <SelectTrigger className="w-full h-8 text-xs">
+                            <SelectValue placeholder="All Branches" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Branches</SelectItem>
+                            {branches.map((b) => (
+                              <SelectItem key={b.id} value={b.id.toString()}>
+                                {b.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Semester</Label>
-                        <select
-                          className="w-full h-8 px-2 rounded-md border border-input bg-background text-xs"
-                          value={selectedSemester}
-                          onChange={(e) => {
-                            setSelectedSemester(e.target.value);
+                        <Select
+                          value={selectedSemester || "all"}
+                          onValueChange={(val) => {
+                            setSelectedSemester(val === "all" ? "" : val);
                             setFormData({...formData, student: ''});
                           }}
                           disabled={!selectedBranch}
                         >
-                          <option value="">All Semesters</option>
-                          {selectedBranch && semestersByBranch[selectedBranch]?.map((s: any) => (
-                            <option key={s.id} value={s.id}>Sem {s.number}</option>
-                          ))}
-                        </select>
+                          <SelectTrigger className="w-full h-8 text-xs">
+                            <SelectValue placeholder="All Semesters" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Semesters</SelectItem>
+                            {selectedBranch && semestersByBranch[selectedBranch]?.map((s: any) => (
+                              <SelectItem key={s.id} value={s.id.toString()}>
+                                Sem {s.number}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
                     <div className="space-y-2 pt-2 border-t border-border">
                       <Label>Student</Label>
-                      <select
-                        className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-sm"
+                      <Select
                         value={formData.student}
-                        onChange={(e) => setFormData({ ...formData, student: e.target.value })}
-                        onScroll={loadMoreStudents}
-                        required
+                        onValueChange={(val) => setFormData({ ...formData, student: val })}
                       >
-                        <option value="">Select a student...</option>
-                        {students.map((s: any) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name} ({s.usn}) - Room {s.room_number || s.room}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger className="w-full h-10 text-sm">
+                          <SelectValue placeholder="Select a student..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-56">
+                          {students.map((s: any) => (
+                            <SelectItem key={s.id} value={s.id.toString()}>
+                              {s.name} ({s.usn}) - Room {s.room_number || s.room}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label>Visitor Name</Label>
@@ -325,6 +387,16 @@ const WardenVisitorLogs = () => {
                   </form>
                 </DialogContent>
               </Dialog>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                disabled={exporting || totalCount === 0}
+                className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap shadow-sm rounded-xl"
+              >
+                {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
+                Export PDF
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -339,61 +411,111 @@ const WardenVisitorLogs = () => {
               <p className="font-semibold text-lg">No visitor logs found</p>
             </div>
           ) : (
-            <ScrollArea className="h-[500px]">
-              <div className="divide-y divide-border/30">
-                {logs.map((log) => (
-                  <div key={log.id} className="p-4 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-semibold text-lg">{log.visitor_name}</h4>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <span className="font-medium text-foreground">{log.student_name} ({log.student_usn})</span>
-                          <span>•</span>
-                          <span>{log.contact_details}</span>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="bg-primary/5">
-                        {formatDate(log.visit_time)}
-                      </Badge>
-                    </div>
-                    <p className="text-sm bg-muted/40 p-2 rounded border border-border/50 inline-block mt-2">
-                      <span className="font-semibold mr-2 opacity-70">Purpose:</span>
-                      {log.purpose}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                  <tr>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visitor</th>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Contact</th>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Student Info</th>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Purpose</th>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visit Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {logs.map((log) => (
+                    <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-md">{log.visitor_name}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{log.contact_details}</td>
+                      <td className="py-3 px-4">
+                        <div className="font-semibold">{log.student_name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setViewPurpose(log.purpose)}
+                          className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                        >
+                          View
+                        </Button>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant="outline" className="bg-primary/5 whitespace-nowrap">
+                          {formatDate(log.visit_time)}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* Pagination */}
           {!loading && logs.length > 0 && (
-            <div className="flex items-center justify-between p-4 border-t bg-muted/10">
-              <span className="text-sm text-muted-foreground">
-                Showing page {page} of {totalPages}
-              </span>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {totalCount === 0 ? 0 : Math.min((page - 1) * 10 + 1, totalCount)} to {Math.min(page * 10, totalCount)} of {totalCount} logs
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
                 >
-                  <ChevronLeft className="w-4 h-4 mr-1" /> Prev
+                  Previous
                 </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {page}
+                  </span>
+                </div>
+
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
                 >
-                  Next <ChevronRight className="w-4 h-4 ml-1" />
+                  Next
                 </Button>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* View Purpose Dialog */}
+      <Dialog open={!!viewPurpose} onOpenChange={() => setViewPurpose(null)}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden'}>
+          <DialogHeader>
+            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Visit Purpose</DialogTitle>
+          </DialogHeader>
+
+          <div
+            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
+                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground bg-muted/20' : 'text-gray-900 bg-gray-50'}`}
+          >
+            {viewPurpose}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="bg-primary hover:bg-primary/90 text-white hover:text-white border-primary rounded-xl text-xs h-9 w-full sm:w-auto"
+              onClick={() => setViewPurpose(null)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

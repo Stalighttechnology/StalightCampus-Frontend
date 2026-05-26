@@ -72,12 +72,47 @@ export const getWardenRooms = async (hostelId?: number, floor?: string) => {
   return response.json();
 };
 
-export const getWardenIssues = async () => {
-  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/issues/`);
+export const getWardenIssues = async (status?: string, page: number = 1) => {
+  let url = `${API_ENDPOINT}/warden/issues/?page=${page}`;
+  if (status && status !== 'all') {
+    url += `&status=${status}`;
+  }
+  const response = await fetchWithTokenRefresh(url);
   if (!response.ok) {
     throw new Error("Failed to fetch warden issues");
   }
   return response.json();
+};
+
+export const exportWardenIssuesPdf = async (status?: string): Promise<Blob> => {
+  let url = `${API_ENDPOINT}/warden/issues/export_pdf/`;
+  if (status && status !== 'all') {
+    url += `?status=${status}`;
+  }
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export PDF");
+  }
+  return response.blob();
+};
+
+export const exportWardenSingleIssuePdf = async (issueId: number): Promise<Blob> => {
+  const url = `${API_ENDPOINT}/hms/issues/${issueId}/export_issue_pdf/`;
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export single issue PDF");
+  }
+  return response.blob();
 };
 
 export const updateWardenIssue = async (issueId: number, data: { status: string; remarks?: string }) => {
@@ -123,5 +158,22 @@ export const createWardenVisitorLog = async (data: {
     throw new Error("Failed to create visitor log");
   }
   return response.json();
+};
+
+export const exportWardenVisitorLogsPdf = async (search = ''): Promise<Blob> => {
+  let url = `${API_ENDPOINT}/warden/visitor-logs/export_pdf/`;
+  if (search) {
+    url += `?search=${encodeURIComponent(search)}`;
+  }
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export PDF");
+  }
+  return response.blob();
 };
 

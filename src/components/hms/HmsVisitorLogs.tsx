@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getHmsVisitorLogs, exportHmsVisitorLogsPdf } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
+import { useTheme } from '../../context/ThemeContext';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,13 @@ import { Loader2, Search, ChevronLeft, ChevronRight, Users, Download } from 'luc
 import DashboardCard from '../common/DashboardCard';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface VisitorLog {
   id: number;
@@ -22,6 +30,7 @@ interface VisitorLog {
 
 const HmsVisitorLogs = () => {
   const { toast } = useToast();
+  const { theme } = useTheme();
   const [logs, setLogs] = useState<VisitorLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -30,6 +39,7 @@ const HmsVisitorLogs = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [exporting, setExporting] = useState(false);
+  const [viewPurpose, setViewPurpose] = useState<string | null>(null);
 
   // Debounce search input
   useEffect(() => {
@@ -152,31 +162,46 @@ const HmsVisitorLogs = () => {
               <p className="font-semibold text-lg">No visitor logs found</p>
             </div>
           ) : (
-            <ScrollArea className="h-[500px]">
-              <div className="divide-y divide-border/30">
-                {logs.map((log) => (
-                  <div key={log.id} className="p-4 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-semibold text-lg">{log.visitor_name}</h4>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <span className="font-medium text-foreground">{log.student_name} ({log.student_usn})</span>
-                          <span>•</span>
-                          <span>{log.contact_details}</span>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="bg-primary/5">
-                        {formatDate(log.visit_time)}
-                      </Badge>
-                    </div>
-                    <p className="text-sm bg-muted/40 p-2 rounded border border-border/50 inline-block mt-2">
-                      <span className="font-semibold mr-2 opacity-70">Purpose:</span>
-                      {log.purpose}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                  <tr>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visitor</th>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Contact</th>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Student Info</th>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Purpose</th>
+                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visit Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {logs.map((log) => (
+                    <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-md">{log.visitor_name}</td>
+                      <td className="py-3 px-4 text-muted-foreground">{log.contact_details}</td>
+                      <td className="py-3 px-4">
+                        <div className="font-semibold">{log.student_name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setViewPurpose(log.purpose)}
+                          className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                        >
+                          View
+                        </Button>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant="outline" className="bg-primary/5 whitespace-nowrap">
+                          {formatDate(log.visit_time)}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardContent>
         {!loading && totalPages > 1 && (
@@ -190,7 +215,7 @@ const HmsVisitorLogs = () => {
                 size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
               >
                 Previous
               </Button>
@@ -202,7 +227,7 @@ const HmsVisitorLogs = () => {
                 size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
               >
                 Next
               </Button>
@@ -210,6 +235,32 @@ const HmsVisitorLogs = () => {
           </CardFooter>
         )}
       </Card>
+
+      {/* View Purpose Dialog */}
+      <Dialog open={!!viewPurpose} onOpenChange={() => setViewPurpose(null)}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden'}>
+          <DialogHeader>
+            <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Visit Purpose</DialogTitle>
+          </DialogHeader>
+
+          <div
+            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words 
+                      max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground bg-muted/20' : 'text-gray-900 bg-gray-50'}`}
+          >
+            {viewPurpose}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="bg-primary hover:bg-primary/90 text-white hover:text-white border-primary rounded-xl text-xs h-9 w-full sm:w-auto"
+              onClick={() => setViewPurpose(null)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
