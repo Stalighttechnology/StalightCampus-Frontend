@@ -14,7 +14,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/sweetalert';
 
 const BillingManagement = () => {
   const navigate = useNavigate();
@@ -27,6 +27,7 @@ const BillingManagement = () => {
   const [showRaiseTicket, setShowRaiseTicket] = useState(false);
   const [ticketForm, setTicketForm] = useState({ subject: '', description: '', priority: 'Medium' });
   const [submittingTicket, setSubmittingTicket] = useState(false);
+  const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,6 +55,8 @@ const BillingManagement = () => {
     }
     try {
       setSubmittingTicket(true);
+      // show a persistent 'Submitting' toast so user knows action is in progress
+      const pending = toast({ title: 'Submitting...', description: 'Raising support ticket', });
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/support-tickets/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,6 +64,9 @@ const BillingManagement = () => {
       });
       const res = await response.json();
       if (res.success) {
+        // update toast to success
+        pending.update({ title: 'Ticket raised', description: 'Support team will contact you shortly' });
+        setTimeout(() => pending.dismiss(), 2500);
         showSuccessAlert('Ticket Raised', 'Support team will contact you shortly');
         setShowRaiseTicket(false);
         setTicketForm({ subject: '', description: '', priority: 'Medium' });
@@ -69,9 +75,12 @@ const BillingManagement = () => {
           setData({ ...data, support_tickets: [res.ticket, ...(data.support_tickets || [])] });
         }
       } else {
+        pending.update({ title: 'Failed', description: res.error || 'Failed to raise ticket' });
+        setTimeout(() => pending.dismiss(), 3500);
         showErrorAlert('Error', res.error || 'Failed to raise ticket');
       }
     } catch (err) {
+      toast({ title: 'Network error', description: 'Network error while raising ticket' });
       showErrorAlert('Error', 'Network error while raising ticket');
     } finally {
       setSubmittingTicket(false);
@@ -103,6 +112,30 @@ const BillingManagement = () => {
       showErrorAlert('Error', 'Network error while downloading receipt');
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: number) => {
+    const confirmed = await showConfirmAlert('Delete ticket', 'Are you sure you want to delete this ticket?', 'Delete');
+    if (!confirmed.isConfirmed) return;
+    setDeletingTicketId(ticketId);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/support-tickets/${ticketId}/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Deleted', 'Support ticket deleted');
+        if (data) {
+          setData({ ...data, support_tickets: (data.support_tickets || []).filter((t: any) => t.id !== ticketId) });
+        }
+      } else {
+        showErrorAlert('Error', res.error || 'Failed to delete ticket');
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'Network error while deleting ticket');
+    } finally {
+      setDeletingTicketId(null);
     }
   };
 
@@ -364,6 +397,16 @@ const BillingManagement = () => {
                           <Eye size={14} />
                           View
                         </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                            onClick={() => handleDeleteTicket(ticket.id)}
+                            disabled={deletingTicketId === ticket.id}
+                          >
+                            {deletingTicketId === ticket.id ? <Loader2 size={14} className="animate-spin mr-2" /> : null}
+                            Delete
+                          </Button>
                       </td>
                     </tr>
                   ))
@@ -394,6 +437,7 @@ const BillingManagement = () => {
                 placeholder="Brief issue title" 
                 value={ticketForm.subject}
                 onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
+                disabled={submittingTicket}
               />
             </div>
             <div className="space-y-2">
@@ -403,6 +447,7 @@ const BillingManagement = () => {
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={ticketForm.priority}
                 onChange={(e) => setTicketForm({ ...ticketForm, priority: e.target.value })}
+                disabled={submittingTicket}
               >
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -418,6 +463,7 @@ const BillingManagement = () => {
                 rows={4}
                 value={ticketForm.description}
                 onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
+                disabled={submittingTicket}
               />
             </div>
           </div>

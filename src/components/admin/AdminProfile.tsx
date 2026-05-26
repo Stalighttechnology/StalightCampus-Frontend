@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 import { manageAdminProfile } from "../../utils/admin_api";
 import { Textarea } from "../ui/textarea";
 import { useTheme } from "../../context/ThemeContext";
-import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "../../utils/sweetalert";
+import { useToast } from '../../hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Eye, EyeOff, CreditCard, Calendar, Activity, CheckCircle2, Clock, ShieldCheck, Loader2, Download, Camera } from "lucide-react";
+import { Eye, EyeOff, CreditCard, Calendar, Activity, CheckCircle2, Clock, ShieldCheck, Loader2, Download, Camera, Trash } from "lucide-react";
 import { performR2Upload } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Progress } from "../ui/progress";
@@ -77,6 +78,9 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
   const [viewTicket, setViewTicket] = useState<any>(null);
   const [ticketForm, setTicketForm] = useState({ subject: '', description: '', priority: 'Medium' });
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
+  const [submittingTicket, setSubmittingTicket] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -211,7 +215,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       const res = await response.json();
       if (res.tickets) setTickets(res.tickets);
     } catch (e) {
-
+      console.error('Failed to fetch support tickets:', e);
     } finally {
       setLoadingTickets(false);
     }
@@ -219,6 +223,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
 
   const handleRaiseTicket = async () => {
     if (!ticketForm.subject || !ticketForm.description) return showErrorAlert('Error', 'Subject and description are required');
+    setSubmittingTicket(true);
+    const pending = toast({ title: 'Submitting...', description: 'Raising support ticket' });
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/support-tickets/`, {
         method: 'POST',
@@ -227,6 +233,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       });
       const res = await response.json();
       if (res.success) {
+        pending.update({ title: 'Ticket raised', description: 'Support team will contact you shortly' });
+        setTimeout(() => pending.dismiss(), 2500);
         showSuccessAlert('Ticket raised', res.message);
         setShowTicketModal(false);
         setTicketForm({ subject: '', description: '', priority: 'Medium' });
@@ -235,10 +243,37 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           setTickets((prev) => [res.ticket, ...prev]);
         }
       } else {
+        pending.update({ title: 'Failed', description: res.error || 'Failed to raise ticket' });
+        setTimeout(() => pending.dismiss(), 3500);
         showErrorAlert('Error', res.error || 'Failed to raise ticket');
       }
     } catch (e) {
+      toast({ title: 'Network error', description: 'Network error while raising ticket' });
       showErrorAlert('Error', 'Network error');
+    } finally {
+      setSubmittingTicket(false);
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: number) => {
+    const confirmed = await showConfirmAlert('Delete ticket', 'Are you sure you want to delete this ticket?', 'Delete');
+    if (!confirmed.isConfirmed) return;
+    setDeletingTicketId(ticketId);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/support-tickets/${ticketId}/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Deleted', 'Support ticket deleted');
+        setTickets((prev) => prev.filter((t) => t.id !== ticketId));
+      } else {
+        showErrorAlert('Error', res.error || 'Failed to delete ticket');
+      }
+    } catch (e) {
+      showErrorAlert('Error', 'Network error while deleting ticket');
+    } finally {
+      setDeletingTicketId(null);
     }
   };
 
@@ -611,7 +646,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 <div className="space-y-4 pt-4">
                   <div>
                     <Label>Subject</Label>
-                    <Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary of the issue" />
+                    <Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} placeholder="Brief summary of the issue" disabled={submittingTicket} />
                   </div>
                   <div>
                     <Label>Priority</Label>
@@ -619,7 +654,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                       value={ticketForm.priority}
                       onValueChange={(value) => setTicketForm({ ...ticketForm, priority: value })}>
                       
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full" disabled={submittingTicket}>
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                       <SelectContent>
@@ -636,13 +671,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                       <Textarea
                         value={ticketForm.description}
                         onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
+                        disabled={submittingTicket}
                         placeholder="Detailed description..."
                         className="h-full w-full resize-none border-none focus-visible:ring-0 shadow-none custom-scrollbar" />
                       
                     </div>
                   </div>
-                  <Button className="w-full" onClick={handleRaiseTicket} disabled={loadingTickets}>
-                    {loadingTickets ? 'Submitting...' : 'Submit Ticket'}
+                  <Button className="w-full" onClick={handleRaiseTicket} disabled={submittingTicket}>
+                    {submittingTicket ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : 'Submit Ticket'}
                   </Button>
                 </div>
               </DialogContent>
@@ -731,6 +767,16 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                             <Eye size={14} />
                             View
                           </Button>
+                          <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                      onClick={() => handleDeleteTicket(t.id)}
+                      disabled={deletingTicketId === t.id}
+                      >
+                        {deletingTicketId === t.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash size={14} />}
+                        Delete
+                      </Button>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={
