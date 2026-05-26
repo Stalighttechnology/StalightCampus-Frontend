@@ -11,7 +11,7 @@ import { showSuccessAlert, showErrorAlert, showConfirmAlert } from "../../utils/
 import { useToast } from '../../hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Eye, EyeOff, CreditCard, Calendar, Activity, CheckCircle2, Clock, ShieldCheck, Loader2, Download, Camera, Trash } from "lucide-react";
-import { performR2Upload } from "../../utils/common_api";
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Progress } from "../ui/progress";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -38,6 +38,7 @@ interface ProfileData {
   mobile_number: string;
   address: string;
   bio: string;
+  profile_picture?: string;
 }
 
 const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
@@ -119,7 +120,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             email: response.profile.email || '',
             mobile_number: response.profile.mobile_number || '',
             address: response.profile.address || '',
-            bio: response.profile.bio || ''
+            bio: response.profile.bio || '',
+            profile_picture: response.profile.profile_picture || ''
           };
           setProfile(profileData);
           setOriginalProfile(profileData);
@@ -284,7 +286,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     setIsUploading(true);
     setUploadProgress(10);
     try {
-      const fileUrl = await performR2Upload(file, 'profiles');
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
       setUploadProgress(90);
       if (fileUrl) {
         // Update backend immediately
@@ -375,7 +377,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             email: response.profile.email || '',
             mobile_number: response.profile.mobile_number || '',
             address: response.profile.address || '',
-            bio: response.profile.bio || ''
+            bio: response.profile.bio || '',
+            profile_picture: response.profile.profile_picture || profile.profile_picture || ''
           };
           setProfile(profileData);
           setOriginalProfile(profileData);

@@ -98,3 +98,104 @@ export const performR2Upload = async (
     return null;
   }
 };
+
+export interface R2ProxyUploadResponse {
+  success: boolean;
+  url?: string;
+  message?: string;
+}
+
+/**
+ * Upload a file through the backend proxy to Cloudflare R2.
+ * This eliminates CSP/CORS issues by routing all uploads through the Django backend.
+ * Server-to-server communication with R2 bypasses browser security restrictions.
+ * 
+ * @param file - The file to upload
+ * @param folder - Optional destination folder in R2 (default: 'profiles')
+ * @returns The public URL of the uploaded file, or null on failure
+ */
+export const uploadFileViaBackendProxy = async (
+  file: File | Blob,
+  folder: string = 'profiles'
+): Promise<string | null> => {
+  try {
+    // Create FormData for multipart/form-data upload
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+
+    // POST to the backend proxy endpoint
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/r2/upload/`, {
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type header - let the browser set it with the correct boundary
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`Backend proxy upload failed (${response.status}):`, errorData);
+      return null;
+    }
+
+    const data: R2ProxyUploadResponse = await response.json();
+    
+    if (!data.success || !data.url) {
+      console.error("Backend proxy upload returned unsuccessful response:", data.message);
+      return null;
+    }
+
+    return data.url;
+  } catch (error) {
+    console.error("uploadFileViaBackendProxy error:", error);
+    return null;
+  }
+};
+
+/**
+ * Helper to download a file from R2 via the backend proxy.
+ * This avoids cross-origin download issues by fetching the file
+ * from the Django proxy endpoint which returns it with Content-Disposition attachment.
+ * 
+ * @param fileUrl - The public URL of the file to download
+ * @param fileName - Optional fallback filename
+ */
+export const downloadFileViaBackendProxy = async (
+  fileUrl: string,
+  fileName?: string
+): Promise<void> => {
+  try {
+    const encodedUrl = encodeURIComponent(fileUrl);
+    // Fetch the file from the backend proxy download endpoint
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/r2/download/?file_url=${encodedUrl}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to download file: ${response.statusText}`);
+    }
+    
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Resolve filename from URL if not provided
+    const resolvedName = fileName || fileUrl.split('/').pop() || 'download';
+    link.download = resolvedName;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error: any) {
+    console.error("downloadFileViaBackendProxy error:", error);
+    alert(error.message || "Failed to download file.");
+  }
+};
+
+
+
+
+

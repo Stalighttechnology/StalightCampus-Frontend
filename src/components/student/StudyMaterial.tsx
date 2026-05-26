@@ -29,6 +29,7 @@ import {
   getSections,
   getAllStudyMaterials
 } from "@/utils/student_api";
+import { downloadFileViaBackendProxy } from "@/utils/common_api";
 import { Button } from "@/components/ui/button";
 import { SkeletonList } from "../ui/skeleton";
 
@@ -52,48 +53,60 @@ interface StudyMaterial {
   file_url: string;
 }
 
-const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme: string }) => (
-  <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-    <TableCell className="w-[70px]">
-      <div className={`p-2.5 rounded-xl inline-flex items-center justify-center ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
-        <FileText className="text-red-500" size={22} />
-      </div>
-    </TableCell>
-    <TableCell className="font-medium max-w-[250px]">
-      <div className={`text-sm md:text-base lg:text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline cursor-pointer truncate font-semibold tracking-tight`}>
-        {material.title}
-      </div>
-    </TableCell>
-    <TableCell className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'} font-medium`}>
-      {material.subject_name}
-    </TableCell>
-    <TableCell className={`hidden md:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-      {material.subject_code}
-    </TableCell>
-    <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-      {material.semester || "N/A"}
-    </TableCell>
-    <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-          {material.uploaded_by.charAt(0)}
+const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme: string }) => {
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!material.file_url) return;
+    if (material.file_url.includes('drive.google.com') || material.file_url.includes('docs.google.com')) {
+      window.open(material.file_url, '_blank', 'noopener,noreferrer');
+    } else {
+      await downloadFileViaBackendProxy(material.file_url, material.title);
+    }
+  };
+
+  return (
+    <TableRow className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+      <TableCell className="w-[70px]">
+        <div className={`p-2.5 rounded-xl inline-flex items-center justify-center ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
+          <FileText className="text-red-500" size={22} />
         </div>
-        <span className="truncate font-medium">{material.uploaded_by}</span>
-      </div>
-    </TableCell>
-    <TableCell className="text-right">
-      <a
-        href={material.file_url}
-        download={material.title + ".pdf"}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
-      >
-        <Download size={22} />
-      </a>
-    </TableCell>
-  </TableRow>
-);
+      </TableCell>
+      <TableCell className="font-medium max-w-[250px]">
+        <div 
+          onClick={handleDownload}
+          className={`text-sm md:text-base lg:text-lg ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} hover:underline cursor-pointer truncate font-semibold tracking-tight`}
+        >
+          {material.title}
+        </div>
+      </TableCell>
+      <TableCell className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'} font-medium`}>
+        {material.subject_name}
+      </TableCell>
+      <TableCell className={`hidden md:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+        {material.subject_code}
+      </TableCell>
+      <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+        {material.semester || "N/A"}
+      </TableCell>
+      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+            {material.uploaded_by.charAt(0)}
+          </div>
+          <span className="truncate font-medium">{material.uploaded_by}</span>
+        </div>
+      </TableCell>
+      <TableCell className="text-right">
+        <button
+          onClick={handleDownload}
+          className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
+        >
+          <Download size={22} />
+        </button>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 const StudyMaterialsStudent = () => {
   const { theme } = useTheme();
