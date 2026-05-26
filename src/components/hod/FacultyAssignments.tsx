@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, ReactNode, Component, useRef } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
@@ -1072,35 +1072,44 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       )}
                     </tbody>
                   </table>
-                  {state.assignmentsTotalPages > 1 &&
-                  <div className="flex items-center justify-between mt-4 px-2 py-3 border-t">
-                      <div className="text-sm text-muted-foreground">
-                        Page {state.assignmentsPage} of {state.assignmentsTotalPages}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateState({ assignmentsPage: state.assignmentsPage - 1 })}
-                        disabled={state.assignmentsPage === 1}>
-                        
-                          Previous
-                        </Button>
-                        <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateState({ assignmentsPage: state.assignmentsPage + 1 })}
-                        disabled={state.assignmentsPage === state.assignmentsTotalPages}>
-                        
-                          Next
-                        </Button>
-                      </div>
-                    </div>
-                  }
                 </div>);
 
             })()}
           </CardContent>
+          {state.assignmentsTotalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Page {state.assignmentsPage} of {state.assignmentsTotalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateState({ assignmentsPage: state.assignmentsPage - 1 })}
+                  disabled={state.assignmentsPage === 1}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {state.assignmentsPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateState({ assignmentsPage: state.assignmentsPage + 1 })}
+                  disabled={state.assignmentsPage === state.assignmentsTotalPages}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
 
       </div>

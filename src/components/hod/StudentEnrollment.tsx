@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
 import { Checkbox } from "../ui/checkbox";
@@ -555,36 +555,6 @@ const StudentEnrollment = () => {
                             </div>
                       }
                         </div>
-
-                        {/* Pagination Controls */}
-                        {totalPages > 1 &&
-                    <div className="flex flex-col sm:flex-row items-center justify-between mt-6 sm:mt-5 md:mt-4 lg:mt-6 pt-4 sm:pt-3 md:pt-3 lg:pt-4 border-t gap-3 sm:gap-3 md:gap-2 lg:gap-4">
-                            <div className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-600'}`}>
-                              Page {currentPage} of {totalPages} ({totalStudents} total students)
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Button
-                          variant="outline"
-                          disabled={currentPage === 1}
-                          onClick={() => loadStudents(currentPage - 1)}
-                          className="text-sm font-medium px-4 py-2 rounded-md bg-primary hover:bg-primary/80 text-white border-primary">
-                          
-                                Previous
-                              </Button>
-                              <span className={`px-4 py-2 text-sm font-medium rounded-md ${theme === 'dark' ? 'text-foreground bg-accent' : 'text-gray-900 bg-gray-100'}`}>
-                                {currentPage}
-                              </span>
-                              <Button
-                          variant="outline"
-                          disabled={currentPage === totalPages}
-                          onClick={() => loadStudents(currentPage + 1)}
-                          className="text-sm font-medium px-4 py-2 rounded-md bg-primary hover:bg-primary/80 text-white border-primary">
-                          
-                                Next
-                              </Button>
-                            </div>
-                          </div>
-                    }
                       </>);
 
               })()
@@ -618,6 +588,36 @@ const StudentEnrollment = () => {
             </DialogContent>
           </Dialog>
         </CardContent>
+        {students.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {totalStudents === 0 ? 0 : (currentPage - 1) * 50 + 1} to {Math.min(currentPage * 50, totalStudents)} of {totalStudents} students
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadStudents(Math.max(currentPage - 1, 1))}
+                disabled={currentPage === 1 || isLoading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadStudents(Math.min(currentPage + 1, totalPages))}
+                disabled={currentPage === totalPages || isLoading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>);
 

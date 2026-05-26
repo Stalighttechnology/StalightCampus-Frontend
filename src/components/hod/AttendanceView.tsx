@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -461,27 +461,6 @@ const AttendanceView = () => {
             </table>
           </div>
         </div>
-
-        <div className="flex justify-between items-center mt-6">
-          <Button
-            onClick={handlePrev}
-            disabled={state.pagination.page === 1}
-            className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-          >
-            Previous
-          </Button>
-          <p className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-            Page {state.pagination.page} of {state.pagination.total_pages} ({state.pagination.total_students} total students)
-          </p>
-          <Button
-            onClick={handleNext}
-            disabled={state.pagination.page === state.pagination.total_pages}
-            className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md"
-          >
-            Next
-          </Button>
-        </div>
-
         <Dialog open={!!state.selectedStudent} onOpenChange={() => updateState({ selectedStudent: null })}>
           <DialogContent className={`sm:max-w-md border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
             <DialogHeader>
@@ -511,6 +490,41 @@ const AttendanceView = () => {
           </DialogContent>
         </Dialog>
       </CardContent>
+
+      {totalPages > 1 && (
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+          <div>
+            Showing {Math.min((state.pagination.page - 1) * state.pagination.page_size + 1, state.pagination.total_students)} to {Math.min(state.pagination.page * state.pagination.page_size, state.pagination.total_students)} of {state.pagination.total_students} students
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrev}
+              disabled={state.pagination.page === 1}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Previous
+            </Button>
+
+            <div className="flex items-center justify-center min-w-[2rem]">
+              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {state.pagination.page}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNext}
+              disabled={state.pagination.page === state.pagination.total_pages}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Next
+            </Button>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 };

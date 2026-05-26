@@ -2,7 +2,7 @@ import React, { useState, useEffect, ReactNode, Component } from "react";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { FileDown, Loader2, CheckCircle, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { FaUsers, FaExclamationTriangle, FaChartLine } from 'react-icons/fa';
 import {
@@ -700,59 +700,6 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
                   </div>
 
-                  {/* Pagination Controls */}
-                  {state.totalCount > state.pageSize &&
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-                      <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Showing {state.students.length} of {state.totalCount} students
-                      </div>
-                      <div className="flex gap-2 items-center justify-center sm:justify-end flex-wrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={goToPreviousPage}
-                          disabled={!state.previous || state.loading}
-                          className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
-
-                          <ChevronLeft className="w-3 h-3 mr-1" />
-                          Prev
-                        </Button>
-
-                        <div className="flex items-center space-x-1">
-                          {Array.from(
-                            { length: Math.min(5, Math.ceil(state.totalCount / state.pageSize)) },
-                            (_, i) => {
-                              const pageNum = Math.max(1, state.currentPage - 2) + i;
-                              if (pageNum > Math.ceil(state.totalCount / state.pageSize)) return null;
-                              return (
-                                <Button
-                                  key={pageNum}
-                                  variant={pageNum === state.currentPage ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => goToPage(pageNum)}
-                                  disabled={state.loading}
-                                  className="text-sm">
-
-                                  {pageNum}
-                                </Button>);
-
-                            }
-                          )}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={goToNextPage}
-                          disabled={!state.next || state.loading}
-                          className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
-
-                          Next
-                          <ChevronRight className="w-3 h-3 ml-1" />
-                        </Button>
-                      </div>
-                    </div>
-                  }
                 </div> :
 
                 <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
@@ -770,6 +717,40 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                 </div>
             }
           </CardContent>
+          {!state.loading && state.students.length > 0 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing <span className="font-medium">{Math.min((state.currentPage - 1) * state.pageSize + 1, state.totalCount)}</span> to <span className="font-medium">{Math.min(state.currentPage * state.pageSize, state.totalCount)}</span> of <span className="font-medium">{state.totalCount}</span> students
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPreviousPage}
+                  disabled={!state.previous || state.loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {state.currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextPage}
+                  disabled={!state.next || state.loading}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
     </ErrorBoundary>);
