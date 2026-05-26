@@ -411,45 +411,87 @@ const WardenVisitorLogs = () => {
               <p className="font-semibold text-lg">No visitor logs found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
-                  <tr>
-                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visitor</th>
-                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Contact</th>
-                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Student Info</th>
-                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Purpose</th>
-                    <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visit Time</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-4 font-semibold text-md">{log.visitor_name}</td>
-                      <td className="py-3 px-4 text-muted-foreground">{log.contact_details}</td>
-                      <td className="py-3 px-4">
-                        <div className="font-semibold">{log.student_name}</div>
-                        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn}</div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setViewPurpose(log.purpose)}
-                          className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                          View
-                        </Button>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge variant="outline" className="bg-primary/5 whitespace-nowrap">
-                          {formatDate(log.visit_time)}
-                        </Badge>
-                      </td>
+            <div>
+              {/* Mobile View: Stacked Cards */}
+              <div className="md:hidden space-y-3 p-3">
+                {logs.map((log) => (
+                  <div
+                    key={log.id}
+                    className={`p-4 rounded-xl border ${
+                      theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
+                    } flex flex-col gap-2 shadow-sm`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="font-semibold text-md leading-tight">{log.visitor_name}</h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">{log.contact_details}</p>
+                      </div>
+                      <Badge variant="outline" className="bg-primary/5 whitespace-nowrap text-[10px] py-0.5 px-2">
+                        {formatDate(log.visit_time)}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30 gap-2">
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Student</div>
+                        <div className="text-sm font-semibold truncate">{log.student_name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">{log.student_usn}</div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setViewPurpose(log.purpose)}
+                        className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 ${
+                          theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        View Purpose
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop View: Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                    <tr>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visitor</th>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Contact</th>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Student Info</th>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Purpose</th>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visit Time</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {logs.map((log) => (
+                      <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-3 px-4 font-semibold text-md">{log.visitor_name}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{log.contact_details}</td>
+                        <td className="py-3 px-4">
+                          <div className="font-semibold">{log.student_name}</div>
+                          <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn}</div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setViewPurpose(log.purpose)}
+                            className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                          >
+                            View
+                          </Button>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge variant="outline" className="bg-primary/5 whitespace-nowrap">
+                            {formatDate(log.visit_time)}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
