@@ -3,7 +3,8 @@ import {
   getMenus,
   manageMenu,
   getMenuItems,
-  manageMenuItem } from
+  manageMenuItem,
+  exportHostelMenuPdf } from
 '../../utils/hms_api';
 import { useHMSContext } from '../../context/HMSContext';
 
@@ -21,7 +22,9 @@ import {
   Save,
   X,
   History,
-  Repeat } from
+  Repeat,
+  Download,
+  Loader2 } from
 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -114,6 +117,37 @@ const MenuManagement: React.FC = () => {
   const [selectedHostel, setSelectedHostel] = useState<string>('');
   const [dayFilter, setDayFilter] = useState<string>('all');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!selectedHostel) return;
+    setExporting(true);
+    try {
+      const blob = await exportHostelMenuPdf(selectedHostel, dayFilter);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const hostelName = hostels.find(h => h.id.toString() === selectedHostel)?.name || 'Hostel';
+      link.setAttribute('download', `Mess_Menu_${hostelName.replace(/\s+/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'Mess menu PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export mess menu PDF',
+        variant: 'destructive'
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const [showFoodForm, setShowFoodForm] = useState(false);
   const [editingFoodItem, setEditingFoodItem] = useState<MenuItem | null>(null);
@@ -564,6 +598,15 @@ const MenuManagement: React.FC = () => {
                     loadMenuItems();
                   }} className="bg-primary hover:bg-primary/90">
                       <Plus className="w-4 h-4 mr-2" /> Add Menu
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleExportPDF}
+                      disabled={exporting || !selectedHostel}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-10 px-4 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                    >
+                      {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
+                      Export PDF
                     </Button>
                   </>
                 }

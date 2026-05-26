@@ -14,16 +14,19 @@ import {
   MoreVertical,
   History,
   CheckCircle,
-  AlertTriangle } from
+  AlertTriangle,
+  Download } from
 'lucide-react';
 import { useHMSContext } from '../../context/HMSContext';
 import { useToast } from '../../hooks/use-toast';
 import {
   getHostelIssues,
   updateIssueStatus,
-  getIssueDetail } from
+  getIssueDetail,
+  exportHostelIssuesPdf,
+  exportSingleIssuePdf } from
 '../../utils/hms_api';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SkeletonCard, SkeletonPageHeader } from '../ui/skeleton';
@@ -95,6 +98,69 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!selectedHostelId) return;
+    setExporting(true);
+    try {
+      const blob = await exportHostelIssuesPdf(Number(selectedHostelId), statusFilter !== 'all' ? statusFilter : undefined);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const hostelName = hostels.find(h => h.id.toString() === selectedHostelId)?.name || 'Hostel';
+      link.setAttribute('download', `Hostel_Issues_${hostelName.replace(/\s+/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'PDF report downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export PDF report',
+        variant: 'destructive'
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const [exportingSingle, setExportingSingle] = useState(false);
+
+  const handleExportSingleIssuePDF = async () => {
+    if (!selectedIssue) return;
+    setExportingSingle(true);
+    try {
+      const blob = await exportSingleIssuePdf(selectedIssue.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Issue_${selectedIssue.id}_Report.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'Issue report PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export issue PDF',
+        variant: 'destructive'
+      });
+    } finally {
+      setExportingSingle(false);
+    }
+  };
 
   // No longer auto-selecting first hostel
   useEffect(() => {
@@ -122,10 +188,13 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
       } else if (response.success) {
         if (response.results) {
           setIssues(response.results);
-          setTotalCount(response.count || response.results.length);
+          const count = response.count || response.results.length;
+          setTotalCount(count);
+          setTotalPages(Math.max(1, Math.ceil(count / 10)));
         } else if (Array.isArray(response.data)) {
           setIssues(response.data);
           setTotalCount(response.data.length);
+          setTotalPages(1);
         }
       } else {
         toast({
@@ -257,9 +326,23 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
           <Card className="border-primary/10 shadow-sm overflow-hidden">
             <CardHeader id="hms-issues-card" className="pb-4 border-b bg-muted/30">
               <div className="flex flex-col space-y-4">
-                <div className="space-y-1">
-                  <CardTitle>Issue Tracking</CardTitle>
-                  <CardDescription>Manage student complaints and maintenance requests.</CardDescription>
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <CardTitle>Issue Tracking</CardTitle>
+                    <CardDescription>Manage student complaints and maintenance requests.</CardDescription>
+                  </div>
+                  {selectedHostelId && totalCount > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportPDF}
+                      disabled={exporting}
+                      className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap"
+                    >
+                      {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                      Export PDF
+                    </Button>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="space-y-1">
@@ -388,6 +471,34 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                 }
               </ScrollArea>
             </CardContent>
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {totalCount === 0 ? 0 : Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} issues
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === 1 || loading}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className="text-sm font-semibold">{currentPage}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage === totalPages || loading}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
           </Card>
         </div>
 
@@ -414,52 +525,64 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                           ID: #{selectedIssue.id}
                         </span>
                       </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-8 gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shadow-sm">
-                            <History className="w-4 h-4 text-primary" />
-                            <span className="text-xs font-semibold">Resolution Timeline</span>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="w-[90vw] sm:max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden shadow-2xl border-primary/10 custom-scrollbar rounded-xl">
-                          <DialogHeader className="p-6 border-b bg-muted/30 shrink-0">
-                            <DialogTitle className="flex items-center gap-2">
-                              <History className="w-5 h-5 text-primary" />
-                              Resolution Timeline
-                            </DialogTitle>
-                          </DialogHeader>
-                          <ScrollArea className="flex-1 p-6">
-                            {selectedIssue.updates && selectedIssue.updates.length > 0 ?
-                          <div className="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-muted">
-                                {selectedIssue.updates.map((update: any, idx: number) =>
-                            <div key={idx} className="relative pl-8">
-                                    <div className="absolute left-0 top-1.5 w-5 h-5 rounded-full border-2 border-background bg-muted flex items-center justify-center">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                    </div>
-                                    <div className="p-3 rounded-lg bg-muted/30 border border-muted/50">
-                                      <div className="flex items-center justify-between mb-1">
-                                        <p className="text-base sm:text-sm font-semibold">
-                                          {update.old_status_display} → {update.new_status_display}
-                                        </p>
-                                        <span className="text-xs sm:text-[10px] font-mono text-muted-foreground">{formatDate(update.created_at)}</span>
+                      <div className="flex items-center gap-2">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shadow-sm">
+                              <History className="w-4 h-4 text-primary" />
+                              <span className="text-xs font-semibold">Resolution Timeline</span>
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="w-[90vw] sm:max-w-[500px] max-h-[80vh] flex flex-col p-0 overflow-hidden shadow-2xl border-primary/10 custom-scrollbar rounded-xl">
+                            <DialogHeader className="p-6 border-b bg-muted/30 shrink-0">
+                              <DialogTitle className="flex items-center gap-2">
+                                <History className="w-5 h-5 text-primary" />
+                                Resolution Timeline
+                              </DialogTitle>
+                            </DialogHeader>
+                            <ScrollArea className="flex-1 p-6">
+                              {selectedIssue.updates && selectedIssue.updates.length > 0 ?
+                            <div className="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-muted">
+                                  {selectedIssue.updates.map((update: any, idx: number) =>
+                              <div key={idx} className="relative pl-8">
+                                      <div className="absolute left-0 top-1.5 w-5 h-5 rounded-full border-2 border-background bg-muted flex items-center justify-center">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                       </div>
-                                      {update.note && <p className="text-sm sm:text-xs text-muted-foreground mt-1 bg-background/50 p-2 rounded">{update.note}</p>}
-                                      <p className="text-xs sm:text-[10px] mt-2 text-primary/70 flex items-center gap-1 font-medium">
-                                        <User className="w-3.5 h-3.5 sm:w-3 sm:h-3" /> {update.updated_by_name || 'System'}
-                                      </p>
+                                      <div className="p-3 rounded-lg bg-muted/30 border border-muted/50">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <p className="text-base sm:text-sm font-semibold">
+                                            {update.old_status_display} → {update.new_status_display}
+                                          </p>
+                                          <span className="text-xs sm:text-[10px] font-mono text-muted-foreground">{formatDate(update.created_at)}</span>
+                                        </div>
+                                        {update.note && <p className="text-sm sm:text-xs text-muted-foreground mt-1 bg-background/50 p-2 rounded">{update.note}</p>}
+                                        <p className="text-xs sm:text-[10px] mt-2 text-primary/70 flex items-center gap-1 font-medium">
+                                          <User className="w-3.5 h-3.5 sm:w-3 sm:h-3" /> {update.updated_by_name || 'System'}
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
-                            )}
-                              </div> :
-
-                          <div className="py-20 text-center opacity-50">
-                                <History className="w-12 h-12 mx-auto mb-4" />
-                                <p className="text-sm">No history available for this issue.</p>
-                              </div>
-                          }
-                          </ScrollArea>
-                        </DialogContent>
-                      </Dialog>
+                              )}
+                                </div> :
+  
+                            <div className="py-20 text-center opacity-50">
+                                  <History className="w-12 h-12 mx-auto mb-4" />
+                                  <p className="text-sm">No history available for this issue.</p>
+                                </div>
+                            }
+                            </ScrollArea>
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleExportSingleIssuePDF}
+                          disabled={exportingSingle}
+                          className="h-8 gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shadow-sm bg-primary hover:bg-primary/90 text-white border-primary"
+                        >
+                          {exportingSingle ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
+                          <span className="text-xs font-semibold">Export PDF</span>
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <ScrollArea className="flex-1">

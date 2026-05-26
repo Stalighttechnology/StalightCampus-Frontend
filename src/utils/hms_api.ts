@@ -260,6 +260,31 @@ params?: Record<string, any>)
   return hmsApiCall<HostelStudent>(endpoint, method, data);
 };
 
+export const exportHostelStudentsPdf = async (params: {
+  batch?: string;
+  branch?: string;
+  semester?: string;
+  search?: string;
+}): Promise<Blob> => {
+  const queryParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      queryParams.append(key, value.toString());
+    }
+  });
+  const url = `${API_ENDPOINT}/hms/students/export_pdf/?${queryParams.toString()}`;
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export hostel students PDF");
+  }
+  return response.blob();
+};
+
 export const getAcademicInit = async (): Promise<HMSResponse<any>> => {
   return hmsApiCall<any>("students/get_academic_init/", "GET");
 };
@@ -375,6 +400,24 @@ export const getMenus = async (filters?: Record<string, any>, page: number = 1):
     if (queryString) endpoint += `&${queryString}`;
   }
   return hmsApiCall<any>(endpoint, "GET");
+};
+
+export const exportHostelMenuPdf = async (hostelId: string, dayOfWeek?: string): Promise<Blob> => {
+  let endpoint = `menus/export_pdf/?hostel=${hostelId}`;
+  if (dayOfWeek && dayOfWeek !== 'all') {
+    endpoint += `&day_of_week=${dayOfWeek}`;
+  }
+  const url = `${API_ENDPOINT}/hms/${endpoint}`;
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export mess menu PDF");
+  }
+  return response.blob();
 };
 
 export const manageMenu = async (
@@ -502,6 +545,41 @@ page: number = 1)
   return hmsApiCall<any>(endpoint, "GET");
 };
 
+export const exportHostelIssuesPdf = async (
+  hostelId: number,
+  status?: string
+): Promise<Blob> => {
+  let endpoint = `issues/export_pdf/?hostel_id=${hostelId}`;
+  if (status && status !== 'all') {
+    endpoint += `&status=${status}`;
+  }
+  const url = `${API_ENDPOINT}/hms/${endpoint}`;
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export PDF");
+  }
+  return response.blob();
+};
+
+export const exportSingleIssuePdf = async (issueId: number): Promise<Blob> => {
+  const url = `${API_ENDPOINT}/hms/issues/${issueId}/export_issue_pdf/`;
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export single issue PDF");
+  }
+  return response.blob();
+};
+
 export const getIssueTimeline = async (issueId: number): Promise<HMSResponse<any>> => {
   return hmsApiCall<any>(`issues/${issueId}/timeline/`, "GET");
 };
@@ -513,4 +591,22 @@ export const getHmsVisitorLogs = async (page: number = 1, search: string = ''): 
     endpoint += `&search=${encodeURIComponent(search)}`;
   }
   return hmsApiCall<any>(endpoint, "GET");
+};
+
+export const exportHmsVisitorLogsPdf = async (search: string = ''): Promise<Blob> => {
+  let endpoint = `visitor-logs/export_pdf/`;
+  if (search) {
+    endpoint += `?search=${encodeURIComponent(search)}`;
+  }
+  const url = `${API_ENDPOINT}/hms/${endpoint}`;
+  const response = await fetchWithTokenRefresh(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export visitor logs PDF");
+  }
+  return response.blob();
 };

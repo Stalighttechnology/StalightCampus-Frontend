@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { manageHostelStudents, manageRooms } from '../../utils/hms_api';
+import { manageHostelStudents, manageRooms, exportHostelStudentsPdf } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
-import { Search, Filter, Edit2, CheckCircle2, XCircle, UserCircle2, Building2 } from 'lucide-react';
+import { Search, Filter, Edit2, CheckCircle2, XCircle, UserCircle2, Building2, Download, Loader2 } from 'lucide-react';
 import { AdminPagination } from '../common/AdminPagination';
 import { SkeletonTable, SkeletonPageHeader } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -84,6 +84,40 @@ const StudentManagement: React.FC = () => {
   });
 
   const { toast } = useToast();
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportHostelStudentsPdf({
+        batch: filters.batch,
+        branch: filters.branch,
+        semester: filters.semester,
+        search: filters.search
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Hostel_Students_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'Hostel students PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export hostel students PDF',
+        variant: 'destructive'
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -257,9 +291,21 @@ const StudentManagement: React.FC = () => {
       <Card className="border-primary/10 shadow-sm overflow-hidden">
         <CardHeader id="hms-students-card" className="bg-muted/30 pb-4 border-b">
           <div className="flex flex-col space-y-6">
-            <div className="flex flex-col space-y-1">
-              <h2 className="text-2xl font-semibold leading-none tracking-tight">Student Management</h2>
-              <p className="text-md text-muted-foreground">Monitor and manage hostel student allocations and dues.</p>
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col space-y-1">
+                <h2 className="text-2xl font-semibold leading-none tracking-tight">Student Management</h2>
+                <p className="text-md text-muted-foreground">Monitor and manage hostel student allocations and dues.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                disabled={exporting || !filters.batch || !filters.branch || !filters.semester}
+                className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap shadow-sm"
+              >
+                {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
+                Export PDF
+              </Button>
             </div>
 
             {/* Row 1: Dropdowns */}
@@ -404,24 +450,39 @@ const StudentManagement: React.FC = () => {
                   </TableBody>
                 </Table>
               </div>
-
-              {/* Pagination */}
-              {totalCount > pageSize &&
-                <AdminPagination
-                  pagination={{
-                    page: currentPage,
-                    pageSize: pageSize,
-                    totalPages: Math.ceil(totalCount / pageSize),
-                    totalItems: totalCount,
-                    hasNext: !!nextPage,
-                    hasPrev: !!previousPage
-                  }}
-                  onPageChange={(page) => setCurrentPage(page)}
-                />
-              }
             </>
           }
         </CardContent>
+        {totalCount > pageSize && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * pageSize + 1, totalCount)} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} students
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1 || loading}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className="text-sm font-semibold">{currentPage}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === Math.ceil(totalCount / pageSize) || loading}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Edit Dialog */}

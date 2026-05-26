@@ -97,11 +97,11 @@ const HostelManagement: React.FC = () => {
     try {
       const method = editingHostel ? 'PUT' : 'POST';
       const response = await manageHostels(formData, editingHostel?.id, method);
-      
+
       if (response.success) {
-        toast({ 
-          title: 'Success', 
-          description: `Hostel ${editingHostel ? 'updated' : 'created'} successfully` 
+        toast({
+          title: 'Success',
+          description: `Hostel ${editingHostel ? 'updated' : 'created'} successfully`
         });
         setIsDialogOpen(false);
         // Enrich response data with warden and caretaker names if missing
@@ -179,86 +179,86 @@ const HostelManagement: React.FC = () => {
                       <Plus className="w-4 h-4 mr-2" /> Add Hostel
                     </Button>
                   </DialogTrigger>
-                <DialogContent className="max-w-[90vw] sm:max-w-[425px] rounded-xl">
-                  <DialogHeader>
-                    <DialogTitle>{editingHostel ? 'Edit Hostel' : 'Add Hostel'}</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hostel Name</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                        placeholder="e.g. Aryabhata Block"
-                        className="h-10"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="gender" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hostel Type</Label>
-                      <Select value={formData.gender} onValueChange={(value: 'M' | 'F') => setFormData({ ...formData, gender: value })}>
-                        <SelectTrigger className="h-10">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="M">Boys Hostel</SelectItem>
-                          <SelectItem value="F">Girls Hostel</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="floor_count" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Floor Count</Label>
-                      <Input
-                        id="floor_count"
-                        type="number"
-                        min="1"
-                        max="20"
-                        value={formData.floor_count}
-                        onChange={(e) => setFormData({ ...formData, floor_count: parseInt(e.target.value) || 1 })}
-                        required
-                        className="h-10"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
+                  <DialogContent className="max-w-[90vw] sm:max-w-[425px] rounded-xl">
+                    <DialogHeader>
+                      <DialogTitle>{editingHostel ? 'Edit Hostel' : 'Add Hostel'}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                       <div className="space-y-2">
-                        <Label htmlFor="warden" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Warden</Label>
-                        <Select value={formData.warden?.toString() || 'unset'} onValueChange={(value) => setFormData({ ...formData, warden: value === 'unset' ? null : parseInt(value) })}>
+                        <Label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hostel Name</Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          required
+                          placeholder="e.g. Aryabhata Block"
+                          className="h-10"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gender" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hostel Type</Label>
+                        <Select value={formData.gender} onValueChange={(value: 'M' | 'F') => setFormData({ ...formData, gender: value })}>
                           <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Select warden" />
+                            <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="unset">Not Assigned</SelectItem>
-                            {wardens.map((warden) => (
-                              <SelectItem key={warden.id} value={warden.id.toString()}>
-                                {warden.name}
-                              </SelectItem>
-                            ))}
+                            <SelectItem value="M">Boys Hostel</SelectItem>
+                            <SelectItem value="F">Girls Hostel</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="caretaker" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Caretaker</Label>
-                        <Select value={formData.caretaker?.toString() || 'unset'} onValueChange={(value) => setFormData({ ...formData, caretaker: value === 'unset' ? null : parseInt(value) })}>
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Select caretaker" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unset">Not Assigned</SelectItem>
-                            {caretakers.map((caretaker) => (
-                              <SelectItem key={caretaker.id} value={caretaker.id.toString()}>
-                                {caretaker.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label htmlFor="floor_count" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Floor Count</Label>
+                        <Input
+                          id="floor_count"
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={formData.floor_count}
+                          onChange={(e) => setFormData({ ...formData, floor_count: parseInt(e.target.value) || 1 })}
+                          required
+                          className="h-10"
+                        />
                       </div>
-                    </div>
-                    <Button type="submit" className="w-full h-10 mt-2">{editingHostel ? 'Update Hostel' : 'Create Hostel'}</Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            )}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="warden" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Warden</Label>
+                          <Select value={formData.warden?.toString() || 'unset'} onValueChange={(value) => setFormData({ ...formData, warden: value === 'unset' ? null : parseInt(value) })}>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select warden" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unset">Not Assigned</SelectItem>
+                              {wardens.map((warden) => (
+                                <SelectItem key={warden.id} value={warden.id.toString()}>
+                                  {warden.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="caretaker" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Caretaker</Label>
+                          <Select value={formData.caretaker?.toString() || 'unset'} onValueChange={(value) => setFormData({ ...formData, caretaker: value === 'unset' ? null : parseInt(value) })}>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select caretaker" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unset">Not Assigned</SelectItem>
+                              {caretakers.map((caretaker) => (
+                                <SelectItem key={caretaker.id} value={caretaker.id.toString()}>
+                                  {caretaker.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full h-10 mt-2">{editingHostel ? 'Update Hostel' : 'Create Hostel'}</Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -323,6 +323,7 @@ const HostelManagement: React.FC = () => {
             </div>
           )}
         </CardContent>
+
       </Card>
     </div>
   );
