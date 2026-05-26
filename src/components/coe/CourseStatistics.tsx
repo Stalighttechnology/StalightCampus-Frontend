@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -302,48 +302,47 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </Table>
             </div>
             {(data?.courses?.length ?? 0) === 0 &&
-          <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-muted-foreground">
                 No course statistics found for the selected filters.
               </div>
-          }
+            }
+          </CardContent>
+
           {/* Pagination controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between mt-6 gap-4 border-t pt-4 pagination-container">
-            <div className="text-[16px] sm:text-sm text-muted-foreground pagination-info">
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div className="text-sm text-muted-foreground pagination-info">
               {totalCount !== null && totalCount > 0 ?
-              `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} subjects` :
-              `Showing 0 subjects`}
+                `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} subjects` :
+                `Showing 0 subjects`}
             </div>
             <div className="flex items-center gap-2 pagination-controls">
               <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
-                
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
                 Prev
               </Button>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="h-10 sm:h-9 px-4 sm:px-3 text-[18px] sm:text-sm font-semibold bg-white text-black border-2 cursor-default hover:bg-primary">
-                  
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className="text-sm font-semibold text-primary">
                   {page}
-                </Button>
+                </span>
               </div>
 
               <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => p + 1)}
                 disabled={!pagination?.next}
-                className="h-10 sm:h-9 px-4 sm:px-3 text-[16px] sm:text-sm font-semibold bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50">
-                
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
                 Next
               </Button>
             </div>
-          </div>
-          </CardContent>
+          </CardFooter>
         </Card>
       }
 

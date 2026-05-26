@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useTheme } from '@/context/ThemeContext';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -91,7 +91,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
     if (stu.success) {
       const studentList = stu.data?.students || [];
       setStudents(studentList);
-      setStudentsPagination(stu.data?.pagination || null);
+      setStudentsPagination(stu.pagination || null);
       setStudentsPage(page || 1);
       setDirtyPages((prev) => ({ ...(prev || {}), [page || 1]: false }));
       setAllMarks((prev) => {
@@ -426,30 +426,9 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
           </CardHeader>
           <CardContent>
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div className="flex items-center justify-between mb-3">
             <div className="text-sm text-muted-foreground">Showing {students.length} students</div>
-            <div className="flex gap-3 items-center">
-              <div className="flex items-center gap-2">
-                <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : ''}`}>Page size</label>
-                <Select
-                  value={String(studentsPageSize)}
-                  onValueChange={(value) => {
-                    const v = Number(value);
-                    setStudentsPageSize(v);
-                    if (upload) navigateToPage(1, v);
-                  }}>
-                  
-                  <SelectTrigger className="w-[110px]">
-                    <SelectValue placeholder="Page size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex gap-3 items-center pr-1">
             </div>
           </div>
           <div className="space-y-4">
@@ -655,67 +634,64 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </div>
                 </div>);
 
-            })}
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2 items-center">
-            <div className="flex items-center gap-3 mr-auto">
-              <Button
-                size="sm"
-                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
-                disabled={studentsPage <= 1}
-                onClick={() => {
-                  if (!upload) return;
-                  navigateToPage(Math.max(1, studentsPage - 1));
-                }}>
-                
-                Previous
-              </Button>
-
-              {(() => {
-                const ui = paginationToUI(studentsPagination || {}, [], studentsPageSize);
-                const totalPages = ui.count ? Math.max(1, Math.ceil(ui.count / studentsPageSize)) : ui.total_pages || 1;
-                const maxButtons = 20;
-                let start = 1,end = totalPages;
-                if (totalPages > maxButtons) {
-                  const half = Math.floor(maxButtons / 2);
-                  start = Math.max(1, studentsPage - half);
-                  end = Math.min(totalPages, start + maxButtons - 1);
-                  if (end - start < maxButtons - 1) start = Math.max(1, end - maxButtons + 1);
-                }
-                const pages = [];
-                for (let p = start; p <= end; p++) pages.push(p);
-                return (
-                  <div className="flex gap-1">
-                      {pages.map((p) =>
-                    <Button
-                      key={p}
-                      size="sm"
-                      variant="outline"
-                      className={p === studentsPage ? 'bg-white text-black border-gray-300 hover:bg-gray-100' : 'bg-white text-black border-gray-300 hover:bg-gray-100'}
-                      onClick={() => upload && navigateToPage(p)}>
-                      {p}</Button>
-                    )}
-                  </div>);
-
-              })()}
-
-              <Button
-                size="sm"
-                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
-                disabled={!studentsPagination?.next}
-                onClick={() => {
-                  if (!upload) return;
-                  navigateToPage(studentsPage + 1);
-                }}>
-                
-                Next
-              </Button>
+             })}
+            <div className="mt-4 flex items-center justify-end gap-2 border-t pt-4">
+              <Button className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all" onClick={handleSave} disabled={saving || upload?.is_published}>{saving ? 'Saving...' : 'Save Marks'}</Button>
+              {upload?.is_published && (
+                <Button
+                  onClick={() => setUnpublishModalOpen(true)}
+                  className={`flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                >
+                  Unpublish
+                </Button>
+              )}
             </div>
+           </div>
+           </CardContent>
 
-            <Button className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90" onClick={handleSave} disabled={saving || upload?.is_published}>{saving ? 'Saving...' : 'Save Marks'}</Button>
-          </div>
-          </CardContent>
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div className="text-sm text-muted-foreground text-center sm:text-left">
+              {studentsPagination?.count > 0 ?
+                `Showing ${(studentsPage - 1) * studentsPageSize + 1} to ${Math.min(studentsPage * studentsPageSize, studentsPagination?.count || 0)} of ${studentsPagination?.count || 0} students` :
+                `Showing 0 students`}
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!upload) return;
+                    navigateToPage(Math.max(1, studentsPage - 1));
+                  }}
+                  disabled={studentsPage === 1}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Prev
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className="text-sm font-semibold text-primary">
+                    {studentsPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!upload) return;
+                    navigateToPage(studentsPage + 1);
+                  }}
+                  disabled={!studentsPagination?.next}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </CardFooter>
         </Card>
       }
 

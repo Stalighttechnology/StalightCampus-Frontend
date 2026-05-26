@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
@@ -513,38 +513,39 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
             }
 
-            {/* Pagination Controls */}
-            {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 0 &&
-            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-6">
-                <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Showing {(pagination.page - 1) * itemsPerPage + 1} to {Math.min(pagination.page * itemsPerPage, pagination.total)} of {pagination.total} requests
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-10 sm:h-9 px-4 sm:px-6 text-base sm:text-sm font-medium text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                  onClick={() => fetchLeaveRequests(pagination.page - 1)}
-                  disabled={!pagination.has_previous}>
-                  
-                    Prev
-                  </Button>
-                  <span className="px-3 text-base sm:text-sm font-semibold text-primary">
-                    {pagination.page}
-                  </span>
-                  <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-10 sm:h-9 px-4 sm:px-6 text-base sm:text-sm font-medium text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                  onClick={() => fetchLeaveRequests(pagination.page + 1)}
-                  disabled={!pagination.has_next}>
-                  
-                    Next
-                  </Button>
-                </div>
-              </div>
-            }
           </CardContent>
+
+          {/* Pagination Controls */}
+          {!loading && filteredLeaveList.length > 0 && pagination.total_pages > 0 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <span>
+                Showing {(pagination.page - 1) * itemsPerPage + 1} to {Math.min(pagination.page * itemsPerPage, pagination.total)} of {pagination.total} requests
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  onClick={() => fetchLeaveRequests(pagination.page - 1)}
+                  disabled={!pagination.has_previous}
+                >
+                  Prev
+                </Button>
+                <span className="px-3 text-base sm:text-sm font-semibold text-primary">
+                  {pagination.page}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  onClick={() => fetchLeaveRequests(pagination.page + 1)}
+                  disabled={!pagination.has_next}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -427,39 +427,39 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             )}
             </div>
           }
-          {pendingPagination && (pendingPagination.next || pendingPagination.previous) &&
-          <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-4">
-              <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
+        </CardContent>
+          {pendingPagination && (pendingPagination.next || pendingPagination.previous) && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div className="text-sm text-muted-foreground text-center sm:text-left">
                 Showing page {pendingPage} of {pendingPagination.total_pages} — {pendingPagination.count} entries
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPendingPage((prev) => Math.max(1, prev - 1))}
-                disabled={pendingPage === 1 || !pendingPagination.previous}
-                className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal">
-                
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPendingPage((prev) => Math.max(1, prev - 1))}
+                  disabled={pendingPage === 1 || !pendingPagination.previous}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Prev
                 </Button>
-                <span className="text-[16px] sm:text-sm font-medium px-2">
+                <span className="text-sm font-medium px-2">
                   {pendingPage} / {pendingPagination.total_pages}
                 </span>
                 <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPendingPage((prev) => prev + 1)}
-                disabled={!pendingPagination.next}
-                className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal">
-                
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPendingPage((prev) => prev + 1)}
+                  disabled={!pendingPagination.next}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
                   Next
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
-            </div>
-          }
-        </CardContent>
+            </CardFooter>
+          )}
       </Card>
 
       {/* Finalized QPs section */}
@@ -527,39 +527,39 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             )}
             </div>
           }
-          {finalizedPagination && (finalizedPagination.next || finalizedPagination.previous) &&
-          <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t pt-4">
-              <div className="text-[16px] sm:text-sm text-muted-foreground text-center sm:text-left">
+        </CardContent>
+          {finalizedPagination && (finalizedPagination.next || finalizedPagination.previous) && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div className="text-sm text-muted-foreground text-center sm:text-left">
                 Showing page {finalizedPage} of {finalizedPagination.total_pages} — {finalizedPagination.count} entries
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto justify-center">
                 <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFinalizedPage((prev) => Math.max(1, prev - 1))}
-                disabled={finalizedPage === 1 || !finalizedPagination.previous}
-                className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal">
-                
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFinalizedPage((prev) => Math.max(1, prev - 1))}
+                  disabled={finalizedPage === 1 || !finalizedPagination.previous}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Prev
                 </Button>
-                <span className="text-[16px] sm:text-sm font-medium px-2">
+                <span className="text-sm font-medium px-2">
                   {finalizedPage} / {finalizedPagination.total_pages}
                 </span>
                 <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFinalizedPage((prev) => prev + 1)}
-                disabled={!finalizedPagination.next}
-                className="flex-1 sm:flex-none h-10 sm:h-9 text-[16px] sm:text-sm font-semibold sm:font-normal">
-                
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFinalizedPage((prev) => prev + 1)}
+                  disabled={!finalizedPagination.next}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
                   Next
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
-            </div>
-          }
-        </CardContent>
+            </CardFooter>
+          )}
       </Card>
       <Dialog
         open={dialogOpen}
