@@ -28,6 +28,7 @@ import StudentInfoScanner from "../hod/StudentInfoScanner";
 import StudentEnrollment from "../hod/StudentEnrollment";
 import QPApprovals from "../hod/QPApprovals";
 import HODAnnouncementManagement from "../hod/HODAnnouncementManagement";
+import ExamApplication from "../hod/ExamApplication";
 import COAttainment from "../hod/COAttainment";
 import { HODBootstrapProvider } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -139,7 +140,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'hod-profile': 'hod-profile',
       'qp-approvals': 'qp-approvals',
       'hod-announcement-management': 'hod-announcement-management',
-      'co-attainment': 'co-attainment'
+      'co-attainment': 'co-attainment',
+      'exam-applications': 'exam-applications'
     };
 
     return pathMap[lastPart] || 'dashboard';
@@ -192,7 +194,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'hod-profile': '/hod/hod-profile',
       'qp-approvals': '/hod/qp-approvals',
       'hod-announcement-management': '/hod/hod-announcement-management',
-      'co-attainment': '/hod/co-attainment'
+      'co-attainment': '/hod/co-attainment',
+      'exam-applications': '/hod/exam-applications'
     };
 
     const path = pathMap[page] || '/hod/dashboard';
@@ -278,6 +281,8 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <QPApprovals />;
       case "co-attainment":
         return <COAttainment />;
+      case "exam-applications":
+        return <ExamApplication />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }
