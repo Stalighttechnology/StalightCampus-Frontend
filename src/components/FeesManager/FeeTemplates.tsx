@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -694,48 +694,50 @@ const FeeTemplates: React.FC = () => {
           </Table>
         </CardContent>
         {/* Pagination Controls */}
-        <div className={`p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'}`}>
-          <div className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            Showing Page {templatesPage} of {templatesTotalPages}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline"
-              size="sm" 
-              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10" 
-              onClick={() => {
-                if (templatesPage > 1) {
-                  const next = templatesPage - 1;
-                  setTemplatesPage(next);
-                  fetchTemplates(next);
-                }
-              }} 
-              disabled={templatesPage === 1}
-            >
-              Previous
-            </Button>
-            
-            <div className={`min-w-10 h-9 flex items-center justify-center rounded-md border text-sm font-bold ${theme === 'dark' ? 'bg-muted/50 border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
-              {templatesPage}
+        {templatesTotalPages > 1 && (
+          <CardFooter className={`p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${theme === 'dark' ? 'bg-muted/10' : 'bg-gray-50/50'}`}>
+            <div className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Showing Page {templatesPage} of {templatesTotalPages}
             </div>
-            
-            <Button 
-              variant="outline"
-              size="sm" 
-              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10" 
-              onClick={() => {
-                if (templatesPage < templatesTotalPages) {
-                  const next = templatesPage + 1;
-                  setTemplatesPage(next);
-                  fetchTemplates(next);
-                }
-              }} 
-              disabled={templatesPage === templatesTotalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline"
+                size="sm" 
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10" 
+                onClick={() => {
+                  if (templatesPage > 1) {
+                    const next = templatesPage - 1;
+                    setTemplatesPage(next);
+                    fetchTemplates(next);
+                  }
+                }} 
+                disabled={templatesPage === 1}
+              >
+                Previous
+              </Button>
+              
+              <div className={`min-w-10 h-9 flex items-center justify-center rounded-md border text-sm font-bold ${theme === 'dark' ? 'bg-muted/50 border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
+                {templatesPage}
+              </div>
+              
+              <Button 
+                variant="outline"
+                size="sm" 
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10" 
+                onClick={() => {
+                  if (templatesPage < templatesTotalPages) {
+                    const next = templatesPage + 1;
+                    setTemplatesPage(next);
+                    fetchTemplates(next);
+                  }
+                }} 
+                disabled={templatesPage === templatesTotalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>);
 

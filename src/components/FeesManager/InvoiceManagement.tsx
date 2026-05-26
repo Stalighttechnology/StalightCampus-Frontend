@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -672,41 +672,48 @@ const InvoiceManagement: React.FC = () => {
               </TableBody>
             </Table>
 
-            {/* Pagination */}
-            {invoicesMeta && invoicesMeta.total_pages > 1 &&
-            <div className="p-5 border-t flex items-center justify-between bg-muted/10">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                  Showing <span className="text-foreground">{(invoicesMeta.page - 1) * 50 + 1}</span> to <span className="text-foreground">{Math.min(invoicesMeta.page * 50, invoicesMeta.count)}</span> of <span className="text-foreground">{invoicesMeta.count}</span>
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="text-[13px] font-semibold text-muted-foreground uppercase tracking-widest hidden sm:block">
-                    Page {invoicesMeta.page} of {invoicesMeta.total_pages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 px-4 font-semibold uppercase text-[13px] tracking-widest rounded-full"
-                    disabled={!invoicesMeta.has_previous}
-                    onClick={() => fetchInvoices(invoicesMeta.page - 1)}>
-                    
-                      Previous
-                    </Button>
-                    <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 px-4 font-semibold uppercase text-[13px] tracking-widest rounded-full"
-                    disabled={!invoicesMeta.has_next}
-                    onClick={() => fetchInvoices(invoicesMeta.page + 1)}>
-                    
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            }
           </div>
         </CardContent>
+        {/* Pagination */}
+        {invoicesMeta && invoicesMeta.total_pages > 0 && (
+          <CardFooter className="p-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
+            <p className="text-[13px] font-medium text-muted-foreground">
+              Showing <span className="text-foreground font-semibold">{(invoicesMeta.page - 1) * 50 + 1}</span> to <span className="text-foreground font-semibold">{Math.min(invoicesMeta.page * 50, invoicesMeta.count)}</span> of <span className="text-foreground font-semibold">{invoicesMeta.count}</span> results
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                disabled={!invoicesMeta.has_previous || loading}
+                onClick={() => fetchInvoices(invoicesMeta.page - 1)}
+              >
+                Previous
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className={`h-9 w-10 font-bold rounded-lg border border-border/50 ${
+                  theme === 'dark' ? "bg-card text-foreground" : "bg-white text-gray-900"
+                }`}
+              >
+                {invoicesMeta.page}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                disabled={!invoicesMeta.has_next || loading}
+                onClick={() => fetchInvoices(invoicesMeta.page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Invoice Details Dialog */}      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>

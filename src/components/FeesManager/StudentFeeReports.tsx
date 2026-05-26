@@ -40,7 +40,9 @@ import {
   Branch,
   Semester,
   Section,
-  sendFeeReminder
+  sendFeeReminder,
+  downloadStudentFeeReportPdf,
+  downloadStudentsFeeReportsPdf
 } from
   '../../utils/fees_manager_api';
 import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
@@ -89,6 +91,8 @@ const StudentFeeReports: React.FC = () => {
   // UI state
   const [activeTab, setActiveTab] = useState('individual');
   const [sendingReminder, setSendingReminder] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingBulkPdf, setExportingBulkPdf] = useState(false);
 
   // Load filters when bulk tab is selected
   useEffect(() => {
@@ -250,6 +254,61 @@ const StudentFeeReports: React.FC = () => {
     }
   };
 
+  const handleExportPdf = async () => {
+    if (!studentReport) return;
+    setExportingPdf(true);
+    try {
+      const res = await downloadStudentFeeReportPdf(studentReport.student.usn);
+      if (res.success && res.data) {
+        const url = window.URL.createObjectURL(res.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Fee_Report_${studentReport.student.usn}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        showSuccessAlert('Success', 'PDF Report exported successfully');
+      } else {
+        showErrorAlert('Failed', res.message || 'Failed to download PDF report');
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'An error occurred while exporting PDF');
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const handleExportBulkPdf = async () => {
+    setExportingBulkPdf(true);
+    try {
+      const batchId = selectedBatch === '' || selectedBatch === 'all' ? undefined : selectedBatch;
+      const branchId = selectedBranch === '' || selectedBranch === 'all' ? undefined : selectedBranch;
+      const semesterId = selectedSemester === '' || selectedSemester === 'all' ? undefined : selectedSemester;
+      const sectionId = selectedSection === '' || selectedSection === 'all' ? undefined : selectedSection;
+      const admissionMode = selectedAdmissionMode === '' || selectedAdmissionMode === 'all' ? undefined : selectedAdmissionMode;
+
+      const res = await downloadStudentsFeeReportsPdf(batchId, branchId, semesterId, sectionId, admissionMode);
+      if (res.success && res.data) {
+        const url = window.URL.createObjectURL(res.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Bulk_Fee_Report.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        showSuccessAlert('Success', 'Bulk PDF Report exported successfully');
+      } else {
+        showErrorAlert('Failed', res.message || 'Failed to download bulk PDF report');
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'An error occurred while exporting bulk PDF');
+    } finally {
+      setExportingBulkPdf(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case 'paid':
@@ -363,14 +422,33 @@ const StudentFeeReports: React.FC = () => {
                         <p className="text-muted-foreground text-sm font-medium mt-0.5">Comprehensive financial audit and transaction history</p>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setStudentReport(null)}
-                      className="hidden sm:flex rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-9 font-semibold transition-all">
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Clear Result
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={handleExportPdf}
+                        disabled={exportingPdf}
+                        className="bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl h-9 px-4 transition-all shadow-md shadow-primary/10"
+                      >
+                        {exportingPdf ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/50 border-t-white mr-2" />
+                            Exporting...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4 mr-2" />
+                            Export PDF
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setStudentReport(null)}
+                        className="hidden sm:flex rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-9 font-semibold transition-all">
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Clear Result
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-8">
@@ -825,9 +903,24 @@ const StudentFeeReports: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Student Fee Reports ({totalStudents} students)</span>
-                    <Button variant="outline" size="sm" className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'>
-                      <Download className="w-4 h-4 mr-2 " />
-                      Export
+                    <Button
+                      onClick={handleExportBulkPdf}
+                      disabled={exportingBulkPdf}
+                      variant="outline"
+                      size="sm"
+                      className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
+                    >
+                      {exportingBulkPdf ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/50 border-t-white mr-2" />
+                          Exporting...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4 mr-2" />
+                          Export
+                        </>
+                      )}
                     </Button>
                   </CardTitle>
                 </CardHeader>

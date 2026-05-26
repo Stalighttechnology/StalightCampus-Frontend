@@ -477,6 +477,43 @@ export const getStudentFeeReport = async (searchTerm: string) => {
   }
 };
 
+export const downloadStudentFeeReportPdf = async (searchTerm: string) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/student-fee-report/export-pdf/?search=${searchTerm}`, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      return { success: false, message: "Failed to download PDF report" };
+    }
+    const blob = await response.blob();
+    return { success: true, data: blob };
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const downloadStudentsFeeReportsPdf = async (batchId?: string, branchId?: string, semesterId?: string, sectionId?: string, admissionMode?: string) => {
+  try {
+    const params = new URLSearchParams({
+      ...(batchId && { batch_id: batchId }),
+      ...(branchId && { branch_id: branchId }),
+      ...(semesterId && { semester_id: semesterId }),
+      ...(sectionId && { section_id: sectionId }),
+      ...(admissionMode && { admission_mode: admissionMode })
+    });
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/students-fee-reports/export-pdf/?${params.toString()}`, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      return { success: false, message: "Failed to download bulk PDF report" };
+    }
+    const blob = await response.blob();
+    return { success: true, data: blob };
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
 export const getStudentsFeeReports = async (batchId?: string, branchId?: string, semesterId?: string, sectionId?: string, admissionMode?: string, page: number = 1) => {
   try {
     const params = new URLSearchParams({

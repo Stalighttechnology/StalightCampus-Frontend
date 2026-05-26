@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -399,51 +399,49 @@ const Reports: React.FC = () => {
               </TableBody>
             </Table>
 
-            {/* Pagination Footer */}
-            {totalItems > 0 &&
-            <div className="p-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
-                <p className="text-[13px] font-medium text-muted-foreground">
-                  Showing <span className="text-foreground font-semibold">{(currentPage - 1) * 10 + 1}</span> to <span className="text-foreground font-semibold">{Math.min(currentPage * 10, totalItems)}</span> of <span className="text-foreground font-semibold">{totalItems}</span> results
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                  variant="outline"
-                  size="sm"
-                  className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                  disabled={currentPage === 1 || loading}
-                  onClick={() => setCurrentPage((prev) => prev - 1)}>
-                  
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Previous
-                  </Button>
-
-                  <Button
-                  variant="outline"
-                  size="sm"
-                  disabled
-                  className={cn(
-                    "h-9 w-10 font-semibold rounded-lg border-border/50",
-                    theme === 'dark' ? "bg-card text-foreground" : "bg-white text-gray-900"
-                  )}>
-                  
-                    {currentPage}
-                  </Button>
-
-                  <Button
-                  variant="outline"
-                  size="sm"
-                  className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-4 h-9 rounded-lg transition-all active:scale-95 disabled:opacity-50"
-                  disabled={currentPage === totalPages || loading}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}>
-                  
-                    Next
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
-            }
           </div>
         </CardContent>
+        {/* Pagination Footer */}
+        {totalPages > 0 && (
+          <CardFooter className={`flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto`}>
+            <div className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Showing Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10"
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage((prev) => prev - 1);
+                  }
+                }}
+                disabled={currentPage === 1 || loading}
+              >
+                Previous
+              </Button>
+
+              <div className={`min-w-10 h-9 flex items-center justify-center rounded-md border text-sm font-bold ${theme === 'dark' ? 'bg-muted/50 border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
+                {currentPage}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 px-4 h-9 shadow-sm shadow-primary/10"
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage((prev) => prev + 1);
+                  }
+                }}
+                disabled={currentPage === totalPages || loading}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Detailed Attendance Calendar Dialog */}

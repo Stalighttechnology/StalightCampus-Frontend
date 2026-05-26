@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -55,6 +55,13 @@ const FeesManagerLeave = () => {
   const { theme } = useTheme();
   const today = new Date();
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalCount = leaveList.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const paginatedLeaves = leaveList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   // Fetch leave requests on component mount
   useEffect(() => {
     fetchLeaveRequests();
@@ -67,6 +74,7 @@ const FeesManagerLeave = () => {
 
       if (res.success && res.data) {
         setLeaveList(res.data);
+        setCurrentPage(1);
       } else {
         setError(res.message || 'Failed to fetch leave requests');
       }
@@ -120,6 +128,7 @@ const FeesManagerLeave = () => {
           applied_on: new Date().toLocaleDateString('sv-SE'),
         };
         setLeaveList(prev => [newLeave, ...prev]);
+        setCurrentPage(1);
 
         // Reset form
         setTitle('');
@@ -286,79 +295,177 @@ const FeesManagerLeave = () => {
               <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
             </div>
           </CardHeader>
-          <CardContent>
-            {loading ? (
-              <SkeletonList count={5} />
-            ) : leaveList.length === 0 ? (
-              <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-                <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                  <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
-                </div>
-                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications found</h3>
-                <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  There are currently no leave requests to display for your account.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {leaveList.slice(0, 10).map((leave) => (
-                  <div
-                    key={leave.id}
-                    className={`border rounded-md px-4 py-4 shadow-sm ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1 text-sm">
-                        <p className={`font-medium ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                          {leave.title}
-                        </p>
-                        <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {formatDate(leave.start_date)} - {formatDate(leave.end_date)}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            onClick={() => setViewReason(leave.reason)}
-                            variant="outline"
-                            size="sm"
-                            className={`text-xs ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
-                          >
-                            View Reason
-                          </Button>
+          <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar">
+            <div className="overflow-x-auto thin-scrollbar">
+              {/* Mobile: stacked cards */}
+              <div className="md:hidden space-y-3">
+                {loading ? (
+                  <SkeletonList count={3} />
+                ) : leaveList.length === 0 ? (
+                  <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                      <CalendarIcon className="w-8 h-8 text-primary opacity-50" />
+                    </div>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications</h3>
+                    <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      There are currently no leave requests to display for your account.
+                    </p>
+                  </div>
+                ) : (
+                  paginatedLeaves.map((leave) => (
+                    <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-medium">{leave.title}</div>
+                          <div className="text-xs text-muted-foreground">{formatDate(leave.start_date)} - {formatDate(leave.end_date)}</div>
+                        </div>
+                        <div className="shrink-0">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            leave.status === 'APPROVED' ? 'text-green-700 bg-green-100' :
+                            leave.status === 'REJECTED' ? 'text-red-700 bg-red-100' :
+                            'text-yellow-700 bg-yellow-100'
+                          }`}>
+                            {leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <span
-                          className={`text-xs font-medium px-2 py-0.5 rounded-full border-none ${leave.status === 'APPROVED'
-                              ? 'text-green-700 bg-green-100'
-                              : leave.status === 'REJECTED'
-                                ? 'text-red-700 bg-red-100'
-                                : 'text-yellow-700 bg-yellow-100'
-                            }`}
-                        >
-                          {leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}
-                        </span>
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={`flex-1 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
+                          onClick={() => setViewReason(leave.reason)}>
+                          View Reason
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
-            )}
+
+              {/* Desktop / Tablet: table */}
+              <table className="hidden md:table w-full text-sm text-left border-collapse">
+                <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                  <tr>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                    <th className={`py-2 px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="p-4">
+                        <SkeletonList count={3} />
+                      </td>
+                    </tr>
+                  ) : leaveList.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-20 px-4">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                            <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+                          </div>
+                          <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications found</h3>
+                          <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            There are currently no leave requests to display for your account.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedLeaves.map((leave) => (
+                      <tr
+                        key={leave.id}
+                        className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <td className={`py-3 px-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.title}</td>
+                        <td className={`py-3 px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{formatDate(leave.start_date)} - {formatDate(leave.end_date)}</td>
+                        <td className="py-3 px-4 text-sm">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className={`${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                            onClick={() => setViewReason(leave.reason)}>
+                            View
+                          </Button>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                            leave.status === 'APPROVED' ? 'text-green-700 bg-green-100' :
+                            leave.status === 'REJECTED' ? 'text-red-700 bg-red-100' :
+                            'text-yellow-700 bg-yellow-100'
+                          }`}>
+                            {leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
+          {totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
 
       {/* Reason Dialog */}
       <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
           <DialogHeader>
-            <DialogTitle className={theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
-            <DialogDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
-              Reason for the leave request
-            </DialogDescription>
+            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
           </DialogHeader>
-          <div className="mt-4">
-            <p className={`text-sm ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-700'}`}>
-              {viewReason}
-            </p>
+
+          {/* Scrollable reason */}
+          <div
+            className={`p-3 text-base leading-relaxed whitespace-pre-wrap break-words
+                    max-h-64 overflow-y-auto rounded-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            {viewReason}
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setViewReason(null)}
+              className={theme === 'dark' ?
+              'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white' :
+              'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}>
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

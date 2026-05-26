@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -385,8 +385,10 @@ const FeeComponents: React.FC = () => {
               </TableBody>
             </Table>
           </div>
-          {/* Pagination controls */}
-          <div className={`mt-6 pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
+        </CardContent>
+        {/* Pagination controls */}
+        {componentsTotalPages > 1 && (
+          <CardFooter className={`flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto`}>
             <div className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Showing Page {componentsPage} of {componentsTotalPages}
             </div>
@@ -427,8 +429,8 @@ const FeeComponents: React.FC = () => {
                 Next
               </Button>
             </div>
-          </div>
-        </CardContent>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );
