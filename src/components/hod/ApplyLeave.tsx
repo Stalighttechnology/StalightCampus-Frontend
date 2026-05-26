@@ -577,7 +577,7 @@ const ApplyLeave = () => {
             </table>
           </div>
         </CardContent>
-        {leaves.length > 0 && (
+        {leaves.length > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests

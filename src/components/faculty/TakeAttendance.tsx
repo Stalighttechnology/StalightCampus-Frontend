@@ -5,7 +5,8 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle } from
+  CardTitle,
+  CardFooter } from
 "../ui/card";
 import {
   Tabs,
@@ -74,6 +75,7 @@ const TakeAttendance = () => {
   const [processingAI, setProcessingAI] = useState(false);
   const [lastBootstrapParams, setLastBootstrapParams] = useState<any>(null);
   const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toLocaleDateString('sv-SE'));
+  const [activeTab, setActiveTab] = useState<string>("manual");
 
   // Simple debounced value hook to avoid rapid-fire API calls when user changes selections
   const useDebounced = <T,>(value: T, delay = 300) => {
@@ -546,8 +548,8 @@ const TakeAttendance = () => {
 
   return (
     <div className={`w-full overflow-visible ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full`}>
-        <Tabs defaultValue="manual">
+      <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full flex flex-col`}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div id="take-attendance-header-section" className="border-b border-border/50 pb-4">
             <CardHeader>
               <CardTitle>Take Attendance</CardTitle>
@@ -740,27 +742,25 @@ const TakeAttendance = () => {
 
                   {/* Fixed controls outside scroll area */}
                   <div className="p-3 sm:p-4 space-y-4">
-                    <AdminPagination pagination={paginationState} onPageChange={goToPage} />
-
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                       <div className={`text-sm sm:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        {Object.keys(attendance).filter((key) => attendance[Number(key)] === true).length} Present,
+                        {Object.keys(attendance).filter((key) => attendance[Number(key)] === true).length} Present,{" "}
                         {Object.keys(attendance).filter((key) => attendance[Number(key)] === false).length} Absent
                       </div>
                       <Button
                         id="take-attendance-submit"
                         onClick={handleSubmit}
-                      disabled={submitting || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-md">
-                      
-                        {submitting ?
-                      <>
+                        disabled={submitting || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm sm:text-base font-medium px-4 py-2 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-md"
+                      >
+                        {submitting ? (
+                          <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                             Submitting...
-                          </> :
-
-                      "Submit Attendance"
-                      }
+                          </>
+                        ) : (
+                          "Submit Attendance"
+                        )}
                       </Button>
                     </div>
 
@@ -912,6 +912,38 @@ const TakeAttendance = () => {
             </TabsContent>
           </CardContent>
         </Tabs>
+        {activeTab === "manual" && paginationState && paginationState.totalItems > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {paginationState.totalItems === 0 ? 0 : (paginationState.page - 1) * paginationState.pageSize + 1} to {Math.min(paginationState.page * paginationState.pageSize, paginationState.totalItems)} of {paginationState.totalItems} records
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => goToPage(Math.max(1, paginationState.page - 1))}
+                disabled={paginationState.page <= 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {paginationState.page}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => goToPage(Math.min(paginationState.totalPages, paginationState.page + 1))}
+                disabled={paginationState.page >= paginationState.totalPages}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

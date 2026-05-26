@@ -22,7 +22,7 @@ import {
 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
 import {
   Select,
   SelectContent,
@@ -778,47 +778,40 @@ const FacultyAssignments = () => {
                 </Button>
               </div>
             }
-            {/* Pagination */}
-            {pagination && pagination.total_pages > 1 &&
-            <div className="p-4 border-t border-border flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Showing <span className="font-semibold">{(pagination.current_page - 1) * pagination.page_size + 1}</span> to <span className="font-semibold">{Math.min(pagination.current_page * pagination.page_size, pagination.total_items)}</span> of <span className="font-semibold">{pagination.total_items}</span> results
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!pagination.has_previous}
-                  onClick={() => setCurrentPage((prev) => prev - 1)}>
-                  
-                    Previous
-                  </Button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map((p) =>
-                  <Button
-                    key={p}
-                    variant={pagination.current_page === p ? "default" : "outline"}
-                    size="sm"
-                    className="w-8 h-8 p-0"
-                    onClick={() => setCurrentPage(p)}>
-                    
-                        {p}
-                      </Button>
-                  )}
-                  </div>
-                  <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!pagination.has_next}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}>
-                  
-                    Next
-                  </Button>
-                </div>
-              </div>
-            }
           </div>
         </CardContent>
+        {pagination && pagination.total_items > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing <span className="font-semibold">{pagination.total_items === 0 ? 0 : (pagination.current_page - 1) * pagination.page_size + 1}</span> to <span className="font-semibold">{Math.min(pagination.current_page * pagination.page_size, pagination.total_items)}</span> of <span className="font-semibold">{pagination.total_items}</span> results
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination.has_previous}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {pagination.current_page}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination.has_next}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
 

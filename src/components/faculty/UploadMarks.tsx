@@ -2,7 +2,7 @@ import { useState, useEffect, Fragment } from "react";
 import { Pencil, Plus, Trash2, Layers, Settings2, FileDown } from "lucide-react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -1659,31 +1659,36 @@ const UploadMarks = () => {
                       </table>
                     </div>
 
-                    <div className={`flex justify-between items-center mt-4 px-4 py-2 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      <span>
+                    <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                      <div>
                         Page {currentPage} of {totalPages}
-                      </span>
-                      <div className="space-x-2">
+                      </div>
+                      <div className="flex items-center gap-2">
                         <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
-                      onClick={handlePrevPage}
-                      disabled={pagination ? !pagination.has_previous : currentPage === 1}>
-                      
+                          variant="outline"
+                          size="sm"
+                          className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                          onClick={handlePrevPage}
+                          disabled={pagination ? !pagination.has_previous : currentPage === 1}
+                        >
                           Previous
                         </Button>
+                        <div className="flex items-center justify-center min-w-[2rem]">
+                          <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            {currentPage}
+                          </span>
+                        </div>
                         <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out"
-                      onClick={handleNextPage}
-                      disabled={pagination ? !pagination.has_next : currentPage === totalPages}>
-                      
+                          variant="outline"
+                          size="sm"
+                          className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                          onClick={handleNextPage}
+                          disabled={pagination ? !pagination.has_next : currentPage === totalPages}
+                        >
                           Next
                         </Button>
                       </div>
-                    </div>
+                    </CardFooter>
                   </div>
               }
 

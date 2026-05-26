@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -451,41 +451,6 @@ export const AnnouncementSections = ({
           </div>
         )}
 
-        {/* Pagination for My Announcements */}
-        {myPagination && myPagination.count > 0 && (
-          <div className="ann-pagination flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4">
-            <div>
-              Showing {Math.min((myPagination.page - 1) * myPagination.pageSize + 1, myPagination.count)} to {Math.min(myPagination.page * myPagination.pageSize, myPagination.count)} of {myPagination.count} announcements
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange?.(Math.max(1, myPagination.page - 1), 'my')}
-                disabled={myPagination.page === 1}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Previous
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {myPagination.page}
-                </span>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange?.(Math.min(Math.ceil(myPagination.count / myPagination.pageSize), myPagination.page + 1), 'my')}
-                disabled={myPagination.page >= Math.ceil(myPagination.count / myPagination.pageSize)}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
       </TabsContent>
 
       <TabsContent value="received" className="space-y-4 mt-6">
@@ -646,10 +611,46 @@ export const AnnouncementSections = ({
             </div>
           </div>
         )}
+      </TabsContent>
+        </SectionContentWrapper>
 
-        {/* Pagination for Received Announcements */}
-        {receivedPagination && receivedPagination.count > 0 && (
-          <div className="ann-pagination flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground mt-6 px-4">
+        {activeTab === "my" && myPagination && myPagination.count > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((myPagination.page - 1) * myPagination.pageSize + 1, myPagination.count)} to {Math.min(myPagination.page * myPagination.pageSize, myPagination.count)} of {myPagination.count} announcements
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange?.(Math.max(1, myPagination.page - 1), 'my')}
+                disabled={myPagination.page === 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {myPagination.page}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange?.(Math.min(Math.ceil(myPagination.count / myPagination.pageSize), myPagination.page + 1), 'my')}
+                disabled={myPagination.page >= Math.ceil(myPagination.count / myPagination.pageSize)}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
+
+        {activeTab === "received" && receivedPagination && receivedPagination.count > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((receivedPagination.page - 1) * receivedPagination.pageSize + 1, receivedPagination.count)} to {Math.min(receivedPagination.page * receivedPagination.pageSize, receivedPagination.count)} of {receivedPagination.count} announcements
             </div>
@@ -680,10 +681,9 @@ export const AnnouncementSections = ({
                 Next
               </Button>
             </div>
-          </div>
+          </CardFooter>
         )}
-      </TabsContent>
-        </SectionContentWrapper>
+
       {/* View Announcement Dialog */}
       <Dialog open={!!viewingAnnouncement} onOpenChange={(open) => !open && setViewingAnnouncement(null)}>
         <DialogContent className="w-[92vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl p-0 border-none shadow-2xl">

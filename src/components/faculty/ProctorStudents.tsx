@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState, useEffect } from "react";
@@ -7,7 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
 import { useProctorStudentsQuery } from "@/hooks/useApiQueries";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
-import { AdminPagination } from "../common/AdminPagination";
+
 import { Search, Users, FileDown } from "lucide-react";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -146,11 +146,42 @@ const ProctorStudents = () => {
           </table>
         </div>
 
-        <AdminPagination
-          pagination={pagination.paginationState}
-          onPageChange={pagination.goToPage}
-        />
       </CardContent>
+
+      {pagination?.paginationState && pagination.paginationState.totalItems > 0 && (
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+          <div>
+            Showing {Math.min((pagination.paginationState.page - 1) * pagination.paginationState.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.paginationState.page * pagination.paginationState.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} records
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => pagination.goToPage(Math.max(1, pagination.paginationState.page - 1))}
+              disabled={pagination.paginationState.page <= 1}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Previous
+            </Button>
+
+            <div className="flex items-center justify-center min-w-[2rem]">
+              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {pagination.paginationState.page}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => pagination.goToPage(Math.min(pagination.paginationState.totalPages, pagination.paginationState.page + 1))}
+              disabled={pagination.paginationState.page >= pagination.paginationState.totalPages}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Next
+            </Button>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 };
