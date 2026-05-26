@@ -5,10 +5,11 @@ import { Button } from "../ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { BookOpen, Users, Download } from "lucide-react";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { getCourseApplicationStats, getFilterOptions, getSemesters, FilterOptions } from "../../utils/coe_api";
 import { SkeletonStatsGrid, SkeletonTable } from "../ui/skeleton";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
+import { toast } from "sonner";
 import "./CourseStatistics.css";
 
 const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -93,31 +94,44 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const handleExport = async () => {
-    if (!filters.batch || !filters.branch || !filters.semester) return;
+    if (!filters.batch || !filters.branch || !filters.semester || !filters.exam_period) {
+      toast.error('Please select all filters before exporting.');
+      return;
+    }
     setExporting(true);
     try {
-      const perPage = 200; // matches backend AdminPagination.max_page_size
-      let p = 1;
-      const allCourses: any[] = [];
+      const params = new URLSearchParams({
+        batch: filters.batch,
+        exam_period: filters.exam_period,
+        branch: filters.branch,
+        semester: filters.semester,
+        format: 'pdf',
+      });
+      const url = `${API_ENDPOINT}/coe/export-course-statistics/?${params.toString()}`;
+      const resp = await fetchWithTokenRefresh(url, { method: 'GET' });
 
-      while (true) {
-        const res = await getCourseApplicationStats({ ...filters, page: String(p), page_size: String(perPage) } as any);
-        if (!res.success || !res.data) break;
-        allCourses.push(...(res.data.courses || []));
-        // Pagination info is now at the response root level
-        if (!res.next) break;
-        p += 1;
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${resp.status}`);
       }
 
-      // Generate PDF
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const head = [['Subject Code', 'Subject Name', 'Total Students', 'Applications', 'Application Rate', 'Faculty']];
-      const body = allCourses.map((c) => [c.subject_code || '', c.subject_name || '', c.total_students || 0, c.applied_students || 0, `${c.application_rate || 0}%`, c.faculty_name || '']);
-      autoTable(doc, { head, body, startY: 20, styles: { fontSize: 9 } });
-      const fileName = `course_statistics_${filters.branch}_${filters.semester}.pdf`;
-      doc.save(fileName);
-    } catch (e) {
+      const blob = await resp.blob();
+      const disposition = resp.headers.get('content-disposition') || '';
+      const match = disposition.match(/filename\*=UTF-8''(.+)|filename="?([^";]+)"?/i);
+      let filename = `course_statistics_${filters.branch}_sem${filters.semester}.pdf`;
+      if (match) filename = decodeURIComponent((match[1] || match[2] || '').trim());
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
 
+      toast.success(`Export Successful: Downloaded ${filename}`);
+    } catch (err) {
+      toast.error(`Export Failed: ${err instanceof Error ? err.message : 'An unknown error occurred'}`);
     } finally {
       setExporting(false);
     }
@@ -161,7 +175,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </SelectTrigger>
                 <SelectContent>
                   {filterOptions.batches.map((batch: any) =>
-                  <SelectItem key={batch.id} value={batch.id.toString()}>
+                    <SelectItem key={batch.id} value={batch.id.toString()}>
                       {batch.name}
                     </SelectItem>
                   )}
@@ -195,7 +209,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </SelectTrigger>
                 <SelectContent>
                   {filterOptions.branches.map((branch: any) =>
-                  <SelectItem key={branch.id} value={branch.id.toString()}>
+                    <SelectItem key={branch.id} value={branch.id.toString()}>
                       {branch.name}
                     </SelectItem>
                   )}
@@ -210,7 +224,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map((semester: any) =>
-                  <SelectItem key={semester.id} value={semester.id.toString()}>
+                    <SelectItem key={semester.id} value={semester.id.toString()}>
                       Semester {semester.number}
                     </SelectItem>
                   )}
@@ -223,7 +237,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
 
       {/* Summary Cards */}
       {data &&
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 course-statistics-summary">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 course-statistics-summary">
           <Card className="course-statistics-summary-card overflow-hidden">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row items-center justify-between w-full h-full">
@@ -237,7 +251,7 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
             </CardContent>
           </Card>
- 
+
           <Card className="course-statistics-summary-card overflow-hidden">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-row items-center justify-between w-full h-full">
@@ -256,15 +270,15 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
 
       {/* Course Statistics Table */}
       {data &&
-      <Card className="course-statistics-table-card">
+        <Card className="course-statistics-table-card">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <CardTitle className="text-lg sm:text-xl font-semibold">Subject-wise Application Statistics ({totalCount !== null ? totalCount : data?.courses?.length ?? 0})</CardTitle>
-               <Button
-              size="sm"
-              onClick={handleExport}
-              className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 text-[18px] sm:text-sm font-semibold sm:font-semibold">
-              
+              <CardTitle className="text-lg sm:text-xl font-semibold">Subject-wise Application Statistics</CardTitle>
+              <Button
+                size="sm"
+                onClick={handleExport}
+                className="w-full sm:w-auto h-12 sm:h-9 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 text-[18px] sm:text-sm font-semibold sm:font-semibold">
+
                 <Download className="mr-2 h-4 w-4" />
                 {exporting ? 'Exporting...' : 'Export PDF'}
               </Button>
@@ -273,32 +287,32 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
           <CardContent>
             <div className="course-statistics-table-wrapper w-full overflow-x-auto">
               <Table className="min-w-full">
-              <TableHeader>
-                <TableRow className="sm:table-row">
-                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Code</TableHead>
-                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Name</TableHead>
-                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Total Students</TableHead>
-                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Applications</TableHead>
-                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Application Rate</TableHead>
-                  <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(data?.courses || []).map((course: any) =>
-                <TableRow key={course.subject_id} className="sm:table-row">
-                    <TableCell className="font-semibold sm:font-medium text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Code">{course.subject_code}</TableCell>
-                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Name">{course.subject_name}</TableCell>
-                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Total Students">{course.total_students}</TableCell>
-                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Applications">{course.applied_students}</TableCell>
-                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Application Rate">
-                      <span className={`font-semibold ${getApplicationRateColor(course.application_rate)}`}>
-                        {course.application_rate}%
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Status">{getApplicationRateBadge(course.application_rate)}</TableCell>
+                <TableHeader>
+                  <TableRow className="sm:table-row">
+                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Code</TableHead>
+                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Subject Name</TableHead>
+                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Total Students</TableHead>
+                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Applications</TableHead>
+                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Application Rate</TableHead>
+                    <TableHead className="text-[18px] sm:text-sm whitespace-nowrap font-semibold">Status</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
+                </TableHeader>
+                <TableBody>
+                  {(data?.courses || []).map((course: any) =>
+                    <TableRow key={course.subject_id} className="sm:table-row">
+                      <TableCell className="font-semibold sm:font-medium text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Code">{course.subject_code}</TableCell>
+                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Subject Name">{course.subject_name}</TableCell>
+                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Total Students">{course.total_students}</TableCell>
+                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Applications">{course.applied_students}</TableCell>
+                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Application Rate">
+                        <span className={`font-semibold ${getApplicationRateColor(course.application_rate)}`}>
+                          {course.application_rate}%
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-[18px] sm:text-sm py-4 sm:py-2" data-label="Status">{getApplicationRateBadge(course.application_rate)}</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
               </Table>
             </div>
             {(data?.courses?.length ?? 0) === 0 &&
@@ -308,46 +322,45 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
             }
           </CardContent>
 
-          {/* Pagination controls */}
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div className="text-sm text-muted-foreground pagination-info">
-              {totalCount !== null && totalCount > 0 ?
-                `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCount)} of ${totalCount} subjects` :
-                `Showing 0 subjects`}
-            </div>
-            <div className="flex items-center gap-2 pagination-controls">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Prev
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className="text-sm font-semibold text-primary">
-                  {page}
-                </span>
+          {totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div className="text-sm text-muted-foreground pagination-info">
+                Showing {(data?.courses?.length ?? 0) > 0 ? (page - 1) * pageSize + 1 : 0} to {Math.min(page * pageSize, totalCount ?? 0)} of {totalCount ?? 0} subjects
               </div>
+              <div className="flex items-center gap-2 pagination-controls">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Prev
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => p + 1)}
-                disabled={!pagination?.next}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
-              >
-                Next
-              </Button>
-            </div>
-          </CardFooter>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className="text-sm font-semibold text-primary">
+                    {page}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={!pagination?.next}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       }
 
       {loading &&
-      <div className="space-y-6">
+        <div className="space-y-6">
           <SkeletonStatsGrid items={2} columns={2} />
           <Card>
             <CardContent className="p-6">
@@ -358,9 +371,9 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
       }
 
       {!data && !loading &&
-      <Card className="border-dashed border-2">
+        <Card className="border-dashed border-2">
           <CardContent className="flex flex-col items-center justify-center py-24 text-center">
-             <div className="bg-primary/5 p-8 rounded-full mb-6">
+            <div className="bg-primary/5 p-8 rounded-full mb-6">
               <BookOpen className="w-14 h-14 text-primary/40" />
             </div>
             <h3 className="text-xl sm:text-xl font-semibold mb-3">Select filters to view stats</h3>
