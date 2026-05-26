@@ -1,5 +1,5 @@
 import { useState, useEffect, forwardRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import {
   Select,
   SelectContent,
@@ -346,43 +346,39 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
               }
           </div>
 
-          {/* Pagination Info - moved to bottom */}
-          {!loading &&
-            <div className="pagination-wrapper flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600 mt-2">
-              <div className="text-xs sm:text-sm">
-                Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} teachers
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary">
-                  
-                  Previous
-                </Button>
-
-                {/* Current Page Number */}
-                <div className="flex gap-1">
-                  <span className="px-3 py-2 text-sm font-medium">
-                    {currentPage}
-                  </span>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary">
-                  
-                  Next
-                </Button>
-              </div>
-            </div>
-            }
         </CardContent>
+        {!loading &&
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} teachers
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+          }
       </Card>
 
       {/* Primary Branch Assignment Dialog */}

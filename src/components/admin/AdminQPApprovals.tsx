@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -410,8 +410,8 @@ const AdminQPApprovals = () => {
 
         {/* Pagination Footer */}
         {totalPages > 1 &&
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-6 py-4 border-t border-border">
-            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
               Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
             </div>
             <div className="flex items-center gap-2">
@@ -420,30 +420,14 @@ const AdminQPApprovals = () => {
                 size="sm"
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1 || loading}
-                className={theme === 'dark' ? 'border-border' : 'border-gray-300'}>
-                
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                 Previous
               </Button>
 
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum = currentPage <= 3 ? i + 1 : currentPage >= totalPages - 2 ? totalPages - 4 + i : currentPage - 2 + i;
-                  if (pageNum < 1) pageNum = i + 1;
-                  if (pageNum > totalPages) return null;
-
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(pageNum)}
-                      disabled={loading}
-                      className={`w-8 h-8 p-0 ${currentPage === pageNum ? 'bg-primary text-white' : ''}`}>
-                      
-                      {pageNum}
-                    </Button>);
-
-                })}
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
               </div>
 
               <Button
@@ -451,12 +435,11 @@ const AdminQPApprovals = () => {
                 size="sm"
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages || loading}
-                className={theme === 'dark' ? 'border-border' : 'border-gray-300'}>
-                
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                 Next
               </Button>
             </div>
-          </div>
+          </CardFooter>
           }
       </Card>
       <Dialog open={dialogOpen} onOpenChange={(open) => {

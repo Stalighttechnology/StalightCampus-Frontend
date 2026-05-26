@@ -27,6 +27,8 @@ import {
   TableHeader,
   TableRow } from
 "../ui/table";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
+
 
 interface TodayRow {
   branch: string;
@@ -337,130 +339,126 @@ const AdminHODAttendance: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-              <div className="px-6 py-4 border-b border-gray-200"><h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Today's HOD Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</h3></div>
-            </div>
           </div>
+          <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
+            <CardHeader className="px-6 py-4 border-b border-border">
+              <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Today's HOD Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="hidden md:block overflow-x-auto">
+                {todayRows.length === 0 ?
+                <div className={`flex flex-col items-center justify-center py-20 px-4 ${theme === 'dark' ? 'bg-card/30' : 'bg-white'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                      <Users className="w-10 h-10 text-primary opacity-50" />
+                    </div>
+                    <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance today</h3>
+                    <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                      There are no HOD attendance records marked for today yet.
+                    </p>
+                  </div> :
 
-          <div className={`rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} overflow-hidden`}>
-            <div className="hidden md:block overflow-x-auto">
-              {todayRows.length === 0 ?
-              <div className={`flex flex-col items-center justify-center py-20 px-4 ${theme === 'dark' ? 'bg-card/30' : 'bg-white'}`}>
-                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                    <Users className="w-10 h-10 text-primary opacity-50" />
-                  </div>
-                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance today</h3>
-                  <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                    There are no HOD attendance records marked for today yet.
-                  </p>
-                </div> :
+                <table className="w-full table-fixed">
+                    <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                      <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Branch</th>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">HOD</th>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Contact</th>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Marked At</th>
+                        <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
+                      {todayRows.map((r, idx) =>
+                    <tr key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} transition-colors`}>
+                          <td className="px-3 py-4 font-medium text-gray-900 whitespace-normal break-words branch-cell">{r.branch}</td>
+                          <td className="px-3 py-4 text-gray-900 whitespace-normal break-words faculty-name-cell">{r.hod_name}</td>
+                          <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.contact || '-'}</td>
+                          <td className="px-3 py-4">
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(r.status)}
+                              <span className={getStatusBadge(r.status)}>{r.status}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">
+                            {r.location ?
+                        <>
+                                {r.location.inside ? 'On campus' : 'Outside campus'}
+                                {r.location.distance_meters ? ` • ${Math.round(r.location.distance_meters)} m` : ''}
+                              </> :
+                        '-'}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">{r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</td>
+                          <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.notes || '-'}</td>
+                        </tr>
+                    )}
+                    </tbody>
+                  </table>
+                }
+              </div>
+              <div className="md:hidden p-4 space-y-3">
+                {todayRows.length === 0 ?
+                <div className={`text-center py-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No attendance records today</div> :
 
-              <table className="w-full table-fixed">
-                  <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-                    <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Branch</th>
-                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">HOD</th>
-                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Contact</th>
-                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
-                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Marked At</th>
-                      <th className="px-3 py-3 w-1/6 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hidden lg:table-cell">Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                    {todayRows.map((r, idx) =>
-                  <tr key={idx} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} transition-colors`}>
-                        <td className="px-3 py-4 font-medium text-gray-900 whitespace-normal break-words branch-cell">{r.branch}</td>
-                        <td className="px-3 py-4 text-gray-900 whitespace-normal break-words faculty-name-cell">{r.hod_name}</td>
-                        <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.contact || '-'}</td>
-                        <td className="px-3 py-4">
-                          <div className="flex items-center gap-2">
+                todayRows.map((r, idx) =>
+                <div key={idx} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm text-gray-500 whitespace-normal break-words">{r.branch}</div>
+                          <div className="font-medium text-gray-900 whitespace-normal break-words">{r.hod_name}</div>
+                        </div>
+                        <div className="text-sm text-right shrink-0">
+                          <div className="mt-1 flex items-center justify-end gap-1">
                             {getStatusIcon(r.status)}
                             <span className={getStatusBadge(r.status)}>{r.status}</span>
                           </div>
-                        </td>
-                        <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">
-                          {r.location ?
-                      <>
-                              {r.location.inside ? 'On campus' : 'Outside campus'}
-                              {r.location.distance_meters ? ` • ${Math.round(r.location.distance_meters)} m` : ''}
-                            </> :
-                      '-'}
-                        </td>
-                        <td className="px-3 py-4 text-sm text-gray-600 whitespace-normal break-words">{r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</td>
-                        <td className="px-3 py-4 hidden lg:table-cell text-sm text-gray-600 whitespace-normal break-words">{r.notes || '-'}</td>
-                      </tr>
-                  )}
-                  </tbody>
-                </table>
-              }
-            </div>
-            <div className="md:hidden p-4 space-y-3">
-              {todayRows.length === 0 ?
-              <div className={`text-center py-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No attendance records today</div> :
-
-              todayRows.map((r, idx) =>
-              <div key={idx} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm text-gray-500 whitespace-normal break-words">{r.branch}</div>
-                        <div className="font-medium text-gray-900 whitespace-normal break-words">{r.hod_name}</div>
-                      </div>
-                      <div className="text-sm text-right shrink-0">
-                        <div className="mt-1 flex items-center justify-end gap-1">
-                          {getStatusIcon(r.status)}
-                          <span className={getStatusBadge(r.status)}>{r.status}</span>
                         </div>
                       </div>
+                      <div className="mt-2 text-sm text-gray-600 whitespace-normal break-words">Marked: {r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</div>
+                      {r.notes && <div className="mt-1 text-xs text-muted-foreground italic whitespace-normal break-words">Note: {r.notes}</div>}
                     </div>
-                    <div className="mt-2 text-sm text-gray-600 whitespace-normal break-words">Marked: {r.marked_at ? formatTime(r.marked_at) : 'Not marked'}</div>
-                    {r.notes && <div className="mt-1 text-xs text-muted-foreground italic whitespace-normal break-words">Note: {r.notes}</div>}
-                  </div>
-              )
-              }
-            </div>
+                )
+                }
+              </div>
+            </CardContent>
 
             {/* Pagination for Today */}
             {todayPagination.total_pages > 1 &&
-            <div className={`px-6 py-4 border-t flex items-center justify-between ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
-                <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  Showing <span className="font-medium">{(todayPagination.page - 1) * todayPagination.page_size + 1}</span> to <span className="font-medium">{Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)}</span> of <span className="font-medium">{todayPagination.total_items}</span> HODs
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing <span className="font-medium">{Math.min((todayPagination.page - 1) * todayPagination.page_size + 1, todayPagination.total_items)}</span> to <span className="font-medium">{Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)}</span> of <span className="font-medium">{todayPagination.total_items}</span> HODs
                 </div>
-                <div className="flex gap-2">
-                  <button
-                  onClick={() => handleTodayPageChange(todayPagination.page - 1)}
-                  disabled={!todayPagination.has_prev}
-                  className={`px-3 py-1 rounded border text-sm font-medium transition-colors ${!todayPagination.has_prev ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-accent border-border' : 'hover:bg-gray-50 border-gray-200'}`}>
-                  
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleTodayPageChange(todayPagination.page - 1)}
+                    disabled={!todayPagination.has_prev}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                     Previous
-                  </button>
-                  <div className="flex gap-1">
-                    {Array.from({ length: todayPagination.total_pages }, (_, i) => i + 1).
-                  filter((p) => p === 1 || p === todayPagination.total_pages || Math.abs(p - todayPagination.page) <= 1).
-                  map((p, i, arr) =>
-                  <React.Fragment key={p}>
-                          {i > 0 && arr[i - 1] !== p - 1 && <span className="px-1 opacity-50">...</span>}
-                          <button
-                      onClick={() => handleTodayPageChange(p)}
-                      className={`w-8 h-8 rounded text-sm font-medium transition-colors ${todayPagination.page === p ? 'bg-primary text-white' : theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'}`}>
-                      
-                            {p}
-                          </button>
-                        </React.Fragment>
-                  )
-                  }
+                  </Button>
+
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {todayPagination.page}
+                    </span>
                   </div>
-                  <button
-                  onClick={() => handleTodayPageChange(todayPagination.page + 1)}
-                  disabled={!todayPagination.has_next}
-                  className={`px-3 py-1 rounded border text-sm font-medium transition-colors ${!todayPagination.has_next ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-accent border-border' : 'hover:bg-gray-50 border-gray-200'}`}>
-                  
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleTodayPageChange(todayPagination.page + 1)}
+                    disabled={!todayPagination.has_next}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                     Next
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </CardFooter>
             }
-          </div>
+          </Card>
         </>
         }
 

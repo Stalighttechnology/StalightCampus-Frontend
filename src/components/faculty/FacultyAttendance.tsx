@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, XCircle, Clock, FileText, RotateCcw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonCard, SkeletonList } from "@/components/ui/skeleton";
@@ -466,13 +466,13 @@ const FacultyAttendance = () => {
                     </div>
                   </div>
                   {record.notes &&
-              <div className="mt-2 flex items-start space-x-2">
+                    <div className="mt-2 flex items-start space-x-2">
                       <FileText className="w-4 h-4 mt-0.5 text-gray-500" />
                       <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         {record.notes}
                       </p>
                     </div>
-              }
+                  }
                   {/* Location removed from UI */}
                 </motion.div>
             )}
@@ -502,82 +502,26 @@ const FacultyAttendance = () => {
           {historyLoading ?
           <SkeletonList items={5} /> :
           historyRecords.length > 0 ?
-          <>
-              <div className="space-y-3">
-                {historyRecords.map((record) =>
+          <div className="space-y-3">
+            {historyRecords.map((record) =>
               <div key={record.id} className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        {getStatusIcon(record.status)}
-                        <div>
-                          <p className="font-medium capitalize">{record.status}</p>
-                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                            {new Date(record.date).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {new Date(record.marked_at).toLocaleTimeString()}
-                      </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {getStatusIcon(record.status)}
+                    <div>
+                      <p className="font-medium capitalize">{record.status}</p>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        {new Date(record.date).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
-              )}
-              </div>
-
-              {/* Pagination Controls */}
-              {historyTotalPages > 1 &&
-            <div className="mt-4 flex items-center justify-center space-x-2">
-                  <Button
-                size="sm"
-                onClick={() => fetchHistoryPage(Math.max(1, historyPage - 1))}
-                disabled={historyLoading || historyPage === 1}
-                className={`font-medium transition-all duration-200 ${historyLoading || historyPage === 1 ?
-                'bg-primary opacity-50 text-white cursor-not-allowed' :
-                'bg-primary text-white hover:bg-primary/90 shadow-sm'}`
-                }>
-                
-                    Previous
-                  </Button>
-                  <div className="flex items-center space-x-1">
-                    {(() => {
-                  const total = historyTotalPages || 1;
-                  const current = historyPage || 1;
-                  const maxButtons = 5;
-                  let start = Math.max(1, current - Math.floor(maxButtons / 2));
-                  let end = Math.min(total, start + maxButtons - 1);
-                  if (end - start + 1 < maxButtons) start = Math.max(1, end - maxButtons + 1);
-                  const buttons = [];
-                  for (let p = start; p <= end; p++) {
-                    buttons.push(
-                      <Button
-                        key={p}
-                        size="sm"
-                        variant={p === current ? undefined : 'ghost'}
-                        onClick={() => fetchHistoryPage(p)}
-                        disabled={historyLoading}
-                        className={`px-2 py-1 text-xs font-semibold ${p === current ? 'bg-white text-primary' : 'bg-white text-gray-600 hover:text-primary dark:bg-gray-700'}`}>
-                        
-                            {p}
-                          </Button>
-                    );
-                  }
-                  return buttons;
-                })()}
+                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    {new Date(record.marked_at).toLocaleTimeString()}
                   </div>
-                  <Button
-                size="sm"
-                onClick={() => fetchHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
-                disabled={historyLoading || historyPage === historyTotalPages}
-                className={`font-medium transition-all duration-200 ${historyLoading || historyPage === historyTotalPages ?
-                'bg-primary opacity-50 text-white cursor-not-allowed' :
-                'bg-primary text-white hover:bg-primary/90 shadow-sm'}`
-                }>
-                
-                    Next
-                  </Button>
                 </div>
-            }
-            </> :
+              </div>
+            )}
+          </div> :
 
           <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
               <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
@@ -590,6 +534,39 @@ const FacultyAttendance = () => {
             </div>
           }
         </CardContent>
+
+        {!historyLoading && historyRecords.length > 0 && historyTotalPages > 1 &&
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing <span className="font-medium">{Math.min((historyPage - 1) * historyPageSize + 1, historyTotalItems)}</span> to <span className="font-medium">{Math.min(historyPage * historyPageSize, historyTotalItems)}</span> of <span className="font-medium">{historyTotalItems}</span> records
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchHistoryPage(Math.max(1, historyPage - 1))}
+                disabled={historyLoading || historyPage === 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {historyPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
+                disabled={historyLoading || historyPage === historyTotalPages}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        }
       </Card>
     </div>);
 

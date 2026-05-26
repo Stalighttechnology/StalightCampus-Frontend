@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -373,56 +373,41 @@ const ApplyLeaveAdmin = () => {
                 ))}
               </div>
             )}
-            
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-2 py-4 border-t border-border mt-4">
-                <div className="flex-1 flex justify-between sm:hidden">
-                  <Button
-                    onClick={() => fetchLeaves(currentPage - 1)}
-                    disabled={currentPage === 1 || loading}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    onClick={() => fetchLeaves(currentPage + 1)}
-                    disabled={currentPage === totalPages || loading}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Next
-                  </Button>
-                </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => fetchLeaves(currentPage - 1)}
-                      disabled={currentPage === 1 || loading}
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      onClick={() => fetchLeaves(currentPage + 1)}
-                      disabled={currentPage === totalPages || loading}
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </div>
-                </div>
-              </div>
-            )}
           </CardContent>
+          {totalPages > 1 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => fetchLeaves(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  onClick={() => fetchLeaves(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
 
