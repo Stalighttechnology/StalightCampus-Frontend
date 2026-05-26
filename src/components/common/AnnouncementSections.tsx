@@ -177,7 +177,7 @@ export const AnnouncementSections = ({
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
         <div id={header ? "announcement-header-section" : undefined} className={header ? "flex flex-col" : undefined}>
           {header}
-          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${header ? 'px-6 pb-4' : ''}`}>
+          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${header ? 'px-6 pb-4' : ''}`}>
         <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl mt-5">
           <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
             <span className="text-sm font-semibold">My Announcements</span>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -552,7 +552,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           </div>
         </CardContent>
         
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
           <div>
             Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
           </div>
@@ -563,7 +563,6 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1 || loading}
                 className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                
               Previous
             </Button>
 
@@ -579,11 +578,10 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages || loading}
                 className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                
               Next
             </Button>
           </div>
-        </div>
+        </CardFooter>
       </Card>
 
       {/* View Reason Dialog */}

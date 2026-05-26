@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import * as Select from "@radix-ui/react-select";
 import { ChevronDownIcon, CheckIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { Search, FileDownIcon, Loader2 } from "lucide-react";
@@ -720,49 +720,39 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
           {/* Mobile: show table only; compact card list removed */}
 
-          {/* Pagination Controls */}
-          {totalPages > 1 &&
-            <div className="pagination-container flex flex-col sm:flex-row items-center justify-between mt-6 gap-2">
-              <div className={`pagination-info ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers} users
-              </div>
-              <div className="pagination-controls flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1 || loading}
-                  className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-2 py-1 sm:px-3 sm:py-1">
-                  
-                  Previous
-                </Button>
-
-                {/* Single current page indicator (all viewports) */}
-                <div className="flex items-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled
-                    className={`pagination-btn ${theme === 'dark' ? 'text-muted-foreground bg-card border border-border' : 'text-gray-700 bg-white border border-gray-300'} px-2 py-1 sm:px-3 sm:py-1`}
-                    aria-label={`Current page ${currentPage} of ${totalPages}`}>
-                    
-                    {currentPage}
-                  </Button>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages || loading}
-                  className="pagination-btn text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white px-2 py-1 sm:px-3 sm:py-1">
-                  
-                  Next
-                </Button>
-              </div>
-            </div>
-            }
         </CardContent>
+        {totalPages > 1 &&
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers} users
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        }
       </Card>
       </div>
 

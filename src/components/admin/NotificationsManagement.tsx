@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
@@ -220,73 +220,37 @@ const NotificationsManagement = ({ setError, toast }: NotificationsManagementPro
           }
         </CardContent>
 
-        {/* Pagination Controls */}
         {totalPages > 1 &&
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border">
-            <div className="flex-1 flex justify-between sm:hidden">
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} results
+            </div>
+            <div className="flex items-center gap-2">
               <Button
-              onClick={() => fetchNotifications(currentPage - 1)}
-              disabled={currentPage === 1 || loading}
-              variant="outline"
-              size="sm">
-              
+                variant="outline"
+                size="sm"
+                onClick={() => fetchNotifications(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                 Previous
               </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
               <Button
-              onClick={() => fetchNotifications(currentPage + 1)}
-              disabled={currentPage === totalPages || loading}
-              variant="outline"
-              size="sm">
-              
+                variant="outline"
+                size="sm"
+                onClick={() => fetchNotifications(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                 Next
               </Button>
             </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{" "}
-                  <span className="font-medium">
-                    {Math.min(currentPage * pageSize, totalCount)}
-                  </span>{" "}
-                  of <span className="font-medium">{totalCount}</span> results
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                onClick={() => fetchNotifications(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
-                variant="outline"
-                size="sm"
-                className="h-8">
-                
-                  Previous
-                </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) =>
-                <Button
-                  key={p}
-                  onClick={() => fetchNotifications(p)}
-                  variant={currentPage === p ? "default" : "outline"}
-                  size="sm"
-                  className={`h-8 w-8 p-0 ${currentPage === p ? 'bg-primary text-white shadow-sm' : ''}`}
-                  disabled={loading}>
-                  
-                      {p}
-                    </Button>
-                )}
-                </div>
-                <Button
-                onClick={() => fetchNotifications(currentPage + 1)}
-                disabled={currentPage === totalPages || loading}
-                variant="outline"
-                size="sm"
-                className="h-8">
-                
-                  Next
-                </Button>
-              </div>
-            </div>
-          </div>
+          </CardFooter>
         }
       </Card>
 
