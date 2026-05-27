@@ -10,8 +10,28 @@ const authHeaders = () => ({
 export const fetchLibraryAdminStats = () =>
   fetch(`${API_BASE}/admin/stats/`, { headers: authHeaders() }).then((r) => r.json());
 
+export const fetchLibraryCategories = () =>
+  fetch(`${API_BASE}/admin/categories/`, { headers: authHeaders() }).then((r) => r.json());
+
+export const createLibraryCategory = (data: { name: string }) =>
+  fetch(`${API_BASE}/admin/categories/`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  }).then((r) => r.json());
+
 export const fetchLibraryBooks = (search = "") =>
   fetch(`${API_BASE}/admin/books/?search=${encodeURIComponent(search)}`, { headers: authHeaders() }).then((r) => r.json());
+
+export const exportLibraryBooksPdf = (search = ""): Promise<Blob> =>
+  fetch(`${API_BASE}/admin/books/export-pdf/?search=${encodeURIComponent(search)}`, {
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  }).then((r) => {
+    if (!r.ok) throw new Error("Failed to export PDF");
+    return r.blob();
+  });
 
 export const createLibraryBook = (data: any) =>
   fetch(`${API_BASE}/admin/books/`, {
@@ -62,8 +82,28 @@ export const renewBook = (id: number) =>
 export const fetchActiveBorrows = (page: number = 1) =>
   fetch(`${API_BASE}/admin/borrows/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
 
+export const exportLibraryBorrowsPdf = (): Promise<Blob> =>
+  fetch(`${API_BASE}/admin/borrows/export-pdf/`, {
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  }).then((r) => {
+    if (!r.ok) throw new Error("Failed to export PDF");
+    return r.blob();
+  });
+
 export const fetchFines = (page: number = 1) =>
   fetch(`${API_BASE}/admin/fines/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
+
+export const exportLibraryFinesPdf = (): Promise<Blob> =>
+  fetch(`${API_BASE}/admin/fines/export-pdf/`, {
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    },
+  }).then((r) => {
+    if (!r.ok) throw new Error("Failed to export PDF");
+    return r.blob();
+  });
 
 export const payFine = (id: number) =>
   fetch(`${API_BASE}/admin/fines/${id}/pay/`, {

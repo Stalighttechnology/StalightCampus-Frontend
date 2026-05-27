@@ -192,7 +192,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "library": <BookOpen size={20} />,
       "library-books": <BookOpen size={20} />,
       "library-circulation": <Users size={20} />,
-      "library-reserves": <ClipboardList size={20} />,
       "library-fines": <CreditCard size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
@@ -455,7 +454,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Overview", page: "dashboard" },
       { name: "Books Catalog", page: "library-books" },
       { name: "Circulation", page: "library-circulation" },
-      { name: "Holds Queue", page: "library-reserves" },
       { name: "Fine Management", page: "library-fines" },
       { name: "Profile", page: "profile" },
     ],
