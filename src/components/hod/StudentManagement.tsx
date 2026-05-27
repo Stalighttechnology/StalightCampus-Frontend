@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogFooter } from
 "../ui/dialog";
-import { Pencil, Trash2, UploadCloud, Upload, Loader2, FileDown, Search } from "lucide-react";
+import { Pencil, Trash2, UploadCloud, Upload, Loader2, FileDown, Search, X } from "lucide-react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 // Removed chart imports; performance chart is no longer shown on this page
@@ -149,7 +149,7 @@ const StudentManagement = () => {
 
   // Fetch students
   const fetchStudents = async (branchId: string, page: number = 1, pageSize: number = 50, search: string = '', sectionId: string = '', forceRefresh: boolean = false) => {
-    if (state.semesterFilter === "All" || state.sectionFilter === "All") {
+    if (!search && (state.semesterFilter === "All" || state.sectionFilter === "All")) {
       updateState({ students: [], totalStudents: 0, totalPages: 0, isLoading: false });
       return;
     }
@@ -301,6 +301,17 @@ const StudentManagement = () => {
       fetchStudents(state.branchId, 1, state.pageSize, state.search, sectionId);
     }
   };
+
+  // Debounced search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (state.branchId && (state.search || (state.semesterFilter !== "All" && state.sectionFilter !== "All"))) {
+        const sectionId = state.sectionFilter === "All" ? "" : state.sectionFilter;
+        fetchStudents(state.branchId, 1, state.pageSize, state.search, sectionId);
+      }
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [state.search]);
 
   // Fetch students when section filter changes
   useEffect(() => {
@@ -1205,12 +1216,22 @@ const StudentManagement = () => {
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-4">
               {/* Left side: Search input and button */}
               <div className="flex gap-2">
-                <Input
-                  placeholder="Search students..."
-                  className={`flex-1 md:w-48 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-                  value={state.search}
-                  onChange={(e) => updateState({ search: e.target.value })}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
+                <div className="relative flex-1 md:w-48">
+                  <Input
+                    placeholder="Search students..."
+                    className={`w-full pr-8 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                    value={state.search}
+                    onChange={(e) => updateState({ search: e.target.value })}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
+                  {state.search && (
+                    <button
+                      onClick={() => updateState({ search: "" })}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
                 
                 <Button onClick={handleSearch} variant="outline" className="text-xs md:text-sm">
                   Search
@@ -1288,7 +1309,7 @@ const StudentManagement = () => {
         </div>
 
         <CardContent className="pt-0">
-          {state.semesterFilter === "All" || state.sectionFilter === "All" ? (
+          {!state.search && (state.semesterFilter === "All" || state.sectionFilter === "All") ? (
             <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
               <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                 <Search className="w-10 h-10 text-primary opacity-50" />

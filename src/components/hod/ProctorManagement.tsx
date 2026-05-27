@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Users, Download } from "lucide-react";
+import { Loader2, Users, Download, X, Search, Pencil } from "lucide-react";
 import { Skeleton, SkeletonTable, SkeletonCard } from "../ui/skeleton";
 import DashboardCard from "../common/DashboardCard";
 import { FaUserGraduate, FaUserCheck, FaUserTimes } from "react-icons/fa";
@@ -316,6 +316,25 @@ const ProctorStudents = () => {
     loadStudents(state.search);
   };
 
+  // Debounced search for real-time filtering
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (mountedRef.current) {
+        updateState({ currentPage: 1 });
+        const sem = state.filters.semester_id;
+        const sec = state.filters.section_id;
+        const proc = state.filters.proctor_id;
+        if (state.search.trim() || (sem !== "all" && sec !== "all" && proc !== "all")) {
+          loadStudents();
+        } else {
+          // clear students if selection is incomplete and no search is active
+          updateState({ students: [], totalCount: 0, totalAssigned: 0, totalUnassigned: 0 });
+        }
+      }
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [state.search]);
+
   const handleCheckboxToggle = (usn: string) => {
     updateState({
       selectedUSNs: state.selectedUSNs.includes(usn)
@@ -528,21 +547,24 @@ const ProctorStudents = () => {
               )}
               <span>{downloadingPDF ? "Exporting..." : "Export PDF"}</span>
             </Button>
-            <Button
-              onClick={async () => {
-                if (!state.semesters.length || !state.sections.length || !state.branchId) {
-                  await loadMetadata();
-                }
-                if (!state.proctors.length) {
-                  await loadProctors();
-                }
-                updateState({ editMode: true });
-              }}
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto h-10 px-4"
-              disabled={state.loading || state.students.length === 0}
-            >
-              Manage Assignments
-            </Button>
+            {!state.editMode && (
+              <Button
+                onClick={async () => {
+                  if (!state.semesters.length || !state.sections.length || !state.branchId) {
+                    await loadMetadata();
+                  }
+                  if (!state.proctors.length) {
+                    await loadProctors();
+                  }
+                  updateState({ editMode: true });
+                }}
+                className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200 w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-4"
+                disabled={state.loading || state.students.length === 0}
+              >
+                <Pencil className="w-4 h-4" />
+                <span>Edit</span>
+              </Button>
+            )}
           </div>
         </CardHeader>
 
@@ -550,6 +572,32 @@ const ProctorStudents = () => {
         {state.editMode && (
           <div className={`px-4 sm:px-6 py-3 border-t ${theme === 'dark' ? 'border-border bg-card/50' : 'border-gray-200 bg-gray-50'}`}>
             <div className="flex flex-col md:flex-row gap-3 items-start md:items-end w-full">
+              {/* Search Bar for Students */}
+              <div className="w-full md:flex-1">
+                <label className={`block text-sm sm:text-sm mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                  Search Students
+                </label>
+                <div className="relative w-full">
+                  <Input
+                    placeholder="Search by name, USN, dept..."
+                    value={state.search}
+                    onChange={(e) => updateState({ search: e.target.value })}
+                    className={`w-full pr-8 ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
+                  />
+                  {state.search && (
+                    <button
+                      onClick={() => updateState({ search: "" })}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                  {!state.search && (
+                    <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  )}
+                </div>
+              </div>
+
               <div className="w-full md:flex-1">
                 <label className={`block text-sm sm:text-sm mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                   Choose a Proctor
@@ -685,14 +733,24 @@ const ProctorStudents = () => {
 
               {/* Search on the right */}
               <div className="flex flex-col sm:flex-row gap-2 w-full">
-                <Input
-                  placeholder="Search students by name or USN..."
-                  className={`w-full sm:w-80 text-base ${theme === 'dark' ? 'bg-card text-foreground border border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border border-gray-300 placeholder:text-gray-500'}`}
-                  value={state.search}
-                  onChange={(e) => updateState({ search: e.target.value })}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  disabled={state.loading}
-                />
+                <div className="relative w-full sm:w-80">
+                  <Input
+                    placeholder="Search students by name or USN..."
+                    className={`w-full pr-8 text-base ${theme === 'dark' ? 'bg-card text-foreground border border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border border-gray-300 placeholder:text-gray-500'}`}
+                    value={state.search}
+                    onChange={(e) => updateState({ search: e.target.value })}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    disabled={state.loading}
+                  />
+                  {state.search && (
+                    <button
+                      onClick={() => updateState({ search: "" })}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
                 <Button
                   onClick={handleSearch}
                   variant="outline"

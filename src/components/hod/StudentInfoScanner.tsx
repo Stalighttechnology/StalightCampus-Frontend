@@ -203,9 +203,17 @@ const StudentInfoScanner = () => {
         showErrorAlert("Error", data.message || "Student not found");
       }
     } catch (err: any) {
-
-      setError(err.message || "Network error occurred");
-      showErrorAlert("Error", err.message || "Network error occurred");
+      let errMsg = "Network error occurred";
+      try {
+        const parsed = JSON.parse(err.message);
+        if (parsed.message) {
+          errMsg = parsed.message.includes("Student not found") ? "Student not found" : parsed.message;
+        }
+      } catch (e) {
+        errMsg = err.message || "Network error occurred";
+      }
+      setError(errMsg);
+      showErrorAlert("Error", errMsg);
     } finally {
       setLoading(false);
     }
@@ -596,14 +604,19 @@ const StudentInfoScanner = () => {
 
       {/* Error Message */}
       {error &&
-      <div className={`p-4 rounded-lg border mb-6 ${
+      <div className={`p-4 rounded-lg border mb-6 flex items-start gap-3 ${
       theme === 'dark' ?
       'bg-destructive/10 border-destructive/20 text-destructive-foreground' :
       'bg-red-50 border-red-200 text-red-700'}`
       }>
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            {error}
+          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <div className="flex flex-col">
+            <span className="font-semibold text-base">{error}</span>
+            {error === "Student not found" && (
+              <span className={`text-sm mt-1 ${theme === 'dark' ? 'text-destructive-foreground/80' : 'text-red-600/90'}`}>
+                Please check the USN and try again
+              </span>
+            )}
           </div>
         </div>
       }
