@@ -22,6 +22,9 @@ const WardenDashboard = lazy(() => import("./components/dashboards/WardenDashboa
 const TransportAdminDashboard = lazy(() => import("./components/dashboards/TransportAdminDashboard"));
 const DriverDashboard = lazy(() => import("./components/dashboards/DriverDashboard"));
 const LibraryAdminDashboard = lazy(() => import("./components/dashboards/LibraryAdminDashboard"));
+const AdmissionManagerDashboard = lazy(() => import("./components/dashboards/AdmissionManagerDashboard"));
+const AdmissionLanding = lazy(() => import("./components/public/AdmissionLanding"));
+const ApplicationWizard = lazy(() => import("./components/public/ApplicationWizard"));
 const Onboarding = lazy(() => import("./components/common/Onboarding"));
 const Pricing = lazy(() => import("./components/common/Pricing"));
 const FloatingAssistant = lazy(() => import("./components/common/FloatingAssistant"));
@@ -118,6 +121,10 @@ const AppContent = () => {
             <Route path="/stalightcampus/:plan" element={<Onboarding />} />
             <Route path="/onboarding/success" element={<OnboardingSuccess />} />
             <Route path="/trial-expired" element={<TrialExpired />} />
+
+            {/* Public Admission routes */}
+            <Route path="/admissions/:org_slug" element={<AdmissionLanding />} />
+            <Route path="/admissions/:org_slug/apply" element={<ApplicationWizard />} />
 
             {/* Public results view (students) */}
             <Route path="/results/view/:token" element={
@@ -422,6 +429,16 @@ const AppContent = () => {
             <ProtectedRoute allowedRoles={["driver"]}>
                 <>
                   <DriverDashboard user={userData} setPage={() => {}} />
+                  {shouldShowFloatingAssistant() && <FloatingAssistant />}
+                </>
+              </ProtectedRoute>
+            } />
+
+            {/* Admission Manager routes */}
+            <Route path="/admission-manager/*" element={
+            <ProtectedRoute allowedRoles={["admission_manager"]}>
+                <>
+                  <AdmissionManagerDashboard user={userData} setPage={() => {}} />
                   {shouldShowFloatingAssistant() && <FloatingAssistant />}
                 </>
               </ProtectedRoute>

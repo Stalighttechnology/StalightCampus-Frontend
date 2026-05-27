@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
-import HelpLearningCard from "./HelpLearningCard";
 import { useTheme } from "../../context/ThemeContext";
 import { Camera, Eye, EyeOff } from "lucide-react";
 import { Progress } from "../ui/progress";
@@ -425,9 +424,6 @@ const Profile = ({ role, user }: ProfileProps) => {
           </div>
         </CardContent>
       </Card>
-
-          {/* Help & Learning — Tour Restart */}
-          <HelpLearningCard />
     </div>
   );
 };

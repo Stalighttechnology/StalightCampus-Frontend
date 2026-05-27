@@ -83,6 +83,9 @@ export const useLoginLogic = ({ setRole, setPage, setUser }: UseLoginProps) => {
             case "library_admin":
               navigate("/library-admin", { replace: true });
               break;
+            case "admission_manager":
+              navigate("/admission-manager", { replace: true });
+              break;
             case "coe":
               navigate("/coe", { replace: true });
               break;

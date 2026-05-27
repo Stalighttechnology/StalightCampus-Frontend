@@ -292,6 +292,33 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             icon={<FaUserTie className={theme === 'dark' ? "text-pink-400 text-3xl" : "text-pink-500 text-3xl"} />} />
         </div>
 
+        {/* Admission Overview */}
+        <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          Admission Overview
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <DashboardCard
+            title="Total Enquiries"
+            value={stats.admission_enquiries || 0}
+            description="All active leads"
+            icon={<FaUserTie className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />} />
+          <DashboardCard
+            title="Applications"
+            value={stats.admission_applications || 0}
+            description="Submitted forms"
+            icon={<ClipboardList className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />} />
+          <DashboardCard
+            title="Admissions Confirmed"
+            value={stats.admissions_confirmed || 0}
+            description="Seat allocated"
+            icon={<UserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />} />
+          <DashboardCard
+            title="Enrolled"
+            value={stats.admissions_enrolled || 0}
+            description="Completed admission"
+            icon={<FaUserGraduate className={theme === 'dark' ? "text-yellow-400 text-3xl" : "text-yellow-500 text-3xl"} />} />
+        </div>
+
         {/* Search and Export */}
         <div className="flex justify-between items-center flex-wrap gap-4 mt-8">
           <div id="admin-search-bar" className={`flex items-center w-full sm:w-1/2 rounded-lg px-4 py-2 shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>

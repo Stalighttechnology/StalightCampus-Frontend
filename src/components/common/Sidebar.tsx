@@ -193,6 +193,19 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "library-books": <BookOpen size={20} />,
       "library-circulation": <Users size={20} />,
       "library-fines": <CreditCard size={20} />,
+      
+      "admission-dashboard": <LayoutDashboard size={20} />,
+      "campus-builder": <LayoutDashboard size={20} />,
+      "admission-enquiries": <Users size={20} />,
+      "admission-applications": <FileText size={20} />,
+      "admission-students": <GraduationCap size={20} />,
+      "admission-courses": <BookOpen size={20} />,
+      "seat-matrix": <BarChart2 size={20} />,
+      "admission-fees": <CreditCard size={20} />,
+      "admission-documents": <FileText size={20} />,
+      "admission-communication": <Bell size={20} />,
+      "admission-reports": <BarChart2 size={20} />,
+      "admission-settings": <Settings size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -455,6 +468,21 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Books Catalog", page: "library-books" },
       { name: "Circulation", page: "library-circulation" },
       { name: "Fine Management", page: "library-fines" },
+      { name: "Profile", page: "profile" },
+    ],
+    admission_manager: [
+      { name: "Dashboard", page: "admission-dashboard" },
+      { name: "Campus Page Management", page: "campus-builder" },
+      { name: "Enquiries", page: "admission-enquiries" },
+      { name: "Applications", page: "admission-applications" },
+      { name: "Students", page: "admission-students" },
+      { name: "Courses", page: "admission-courses" },
+      { name: "Seat Matrix", page: "seat-matrix" },
+      { name: "Fees", page: "admission-fees" },
+      { name: "Documents", page: "admission-documents" },
+      { name: "Communication", page: "admission-communication" },
+      { name: "Reports", page: "admission-reports" },
+      { name: "Settings", page: "admission-settings" },
       { name: "Profile", page: "profile" },
     ],
   };
