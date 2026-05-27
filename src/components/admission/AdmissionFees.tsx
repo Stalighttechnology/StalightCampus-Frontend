@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, DollarSign, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdmissionFees() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -38,10 +39,16 @@ export default function AdmissionFees() {
         body: JSON.stringify({ status: 'admission_confirmed' })
       });
       if (response.ok) {
-        fetchApplications();
+        toast.success("Fee marked as paid!");
+        setApplications(apps => apps.map(app => 
+          app.id === id ? { ...app, enquiry_details: { ...app.enquiry_details, status: 'admission_confirmed' } } : app
+        ));
+      } else {
+        toast.error("Failed to update payment status");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Failed to update payment status");
     }
   };
 

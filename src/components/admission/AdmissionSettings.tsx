@@ -5,7 +5,7 @@ import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, Save, Info, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
+import { toast } from 'sonner';
 
 export default function AdmissionSettings() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -40,16 +40,17 @@ export default function AdmissionSettings() {
         body: JSON.stringify(newCampaign)
       });
       if (response.ok) {
+        const createdCampaign = await response.json();
         setNewCampaign({ name: '', start_date: '', end_date: '', is_active: true });
         setShowAddDialog(false);
-        showSuccessAlert("Success", "Admission campaign created successfully!");
-        fetchCampaigns();
+        toast.success("Admission campaign created successfully!");
+        setCampaigns(prev => [...prev, createdCampaign]);
       } else {
-        showErrorAlert("Error", "Failed to create admission campaign.");
+        toast.error("Failed to create admission campaign.");
       }
     } catch (err) {
       console.error(err);
-      showErrorAlert("Error", "An unexpected error occurred.");
+      toast.error("An unexpected error occurred.");
     }
   };
 
@@ -61,10 +62,16 @@ export default function AdmissionSettings() {
         body: JSON.stringify({ is_active: !current_status })
       });
       if (response.ok) {
-        fetchCampaigns();
+        toast.success(`Campaign ${current_status ? 'deactivated' : 'activated'} successfully!`);
+        setCampaigns(prev => prev.map(c => 
+          c.id === id ? { ...c, is_active: !current_status } : c
+        ));
+      } else {
+        toast.error("Failed to update campaign status.");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Failed to update campaign status.");
     }
   };
 

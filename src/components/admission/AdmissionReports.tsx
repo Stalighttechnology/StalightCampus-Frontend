@@ -5,6 +5,7 @@ import { Download, PieChart as PieChartIcon, TrendingUp, Users, Loader2 } from '
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { toast } from 'sonner';
 
 export default function AdmissionReports() {
   const [analytics, setAnalytics] = useState<any>(null);
@@ -45,7 +46,7 @@ export default function AdmissionReports() {
     const dataList = isCourseReport ? analytics.course_counts : analytics.status_counts;
 
     if (!dataList || dataList.length === 0) {
-      alert("No data available to export");
+      toast.error("No data available to export");
       return;
     }
 

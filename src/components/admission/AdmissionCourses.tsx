@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Edit, Loader2 } from 'lucide-react';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
+import { toast } from 'sonner';
 
 interface Course {
   id?: number;
@@ -52,12 +53,21 @@ const AdmissionCourses: React.FC = () => {
       });
 
       if (response.ok) {
+        const savedCourse = await response.json();
         setIsEditing(false);
         setCurrentCourse({ name: '', code: '', duration_years: 4, description: '' });
-        fetchCourses();
+        toast.success(method === 'POST' ? 'Course added successfully!' : 'Course updated successfully!');
+        if (method === 'POST') {
+           setCourses(prev => [...prev, savedCourse]);
+        } else {
+           setCourses(prev => prev.map(c => c.id === savedCourse.id ? savedCourse : c));
+        }
+      } else {
+        toast.error('Failed to save course');
       }
     } catch (err) {
       console.error('Failed to save course', err);
+      toast.error('Failed to save course');
     }
   };
 
@@ -68,10 +78,14 @@ const AdmissionCourses: React.FC = () => {
         method: 'DELETE'
       });
       if (response.ok) {
-        fetchCourses();
+        toast.success('Course deleted successfully');
+        setCourses(prev => prev.filter(c => c.id !== id));
+      } else {
+        toast.error('Failed to delete course');
       }
     } catch (err) {
       console.error('Failed to delete course', err);
+      toast.error('Failed to delete course');
     }
   };
 

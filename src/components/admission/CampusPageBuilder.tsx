@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, GripVertical, Trash2, Save, MoveUp, MoveDown, Copy, Check, Layout, Settings, Image as ImageIcon, FormInput, Menu, Baseline, PieChart, Eye, MonitorPlay, MessageSquare, LayoutTemplate } from 'lucide-react';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
+import { toast } from 'sonner';
 import CampusPageRenderer from '../public/CampusPageRenderer';
 
 interface Block {
@@ -65,13 +66,13 @@ const CampusPageBuilder: React.FC = () => {
         body: JSON.stringify(payload)
       });
       if (response.ok) {
-        alert('Campus page settings saved successfully!');
+        toast.success('Campus page settings saved successfully!');
       } else {
-        alert('Failed to save settings.');
+        toast.error('Failed to save settings.');
       }
     } catch (err) {
       console.error("Error saving campus page data", err);
-      alert('Failed to save settings.');
+      toast.error('Failed to save settings.');
     }
   };
 

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, UserCheck, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdmissionApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -36,13 +37,19 @@ export default function AdmissionApplications() {
         body: JSON.stringify({ status })
       });
       if (response.ok) {
-        fetchApplications();
+        toast.success(`Status updated to ${status.replace('_', ' ')}`);
+        setApplications(apps => apps.map(app => 
+          app.id === id ? { ...app, enquiry_details: { ...app.enquiry_details, status } } : app
+        ));
         if (selectedApp?.id === id) {
-          setSelectedApp(null);
+          setSelectedApp((prev: any) => ({ ...prev, enquiry_details: { ...prev.enquiry_details, status } }));
         }
+      } else {
+        toast.error("Failed to update status");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Failed to update status");
     }
   };
 
@@ -53,17 +60,20 @@ export default function AdmissionApplications() {
         headers: { 'Content-Type': 'application/json' }
       });
       if (response.ok) {
-        alert("Student Enrolled Successfully!");
-        fetchApplications();
+        toast.success("Student Enrolled Successfully!");
+        setApplications(apps => apps.map(app => 
+          app.id === id ? { ...app, enquiry_details: { ...app.enquiry_details, status: 'enrolled' } } : app
+        ));
         if (selectedApp?.id === id) {
-          setSelectedApp(null);
+          setSelectedApp((prev: any) => ({ ...prev, enquiry_details: { ...prev.enquiry_details, status: 'enrolled' } }));
         }
       } else {
         const errData = await response.json();
-        alert(errData.error || "Failed to enroll");
+        toast.error(errData.error || "Failed to enroll");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Failed to enroll");
     }
   };
 

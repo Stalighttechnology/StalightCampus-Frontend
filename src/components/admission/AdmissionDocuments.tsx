@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, FileText, CheckCircle, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdmissionDocuments() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -36,10 +37,14 @@ export default function AdmissionDocuments() {
         body: JSON.stringify({ status: 'documents_verified' })
       });
       if (response.ok) {
-        fetchApplications();
+        toast.success("Documents verified successfully!");
+        setApplications(apps => apps.filter(app => app.id !== id));
+      } else {
+        toast.error("Failed to verify documents.");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Failed to verify documents.");
     }
   };
 
