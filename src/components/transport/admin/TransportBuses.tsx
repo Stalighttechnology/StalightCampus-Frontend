@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
-import { fetchBuses, createBus, updateBus, deleteBus } from "../../../utils/transport_api";
+import { fetchBuses, createBus, updateBus, deleteBus, exportBusesPDF } from "../../../utils/transport_api";
 import { Badge, BusT } from "./TransportCommon";
 import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
 import { Button } from "../../ui/button";
@@ -14,7 +14,7 @@ import {
   SelectValue
 } from "../../ui/select";
 import { SkeletonTable } from "../../ui/skeleton";
-import { Bus, Plus, Trash2, Edit3, Save, X, RefreshCw, Tag } from "lucide-react";
+import { Bus, Plus, Trash2, Edit3, Save, X, RefreshCw, Tag, FileDown, Loader2 } from "lucide-react";
 
 const TransportBuses: React.FC = () => {
   const { theme } = useTheme();
@@ -25,6 +25,7 @@ const TransportBuses: React.FC = () => {
   const [showBusForm, setShowBusForm] = useState(false);
   const [editBusId, setEditBusId] = useState<number | null>(null);
   const [busForm, setBusForm] = useState({ bus_number: '', registration_number: '', capacity: 40, model_name: '', status: 'active' });
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   const loadBuses = useCallback(async () => {
     setLoading(true);
@@ -93,6 +94,31 @@ const TransportBuses: React.FC = () => {
     setBusForm({ bus_number: b.bus_number, registration_number: b.registration_number, capacity: b.capacity, model_name: b.model_name, status: b.status });
     setEditBusId(b.id);
     setShowBusForm(true);
+  };
+
+  const handleDownloadPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const response = await exportBusesPDF();
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Bus_Fleet_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        Swal.fire("Success", "Bus list PDF exported successfully", "success");
+      } else {
+        Swal.fire("Error", "Failed to export PDF", "error");
+      }
+    } catch (err) {
+      Swal.fire("Error", "Network error while exporting PDF", "error");
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
@@ -201,9 +227,23 @@ const TransportBuses: React.FC = () => {
                   <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
                     <Bus size={20} className="text-primary" /> Active Fleet Register
                   </CardTitle>
-                  <Button onClick={() => { setShowBusForm(true); setEditBusId(null); setBusForm({ bus_number: '', registration_number: '', capacity: 40, model_name: '', status: 'active' }); }} className="bg-primary hover:bg-primary/95 text-white flex items-center gap-1">
-                    <Plus size={15} /> Add Bus
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => { setShowBusForm(true); setEditBusId(null); setBusForm({ bus_number: '', registration_number: '', capacity: 40, model_name: '', status: 'active' }); }} className="bg-primary hover:bg-primary/95 text-white flex items-center gap-1 h-9">
+                      <Plus size={15} /> Add Bus
+                    </Button>
+                    <Button
+                      onClick={handleDownloadPDF}
+                      disabled={downloadingPDF}
+                      className="bg-primary hover:bg-primary/90 text-white flex items-center gap-1.5 h-9"
+                    >
+                      {downloadingPDF ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <FileDown size={15} />
+                      )}
+                      {downloadingPDF ? "Exporting..." : "Export PDF"}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <div className="overflow-x-auto thin-scrollbar">

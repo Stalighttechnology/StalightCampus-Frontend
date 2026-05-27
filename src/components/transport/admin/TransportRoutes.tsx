@@ -3,12 +3,12 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
-import { fetchRoutes, createRoute, updateRoute, deleteRoute, updateRouteStops, fetchBuses } from "../../../utils/transport_api";
+import { fetchRoutes, createRoute, updateRoute, deleteRoute, updateRouteStops, fetchBuses, exportRoutesPDF } from "../../../utils/transport_api";
 import { RouteT, StopT } from "./TransportCommon";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { SkeletonList } from "../../ui/skeleton";
-import { Navigation, MapPin, Plus, Trash2, Save, X, RefreshCw, Calendar, MapPin as StopIcon, Pencil } from "lucide-react";
+import { Navigation, MapPin, Plus, Trash2, Save, X, RefreshCw, Calendar, MapPin as StopIcon, Pencil, FileDown, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 
 interface TimePickerProps {
@@ -104,6 +104,7 @@ const TransportRoutes: React.FC = () => {
   // Form states
   const [showRouteForm, setShowRouteForm] = useState(false);
   const [routeForm, setRouteForm] = useState({ route_name: '', start_location: '', end_location: '', distance: '', duration_minutes: 0, morning_start_time: '', evening_start_time: '', bus_id: '' });
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   // Buses for dropdown
   const [buses, setBuses] = useState<{ id: number; bus_number: string; registration_number: string }[]>([]);
@@ -268,6 +269,31 @@ const TransportRoutes: React.FC = () => {
   const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
   const cardBg = theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
   const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
+
+  const handleDownloadPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const response = await exportRoutesPDF();
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Active_Routes_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        Swal.fire("Success", "Route list PDF exported successfully", "success");
+      } else {
+        Swal.fire("Error", "Failed to export PDF", "error");
+      }
+    } catch (err) {
+      Swal.fire("Error", "Network error while exporting PDF", "error");
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   const handleUpdateRoute = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -517,9 +543,23 @@ const TransportRoutes: React.FC = () => {
                 <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
                   <Navigation size={20} className="text-primary" /> Active Route Register
                 </CardTitle>
-                <Button onClick={() => setShowRouteForm(true)} className="bg-primary hover:bg-primary/95 text-white flex items-center gap-1">
-                  <Plus size={15} /> Add Route
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => setShowRouteForm(true)} className="bg-primary hover:bg-primary/95 text-white flex items-center gap-1 h-9">
+                    <Plus size={15} /> Add Route
+                  </Button>
+                  <Button
+                    onClick={handleDownloadPDF}
+                    disabled={downloadingPDF}
+                    className="bg-primary hover:bg-primary/90 text-white flex items-center gap-1.5 h-9"
+                  >
+                    {downloadingPDF ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FileDown size={15} />
+                    )}
+                    {downloadingPDF ? "Exporting..." : "Export PDF"}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <div className="overflow-x-auto">

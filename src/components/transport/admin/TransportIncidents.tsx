@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
 import { fetchIncidents, resolveIncident } from "../../../utils/transport_api";
 import { Badge, IncidentT } from "./TransportCommon";
-import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { SkeletonList } from "../../ui/skeleton";
 import { AlertTriangle, CheckCircle, X, RefreshCw, PenTool, ShieldAlert } from "lucide-react";
@@ -13,6 +13,8 @@ const TransportIncidents: React.FC = () => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [incidents, setIncidents] = useState<IncidentT[]>([]);
+  const ROWS_PER_PAGE = 20;
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Resolution state
   const [resolveId, setResolveId] = useState<number | null>(null);
@@ -117,27 +119,69 @@ const TransportIncidents: React.FC = () => {
                 </div>
               ) : incidents.length === 0 ? (
                 <p className="p-8 text-sm text-center opacity-60">No complaints or incidents filed. Everything is smooth!</p>
-              ) : incidents.map(i => (
-                <div key={i.id} className="p-5 transition-all duration-200 hover:bg-primary/5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <Badge label={i.type} color={i.type} />
-                        <Badge label={i.status} color={i.status} />
+              ) : (() => {
+                const totalPages = Math.ceil(incidents.length / ROWS_PER_PAGE);
+                const safePage = Math.min(currentPage, totalPages);
+                const pageIncidents = incidents.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+                return pageIncidents.map(i => (
+                  <div key={i.id} className="p-5 transition-all duration-200 hover:bg-primary/5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <Badge label={i.type} color={i.type} />
+                          <Badge label={i.status} color={i.status} />
+                        </div>
+                        <p className="font-semibold text-base">{i.title}</p>
+                        <p className={`text-sm mt-1 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
+                        <p className={`text-xs mt-2 opacity-60`}>Reported by <b>{i.reported_by_details?.first_name || "Driver"}</b> · {new Date(i.created_at).toLocaleDateString()} {new Date(i.created_at).toLocaleTimeString()}</p>
                       </div>
-                      <p className="font-semibold text-base">{i.title}</p>
-                      <p className={`text-sm mt-1 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
-                      <p className={`text-xs mt-2 opacity-60`}>Reported by <b>{i.reported_by_details?.first_name || "Driver"}</b> · {new Date(i.created_at).toLocaleDateString()} {new Date(i.created_at).toLocaleTimeString()}</p>
+                      {i.status !== 'resolved' && !resolveId && (
+                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1" onClick={() => setResolveId(i.id)}>
+                          <CheckCircle size={14} /> Resolve
+                        </Button>
+                      )}
                     </div>
-                    {i.status !== 'resolved' && !resolveId && (
-                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1" onClick={() => setResolveId(i.id)}>
-                        <CheckCircle size={14} /> Resolve
-                      </Button>
-                    )}
                   </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
+            {incidents.length > 1 && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  {incidents.length > 0 && (() => {
+                    const safePage2 = Math.min(currentPage, Math.ceil(incidents.length / ROWS_PER_PAGE));
+                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, incidents.length);
+                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, incidents.length);
+                    return <>Showing {start2} to {end2} of {incidents.length} incidents</>;
+                  })()}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {Math.min(currentPage, Math.max(1, Math.ceil(incidents.length / ROWS_PER_PAGE)))}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(incidents.length / ROWS_PER_PAGE), p + 1))}
+                    disabled={currentPage === Math.ceil(incidents.length / ROWS_PER_PAGE) || loading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
           </Card>
         </div>
       </div>

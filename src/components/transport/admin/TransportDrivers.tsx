@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
 import { useToast } from "../../../hooks/use-toast";
-import { fetchAssignments, enrollDriver, createAssignment, deleteAssignment, fetchAssignmentOptions } from "../../../utils/transport_api";
+import { fetchAssignments, enrollDriver, createAssignment, deleteAssignment, fetchAssignmentOptions, updateAssignment } from "../../../utils/transport_api";
 import { Badge } from "./TransportCommon";
-import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { SkeletonList, SkeletonTable } from "../../ui/skeleton";
 import {
@@ -16,13 +16,15 @@ import {
   SelectTrigger,
   SelectValue
 } from "../../ui/select";
-import { UserCheck, Plus, CheckCircle, X, Mail, Phone, RefreshCw, Briefcase, Award, Trash2 } from "lucide-react";
+import { UserCheck, Plus, CheckCircle, X, Mail, Phone, RefreshCw, Briefcase, Award, Trash2, Pencil } from "lucide-react";
 
 const TransportDrivers: React.FC = () => {
   const { theme } = useTheme();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState<any[]>([]);
+  const ROWS_PER_PAGE = 20;
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Form states
   const [showDriverForm, setShowDriverForm] = useState(false);
@@ -31,6 +33,21 @@ const TransportDrivers: React.FC = () => {
   const [showAssignForm, setShowAssignForm] = useState(false);
   const [assignForm, setAssignForm] = useState({ driver_id: '', bus_id: '', route_id: '' });
   const [assignOptions, setAssignOptions] = useState({ drivers: [] as any[], routes: [] as any[], buses: [] as any[] });
+
+  // Edit states
+  const [editingAssignment, setEditingAssignment] = useState<any | null>(null);
+  const [editAssignForm, setEditAssignForm] = useState({ driver_id: '', bus_id: '', route_id: '' });
+
+  useEffect(() => {
+    if (showDriverForm || showAssignForm || editingAssignment) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [showDriverForm, showAssignForm, editingAssignment]);
 
   const ok = (msg: string) => toast({ title: 'Success', description: msg });
   const err = (msg: string) => toast({ variant: 'destructive', title: 'Error', description: msg });
@@ -114,6 +131,48 @@ const TransportDrivers: React.FC = () => {
     }
   };
 
+  const startEditAssignment = async (a: any) => {
+    setEditingAssignment(a);
+    setEditAssignForm({
+      driver_id: String(a.driver_details?.id || a.driver || ''),
+      bus_id: String(a.bus_details?.id || a.bus || ''),
+      route_id: String(a.route_details?.id || a.route || '')
+    });
+    if (assignOptions.drivers.length === 0) {
+      const res = await fetchAssignmentOptions();
+      if (res.success) {
+        setAssignOptions({ drivers: res.drivers, routes: res.routes, buses: res.buses });
+      }
+    }
+  };
+
+  const handleUpdateAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAssignment) return;
+    if (!editAssignForm.driver_id || !editAssignForm.bus_id || !editAssignForm.route_id) {
+      Swal.fire("Warning", "Please select a driver, bus, and route.", "warning");
+      return;
+    }
+
+    try {
+      const res = await updateAssignment(editingAssignment.id, {
+        driver: parseInt(editAssignForm.driver_id),
+        bus: parseInt(editAssignForm.bus_id),
+        route: parseInt(editAssignForm.route_id)
+      });
+      if (res.id) {
+        Swal.fire("Updated!", "Assignment updated successfully.", "success");
+        // Refetch or update locally
+        setAssignments(prev => prev.map(item => item.id === editingAssignment.id ? res : item));
+        setEditingAssignment(null);
+      } else {
+        Swal.fire("Error", res.message || 'Failed to update assignment', "error");
+      }
+    } catch (err) {
+      Swal.fire("Error", "Server error updating driver assignment", "error");
+    }
+  };
+
   const handleRemoveAssignment = async (id: number) => {
     const confirmResult = await Swal.fire({
       title: "Remove Assignment?",
@@ -190,61 +249,108 @@ const TransportDrivers: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      assignments.map(a => {
-                        const d = a.driver_details;
-                        return (
-                          <tr key={a.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
-                            <td className="p-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center font-bold text-emerald-600 text-xs">
-                                  {d?.first_name?.[0]}{d?.last_name?.[0] || ''}
+                      (() => {
+                        const totalPages = Math.ceil(assignments.length / ROWS_PER_PAGE);
+                        const safePage = Math.min(currentPage, totalPages);
+                        const pageAssignments = assignments.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+                        return pageAssignments.map(a => {
+                          const d = a.driver_details;
+                          return (
+                            <tr key={a.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center font-bold text-emerald-600 text-xs">
+                                    {d?.first_name?.[0]}{d?.last_name?.[0] || ''}
+                                  </div>
+                                  <span className="font-semibold">{d?.first_name} {d?.last_name}</span>
                                 </div>
-                                <span className="font-semibold">{d?.first_name} {d?.last_name}</span>
-                              </div>
-                            </td>
-                            <td className="p-4 text-xs space-y-1">
-                              {d?.email && (
-                                <div className="flex items-center gap-1.5 opacity-80">
-                                  <Mail size={12} className="opacity-60" />
-                                  <span>{d.email}</span>
+                              </td>
+                              <td className="p-4 text-xs space-y-1">
+                                {d?.email && (
+                                  <div className="flex items-center gap-1.5 opacity-80">
+                                    <Mail size={12} className="opacity-60" />
+                                    <span>{d.email}</span>
+                                  </div>
+                                )}
+                                {d?.mobile_number && (
+                                  <div className="flex items-center gap-1.5 opacity-80">
+                                    <Phone size={12} className="opacity-60" />
+                                    <span>{d.mobile_number}</span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="p-4 font-semibold text-xs text-primary">
+                                {a.route_details?.route_name || '—'}
+                              </td>
+                              <td className="p-4 text-xs font-medium">
+                                {a.bus_details ? (
+                                  <div>
+                                    <div className="font-semibold text-gray-800 dark:text-gray-100">{a.bus_details.bus_number}</div>
+                                    <div className="text-[10px] font-bold text-primary mt-0.5">{a.bus_details.registration_number}</div>
+                                  </div>
+                                ) : (
+                                  <span>Bus {a.bus || '—'}</span>
+                                )}
+                              </td>
+                              <td className="p-4">
+                                <Badge label={d?.designation || 'Driver'} color="allocated" />
+                              </td>
+                              <td className="p-4 text-right">
+                                <div className="flex justify-end gap-1.5">
+                                  <Button size="icon" variant="ghost" onClick={() => startEditAssignment(a)} className="h-8 w-8 text-primary" title="Edit Assignment">
+                                    <Pencil size={15} />
+                                  </Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleRemoveAssignment(a.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" title="Remove Assignment">
+                                    <Trash2 size={15} />
+                                  </Button>
                                 </div>
-                              )}
-                              {d?.mobile_number && (
-                                <div className="flex items-center gap-1.5 opacity-80">
-                                  <Phone size={12} className="opacity-60" />
-                                  <span>{d.mobile_number}</span>
-                                </div>
-                              )}
-                            </td>
-                            <td className="p-4 font-semibold text-xs text-primary">
-                              {a.route_details?.route_name || '—'}
-                            </td>
-                            <td className="p-4 text-xs font-medium">
-                              {a.bus_details ? (
-                                <div>
-                                  <div className="font-semibold text-gray-800 dark:text-gray-100">{a.bus_details.bus_number}</div>
-                                  <div className="text-[10px] font-bold text-primary mt-0.5">{a.bus_details.registration_number}</div>
-                                </div>
-                              ) : (
-                                <span>Bus {a.bus || '—'}</span>
-                              )}
-                            </td>
-                            <td className="p-4">
-                              <Badge label={d?.designation || 'Driver'} color="allocated" />
-                            </td>
-                            <td className="p-4 text-right">
-                              <Button size="icon" variant="ghost" onClick={() => handleRemoveAssignment(a.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" title="Remove Assignment">
-                                <Trash2 size={15} />
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })
+                              </td>
+                            </tr>
+                          );
+                        });
+                      })()
                     )}
                   </tbody>
                 </table>
               )}
             </div>
+            {assignments.length > 1 && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  {assignments.length > 0 && (() => {
+                    const safePage2 = Math.min(currentPage, Math.ceil(assignments.length / ROWS_PER_PAGE));
+                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, assignments.length);
+                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, assignments.length);
+                    return <>Showing {start2} to {end2} of {assignments.length} assignments</>;
+                  })()}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {Math.min(currentPage, Math.max(1, Math.ceil(assignments.length / ROWS_PER_PAGE)))}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(assignments.length / ROWS_PER_PAGE), p + 1))}
+                    disabled={currentPage === Math.ceil(assignments.length / ROWS_PER_PAGE) || loading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
           </Card>
         </div>
       </div>
@@ -321,7 +427,7 @@ const TransportDrivers: React.FC = () => {
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose Driver" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[1000001]">
                       {assignOptions.drivers.map(d => (
                         <SelectItem key={d.id} value={d.id.toString()}>{d.first_name} {d.last_name}</SelectItem>
                       ))}
@@ -337,7 +443,7 @@ const TransportDrivers: React.FC = () => {
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose Route" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[1000001]">
                       {assignOptions.routes.map(r => (
                         <SelectItem key={r.id} value={r.id.toString()}>{r.route_name}</SelectItem>
                       ))}
@@ -353,9 +459,9 @@ const TransportDrivers: React.FC = () => {
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose Bus" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[1000001]">
                       {assignOptions.buses.map(b => (
-                        <SelectItem key={b.id} value={b.id.toString()}>{b.bus_number}</SelectItem>
+                        <SelectItem key={b.id} value={b.id.toString()}>{b.bus_number} — {b.registration_number}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -363,6 +469,80 @@ const TransportDrivers: React.FC = () => {
                 <div className="pt-2">
                   <Button type="submit" className="w-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 h-10">
                     <CheckCircle size={16} /> Save Assignment
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {editingAssignment && createPortal(
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+          <div className="modal-overlay" onClick={() => setEditingAssignment(null)} />
+          <div className="relative w-full max-w-md z-[1000000]">
+            <Card className={`p-6 border shadow-2xl backdrop-blur-sm ${cardBg}`}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                  <Award className="w-5 h-5" /> Edit Assignment
+                </h3>
+                <Button variant="ghost" size="icon" onClick={() => setEditingAssignment(null)}>
+                  <X size={16} />
+                </Button>
+              </div>
+              <form onSubmit={handleUpdateAssignment} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Driver</label>
+                  <Select
+                    value={editAssignForm.driver_id}
+                    onValueChange={(val) => setEditAssignForm(f => ({ ...f, driver_id: val }))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose Driver" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000001]">
+                      {assignOptions.drivers.map(d => (
+                        <SelectItem key={d.id} value={d.id.toString()}>{d.first_name} {d.last_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Route</label>
+                  <Select
+                    value={editAssignForm.route_id}
+                    onValueChange={(val) => setEditAssignForm(f => ({ ...f, route_id: val }))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose Route" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000001]">
+                      {assignOptions.routes.map(r => (
+                        <SelectItem key={r.id} value={r.id.toString()}>{r.route_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Bus</label>
+                  <Select
+                    value={editAssignForm.bus_id}
+                    onValueChange={(val) => setEditAssignForm(f => ({ ...f, bus_id: val }))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose Bus" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[1000001]">
+                      {assignOptions.buses.map(b => (
+                        <SelectItem key={b.id} value={b.id.toString()}>{b.bus_number} — {b.registration_number}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="pt-2">
+                  <Button type="submit" className="w-full bg-gradient-to-r from-primary to-purple-600 text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 h-10">
+                    <CheckCircle size={16} /> Save Changes
                   </Button>
                 </div>
               </form>
