@@ -66,7 +66,8 @@ interface ForgotPasswordRequest {
 
 interface ResetPasswordRequest {
   user_id: string;
-  otp: string;
+  otp?: string;
+  token?: string;
   new_password: string;
   confirm_password: string;
 }
@@ -80,6 +81,7 @@ interface GenericResponse {
   success: boolean;
   message?: string;
   user_id?: string;
+  token?: string;
 }
 
 // Token refresh response type
@@ -370,10 +372,11 @@ export const forgotPassword = async ({ email }: ForgotPasswordRequest): Promise<
 export const resetPassword = async ({
   user_id,
   otp,
+  token,
   new_password,
   confirm_password
 }: ResetPasswordRequest): Promise<GenericResponse> => {
-  if (!user_id?.trim() || !otp?.trim() || !new_password?.trim() || !confirm_password?.trim()) {
+  if (!user_id?.trim() || (!otp?.trim() && !token?.trim()) || !new_password?.trim() || !confirm_password?.trim()) {
 
     return { success: false, message: "All fields required" };
   }
@@ -387,6 +390,7 @@ export const resetPassword = async ({
       body: JSON.stringify({
         user_id,
         otp,
+        token,
         new_password,
         confirm_password
       })
