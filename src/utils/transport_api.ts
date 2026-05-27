@@ -26,6 +26,9 @@ export const updateBus = (id: number, data: any) =>
 export const deleteBus = (id: number) =>
   fetch(`${API_BASE}/buses/${id}/`, { method: "DELETE", headers: authHeaders() }).then((r) => r.json());
 
+export const exportBusesPDF = () =>
+  fetch(`${API_BASE}/buses/export-pdf/`, { headers: authHeaders() });
+
 // Routes
 export const fetchRoutes = (page = 1) =>
   fetch(`${API_BASE}/routes/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
@@ -42,6 +45,9 @@ export const deleteRoute = (id: number) =>
 export const updateRouteStops = (routeId: number, stops: any[]) =>
   fetch(`${API_BASE}/routes/${routeId}/update_stops/`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ stops }) }).then((r) => r.json());
 
+export const exportRoutesPDF = () =>
+  fetch(`${API_BASE}/routes/export-pdf/`, { headers: authHeaders() });
+
 // Assignments
 export const fetchAssignments = (page = 1) =>
   fetch(`${API_BASE}/assignments/?page=${page}`, { headers: authHeaders() }).then((r) => r.json());
@@ -54,6 +60,9 @@ export const createAssignment = (data: any) =>
 
 export const deleteAssignment = (id: number) =>
   fetch(`${API_BASE}/assignments/${id}/`, { method: "DELETE", headers: authHeaders() }).then((r) => r.json());
+
+export const updateAssignment = (id: number, data: any) =>
+  fetch(`${API_BASE}/assignments/${id}/`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify(data) }).then((r) => r.json());
 
 // Student Allocations
 export const fetchAllocations = (page = 1, route = "", status = "", search = "") => {
@@ -69,6 +78,9 @@ export const createAllocation = (data: any) =>
 
 export const deleteAllocation = (id: number) =>
   fetch(`${API_BASE}/allocations/${id}/`, { method: "DELETE", headers: authHeaders() }).then((r) => r.json());
+
+export const updateAllocation = (id: number, data: any) =>
+  fetch(`${API_BASE}/allocations/${id}/`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify(data) }).then((r) => r.json());
 
 // Drivers & Eligible Students
 export const fetchDrivers = () =>

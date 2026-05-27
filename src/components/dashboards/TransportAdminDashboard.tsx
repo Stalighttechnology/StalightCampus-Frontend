@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
-import TransportAdminDashboardContent from "../transport/TransportAdminDashboard";
 import Profile from "../common/Profile";
+
+import TransportOverview from "../transport/admin/TransportOverview";
+import TransportBuses from "../transport/admin/TransportBuses";
+import TransportRoutes from "../transport/admin/TransportRoutes";
+import TransportDrivers from "../transport/admin/TransportDrivers";
+import TransportAllocations from "../transport/admin/TransportAllocations";
+import TransportTracking from "../transport/admin/TransportTracking";
+import TransportIncidents from "../transport/admin/TransportIncidents";
 
 interface DashboardProps {
   user: any;
@@ -29,23 +36,23 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
     switch (activePage) {
       case "dashboard":
       case "":
-        return <TransportAdminDashboardContent initialTab="overview" />;
+        return <TransportOverview />;
       case "transport-buses":
-        return <TransportAdminDashboardContent initialTab="buses" />;
+        return <TransportBuses />;
       case "transport-routes":
-        return <TransportAdminDashboardContent initialTab="routes" />;
+        return <TransportRoutes />;
       case "transport-drivers":
-        return <TransportAdminDashboardContent initialTab="drivers" />;
+        return <TransportDrivers />;
       case "transport-allocations":
-        return <TransportAdminDashboardContent initialTab="allocations" />;
+        return <TransportAllocations />;
       case "transport-tracking":
-        return <TransportAdminDashboardContent initialTab="tracking" />;
+        return <TransportTracking />;
       case "transport-incidents":
-        return <TransportAdminDashboardContent initialTab="incidents" />;
+        return <TransportIncidents />;
       case "profile":
         return <Profile role="transport_admin" user={user} />;
       default:
-        return <TransportAdminDashboardContent initialTab="overview" />;
+        return <TransportOverview />;
     }
   };
 
