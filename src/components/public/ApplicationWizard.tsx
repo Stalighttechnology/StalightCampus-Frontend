@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 
 const ApplicationWizard: React.FC = () => {
   const { org_slug } = useParams<{ org_slug: string }>();
@@ -96,11 +96,11 @@ const ApplicationWizard: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8" /></div>;
+  if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
 
   return (
-    <div className="min-h-screen bg-background p-8 flex justify-center items-center py-20">
-      <div className="bg-card text-card-foreground p-8 rounded-xl shadow-xl w-full max-w-2xl border border-border">
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="bg-card text-card-foreground p-6 md:p-10 rounded-3xl shadow-2xl border border-border">
         <h2 className="text-3xl font-bold mb-8 text-center">Admission Application</h2>
         
         <div className="flex justify-between mb-12 relative px-4">

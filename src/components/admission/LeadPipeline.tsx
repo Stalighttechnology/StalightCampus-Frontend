@@ -9,7 +9,7 @@ const STAGES = [
   { id: 'new', label: 'New Enquiry' },
   { id: 'contacted', label: 'Contacted' },
   { id: 'interested', label: 'Interested' },
-  { id: 'application_started', label: 'App Started' },
+  { id: 'application_started', label: 'Application Started' },
   { id: 'documents_pending', label: 'Docs Pending' },
   { id: 'documents_verified', label: 'Docs Verified' },
   { id: 'fee_pending', label: 'Fee Pending' },
@@ -58,29 +58,29 @@ const LeadPipeline: React.FC = () => {
   if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="p-6 h-full flex flex-col">
-      <h1 className="text-3xl font-bold mb-8">Lead Pipeline</h1>
-      
-      <div className="flex space-x-4 overflow-x-auto pb-4 flex-1 items-start min-h-[600px] thin-scrollbar">
+    <div className="p-6 h-[calc(100vh-100px)] flex flex-col">
+      <h1 className="text-3xl font-bold mb-6">Lead Pipeline</h1>
+
+      <div className="flex gap-4 overflow-x-auto overflow-y-hidden pb-4 flex-1 items-start min-h-0 custom-scrollbar">
         {STAGES.map((stage) => {
           const stageLeads = leads.filter(l => l.status === stage.id);
           return (
-            <div 
-              key={stage.id} 
-              className="min-w-[300px] bg-muted/30 rounded-lg p-4 border border-border flex flex-col max-h-full"
+            <div
+              key={stage.id}
+              className="min-w-[320px] w-[320px] bg-muted/20 rounded-xl p-4 border border-border flex flex-col h-full shadow-sm"
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 const leadId = e.dataTransfer.getData('leadId');
                 if (leadId) moveLead(parseInt(leadId), stage.id);
               }}
             >
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-4 border-b border-border/50 pb-3">
                 <h3 className="font-semibold text-sm uppercase tracking-wider">{stage.label}</h3>
-                <Badge variant="secondary">{stageLeads.length}</Badge>
+                <Badge variant="secondary" className="bg-primary/10 text-primary">{stageLeads.length}</Badge>
               </div>
-              <div className="space-y-3 overflow-y-auto thin-scrollbar flex-1 pr-1">
+              <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-2 pb-2">
                 {stageLeads.map(lead => (
-                  <Card 
+                  <Card
                     key={lead.id}
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData('leadId', lead.id.toString())}
