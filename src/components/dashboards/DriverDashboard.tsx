@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
-import DriverDashboardContent from "../transport/DriverDashboard";
-import DriverTripHistory from "../transport/DriverTripHistory";
-import DriverComplaints from "../transport/DriverComplaints";
+import DriverDashboardContent from "../transport/driver/DriverDashboard";
+import DriverTripHistory from "../transport/driver/DriverTripHistory";
+import DriverComplaints from "../transport/driver/DriverComplaints";
 import Profile from "../common/Profile";
 
 interface DashboardProps {

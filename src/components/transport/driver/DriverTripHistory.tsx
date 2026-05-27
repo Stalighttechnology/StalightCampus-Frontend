@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useTheme } from "../../context/ThemeContext";
-import { fetchDriverHistory, fetchTripStudents } from "../../utils/transport_api";
+import { useTheme } from "../../../context/ThemeContext";
+import { fetchDriverHistory, fetchTripStudents } from "../../../utils/transport_api";
 import { Calendar, Bus, Eye, X } from "lucide-react";
 
 const DriverTripHistory: React.FC = () => {

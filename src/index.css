@@ -745,3 +745,14 @@ body.tutorial-active aside {
   width: 0 !important;
   height: 0 !important;
 }
+
+/* Modal Backdrop overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 999998;
+}

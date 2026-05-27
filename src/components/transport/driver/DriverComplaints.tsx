@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useTheme } from "../../context/ThemeContext";
-import { fetchDriverComplaints } from "../../utils/transport_api";
+import { useTheme } from "../../../context/ThemeContext";
+import { fetchDriverComplaints } from "../../../utils/transport_api";
 import { FileText, Bus } from "lucide-react";
 
 const DriverComplaints: React.FC = () => {
