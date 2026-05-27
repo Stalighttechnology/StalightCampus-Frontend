@@ -4,7 +4,7 @@ import { Mail, MessageSquareDashed, Lock, Check, Shield, Eye, EyeOff } from "luc
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import clsx from "clsx";
-import { forgotPassword, resetPassword } from "../../utils/authService";
+import { forgotPassword, resetPassword, verifyOTP } from "../../utils/authService";
 
 type Step = "email" | "otp" | "password" | "success";
 
@@ -20,6 +20,7 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
   const [success, setSuccess] = useState<string | null>(null);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [token, setToken] = useState("");
 
   const steps = [Mail, MessageSquareDashed, Lock, Check];
 
@@ -59,8 +60,28 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
       setError("OTP must be 6 digits");
       return;
     }
+    if (!userId) {
+      setError("Session expired. Please start over.");
+      setStep("email");
+      return;
+    }
     setError(null);
-    setStep("password");
+    setLoading(true);
+    try {
+      const response = await verifyOTP({ user_id: userId, otp: otp.trim() });
+      if (response.success) {
+        if (response.token) {
+          setToken(response.token);
+        }
+        setStep("password");
+      } else {
+        setError(response.message || "Invalid OTP code");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -88,6 +109,7 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
       const response = await resetPassword({
         user_id: userId,
         otp: otp.trim(),
+        token: token || undefined,
         new_password: newPassword,
         confirm_password: confirmPassword,
       });

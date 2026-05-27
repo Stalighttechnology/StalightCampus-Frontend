@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { forgotPassword, resetPassword } from "../../utils/authService";
+import { forgotPassword, resetPassword, verifyOTP } from "../../utils/authService";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Mail, ArrowLeft, Send, Shield, LockKeyhole, CheckCircle, AlertCircle } from "lucide-react";
@@ -25,6 +25,7 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPasswordResetFlow, setIsPasswordResetFlow] = useState(false);
+  const [token, setToken] = useState("");
 
   useEffect(() => {
     // Check if there's a stored temp_user_id from a previous session
@@ -90,9 +91,30 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
       setError("OTP must be 6 digits");
       return;
     }
+    const trimmedUserId = String(userId || "").trim();
+    if (!trimmedUserId) {
+      setError("Session expired. Please start over.");
+      setCurrentStep('email');
+      return;
+    }
 
     setError(null);
-    setCurrentStep('password');
+    setLoading(true);
+    try {
+      const response = await verifyOTP({ user_id: trimmedUserId, otp: trimmedOtp });
+      if (response.success) {
+        if (response.token) {
+          setToken(response.token);
+        }
+        setCurrentStep('password');
+      } else {
+        setError(response.message || "Invalid OTP code");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePasswordReset = async () => {
@@ -125,6 +147,7 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
       const response = await resetPassword({
         user_id: trimmedUserId,
         otp: otp.trim(),
+        token: token || undefined,
         new_password: trimmedNewPassword,
         confirm_password: trimmedConfirmPassword
       });

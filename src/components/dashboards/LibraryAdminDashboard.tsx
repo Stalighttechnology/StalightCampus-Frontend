@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
-import LibraryAdminPanel from "../library/LibraryAdminPanel";
+import LibraryOverview from "../library/LibraryOverview";
+import LibraryBooksCatalog from "../library/LibraryBooksCatalog";
+import LibraryCirculation from "../library/LibraryCirculation";
+import LibraryFineManagement from "../library/LibraryFineManagement";
 import Profile from "../common/Profile";
 
 interface DashboardProps {
@@ -29,19 +32,17 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
     switch (activePage) {
       case "dashboard":
       case "":
-        return <LibraryAdminPanel initialTab="overview" />;
+        return <LibraryOverview />;
       case "library-books":
-        return <LibraryAdminPanel initialTab="catalog" />;
+        return <LibraryBooksCatalog />;
       case "library-circulation":
-        return <LibraryAdminPanel initialTab="circulation" />;
-      case "library-reserves":
-        return <LibraryAdminPanel initialTab="reserves" />;
+        return <LibraryCirculation />;
       case "library-fines":
-        return <LibraryAdminPanel initialTab="fines" />;
+        return <LibraryFineManagement />;
       case "profile":
         return <Profile role="library_admin" user={user} />;
       default:
-        return <LibraryAdminPanel initialTab="overview" />;
+        return <LibraryOverview />;
     }
   };
 
