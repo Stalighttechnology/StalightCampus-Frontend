@@ -295,7 +295,8 @@ const UploadQP = () => {
         section_id: selected.section_id?.toString(),
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
-        detail: false
+        detail: false,
+        mine_only: true
       });
       if (res?.success && Array.isArray(res.data)) {
         // Find exact match on Subject and Test Type for this section/semester

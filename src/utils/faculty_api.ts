@@ -1844,6 +1844,7 @@ export interface GetQPsParams {
   qp_id?: string | number;
   detail?: boolean;
   approved_only?: boolean;
+  mine_only?: boolean;
 }
 
 export const getQuestionPapers = async (params: GetQPsParams = {}): Promise<any> => {
