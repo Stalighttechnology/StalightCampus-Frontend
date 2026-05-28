@@ -350,12 +350,13 @@ export const createResultUploadBatch = async (payload: {batch: string;branch: st
   }
 };
 
-export const getStudentsForUpload = async (uploadId: number, page?: number, page_size?: number, request_type?: string) => {
+export const getStudentsForUpload = async (uploadId: number, page?: number, page_size?: number, request_type?: string, search?: string) => {
   try {
     const params = new URLSearchParams();
     if (page !== undefined) params.append('page', String(page));
     if (page_size !== undefined) params.append('page_size', String(page_size));
     if (request_type !== undefined && request_type !== '') params.append('request_type', request_type);
+    if (search !== undefined && search !== '') params.append('search', search);
 
     const url = `${API_ENDPOINT}/coe/result-upload/${uploadId}/students/` + (params.toString() ? `?${params}` : '');
     const response = await fetchWithTokenRefresh(url, {
@@ -375,12 +376,13 @@ export const getStudentsForUpload = async (uploadId: number, page?: number, page
   }
 };
 
-export const getStudentsForRevalMakeupUpload = async (uploadId: number, page?: number, page_size?: number, request_type?: string) => {
+export const getStudentsForRevalMakeupUpload = async (uploadId: number, page?: number, page_size?: number, request_type?: string, search?: string) => {
   try {
     const params = new URLSearchParams();
     if (page !== undefined) params.append('page', String(page));
     if (page_size !== undefined) params.append('page_size', String(page_size));
     if (request_type !== undefined && request_type !== '') params.append('request_type', request_type);
+    if (search !== undefined && search !== '') params.append('search', search);
 
     const url = `${API_ENDPOINT}/coe/result-upload/${uploadId}/reval-makeup-students/` + (params.toString() ? `?${params}` : '');
     const response = await fetchWithTokenRefresh(url, {

@@ -34,6 +34,21 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [saving, setSaving] = useState(false);
   const [filtersLoading, setFiltersLoading] = useState(true);
   const [studentsLoading, setStudentsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (upload) {
+      fetchStudentsPage(upload.id, 1, studentsPageSize, false, debouncedSearchQuery);
+    }
+  }, [debouncedSearchQuery, upload?.id]);
 
   useEffect(() => {
     (async () => {
@@ -65,9 +80,8 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
     const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
     if (res.success) {
+      setSearchQuery('');
       setUpload(res.upload_batch);
-      // fetch students (includes existing marks if present)
-      await fetchStudentsPage(res.upload_batch.id, studentsPage, studentsPageSize);
     } else {
       toast.error(res.message || 'Failed to create upload');
     }
@@ -82,8 +96,8 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
         const res = await createResultUploadBatch({ batch: String(selected.batch), branch: String(selected.branch), semester: String(selected.semester), exam_period: selected.exam_period });
         if (!mounted) return;
         if (res.success) {
+          setSearchQuery('');
           setUpload(res.upload_batch);
-          await fetchStudentsPage(res.upload_batch.id, studentsPage, studentsPageSize);
         }
       } catch (e) {
 
@@ -93,9 +107,10 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   }, [selected.batch, selected.branch, selected.semester, selected.exam_period]);
 
   // Helper to fetch a specific students page and merge marks
-  const fetchStudentsPage = async (uploadId: number, page?: number, pageSize?: number, overwriteExisting: boolean = false) => {
+  const fetchStudentsPage = async (uploadId: number, page?: number, pageSize?: number, overwriteExisting: boolean = false, searchStr?: string) => {
     setStudentsLoading(true);
-    const stu = await getStudentsForUpload(uploadId, page, pageSize);
+    const queryStr = searchStr !== undefined ? searchStr : debouncedSearchQuery;
+    const stu = await getStudentsForUpload(uploadId, page, pageSize, undefined, queryStr);
     setStudentsLoading(false);
     if (stu.success) {
       const studentList = stu.data?.students || [];
@@ -242,7 +257,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       setNavModalOpen(true);
       return;
     }
-    await fetchStudentsPage(upload.id, targetPage, pageSize ?? studentsPageSize);
+    await fetchStudentsPage(upload.id, targetPage, pageSize ?? studentsPageSize, false, debouncedSearchQuery);
   };
 
   const confirmNavSave = async (saveFirst: boolean) => {
@@ -264,7 +279,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       // mark current page clean
       setDirtyPages((prev) => ({ ...(prev || {}), [studentsPage]: false }));
     }
-    await fetchStudentsPage(upload.id, pendingNav.page, pendingNav.pageSize ?? studentsPageSize);
+    await fetchStudentsPage(upload.id, pendingNav.page, pendingNav.pageSize ?? studentsPageSize, false, debouncedSearchQuery);
     setPendingNav(null);
   };
 
@@ -279,7 +294,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
       // refresh upload info
       setUpload({ ...upload, is_published: true });
       // refresh students in case published_result_id/is_withheld changed after publish
-      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize);
+      await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, false, debouncedSearchQuery);
     } else {
       toast.error(res.message || 'Publish failed');
     }
@@ -298,7 +313,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
         toast.success(`Result ${actionText} for ${studentName}`);
         // Refresh students list to update withheld status
         if (upload) {
-          await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true);
+          await fetchStudentsPage(upload.id, studentsPage, studentsPageSize, true, debouncedSearchQuery);
         }
       } else {
         toast.error(res.message || 'Toggle failed');
@@ -442,7 +457,18 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
             <CardTitle className="text-lg sm:text-xl">Student Marks Entry</CardTitle>
           </CardHeader>
           <CardContent>
-        <div className="overflow-auto">
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by student name or USN..."
+                  className="pl-9"
+                  value={searchQuery}
+                  onChange={(e: any) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="overflow-auto">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm text-muted-foreground">Showing {students.length} students</div>
             <div className="flex gap-3 items-center pr-1">
