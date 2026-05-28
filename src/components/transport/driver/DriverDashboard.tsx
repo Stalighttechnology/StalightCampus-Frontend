@@ -6,8 +6,11 @@ import {
   fetchTripStudents, markStudentAttendance, triggerEmergency
 } from "../../../utils/transport_api";
 import {
-  Bus, Users, CheckCircle, XCircle, AlertTriangle, Play, Square, Radio, LogOut, X
+  Bus, Users, CheckCircle, XCircle, AlertTriangle, Play, Square, Radio, LogOut, X, MapPin, Navigation, Clock
 } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
+import { Button } from "../../ui/button";
+import DashboardCard from "../../common/DashboardCard";
 
 interface Student { id: number; student_name: string; student_usn: string; stop_name: string; status: string; student_details?: any; stop_details?: any; }
 interface Trip { id: number; trip_type: string; status: string; start_time: string; route_details: any; bus_details: any; }
@@ -27,8 +30,8 @@ const DriverDashboard: React.FC = () => {
   const gpsRef = useRef<number | null>(null);
 
   const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
-  const card = theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100';
-  const input = theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400';
+  const cardBg = theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
+  const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
 
   const ok = (msg: string) => toast({ title: 'Success', description: msg });
   const err = (msg: string) => toast({ variant: 'destructive', title: 'Error', description: msg });
@@ -150,140 +153,210 @@ const DriverDashboard: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen ${bg} p-4 md:p-6`}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Bus className="text-primary" size={26} /> Driver Dashboard</h1>
-          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage your daily trips and student pickups</p>
-        </div>
-        {gpsActive && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-bold">
-            <Radio size={12} className="animate-pulse" /> GPS Live
-          </div>
-        )}
-      </div>
-
+    <div >
       {loading ? (
-        <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
-      ) : !assignment ? (
-        <div className={`rounded-2xl border shadow-sm p-12 text-center ${card}`}>
-          <Bus size={48} className="mx-auto mb-4 opacity-30" />
-          <p className="text-lg font-semibold mb-2">No Route Assigned</p>
-          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Your transport admin hasn't assigned you a route yet.</p>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
+      ) : !assignment ? (
+        <Card className={`border overflow-hidden shadow-sm p-12 text-center backdrop-blur-sm ${cardBg}`}>
+          <Bus size={48} className="mx-auto mb-4 opacity-30 text-primary animate-bounce" />
+          <p className="text-lg font-semibold mb-2">No Route Assigned</p>
+          <p className={`text-sm max-w-sm mx-auto ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            Your transport admin has not configured a route assignment for you yet. Contact support for assistance.
+          </p>
+        </Card>
       ) : (
-        <div className="space-y-4">
-          <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Your Assignment</p>
-                <h2 className="text-lg font-bold">{assignment.route_details?.route_name}</h2>
-                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  {assignment.route_details?.start_location} → {assignment.route_details?.end_location}
-                </p>
-                <div className="flex gap-4 mt-2 text-xs">
-                  <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>🚌 Bus: <strong>{assignment.bus_details?.bus_number}</strong></span>
-                  <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>💺 Cap: <strong>{assignment.bus_details?.capacity}</strong></span>
-                  <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>🌅 <strong>{assignment.route_details?.morning_start_time || 'N/A'}</strong></span>
-                  <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>🌇 <strong>{assignment.route_details?.evening_start_time || 'N/A'}</strong></span>
-                </div>
-              </div>
+        <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
+          <CardHeader className="pb-3 border-b border-inherit">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between gap-4">
+              <span>Driver Dashboard Control Center</span>
+              {gpsActive && (
+                <span className="flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 rounded-full text-[10px] font-bold">
+                  <Radio size={10} className="animate-pulse" /> Live Tracking Active
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            
+            {/* Dashboard Metrics Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-6 border-b border-inherit">
+              <DashboardCard icon={<Navigation size={20} />} title="Assigned Route" value={assignment.route_details?.route_name} description={`${assignment.route_details?.start_location} → ${assignment.route_details?.end_location}`} />
+              <DashboardCard icon={<Bus size={20} />} title="Assigned Bus" value={assignment.bus_details?.bus_number} description={assignment.bus_details?.registration_number} />
+              <DashboardCard icon={<Clock size={20} />} title="Morning Start" value={assignment.route_details?.morning_start_time || 'N/A'} description={`Evening: ${assignment.route_details?.evening_start_time || 'N/A'}`} />
+              <DashboardCard icon={<Users size={20} />} title="Bus Capacity" value={`${assignment.bus_details?.capacity} Seats`} description="Maximum passenger count" />
             </div>
-          </div>
 
-          {!activeTrip ? (
-            <div className={`rounded-2xl border shadow-sm p-5 ${card}`}>
-              <h3 className="font-semibold text-sm mb-4">Start Today's Trip</h3>
-              <div className="flex flex-wrap gap-3">
-                <button onClick={() => handleStartTrip('morning')} className="flex items-center gap-2 bg-amber-500 text-white px-5 py-3 rounded-xl font-semibold hover:bg-amber-600 transition-all shadow-sm">
-                  <Play size={16} /> Start Morning Trip 🌅
-                </button>
-                <button onClick={() => handleStartTrip('evening')} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-sm">
-                  <Play size={16} /> Start Evening Trip 🌇
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className={`rounded-2xl border-2 border-emerald-400 shadow-md p-5 ${theme === 'dark' ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Radio size={16} className="text-emerald-500 animate-pulse" />
-                  <h3 className="font-bold text-emerald-700 dark:text-emerald-400">
-                    {activeTrip.trip_type === 'morning' ? '🌅 Morning' : '🌇 Evening'} Trip In Progress
-                  </h3>
+            {/* Trip Controls */}
+            <div className="pb-6 border-b border-inherit">
+              {!activeTrip ? (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-sm text-muted-foreground">Start Today's Trip</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <Button 
+                      onClick={() => handleStartTrip('morning')} 
+                      className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all"
+                    >
+                      <Play size={16} /> Start Morning Trip 
+                    </Button>
+                    <Button 
+                      onClick={() => handleStartTrip('evening')} 
+                      className="flex items-center gap-2 bg-primary hover:bg-primary/95 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all"
+                    >
+                      <Play size={16} /> Start Evening Trip 
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={handleCancelTrip} className="flex items-center gap-1.5 bg-gray-500 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-gray-600 transition-all">
-                    <X size={13} /> Cancel
-                  </button>
-                  <button onClick={() => setShowEmergency(true)} className="flex items-center gap-1.5 bg-red-500 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-600 transition-all animate-pulse">
-                    <AlertTriangle size={13} /> EMERGENCY
-                  </button>
-                  <button onClick={handleEndTrip} className="flex items-center gap-1.5 bg-gray-800 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-gray-900 transition-all">
-                    <Square size={13} /> End Trip
-                  </button>
-                </div>
-              </div>
-              <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Started: {new Date(activeTrip.start_time).toLocaleTimeString()}</p>
-            </div>
-          )}
-
-          {showEmergency && (
-            <div className={`rounded-2xl border-2 border-red-400 p-5 ${theme === 'dark' ? 'bg-red-900/20' : 'bg-red-50'}`}>
-              <h3 className="font-bold text-red-600 mb-3 flex items-center gap-2"><AlertTriangle size={16} /> Report Emergency</h3>
-              <textarea placeholder="Describe the emergency situation..." className={`w-full border rounded-lg px-3 py-2 text-sm ${input}`} rows={3} value={emergencyDesc} onChange={e => setEmergencyDesc(e.target.value)} />
-              <div className="flex gap-2 mt-3">
-                <button onClick={handleEmergency} className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-700">Send Emergency Alert</button>
-                <button onClick={() => setShowEmergency(false)} className={`px-4 py-2 rounded-lg text-sm border ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-300 text-gray-600'}`}>Cancel</button>
-              </div>
-            </div>
-          )}
-
-          {activeTrip && (
-            <div className={`rounded-2xl border shadow-sm ${card}`}>
-              <div className="p-5 border-b border-inherit flex items-center justify-between">
-                <h3 className="font-bold text-sm flex items-center gap-2"><Users size={15} /> Student Pickup List ({students.length})</h3>
-                <div className="flex gap-3 text-xs">
-                  <span className="text-emerald-600 font-semibold">{students.filter(s => s.status === 'picked_up').length} Boarded</span>
-                  <span className="text-amber-600 font-semibold">{students.filter(s => s.status === 'absent').length} Absent</span>
-                </div>
-              </div>
-              <div className="divide-y divide-inherit">
-                {students.length === 0 ? (
-                  <p className="p-5 text-sm text-center opacity-60">No students assigned to this route.</p>
-                ) : students.map((s: any) => (
-                  <div key={s.id} className={`flex items-center justify-between px-5 py-3 hover:bg-primary/5 transition-all`}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">{s.student_details?.name?.[0] || 'S'}</div>
-                      <div>
-                        <p className="font-semibold text-sm">{s.student_details?.name}</p>
-                        <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          {s.student_details?.usn} · 📍 {s.stop_details?.stop_name} 
-                          {s.student_details?.phone && <span> · 📞 <a href={`tel:${s.student_details?.phone}`} className="hover:text-primary transition-colors">{s.student_details?.phone}</a></span>}
-                        </p>
-                      </div>
-                    </div>
+              ) : (
+                <div className={`p-4 rounded-xl border-2 border-emerald-500 ${theme === 'dark' ? 'bg-emerald-950/20 text-white' : 'bg-emerald-50 text-gray-900'}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
-                      {s.status === 'pending' ? (
-                        <>
-                          <button onClick={() => handleMark(s.id, 'picked_up')} className="p-1.5 rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-all" title="Mark Picked Up"><CheckCircle size={16} /></button>
-                          <button onClick={() => handleMark(s.id, 'absent')} className="p-1.5 rounded-lg bg-red-100 text-red-500 hover:bg-red-200 transition-all" title="Mark Absent"><XCircle size={16} /></button>
-                        </>
-                      ) : s.status === 'picked_up' ? (
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize bg-emerald-100 text-emerald-700`}>Boarded</span>
-                          <button onClick={() => handleMark(s.id, 'dropped_off')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-all text-xs font-bold"><LogOut size={14} /> Drop Off</button>
-                        </div>
-                      ) : (
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${s.status === 'dropped_off' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>{s.status.replace('_', ' ')}</span>
-                      )}
+                      <Radio size={18} className="text-emerald-500 animate-pulse" />
+                      <h3 className="font-bold text-base text-emerald-800 dark:text-emerald-400">
+                        {activeTrip.trip_type === 'morning' ? 'Morning' : 'Evening'} Trip In Progress
+                      </h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={handleCancelTrip} 
+                        className="border-gray-300 dark:border-border hover:bg-gray-100 dark:hover:bg-accent/40 text-xs font-semibold h-9"
+                      >
+                        <X size={13} /> Cancel
+                      </Button>
+                      <Button 
+                        onClick={() => setShowEmergency(true)} 
+                        className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold h-9 animate-pulse"
+                      >
+                        <AlertTriangle size={13} /> EMERGENCY
+                      </Button>
+                      <Button 
+                        onClick={handleEndTrip} 
+                        className="bg-gray-800 hover:bg-gray-900 dark:bg-accent dark:hover:bg-accent/80 text-white text-xs font-semibold h-9"
+                      >
+                        <Square size={13} /> End Trip
+                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <p className={`text-xs mt-2 opacity-85 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Started: {new Date(activeTrip.start_time).toLocaleTimeString()}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Emergency Reporting */}
+            {showEmergency && (
+              <div className={`p-4 rounded-xl border-2 border-red-500 pb-6 border-b border-inherit ${theme === 'dark' ? 'bg-red-950/20' : 'bg-red-50'}`}>
+                <h3 className="font-bold text-red-600 mb-3 flex items-center gap-2">
+                  <AlertTriangle size={18} /> Report Emergency Situation
+                </h3>
+                <textarea 
+                  placeholder="Describe the emergency situation (accident, vehicle breakdown, traffic jam, etc.)..." 
+                  className={`w-full border rounded-lg px-4 py-3 text-sm focus:ring-1 focus:outline-none ${input}`} 
+                  rows={3} 
+                  value={emergencyDesc} 
+                  onChange={e => setEmergencyDesc(e.target.value)} 
+                />
+                <div className="flex gap-2 mt-4">
+                  <Button 
+                    onClick={handleEmergency} 
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold h-10"
+                  >
+                    Send Emergency Alert
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowEmergency(false)} 
+                    className="border-gray-300 dark:border-border h-10"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Student Boarding List */}
+            {activeTrip && (
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center justify-between pb-3 border-b border-inherit">
+                  <h3 className="font-bold text-sm flex items-center gap-2">
+                    <Users size={16} className="text-primary" /> Student Boarding List ({students.length})
+                  </h3>
+                  <div className="flex gap-3 text-xs">
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                      {students.filter(s => s.status === 'picked_up').length} Boarded
+                    </span>
+                    <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                      {students.filter(s => s.status === 'absent').length} Absent
+                    </span>
+                  </div>
+                </div>
+                <div className="divide-y divide-inherit border rounded-xl overflow-hidden">
+                  {students.length === 0 ? (
+                    <p className="p-8 text-sm text-center opacity-60">No students assigned to this route.</p>
+                  ) : (
+                    students.map((s: any) => (
+                      <div key={s.id} className="flex items-center justify-between px-5 py-4 hover:bg-primary/5 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold text-xs">
+                            {s.student_details?.name?.[0] || 'S'}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">{s.student_details?.name}</p>
+                            <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {s.student_details?.usn} · 📍 {s.stop_details?.stop_name} 
+                              {s.student_details?.phone && (
+                                <span> · 📞 <a href={`tel:${s.student_details?.phone}`} className="hover:text-primary transition-colors">{s.student_details?.phone}</a></span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {s.status === 'pending' ? (
+                            <>
+                              <Button 
+                                onClick={() => handleMark(s.id, 'picked_up')} 
+                                className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 h-8 px-3 text-xs flex items-center gap-1"
+                                title="Mark Picked Up"
+                              >
+                                <CheckCircle size={14} /> Board
+                              </Button>
+                              <Button 
+                                onClick={() => handleMark(s.id, 'absent')} 
+                                className="bg-red-100 hover:bg-red-200 text-red-700 h-8 px-3 text-xs flex items-center gap-1"
+                                title="Mark Absent"
+                              >
+                                <XCircle size={14} /> Absent
+                              </Button>
+                            </>
+                          ) : s.status === 'picked_up' ? (
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-bold capitalize bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                Boarded
+                              </span>
+                              <Button 
+                                onClick={() => handleMark(s.id, 'dropped_off')} 
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 text-xs font-bold h-8"
+                              >
+                                <LogOut size={14} /> Drop Off
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
+                              s.status === 'dropped_off' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' : 'bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400'
+                            }`}>{s.status.replace('_', ' ')}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
