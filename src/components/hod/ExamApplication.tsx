@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useTheme } from "@/context/ThemeContext";
 import { API_ENDPOINT, API_BASE_URL } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
@@ -494,6 +494,9 @@ const ExamApplication: React.FC = () => {
 
                   <div className="flex items-center gap-4 mb-4">
                     <Avatar className="w-20 h-20 rounded-md">
+                      {studentDetails?.student?.profile_picture_url && (
+                        <AvatarImage src={studentDetails.student.profile_picture_url} alt={selectedStudent?.name} className="object-cover" />
+                      )}
                       <AvatarFallback className="text-2xl font-medium">{(selectedStudent?.name || 'U')[0]?.toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 grid grid-cols-2 gap-4">
