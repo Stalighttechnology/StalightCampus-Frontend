@@ -95,21 +95,21 @@ const COEDashboardStats = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   // Application Pie Chart Data
   const appStatusData = [
-  { name: "Approved", value: stats.approved_applications || 0, color: "#10b981" },
-  { name: "Pending", value: stats.pending_applications || 0, color: "#f59e0b" },
-  { name: "Rejected", value: stats.rejected_applications || 0, color: "#ef4444" }];
-
+    { name: "Approved", value: Number(stats.approved_applications) || 0, color: "#10b981" },
+    { name: "Pending", value: Number(stats.pending_applications) || 0, color: "#f59e0b" },
+    { name: "Rejected", value: Number(stats.rejected_applications) || 0, color: "#ef4444" }
+  ];
 
   // Dummy Application Trend Chart Data (until backend sends it)
   const trendData = (stats as any).application_trend || [
-  { week: "Week 1", count: 12 },
-  { week: "Week 2", count: 18 },
-  { week: "Week 3", count: 25 },
-  { week: "Week 4", count: 14 },
-  { week: "Week 5", count: stats.total_applications > 0 ? stats.total_applications : 0 }];
+    { week: "Week 1", count: 12 },
+    { week: "Week 2", count: 18 },
+    { week: "Week 3", count: 25 },
+    { week: "Week 4", count: 14 },
+    { week: "Week 5", count: Number(stats.total_applications) > 0 ? Number(stats.total_applications) : 0 }
+  ];
 
-
-  const totalApplications = stats.total_applications || 0;
+  const totalApplications = Number(stats.total_applications) || (Number(stats.approved_applications) || 0) + (Number(stats.pending_applications) || 0) + (Number(stats.rejected_applications) || 0);
 
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, index }: any) => {
     const RADIAN = Math.PI / 180;
