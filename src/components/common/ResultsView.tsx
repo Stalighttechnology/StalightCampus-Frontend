@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react'
+import ReCAPTCHA from "react-google-recaptcha"
 import { useParams, useLocation } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,7 @@ const ResultsView: React.FC = () => {
   const q = new URLSearchParams(location.search);
   const token = paramToken || q.get('token') || '';
   const [usn, setUsn] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
@@ -178,7 +180,7 @@ const ResultsView: React.FC = () => {
             </div>
             <div>
               <ReCAPTCHA
-                sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                sitekey="6LfdvQAtAAAAABkL98zTK_B1-qAjW8v_aX4HBctI"
                 onChange={(token: string | null) => setRecaptchaToken(token)}
               />
             </div>
