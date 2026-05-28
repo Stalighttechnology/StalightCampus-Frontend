@@ -124,7 +124,7 @@ const Timetable = ({ role }: TimetableProps) => {
         <div className="flex space-x-2">
           <Button
             onClick={exportPDF}
-            disabled={downloadingPDF}
+            disabled={downloadingPDF || loading || timetableData.length === 0 || timetableData.every((day) => day.slots.length === 0)}
             className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 transition-all duration-200 ease-in-out shadow-md">
             
             {downloadingPDF ? (
