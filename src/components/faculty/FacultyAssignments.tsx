@@ -1086,6 +1086,7 @@ const FacultyAssignments = () => {
                           <th className="px-6 py-3">USN</th>
                           <th className="px-6 py-3">Student Name</th>
                           <th className="px-6 py-3">Submitted At</th>
+                          <th className="px-6 py-3 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
@@ -1095,6 +1096,18 @@ const FacultyAssignments = () => {
                             <td className="px-6 py-4 text-sm font-semibold">{sub.student.name}</td>
                             <td className="px-6 py-4 text-xs text-muted-foreground">
                               {new Date(sub.submitted_at).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {sub.file_url ? (
+                                <a href={sub.file_url} target="_blank" rel="noreferrer">
+                                  <Button variant="outline" size="sm" className="h-8 gap-2 bg-primary hover:bg-primary/90 text-white hover:text-white">
+                                    <FileText size={14} />
+                                    View
+                                  </Button>
+                                </a>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No File</span>
+                              )}
                             </td>
                           </tr>
                   )}
