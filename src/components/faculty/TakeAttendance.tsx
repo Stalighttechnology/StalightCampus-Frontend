@@ -469,6 +469,14 @@ const TakeAttendance = () => {
     // - elective: require branch, semester (section optional)
     // - open_elective: require subject only (branch/semester/section optional)
     if (!subjectId) return;
+
+    // Restrict to current real-time date
+    const todayStr = new Date().toLocaleDateString('sv-SE');
+    if (attendanceDate !== todayStr) {
+      showErrorAlert("Validation Error", "Attendance can only be taken for the current real-time date.");
+      return;
+    }
+
     if (subjectType === 'regular') {
       if (!branchId || !semesterId || !sectionId) return;
     } else if (subjectType === 'elective') {
@@ -517,6 +525,14 @@ const TakeAttendance = () => {
 
   const handleAIProcess = async () => {
     if (!branchId || !semesterId || !sectionId || !subjectId || !aiPhoto) return;
+
+    // Restrict to current real-time date
+    const todayStr = new Date().toLocaleDateString('sv-SE');
+    if (attendanceDate !== todayStr) {
+      showErrorAlert("Validation Error", "Attendance can only be taken for the current real-time date.");
+      return;
+    }
+
     setProcessingAI(true);
     setErrorMsg("");
     try {
@@ -613,6 +629,13 @@ const TakeAttendance = () => {
                             setAttendanceDate(format(date, "yyyy-MM-dd"));
                             setIsCalendarOpen(false);
                           }
+                        }}
+                        disabled={(date) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const compareDate = new Date(date);
+                          compareDate.setHours(0, 0, 0, 0);
+                          return compareDate.getTime() !== today.getTime();
                         }}
                         initialFocus
                         className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} />
