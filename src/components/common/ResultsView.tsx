@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react'
 import ReCAPTCHA from "react-google-recaptcha"
 import { useParams, useLocation } from 'react-router-dom'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { publicViewResultByToken, publicOrganizationInfoByToken } from '@/utils/coe_api'
@@ -113,10 +115,6 @@ const ResultsView: React.FC = () => {
     setExporting(true);
     setMessage(null);
     try {
-      // dynamic import to keep bundle small (html2canvas & jspdf are in deps)
-      const html2canvas = (await import('html2canvas')).default;
-      const jsPDF = (await import('jspdf')).default;
-
       if (!cardRef.current) {
         setMessage('Export failed: preview element missing');
         setExporting(false);
