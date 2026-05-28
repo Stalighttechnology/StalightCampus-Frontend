@@ -244,8 +244,16 @@ const TransportDrivers: React.FC = () => {
                   <tbody>
                     {assignments.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="text-center p-8 opacity-60 text-sm">
-                          No driver assignments configured yet.
+                        <td colSpan={6} className="p-6">
+                          <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                              <UserCheck size={32} className="opacity-80" />
+                            </div>
+                            <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Drivers Enrolled</h3>
+                            <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                              No driver assignments configured yet. Add and enroll campus drivers to assign them.
+                            </p>
+                          </div>
                         </td>
                       </tr>
                     ) : (

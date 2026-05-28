@@ -476,7 +476,19 @@ const TransportAllocations: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-inherit">
                   {allocations.length === 0 ? (
-                    <tr><td colSpan={6} className="p-8 text-center opacity-60 text-sm">No allocations found.</td></tr>
+                    <tr>
+                      <td colSpan={6} className="p-6">
+                        <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                            <Users size={32} className="opacity-80" />
+                          </div>
+                          <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Allocations Found</h3>
+                          <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                            No student allocations configured yet. Select a student and assign a route using the allocation form on the left.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
                   ) : allocations.map(a => (
                     <tr key={a.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
                       <td className="p-4 font-mono text-sm sm:text-xs font-semibold">{a.student_details?.usn}</td>

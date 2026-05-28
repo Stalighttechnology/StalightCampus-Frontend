@@ -566,7 +566,17 @@ const TransportRoutes: React.FC = () => {
               {loading ? (
                 <div className="p-4"><SkeletonList items={3} /></div>
               ) : routes.length === 0 ? (
-                <p className="p-8 text-sm text-center opacity-60">No routes created yet. Add a route to begin planning.</p>
+                <div className="p-6">
+                  <div className={`flex flex-col items-center justify-center py-12 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <Navigation size={32} className="opacity-80" />
+                    </div>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Routes Found</h3>
+                    <p className="max-w-md text-xs leading-relaxed opacity-80">
+                      No routes created yet. Click "Add Route" above to start planning transit paths.
+                    </p>
+                  </div>
+                </div>
               ) : (() => {
                 const totalPages = Math.ceil(routes.length / ROWS_PER_PAGE);
                 const safePage = Math.min(currentPage, totalPages);
@@ -764,7 +774,13 @@ const TransportRoutes: React.FC = () => {
                     </div>
                   </div>
                 ))}
-                {stopDraft.length === 0 && <p className="text-xs text-center opacity-60 py-6">No stops configured. Click "Add Stop" to start planning route points.</p>}
+                 {stopDraft.length === 0 && (
+                  <div className={`flex flex-col items-center justify-center py-8 px-4 rounded-xl border border-dashed text-center ${theme === 'dark' ? 'border-border bg-card/10 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <MapPin size={24} className="opacity-40 mb-2" />
+                    <p className="text-xs font-semibold">No Stops Configured</p>
+                    <p className="text-[11px] opacity-70 mt-0.5">Click "Add Stop" to start planning route points.</p>
+                  </div>
+                )}
               </div>
 
               {/* Footer Actions */}

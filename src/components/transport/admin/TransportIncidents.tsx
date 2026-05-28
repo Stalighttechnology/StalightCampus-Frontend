@@ -118,7 +118,17 @@ const TransportIncidents: React.FC = () => {
                   <SkeletonList items={3} />
                 </div>
               ) : incidents.length === 0 ? (
-                <p className="p-8 text-sm text-center opacity-60">No complaints or incidents filed. Everything is smooth!</p>
+                <div className="p-6">
+                  <div className={`flex flex-col items-center justify-center py-12 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <ShieldAlert size={32} className="opacity-80" />
+                    </div>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Incidents Filed</h3>
+                    <p className="max-w-md text-xs leading-relaxed opacity-80">
+                      No complaints or incidents filed. Everything is running smoothly!
+                    </p>
+                  </div>
+                </div>
               ) : (() => {
                 const totalPages = Math.ceil(incidents.length / ROWS_PER_PAGE);
                 const safePage = Math.min(currentPage, totalPages);

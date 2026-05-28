@@ -77,7 +77,15 @@ const TransportOverview: React.FC = () => {
             </CardHeader>
             <CardContent className="p-5">
               {liveTrips.length === 0 ? (
-                <p className="text-sm opacity-60 py-6 text-center">No active trips running right now.</p>
+                <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <Radio size={32} className="opacity-80 animate-pulse" />
+                  </div>
+                  <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Active Trips</h3>
+                  <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                    No active trips running right now. All scheduled fleet buses are currently stationed.
+                  </p>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {liveTrips.map((t: any) => (

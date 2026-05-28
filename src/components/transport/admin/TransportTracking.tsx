@@ -43,9 +43,14 @@ const TransportTracking: React.FC = () => {
           {loading ? (
             <SkeletonCard className="w-full h-80" />
           ) : liveTrips.length === 0 ? (
-            <div className="text-center py-12">
-              <Bus size={40} className="mx-auto opacity-30 mb-3" />
-              <p className="text-sm opacity-60">No buses are currently running active trips on campus routes.</p>
+            <div className={`flex flex-col items-center justify-center py-12 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <Bus size={32} className="opacity-80" />
+              </div>
+              <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Active Trips Running</h3>
+              <p className="max-w-md text-xs leading-relaxed opacity-80">
+                No buses are currently running active trips on campus routes. Location updates will appear live when transit begins.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
