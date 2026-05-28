@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
 import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -14,11 +14,14 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/sweetalert';
+import { useTheme } from '../../context/ThemeContext';
 
 const BillingManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme } = useTheme();
   
   const [data, setData] = useState<BillingAndSupportResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +31,10 @@ const BillingManagement = () => {
   const [ticketForm, setTicketForm] = useState({ subject: '', description: '', priority: 'Medium' });
   const [submittingTicket, setSubmittingTicket] = useState(false);
   const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
+  
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [ticketsPage, setTicketsPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -153,6 +160,15 @@ const BillingManagement = () => {
   const payments = data?.payment_history || [];
   const tickets = data?.support_tickets || [];
 
+  const totalPaymentPages = Math.max(1, Math.ceil(payments.length / itemsPerPage));
+  const totalTicketPages = Math.max(1, Math.ceil(tickets.length / itemsPerPage));
+
+  const safePaymentsPage = Math.min(paymentsPage, totalPaymentPages);
+  const safeTicketsPage = Math.min(ticketsPage, totalTicketPages);
+
+  const paginatedPayments = payments.slice((safePaymentsPage - 1) * itemsPerPage, safePaymentsPage * itemsPerPage);
+  const paginatedTickets = tickets.slice((safeTicketsPage - 1) * itemsPerPage, safeTicketsPage * itemsPerPage);
+
   const planName = org?.plan_type === 'advance' ? 'Advance' : org?.plan_type === 'pro' ? 'Pro' : 'Basic (Trial)';
   const planPrice = org?.plan_type === 'advance' ? '₹3,00,000/year' : org?.plan_type === 'pro' ? '₹99,999/year' : '₹0';
   
@@ -165,14 +181,14 @@ const BillingManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Billing & Plans</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Billing & Plans</h2>
           <p className="text-muted-foreground">Manage your organization's subscription and billing details.</p>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Current Plan Card */}
-        <Card className="col-span-2 md:col-span-1 lg:col-span-1">
+        <Card id="billing-plan-card" className="col-span-2 md:col-span-1 lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
@@ -221,7 +237,7 @@ const BillingManagement = () => {
         </Card>
 
         {/* Organization Details Card */}
-        <Card className="col-span-2 md:col-span-1 lg:col-span-2">
+        <Card id="billing-org-details-card" className="col-span-2 md:col-span-1 lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5" />
@@ -279,7 +295,7 @@ const BillingManagement = () => {
       </div>
 
       {/* Payment History Section */}
-      <Card>
+      <Card id="billing-payment-history">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2"><Clock className="h-5 w-5" /> Payment History</CardTitle>
           <CardDescription>Recent transactions and subscription payments</CardDescription>
@@ -298,8 +314,8 @@ const BillingManagement = () => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {payments.length > 0 ? (
-                  payments.map((payment, idx) => (
+                {paginatedPayments.length > 0 ? (
+                  paginatedPayments.map((payment, idx) => (
                     <tr key={idx} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3">{formatDate(payment.timestamp)}</td>
                       <td className="px-4 py-3 capitalize">{payment.plan_type}</td>
@@ -337,16 +353,46 @@ const BillingManagement = () => {
             </table>
           </div>
         </CardContent>
+        {payments.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t">
+            <div>
+              Showing {Math.min((safePaymentsPage - 1) * itemsPerPage + 1, payments.length)} to {Math.min(safePaymentsPage * itemsPerPage, payments.length)} of {payments.length} payments
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={safePaymentsPage === 1}
+                onClick={() => setPaymentsPage((p) => Math.max(1, p - 1))}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{safePaymentsPage}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={safePaymentsPage === totalPaymentPages}
+                onClick={() => setPaymentsPage((p) => Math.min(totalPaymentPages, p + 1))}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Support Tickets Section */}
-      <Card>
+      <Card id="billing-support-tickets">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-lg flex items-center gap-2"><LifeBuoy className="h-5 w-5" /> Support Tickets</CardTitle>
             <CardDescription>Raise and track issues with Super Admin HQ.</CardDescription>
           </div>
-          <Button size="sm" onClick={() => setShowRaiseTicket(true)}>Raise Ticket</Button>
+          <Button id="billing-raise-ticket-btn" size="sm" onClick={() => setShowRaiseTicket(true)}>Raise Ticket</Button>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -363,8 +409,8 @@ const BillingManagement = () => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {tickets.length > 0 ? (
-                  tickets.map((ticket, idx) => (
+                {paginatedTickets.length > 0 ? (
+                  paginatedTickets.map((ticket, idx) => (
                     <tr key={idx} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 font-mono text-xs text-primary">{ticket.ticket_id}</td>
                       <td className="px-4 py-3 font-medium">{ticket.subject}</td>
@@ -421,11 +467,41 @@ const BillingManagement = () => {
             </table>
           </div>
         </CardContent>
+        {tickets.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t">
+            <div>
+              Showing {Math.min((safeTicketsPage - 1) * itemsPerPage + 1, tickets.length)} to {Math.min(safeTicketsPage * itemsPerPage, tickets.length)} of {tickets.length} tickets
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={safeTicketsPage === 1}
+                onClick={() => setTicketsPage((p) => Math.max(1, p - 1))}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{safeTicketsPage}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={safeTicketsPage === totalTicketPages}
+                onClick={() => setTicketsPage((p) => Math.min(totalTicketPages, p + 1))}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Raise Ticket Modal */}
       <Dialog open={showRaiseTicket} onOpenChange={setShowRaiseTicket}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
           <DialogHeader>
             <DialogTitle>Raise Support Ticket</DialogTitle>
           </DialogHeader>
@@ -442,25 +518,28 @@ const BillingManagement = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
-              <select
-                id="priority"
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              <Select
                 value={ticketForm.priority}
-                onChange={(e) => setTicketForm({ ...ticketForm, priority: e.target.value })}
+                onValueChange={(val) => setTicketForm({ ...ticketForm, priority: val })}
                 disabled={submittingTicket}
               >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-                <option value="Critical">Critical</option>
-              </select>
+                <SelectTrigger id="priority" className="w-full">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Low">Low</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea 
                 id="description" 
                 placeholder="Detailed explanation of the issue" 
-                rows={4}
+                className="resize-none h-26 overflow-y-auto custom-scrollbar"
                 value={ticketForm.description}
                 onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
                 disabled={submittingTicket}

@@ -65,6 +65,12 @@ export const TUTORIAL_KEYS = {
     STEP: 'tutorial_library_admin_step',
     VERSION: 'tutorial_library_admin_version',
   },
+  ORG_ADMIN: {
+    COMPLETED: 'tutorial_org_admin_completed',
+    ACTIVE: 'tutorial_org_admin_active',
+    STEP: 'tutorial_org_admin_step',
+    VERSION: 'tutorial_org_admin_version',
+  },
 };
 
 /**

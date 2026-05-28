@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
 import { useToast } from "../../../hooks/use-toast";
-import { fetchAssignments, enrollDriver, createAssignment, deleteAssignment, fetchAssignmentOptions, updateAssignment } from "../../../utils/transport_api";
+import { fetchAssignments, enrollDriver, createAssignment, deleteAssignment, fetchAssignmentOptions, updateAssignment, fetchDrivers, deleteDriver } from "../../../utils/transport_api";
 import { Badge } from "./TransportCommon";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
@@ -23,6 +23,7 @@ const TransportDrivers: React.FC = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState<any[]>([]);
+  const [drivers, setDrivers] = useState<any[]>([]);
   const ROWS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -55,8 +56,14 @@ const TransportDrivers: React.FC = () => {
   const loadAssignments = useCallback(async () => {
     setLoading(true);
     try {
-      const a = await fetchAssignments();
+      const [a, d] = await Promise.all([
+        fetchAssignments(),
+        fetchDrivers()
+      ]);
       if (a.results || Array.isArray(a)) setAssignments(a.results || a);
+      if (d.success && Array.isArray(d.drivers)) setDrivers(d.drivers);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -85,6 +92,7 @@ const TransportDrivers: React.FC = () => {
         if (opts.success) {
           setAssignOptions({ drivers: opts.drivers, routes: opts.routes, buses: opts.buses });
         }
+        loadAssignments();
       } else {
         Swal.fire("Error", res.message || 'Failed to enroll driver', "error");
       }
@@ -93,8 +101,9 @@ const TransportDrivers: React.FC = () => {
     }
   };
 
-  const handleOpenAssignForm = async () => {
+  const handleOpenAssignForm = async (driverId?: string) => {
     setShowAssignForm(true);
+    setAssignForm({ driver_id: driverId || '', bus_id: '', route_id: '' });
     if (assignOptions.drivers.length === 0) {
       const res = await fetchAssignmentOptions();
       if (res.success) {
@@ -120,7 +129,7 @@ const TransportDrivers: React.FC = () => {
       });
       if (res.id) {
         Swal.fire("Assigned!", "Driver assigned successfully.", "success");
-        setAssignments(prev => [res, ...prev]);
+        loadAssignments();
         setAssignForm({ driver_id: '', bus_id: '', route_id: '' });
         setShowAssignForm(false);
       } else {
@@ -149,7 +158,18 @@ const TransportDrivers: React.FC = () => {
   const handleUpdateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAssignment) return;
-    if (!editAssignForm.driver_id || !editAssignForm.bus_id || !editAssignForm.route_id) {
+    if (editAssignForm.driver_id === "none" || !editAssignForm.driver_id) {
+      try {
+        await deleteAssignment(editingAssignment.id);
+        Swal.fire("Unassigned", "Driver assignment removed successfully.", "success");
+        loadAssignments();
+        setEditingAssignment(null);
+      } catch (err) {
+        Swal.fire("Error", "Server error unassigning driver", "error");
+      }
+      return;
+    }
+    if (!editAssignForm.bus_id || !editAssignForm.route_id) {
       Swal.fire("Warning", "Please select a driver, bus, and route.", "warning");
       return;
     }
@@ -162,8 +182,7 @@ const TransportDrivers: React.FC = () => {
       });
       if (res.id) {
         Swal.fire("Updated!", "Assignment updated successfully.", "success");
-        // Refetch or update locally
-        setAssignments(prev => prev.map(item => item.id === editingAssignment.id ? res : item));
+        loadAssignments();
         setEditingAssignment(null);
       } else {
         Swal.fire("Error", res.message || 'Failed to update assignment', "error");
@@ -189,13 +208,40 @@ const TransportDrivers: React.FC = () => {
         const res = await deleteAssignment(id);
         if (res.success !== false) {
           Swal.fire("Unassigned", "Driver assignment removed successfully.", "success");
-          setAssignments(prev => prev.filter(a => a.id !== id));
+          loadAssignments();
         } else {
           Swal.fire("Error", res.message || 'Failed to remove assignment', "error");
         }
       } catch (e) {
         Swal.fire("Unassigned", "Driver assignment removed.", "success");
-        setAssignments(prev => prev.filter(a => a.id !== id));
+        loadAssignments();
+      }
+    }
+  };
+
+  const handleDeleteDriver = async (driverId: number) => {
+    const confirmResult = await Swal.fire({
+      title: "Delete Driver?",
+      text: "Are you sure you want to delete this driver? This action cannot be undone and will remove any active route assignments.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete"
+    });
+
+    if (confirmResult.isConfirmed) {
+      try {
+        const res = await deleteDriver(driverId);
+        if (res.success) {
+          Swal.fire("Deleted!", "Driver has been deleted successfully.", "success");
+          setDrivers(prev => prev.filter(d => d.id !== driverId));
+          setAssignments(prev => prev.filter(a => (a.driver_details?.id !== driverId && a.driver !== driverId)));
+        } else {
+          Swal.fire("Error", res.message || 'Failed to delete driver', "error");
+        }
+      } catch (e) {
+        Swal.fire("Error", "Server error deleting driver", "error");
       }
     }
   };
@@ -242,7 +288,7 @@ const TransportDrivers: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {assignments.length === 0 ? (
+                    {drivers.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="p-6">
                           <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
@@ -258,29 +304,29 @@ const TransportDrivers: React.FC = () => {
                       </tr>
                     ) : (
                       (() => {
-                        const totalPages = Math.ceil(assignments.length / ROWS_PER_PAGE);
+                        const totalPages = Math.ceil(drivers.length / ROWS_PER_PAGE);
                         const safePage = Math.min(currentPage, totalPages);
-                        const pageAssignments = assignments.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
-                        return pageAssignments.map(a => {
-                          const d = a.driver_details;
+                        const pageDrivers = drivers.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+                        return pageDrivers.map(d => {
+                          const a = assignments.find(item => item.driver_details?.id === d.id || item.driver === d.id);
                           return (
-                            <tr key={a.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
+                            <tr key={d.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
                                   <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center font-bold text-emerald-600 text-xs">
-                                    {d?.first_name?.[0]}{d?.last_name?.[0] || ''}
+                                    {d.first_name?.[0] || ''}{d.last_name?.[0] || ''}
                                   </div>
-                                  <span className="font-semibold text-base sm:text-sm">{d?.first_name} {d?.last_name}</span>
+                                  <span className="font-semibold text-base sm:text-sm">{d.first_name} {d.last_name}</span>
                                 </div>
                               </td>
                               <td className="p-4 text-sm sm:text-xs space-y-1">
-                                {d?.email && (
+                                {d.email && (
                                   <div className="flex items-center gap-1.5 opacity-80">
                                     <Mail size={12} className="opacity-60" />
                                     <span>{d.email}</span>
                                   </div>
                                 )}
-                                {d?.mobile_number && (
+                                {d.mobile_number && (
                                   <div className="flex items-center gap-1.5 opacity-80">
                                     <Phone size={12} className="opacity-60" />
                                     <span>{d.mobile_number}</span>
@@ -288,27 +334,37 @@ const TransportDrivers: React.FC = () => {
                                 )}
                               </td>
                               <td className="p-4 font-semibold text-sm sm:text-xs text-primary">
-                                {a.route_details?.route_name || '—'}
+                                {a ? (a.route_details?.route_name || '—') : <Badge label="Unassigned" color="bg-gray-100 text-gray-600" />}
                               </td>
                               <td className="p-4 text-sm sm:text-xs font-medium">
-                                {a.bus_details ? (
-                                  <div>
-                                    <div className="font-semibold text-gray-800 dark:text-gray-100">{a.bus_details.bus_number}</div>
-                                    <div className="text-xs sm:text-[10px] font-bold text-primary mt-0.5">{a.bus_details.registration_number}</div>
-                                  </div>
+                                {a ? (
+                                  a.bus_details ? (
+                                    <div>
+                                      <div className="font-semibold text-gray-800 dark:text-gray-100">{a.bus_details.bus_number}</div>
+                                      <div className="text-xs sm:text-[10px] font-bold text-primary mt-0.5">{a.bus_details.registration_number}</div>
+                                    </div>
+                                  ) : (
+                                    <span className="opacity-40 text-xs sm:text-[11px]">Bus {a.bus || '—'}</span>
+                                  )
                                 ) : (
-                                  <span className="opacity-40 text-xs sm:text-[11px]">Bus {a.bus || '—'}</span>
+                                  <span className="opacity-40 text-xs sm:text-[11px]">—</span>
                                 )}
                               </td>
                               <td className="p-4 text-sm sm:text-xs">
-                                <Badge label={d?.designation || 'Driver'} color="allocated" />
+                                <Badge label={d.designation || 'Driver'} color="allocated" />
                               </td>
                               <td className="p-4 text-right">
                                 <div className="flex justify-end gap-1.5">
-                                  <Button size="icon" variant="ghost" onClick={() => startEditAssignment(a)} className="h-8 w-8 text-primary" title="Edit Assignment">
-                                    <Pencil size={15} />
-                                  </Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleRemoveAssignment(a.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" title="Remove Assignment">
+                                  {a ? (
+                                    <Button size="icon" variant="ghost" onClick={() => startEditAssignment(a)} className="h-8 w-8 text-primary" title="Edit Assignment">
+                                      <Pencil size={15} />
+                                    </Button>
+                                  ) : (
+                                    <Button size="sm" variant="outline" onClick={() => handleOpenAssignForm(d.id.toString())} className="h-8 flex items-center gap-1">
+                                      <CheckCircle size={13} /> Assign Route
+                                    </Button>
+                                  )}
+                                  <Button size="icon" variant="ghost" onClick={() => handleDeleteDriver(d.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" title="Delete Driver">
                                     <Trash2 size={15} />
                                   </Button>
                                 </div>
@@ -322,14 +378,14 @@ const TransportDrivers: React.FC = () => {
                 </table>
               )}
             </div>
-            {assignments.length > 1 && (
+            {drivers.length > 1 && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                 <div>
-                  {assignments.length > 0 && (() => {
-                    const safePage2 = Math.min(currentPage, Math.ceil(assignments.length / ROWS_PER_PAGE));
-                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, assignments.length);
-                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, assignments.length);
-                    return <>Showing {start2} to {end2} of {assignments.length} assignments</>;
+                  {drivers.length > 0 && (() => {
+                    const safePage2 = Math.min(currentPage, Math.ceil(drivers.length / ROWS_PER_PAGE));
+                    const start2 = Math.min((safePage2 - 1) * ROWS_PER_PAGE + 1, drivers.length);
+                    const end2 = Math.min(safePage2 * ROWS_PER_PAGE, drivers.length);
+                    return <>Showing {start2} to {end2} of {drivers.length} drivers</>;
                   })()}
                 </div>
                 <div className="flex items-center gap-2">
@@ -344,14 +400,14 @@ const TransportDrivers: React.FC = () => {
                   </Button>
                   <div className="flex items-center justify-center min-w-[2rem]">
                     <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      {Math.min(currentPage, Math.max(1, Math.ceil(assignments.length / ROWS_PER_PAGE)))}
+                      {Math.min(currentPage, Math.max(1, Math.ceil(drivers.length / ROWS_PER_PAGE)))}
                     </span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(assignments.length / ROWS_PER_PAGE), p + 1))}
-                    disabled={currentPage === Math.ceil(assignments.length / ROWS_PER_PAGE) || loading}
+                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(drivers.length / ROWS_PER_PAGE), p + 1))}
+                    disabled={currentPage === Math.ceil(drivers.length / ROWS_PER_PAGE) || loading}
                     className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
                   >
                     Next
@@ -510,6 +566,7 @@ const TransportDrivers: React.FC = () => {
                       <SelectValue placeholder="Choose Driver" />
                     </SelectTrigger>
                     <SelectContent className="z-[1000001]">
+                      <SelectItem value="none">None</SelectItem>
                       {assignOptions.drivers.map(d => (
                         <SelectItem key={d.id} value={d.id.toString()}>{d.first_name} {d.last_name}</SelectItem>
                       ))}
