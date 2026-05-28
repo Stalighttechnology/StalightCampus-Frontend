@@ -62,7 +62,7 @@ const TransportIncidents: React.FC = () => {
   const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
 
   return (
-    <div className="space-y-6">
+    <div id="transport-incidents-header" className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Resolve Panel */}
         <AnimatePresence>
@@ -108,7 +108,7 @@ const TransportIncidents: React.FC = () => {
         <div className={resolveId ? "lg:col-span-2" : "lg:col-span-3"}>
           <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
-              <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
+              <CardTitle id="transport-incidents-title-row" className="sm:text-xl text-lg font-semibold flex items-center gap-2">
                 <ShieldAlert size={20} className="text-primary" /> Active Incident Tickets
               </CardTitle>
             </CardHeader>

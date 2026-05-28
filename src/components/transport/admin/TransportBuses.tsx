@@ -126,7 +126,7 @@ const TransportBuses: React.FC = () => {
   const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
 
   return (
-    <div className="space-y-6">
+    <div id="transport-buses-header" className="space-y-6">
 
       <div className="grid grid-cols-1 gap-6 items-start">
         {/* Form Modal Panel */}
@@ -223,18 +223,18 @@ const TransportBuses: React.FC = () => {
           ) : (
             <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
               <CardHeader className="pb-3 border-b border-inherit">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
+                <div id="transport-buses-action-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
                     <Bus size={20} className="text-primary" /> Active Fleet Register
                   </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Button onClick={() => { setShowBusForm(true); setEditBusId(null); setBusForm({ bus_number: '', registration_number: '', capacity: 40, model_name: '', status: 'active' }); }} className="bg-primary hover:bg-primary/95 text-white flex items-center gap-1 h-9">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
+                    <Button onClick={() => { setShowBusForm(true); setEditBusId(null); setBusForm({ bus_number: '', registration_number: '', capacity: 40, model_name: '', status: 'active' }); }} className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-1 h-9">
                       <Plus size={15} /> Add Bus
                     </Button>
                     <Button
                       onClick={handleDownloadPDF}
                       disabled={downloadingPDF}
-                      className="bg-primary hover:bg-primary/90 text-white flex items-center gap-1.5 h-9"
+                      className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white flex items-center justify-center gap-1.5 h-9"
                     >
                       {downloadingPDF ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -247,7 +247,7 @@ const TransportBuses: React.FC = () => {
                 </div>
               </CardHeader>
               <div className="overflow-x-auto thin-scrollbar">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
                   <thead>
                     <tr className={`sticky top-0 z-10 border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'}`}>
                       <th className="p-4">Bus Details</th>
@@ -271,7 +271,7 @@ const TransportBuses: React.FC = () => {
                             <p className="font-semibold">{b.bus_number}</p>
                             <p className="text-xs opacity-60">{b.model_name || "Standard Model"}</p>
                           </td>
-                          <td className="p-4 font-mono text-xs font-semibold">{b.registration_number}</td>
+                          <td className="p-4 font-mono font-semibold">{b.registration_number}</td>
                           <td className="p-4 text-center font-bold">{b.capacity} seats</td>
                           <td className="p-4">
                             <Badge label={b.status} color={b.status} />

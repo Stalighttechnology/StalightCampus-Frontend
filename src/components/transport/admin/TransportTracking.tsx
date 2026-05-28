@@ -31,11 +31,11 @@ const TransportTracking: React.FC = () => {
   const cardBg = theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
 
   return (
-    <div className="space-y-6">
+    <div id="transport-tracking-header" className="space-y-6">
 
       <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
         <CardHeader className="pb-3 border-b border-inherit">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+          <CardTitle id="transport-tracking-title-row" className="text-lg font-semibold flex items-center gap-2">
             <Bus className="text-primary" /> Running Fleet
           </CardTitle>
         </CardHeader>

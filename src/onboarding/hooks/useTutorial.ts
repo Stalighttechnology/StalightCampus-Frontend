@@ -12,6 +12,7 @@ import { deanTour } from '../config/deanTour';
 import { feesManagerTour } from '../config/feesManagerTour';
 import { wardenTour } from '../config/wardenTour';
 import { hmsTour } from '../config/hmsTour';
+import { transportAdminTour } from '../config/transportAdminTour';
 import { applyRoleTransform, applyMobileLabels } from './transforms';
 
 const ROLE_TO_TOUR_MAP: Record<string, any> = {
@@ -28,6 +29,7 @@ const ROLE_TO_TOUR_MAP: Record<string, any> = {
   warden: { steps: wardenTour, keys: TUTORIAL_KEYS.WARDEN },
   hms: { steps: hmsTour, keys: TUTORIAL_KEYS.HMS },
   hms_admin: { steps: hmsTour, keys: TUTORIAL_KEYS.HMS },
+  transport_admin: { steps: transportAdminTour, keys: TUTORIAL_KEYS.TRANSPORT_ADMIN },
 };
 
 const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, role: string): any[] => {

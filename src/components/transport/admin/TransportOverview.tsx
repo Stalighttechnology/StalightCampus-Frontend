@@ -36,7 +36,7 @@ const TransportOverview: React.FC = () => {
   const cardBg = theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
 
   return (
-    <div className="space-y-6">
+    <div id="transport-admin-overview-header" className="space-y-6">
 
       {loading ? (
         <div className="space-y-6">
@@ -46,7 +46,7 @@ const TransportOverview: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Dashboard Metrics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div id="transport-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <DashboardCard icon={<Bus size={20} />} title="Total Buses" value={stats?.total_buses} description="Total active transport fleet" />
             <DashboardCard icon={<Navigation size={20} />} title="Active Routes" value={stats?.total_routes} description="Planned transport routes" />
             <DashboardCard icon={<UserCheck size={20} />} title="Enrolled Drivers" value={stats?.total_drivers} description="Active campus drivers" />
@@ -62,9 +62,9 @@ const TransportOverview: React.FC = () => {
           </div>
 
           {/* Active Trips Card */}
-          <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
+          <Card id="transport-live-trips-card" className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
-              <div className="flex items-center justify-between">
+              <div id="transport-live-trips-title" className="flex items-center justify-between ">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Radio size={16} className="text-green-500 animate-pulse" /> Live Trip Status
                 </CardTitle>
