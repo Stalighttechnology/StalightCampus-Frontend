@@ -71,6 +71,12 @@ export const TUTORIAL_KEYS = {
     STEP: 'tutorial_org_admin_step',
     VERSION: 'tutorial_org_admin_version',
   },
+  DRIVER: {
+    COMPLETED: 'tutorial_driver_completed',
+    ACTIVE: 'tutorial_driver_active',
+    STEP: 'tutorial_driver_step',
+    VERSION: 'tutorial_driver_version',
+  },
 };
 
 /**

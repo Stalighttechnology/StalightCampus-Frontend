@@ -29,13 +29,6 @@ export const TutorialTooltip = (props: TutorialTooltipProps) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  console.log('[ONBOARDING DEBUG] 🛠️ TutorialTooltip rendered with props:', {
-    index,
-    size,
-    isLastStep,
-    stepTitle: step?.title,
-    isMobile,
-  });
 
   if (isMobile) {
     return (

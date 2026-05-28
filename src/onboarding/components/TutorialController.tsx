@@ -7,6 +7,22 @@ import { TutorialModal } from './TutorialModal';
 import { TUTORIAL_CONFIG } from '../constants/tutorialConfig';
 import { useTheme } from '../../context/ThemeContext';
 
+const console = {
+  ...window.console,
+  log: (...args: any[]) => {
+    if (typeof args[0] === 'string' && args[0].startsWith('[ONBOARDING DEBUG]')) return;
+    window.console.log(...args);
+  },
+  warn: (...args: any[]) => {
+    if (typeof args[0] === 'string' && args[0].startsWith('[ONBOARDING DEBUG]')) return;
+    window.console.warn(...args);
+  },
+  error: (...args: any[]) => {
+    if (typeof args[0] === 'string' && args[0].startsWith('[ONBOARDING DEBUG]')) return;
+    window.console.error(...args);
+  }
+};
+
 const DummyBeacon = () => null;
 
 const scrollTargetIntoView = (selector: string) => {
@@ -114,10 +130,10 @@ const shouldScrollStep = (targetStep: any): boolean => {
       typeof target === 'string' &&
       (target.startsWith('#warden-') || target === '#admin-profile-header');
 
-    // 7. Transport tour targets
+    // 7. Transport & Driver tour targets
     const isTransport =
       typeof target === 'string' &&
-      (target.startsWith('#transport-') || target === '#sidebar-transport-');
+      (target.startsWith('#transport-') || target.startsWith('#driver-') || target === '#sidebar-transport-');
 
     // 8. Library tour targets
     const isLibrary =
@@ -181,6 +197,7 @@ const getHomePath = (role: string): string => {
     library_admin: '/library-admin',
     org_admin: '/org-admin',
     orgadmin: '/org-admin',
+    driver: '/driver',
   };
   return roleMap[role.toLowerCase()] || '/dashboard';
 };
@@ -739,7 +756,7 @@ export const TutorialController = () => {
           disableOverlayClose: true,
         }} // Make sure all steps default to skipping beacons and ignoring overlay clicks
         beaconComponent={DummyBeacon} // Completely suppress all beacons/dots
-        debug={true}
+        debug={false}
         tooltipComponent={TutorialTooltip}
         onEvent={handleJoyrideCallback}
         callback={handleJoyrideCallback}

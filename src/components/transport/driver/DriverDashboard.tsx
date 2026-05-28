@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
 import { useToast } from "../../../hooks/use-toast";
 import {
@@ -6,7 +7,7 @@ import {
   fetchTripStudents, markStudentAttendance, triggerEmergency
 } from "../../../utils/transport_api";
 import {
-  Bus, Users, CheckCircle, XCircle, AlertTriangle, Play, Square, Radio, LogOut, X, MapPin, Navigation, Clock
+  Bus, Users, CheckCircle, XCircle, AlertTriangle, Play, Square, Radio, LogOut, X, MapPin, Navigation, Clock, Sunrise, Sunset
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../ui/card";
 import { Button } from "../../ui/button";
@@ -22,12 +23,18 @@ const DriverDashboard: React.FC = () => {
   const [assignment, setAssignment] = useState<any>(null);
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   
   const [gpsActive, setGpsActive] = useState(false);
   const [showEmergency, setShowEmergency] = useState(false);
   const [emergencyDesc, setEmergencyDesc] = useState('');
   const gpsRef = useRef<number | null>(null);
+
+  const PAGE_SIZE = 10;
+  const totalCount = students.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const displayedStudents = students.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
   const cardBg = theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
@@ -44,7 +51,10 @@ const DriverDashboard: React.FC = () => {
       setActiveTrip(res.active_trip || null);
       if (res.active_trip) {
         const st = await fetchTripStudents(res.active_trip.id);
-        if (st.success) setStudents(st.students || []);
+        if (st.success) {
+          setStudents(st.students || []);
+          setCurrentPage(1);
+        }
       }
     }
     setLoading(false);
@@ -69,11 +79,13 @@ const DriverDashboard: React.FC = () => {
       async () => {
         const res = await startTrip(type);
         if (res.success) { 
-          ok('Trip started!'); 
           setActiveTrip(res.trip);
           startGps(res.trip.id); 
           const s = await fetchTripStudents(res.trip.id);
-          if (s.success) setStudents(s.students);
+          if (s.success) {
+            setStudents(s.students);
+            setCurrentPage(1);
+          }
         }
         else err(res.message || 'Failed to start trip');
       },
@@ -92,24 +104,38 @@ const DriverDashboard: React.FC = () => {
     if (!activeTrip) return;
     const res = await endTrip(activeTrip.id);
     if (res.success) { 
-      ok('Trip ended.'); 
+      toast({ title: 'Success', description: 'Trip ended.' });
       stopGps(); 
       setActiveTrip(null); 
       setStudents([]); 
+      setCurrentPage(1);
     }
     else err(res.message || 'Failed');
   };
 
   const handleCancelTrip = async () => {
     if (!activeTrip) return;
-    if (!window.confirm("Are you sure you want to cancel this trip? It will be permanently removed.")) return;
+    
+    const confirmResult = await Swal.fire({
+      title: "Are you sure?",
+      text: "Are you sure you want to cancel this trip? It will be permanently removed.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#3b82f6",
+      confirmButtonText: "Yes, cancel trip",
+      cancelButtonText: "No, keep it"
+    });
+
+    if (!confirmResult.isConfirmed) return;
     
     const res = await cancelTrip(activeTrip.id);
     if (res.success) { 
-      ok('Trip cancelled and removed.'); 
+      toast({ title: 'Success', description: 'Trip cancelled and removed.' });
       stopGps(); 
       setActiveTrip(null); 
       setStudents([]); 
+      setCurrentPage(1);
     }
     else err(res.message || 'Failed to cancel trip');
   };
@@ -141,7 +167,6 @@ const DriverDashboard: React.FC = () => {
     const res = await markStudentAttendance(id, status);
     if (res.success) {
       setStudents(prev => prev.map(s => s.id === id ? { ...s, status } : s));
-      ok(`Marked ${status}`);
     } else err(res.message || 'Failed');
   };
 
@@ -155,9 +180,52 @@ const DriverDashboard: React.FC = () => {
   return (
     <div >
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
+        <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm animate-pulse ${cardBg}`}>
+          <CardHeader className="pb-3 border-b border-inherit">
+            <div className="h-5 bg-muted rounded w-1/3"></div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-6 border-b border-inherit">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className={`p-4 rounded-xl border flex items-center gap-3 ${theme === 'dark' ? 'bg-[#1c1c1e] border-border' : 'bg-gray-50 border-gray-100'}`}>
+                  <div className="w-10 h-10 rounded-lg bg-muted flex-shrink-0"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-3 bg-muted rounded w-1/2"></div>
+                    <div className="h-5 bg-muted rounded w-3/4"></div>
+                    <div className="h-3 bg-muted rounded w-2/3"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="pb-6 border-b border-inherit space-y-3">
+              <div className="h-4 bg-muted rounded w-1/4"></div>
+              <div className="flex gap-3">
+                <div className="h-12 bg-muted rounded-xl w-40"></div>
+                <div className="h-12 bg-muted rounded-xl w-40"></div>
+              </div>
+            </div>
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center justify-between pb-3 border-b border-inherit">
+                <div className="h-5 bg-muted rounded w-1/4"></div>
+                <div className="h-4 bg-muted rounded w-24"></div>
+              </div>
+              <div className="divide-y divide-inherit border rounded-xl overflow-hidden">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4">
+                    <div className="flex items-center gap-3 w-full sm:w-1/2">
+                      <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0"></div>
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-muted rounded w-2/3"></div>
+                        <div className="h-3 bg-muted rounded w-3/4"></div>
+                      </div>
+                    </div>
+                    <div className="h-8 bg-muted rounded w-full sm:w-24"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       ) : !assignment ? (
         <Card className={`border overflow-hidden shadow-sm p-12 text-center backdrop-blur-sm ${cardBg}`}>
           <Bus size={48} className="mx-auto mb-4 opacity-30 text-primary animate-bounce" />
@@ -167,7 +235,7 @@ const DriverDashboard: React.FC = () => {
           </p>
         </Card>
       ) : (
-        <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
+        <Card id="driver-dashboard-card" className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
           <CardHeader className="pb-3 border-b border-inherit">
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between gap-4">
               <span>Driver Dashboard Control Center</span>
@@ -181,7 +249,7 @@ const DriverDashboard: React.FC = () => {
           <CardContent className="p-6 space-y-6">
             
             {/* Dashboard Metrics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-6 border-b border-inherit">
+            <div id="driver-metrics-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-6 border-b border-inherit">
               <DashboardCard icon={<Navigation size={20} />} title="Assigned Route" value={assignment.route_details?.route_name} description={`${assignment.route_details?.start_location} → ${assignment.route_details?.end_location}`} />
               <DashboardCard icon={<Bus size={20} />} title="Assigned Bus" value={assignment.bus_details?.bus_number} description={assignment.bus_details?.registration_number} />
               <DashboardCard icon={<Clock size={20} />} title="Morning Start" value={assignment.route_details?.morning_start_time || 'N/A'} description={`Evening: ${assignment.route_details?.evening_start_time || 'N/A'}`} />
@@ -189,22 +257,22 @@ const DriverDashboard: React.FC = () => {
             </div>
 
             {/* Trip Controls */}
-            <div className="pb-6 border-b border-inherit">
+            <div id="driver-trip-controls" className="pb-6 border-b border-inherit">
               {!activeTrip ? (
                 <div className="space-y-3">
                   <h3 className="font-semibold text-sm text-muted-foreground">Start Today's Trip</h3>
                   <div className="flex flex-wrap gap-3">
                     <Button 
                       onClick={() => handleStartTrip('morning')} 
-                      className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all"
+                      className="flex items-center gap-2 bg-primary hover:bg-primary/95 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all"
                     >
-                      <Play size={16} /> Start Morning Trip 
+                      <Sunrise size={18} /> Start Morning Trip 
                     </Button>
                     <Button 
                       onClick={() => handleStartTrip('evening')} 
-                      className="flex items-center gap-2 bg-primary hover:bg-primary/95 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all"
+                      className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl px-5 h-12 shadow-sm transition-all"
                     >
-                      <Play size={16} /> Start Evening Trip 
+                      <Sunset size={18} /> Start Evening Trip 
                     </Button>
                   </div>
                 </div>
@@ -280,9 +348,9 @@ const DriverDashboard: React.FC = () => {
             {/* Student Boarding List */}
             {activeTrip && (
               <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between pb-3 border-b border-inherit">
-                  <h3 className="font-bold text-sm flex items-center gap-2">
-                    <Users size={16} className="text-primary" /> Student Boarding List ({students.length})
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-2 pb-3 border-b border-inherit">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <Users size={16} className="text-primary " /> Student Boarding List ({students.length})
                   </h3>
                   <div className="flex gap-3 text-xs">
                     <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -295,62 +363,107 @@ const DriverDashboard: React.FC = () => {
                 </div>
                 <div className="divide-y divide-inherit border rounded-xl overflow-hidden">
                   {students.length === 0 ? (
-                    <p className="p-8 text-sm text-center opacity-60">No students assigned to this route.</p>
-                  ) : (
-                    students.map((s: any) => (
-                      <div key={s.id} className="flex items-center justify-between px-5 py-4 hover:bg-primary/5 transition-all">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold text-xs">
-                            {s.student_details?.name?.[0] || 'S'}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-sm">{s.student_details?.name}</p>
-                            <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                              {s.student_details?.usn} · 📍 {s.stop_details?.stop_name} 
-                              {s.student_details?.phone && (
-                                <span> · 📞 <a href={`tel:${s.student_details?.phone}`} className="hover:text-primary transition-colors">{s.student_details?.phone}</a></span>
-                              )}
-                            </p>
-                          </div>
+                    <div className="p-4">
+                      <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                        <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                          <Users size={32} className="opacity-80" />
                         </div>
-                        <div className="flex items-center gap-2">
-                          {s.status === 'pending' ? (
-                            <>
-                              <Button 
-                                onClick={() => handleMark(s.id, 'picked_up')} 
-                                className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 h-8 px-3 text-xs flex items-center gap-1"
-                                title="Mark Picked Up"
-                              >
-                                <CheckCircle size={14} /> Board
-                              </Button>
-                              <Button 
-                                onClick={() => handleMark(s.id, 'absent')} 
-                                className="bg-red-100 hover:bg-red-200 text-red-700 h-8 px-3 text-xs flex items-center gap-1"
-                                title="Mark Absent"
-                              >
-                                <XCircle size={14} /> Absent
-                              </Button>
-                            </>
-                          ) : s.status === 'picked_up' ? (
-                            <div className="flex items-center gap-2">
-                              <span className="px-2.5 py-1 rounded-full text-xs font-bold capitalize bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
-                                Boarded
-                              </span>
-                              <Button 
-                                onClick={() => handleMark(s.id, 'dropped_off')} 
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 text-xs font-bold h-8"
-                              >
-                                <LogOut size={14} /> Drop Off
-                              </Button>
-                            </div>
-                          ) : (
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
-                              s.status === 'dropped_off' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' : 'bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400'
-                            }`}>{s.status.replace('_', ' ')}</span>
-                          )}
-                        </div>
+                        <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Assigned Students</h3>
+                        <p className="max-w-md text-xs leading-relaxed opacity-85">
+                          No students are currently assigned to this route.
+                        </p>
                       </div>
-                    ))
+                    </div>
+                  ) : (
+                    <>
+                      {displayedStudents.map((s: any) => (
+                        <div key={s.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 hover:bg-primary/5 transition-all">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold text-xs flex-shrink-0">
+                              {s.student_details?.name?.[0] || 'S'}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-sm">{s.student_details?.name}</p>
+                              <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                                {s.student_details?.usn} · 📍 {s.stop_details?.stop_name} 
+                                {s.student_details?.phone && (
+                                  <span className="block sm:inline"> · 📞 <a href={`tel:${s.student_details?.phone}`} className="hover:text-primary transition-colors">{s.student_details?.phone}</a></span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center sm:justify-end gap-2 w-full sm:w-auto">
+                            {s.status === 'pending' ? (
+                              <>
+                                <Button 
+                                  onClick={() => handleMark(s.id, 'picked_up')} 
+                                  className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 h-8 px-3 text-xs flex-1 sm:flex-initial flex items-center justify-center gap-1"
+                                  title="Mark Picked Up"
+                                >
+                                  <CheckCircle size={14} /> Board
+                                </Button>
+                                <Button 
+                                  onClick={() => handleMark(s.id, 'absent')} 
+                                  className="bg-red-100 hover:bg-red-200 text-red-700 h-8 px-3 text-xs flex-1 sm:flex-initial flex items-center justify-center gap-1"
+                                  title="Mark Absent"
+                                >
+                                  <XCircle size={14} /> Absent
+                                </Button>
+                              </>
+                            ) : s.status === 'picked_up' ? (
+                              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                                <span className="px-2.5 py-1 rounded-full text-xs font-bold capitalize bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                  Boarded
+                                </span>
+                                <Button 
+                                  onClick={() => handleMark(s.id, 'dropped_off')} 
+                                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 text-xs font-bold h-8"
+                                >
+                                  <LogOut size={14} /> Drop Off
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
+                                s.status === 'dropped_off' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' : 'bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400'
+                              }`}>{s.status.replace('_', ' ')}</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      {totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                          <div>
+                            Showing {Math.min((currentPage - 1) * PAGE_SIZE + 1, totalCount)} to {Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount} students
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                              disabled={currentPage === 1}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                            >
+                              Previous
+                            </Button>
+                            <div className="flex items-center justify-center min-w-[2rem]">
+                              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                                {currentPage}
+                              </span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                              disabled={currentPage === totalPages}
+                              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
