@@ -84,9 +84,21 @@ const StudentAssignments = () => {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSubmissionFile(e.target.files[0]);
+      const file = e.target.files[0];
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Maximum file size allowed is 10MB.",
+          variant: "destructive"
+        });
+        e.target.value = '';
+        return;
+      }
+
+      setSubmissionFile(file);
     }
   };
 
@@ -634,6 +646,7 @@ const StudentAssignments = () => {
                 type="file"
                 id="submit-file"
                 className="hidden"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleFileChange}
                 required />
               
@@ -645,7 +658,7 @@ const StudentAssignments = () => {
                     {submissionFile ? submissionFile.name : 'Click to select or drag and drop'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1 text-center">
-                    Maximum file size: 10MB (PDF, JPG, PNG, DOCX)
+                    Maximum file size: 10MB (PDF, DOC, DOCX)
                   </p>
                 </label>
               </div>

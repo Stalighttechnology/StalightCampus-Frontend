@@ -647,12 +647,13 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Click or drag to upload</p>
                     <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      PDF, DOCX, etc. (Max 50MB)
+                      PDF, DOCX, etc. (Max 20MB)
                     </p>
                     <input
                       type="file"
                       className="hidden"
                       id="file-upload"
+                      accept=".pdf,.doc,.docx"
                       onChange={handleFileChange}
                       disabled={uploading}
                     />
@@ -688,6 +689,21 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                   toast.error("Please fill all mandatory fields");
                   return;
                 }
+                
+                // Validate file size <= 20MB
+                const MAX_SIZE = 20 * 1024 * 1024;
+                if (uploadFile.size > MAX_SIZE) {
+                  toast.error("File size must not exceed 20MB.");
+                  return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                if (!allowedTypes.includes(uploadFile.type)) {
+                  toast.error("Only PDF, DOC, and DOCX files are allowed.");
+                  return;
+                }
+
                 setUploading(true);
                 try {
                   const finalFileUrl = await uploadFileViaBackendProxy(uploadFile, 'study_materials');
