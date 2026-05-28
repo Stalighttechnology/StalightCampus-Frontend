@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Search, Plus, MapPin, X, Plus as PlusIcon,
-  Eye, Edit, Trash2, Download, Loader2
+  Eye, Edit, Trash2, Download, Loader2, Book, CheckCircle
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { Card, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -257,7 +257,7 @@ const LibraryBooksCatalog = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <CardTitle className="sm:text-2xl text-lg font-semibold">Book Catalog</CardTitle>
+                <CardTitle className="sm:text-2xl text-xl font-semibold">Book Catalog</CardTitle>
                 {books.length > 0 && (
                   <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full mt-0.5 ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {books.length} Titles
@@ -304,7 +304,7 @@ const LibraryBooksCatalog = () => {
                 variant="outline"
                 onClick={handleExportPDF}
                 disabled={exporting || books.length === 0}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
               >
                 {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 Export PDF
@@ -313,7 +313,7 @@ const LibraryBooksCatalog = () => {
           </div>
         </CardHeader>
         <div className="overflow-x-auto thin-scrollbar">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className={`sticky top-0 z-10 border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'
                 }`}>
@@ -329,8 +329,16 @@ const LibraryBooksCatalog = () => {
             <tbody>
               {books.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center p-8 opacity-60 text-sm">
-                    No books cataloged matching the search query. Add a book to populate!
+                  <td colSpan={7} className="p-6">
+                    <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                      <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                        <Book size={32} className="opacity-80" />
+                      </div>
+                      <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Books Found</h3>
+                      <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                        No books cataloged matching the search query. Add a book to populate!
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -626,7 +634,13 @@ const LibraryBooksCatalog = () => {
                 <tbody>
                   {viewingBookCopies.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="text-center p-6 opacity-60 text-sm">No physical copies generated for this book.</td>
+                      <td colSpan={5} className="p-6">
+                        <div className={`flex flex-col items-center justify-center py-8 px-4 rounded-xl border border-dashed text-center ${theme === 'dark' ? 'border-border bg-card/10 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                          <Book size={24} className="opacity-45 mb-2" />
+                          <p className="text-xs font-semibold">No Copies Found</p>
+                          <p className="text-[11px] opacity-70 mt-0.5">No physical copies generated for this book.</p>
+                        </div>
+                      </td>
                     </tr>
                   ) : (
                     viewingBookCopies.map((copy) => (

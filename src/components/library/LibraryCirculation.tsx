@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { RefreshCw, Download, Loader2 } from "lucide-react";
+import { RefreshCw, Download, Loader2, CheckCircle } from "lucide-react";
 import Swal from "sweetalert2";
 import { Card, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
@@ -104,7 +104,7 @@ const LibraryCirculation = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <CardTitle className="sm:text-2xl text-lg font-semibold">Active Circulation</CardTitle>
+                <CardTitle className="sm:text-2xl text-xl font-semibold">Active Circulation</CardTitle>
                 {borrowsCount > 0 && (
                   <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full mt-0.5 ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {borrowsCount} Records
@@ -113,12 +113,12 @@ const LibraryCirculation = () => {
               </div>
               <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Books currently checked out and their return deadlines.</p>
             </div>
-            <div>
+            <div className="w-full md:w-auto">
               <Button
                 variant="outline"
                 onClick={handleExportPDF}
                 disabled={exporting || activeBorrows.length === 0}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
+                className="w-full md:w-auto flex items-center justify-center gap-1.5 px-4 py-2 text-sm rounded-lg border bg-primary hover:text-white text-white hover:bg-primary/90 transition-all"
               >
                 {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 Export PDF
@@ -127,7 +127,7 @@ const LibraryCirculation = () => {
           </div>
         </CardHeader>
         <div className="overflow-x-auto thin-scrollbar">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className={`sticky top-0 z-10 border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'
                 }`}>
@@ -143,8 +143,16 @@ const LibraryCirculation = () => {
             <tbody>
               {activeBorrows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center p-8 opacity-60 text-sm">
-                    No books are currently checked out. Excellent!
+                  <td colSpan={7} className="p-6">
+                    <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                      <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                        <CheckCircle size={32} className="opacity-80" />
+                      </div>
+                      <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Active Borrows</h3>
+                      <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                        No books are currently checked out. Excellent!
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
