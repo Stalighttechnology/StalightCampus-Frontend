@@ -5,6 +5,7 @@ import { useTutorial } from '../hooks/useTutorial';
 import { TutorialTooltip } from './TutorialTooltip';
 import { TutorialModal } from './TutorialModal';
 import { TUTORIAL_CONFIG } from '../constants/tutorialConfig';
+import { useTheme } from '../../context/ThemeContext';
 
 const DummyBeacon = () => null;
 
@@ -184,6 +185,7 @@ const getHomePath = (role: string): string => {
 
 export const TutorialController = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const {
     role,
     steps,
@@ -210,6 +212,39 @@ export const TutorialController = () => {
   const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loaderTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef(0);
+  const prevTargetRef = useRef<string | null>(null);
+
+  // Dynamic class toggling for highlighted elements
+  useEffect(() => {
+    // Remove class from previous target
+    if (prevTargetRef.current) {
+      const prevEl = document.querySelector(prevTargetRef.current);
+      if (prevEl) {
+        prevEl.classList.remove('joyride-highlighted-target');
+      }
+    }
+
+    // Add class to current target
+    const currentStep = steps[stepIndex];
+    if (isActive && currentStep && typeof currentStep.target === 'string') {
+      const currentEl = document.querySelector(currentStep.target);
+      if (currentEl) {
+        currentEl.classList.add('joyride-highlighted-target');
+        prevTargetRef.current = currentStep.target;
+      }
+    } else {
+      prevTargetRef.current = null;
+    }
+
+    return () => {
+      if (prevTargetRef.current) {
+        const prevEl = document.querySelector(prevTargetRef.current);
+        if (prevEl) {
+          prevEl.classList.remove('joyride-highlighted-target');
+        }
+      }
+    };
+  }, [stepIndex, isActive, steps]);
 
   // Wait for element to become visible with polling and timeout
   const waitForElementVisible = useCallback(
@@ -538,6 +573,10 @@ export const TutorialController = () => {
         if (sidebarEl) {
           sidebarEl.style.overflow = '';
         }
+        // Reset window scroll to make sure topbar is visible
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
         handleCompleteTour();
         navigate(getHomePath(role));
       }
@@ -554,11 +593,18 @@ export const TutorialController = () => {
   useEffect(() => {
     if (isActive) {
       document.body.classList.add('tutorial-active');
+      document.documentElement.classList.add('tutorial-active');
     } else {
       document.body.classList.remove('tutorial-active');
+      document.documentElement.classList.remove('tutorial-active');
+      // Reset window scroll when tutorial deactivated to restore navbar visibility
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
     }
     return () => {
       document.body.classList.remove('tutorial-active');
+      document.documentElement.classList.remove('tutorial-active');
     };
   }, [isActive]);
 
@@ -699,8 +745,9 @@ export const TutorialController = () => {
           options: {
             zIndex: 10000,
             primaryColor: '#a855f7',
-            backgroundColor: '#ffffff',
-            textColor: '#1f2937',
+            backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
+            textColor: theme === 'dark' ? '#f3f4f6' : '#1f2937',
+            overlayColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)',
           },
         }}
         floaterProps={{

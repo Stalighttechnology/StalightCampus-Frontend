@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
 import LibraryOverview from "../library/LibraryOverview";
@@ -55,15 +54,11 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
       onPageChange={handlePageChange}
       pageTitle="Library Admin Dashboard"
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
+      <div>
         <div key={activePage}>
           {renderContent()}
         </div>
-      </motion.div>
+      </div>
       <TutorialController />
     </DashboardLayout>
   );
