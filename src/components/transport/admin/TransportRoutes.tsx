@@ -363,7 +363,7 @@ const TransportRoutes: React.FC = () => {
   const selectedRoute = routes.find(r => r.id === editingRouteStops);
 
   return (
-    <div className="space-y-6">
+    <div id="transport-routes-header" className="space-y-6">
       <div className="grid grid-cols-1 gap-6 items-start">
         {/* Form Modal Panel */}
         {showRouteForm && createPortal(
@@ -539,18 +539,18 @@ const TransportRoutes: React.FC = () => {
         <div className="lg:col-span-3">
           <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
-              <div className="flex items-center justify-between">
-                <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
+              <div id="transport-routes-action-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
                   <Navigation size={20} className="text-primary" /> Active Route Register
                 </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Button onClick={() => setShowRouteForm(true)} className="bg-primary hover:bg-primary/95 text-white flex items-center gap-1 h-9">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
+                  <Button onClick={() => setShowRouteForm(true)} className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-1 h-9">
                     <Plus size={15} /> Add Route
                   </Button>
                   <Button
                     onClick={handleDownloadPDF}
                     disabled={downloadingPDF}
-                    className="bg-primary hover:bg-primary/90 text-white flex items-center gap-1.5 h-9"
+                    className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white flex items-center justify-center gap-1.5 h-9"
                   >
                     {downloadingPDF ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -562,11 +562,21 @@ const TransportRoutes: React.FC = () => {
                 </div>
               </div>
             </CardHeader>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto thin-scrollbar">
               {loading ? (
                 <div className="p-4"><SkeletonList items={3} /></div>
               ) : routes.length === 0 ? (
-                <p className="p-8 text-sm text-center opacity-60">No routes created yet. Add a route to begin planning.</p>
+                <div className="p-6">
+                  <div className={`flex flex-col items-center justify-center py-12 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <Navigation size={32} className="opacity-80" />
+                    </div>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Routes Found</h3>
+                    <p className="max-w-md text-xs leading-relaxed opacity-80">
+                      No routes created yet. Click "Add Route" above to start planning transit paths.
+                    </p>
+                  </div>
+                </div>
               ) : (() => {
                 const totalPages = Math.ceil(routes.length / ROWS_PER_PAGE);
                 const safePage = Math.min(currentPage, totalPages);
@@ -575,9 +585,9 @@ const TransportRoutes: React.FC = () => {
                 const endEntry = Math.min(safePage * ROWS_PER_PAGE, routes.length);
                 return (
                   <>
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
                       <thead>
-                        <tr className={`border-b text-xs font-semibold uppercase opacity-70 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                        <tr className={`border-b text-sm sm:text-xs font-semibold uppercase opacity-70 ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                           <th className="p-4">Route Info</th>
                           <th className="p-4">Start → End</th>
                           <th className="p-4">Distance & Duration</th>
@@ -591,37 +601,37 @@ const TransportRoutes: React.FC = () => {
                         {pageRoutes.map(r => (
                           <React.Fragment key={r.id}>
                             <tr className="hover:bg-primary/5 transition-colors duration-150">
-                              <td className="p-4 font-semibold text-sm">{r.route_name}</td>
-                              <td className="p-4 text-xs font-medium">
+                              <td className="p-4 font-semibold text-base sm:text-sm">{r.route_name}</td>
+                              <td className="p-4 text-sm sm:text-xs font-medium">
                                 <span className="text-primary">{r.start_location}</span>
                                 <span className="mx-2 opacity-50">→</span>
                                 <span className="text-purple-500 font-semibold">{r.end_location}</span>
                               </td>
-                              <td className="p-4 text-xs opacity-80">
+                              <td className="p-4 text-sm sm:text-xs opacity-80">
                                 {r.distance} km / {r.duration_minutes} mins
                               </td>
-                              <td className="p-4 text-xs">
+                              <td className="p-4 text-sm sm:text-xs">
                                 {r.bus_details ? (
                                   <div>
                                     <div className="font-semibold text-gray-800 dark:text-gray-100">{r.bus_details.bus_number}</div>
-                                    <div className="text-[10px] font-bold text-primary mt-0.5">{r.bus_details.registration_number}</div>
+                                    <div className="text-xs sm:text-[10px] font-bold text-primary mt-0.5">{r.bus_details.registration_number}</div>
                                   </div>
                                 ) : (
-                                  <span className="opacity-40 text-[11px]">No bus</span>
+                                  <span className="opacity-40 text-xs sm:text-[11px]">No bus</span>
                                 )}
                               </td>
-                              <td className="p-4 text-xs space-y-1">
+                              <td className="p-4 text-sm sm:text-xs space-y-1">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="opacity-50 text-[10px] uppercase font-bold">Morning:</span>
+                                  <span className="opacity-50 text-xs sm:text-[10px] uppercase font-bold">Morning:</span>
                                   <span className="font-semibold text-gray-700 dark:text-gray-200">{formatTo12h(r.morning_start_time)}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                  <span className="opacity-50 text-[10px] uppercase font-bold">Evening:</span>
+                                  <span className="opacity-50 text-xs sm:text-[10px] uppercase font-bold">Evening:</span>
                                   <span className="font-semibold text-gray-700 dark:text-gray-200">{formatTo12h(r.evening_start_time)}</span>
                                 </div>
                               </td>
-                              <td className="p-4 text-xs">
-                                <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                              <td className="p-4 text-sm sm:text-xs">
+                                <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs sm:text-[10px] font-bold">
                                   {r.stops?.length || 0} stops
                                 </span>
                               </td>
@@ -764,7 +774,13 @@ const TransportRoutes: React.FC = () => {
                     </div>
                   </div>
                 ))}
-                {stopDraft.length === 0 && <p className="text-xs text-center opacity-60 py-6">No stops configured. Click "Add Stop" to start planning route points.</p>}
+                 {stopDraft.length === 0 && (
+                  <div className={`flex flex-col items-center justify-center py-8 px-4 rounded-xl border border-dashed text-center ${theme === 'dark' ? 'border-border bg-card/10 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <MapPin size={24} className="opacity-40 mb-2" />
+                    <p className="text-xs font-semibold">No Stops Configured</p>
+                    <p className="text-[11px] opacity-70 mt-0.5">Click "Add Stop" to start planning route points.</p>
+                  </div>
+                )}
               </div>
 
               {/* Footer Actions */}

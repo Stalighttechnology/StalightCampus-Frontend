@@ -10,6 +10,7 @@ import TransportDrivers from "../transport/admin/TransportDrivers";
 import TransportAllocations from "../transport/admin/TransportAllocations";
 import TransportTracking from "../transport/admin/TransportTracking";
 import TransportIncidents from "../transport/admin/TransportIncidents";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 
 interface DashboardProps {
   user: any;
@@ -64,6 +65,7 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
       onPageChange={handlePageChange}
       pageTitle="Transport Admin Dashboard"
     >
+      <TutorialController />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

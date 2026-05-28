@@ -53,6 +53,18 @@ export const TUTORIAL_KEYS = {
     STEP: 'tutorial_hms_step',
     VERSION: 'tutorial_hms_version',
   },
+  TRANSPORT_ADMIN: {
+    COMPLETED: 'tutorial_transport_admin_completed',
+    ACTIVE: 'tutorial_transport_admin_active',
+    STEP: 'tutorial_transport_admin_step',
+    VERSION: 'tutorial_transport_admin_version',
+  },
+  LIBRARY_ADMIN: {
+    COMPLETED: 'tutorial_library_admin_completed',
+    ACTIVE: 'tutorial_library_admin_active',
+    STEP: 'tutorial_library_admin_step',
+    VERSION: 'tutorial_library_admin_version',
+  },
 };
 
 /**

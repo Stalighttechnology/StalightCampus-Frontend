@@ -251,11 +251,11 @@ const TransportAllocations: React.FC = () => {
   const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
 
   return (
-    <div className="space-y-6">
+    <div id="transport-allocations-header" className="space-y-6">
       {/* Allocation Setup form */}
-      <Card className={`p-6 border shadow-sm backdrop-blur-sm ${cardBg}`}>
+      <Card id="transport-allocation-form-card" className={`p-6 border shadow-sm backdrop-blur-sm ${cardBg}`}>
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-inherit">
-          <h3 className="text-lg font-semibold flex items-center gap-2 ">
+          <h3 className="text-xl font-semibold flex items-center gap-2 ">
             <Users className="w-5 h-5 text-primary" /> Allocate Student to Stop
           </h3>
         </div>
@@ -403,52 +403,58 @@ const TransportAllocations: React.FC = () => {
 
       {/* Allocations Table Card */}
       <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
-        <CardHeader className="pb-3 border-b border-inherit">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
-                  <Users size={20} className="text-primary" /> Active Transport Allocations
-                </CardTitle>
-                {allocCount > 0 && (
-                  <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
-                    {allocCount} Students
-                  </span>
-                )}
+        <div id="transport-allocations-table-header">
+          <CardHeader className="pb-3 border-b border-inherit">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
+                    <Users size={20} className="text-primary" /> Active Transport Allocations
+                  </CardTitle>
+                  {allocCount > 0 && (
+                    <span className={`hidden sm:inline-flex text-xs font-medium px-2.5 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
+                      {allocCount} Students
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        {/* Filters Bar */}
-        <div className={`p-4 border-b border-inherit flex flex-wrap gap-3 items-center ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
-          <div className="flex items-center gap-2 text-sm font-semibold opacity-75"><Filter size={14} /> Filters:</div>
-          
-          <Select value={allocFilters.route} onValueChange={(val) => setAllocFilters(f => ({ ...f, route: val }))}>
-            <SelectTrigger className="w-[180px] h-9">
-              <SelectValue placeholder="All Routes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none_all">All Routes</SelectItem>
-              {routes.map(r => <SelectItem key={r.id} value={r.id.toString()}>{r.route_name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {/* Filters Bar */}
+          <div className={`p-4 border-b border-inherit flex flex-col sm:flex-row gap-3 sm:items-center ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+            <div className="flex items-center gap-2 w-full sm:w-auto whitespace-nowrap scrollbar-none">
+              <div className="flex items-center gap-2 text-sm font-semibold opacity-75 flex-shrink-0">
+                <Filter size={14} className="hidden sm:inline" /> Filters:
+              </div>
+              
+              <Select value={allocFilters.route} onValueChange={(val) => setAllocFilters(f => ({ ...f, route: val }))}>
+                <SelectTrigger className="w-[140px] sm:w-[180px] h-9 flex-shrink-0">
+                  <SelectValue placeholder="All Routes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none_all">All Routes</SelectItem>
+                  {routes.map(r => <SelectItem key={r.id} value={r.id.toString()}>{r.route_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
 
-          <Select value={allocFilters.status} onValueChange={(val) => setAllocFilters(f => ({ ...f, status: val }))}>
-            <SelectTrigger className="w-[150px] h-9">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none_all">All Statuses</SelectItem>
-              <SelectItem value="allocated">Allocated</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
+              <Select value={allocFilters.status} onValueChange={(val) => setAllocFilters(f => ({ ...f, status: val }))}>
+                <SelectTrigger className="w-[130px] sm:w-[150px] h-9 flex-shrink-0">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none_all">All Statuses</SelectItem>
+                  <SelectItem value="allocated">Allocated</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="flex-1 relative min-w-[200px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Search by name or USN..." className={`w-full pl-9 pr-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 ${input}`} value={allocFilters.search} onChange={e => setAllocFilters(f => ({ ...f, search: e.target.value }))} />
+            <div className="flex-1 relative min-w-[200px]">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input type="text" placeholder="Search by name or USN..." className={`w-full pl-9 pr-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-1 ${input}`} value={allocFilters.search} onChange={e => setAllocFilters(f => ({ ...f, search: e.target.value }))} />
+            </div>
           </div>
         </div>
 
@@ -457,9 +463,9 @@ const TransportAllocations: React.FC = () => {
         ) : (
           <>
             <div className="overflow-x-auto thin-scrollbar">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className={`sticky top-0 z-10 border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'}`}>
+                  <tr className={`sticky top-0 z-10 border-b text-sm sm:text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'}`}>
                     <th className="p-4">USN</th>
                     <th className="p-4">Student Name</th>
                     <th className="p-4">Academic Details</th>
@@ -470,19 +476,31 @@ const TransportAllocations: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-inherit">
                   {allocations.length === 0 ? (
-                    <tr><td colSpan={6} className="p-8 text-center opacity-60 text-sm">No allocations found.</td></tr>
+                    <tr>
+                      <td colSpan={6} className="p-6">
+                        <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                            <Users size={32} className="opacity-80" />
+                          </div>
+                          <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Allocations Found</h3>
+                          <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                            No student allocations configured yet. Select a student and assign a route using the allocation form on the left.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
                   ) : allocations.map(a => (
                     <tr key={a.id} className={`border-b text-sm transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent text-foreground' : 'border-gray-200 hover:bg-gray-50 text-gray-900'}`}>
-                      <td className="p-4 font-mono text-xs font-semibold">{a.student_details?.usn}</td>
-                      <td className="p-4 font-semibold">{a.student_details?.name}</td>
-                      <td className="p-4 text-xs opacity-75">{a.student_details?.branch_name} (Sem {a.student_details?.semester_number})</td>
-                      <td className="p-4">
+                      <td className="p-4 font-mono text-sm sm:text-xs font-semibold">{a.student_details?.usn}</td>
+                      <td className="p-4 font-semibold text-base sm:text-sm">{a.student_details?.name}</td>
+                      <td className="p-4 text-sm sm:text-xs opacity-75">{a.student_details?.branch_name} (Sem {a.student_details?.semester_number})</td>
+                      <td className="p-4 text-sm sm:text-xs">
                         <div className="flex items-center gap-2">
                           <Navigation size={12} className="opacity-50 text-primary" />
                           <span>{a.route_details?.route_name} <span className="opacity-50 mx-1">→</span> {a.stop_details?.stop_name}</span>
                         </div>
                       </td>
-                      <td className="p-4"><Badge label={a.status} color={a.status} /></td>
+                      <td className="p-4 text-sm sm:text-xs"><Badge label={a.status} color={a.status} /></td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-1.5">
                           <Button size="icon" variant="ghost" onClick={() => startEditAllocation(a)} className="h-8 w-8 text-primary" title="Edit Allocation">
@@ -500,7 +518,7 @@ const TransportAllocations: React.FC = () => {
             </div>
             
             {/* Pagination */}
-            {allocations.length > 0 && (
+            {allocations.length > 1 && (
               <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-inherit mt-auto">
                 <div>
                   Showing <span className="font-medium">{allocCount > 0 ? (allocPage - 1) * 20 + 1 : 0}</span> to <span className="font-medium">{Math.min(allocPage * 20, allocCount)}</span> of <span className="font-medium">{allocCount}</span> allocations

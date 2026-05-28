@@ -36,7 +36,7 @@ const TransportOverview: React.FC = () => {
   const cardBg = theme === 'dark' ? 'bg-card/40 border-border text-foreground' : 'bg-white border-gray-200 text-gray-900';
 
   return (
-    <div className="space-y-6">
+    <div id="transport-admin-overview-header" className="space-y-6">
 
       {loading ? (
         <div className="space-y-6">
@@ -46,7 +46,7 @@ const TransportOverview: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Dashboard Metrics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div id="transport-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <DashboardCard icon={<Bus size={20} />} title="Total Buses" value={stats?.total_buses} description="Total active transport fleet" />
             <DashboardCard icon={<Navigation size={20} />} title="Active Routes" value={stats?.total_routes} description="Planned transport routes" />
             <DashboardCard icon={<UserCheck size={20} />} title="Enrolled Drivers" value={stats?.total_drivers} description="Active campus drivers" />
@@ -62,9 +62,9 @@ const TransportOverview: React.FC = () => {
           </div>
 
           {/* Active Trips Card */}
-          <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
+          <Card id="transport-live-trips-card" className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
-              <div className="flex items-center justify-between">
+              <div id="transport-live-trips-title" className="flex items-center justify-between ">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Radio size={16} className="text-green-500 animate-pulse" /> Live Trip Status
                 </CardTitle>
@@ -77,7 +77,15 @@ const TransportOverview: React.FC = () => {
             </CardHeader>
             <CardContent className="p-5">
               {liveTrips.length === 0 ? (
-                <p className="text-sm opacity-60 py-6 text-center">No active trips running right now.</p>
+                <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <Radio size={32} className="opacity-80 animate-pulse" />
+                  </div>
+                  <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Active Trips</h3>
+                  <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                    No active trips running right now. All scheduled fleet buses are currently stationed.
+                  </p>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {liveTrips.map((t: any) => (

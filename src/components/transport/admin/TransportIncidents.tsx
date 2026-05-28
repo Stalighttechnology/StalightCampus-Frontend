@@ -62,7 +62,7 @@ const TransportIncidents: React.FC = () => {
   const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
 
   return (
-    <div className="space-y-6">
+    <div id="transport-incidents-header" className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Resolve Panel */}
         <AnimatePresence>
@@ -108,7 +108,7 @@ const TransportIncidents: React.FC = () => {
         <div className={resolveId ? "lg:col-span-2" : "lg:col-span-3"}>
           <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
-              <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
+              <CardTitle id="transport-incidents-title-row" className="sm:text-xl text-lg font-semibold flex items-center gap-2">
                 <ShieldAlert size={20} className="text-primary" /> Active Incident Tickets
               </CardTitle>
             </CardHeader>
@@ -118,7 +118,17 @@ const TransportIncidents: React.FC = () => {
                   <SkeletonList items={3} />
                 </div>
               ) : incidents.length === 0 ? (
-                <p className="p-8 text-sm text-center opacity-60">No complaints or incidents filed. Everything is smooth!</p>
+                <div className="p-6">
+                  <div className={`flex flex-col items-center justify-center py-12 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <ShieldAlert size={32} className="opacity-80" />
+                    </div>
+                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Incidents Filed</h3>
+                    <p className="max-w-md text-xs leading-relaxed opacity-80">
+                      No complaints or incidents filed. Everything is running smoothly!
+                    </p>
+                  </div>
+                </div>
               ) : (() => {
                 const totalPages = Math.ceil(incidents.length / ROWS_PER_PAGE);
                 const safePage = Math.min(currentPage, totalPages);

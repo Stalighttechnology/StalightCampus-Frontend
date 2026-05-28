@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Label } from "../ui/label";
 import { showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
@@ -12,9 +13,9 @@ import { useTheme } from "../../context/ThemeContext";
 import { Camera, Eye, EyeOff } from "lucide-react";
 import { Progress } from "../ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Label } from "../ui/label";
 import LoginActivity from '../common/LoginActivity';
 import { SkeletonCard } from "../ui/skeleton";
+import HelpLearningCard from "./HelpLearningCard";
 
 interface ProfileProps {
   role: string;
@@ -38,7 +39,7 @@ const Profile = ({ role, user }: ProfileProps) => {
   const [localError, setLocalError] = useState<string | null>(null);
   const { theme } = useTheme();
   
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help'>('personal');
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
@@ -213,23 +214,23 @@ const Profile = ({ role, user }: ProfileProps) => {
           <div className="space-y-4 sm:space-y-5 md:space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
-                <Input name="first_name" value={profile.first_name} onChange={handleChange} disabled={!editing || loading} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
+                <label htmlFor="first_name" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
+                <Input id="first_name" name="first_name" value={profile.first_name} onChange={handleChange} disabled={!editing || loading} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
               </div>
               <div className="w-full">
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
-                <Input name="last_name" value={profile.last_name} onChange={handleChange} disabled={!editing || loading} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
+                <label htmlFor="last_name" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
+                <Input id="last_name" name="last_name" value={profile.last_name} onChange={handleChange} disabled={!editing || loading} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
-                <Input name="email" value={profile.email} onChange={handleChange} disabled={!editing || loading} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
+                <label htmlFor="email" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
+                <Input id="email" name="email" value={profile.email} onChange={handleChange} disabled={!editing || loading} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
               </div>
               <div>
-                <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
-                <Input name="mobile_number" value={profile.mobile_number} onChange={handleChange} disabled={!editing || loading} maxLength={10} placeholder="10-digit mobile" className="text-sm h-9 sm:h-10 w-full" />
+                <label htmlFor="mobile_number" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
+                <Input id="mobile_number" name="mobile_number" value={profile.mobile_number} onChange={handleChange} disabled={!editing || loading} maxLength={10} placeholder="10-digit mobile" className="text-sm h-9 sm:h-10 w-full" />
               </div>
             </div>
           </div>
@@ -239,12 +240,12 @@ const Profile = ({ role, user }: ProfileProps) => {
         return (
           <div className="space-y-4 sm:space-y-5">
             <div>
-              <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</label>
-              <Textarea name="address" value={profile.address} onChange={handleChange} disabled={!editing || loading} rows={3} className="text-sm w-full" />
+              <label htmlFor="address" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</label>
+              <Textarea id="address" name="address" value={profile.address} onChange={handleChange} disabled={!editing || loading} rows={3} className="text-sm w-full" />
             </div>
             <div>
-              <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bio</label>
-              <Textarea name="bio" value={profile.bio} onChange={handleChange} disabled={!editing || loading} rows={4} className="text-sm w-full" />
+              <label htmlFor="bio" className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bio</label>
+              <Textarea id="bio" name="bio" value={profile.bio} onChange={handleChange} disabled={!editing || loading} rows={4} className="text-sm w-full" />
               <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{profile.bio.trim().split(/\s+/).filter(Boolean).length}/50 words</p>
             </div>
           </div>
@@ -259,15 +260,21 @@ const Profile = ({ role, user }: ProfileProps) => {
             </div>
           </div>
         );
+      case 'help':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <HelpLearningCard />
+          </div>
+        );
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start">
+    <div id={role === 'transport_admin' ? 'transport-profile-header' : role === 'library_admin' ? 'library-profile-header' : undefined} className="min-h-screen flex justify-center items-start">
       <Card className={`w-full max-w-none mx-auto my-2 ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
+        <CardHeader id={role === 'transport_admin' ? 'transport-profile-action-header' : role === 'library_admin' ? 'library-profile-action-header' : undefined} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
             <CardTitle className={`text-lg sm:text-xl ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile Information</CardTitle>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
@@ -415,6 +422,7 @@ const Profile = ({ role, user }: ProfileProps) => {
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
+                <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>

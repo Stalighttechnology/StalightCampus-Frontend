@@ -148,7 +148,7 @@ const LibraryOverview = () => {
   return (
     <div className="space-y-6">
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div id="library-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <DashboardCard
           title="Catalog Titles"
           value={stats.total_books}
@@ -184,7 +184,7 @@ const LibraryOverview = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Issue Panel */}
-        <Card className={`p-6 border shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+        <Card id="library-issue-card" className={`p-6 border shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-primary">
             <BookIcon className="w-5 h-5" /> Book Issue Desk
           </h3>
@@ -276,7 +276,7 @@ const LibraryOverview = () => {
         </Card>
 
         {/* Quick Return Panel */}
-        <Card className={`p-6 border shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+        <Card id="library-return-card" className={`p-6 border shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-emerald-400">
             <RefreshCw className="w-5 h-5" /> Book Return Desk
           </h3>

@@ -205,22 +205,22 @@ const TransportDrivers: React.FC = () => {
   const input = theme === 'dark' ? 'bg-[#1c1c1e] border-[#3a3a3c] text-white focus:ring-primary' : 'bg-gray-50 border-gray-200 focus:ring-primary';
 
   return (
-    <div className="space-y-6">
+    <div id="transport-drivers-header" className="space-y-6">
 
       <div className="grid grid-cols-1 gap-6 items-start">
         {/* Assignments List */}
         <div className="lg:col-span-3">
           <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
-              <div className="flex items-center justify-between">
-                <CardTitle className="sm:text-xl text-lg font-semibold flex items-center gap-2">
+              <div id="transport-drivers-action-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <CardTitle className="sm:text-2xl text-xl font-semibold flex items-center gap-2">
                   <Briefcase size={20} className="text-primary" /> Driver Assignments Register
                 </CardTitle>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleOpenAssignForm} className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
+                  <Button variant="outline" onClick={handleOpenAssignForm} className="w-full sm:w-auto flex items-center justify-center gap-1.5 h-9">
                     <CheckCircle size={15} /> Assign Route
                   </Button>
-                  <Button onClick={() => setShowDriverForm(true)} className="bg-primary hover:bg-primary/95 text-white flex items-center gap-1">
+                  <Button onClick={() => setShowDriverForm(true)} className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-1 h-9">
                     <Plus size={15} /> Enroll Driver
                   </Button>
                 </div>
@@ -230,9 +230,9 @@ const TransportDrivers: React.FC = () => {
               {loading ? (
                 <div className="p-4"><SkeletonTable rows={5} cols={6} /></div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
                   <thead>
-                    <tr className={`sticky top-0 z-10 border-b text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'}`}>
+                    <tr className={`sticky top-0 z-10 border-b text-sm sm:text-xs uppercase tracking-wider font-semibold ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'}`}>
                       <th className="p-4">Driver Info</th>
                       <th className="p-4">Contact</th>
                       <th className="p-4">Assigned Route</th>
@@ -244,8 +244,16 @@ const TransportDrivers: React.FC = () => {
                   <tbody>
                     {assignments.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="text-center p-8 opacity-60 text-sm">
-                          No driver assignments configured yet.
+                        <td colSpan={6} className="p-6">
+                          <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-xl border-2 border-dashed text-center transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                              <UserCheck size={32} className="opacity-80" />
+                            </div>
+                            <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Drivers Enrolled</h3>
+                            <p className="max-w-xs text-xs leading-relaxed opacity-80">
+                              No driver assignments configured yet. Add and enroll campus drivers to assign them.
+                            </p>
+                          </div>
                         </td>
                       </tr>
                     ) : (
@@ -262,10 +270,10 @@ const TransportDrivers: React.FC = () => {
                                   <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center font-bold text-emerald-600 text-xs">
                                     {d?.first_name?.[0]}{d?.last_name?.[0] || ''}
                                   </div>
-                                  <span className="font-semibold">{d?.first_name} {d?.last_name}</span>
+                                  <span className="font-semibold text-base sm:text-sm">{d?.first_name} {d?.last_name}</span>
                                 </div>
                               </td>
-                              <td className="p-4 text-xs space-y-1">
+                              <td className="p-4 text-sm sm:text-xs space-y-1">
                                 {d?.email && (
                                   <div className="flex items-center gap-1.5 opacity-80">
                                     <Mail size={12} className="opacity-60" />
@@ -279,20 +287,20 @@ const TransportDrivers: React.FC = () => {
                                   </div>
                                 )}
                               </td>
-                              <td className="p-4 font-semibold text-xs text-primary">
+                              <td className="p-4 font-semibold text-sm sm:text-xs text-primary">
                                 {a.route_details?.route_name || '—'}
                               </td>
-                              <td className="p-4 text-xs font-medium">
+                              <td className="p-4 text-sm sm:text-xs font-medium">
                                 {a.bus_details ? (
                                   <div>
                                     <div className="font-semibold text-gray-800 dark:text-gray-100">{a.bus_details.bus_number}</div>
-                                    <div className="text-[10px] font-bold text-primary mt-0.5">{a.bus_details.registration_number}</div>
+                                    <div className="text-xs sm:text-[10px] font-bold text-primary mt-0.5">{a.bus_details.registration_number}</div>
                                   </div>
                                 ) : (
-                                  <span>Bus {a.bus || '—'}</span>
+                                  <span className="opacity-40 text-xs sm:text-[11px]">Bus {a.bus || '—'}</span>
                                 )}
                               </td>
-                              <td className="p-4">
+                              <td className="p-4 text-sm sm:text-xs">
                                 <Badge label={d?.designation || 'Driver'} color="allocated" />
                               </td>
                               <td className="p-4 text-right">
