@@ -136,6 +136,15 @@ export const adminTour: Step[] = [
     route: '/admin/hod-attendance',
   },
   {
+    target: '#sidebar-faculty-attendance',
+    title: 'Faculty Attendance',
+    content:
+      'Monitor and track faculty attendance records across different branches.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/faculty-attendance',
+  },
+  {
     target: '#sidebar-my-attendance',
     title: 'My Attendance',
     content:

@@ -132,6 +132,19 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-faculty-attendance') {
+    return [
+      {
+        ...step,
+        target: '#admin-faculty-attendance-header-select',
+        title: 'Select Branch',
+        content:
+          'Choose a branch from the dropdown to load and view faculty attendance data for that department.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
   if (target === '#sidebar-my-attendance') {
     return [
       {

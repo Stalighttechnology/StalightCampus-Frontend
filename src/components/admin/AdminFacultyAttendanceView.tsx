@@ -522,14 +522,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
   return (
     <>
       <div id="faculty-attendance-dashboard-container" className={`space-y-6 animate-fade-in ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div id="admin-faculty-attendance-header-select" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 id="faculty-attendance-dashboard-title" className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty Attendance Dashboard</h2>
           <p id="faculty-attendance-dashboard-subtitle" className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
             Track and manage faculty attendance across the institution
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div id="admin-faculty-attendance-branch-select" className="flex items-center gap-2">
           <Select value={selectedBranch} onValueChange={setSelectedBranch}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select Branch" />

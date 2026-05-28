@@ -193,89 +193,27 @@ const QPApprovals = () => {
   const downloadPDF = async () => {
     if (!qpDetail) return;
     try {
-      const jspdfModule: any = await import('jspdf');
-      const jsPDF = jspdfModule.jsPDF || jspdfModule.default?.jsPDF || jspdfModule.default || jspdfModule;
-      const doc: any = new jsPDF();
-      let y = 14;
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 14;
-      const maxWidth = pageWidth - margin * 2;
-
-      doc.setFontSize(16);
-      doc.text('Question Paper', margin, y);
-      y += 10;
-
-      doc.setFontSize(12);
-      const headerLines = [
-      `Subject: ${qpDetail.subject}`,
-      `Test Type: ${qpDetail.test_type}`,
-      `Faculty: ${qpDetail.faculty}`];
-
-      headerLines.forEach((ln: string) => {
-        const lines = doc.splitTextToSize(ln, maxWidth);
-        doc.text(lines, margin, y);
-        y += lines.length * 6;
+      const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpDetail.id}/export-pdf/`, {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+        }
       });
-
-      y += 4;
-
-      let totalMarks = 0;
-      (qpDetail.questions || []).forEach((q: any) => {
-        (q.subparts || []).forEach((s: any) => {
-          totalMarks += s.max_marks || 0;
-        });
-      });
-
-      (qpDetail.questions || []).forEach((q: any) => {
-        (q.subparts || []).forEach((s: any) => {
-          const qLabel = `${q.question_number}${s.subpart_label}. `;
-          const content = qLabel + (s.content || '');
-          const contentLines = doc.splitTextToSize(content, maxWidth);
-
-          // page break safety
-          if (y + Math.max(1, contentLines.length) * 6 + 60 > doc.internal.pageSize.getHeight()) {
-            doc.addPage();
-            y = margin;
-          }
-
-          doc.setFontSize(12);
-          const lineHeight = 6;
-
-          if (contentLines.length > 0) {
-            // write first line and place marks at the right end of the same line
-            doc.text(contentLines[0], margin, y);
-            try {doc.setFont(undefined, 'bold');} catch (e) {}
-            doc.text(`${s.max_marks}m`, pageWidth - margin, y, { align: 'right' });
-            try {doc.setFont(undefined, 'normal');} catch (e) {}
-            y += lineHeight;
-          }
-
-          if (contentLines.length > 1) {
-            const remaining = contentLines.slice(1);
-            doc.text(remaining, margin, y);
-            y += remaining.length * lineHeight;
-          }
-
-          // CO and Blooms on next line(s)
-          doc.setFontSize(10);
-          const metaText = `CO: ${q.co}  Blooms: ${q.blooms_level}`;
-          const metaLines = doc.splitTextToSize(metaText, maxWidth);
-          doc.text(metaLines, margin, y);
-          y += metaLines.length * lineHeight + 6;
-        });
-      });
-
-      if (y + 20 > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        y = margin;
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `QP_${qpDetail.id}_${(qpDetail.test_type || 'test').replace(/\s+/g, '_')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        toast({ title: 'Error', description: result.message || 'Failed to download question paper PDF.' });
       }
-      doc.setFontSize(12);
-      doc.text(`Total Marks: ${totalMarks}`, margin, y);
-      const fileName = `qp-${(qpDetail.subject || 'qp').replace(/\s+/g, '_')}-${(qpDetail.test_type || 'test').replace(/\s+/g, '_')}.pdf`;
-      doc.save(fileName);
     } catch (err) {
-
-      toast({ title: 'Error', description: 'Failed to generate PDF.' });
+      toast({ title: 'Error', description: 'Network error while exporting PDF.' });
     }
   };
 
@@ -690,7 +628,7 @@ const QPApprovals = () => {
               )}
             </div>
             <div className="ml-auto">
-              <Button variant="outline" onClick={() => downloadPDF()} className="bg-transparent hover:bg-transparent w-full sm:w-auto justify-center transition-none">
+              <Button variant="outline" onClick={() => downloadPDF()} className="bg-primary hover:bg-primary/90 text-white hover:text-white w-full sm:w-auto justify-center transition-none">
                 <Download className="w-4 h-4 mr-1 hidden sm:inline-block" />
                 <span className="whitespace-normal">Download</span>
               </Button>

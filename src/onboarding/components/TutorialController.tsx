@@ -267,7 +267,8 @@ export const TutorialController = () => {
 
   // Wait for element to become visible with polling and timeout
   const waitForElementVisible = useCallback(
-    (selector: string, onReady: () => void, onTimeout: () => void) => {
+    (targetStep: any, onReady: () => void, onTimeout: () => void) => {
+      const selector = targetStep.target;
       console.log('[ONBOARDING DEBUG] 🔄 waitForElementVisible started', { selector });
       const startTime = Date.now();
       const timeoutMs = 6000; // Hardcoded timeout for stability
@@ -276,6 +277,12 @@ export const TutorialController = () => {
       const poll = () => {
         const now = Date.now();
         const elapsed = now - startTime;
+
+        // If the target step requires a tab switch, dispatch it on every poll iteration
+        // to handle cases where a route transition unmounts and remounts the component.
+        if (targetStep && (targetStep as any).switchTab) {
+          window.dispatchEvent(new CustomEvent('neurocampus_switch_tab', { detail: { tab: (targetStep as any).switchTab } }));
+        }
 
         const el = document.querySelector(selector);
         const exists = !!el;
@@ -503,7 +510,7 @@ export const TutorialController = () => {
       }, 200);
 
       waitForElementVisible(
-        targetStep.target,
+        targetStep,
         () => {
           console.log('[ONBOARDING DEBUG] ✅ Element visible! Calling performTransition');
           performTransition(targetIndex);
