@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import { Loader2, FileDown, ClipboardList } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "../ui/dialog";
 import { getAttendanceRecordsWithSummary, getAttendanceRecordDetails } from "@/utils/faculty_api";
-import { API_BASE_URL } from "@/utils/config";
+import { API_BASE_URL, API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
@@ -126,7 +126,7 @@ const AttendanceRecords = () => {
 
     try {
       const res = await fetchWithTokenRefresh(
-        `${API_BASE_URL}/faculty/generate-statistics/?file_id=${selectedRecord.id}`,
+        `${API_ENDPOINT}/faculty/generate-statistics/?file_id=${selectedRecord.id}`,
         {
           method: "GET",
           headers: {
@@ -138,6 +138,26 @@ const AttendanceRecords = () => {
       const data = await res.json();
       if (data.success && data.data && data.data.pdf_url) {
         setPdfUrl(data.data.pdf_url);
+        let downloadUrl = data.data.pdf_url;
+        if (!downloadUrl.startsWith('http://') && !downloadUrl.startsWith('https://')) {
+          const domain = new URL(API_ENDPOINT).origin;
+          downloadUrl = `${domain}${downloadUrl}`;
+        }
+        
+        const pdfRes = await fetchWithTokenRefresh(downloadUrl);
+        if (pdfRes.ok) {
+          const blob = await pdfRes.blob();
+          const localUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = localUrl;
+          a.download = `stats_${selectedRecord.subject || "Attendance"}_${selectedRecord.date}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(localUrl);
+        } else {
+          setDetailsError("Failed to download PDF file");
+        }
       } else {
         setDetailsError(data.message || "Failed to generate PDF");
       }
