@@ -524,7 +524,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
       <div id="faculty-attendance-dashboard-container" className={`space-y-6 animate-fade-in ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 id="faculty-attendance-dashboard-title" className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty Attendance Dashboard</h2>
+          <h2 id="faculty-attendance-dashboard-title" className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty Attendance Dashboard</h2>
           <p id="faculty-attendance-dashboard-subtitle" className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
             Track and manage faculty attendance across the institution
           </p>
@@ -542,17 +542,30 @@ const AdminFacultyAttendanceView: React.FC = () => {
           </Select>
         </div>
       </div>
-      <div id="hod-faculty-attendance-header-section" className="space-y-4 sm:space-y-6">
-          {/* Tab Navigation */}
-          <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
-            <button
-              onClick={() => setActiveTab('today')}
-              className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
-                'bg-primary text-white' :
-                theme === 'dark' ?
-                  'text-muted-foreground hover:text-foreground' :
-                  'text-gray-600 hover:text-gray-900'}`
-              }>
+      
+      {!selectedBranch ? (
+        <div className={`p-12 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'} mt-6`}>
+          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+            <Building2 className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+          </div>
+          <div className="text-center max-w-sm">
+            <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Branch Selected</p>
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-1`}>Please select a branch from the dropdown to view the faculty attendance dashboard data</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div id="hod-faculty-attendance-header-section" className="space-y-4 sm:space-y-6">
+              {/* Tab Navigation */}
+              <div id="hod-faculty-attendance-tabs" className={`flex space-x-1 p-1 rounded-lg mt-3 ${theme === 'dark' ? 'bg-card' : 'bg-white'} border ${theme === 'dark' ? 'border-border' : 'border-gray-200'} overflow-x-auto`}>
+                <button
+                  onClick={() => setActiveTab('today')}
+                  className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'today' ?
+                    'bg-primary text-white' :
+                    theme === 'dark' ?
+                      'text-muted-foreground hover:text-foreground' :
+                      'text-gray-600 hover:text-gray-900'}`
+                  }>
 
               Today's Attendance
             </button>
@@ -988,6 +1001,8 @@ const AdminFacultyAttendanceView: React.FC = () => {
 
           </>
         }
+        </>
+      )}
       </div>
 
       {/* Attendance Details Modal */}

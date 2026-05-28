@@ -27,6 +27,7 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
         content:
           "Monitor today's faculty attendance summary and toggle between Today's Attendance and Attendance Records.",
         placement: isMobile ? step.placement : 'top',
+        switchTab: 'today',
       },
       {
         ...step,

@@ -113,11 +113,12 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#hod-attendance-today-section',
+        target: '#hod-attendance-stats-grid',
         title: "Today's HOD Attendance",
         content:
           "View today's attendance snapshot — total HODs, present, absent, and unmarked counts at a glance.",
         placement: isMobile ? step.placement : 'top',
+        switchTab: 'today',
       },
       {
         ...step,
@@ -135,7 +136,7 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#admin-my-attendance-form',
+        target: '#today-attendance-toggle-section',
         title: 'My Attendance',
         content:
           'Mark your attendance as present or absent for today and optionally add notes.',
