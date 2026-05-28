@@ -147,6 +147,12 @@ const UploadMarks = () => {
   const [savingMarks, setSavingMarks] = useState(false);
   const [bulkUploadCompleted, setBulkUploadCompleted] = useState(false);
 
+  // States to control programmatic opening of subsequent select dropdowns
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+  const [isTestTypeOpen, setIsTestTypeOpen] = useState(false);
+
   const calculateTotal = (marks: Record<string, string>) => {
     // Group marks by main question number and SUM subpart marks per main question
     const mainMarks: Record<string, number> = {};
@@ -1312,6 +1318,21 @@ const UploadMarks = () => {
     }
 
     setSelected(updated);
+
+    // Auto-open next dropdown based on selection flow
+    if (field === 'subject_id') {
+      if (updated.branch_id && updated.semester_id && updated.section_id) {
+        setTimeout(() => setIsTestTypeOpen(true), 150);
+      } else {
+        setTimeout(() => setIsBranchOpen(true), 150);
+      }
+    } else if (field === 'branch_id') {
+      setTimeout(() => setIsSemesterOpen(true), 150);
+    } else if (field === 'semester_id') {
+      setTimeout(() => setIsSectionOpen(true), 150);
+    } else if (field === 'section_id') {
+      setTimeout(() => setIsTestTypeOpen(true), 150);
+    }
   };
 
   // Remove the old areAllDropdownsSelected (we've moved it up)
@@ -1382,58 +1403,88 @@ const UploadMarks = () => {
               <SelectValue placeholder="Select Subject" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.subject.map((item) =>
-              <SelectItem key={item.id} value={item.id.toString()}>
-                  {item.name}
-                </SelectItem>
+              {dropdownData.subject.length > 0 ? (
+                dropdownData.subject.map((item) =>
+                  <SelectItem key={item.id} value={item.id.toString()}>
+                    {item.name}
+                  </SelectItem>
+                )
+              ) : (
+                <div className="p-2 text-sm text-center text-muted-foreground">
+                  No subject assigned
+                </div>
               )}
             </SelectContent>
           </Select>
-          <Select value={selected.branch_id?.toString()} onValueChange={(value) => handleSelectChange('branch_id', Number(value))}>
-            <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+          <Select value={selected.branch_id?.toString()} onValueChange={(value) => handleSelectChange('branch_id', Number(value))} disabled={!selected.subject_id} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
+            <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.subject_id}>
               <SelectValue placeholder="Select Branch" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.branch.map((item) =>
-              <SelectItem key={item.id} value={item.id.toString()}>
-                  {item.name}
-                </SelectItem>
+              {dropdownData.branch.length > 0 ? (
+                dropdownData.branch.map((item) =>
+                  <SelectItem key={item.id} value={item.id.toString()}>
+                    {item.name}
+                  </SelectItem>
+                )
+              ) : (
+                <div className="p-2 text-sm text-center text-muted-foreground">
+                  No branch assigned
+                </div>
               )}
             </SelectContent>
           </Select>
-          <Select value={selected.semester_id?.toString()} onValueChange={(value) => handleSelectChange('semester_id', Number(value))}>
-            <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+          <Select value={selected.semester_id?.toString()} onValueChange={(value) => handleSelectChange('semester_id', Number(value))} disabled={!selected.branch_id || dropdownData.semester.length === 0} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
+            <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.branch_id || dropdownData.semester.length === 0}>
               <SelectValue placeholder="Select Semester" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.semester.map((item) =>
-              <SelectItem key={item.id} value={item.id.toString()}>
-                  {item.number}
-                </SelectItem>
+              {dropdownData.semester.length > 0 ? (
+                dropdownData.semester.map((item) =>
+                  <SelectItem key={item.id} value={item.id.toString()}>
+                    {item.number}
+                  </SelectItem>
+                )
+              ) : (
+                <div className="p-2 text-sm text-center text-muted-foreground">
+                  No semester
+                </div>
               )}
             </SelectContent>
           </Select>
-          <Select value={selected.section_id?.toString()} onValueChange={(value) => handleSelectChange('section_id', Number(value))}>
-            <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+          <Select value={selected.section_id?.toString()} onValueChange={(value) => handleSelectChange('section_id', Number(value))} disabled={!selected.semester_id || dropdownData.section.length === 0} open={isSectionOpen} onOpenChange={setIsSectionOpen}>
+            <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.semester_id || dropdownData.section.length === 0}>
               <SelectValue placeholder="Select Section" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.section.map((item) =>
-              <SelectItem key={item.id} value={item.id.toString()}>
-                  {item.name}
-                </SelectItem>
+              {dropdownData.section.length > 0 ? (
+                dropdownData.section.map((item) =>
+                  <SelectItem key={item.id} value={item.id.toString()}>
+                    {item.name}
+                  </SelectItem>
+                )
+              ) : (
+                <div className="p-2 text-sm text-center text-muted-foreground">
+                  No section
+                </div>
               )}
             </SelectContent>
           </Select>
-          <Select value={selected.testType} onValueChange={(value) => handleSelectChange('testType', value)}>
-            <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+          <Select value={selected.testType} onValueChange={(value) => handleSelectChange('testType', value)} disabled={!selected.subject_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
+            <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.subject_id}>
               <SelectValue placeholder="Select TestType" />
             </SelectTrigger>
             <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-              {dropdownData.testType.map((item) =>
-              <SelectItem key={item} value={item}>
-                  {item}
-                </SelectItem>
+              {dropdownData.testType.length > 0 ? (
+                dropdownData.testType.map((item) =>
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                )
+              ) : (
+                <div className="p-2 text-sm text-center text-muted-foreground">
+                  No test type
+                </div>
               )}
             </SelectContent>
           </Select>

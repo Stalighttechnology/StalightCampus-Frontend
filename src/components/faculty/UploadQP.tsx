@@ -111,6 +111,8 @@ const UploadQP = () => {
   const [loading, setLoading] = useState(false);
   const [rejectedQPs, setRejectedQPs] = useState<QuestionPaper[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [isSubjectOpen, setIsSubjectOpen] = useState(false);
+  const [isTestTypeOpen, setIsTestTypeOpen] = useState(false);
   const { theme } = useTheme();
 
   const toggleExpanded = (key: string) => {
@@ -500,34 +502,56 @@ const UploadQP = () => {
                     const subjectsForBranch = assignments.filter((a) => a.branch_id === branchId);
                     const firstSubject = subjectsForBranch.length > 0 ? subjectsForBranch[0].subject_id : undefined;
                     setSelected((s) => ({ ...s, branch_id: branchId, subject_id: firstSubject }));
+                    setTimeout(() => setIsSubjectOpen(true), 150);
                   }}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
                     <SelectContent>
-                      {dropdownData.branch.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)}
+                      {dropdownData.branch.length > 0 ? (
+                        dropdownData.branch.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No branch assigned
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label htmlFor="subject-select" className="text-sm">Subject</label>
-                  <Select value={selected.subject_id ? String(selected.subject_id) : undefined} onValueChange={(v) => setSelected((s) => ({ ...s, subject_id: Number(v) }))}>
-                    <SelectTrigger className="w-full">
+                  <Select value={selected.subject_id ? String(selected.subject_id) : undefined} onValueChange={(v) => {
+                    setSelected((s) => ({ ...s, subject_id: Number(v) }));
+                    setTimeout(() => setIsTestTypeOpen(true), 150);
+                  }} disabled={!selected.branch_id} open={isSubjectOpen} onOpenChange={setIsSubjectOpen}>
+                    <SelectTrigger className="w-full" disabled={!selected.branch_id}>
                       <SelectValue placeholder="Select Subject" />
                     </SelectTrigger>
                     <SelectContent>
-                      {dropdownData.subject.map((s) => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
+                      {dropdownData.subject.length > 0 ? (
+                        dropdownData.subject.map((s) => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No subject assigned
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label htmlFor="test-type-select" className="text-sm">Test Type</label>
-                  <Select value={selected.testType} onValueChange={(v) => setSelected((s) => ({ ...s, testType: String(v) }))}>
-                    <SelectTrigger className="w-full">
+                  <Select value={selected.testType} onValueChange={(v) => setSelected((s) => ({ ...s, testType: String(v) }))} disabled={!selected.subject_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
+                    <SelectTrigger className="w-full" disabled={!selected.subject_id}>
                       <SelectValue placeholder="Select Test Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {dropdownData.testType.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {dropdownData.testType.length > 0 ? (
+                        dropdownData.testType.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No test type
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
