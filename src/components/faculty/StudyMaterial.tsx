@@ -570,9 +570,9 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                       setUploadSection(String(s.section_id));
                     }
                   }}
-                  disabled={uploading}>
+                  disabled={uploading || grouped.length === 0}>
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
-                    <SelectValue placeholder="Select Subject" />
+                    <SelectValue placeholder={grouped.length === 0 ? "No subjects assigned" : "Select Subject"} />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
                     {grouped.length > 0 ? (
@@ -582,9 +582,9 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                         </SelectItem>
                       ))
                     ) : (
-                      <div className="p-2 text-sm text-center text-muted-foreground">
-                        No subject assigned
-                      </div>
+                      <SelectItem value="none" disabled className="text-xs sm:text-sm text-muted-foreground text-center">
+                        No subjects assigned
+                      </SelectItem>
                     )}
                   </SelectContent>
                 </Select>
