@@ -596,13 +596,13 @@ const UploadQP = () => {
 
                     <>
                       {(() => {
-                        const isApproved = currentQPMeta?.status === 'approved';
+                        const isLocked = currentQPMeta?.status && !['draft', 'rejected'].includes(currentQPMeta.status);
                         return (
                           <>
-                            {isApproved && (
+                            {isLocked && (
                               <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
-                                <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Approved</div>
-                                <div className="text-sm text-muted-foreground">This question paper has been approved by COE and cannot be edited.</div>
+                                <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Locked</div>
+                                <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
                               </div>
                             )}
                             <div id="upload-qp-table" className="overflow-x-auto border rounded-lg mt-2 custom-scrollbar">
@@ -614,28 +614,28 @@ const UploadQP = () => {
                                     <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Marks</TableHead>
                                     <TableHead className="text-sm font-semibold whitespace-nowrap w-[100px] min-w-[100px]">CO</TableHead>
                                     <TableHead className="text-sm font-semibold whitespace-nowrap w-[160px] min-w-[160px]">Blooms Level</TableHead>
-                                    {!isApproved && <TableHead className="text-sm font-semibold text-right whitespace-nowrap w-[80px]">Action</TableHead>}
+                                    {!isLocked && <TableHead className="text-sm font-semibold text-right whitespace-nowrap w-[80px]">Action</TableHead>}
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                   {questions.map((q) =>
                                     <TableRow key={q.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50/50'}>
                                       <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.number} disabled={isApproved} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                        <Input value={q.number} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
                                       </TableCell>
                                       <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.content} disabled={isApproved} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-9 w-full focus-visible:ring-1" />
+                                        <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-9 w-full focus-visible:ring-1" />
                                       </TableCell>
                                       <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.maxMarks} disabled={isApproved} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                        <Input value={q.maxMarks} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
                                       </TableCell>
                                       <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.co} disabled={isApproved} onChange={(e) => updateQuestion(q.id, 'co', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                        <Input value={q.co} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'co', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
                                       </TableCell>
                                       <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.bloomsLevel} disabled={isApproved} onChange={(e) => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                        <Input value={q.bloomsLevel} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
                                       </TableCell>
-                                      {!isApproved && (
+                                      {!isLocked && (
                                         <TableCell className="p-2 text-right whitespace-nowrap">
                                           <Button
                                             variant="ghost"
@@ -651,7 +651,7 @@ const UploadQP = () => {
                                 </TableBody>
                               </Table>
                             </div>
-                            {!isApproved && (
+                            {!isLocked && (
                               <div className="flex flex-col sm:flex-row gap-3 mt-6">
                                 <Button
                                   onClick={addQuestion}
