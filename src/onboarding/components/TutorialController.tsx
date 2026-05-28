@@ -179,6 +179,8 @@ const getHomePath = (role: string): string => {
     hms_admin: '/hms',
     transport_admin: '/transport-admin',
     library_admin: '/library-admin',
+    org_admin: '/org-admin',
+    orgadmin: '/org-admin',
   };
   return roleMap[role.toLowerCase()] || '/dashboard';
 };

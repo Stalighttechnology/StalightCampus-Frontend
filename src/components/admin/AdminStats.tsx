@@ -296,7 +296,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
           Admission Overview
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div id="admission-overview-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <DashboardCard
             title="Total Enquiries"
             value={stats.admission_enquiries || 0}

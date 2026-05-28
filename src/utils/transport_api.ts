@@ -90,6 +90,9 @@ export const fetchDrivers = () =>
 export const enrollDriver = (data: any) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/enroll-driver/`, { method: "POST", headers: authHeaders(), body: JSON.stringify(data) }).then((r) => r.json());
 
+export const deleteDriver = (id: number) =>
+  fetchWithTokenRefresh(`${API_BASE}/admin/drivers/${id}/delete/`, { method: "DELETE", headers: authHeaders() }).then((r) => r.json());
+
 export const fetchEligibleStudents = (page = 1, branch = "", batch = "", semester = "", search = "") => {
   const query = new URLSearchParams({ page: String(page) });
   if (branch) query.append("branch", branch);
