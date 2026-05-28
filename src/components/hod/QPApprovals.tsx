@@ -8,9 +8,9 @@ import { SkeletonTable } from "../ui/skeleton";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../hooks/use-toast";
 import { API_ENDPOINT } from "../../utils/config";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
-
 interface QPPending {
   id: number;
   subject: string;
@@ -66,6 +66,12 @@ const QPApprovals = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
+  const [historyQPs, setHistoryQPs] = useState<QPPending[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyTotalPages, setHistoryTotalPages] = useState(1);
+  const [historyTotalCount, setHistoryTotalCount] = useState(0);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
   const toggleExpanded = (key: string) => {
     setExpanded((p) => ({ ...p, [key]: !p[key] }));
   };
@@ -94,6 +100,10 @@ const QPApprovals = () => {
     fetchPendingQPs(currentPage);
   }, [currentPage]);
 
+  useEffect(() => {
+    fetchHistoryQPs(historyPage);
+  }, [historyPage]);
+
   const fetchPendingQPs = async (page: number = 1) => {
     setLoading(true);
     try {
@@ -120,6 +130,35 @@ const QPApprovals = () => {
 
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHistoryQPs = async (page: number = 1) => {
+    setHistoryLoading(true);
+    try {
+      const response = await fetch(`${API_ENDPOINT}/admin/qps/hod-history/?page=${page}&page_size=10`, {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+        }
+      });
+      const responseData = await response.json();
+
+      const hasResults = responseData && typeof responseData === 'object' && 'results' in responseData;
+      const dataSource = hasResults ? responseData.results : Array.isArray(responseData.data) ? responseData.data : [];
+
+      setHistoryQPs(dataSource);
+
+      if (hasResults && responseData.count) {
+        setHistoryTotalPages(responseData.total_pages || Math.ceil(responseData.count / 10));
+        setHistoryTotalCount(responseData.count);
+      } else {
+        setHistoryTotalPages(1);
+        setHistoryTotalCount(dataSource.length);
+      }
+    } catch (error) {
+
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -357,127 +396,188 @@ const QPApprovals = () => {
 
   }
 
-  return (
-    <div id="hod-qp-approvals-container" className={`w-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col h-[calc(100vh-280px)] min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col h-[calc(100vh-280px)] min-h-[550px]'}>
-        <CardHeader className="pb-2">
-          <div id="qp-approvals-header-section" className="flex items-center justify-between">
+  const renderQPGrid = (qps: QPPending[], isHistory: boolean = false) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {qps.map((qp) =>
+        <Card key={qp.id} className={`p-4 border transition-all hover:shadow-md ${theme === 'dark' ? 'bg-card/50 border-border' : 'bg-gray-50/50 border-gray-100'}`}>
+          <div className="flex flex-col h-full justify-between gap-3">
             <div>
-              <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
-              <div className="flex items-center gap-3">
-                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and approve question papers from your department faculty</p>
-                {totalCount > 0 &&
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-blue-100 text-blue-700'}`}>
-                    {totalCount} Total
-                  </span>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <h3 className="font-semibold text-base line-clamp-2">{qp.subject}</h3>
+                <Badge variant="outline" className={theme === 'dark' ? 'border-primary/50 text-primary' : 'border-blue-200 text-blue-700'}>
+                  {qp.test_type}
+                </Badge>
+              </div>
+
+              <div className="space-y-1.5 mb-3">
+                <p className="text-sm flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium">Faculty:</span>
+                  <span>{qp.faculty}</span>
+                </p>
+                <p className="text-sm flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium">Submitted:</span>
+                  <span>{new Date(qp.submitted_at).toLocaleDateString()}</span>
+                </p>
+                {qp.branch &&
+                  <p className="text-sm flex items-center gap-2">
+                    <span className="text-muted-foreground font-medium">Branch:</span>
+                    <span className="truncate">{qp.branch.name}</span>
+                  </p>
                 }
               </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 overflow-hidden px-4 sm:px-6 pt-0">
-          <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4">
-            {pendingQPs.length === 0 ?
-            <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
-                <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
-                  <ClipboardCheck className="w-12 h-12 opacity-80" />
+
+              {qp.last_action &&
+                <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
+                  <p className="font-medium mb-1">Action: {qp.last_action.action}</p>
+                  <p className="text-muted-foreground italic line-clamp-2">
+                    "{qp.last_action.comment || 'No comment provided'}"
+                  </p>
                 </div>
-                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Pending QPs</h3>
-                <p className="max-w-xs text-base leading-relaxed">
-                  All question papers have been reviewed. Check back later for new submissions from your faculty.
-                </p>
-              </div> :
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pendingQPs.map((qp) =>
-              <Card key={qp.id} className={`p-4 border transition-all hover:shadow-md ${theme === 'dark' ? 'bg-card/50 border-border' : 'bg-gray-50/50 border-gray-100'}`}>
-                    <div className="flex flex-col h-full justify-between gap-3">
-                      <div>
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="font-semibold text-base line-clamp-2">{qp.subject}</h3>
-                          <Badge variant="outline" className={theme === 'dark' ? 'border-primary/50 text-primary' : 'border-blue-200 text-blue-700'}>
-                            {qp.test_type}
-                          </Badge>
-                        </div>
-
-                        <div className="space-y-1.5 mb-3">
-                          <p className="text-sm flex items-center gap-2">
-                            <span className="text-muted-foreground font-medium">Faculty:</span>
-                            <span>{qp.faculty}</span>
-                          </p>
-                          <p className="text-sm flex items-center gap-2">
-                            <span className="text-muted-foreground font-medium">Submitted:</span>
-                            <span>{new Date(qp.submitted_at).toLocaleDateString()}</span>
-                          </p>
-                          {qp.branch &&
-                      <p className="text-sm flex items-center gap-2">
-                              <span className="text-muted-foreground font-medium">Branch:</span>
-                              <span className="truncate">{qp.branch.name}</span>
-                            </p>
-                      }
-                        </div>
-
-                        {qp.last_action &&
-                    <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
-                            <p className="font-medium mb-1">Last Action: {qp.last_action.action}</p>
-                            <p className="text-muted-foreground italic line-clamp-2">
-                              "{qp.last_action.comment || 'No comment provided'}"
-                            </p>
-                          </div>
-                    }
-                      </div>
-
-                      <div className="flex gap-2 mt-2">
-                        <Button
-                      variant="outline"
-                      size="sm"
-                      className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
-                      onClick={() => handleReview(qp)}>
-                      
-                          <Eye className="w-4 h-4" />
-                          Review & Action
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
+              }
+              {isHistory && qp.status && (
+                <div className="mt-2">
+                  <Badge variant="secondary" className="w-full justify-center">Current Status: {qp.status.replace('_', ' ').toUpperCase()}</Badge>
+                </div>
               )}
-              </div>
-            }
+            </div>
+
+            <div className="flex gap-2 mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
+                onClick={() => handleReview(qp)}>
+                <Eye className="w-4 h-4" />
+                {isHistory ? 'View Details' : 'Review & Action'}
+              </Button>
+            </div>
           </div>
-        </CardContent>
-        {pendingQPs.length > 0 && (
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1 || loading}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Previous
-              </Button>
+        </Card>
+      )}
+    </div>
+  );
 
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {currentPage}
-                </span>
+  return (
+    <div id="hod-qp-approvals-container" className={`w-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <Tabs defaultValue="pending" className="w-full">
+        <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col min-h-[550px]'}>
+          <CardHeader className="pb-2">
+            <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
+                <div className="flex items-center gap-3">
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and track question papers from your department faculty</p>
+                </div>
               </div>
-
-              <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages || loading}
-                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Next
-              </Button>
+              <TabsList>
+                <TabsTrigger value="pending" className="px-4">Pending Requests</TabsTrigger>
+                <TabsTrigger value="history" className="px-4">History</TabsTrigger>
+              </TabsList>
             </div>
-          </CardFooter>
-        )}
-      </Card>
+          </CardHeader>
+
+          <TabsContent value="pending" className="flex-1 mt-0">
+            <CardContent className="px-4 sm:px-6 pt-0">
+              <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
+                {pendingQPs.length === 0 ?
+                  <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                      <ClipboardCheck className="w-12 h-12 opacity-80" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Pending QPs</h3>
+                    <p className="max-w-xs text-base leading-relaxed">
+                      All question papers have been reviewed. Check back later for new submissions.
+                    </p>
+                  </div> :
+                  renderQPGrid(pendingQPs, false)
+                }
+              </div>
+            </CardContent>
+            {pendingQPs.length > 0 && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Previous
+                  </Button>
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {currentPage}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages || loading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
+          </TabsContent>
+
+          <TabsContent value="history" className="flex-1 mt-0">
+            <CardContent className="px-4 sm:px-6 pt-0">
+              <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
+                {historyLoading && historyQPs.length === 0 ? (
+                  <SkeletonTable rows={3} cols={3} />
+                ) : historyQPs.length === 0 ? (
+                  <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <ClipboardCheck className="w-12 h-12 opacity-80" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No History Found</h3>
+                    <p className="max-w-xs text-base leading-relaxed">
+                      You haven't approved or rejected any question papers yet.
+                    </p>
+                  </div>
+                ) : (
+                  renderQPGrid(historyQPs, true)
+                )}
+              </div>
+            </CardContent>
+            {historyQPs.length > 0 && (
+              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                <div>
+                  Showing {historyTotalCount === 0 ? 0 : (historyPage - 1) * 10 + 1} to {Math.min(historyPage * 10, historyTotalCount)} of {historyTotalCount} records
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
+                    disabled={historyPage === 1 || historyLoading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Previous
+                  </Button>
+                  <div className="flex items-center justify-center min-w-[2rem]">
+                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {historyPage}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
+                    disabled={historyPage === historyTotalPages || historyLoading}
+                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
+          </TabsContent>
+        </Card>
+      </Tabs>
 
       <Dialog open={dialogOpen} onOpenChange={(open) => {
         if (!open) {
@@ -583,6 +683,11 @@ const QPApprovals = () => {
                 <XCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
                 <span className="whitespace-normal">Reject</span>
               </Button>
+              {qpDetail && qpDetail.id && historyQPs.some(q => q.id === qpDetail.id) && (
+                <div className="ml-2 flex items-center text-xs text-muted-foreground">
+                  (History View)
+                </div>
+              )}
             </div>
             <div className="ml-auto">
               <Button variant="outline" onClick={() => downloadPDF()} className="bg-transparent hover:bg-transparent w-full sm:w-auto justify-center transition-none">
