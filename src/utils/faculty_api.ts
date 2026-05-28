@@ -929,7 +929,7 @@ export const getAssignmentSubmissions = async (assignmentId: number) => {
 export const gradeSubmission = async (submissionId: number, data: {marks_obtained: string;feedback: string;}) => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/assignments/submissions/${submissionId}/grade/`, {
-      method: "POST",
+      method: "PUT",
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
         "Content-Type": "application/json"

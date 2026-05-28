@@ -93,6 +93,15 @@ const FacultyAssignments = () => {
   const [activeTab, setActiveTab] = useState<'submitted' | 'pending'>('submitted');
   const [exportingPDF, setExportingPDF] = useState(false);
 
+  // Grade-and-view modal state
+  const [gradeModal, setGradeModal] = useState<{open: boolean; submission: any | null}>({
+    open: false,
+    submission: null
+  });
+  const [gradeMarks, setGradeMarks] = useState('');
+  const [gradeFeedback, setGradeFeedback] = useState('');
+  const [gradingSaving, setGradingSaving] = useState(false);
+
   // Filter State
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSubject, setFilterSubject] = useState('all');
@@ -296,6 +305,55 @@ const FacultyAssignments = () => {
       });
     } finally {
       setLoadingSubmissions(false);
+    }
+  };
+
+  const openGradeModal = (sub: any) => {
+    setGradeModal({ open: true, submission: sub });
+    setGradeMarks(sub.marks_obtained !== null && sub.marks_obtained !== undefined ? String(sub.marks_obtained) : '');
+    setGradeFeedback(sub.feedback || '');
+  };
+
+  const handleGradeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gradeModal.submission || !selectedAssignment) return;
+
+    const maxMarks = Number(selectedAssignment.max_marks);
+    const marks = Number(gradeMarks);
+
+    if (isNaN(marks) || gradeMarks.trim() === '') {
+      toast({ title: 'Validation Error', description: 'Please enter a valid marks value.', variant: 'destructive' });
+      return;
+    }
+    if (marks < 0 || marks > maxMarks) {
+      toast({ title: 'Out of Range', description: `Marks must be between 0 and ${maxMarks}.`, variant: 'destructive' });
+      return;
+    }
+
+    setGradingSaving(true);
+    try {
+      const res = await gradeSubmission(gradeModal.submission.id, {
+        marks_obtained: gradeMarks,
+        feedback: gradeFeedback
+      });
+      if (res.success) {
+        toast({ title: 'Graded!', description: 'Marks saved successfully.' });
+        // Update in-place so the table refreshes without a full reload
+        setSubmissionsList(prev =>
+          prev.map(s =>
+            s.id === gradeModal.submission.id
+              ? { ...s, marks_obtained: marks, feedback: gradeFeedback }
+              : s
+          )
+        );
+        setGradeModal({ open: false, submission: null });
+      } else {
+        toast({ title: 'Error', description: res.message || 'Failed to save grade.', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Network error.', variant: 'destructive' });
+    } finally {
+      setGradingSaving(false);
     }
   };
 
@@ -1135,16 +1193,29 @@ const FacultyAssignments = () => {
                               {new Date(sub.submitted_at).toLocaleString()}
                             </td>
                             <td className="px-6 py-4 text-right">
-                              {sub.file_url ? (
-                                <a href={sub.file_url} target="_blank" rel="noreferrer">
-                                  <Button variant="outline" size="sm" className="h-8 gap-2 bg-primary hover:bg-primary/90 text-white hover:text-white">
-                                    <FileText size={14} />
+                              <div className="flex items-center justify-end gap-2">
+                                {sub.file_url ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 gap-2 bg-primary hover:bg-primary/90 text-white hover:text-white"
+                                    onClick={() => openGradeModal(sub)}>
+                                    <Eye size={14} />
                                     View
                                   </Button>
-                                </a>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">No File</span>
-                              )}
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">No File</span>
+                                )}
+                                {sub.marks_obtained !== null && sub.marks_obtained !== undefined ? (
+                                  <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
+                                    theme === 'dark' ? 'bg-green-500/15 text-green-400' : 'bg-green-100 text-green-700'
+                                  }`}>
+                                    {sub.marks_obtained}/{selectedAssignment?.max_marks}
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] text-amber-500 font-semibold">Ungraded</span>
+                                )}
+                              </div>
                             </td>
                           </tr>
                   )}
@@ -1207,6 +1278,176 @@ const FacultyAssignments = () => {
             </motion.div>
           </div>
         }
+      </AnimatePresence>
+
+      {/* ── Grade & View Submission Modal ─────────────────────────────── */}
+      <AnimatePresence>
+        {gradeModal.open && gradeModal.submission && (
+          <div className="fixed inset-0 z-[60] flex items-stretch justify-center">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setGradeModal({ open: false, submission: null })}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+
+            {/* Modal panel */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              className={`relative w-full max-w-4xl m-4 flex flex-col rounded-3xl overflow-hidden shadow-2xl ${
+                theme === 'dark' ? 'bg-[#18181b] border border-white/10' : 'bg-white'
+              }`}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+                <div>
+                  <h2 className="text-lg font-semibold">{gradeModal.submission.student?.name}</h2>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    {gradeModal.submission.student?.usn} &bull; Submitted {new Date(gradeModal.submission.submitted_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={gradeModal.submission.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                  >
+                    <ExternalLink size={13} /> Open in new tab
+                  </a>
+                  <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setGradeModal({ open: false, submission: null })}>
+                    <X size={20} />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Document Viewer — direct iframe for PDF, download card for other types */}
+              {(() => {
+                const url = gradeModal.submission.file_url || '';
+                const ext = url.split('?')[0].split('.').pop()?.toLowerCase();
+                const isPdf = ext === 'pdf';
+
+                if (isPdf) {
+                  return (
+                    <div className="flex-1 min-h-0 bg-gray-100 dark:bg-zinc-900">
+                      <iframe
+                        src={`${url}#toolbar=1&navpanes=0&scrollbar=1`}
+                        className="w-full h-full min-h-[420px] border-0"
+                        title="Submitted Assignment"
+                      />
+                    </div>
+                  );
+                }
+
+                // For DOCX, images etc. — browser can't inline them; offer open/download
+                return (
+                  <div className={`flex-1 min-h-0 flex flex-col items-center justify-center gap-5 py-16 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-gray-50'}`}>
+                    <div className={`p-5 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-white shadow'}`}>
+                      <FileText size={48} className="text-primary/60" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-base">Preview not available for this file type</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {ext?.toUpperCase() ?? 'File'} — open it to review the submission
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <a href={url} target="_blank" rel="noreferrer">
+                        <Button type="button" className="gap-2 bg-primary text-white rounded-xl">
+                          <ExternalLink size={15} /> Open File
+                        </Button>
+                      </a>
+                      <a href={url} download>
+                        <Button type="button" variant="outline" className="gap-2 rounded-xl">
+                          <Download size={15} /> Download
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Sticky Grade Footer */}
+              <form
+                onSubmit={handleGradeSubmit}
+                className={`shrink-0 border-t border-border px-6 py-4 ${
+                  theme === 'dark' ? 'bg-[#18181b]' : 'bg-white'
+                }`}
+              >
+                <div className="flex flex-col md:flex-row items-start md:items-end gap-4">
+                  {/* Marks input */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Marks
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        max={selectedAssignment?.max_marks ?? 100}
+                        step={1}
+                        required
+                        value={gradeMarks}
+                        onChange={e => setGradeMarks(e.target.value)}
+                        placeholder="0"
+                        className={`w-24 rounded-xl border px-3 py-2 text-lg font-bold text-center focus:outline-none focus:ring-2 focus:ring-primary ${
+                          theme === 'dark'
+                            ? 'bg-white/5 border-border text-foreground'
+                            : 'bg-gray-50 border-gray-200 text-gray-900'
+                        }`}
+                      />
+                      <span className="text-muted-foreground font-semibold text-sm">/ {selectedAssignment?.max_marks ?? '—'}</span>
+                      {/* Live validation indicator */}
+                      {gradeMarks !== '' && (
+                        Number(gradeMarks) >= 0 && Number(gradeMarks) <= (selectedAssignment?.max_marks ?? 100)
+                          ? <CheckCircle size={18} className="text-green-500" />
+                          : <AlertCircle size={18} className="text-red-500" />
+                      )}
+                    </div>
+                    {gradeMarks !== '' && (Number(gradeMarks) < 0 || Number(gradeMarks) > (selectedAssignment?.max_marks ?? 100)) && (
+                      <p className="text-xs text-red-500">Must be 0 – {selectedAssignment?.max_marks}</p>
+                    )}
+                  </div>
+
+                  {/* Feedback textarea */}
+                  <div className="flex-1 flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Feedback <span className="normal-case font-normal">(optional)</span>
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={gradeFeedback}
+                      onChange={e => setGradeFeedback(e.target.value)}
+                      placeholder="Write comments for the student..."
+                      className={`w-full rounded-xl border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary ${
+                        theme === 'dark'
+                          ? 'bg-white/5 border-border text-foreground placeholder:text-muted-foreground'
+                          : 'bg-gray-50 border-gray-200 text-gray-900'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Save button */}
+                  <Button
+                    type="submit"
+                    disabled={gradingSaving || gradeMarks.trim() === ''}
+                    className="shrink-0 h-10 px-6 bg-primary text-white hover:bg-primary/90 rounded-xl gap-2"
+                  >
+                    {gradingSaving ? (
+                      <><Loader2 size={16} className="animate-spin" /> Saving...</>
+                    ) : (
+                      <><CheckCircle size={16} /> Save Grade</>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Delete Confirmation Dialog */}
