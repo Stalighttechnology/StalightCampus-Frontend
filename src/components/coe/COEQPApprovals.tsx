@@ -10,7 +10,7 @@ import {
 "../ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Eye, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Download, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
@@ -58,6 +58,36 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [finalizedPage, setFinalizedPage] = useState(1);
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const { theme } = useTheme();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const downloadPDF = async () => {
+    if (!qpDetail) return;
+    setDownloadingPDF(true);
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/qps/${qpDetail.id}/export-pdf/`, {
+        method: "GET"
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const fileName = `qp-${(qpDetail.subject || 'qp').replace(/\s+/g, '_')}-${(qpDetail.test_type || 'test').replace(/\s+/g, '_')}.pdf`;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        MySwal.fire('Error', result.message || "Failed to download PDF", 'error');
+      }
+    } catch (error) {
+      MySwal.fire('Error', "Network error while exporting PDF", 'error');
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   const toggleExpanded = (key: string) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -424,7 +454,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     variant="outline"
                     size="sm"
                     onClick={() => {setSelectedQP(qp);setQpDetail(null);fetchQPDetail(qp.id);setDialogOpen(true);}}
-                    className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold sm:font-normal">
+                    className="w-full sm:w-auto h-12 sm:h-9 text-[18px] sm:text-sm font-semibold sm:font-normal bg-primary text-white hover:bg-primary/90 hover:text-white">
                     
                         <Eye className="w-4 h-4 mr-1 sm:mr-2" />
                         Review
@@ -590,7 +620,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="overflow-auto px-4 py-2 space-y-4 flex-1">
+          <div className="overflow-auto custom-scrollbar px-4 py-2 space-y-4 flex-1">
             {detailLoading ?
             <div className="space-y-4">
                 <SkeletonCard className="h-40 w-full" />
@@ -691,63 +721,17 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
 
             {qpDetail && (
-              <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+              <div className="w-full sm:w-auto sm:ml-auto">
                 <Button
-                  onClick={() => printQP(qpDetail)}
-                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"
+                  onClick={downloadPDF}
+                  disabled={downloadingPDF}
+                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 disabled:opacity-50"
                 >
-                  Print
-                </Button>
-                <Button
-                  onClick={() => {
-                    const doc = new jsPDF();
-                    let y = 10;
-                    doc.setFontSize(14);
-                    doc.text('Question Paper', 14, y);
-                    y += 10;
-                    doc.setFontSize(12);
-                    doc.text(`Subject: ${qpDetail.subject}`, 14, y);y += 6;
-                    doc.text(`Test Type: ${qpDetail.test_type}`, 14, y);y += 6;
-                    doc.text(`Faculty: ${qpDetail.faculty}`, 14, y);y += 8;
-                    qpDetail.questions.forEach((q: any) => {
-                      q.subparts.forEach((s: any) => {
-                        doc.setFontSize(12);
-                        doc.text(`${q.question_number}${s.subpart_label}. ${s.content}`, 14, y);
-                        y += 6;
-                        doc.setFontSize(10);
-                        doc.text(`(${s.max_marks} marks)`, 14, y);
-                        y += 6;
-                        doc.text(`CO: ${q.co}`, 14, y);
-                        y += 6;
-                        doc.text(`Blooms: ${q.blooms_level}`, 14, y);
-                        y += 8;
-                        if (y > 270) {doc.addPage();y = 10;}
-                      });
-                    });
-                    doc.save(`qp-${qpDetail.subject}-${qpDetail.test_type}.pdf`);
-                  }}
-                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"
-                >
-                  <Download className="w-4 h-4 mr-1" />
-                  Download PDF
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+                  {downloadingPDF ? "Downloading..." : "Export PDF"}
                 </Button>
               </div>
             )}
-
-            <div className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setDialogOpen(false);
-                  setSelectedQP(null);
-                  setQpDetail(null);
-                  setComment("");
-                }}
-                className="w-full sm:w-auto justify-center whitespace-normal text-center"
-              >
-                Close
-              </Button>
-            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

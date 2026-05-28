@@ -433,8 +433,8 @@ const AdminQPApprovals = () => {
                 </div>
               </div>
               <TabsList>
-                <TabsTrigger value="pending" className="px-4">Pending Requests</TabsTrigger>
-                <TabsTrigger value="history" className="px-4">History</TabsTrigger>
+                <TabsTrigger value="pending" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
+                <TabsTrigger value="history" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
               </TabsList>
             </div>
           </CardHeader>
