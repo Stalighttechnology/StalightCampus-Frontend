@@ -6,6 +6,7 @@ import LibraryBooksCatalog from "../library/LibraryBooksCatalog";
 import LibraryCirculation from "../library/LibraryCirculation";
 import LibraryFineManagement from "../library/LibraryFineManagement";
 import Profile from "../common/Profile";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 
 interface DashboardProps {
   user: any;
@@ -63,6 +64,7 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
           {renderContent()}
         </div>
       </motion.div>
+      <TutorialController />
     </DashboardLayout>
   );
 };

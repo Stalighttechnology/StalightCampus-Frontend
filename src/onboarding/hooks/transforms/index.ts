@@ -15,6 +15,7 @@ import { wardenTransform } from './wardenTransform';
 import { feesManagerTransform } from './feesManagerTransform';
 import { hmsTransform } from './hmsTransform';
 import { transportAdminTransform } from './transportAdminTransform';
+import { libraryAdminTransform } from './libraryAdminTransform';
 
 export { applyMobileLabels } from './mobileLabels';
 
@@ -47,6 +48,7 @@ export const ROLE_TRANSFORM_MAP: Record<string, RoleTransformFn> = {
   hms: hmsTransform,
   hms_admin: hmsTransform,
   transport_admin: transportAdminTransform,
+  library_admin: libraryAdminTransform,
 };
 
 /**

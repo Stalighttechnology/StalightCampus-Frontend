@@ -118,7 +118,12 @@ const shouldScrollStep = (targetStep: any): boolean => {
       typeof target === 'string' &&
       (target.startsWith('#transport-') || target === '#sidebar-transport-');
 
-    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport;
+    // 8. Library tour targets
+    const isLibrary =
+      typeof target === 'string' &&
+      (target.startsWith('#library-') || target.startsWith('#sidebar-library-') || target === '#sidebar-library');
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary;
   }
   return !targetStep.disableScrolling;
 };
@@ -172,6 +177,7 @@ const getHomePath = (role: string): string => {
     hms: '/hms',
     hms_admin: '/hms',
     transport_admin: '/transport-admin',
+    library_admin: '/library-admin',
   };
   return roleMap[role.toLowerCase()] || '/dashboard';
 };

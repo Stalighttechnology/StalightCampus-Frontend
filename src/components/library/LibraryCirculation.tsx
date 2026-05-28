@@ -100,7 +100,7 @@ const LibraryCirculation = () => {
     <div className="space-y-6">
       {/* List of active borrows */}
       <Card className={`border overflow-hidden shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-        <CardHeader className="pb-3 border-b border-gray-200 dark:border-border">
+        <CardHeader id="library-circulation-action-header" className="pb-3 border-b border-gray-200 dark:border-border">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
             <div>
               <div className="flex items-center gap-2 mb-0.5">
