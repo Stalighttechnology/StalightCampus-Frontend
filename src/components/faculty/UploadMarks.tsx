@@ -563,7 +563,7 @@ const UploadMarks = () => {
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
         detail: isQuestionPaperTab,
-        approved_only: false
+        approved_only: true
       });
       if (qpResponse.success && qpResponse.data) {
         const existingQp = qpResponse.data.find((q: any) => {

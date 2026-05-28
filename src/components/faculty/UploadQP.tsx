@@ -295,7 +295,8 @@ const UploadQP = () => {
         section_id: selected.section_id?.toString(),
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
-        detail: false
+        detail: false,
+        mine_only: true
       });
       if (res?.success && Array.isArray(res.data)) {
         // Find exact match on Subject and Test Type for this section/semester
@@ -595,64 +596,81 @@ const UploadQP = () => {
                     </div> :
 
                     <>
-                      <div id="upload-qp-table" className="overflow-x-auto border rounded-lg mt-2 custom-scrollbar">
-                        <Table>
-                          <TableHeader className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
-                            <TableRow>
-                              <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Q No.</TableHead>
-                              <TableHead className="text-sm font-semibold whitespace-nowrap min-w-[280px]">Question Content</TableHead>
-                              <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Marks</TableHead>
-                              <TableHead className="text-sm font-semibold whitespace-nowrap w-[100px] min-w-[100px]">CO</TableHead>
-                              <TableHead className="text-sm font-semibold whitespace-nowrap w-[160px] min-w-[160px]">Blooms Level</TableHead>
-                              <TableHead className="text-sm font-semibold text-right whitespace-nowrap w-[80px]">Action</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {questions.map((q) =>
-                              <TableRow key={q.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50/50'}>
-                                <TableCell className="p-2 whitespace-nowrap">
-                                  <Input value={q.number} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
-                                </TableCell>
-                                <TableCell className="p-2 whitespace-nowrap">
-                                  <Input value={q.content} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-9 w-full focus-visible:ring-1" />
-                                </TableCell>
-                                <TableCell className="p-2 whitespace-nowrap">
-                                  <Input value={q.maxMarks} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
-                                </TableCell>
-                                <TableCell className="p-2 whitespace-nowrap">
-                                  <Input value={q.co} onChange={(e) => updateQuestion(q.id, 'co', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
-                                </TableCell>
-                                <TableCell className="p-2 whitespace-nowrap">
-                                  <Input value={q.bloomsLevel} onChange={(e) => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
-                                </TableCell>
-                                <TableCell className="p-2 text-right whitespace-nowrap">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeQuestion(q.id)}
-                                    className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 w-9 p-0">
-                                    <Trash2 size={16} />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
+                      {(() => {
+                        const isLocked = currentQPMeta?.status && !['draft', 'rejected'].includes(currentQPMeta.status);
+                        return (
+                          <>
+                            {isLocked && (
+                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+                                <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Locked</div>
+                                <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
+                              </div>
                             )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                      <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                        <Button
-                          onClick={addQuestion}
-                          disabled={!selected.branch_id || !selected.subject_id || !selected.testType}
-                          className="bg-primary text-white hover:bg-primary/90 transition-all duration-200">
-                          <Plus size={14} className="mr-2" /> Add Question
-                        </Button>
-                        <Button
-                          onClick={saveFormat}
-                          disabled={!selected.branch_id || !selected.subject_id || !selected.testType}
-                          className="bg-primary text-white hover:bg-primary/90 transition-all duration-200">
-                          Save Format
-                        </Button>
-                      </div>
+                            <div id="upload-qp-table" className="overflow-x-auto border rounded-lg mt-2 custom-scrollbar">
+                              <Table>
+                                <TableHeader className={theme === 'dark' ? 'bg-muted/50' : 'bg-gray-50'}>
+                                  <TableRow>
+                                    <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Q No.</TableHead>
+                                    <TableHead className="text-sm font-semibold whitespace-nowrap min-w-[280px]">Question Content</TableHead>
+                                    <TableHead className="text-sm font-semibold whitespace-nowrap w-[80px] min-w-[80px]">Marks</TableHead>
+                                    <TableHead className="text-sm font-semibold whitespace-nowrap w-[100px] min-w-[100px]">CO</TableHead>
+                                    <TableHead className="text-sm font-semibold whitespace-nowrap w-[160px] min-w-[160px]">Blooms Level</TableHead>
+                                    {!isLocked && <TableHead className="text-sm font-semibold text-right whitespace-nowrap w-[80px]">Action</TableHead>}
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {questions.map((q) =>
+                                    <TableRow key={q.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50/50'}>
+                                      <TableCell className="p-2 whitespace-nowrap">
+                                        <Input value={q.number} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                      </TableCell>
+                                      <TableCell className="p-2 whitespace-nowrap">
+                                        <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-9 w-full focus-visible:ring-1" />
+                                      </TableCell>
+                                      <TableCell className="p-2 whitespace-nowrap">
+                                        <Input value={q.maxMarks} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                      </TableCell>
+                                      <TableCell className="p-2 whitespace-nowrap">
+                                        <Input value={q.co} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'co', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                      </TableCell>
+                                      <TableCell className="p-2 whitespace-nowrap">
+                                        <Input value={q.bloomsLevel} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                      </TableCell>
+                                      {!isLocked && (
+                                        <TableCell className="p-2 text-right whitespace-nowrap">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => removeQuestion(q.id)}
+                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 w-9 p-0">
+                                            <Trash2 size={16} />
+                                          </Button>
+                                        </TableCell>
+                                      )}
+                                    </TableRow>
+                                  )}
+                                </TableBody>
+                              </Table>
+                            </div>
+                            {!isLocked && (
+                              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                                <Button
+                                  onClick={addQuestion}
+                                  disabled={!selected.branch_id || !selected.subject_id || !selected.testType}
+                                  className="bg-primary text-white hover:bg-primary/90 transition-all duration-200">
+                                  <Plus size={14} className="mr-2" /> Add Question
+                                </Button>
+                                <Button
+                                  onClick={saveFormat}
+                                  disabled={!selected.branch_id || !selected.subject_id || !selected.testType}
+                                  className="bg-primary text-white hover:bg-primary/90 transition-all duration-200">
+                                  Save Format
+                                </Button>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </>
                 }
               </div>
