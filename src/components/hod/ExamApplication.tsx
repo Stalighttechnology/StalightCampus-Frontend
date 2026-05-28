@@ -53,6 +53,7 @@ const ExamApplication: React.FC = () => {
   const [existingApplications, setExistingApplications] = useState<Array<any>>([]);
   const [editingApplication, setEditingApplication] = useState<any>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadingHallTicketId, setDownloadingHallTicketId] = useState<string | null>(null);
 
   // Fetch dropdowns on mount
   useEffect(() => {
@@ -143,6 +144,7 @@ const ExamApplication: React.FC = () => {
   const subjectsCache = useRef<Record<string, any>>({});
 
   const downloadHallTicket = async (student: any) => {
+    setDownloadingHallTicketId(student.usn);
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/hall-ticket/${student.user_id || student.id}/?exam_period=${examPeriod}`, {
         method: 'GET',
@@ -170,6 +172,8 @@ const ExamApplication: React.FC = () => {
         description: error instanceof Error ? error.message : "Failed to download hall ticket",
         variant: "destructive"
       });
+    } finally {
+      setDownloadingHallTicketId(null);
     }
   };
 
@@ -235,7 +239,7 @@ const ExamApplication: React.FC = () => {
           status: r.status
         }))];
 
-        setStudentDetails({ subjects_registered: combinedRegistered, student: resJson?.data?.student_meta || null });
+        setStudentDetails({ subjects_registered: combinedRegistered, student: resJson?.data?.student_meta || null, org_logo: resJson?.data?.org_logo || null });
 
         if (resJson && resJson.data && resJson.data.student_meta) {
           const meta = resJson.data.student_meta;
@@ -460,10 +464,17 @@ const ExamApplication: React.FC = () => {
                             Apply / View
                           </Button>
                           {studentStatuses[student.usn] === 'Applied' &&
-                      <Button onClick={() => downloadHallTicket(student)} className="bg-green-600 hover:bg-green-700 text-white h-8 px-3">
+                            <Button
+                              onClick={() => downloadHallTicket(student)}
+                              className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 flex items-center gap-2"
+                              disabled={downloadingHallTicketId === student.usn}>
+                              {downloadingHallTicketId === student.usn ?
+                                <Loader2 className="h-4 w-4 animate-spin" /> :
+                                <FileDown className="h-4 w-4" />
+                              }
                               Hall Ticket
                             </Button>
-                      }
+                          }
                         </td>
                       </tr>
                   )}
@@ -489,8 +500,28 @@ const ExamApplication: React.FC = () => {
             <div className="p-1 md:p-2 lg:p-4">
               <div ref={printRef} className="mt-4">
                 <div id="exam-application-printable" className="p-3 md:p-4 lg:p-6 bg-white text-black" style={{ minWidth: '100%', maxWidth: '800px', margin: '0 auto' }}>
-                  
-                  <div className="text-center mb-4"><div className="font-bold text-lg">Exam Application Form</div></div>
+                  <div className="flex items-center justify-between mb-2 border-b pb-2">
+                    <div>
+                      <img
+                        src={studentDetails?.org_logo || JSON.parse(sessionStorage.getItem("user") || '{}').org_logo || "/logo.jpeg"}
+                        alt="Logo"
+                        style={{ height: 96, width: 96, objectFit: 'contain', borderRadius: 6 }} />
+                    </div>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div className="font-bold text-lg uppercase" style={{ letterSpacing: '0.6px' }}>
+                        {JSON.parse(sessionStorage.getItem("user") || '{}').org_name || "NEURO CAMPUS"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Official Campus Portal</div>
+                    </div>
+                    <div style={{ width: 120, textAlign: 'right' }}>
+                      <div className="text-sm font-medium">Exam Application</div>
+                      <div className="text-xs text-muted-foreground">{new Date().toLocaleDateString()}</div>
+                    </div>
+                  </div>
+
+                  <div className="text-center my-4">
+                    <div className="font-bold text-lg">Exam Application Form</div>
+                  </div>
 
                   <div className="flex items-center gap-4 mb-4">
                     <Avatar className="w-20 h-20 rounded-md">

@@ -48,6 +48,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
   const [editingApplication, setEditingApplication] = useState<any>(null);
   const [isDirectDownload, setIsDirectDownload] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadingHallTicketId, setDownloadingHallTicketId] = useState<string | null>(null);
 
   // Use hooks for fetching - requesting only essential fields to optimize payload
   const includeFields = 'id,user_id,name,usn,branch,semester,section';
@@ -108,6 +109,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
   const fetchInProgressRef = useRef<string | null>(null);
 
   const downloadHallTicket = async (student: any) => {
+    setDownloadingHallTicketId(student.usn);
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/hall-ticket/${student.id}/?exam_period=${examPeriod}`, {
         method: 'GET',
@@ -149,6 +151,8 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
         description: error instanceof Error ? error.message : "Failed to download hall ticket",
         variant: "destructive"
       });
+    } finally {
+      setDownloadingHallTicketId(null);
     }
   };
 
@@ -250,7 +254,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
           combinedFiltered = combinedRegistered.filter((it: any) => it.subject_type !== 'open_elective');
         }
 
-        setStudentDetails({ subjects_registered: combinedFiltered, student: resJson?.data?.student || null });
+        setStudentDetails({ subjects_registered: combinedFiltered, student: resJson?.data?.student || null, org_logo: resJson?.data?.org_logo || null });
 
         // Merge returned student meta (semester_id/batch_id) into selectedStudent for validation
         if (resJson && resJson.data && resJson.data.student) {
@@ -506,10 +510,14 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                       {studentStatuses[student.usn] === 'Applied' &&
                   <Button
                     onClick={() => downloadHallTicket(student)}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white h-9">
-                    
-                          Download Hall Ticket
-                        </Button>
+                    className="w-full bg-green-600 hover:bg-green-700 text-white h-9 flex items-center justify-center gap-2"
+                    disabled={downloadingHallTicketId === student.usn}>
+                    {downloadingHallTicketId === student.usn ?
+                      <Loader2 className="h-4 w-4 animate-spin" /> :
+                      <FileDown className="h-4 w-4" />
+                    }
+                    Download Hall Ticket
+                  </Button>
                   }
                     </div>
                   </div>
@@ -563,10 +571,14 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                         {studentStatuses[student.usn] === 'Applied' &&
                     <Button
                       onClick={() => downloadHallTicket(student)}
-                      className="bg-green-600 hover:bg-green-700 text-white h-8 px-3">
-                      
-                            Hall Ticket
-                          </Button>
+                      className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 flex items-center gap-2"
+                      disabled={downloadingHallTicketId === student.usn}>
+                      {downloadingHallTicketId === student.usn ?
+                        <Loader2 className="h-4 w-4 animate-spin" /> :
+                        <FileDown className="h-4 w-4" />
+                      }
+                      Hall Ticket
+                    </Button>
                     }
                       </td>
                     </tr>
@@ -659,7 +671,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <img
-                        src={JSON.parse(sessionStorage.getItem("user") || '{}').org_logo || "/logo.jpeg"}
+                        src={studentDetails?.org_logo || JSON.parse(sessionStorage.getItem("user") || '{}').org_logo || "/logo.jpeg"}
                         alt="Logo"
                         style={{ height: 96, width: 96, objectFit: 'contain', borderRadius: 6 }} />
                       
