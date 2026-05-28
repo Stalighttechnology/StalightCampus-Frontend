@@ -579,15 +579,27 @@ const TakeAttendance = () => {
                       <SelectValue placeholder="Select Subject" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                      {subjects.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                      {subjects.length > 0 ? (
+                        subjects.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No subject
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
-                  <Select value={branchId?.toString()} onValueChange={(v) => setBranchId(Number(v))} disabled={!subjectId}>
+                   <Select value={branchId?.toString()} onValueChange={(v) => setBranchId(Number(v))} disabled={!subjectId}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!subjectId}>
                       <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                      {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                      {branches.length > 0 ? (
+                        branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No branch
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <Select value={semesterId?.toString()} onValueChange={(v) => setSemesterId(Number(v))} disabled={!branchId || semesters.length === 0}>
@@ -595,7 +607,13 @@ const TakeAttendance = () => {
                       <SelectValue placeholder="Select Semester" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                      {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                      {semesters.length > 0 ? (
+                        semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No semester
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <Select value={sectionId?.toString() || ""} onValueChange={(v) => setSectionId(v ? Number(v) : null)} disabled={!semesterId || sections.length === 0}>
@@ -603,7 +621,13 @@ const TakeAttendance = () => {
                       <SelectValue placeholder={subjectType === 'elective' ? "Select Section (Optional)" : "Select Section"} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                      {sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                      {sections.length > 0 ? (
+                        sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No section
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
