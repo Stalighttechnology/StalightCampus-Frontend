@@ -22,6 +22,7 @@ import { API_ENDPOINT } from "../../utils/config";
 // Removed chart imports; performance chart is no longer shown on this page
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
+import Swal from "sweetalert2";
 import {
   Select,
   SelectTrigger,
@@ -641,7 +642,13 @@ const StudentManagement = () => {
 
     // If any validation errors, update state and stop
     if (Object.keys(newErrors).length > 0) {
-      updateState({ manualErrors: newErrors, uploadErrors: ["Fix errors before submitting"] });
+      updateState({ manualErrors: newErrors });
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Please fix the validation errors in the form before submitting.",
+        confirmButtonColor: "#9147e0"
+      });
       return;
     }
 
@@ -703,11 +710,20 @@ const StudentManagement = () => {
           updateState({ uploadedCount: 0, updatedCount: 0 });
         }, 3000);
       } else {
-        updateState({ uploadErrors: [res.message || "Error adding student"] });
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: res.message || "Error adding student",
+          confirmButtonColor: "#9147e0"
+        });
       }
     } catch (err) {
-
-      updateState({ uploadErrors: ["Failed to add student"] });
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to add student",
+        confirmButtonColor: "#9147e0"
+      });
     }
   };
 
@@ -717,7 +733,12 @@ const StudentManagement = () => {
     // Validate cycle for semesters 1 and 2
     const semesterNumber = getSemesterNumber(state.editForm.semester);
     if (semesterNumber <= 2 && !state.editForm.cycle) {
-      updateState({ uploadErrors: ["Cycle is required for semesters 1 and 2"] });
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Cycle is required for semesters 1 and 2",
+        confirmButtonColor: "#9147e0"
+      });
       return;
     }
 
@@ -746,11 +767,20 @@ const StudentManagement = () => {
         updateState({ successMessage: "Student updated successfully." });
         setTimeout(() => updateState({ successMessage: "" }), 3000);
       } else {
-        updateState({ uploadErrors: [res.message || "Error updating student"] });
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: res.message || "Error updating student",
+          confirmButtonColor: "#9147e0"
+        });
       }
     } catch (err) {
-
-      updateState({ uploadErrors: ["Failed to update student"] });
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to update student",
+        confirmButtonColor: "#9147e0"
+      });
     }
   };
 
@@ -770,11 +800,20 @@ const StudentManagement = () => {
         updateState({ successMessage: "Student deleted successfully." });
         setTimeout(() => updateState({ successMessage: "" }), 3000);
       } else {
-        updateState({ uploadErrors: [res.message || "Error deleting student"] });
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: res.message || "Error deleting student",
+          confirmButtonColor: "#9147e0"
+        });
       }
     } catch (err) {
-
-      updateState({ uploadErrors: ["Failed to delete student"] });
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to delete student",
+        confirmButtonColor: "#9147e0"
+      });
     }
   };
 
@@ -1160,17 +1199,10 @@ const StudentManagement = () => {
               + Add Student
             </Button>
           </div>
-          {state.uploadedCount === 1 &&
+           {state.uploadedCount === 1 &&
           <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
               Student added successfully.
             </p>
-          }
-          {state.uploadErrors.length > 0 &&
-          <ul className="text-sm text-red-400 mt-2 list-disc list-inside">
-              {state.uploadErrors.map((err, idx) =>
-            <li key={idx}>{err}</li>
-            )}
-            </ul>
           }
         </CardContent>
       </Card>
