@@ -67,6 +67,7 @@ const AdminAnnouncementManagement = () => {
   const [totalReceivedCount, setTotalReceivedCount] = useState(0);
   const [unreadReceivedCount, setUnreadReceivedCount] = useState(0);
   const [activeTab, setActiveTab] = useState("my");
+  const [showArchive, setShowArchive] = useState(false);
   const pageSize = 10;
 
   const { theme } = useTheme();
@@ -90,8 +91,8 @@ const AdminAnnouncementManagement = () => {
       myPage,
       receivedPage,
       pageSize,
-      includeInactive: true,
-      includeExpired: true
+      includeInactive: showArchive,
+      includeExpired: showArchive
     });
 
     if (response.success && response.data) {
@@ -111,7 +112,7 @@ const AdminAnnouncementManagement = () => {
 
   useEffect(() => {
     loadAnnouncements();
-  }, [myPage, receivedPage]);
+  }, [myPage, receivedPage, showArchive]);
 
   const handlePageChange = (page: number, type: 'my' | 'received') => {
     if (type === 'my') {
@@ -568,7 +569,10 @@ const AdminAnnouncementManagement = () => {
               }}
               onPageChange={handlePageChange}
               activeTab={activeTab}
-              onTabChange={setActiveTab} />
+              onTabChange={setActiveTab}
+              showExpired={showArchive}
+              setShowExpired={setShowArchive}
+            />
           )}
         </Card>
       </div>

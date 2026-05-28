@@ -139,7 +139,7 @@ const ProctorStudents = () => {
   const loadMetadata = async () => {
     try {
       updateState({ loading: true });
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctor-bootstrap/?include=profile,semesters,sections,proctors`, {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/proctor-bootstrap/?include=profile,semesters,proctors`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -154,8 +154,8 @@ const ProctorStudents = () => {
         branchId: data.data.profile.branch_id,
         branchName: data.data.profile.branch,
         semesters: data.data.semesters,
-        sections: data.data.sections,
         proctors: data.data.proctors.map((f: any) => ({ id: f.id, name: f.name })),
+        sections: [],
       });
     } catch (error) {
       const errorMessage = (error as Error).message || "Network error";
@@ -280,6 +280,20 @@ const ProctorStudents = () => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fetch sections lazily when semester changes
+  useEffect(() => {
+    const semId = state.filters.semester_id;
+    if (semId !== "all" && state.branchId) {
+      manageSections({ branch_id: state.branchId, semester_id: semId }, "GET").then(res => {
+        if (res.success && res.data) {
+          updateState({ sections: res.data.map((s: any) => ({ ...s, id: String(s.id), semester_id: String(s.semester_id) })) as any });
+        }
+      });
+    } else {
+      updateState({ sections: [] });
+    }
+  }, [state.filters.semester_id, state.branchId]);
 
   // Reload when pagination or filters change — only load students when semester, section, and proctor are all selected
   useEffect(() => {

@@ -214,6 +214,8 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     notifyingStudents: {} as Record<string, boolean>,
     notifiedStudents: {} as Record<string, boolean>,
     notifyingAll: false,
+    showNotifyAllConfirm: false,
+    notifyAllCount: 0,
     // Global stats
     totalStudentsGlobal: 0,
     lowAttendanceGlobal: 0,
@@ -519,20 +521,33 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
       if (response.success) {
         toast({
-          title: "Success",
+          title: "Notification Sent",
           description: `Notification sent to ${student.name}`
         });
-
-        // ✅ mark as notified using functional update
         setState((prev) => ({
           ...prev,
           notifiedStudents: { ...prev.notifiedStudents, [student.student_id]: true }
         }));
       } else {
-        throw new Error(response.message || "Failed to send notification");
+        // Backend returns success:false with HTTP 200 for cooldown/skipped cases
+        const msg = response.message || "Could not send notification";
+        const isSkipped = msg.toLowerCase().includes("recently notified") || msg.toLowerCase().includes("skipping");
+        if (isSkipped) {
+          toast({
+            title: "Already Notified",
+            description: `${student.name} was already notified recently. Please wait before notifying again.`
+          });
+          // Mark as notified so button reflects the state
+          setState((prev) => ({
+            ...prev,
+            notifiedStudents: { ...prev.notifiedStudents, [student.student_id]: true }
+          }));
+        } else {
+          toast({ variant: "destructive", title: "Failed to Send", description: msg });
+        }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Network error";
+      const errorMessage = err instanceof Error ? err.message : "Network error while sending notification";
       toast({ variant: "destructive", title: "Error", description: errorMessage });
     } finally {
       setState((prev) => ({
@@ -542,7 +557,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     }
   };
 
-  const notifyAllStudents = async () => {
+  const handleNotifyAllClick = () => {
     const studentsToNotify = state.students.filter(
       (s) => !state.notifiedStudents[s.student_id] && !state.notifyingStudents[s.student_id]
     );
@@ -555,10 +570,14 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
       return;
     }
 
-    // Add confirmation
-    if (!window.confirm(`Are you sure you want to notify all ${studentsToNotify.length} students currently listed?`)) {
-      return;
-    }
+    updateState({ showNotifyAllConfirm: true, notifyAllCount: studentsToNotify.length });
+  };
+
+  const confirmNotifyAll = async () => {
+    updateState({ showNotifyAllConfirm: false });
+    const studentsToNotify = state.students.filter(
+      (s) => !state.notifiedStudents[s.student_id] && !state.notifyingStudents[s.student_id]
+    );
 
     updateState({ notifyingAll: true });
 
@@ -571,23 +590,41 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
         branch_id: state.branchId
       });
 
+      const msg = response.message || "";
+      const isAllSkipped = !response.success && (msg.toLowerCase().includes("recently notified") || msg.toLowerCase().includes("skipped"));
+      const isQuotaExhausted = !response.success && msg.toLowerCase().includes("quota");
+
       if (response.success) {
+        const sent = response.success_count ?? studentsToNotify.length;
+        const failed = response.failed_count ?? 0;
         toast({
           title: "Bulk Notification Sent",
-          description: response.message || `Notifications sent to ${response.success_count || studentsToNotify.length} students.`
+          description: msg || `Notifications sent to ${sent} student${sent !== 1 ? 's' : ''}${failed > 0 ? `, ${failed} failed` : ''}.`
         });
-
         // Mark all as notified in state
         const newNotified = { ...state.notifiedStudents };
         studentsToNotify.forEach(s => {
           newNotified[s.student_id] = true;
         });
         updateState({ notifiedStudents: newNotified });
+      } else if (isAllSkipped) {
+        toast({
+          title: "Already Notified",
+          description: "All selected students were recently notified. Please wait before sending again."
+        });
+        // Still mark them as notified in the UI
+        const newNotified = { ...state.notifiedStudents };
+        studentsToNotify.forEach(s => {
+          newNotified[s.student_id] = true;
+        });
+        updateState({ notifiedStudents: newNotified });
+      } else if (isQuotaExhausted) {
+        toast({ variant: "destructive", title: "Daily Quota Reached", description: "You have reached your daily notification limit. Try again tomorrow." });
       } else {
-        throw new Error(response.message || "Failed to send bulk notifications");
+        toast({ variant: "destructive", title: "Failed to Send", description: msg || "Failed to send bulk notifications" });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to send notifications";
+      const errorMessage = error instanceof Error ? error.message : "Network error while sending notifications";
       toast({ variant: "destructive", title: "Error", description: errorMessage });
     } finally {
       updateState({ notifyingAll: false });
@@ -760,7 +797,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                       Students List
                     </h2>
                     <Button
-                      onClick={notifyAllStudents}
+                      onClick={handleNotifyAllClick}
                       disabled={state.loading || state.students.length === 0 || state.notifyingAll}
                       variant="outline"
                       className={`text-xs sm:text-sm font-semibold flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md transform hover:scale-105 active:scale-95`}>
@@ -893,6 +930,40 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
             </CardFooter>
           )}
         </Card>
+
+        {/* Notify All Confirmation Modal */}
+        {state.showNotifyAllConfirm && (
+          <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-background/60' : 'bg-gray-900/60'}`}>
+            <div className={`w-11/12 max-w-md p-6 rounded-lg shadow-2xl border-2 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`p-2 rounded-full ${theme === 'dark' ? 'bg-yellow-900/20' : 'bg-yellow-50'}`}>
+                  <AlertTriangle className={`w-6 h-6 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`} />
+                </div>
+                <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Confirm Notify All
+                </h3>
+              </div>
+              <p className={`mb-6 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                Are you sure you want to send low attendance notifications to <span className="font-semibold">{state.notifyAllCount}</span> student{state.notifyAllCount !== 1 ? 's' : ''} currently listed?
+              </p>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => updateState({ showNotifyAllConfirm: false })}
+                  className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={confirmNotifyAll}
+                  className="bg-primary text-white hover:bg-primary/90"
+                >
+                  Yes, Notify All
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ErrorBoundary>);
 

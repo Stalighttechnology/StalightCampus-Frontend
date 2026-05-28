@@ -140,6 +140,7 @@ const ExamApplication: React.FC = () => {
   }, [batchId, semesterId, sectionId, examPeriod]);
 
   const fetchInProgressRef = useRef<string | null>(null);
+  const subjectsCache = useRef<Record<string, any>>({});
 
   const downloadHallTicket = async (student: any) => {
     try {
@@ -199,10 +200,20 @@ const ExamApplication: React.FC = () => {
         let registeredOpenElectives: any[] = [];
         let resJson: any = null;
 
-        const url = `${API_ENDPOINT}/hod/exam-student-subjects/?student_id=${selectedStudent.user_id || selectedStudent.id}&exam_period=${examPeriod}`;
-        const resp = await fetchWithTokenRefresh(url, { method: 'GET' });
-        resJson = await resp.json();
-        if (resp.ok && resJson.success && resJson.data) {
+        const cacheKey = token;
+
+        if (subjectsCache.current[cacheKey]) {
+          resJson = subjectsCache.current[cacheKey];
+        } else {
+          const url = `${API_ENDPOINT}/hod/exam-student-subjects/?student_id=${selectedStudent.user_id || selectedStudent.id}&exam_period=${examPeriod}`;
+          const resp = await fetchWithTokenRefresh(url, { method: 'GET' });
+          resJson = await resp.json();
+          if (resp.ok && resJson.success) {
+            subjectsCache.current[cacheKey] = resJson;
+          }
+        }
+
+        if (resJson && resJson.success && resJson.data) {
           regularSubjects = resJson.data.regular_subjects || [];
           registeredElectives = resJson.data.registered_electives || [];
           registeredOpenElectives = resJson.data.registered_open_electives || [];
@@ -230,27 +241,30 @@ const ExamApplication: React.FC = () => {
           const meta = resJson.data.student_meta;
           setSelectedStudent((prev: any) => {
             if (!prev) return prev;
+            if (prev.semester_id === meta.semester_id && prev.batch_id === meta.batch_id) return prev;
             return { ...prev, semester_id: meta.semester_id, batch_id: meta.batch_id };
           });
         }
 
-        const appUrl = `${API_ENDPOINT}/hod/exam-applications/?student_id=${selectedStudent.user_id || selectedStudent.id}&exam_period=${examPeriod}`;
-        const appResp = await fetchWithTokenRefresh(appUrl);
-        const appJson = await appResp.json();
-        
-        if (appResp.ok && appJson.success && Array.isArray(appJson.data)) {
-          setExistingApplications(appJson.data);
-          const subjectStatusMap: Record<string, string> = {};
-          const initialApplied: Record<string, boolean> = {};
-          appJson.data.forEach((app: any) => {
-            if (app.subject_code) {
-              subjectStatusMap[app.subject_code] = app.status === 'applied' ? 'Applied' : 'Not Applied';
-              initialApplied[app.subject_code] = app.status === 'applied';
-            }
-          });
-          setSubjectStatuses(subjectStatusMap);
-          setAppliedSubjects(initialApplied);
-        }
+        const subjectStatusMap: Record<string, string> = {};
+        const initialApplied: Record<string, boolean> = {};
+
+        regularSubjects.forEach((sub: any) => {
+          if (sub.subject_code) {
+            subjectStatusMap[sub.subject_code] = sub.status === 'Applied' ? 'Applied' : 'Not Applied';
+            initialApplied[sub.subject_code] = sub.status === 'Applied';
+          }
+        });
+
+        combinedRegistered.forEach((sub: any) => {
+          if (sub.subject_code) {
+            subjectStatusMap[sub.subject_code] = sub.status === 'Applied' ? 'Applied' : 'Not Applied';
+            initialApplied[sub.subject_code] = sub.status === 'Applied';
+          }
+        });
+
+        setSubjectStatuses(subjectStatusMap);
+        setAppliedSubjects(initialApplied);
 
       } catch (err) {
         console.error("Error fetching details", err);
@@ -306,6 +320,26 @@ const ExamApplication: React.FC = () => {
       const json = await resp.json();
       if (resp.ok && json.success) {
         toast({ title: "Success", description: "Applications submitted successfully" });
+        
+        // Update local subjectsCache for modal reopening
+        const cacheKey = `${selectedStudent.user_id || selectedStudent.id}:${examPeriod}`;
+        if (subjectsCache.current[cacheKey] && subjectsCache.current[cacheKey].data) {
+          const cacheData = subjectsCache.current[cacheKey].data;
+          const updateStatus = (list: any[]) => {
+            if (list) {
+              list.forEach(subj => {
+                if (appliedSubjects[subj.subject_code]) {
+                  subj.status = 'Applied';
+                  subj.applied_count = 1;
+                }
+              });
+            }
+          };
+          updateStatus(cacheData.regular_subjects);
+          updateStatus(cacheData.registered_electives);
+          updateStatus(cacheData.registered_open_electives);
+        }
+
         // update local status
         if (json.updated_student) {
           setStudentStatuses(prev => ({...prev, [json.updated_student.usn]: json.updated_student.status}));

@@ -235,7 +235,7 @@ const StudentManagement = () => {
     const fetchInitialData = async () => {
       updateState({ isLoading: true });
       try {
-        const boot = await getHODStudentBootstrap(['profile', 'semesters', 'sections', 'batches']);
+        const boot = await getHODStudentBootstrap(['profile', 'semesters', 'batches']);
         if (!boot.success || !boot.data?.profile?.branch_id) {
           throw new Error(boot.message || "Failed to bootstrap student management");
         }
@@ -264,22 +264,8 @@ const StudentManagement = () => {
           updateState({ uploadErrors: [...state.uploadErrors, "No semesters found"] });
         }
 
-        // Sections - populate cache with all sections from bootstrap
-        if (Array.isArray(boot.data.sections) && boot.data.sections.length > 0) {
-          const sectionsBySemester: Record<string, Section[]> = {};
-          boot.data.sections.forEach((sec: any) => {
-            const semesterId = String(sec.semester_id || "ALL");
-            if (!sectionsBySemester[semesterId]) {
-              sectionsBySemester[semesterId] = [];
-            }
-            sectionsBySemester[semesterId].push({
-              id: String(sec.id),
-              name: sec.name,
-              semester_id: String(sec.semester_id || "")
-            });
-          });
-          setSectionsCache(sectionsBySemester);
-        }
+        // Sections are now fetched lazily on semester selection
+
 
         // Students are now fetched separately via fetchStudents call above
 
@@ -325,18 +311,19 @@ const StudentManagement = () => {
   useEffect(() => {
     if (state.branchId && state.manualForm.semester) {
       const semesterId = getSemesterId(state.manualForm.semester);
-      // Use cached sections instead of making API call
       const cacheKey = semesterId || "ALL";
       const cached = sectionsCache[cacheKey];
       if (cached) {
         updateState({
           manualSections: cached,
-          manualForm: { ...state.manualForm, section: cached[0]?.name || "" }
+          manualForm: { ...state.manualForm, section: state.manualForm.section || cached[0]?.name || "" }
         });
-      } else {
-        updateState({
-          manualSections: [],
-          manualForm: { ...state.manualForm, section: "" }
+      } else if (semesterId) {
+        manageSections({ branch_id: state.branchId, semester_id: semesterId }, "GET").then((res: any) => {
+          if (res.success && res.data) {
+            const sections = res.data.map((s: any) => ({ id: String(s.id), name: s.name, semester_id: String(s.semester_id) }));
+            setSectionsCache(prev => ({ ...prev, [cacheKey]: sections }));
+          }
         });
       }
     } else if (state.branchId) {
@@ -347,18 +334,21 @@ const StudentManagement = () => {
   // Fetch sections when semester changes in Student List filter
   useEffect(() => {
     if (state.branchId && state.semesterFilter !== "All") {
-      // Use cached sections instead of making API call
       const cached = sectionsCache[state.semesterFilter];
       if (cached) {
         updateState({ listSections: cached });
       } else {
-        updateState({ listSections: [] });
+        manageSections({ branch_id: state.branchId, semester_id: state.semesterFilter }, "GET").then((res: any) => {
+          if (res.success && res.data) {
+            const sections = res.data.map((s: any) => ({ id: String(s.id), name: s.name, semester_id: String(s.semester_id) }));
+            setSectionsCache(prev => ({ ...prev, [state.semesterFilter]: sections }));
+          }
+        });
       }
     } else if (state.branchId) {
-      // For "All" semesters, show all sections
       const allSections = Object.values(sectionsCache).flat();
       const uniqueSections = allSections.filter((section, index, self) =>
-      index === self.findIndex((s) => s.id === section.id)
+        index === self.findIndex((s) => s.id === section.id)
       );
       updateState({ listSections: uniqueSections });
     }
@@ -370,7 +360,6 @@ const StudentManagement = () => {
       const semesterId = getSemesterId(state.editForm.semester);
       const semesterNumber = getSemesterNumber(state.editForm.semester);
       if (semesterId) {
-        // Use cached sections instead of making API call
         const cacheKey = semesterId || "ALL";
         const cached = sectionsCache[cacheKey];
         if (cached) {
@@ -378,14 +367,16 @@ const StudentManagement = () => {
             editSections: cached,
             editForm: {
               ...state.editForm,
-              section: cached.find((s: any) => s.name === state.editForm.section)?.name || cached[0]?.name || "",
-              cycle: semesterNumber <= 2 ? state.editForm.cycle : "" // Reset cycle for semesters > 2
+              section: state.editForm.section || cached[0]?.name || "",
+              cycle: semesterNumber <= 2 ? state.editForm.cycle : "" 
             }
           });
         } else {
-          updateState({
-            editSections: [],
-            editForm: { ...state.editForm, section: "", cycle: semesterNumber <= 2 ? state.editForm.cycle : "" }
+          manageSections({ branch_id: state.branchId, semester_id: semesterId }, "GET").then((res: any) => {
+            if (res.success && res.data) {
+              const sections = res.data.map((s: any) => ({ id: String(s.id), name: s.name, semester_id: String(s.semester_id) }));
+              setSectionsCache(prev => ({ ...prev, [cacheKey]: sections }));
+            }
           });
         }
       } else {
