@@ -59,6 +59,11 @@ const TakeAttendance = () => {
   const [bootstrapParams, setBootstrapParams] = useState<any | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
+  // States to control programmatic opening of subsequent select dropdowns
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+
   const { page, pageSize, paginationState, updatePagination, goToPage } = usePagination({
     queryKey: ['takeAttendance'],
     pageSize: 50
@@ -574,7 +579,10 @@ const TakeAttendance = () => {
             <CardContent className="pb-0">
               <div className="space-y-4 w-full max-w-full">
                 <div id="take-attendance-selectors" className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-5 w-full">
-                  <Select value={subjectId?.toString()} onValueChange={(v) => setSubjectId(Number(v))}>
+                  <Select value={subjectId?.toString()} onValueChange={(v) => {
+                    setSubjectId(Number(v));
+                    setTimeout(() => setIsBranchOpen(true), 150);
+                  }}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`}>
                       <SelectValue placeholder="Select Subject" />
                     </SelectTrigger>
@@ -588,7 +596,10 @@ const TakeAttendance = () => {
                       )}
                     </SelectContent>
                   </Select>
-                   <Select value={branchId?.toString()} onValueChange={(v) => setBranchId(Number(v))} disabled={!subjectId}>
+                  <Select value={branchId?.toString()} onValueChange={(v) => {
+                    setBranchId(Number(v));
+                    setTimeout(() => setIsSemesterOpen(true), 150);
+                  }} disabled={!subjectId} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!subjectId}>
                       <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
@@ -602,7 +613,10 @@ const TakeAttendance = () => {
                       )}
                     </SelectContent>
                   </Select>
-                  <Select value={semesterId?.toString()} onValueChange={(v) => setSemesterId(Number(v))} disabled={!branchId || semesters.length === 0}>
+                  <Select value={semesterId?.toString()} onValueChange={(v) => {
+                    setSemesterId(Number(v));
+                    setTimeout(() => setIsSectionOpen(true), 150);
+                  }} disabled={!branchId || semesters.length === 0} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!branchId || semesters.length === 0}>
                       <SelectValue placeholder="Select Semester" />
                     </SelectTrigger>
@@ -616,7 +630,7 @@ const TakeAttendance = () => {
                       )}
                     </SelectContent>
                   </Select>
-                  <Select value={sectionId?.toString() || ""} onValueChange={(v) => setSectionId(v ? Number(v) : null)} disabled={!semesterId || sections.length === 0}>
+                  <Select value={sectionId?.toString() || ""} onValueChange={(v) => setSectionId(v ? Number(v) : null)} disabled={!semesterId || sections.length === 0} open={isSectionOpen} onOpenChange={setIsSectionOpen}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`} disabled={!semesterId || sections.length === 0}>
                       <SelectValue placeholder={subjectType === 'elective' ? "Select Section (Optional)" : "Select Section"} />
                     </SelectTrigger>

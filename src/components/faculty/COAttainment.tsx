@@ -305,11 +305,17 @@ const COAttainment = () => {
                       <SelectValue placeholder="Select Subject" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
-                      {dropdownData.subject.map((item) =>
-                    <SelectItem key={item.id} value={item.id.toString()}>
-                          {item.name}
-                        </SelectItem>
-                    )}
+                      {dropdownData.subject.length > 0 ? (
+                        dropdownData.subject.map((item) =>
+                          <SelectItem key={item.id} value={item.id.toString()}>
+                            {item.name}
+                          </SelectItem>
+                        )
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No subject assigned
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 }

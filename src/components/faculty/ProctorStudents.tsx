@@ -82,7 +82,7 @@ const ProctorStudents = () => {
           <Button
             id="proctor-export-pdf-btn"
             onClick={handleExportPDF}
-            disabled={downloadingPDF}
+            disabled={downloadingPDF || proctorStudents.length === 0}
             className="h-9 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center gap-2 text-sm"
           >
             {downloadingPDF

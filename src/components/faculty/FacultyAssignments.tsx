@@ -55,6 +55,11 @@ import {
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
+import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
+import { Calendar as ShadcnCalendar } from "../ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+
 
 const FacultyAssignments = () => {
   const { theme } = useTheme();
@@ -69,6 +74,7 @@ const FacultyAssignments = () => {
   const [submitting, setSubmitting] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] = useState<any>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Create Assignment Form State
   const [formData, setFormData] = useState({
@@ -932,15 +938,20 @@ const FacultyAssignments = () => {
                     <Select
                     required
                     value={formData.subject_id}
-                    onValueChange={handleSubjectChange}>
+                    onValueChange={handleSubjectChange}
+                    disabled={assignedSubjects.length === 0}>
                     
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Subject" />
+                        <SelectValue placeholder={assignedSubjects.length === 0 ? "No subjects assigned" : "Select Subject"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {assignedSubjects.map((s) =>
-                      <SelectItem key={s.subject_id} value={s.subject_id}>{s.subject_name}</SelectItem>
-                      )}
+                        {assignedSubjects.length === 0 ? (
+                          <SelectItem value="none" disabled>No subjects assigned</SelectItem>
+                        ) : (
+                          assignedSubjects.map((s) =>
+                            <SelectItem key={s.subject_id} value={s.subject_id}>{s.subject_name}</SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -951,15 +962,19 @@ const FacultyAssignments = () => {
                     required
                     value={formData.branch_id}
                     onValueChange={handleBranchChange}
-                    disabled={!formData.subject_id}>
+                    disabled={!formData.subject_id || uniqueBranches.length === 0}>
                     
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Branch" />
+                        <SelectValue placeholder={formData.subject_id && uniqueBranches.length === 0 ? "No branches assigned" : "Select Branch"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {uniqueBranches.map((b: any) =>
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                      )}
+                        {formData.subject_id && uniqueBranches.length === 0 ? (
+                          <SelectItem value="none" disabled>No branches assigned</SelectItem>
+                        ) : (
+                          uniqueBranches.map((b: any) =>
+                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -970,15 +985,19 @@ const FacultyAssignments = () => {
                     required
                     value={formData.semester_id}
                     onValueChange={handleSemesterChange}
-                    disabled={!formData.branch_id}>
+                    disabled={!formData.branch_id || uniqueSemesters.length === 0}>
                     
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Semester" />
+                        <SelectValue placeholder={formData.branch_id && uniqueSemesters.length === 0 ? "No semesters assigned" : "Select Semester"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {uniqueSemesters.map((s: any) =>
-                      <SelectItem key={s.id} value={s.id}>Semester {s.number}</SelectItem>
-                      )}
+                        {formData.branch_id && uniqueSemesters.length === 0 ? (
+                          <SelectItem value="none" disabled>No semesters assigned</SelectItem>
+                        ) : (
+                          uniqueSemesters.map((s: any) =>
+                            <SelectItem key={s.id} value={s.id}>Semester {s.number}</SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -989,31 +1008,62 @@ const FacultyAssignments = () => {
                     required
                     value={formData.section_id}
                     onValueChange={(v) => setFormData({ ...formData, section_id: v })}
-                    disabled={!formData.semester_id}>
+                    disabled={!formData.semester_id || uniqueSections.length === 0}>
                     
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Section" />
+                        <SelectValue placeholder={formData.semester_id && uniqueSections.length === 0 ? "No sections assigned" : "Select Section"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {uniqueSections.map((s: any) =>
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      )}
+                        {formData.semester_id && uniqueSections.length === 0 ? (
+                          <SelectItem value="none" disabled>No sections assigned</SelectItem>
+                        ) : (
+                          uniqueSections.map((s: any) =>
+                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold">Due Date</label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                      <Input
-                      required
-                      type="datetime-local"
-                      className="pl-10"
-                      value={formData.due_date}
-                      onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} />
-                    
-                    </div>
+                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal h-10 px-3 relative pl-10",
+                            !formData.due_date && "text-muted-foreground",
+                            theme === 'dark' ?
+                            'bg-background border-border text-foreground hover:bg-muted/50' :
+                            'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                          )}
+                        >
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                          <span className="truncate">
+                            {formData.due_date ?
+                              format(new Date(formData.due_date), "PPP") :
+                              "Pick a date"
+                            }
+                          </span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
+                        <ShadcnCalendar
+                          mode="single"
+                          selected={formData.due_date ? new Date(formData.due_date) : undefined}
+                          onSelect={(date) => {
+                            setFormData({
+                              ...formData,
+                              due_date: date ? format(date, "yyyy-MM-dd") + "T23:59" : ""
+                            });
+                            setIsCalendarOpen(false);
+                          }}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   <div className="space-y-2">
