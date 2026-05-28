@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
-import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye } from 'lucide-react';
+import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye, Camera, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getBillingAndSupport, BillingAndSupportResponse } from '../../utils/admin_api';
 import { fetchWithTokenRefresh } from '../../utils/authService';
@@ -35,6 +35,98 @@ const BillingManagement = () => {
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [ticketsPage, setTicketsPage] = useState(1);
   const itemsPerPage = 5;
+
+  const [showEditOrg, setShowEditOrg] = useState(false);
+  const [editOrgStep, setEditOrgStep] = useState(1);
+  const [orgForm, setOrgForm] = useState({
+    name: '',
+    accreditation_id: '',
+    address: '',
+    tax_id: '',
+    billing_address: '',
+    tech_poc_name: '',
+    tech_poc_email: '',
+    tech_poc_mobile: ''
+  });
+  const [orgLogo, setOrgLogo] = useState<File | null>(null);
+  const [orgLogoPreview, setOrgLogoPreview] = useState<string | null>(null);
+  const [savingOrg, setSavingOrg] = useState(false);
+
+  const handleOpenEditOrg = () => {
+    if (org) {
+      setOrgForm({
+        name: org.name || '',
+        accreditation_id: org.accreditation_id || '',
+        address: org.address || '',
+        tax_id: org.tax_id || '',
+        billing_address: org.billing_address || '',
+        tech_poc_name: org.tech_poc_name || '',
+        tech_poc_email: org.tech_poc_email || '',
+        tech_poc_mobile: org.tech_poc_mobile || ''
+      });
+      setOrgLogoPreview(org.logo || null);
+      setOrgLogo(null);
+      setEditOrgStep(1);
+      setShowEditOrg(true);
+    }
+  };
+
+  const handleOrgLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setOrgLogo(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setOrgLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveOrgDetails = async () => {
+    if (!orgForm.name.trim()) {
+      showErrorAlert('Error', 'Organization Name is required');
+      return;
+    }
+
+    setSavingOrg(true);
+    try {
+      const dataToSend = new FormData();
+      Object.entries(orgForm).forEach(([key, val]) => {
+        dataToSend.append(key, val);
+      });
+      if (orgLogo) {
+        dataToSend.append('logo', orgLogo);
+      }
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/billing-support/`, {
+        method: 'POST',
+        body: dataToSend
+      });
+      
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Success', 'Organization details updated successfully');
+        setShowEditOrg(false);
+        if (data) {
+          setData({
+            ...data,
+            org_details: {
+              ...data.org_details!,
+              ...orgForm,
+              logo: res.logo || orgLogoPreview
+            }
+          });
+        }
+      } else {
+        showErrorAlert('Error', res.message || 'Failed to update organization details');
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'Network error updating organization details');
+    } finally {
+      setSavingOrg(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -238,54 +330,82 @@ const BillingManagement = () => {
 
         {/* Organization Details Card */}
         <Card id="billing-org-details-card" className="col-span-2 md:col-span-1 lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Organization Details
-            </CardTitle>
-            <CardDescription>Administrative and contact information</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5" />
+                Organization Details
+              </CardTitle>
+              <CardDescription>Administrative and contact information</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleOpenEditOrg} className="flex items-center gap-1.5">
+              <Edit size={14} />
+              Edit Details
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Organization Name</p>
-                <p className="font-medium text-sm">{org?.name || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Created At</p>
-                <p className="font-medium text-sm">{formatDate(org?.created_at)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Accreditation ID</p>
-                <p className="font-medium text-sm">{org?.accreditation_id || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Tax ID / GSTIN</p>
-                <p className="font-medium text-sm">{org?.tax_id || 'N/A'}</p>
-              </div>
-              <div className="md:col-span-2 pt-3 mt-1 border-t">
-                <h4 className="text-sm font-semibold mb-3">Technical POC</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex items-start gap-2">
-                    <Building className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Name</p>
-                      <p className="text-sm">{org?.tech_poc_name || 'N/A'}</p>
-                    </div>
+            <div className="flex flex-col md:flex-row gap-6 mb-6">
+              {/* Brand Logo Display */}
+              <div className="flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0">
+                {org?.logo ? (
+                  <img src={org.logo} alt="Brand Logo" className="w-full h-full object-contain rounded-lg" />
+                ) : (
+                  <div className="w-full h-full rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl">
+                    {org?.name ? org.name.charAt(0).toUpperCase() : 'O'}
                   </div>
-                  <div className="flex items-start gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Email</p>
-                      <p className="text-sm">{org?.tech_poc_email || 'N/A'}</p>
-                    </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 flex-1">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Organization Name</p>
+                  <p className="font-medium text-sm">{org?.name || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Created At</p>
+                  <p className="font-medium text-sm">{formatDate(org?.created_at)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Accreditation ID</p>
+                  <p className="font-medium text-sm">{org?.accreditation_id || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Tax ID / GSTIN</p>
+                  <p className="font-medium text-sm">{org?.tax_id || 'N/A'}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-xs text-muted-foreground mb-1">Institution Address</p>
+                  <p className="font-medium text-sm">{org?.address || 'N/A'}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-xs text-muted-foreground mb-1">Billing Address</p>
+                  <p className="font-medium text-sm">{org?.billing_address || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 mt-1 border-t">
+              <h4 className="text-sm font-semibold mb-3">Technical POC</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-start gap-2">
+                  <Building className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Name</p>
+                    <p className="text-sm">{org?.tech_poc_name || 'N/A'}</p>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Mobile</p>
-                      <p className="text-sm">{org?.tech_poc_mobile || 'N/A'}</p>
-                    </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="text-sm">{org?.tech_poc_email || 'N/A'}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Mobile</p>
+                    <p className="text-sm">{org?.tech_poc_mobile || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -604,6 +724,168 @@ const BillingManagement = () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Organization Details Dialog */}
+      <Dialog open={showEditOrg} onOpenChange={setShowEditOrg}>
+        <DialogContent className="w-[95%] sm:max-w-[550px] mx-auto rounded-xl">
+          <DialogHeader>
+            <div className="flex items-center justify-between border-b pb-2">
+              <DialogTitle className="text-xl font-bold">Edit Organization Details</DialogTitle>
+              <div className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full text-xs font-semibold">
+                <span className={editOrgStep === 1 ? "text-primary font-bold" : "text-muted-foreground"}>Identity</span>
+                <span className="text-muted-foreground">/</span>
+                <span className={editOrgStep === 2 ? "text-primary font-bold" : "text-muted-foreground"}>Admin Details</span>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {editOrgStep === 1 && (
+            <div className="space-y-5 py-4">
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-foreground">Institutional Identity</h3>
+                <p className="text-muted-foreground text-xs">Organization's core details.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="orgName" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Organization Name *</Label>
+                  <Input
+                    id="orgName"
+                    required
+                    placeholder="e.g. AMC College of Engineering"
+                    className="h-12 rounded-xl focus-visible:ring-primary/20"
+                    value={orgForm.name}
+                    onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="accreditationId" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Accreditation ID</Label>
+                    <Input
+                      id="accreditationId"
+                      placeholder="AICTE / UGC"
+                      className="h-12 rounded-xl focus-visible:ring-primary/20"
+                      value={orgForm.accreditation_id}
+                      onChange={(e) => setOrgForm({ ...orgForm, accreditation_id: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Brand Logo</span>
+                    <label className="flex items-center gap-2 px-3 bg-muted/30 border h-12 rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="w-8 h-8 bg-background rounded-lg flex items-center justify-center overflow-hidden border">
+                        {orgLogoPreview ? (
+                          <img src={orgLogoPreview} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <Camera size={14} className="text-muted-foreground" />
+                        )}
+                      </div>
+                      <span className="text-[10px] font-medium text-muted-foreground truncate flex-1">
+                        {orgLogo ? orgLogo.name : "Upload"}
+                      </span>
+                      <input type="file" className="hidden" accept="image/*" onChange={handleOrgLogoChange} />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="institutionAddress" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Institution Address</Label>
+                  <Input
+                    id="institutionAddress"
+                    placeholder="Full physical address"
+                    className="h-12 rounded-xl focus-visible:ring-primary/20"
+                    value={orgForm.address}
+                    onChange={(e) => setOrgForm({ ...orgForm, address: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-2 border-t mt-4">
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => setShowEditOrg(false)}>Cancel</Button>
+                <Button className="w-full sm:w-auto" onClick={() => setEditOrgStep(2)}>
+                  Continue to Admin Details
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {editOrgStep === 2 && (
+            <div className="space-y-5 py-4">
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-foreground">Admin & Billing Details</h3>
+                <p className="text-muted-foreground text-xs">Technical contact person and tax details.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pocName" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Name</Label>
+                    <Input
+                      id="pocName"
+                      placeholder="POC Name"
+                      className="h-12 rounded-xl focus-visible:ring-primary/20"
+                      value={orgForm.tech_poc_name}
+                      onChange={(e) => setOrgForm({ ...orgForm, tech_poc_name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pocMobile" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Mobile</Label>
+                    <Input
+                      id="pocMobile"
+                      placeholder="POC Mobile"
+                      className="h-12 rounded-xl focus-visible:ring-primary/20"
+                      value={orgForm.tech_poc_mobile}
+                      onChange={(e) => setOrgForm({ ...orgForm, tech_poc_mobile: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pocEmail" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Email</Label>
+                    <Input
+                      id="pocEmail"
+                      type="email"
+                      placeholder="poc@email.com"
+                      className="h-12 rounded-xl focus-visible:ring-primary/20"
+                      value={orgForm.tech_poc_email}
+                      onChange={(e) => setOrgForm({ ...orgForm, tech_poc_email: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="taxId" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tax ID / GSTIN</Label>
+                    <Input
+                      id="taxId"
+                      placeholder="GSTIN/PAN"
+                      className="h-12 rounded-xl focus-visible:ring-primary/20"
+                      value={orgForm.tax_id}
+                      onChange={(e) => setOrgForm({ ...orgForm, tax_id: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="billingAddress" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Billing Address</Label>
+                  <Textarea
+                    id="billingAddress"
+                    placeholder="Address for invoice generation"
+                    className="min-h-16 rounded-xl resize-none focus-visible:ring-primary/20"
+                    value={orgForm.billing_address}
+                    onChange={(e) => setOrgForm({ ...orgForm, billing_address: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-2 border-t mt-4">
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => setEditOrgStep(1)}>Back</Button>
+                <Button className="w-full sm:w-auto" onClick={handleSaveOrgDetails} disabled={savingOrg}>
+                  {savingOrg ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Details'}
+                </Button>
+              </DialogFooter>
             </div>
           )}
         </DialogContent>
