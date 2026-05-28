@@ -19,7 +19,7 @@ export const driverTour: Step[] = [
   {
     target: '#driver-trip-controls',
     title: "Start Today's Trip",
-    content: 'Start your Morning Trip or Evening Trip here. Once started, student boarding and live GPS tracking options will become active.',
+    content: 'Start morning or evening trips here to begin boarding and enable live tracking.',
     placement: 'bottom' as const,
     disableBeacon: true,
     route: '/driver',
