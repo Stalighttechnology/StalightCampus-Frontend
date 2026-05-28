@@ -440,7 +440,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 </p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-border">
+              <div className="overflow-x-auto custom-scrollbar rounded-2xl border border-border">
                 <Table>
                   <TableHeader className={theme === 'dark' ? 'bg-muted/30' : 'bg-slate-50/50'}>
                     <TableRow className="border-none hover:bg-transparent h-14">
@@ -537,7 +537,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
           if (!open) resetForm();
         }
       }}>
-        <DialogContent className={`w-[92%] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+        <DialogContent className={`w-[92%] sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-2xl ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">Upload Study Material</DialogTitle>
           </DialogHeader>

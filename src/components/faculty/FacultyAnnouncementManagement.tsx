@@ -354,7 +354,7 @@ const FacultyAnnouncementManagement = () => {
                         </Button>
                       </DialogTrigger>
                       <DialogContent
-                        className="mobile-modal max-w-2xl max-h-[90vh] overflow-y-auto">
+                        className="mobile-modal max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                         
                       <DialogHeader>
                         <DialogTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
