@@ -488,18 +488,21 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <Button
-                    onClick={() => handleDirectDownload(student)}
-                    className="w-full bg-primary hover:bg-primary/90 text-white h-9 flex items-center justify-center gap-2"
-                    disabled={downloadingId === student.usn}>
-                    
-                        {downloadingId === student.usn ?
-                    <Loader2 className="h-4 w-4 animate-spin" /> :
-
-                    <FileDown className="h-4 w-4" />
-                    }
-                        Export PDF
+                      <Button onClick={() => openFor(student)} className="w-full bg-primary hover:bg-primary/90 text-white h-9">
+                        {studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
                       </Button>
+                      {studentStatuses[student.usn] === 'Applied' && (
+                        <Button
+                          onClick={() => handleDirectDownload(student)}
+                          className="w-full bg-primary hover:bg-primary/90 text-white h-9 flex items-center justify-center gap-2"
+                          disabled={downloadingId === student.usn}>
+                          {downloadingId === student.usn ?
+                            <Loader2 className="h-4 w-4 animate-spin" /> :
+                            <FileDown className="h-4 w-4" />
+                          }
+                          Export PDF
+                        </Button>
+                      )}
                       {studentStatuses[student.usn] === 'Applied' &&
                   <Button
                     onClick={() => downloadHallTicket(student)}
@@ -543,20 +546,20 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                       </td>
                       <td className="px-4 py-3 text-sm flex gap-2 justify-center">
                         <Button onClick={() => openFor(student)} className="bg-primary hover:bg-primary/90 text-white h-8 px-3">
-                          Open
+                          {studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
                         </Button>
-                        <Button
-                      onClick={() => handleDirectDownload(student)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-3 flex items-center gap-2"
-                      disabled={downloadingId === student.usn}>
-                      
-                          {downloadingId === student.usn ?
-                      <Loader2 className="h-4 w-4 animate-spin" /> :
-
-                      <FileDown className="h-4 w-4" />
-                      }
-                          Export PDF
-                        </Button>
+                        {studentStatuses[student.usn] === 'Applied' && (
+                          <Button
+                            onClick={() => handleDirectDownload(student)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-3 flex items-center gap-2"
+                            disabled={downloadingId === student.usn}>
+                            {downloadingId === student.usn ?
+                              <Loader2 className="h-4 w-4 animate-spin" /> :
+                              <FileDown className="h-4 w-4" />
+                            }
+                            Export PDF
+                          </Button>
+                        )}
                         {studentStatuses[student.usn] === 'Applied' &&
                     <Button
                       onClick={() => downloadHallTicket(student)}
