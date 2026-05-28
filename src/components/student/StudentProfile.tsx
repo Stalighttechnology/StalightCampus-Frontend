@@ -429,7 +429,13 @@ const StudentProfile: React.FC = () => {
 
   const handleProfilePictureSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadProfilePictureDirectly(file);
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      showErrorAlert('Error', 'Profile picture must be less than 1MB');
+      e.target.value = '';
+      return;
+    }
+    uploadProfilePictureDirectly(file);
   };
 
   const uploadProfilePictureDirectly = async (file: File) => {

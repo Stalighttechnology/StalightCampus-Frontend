@@ -404,7 +404,19 @@ const FacultyAssignments = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Maximum file size allowed is 10MB.",
+          variant: "destructive"
+        });
+        e.target.value = '';
+        return;
+      }
+
+      setSelectedFile(file);
     }
   };
 
@@ -1089,7 +1101,7 @@ const FacultyAssignments = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold">Attachment (PDF/Image)</label>
+                    <label className="text-sm font-semibold">Attachment (PDF/DOC, Max 10MB)</label>
 
                     {/* Show existing attachment when editing */}
                     {editingAssignment && editingAssignment.file_url && (
@@ -1126,6 +1138,7 @@ const FacultyAssignments = () => {
                       type="file"
                       id="assignment-file"
                       className="hidden"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       onChange={handleFileChange} />
                     
                       <label

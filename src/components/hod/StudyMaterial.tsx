@@ -546,10 +546,17 @@ const StudyMaterials = () => {
       return;
     }
 
-    // Validate file size <= 50MB
-    const MAX_SIZE = 50 * 1024 * 1024;
+    // Validate file size <= 20MB
+    const MAX_SIZE = 20 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      alert("File size must not exceed 50MB.");
+      alert("File size must not exceed 20MB.");
+      return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Only PDF, DOC, and DOCX files are allowed.");
       return;
     }
 
@@ -947,12 +954,13 @@ const StudyMaterials = () => {
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Click or drag to upload</p>
                     <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      PDF, DOCX, etc. (Max 50MB)
+                      PDF, DOCX, etc. (Max 20MB)
                     </p>
                     <Input
                       type="file"
                       className="hidden"
                       id="file-upload"
+                      accept=".pdf,.doc,.docx"
                       onChange={handleFileChange}
                       disabled={uploading} />
 
