@@ -476,7 +476,7 @@ export const getPublishedResults = async (filters: {
 // Public view by token
 export const publicViewResultByToken = async (token: string, usn: string) => {
   try {
-    const response = await fetch(`${API_ENDPOINT}/results/view/${token}/?usn=${encodeURIComponent(usn)}`, {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/results/view/${token}/?usn=${encodeURIComponent(usn)}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
