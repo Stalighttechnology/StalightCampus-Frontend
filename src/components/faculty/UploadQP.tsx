@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Plus, Trash2, Layers, Loader2, FileDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,7 @@ interface CreateQPPayload {
 }
 
 const UploadQP = () => {
+  const location = useLocation();
   const { data: assignments = [] } = useFacultyAssignmentsQuery();
   const { toast } = useToast();
   const [dropdownData, setDropdownData] = useState({
@@ -91,11 +93,11 @@ const UploadQP = () => {
   });
 
   const [selected, setSelected] = useState({
-    branch_id: undefined as number | undefined,
-    semester_id: undefined as number | undefined,
-    section_id: undefined as number | undefined,
-    subject_id: undefined as number | undefined,
-    testType: "IA1"
+    branch_id: location.state?.branch_id || undefined as number | undefined,
+    semester_id: location.state?.semester_id || undefined as number | undefined,
+    section_id: location.state?.section_id || undefined as number | undefined,
+    subject_id: location.state?.subject_id || undefined as number | undefined,
+    testType: location.state?.testType || "IA1"
   });
 
   // start empty; populate only after Branch+Subject+TestType selection

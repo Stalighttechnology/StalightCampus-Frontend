@@ -376,6 +376,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
                         <th className={`batch-header-cell py-3 px-3 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Batch Name</th>
                         <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Start Year</th>
                         <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>End Year</th>
+                        <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Duration</th>
                         <th className={`batch-header-cell py-3 px-3 w-20 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Students</th>
                         <th className={`batch-header-cell py-3 px-3 w-28 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Created At</th>
                         <th className={`batch-header-cell py-3 px-3 w-28 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
@@ -392,6 +393,9 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
                           </td>
                           <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.start_year}</td>
                           <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">{batch.end_year}</td>
+                          <td className="batch-body-cell py-3 px-3 hidden sm:table-cell text-center align-middle">
+                            {batch.end_year - batch.start_year} {batch.end_year - batch.start_year === 1 ? 'Year' : 'Years'}
+                          </td>
                           <td className="batch-body-cell py-3 px-3 w-20 text-center align-middle">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${theme === 'dark' ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-600'}`}>
                               {batch.student_count}

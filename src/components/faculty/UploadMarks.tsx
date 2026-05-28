@@ -43,6 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SkeletonTable } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { useNavigate } from "react-router-dom";
 
 const MySwal = withReactContent(Swal);
 
@@ -109,6 +110,7 @@ const formatTestType = (testType: string): string => {
 };
 
 const UploadMarks = () => {
+  const navigate = useNavigate();
   const { data: assignments = [], isLoading: assignmentsLoading, error: assignmentsError } = useFacultyAssignmentsQuery();
   const { toast } = useToast();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -323,6 +325,18 @@ const UploadMarks = () => {
 
   // New state for action button modes
   const [actionModes, setActionModes] = useState<Record<string, 'edit' | 'save' | 'view'>>({});
+
+  const handleRedirectToUploadQP = () => {
+    navigate("/faculty/upload-qp", {
+      state: {
+        subject_id: selected.subject_id,
+        branch_id: selected.branch_id,
+        semester_id: selected.semester_id,
+        section_id: selected.section_id,
+        testType: selected.testType || "IA1"
+      }
+    });
+  };
 
   // Check if all dropdowns are selected
   const areAllDropdownsSelected = () => {
@@ -1704,7 +1718,7 @@ const UploadMarks = () => {
                       Please configure the question paper format first to enable marks entry for this subject.
                     </p>
                     <Button
-                  onClick={() => setTabValue("questionPaper")}
+                  onClick={handleRedirectToUploadQP}
                   className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20">
                   
                       View Question Paper
@@ -1881,7 +1895,7 @@ const UploadMarks = () => {
                 </p>
                 {areAllDropdownsSelected() &&
               <Button
-                onClick={() => setTabValue("questionPaper")}
+                onClick={handleRedirectToUploadQP}
                 className="bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20">
                 
                     View Question Paper
