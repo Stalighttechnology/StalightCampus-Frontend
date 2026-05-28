@@ -760,15 +760,35 @@ const UploadMarks = () => {
       return;
     }
 
+    // Auto-fill unentered fields to 0 if at least one question has been graded for that student
+    const updatedStudentMarks = JSON.parse(JSON.stringify(studentMarks));
+    students.forEach((s) => {
+      const studentIdStr = s.id.toString();
+      if (!updatedStudentMarks[studentIdStr]) {
+        updatedStudentMarks[studentIdStr] = {};
+      }
+      const studentQuestions = updatedStudentMarks[studentIdStr];
+      const hasAnyQuestionMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "");
+      
+      if (hasAnyQuestionMark) {
+        questions.forEach((q) => {
+          if (studentQuestions[q.number] === undefined || studentQuestions[q.number] === "") {
+            studentQuestions[q.number] = "0";
+          }
+        });
+      }
+    });
+
     // Prepare marks data
     const marksData: UploadIAMarksRequest = {
       question_paper_id: existingQpSummary.id,
       marks_data: students.map((s) => {
+        const studentIdStr = s.id.toString();
         const marksDetail = Object.fromEntries(
-          Object.entries(studentMarks[s.id.toString()] || {}).map(([key, value]) => [key, parseFloat(value) || 0])
+          Object.entries(updatedStudentMarks[studentIdStr] || {}).map(([key, value]) => [key, parseFloat(value) || 0])
         );
         // If instructor manually edited total for this student, prefer that value
-        const autoTotal = parseFloat(calculateTotal(studentMarks[s.id.toString()] || {})) || 0;
+        const autoTotal = parseFloat(calculateTotal(updatedStudentMarks[studentIdStr] || {})) || 0;
         const manualTotal = s.totalEdited ? parseFloat(s.total as any) || autoTotal : null;
         return {
           student_id: s.id,
@@ -797,7 +817,8 @@ const UploadMarks = () => {
         });
         // Update local state to reflect saved status without a fresh GET call
         setStudents((prev) => prev.map((s) => ({ ...s, totalEdited: false })));
-        setOriginalStudentMarks(JSON.parse(JSON.stringify(studentMarks)));
+        setStudentMarks(updatedStudentMarks);
+        setOriginalStudentMarks(updatedStudentMarks);
         setActionModes((prev) => {
           const updated = { ...prev };
           Object.keys(updated).forEach((id) => {updated[id] = 'view';});
@@ -1613,9 +1634,22 @@ const UploadMarks = () => {
                                   className="w-20 text-center mx-auto"
                                   placeholder="Total"
                                   value={displayTotal}
+                                  readOnly={actionModes[student.id] !== 'edit'}
                                   onChange={(e) => {
                                     const v = e.target.value;
                                     if (!/^\d*$/.test(v)) return;
+                                    
+                                    const studentQuestions = studentMarks[student.id] || {};
+                                    const hasAnyQuestionMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "");
+                                    if (!hasAnyQuestionMark) {
+                                      MySwal.fire({
+                                        title: "Action Not Allowed",
+                                        text: "You must enter marks for at least one question before you can enter the total.",
+                                        icon: "warning",
+                                        confirmButtonText: "OK"
+                                      });
+                                      return;
+                                    }
                                     setStudents((prev) => prev.map((s) => s.id === student.id ? { ...s, total: v, totalEdited: true } : s));
                                   }} />
                                 
