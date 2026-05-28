@@ -291,21 +291,26 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             {/* Branch Selection */}
             <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
               <Label className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</Label>
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <Select value={selectedBranch} onValueChange={setSelectedBranch} disabled={branches.length === 0}>
                 <SelectTrigger
                   className={`text-xs sm:text-sm h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                   
-                  <SelectValue placeholder="Select branch" />
+                  <SelectValue placeholder={branches.length === 0 ? "No branch assigned" : "Select branch"} />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                  {branches.map((b) =>
-                  <SelectItem
-                    key={b.id}
-                    value={b.id.toString()}
-                    className={`text-xs sm:text-sm ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'}`}>
-                    
-                      {b.name}
+                  {branches.length === 0 ? (
+                    <SelectItem value="none" disabled className="text-xs sm:text-sm text-muted-foreground">
+                      No branch assigned
                     </SelectItem>
+                  ) : (
+                    branches.map((b) =>
+                      <SelectItem
+                        key={b.id}
+                        value={b.id.toString()}
+                        className={`text-xs sm:text-sm ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'}`}>
+                        {b.name}
+                      </SelectItem>
+                    )
                   )}
                 </SelectContent>
               </Select>

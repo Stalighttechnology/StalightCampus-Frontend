@@ -248,7 +248,7 @@ const GenerateStatistics: React.FC = () => {
                 size="sm"
                 id="generate-stats-export-pdf-btn"
                 onClick={handleExportPDF}
-                disabled={downloadingPDF}
+                disabled={downloadingPDF || proctorStudents.length === 0}
                 className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2"
               >
                 {downloadingPDF

@@ -211,6 +211,8 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   const [branches, setBranches] = useState<{ id: string; name: string; }[]>([]);
   const [semesters, setSemesters] = useState<{ id: string; number: number; }[]>([]);
   const [sections, setSections] = useState<{ id: string; name: string; }[]>([]);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -333,30 +335,54 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-              <Select value={selectedBranch} onValueChange={(value) => setSelectedBranch(value)}>
+              <Select value={selectedBranch} onValueChange={(value) => {
+                setSelectedBranch(value);
+                if (value !== "All Branches") {
+                  setTimeout(() => setIsSemesterOpen(true), 150);
+                }
+              }}>
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Branches">All Branches</SelectItem>
-                  {branches.map((b) =>
-                    <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                  {branches.length > 0 ? (
+                    branches.map((b) =>
+                      <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                    )
+                  ) : (
+                    <div className="p-2 text-sm text-center text-muted-foreground">
+                      No branch assigned
+                    </div>
                   )}
                 </SelectContent>
               </Select>
 
               <Select
                 value={selectedSemester}
-                onValueChange={(value) => setSelectedSemester(value)}
-                disabled={semesters.length === 0}>
+                onValueChange={(value) => {
+                  setSelectedSemester(value);
+                  if (value !== "All Semesters") {
+                    setTimeout(() => setIsSectionOpen(true), 150);
+                  }
+                }}
+                disabled={selectedBranch === "All Branches" || semesters.length === 0}
+                open={isSemesterOpen}
+                onOpenChange={setIsSemesterOpen}>
 
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedBranch === "All Branches" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedBranch === "All Branches" || semesters.length === 0}>
                   <SelectValue placeholder="All Semesters" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Semesters">All Semesters</SelectItem>
-                  {semesters.map((s) =>
-                    <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
+                  {semesters.length > 0 ? (
+                    semesters.map((s) =>
+                      <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
+                    )
+                  ) : (
+                    <div className="p-2 text-sm text-center text-muted-foreground">
+                      No semester
+                    </div>
                   )}
                 </SelectContent>
               </Select>
@@ -364,15 +390,23 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               <Select
                 value={selectedSection}
                 onValueChange={(value) => setSelectedSection(value)}
-                disabled={sections.length === 0}>
+                disabled={selectedSemester === "All Semesters" || sections.length === 0}
+                open={isSectionOpen}
+                onOpenChange={setIsSectionOpen}>
 
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedSemester === "All Semesters" || sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedSemester === "All Semesters" || sections.length === 0}>
                   <SelectValue placeholder="All Sections" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All Sections">All Sections</SelectItem>
-                  {sections.map((sec) =>
-                    <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
+                  {sections.length > 0 ? (
+                    sections.map((sec) =>
+                      <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
+                    )
+                  ) : (
+                    <div className="p-2 text-sm text-center text-muted-foreground">
+                      No section
+                    </div>
                   )}
                 </SelectContent>
               </Select>
@@ -541,11 +575,17 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                     <SelectValue placeholder="Select Subject" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                    {grouped.map((g) => (
-                      <SelectItem key={g.subject_id} value={String(g.subject_id)}>
-                        {g.subject_name} ({g.subject_code})
-                      </SelectItem>
-                    ))}
+                    {grouped.length > 0 ? (
+                      grouped.map((g) => (
+                        <SelectItem key={g.subject_id} value={String(g.subject_id)}>
+                          {g.subject_name} ({g.subject_code})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-sm text-center text-muted-foreground">
+                        No subject assigned
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
