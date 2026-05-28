@@ -18,6 +18,7 @@ import TeacherBranchAssignment from "../admin/TeacherBranchAssignment";
 import AnnouncementManagement from "../admin/AnnouncementManagement";
 import { useToast } from "../../hooks/use-toast";
 import AdminAttendance from "../admin/AdminAttendance";
+import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
 import ApplyLeaveAdmin from "../admin/ApplyLeaveAdmin";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
@@ -144,6 +145,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <AdminHODAttendance setError={setError} />
+          </div>);
+
+      case "faculty-attendance":
+        return (
+          <div>
+            <AdminFacultyAttendanceView />
           </div>);
 
       case "my-attendance":

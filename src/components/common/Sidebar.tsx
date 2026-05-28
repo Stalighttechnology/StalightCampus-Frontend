@@ -250,6 +250,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // Leaves
       { name: "HOD Leaves", page: "hod-leaves" },
       { name: "HOD Attendance", page: "hod-attendance" },
+      { name: "Faculty Attendance", page: "faculty-attendance" },
 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Apply Leave", page: "apply-leave" },
@@ -285,6 +286,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // Leaves
       { name: "HOD Leaves", page: "hod-leaves" },
       { name: "HOD Attendance", page: "hod-attendance" },
+      { name: "Faculty Attendance", page: "faculty-attendance" },
 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Apply Leave", page: "apply-leave" },

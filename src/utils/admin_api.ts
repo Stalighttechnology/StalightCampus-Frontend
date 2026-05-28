@@ -339,7 +339,7 @@ export const bulkUploadFaculty = async (file: File): Promise<BulkUploadFacultyRe
 };
 
 export const manageBranches = async (
-data?: {page?: number;page_size?: number;name?: string;hod_id?: string;},
+data?: {page?: number;page_size?: number;name?: string;hod_id?: string;compact?: boolean;},
 branch_id?: number,
 method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
 : Promise<ManageBranchesResponse> => {
@@ -354,6 +354,7 @@ method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
       if (data.page) params.append('page', data.page.toString());
       if (data.page_size) params.append('page_size', data.page_size.toString());
       if ((data as any).search) params.append('search', (data as any).search);
+      if (data.compact) params.append('compact', 'true');
       if (params.toString()) url += `?${params.toString()}`;
     }
 
@@ -980,6 +981,71 @@ method: "GET" | "POST" | "PUT" | "DELETE" = "GET")
     return result;
   } catch (error) {
 
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getAdminFacultyAttendanceToday = async (
+  branchId: number | string,
+  params?: { page?: number; page_size?: number }
+): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/admin/faculty-attendance-today/?branch_id=${branchId}`;
+    if (params) {
+      if (params.page) url += `&page=${params.page}`;
+      if (params.page_size) url += `&page_size=${params.page_size}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || `HTTP ${response.status}` };
+    }
+    return result;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getAdminFacultyAttendanceRecords = async (
+  branchId: number | string,
+  params?: {
+    page?: number;
+    page_size?: number;
+    faculty_id?: string;
+    start_date?: string;
+    end_date?: string;
+  }
+): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/admin/faculty-attendance-records/?branch_id=${branchId}`;
+    if (params) {
+      if (params.page) url += `&page=${params.page}`;
+      if (params.page_size) url += `&page_size=${params.page_size}`;
+      if (params.faculty_id) url += `&faculty_id=${params.faculty_id}`;
+      if (params.start_date) url += `&start_date=${params.start_date}`;
+      if (params.end_date) url += `&end_date=${params.end_date}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || `HTTP ${response.status}` };
+    }
+    return result;
+  } catch (error) {
     return { success: false, message: "Network error" };
   }
 };
