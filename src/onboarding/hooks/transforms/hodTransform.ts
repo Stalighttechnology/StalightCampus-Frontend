@@ -144,6 +144,26 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-co-attainment') {
+    return [
+      {
+        ...step,
+        target: '#co-attainment-selectors',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-exam-applications') {
+    return [
+      {
+        ...step,
+        target: '#exam-applications-filters',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-my-attendance') {
     return [
       {
