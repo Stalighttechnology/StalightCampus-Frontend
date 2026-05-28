@@ -6,7 +6,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from ".
 import { Checkbox } from "../ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { SkeletonCard } from "../ui/skeleton";
-import { manageStudents, getElectiveEnrollmentBootstrap, manageSections } from "../../utils/hod_api";
+import { manageStudents, getElectiveEnrollmentBootstrap, manageSections, manageSubjects } from "../../utils/hod_api";
 import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
@@ -34,6 +34,67 @@ const StudentEnrollment = () => {
   const [resultModalOpen, setResultModalOpen] = useState(false);
   const [resultData, setResultData] = useState<{added: number;removed: number;failed: any[];}>({ added: 0, removed: 0, failed: [] });
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  // Add Subject Modal and versioning states
+  const [isAddSubjectOpen, setIsAddSubjectOpen] = useState(false);
+  const [subjectVersion, setSubjectVersion] = useState(0);
+  const [addingSubject, setAddingSubject] = useState(false);
+  const [subjectError, setSubjectError] = useState<string | null>(null);
+  const [newSubjectState, setNewSubjectState] = useState({
+    subject_code: "",
+    name: "",
+    semester_id: "",
+    subject_type: "elective",
+    credits: 3
+  });
+
+  const handleOpenAddSubject = () => {
+    setNewSubjectState({
+      subject_code: "",
+      name: "",
+      semester_id: semesterId || (semesters[0]?.id || ""),
+      subject_type: subjectType || "elective",
+      credits: 3
+    });
+    setSubjectError(null);
+    setIsAddSubjectOpen(true);
+  };
+
+  const handleAddSubject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSubjectState.subject_code || !newSubjectState.name || !newSubjectState.semester_id) {
+      setSubjectError("Please fill in all required fields.");
+      return;
+    }
+    setAddingSubject(true);
+    setSubjectError(null);
+    try {
+      const res = await manageSubjects({
+        action: "create",
+        branch_id: branchId,
+        name: newSubjectState.name,
+        subject_code: newSubjectState.subject_code,
+        semester_id: newSubjectState.semester_id,
+        subject_type: newSubjectState.subject_type,
+        credits: Number(newSubjectState.credits)
+      } as any, "POST");
+
+      if (res.success) {
+        setSubjectVersion(prev => prev + 1);
+        setElectivePage(1);
+        if (res.data?.subject_id) {
+          setSelectedSubjectId(String(res.data.subject_id));
+        }
+        setIsAddSubjectOpen(false);
+      } else {
+        setSubjectError(res.message || "Failed to create subject");
+      }
+    } catch (err: any) {
+      setSubjectError("An error occurred while creating subject");
+    } finally {
+      setAddingSubject(false);
+    }
+  };
 
   const handleExportPDF = async () => {
     if (!selectedSubjectId) return;
@@ -159,7 +220,7 @@ const StudentEnrollment = () => {
       setElectiveLoading(false);
     };
     loadSubjects();
-  }, [semesterId, subjectType, sectionId, electivePage]);
+  }, [semesterId, subjectType, sectionId, electivePage, subjectVersion]);
 
   // Reset elective subjects when semester or subject type changes
   useEffect(() => {
@@ -376,6 +437,19 @@ const StudentEnrollment = () => {
                       {subjects.map((s: any) =>
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                     )}
+                      {semesterId && sectionId && subjectType && subjects.length === 0 && (
+                        <div className="p-2 flex justify-center" onPointerDown={(e) => e.stopPropagation()}>
+                          <Button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleOpenAddSubject();
+                            }}
+                            className="w-full bg-primary hover:bg-[#9147e0] text-white shadow-sm transition-all active:scale-95 text-xs py-1.5 h-auto">
+                            Add Subject
+                          </Button>
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   {electivePage < electiveTotalPages &&
@@ -595,6 +669,111 @@ const StudentEnrollment = () => {
                   <Button onClick={() => {setResultModalOpen(false);}} className="bg-purple-600 hover:bg-purple-700 text-white">Close</Button>
                 </div>
               </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isAddSubjectOpen} onOpenChange={setIsAddSubjectOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Subject</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddSubject} className="space-y-4 py-2">
+                {subjectError && (
+                  <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 p-2.5 rounded-md border border-red-200 dark:border-red-800">
+                    {subjectError}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Course Code</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., PH1L001, BCS601"
+                    value={newSubjectState.subject_code}
+                    onChange={(e) => setNewSubjectState(prev => ({ ...prev, subject_code: e.target.value }))}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${
+                      theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Course Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., Mathematics"
+                    value={newSubjectState.name}
+                    onChange={(e) => setNewSubjectState(prev => ({ ...prev, name: e.target.value }))}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${
+                      theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Semester</label>
+                  <Select
+                    value={newSubjectState.semester_id}
+                    onValueChange={(v) => setNewSubjectState(prev => ({ ...prev, semester_id: v }))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Semester" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {semesters.map((sem: any) => (
+                        <SelectItem key={sem.id} value={sem.id}>{`${sem.number}th Semester`}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Course Type</label>
+                  <Select
+                    value={newSubjectState.subject_type}
+                    onValueChange={(v) => setNewSubjectState(prev => ({ ...prev, subject_type: v }))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Course Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regular">Regular</SelectItem>
+                      <SelectItem value="elective">Elective</SelectItem>
+                      <SelectItem value="open_elective">Open Elective</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Course Credits</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    required
+                    value={newSubjectState.credits}
+                    onChange={(e) => setNewSubjectState(prev => ({ ...prev, credits: parseInt(e.target.value) || 3 }))}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${
+                      theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  />
+                </div>
+                <DialogFooter className="pt-4 flex gap-2 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddSubjectOpen(false)}
+                    className={`${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={addingSubject}
+                    className="bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95"
+                  >
+                    {addingSubject ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Add Course
+                  </Button>
+                </DialogFooter>
+              </form>
             </DialogContent>
           </Dialog>
         </CardContent>
