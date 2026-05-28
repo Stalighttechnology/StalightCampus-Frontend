@@ -37,6 +37,16 @@ export function wardenTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-visitor-logs') {
+    return [
+      {
+        ...step,
+        target: '#warden-visitor-logs-header',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-profile') {
     return [
       {

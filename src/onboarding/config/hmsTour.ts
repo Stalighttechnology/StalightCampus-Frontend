@@ -100,6 +100,15 @@ export const hmsTour: Step[] = [
     route: '/hms/issues',
   },
   {
+    target: '#sidebar-visitor-logs',
+    title: 'Visitor Logs',
+    content:
+      'Monitor visitor logs, check visit purposes, and export visitor records as PDF.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/visitor_logs',
+  },
+  {
     target: '#sidebar-profile',
     title: 'HMS Profile',
     content:

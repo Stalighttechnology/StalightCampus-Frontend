@@ -124,7 +124,7 @@ const HmsVisitorLogs = () => {
       </div>
 
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm">
-        <CardHeader className="pb-4 border-b bg-muted/30">
+        <CardHeader id="hms-visitor-logs-header" className="pb-4 border-b bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle className="text-xl">Visitor Logs</CardTitle>
             <div className="flex items-center gap-2 w-full md:w-auto">

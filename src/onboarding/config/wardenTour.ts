@@ -46,6 +46,15 @@ export const wardenTour: Step[] = [
     route: '/warden/issues',
   },
   {
+    target: '#sidebar-visitor-logs',
+    title: 'Visitor Logs',
+    content:
+      'Monitor visitor logs, register new visitors, and export visitor records as PDF.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/visitor_logs',
+  },
+  {
     target: '#sidebar-profile',
     title: 'Profile',
     content:
