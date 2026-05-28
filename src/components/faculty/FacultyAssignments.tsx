@@ -18,7 +18,9 @@ import {
   Edit,
   X,
   Loader2,
-  FileDown } from
+  FileDown,
+  Eye,
+  ExternalLink } from
 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
@@ -980,6 +982,37 @@ const FacultyAssignments = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold">Attachment (PDF/Image)</label>
+
+                    {/* Show existing attachment when editing */}
+                    {editingAssignment && editingAssignment.file_url && (
+                      <div className={`flex items-center gap-3 px-3 py-2 rounded-md border mb-2 ${
+                        theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <FileText size={16} className="text-primary flex-shrink-0" />
+                        <span className="text-sm text-muted-foreground flex-1 truncate">
+                          {selectedFile ? 'New file selected — will replace existing' : 'Current attachment'}
+                        </span>
+                        {!selectedFile && (
+                          <a
+                            href={editingAssignment.file_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-shrink-0"
+                          >
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 gap-1.5 text-xs border-primary/50 text-primary hover:bg-primary hover:text-white transition-colors"
+                            >
+                              <Eye size={13} />
+                              View
+                            </Button>
+                          </a>
+                        )}
+                      </div>
+                    )}
+
                     <div className="relative">
                       <input
                       type="file"
@@ -993,7 +1026,11 @@ const FacultyAssignments = () => {
                       
                         <Upload size={16} className="text-muted-foreground" />
                         <span className="text-sm truncate">
-                          {selectedFile ? selectedFile.name : 'Upload assignment questions...'}
+                          {selectedFile
+                            ? selectedFile.name
+                            : editingAssignment?.file_url
+                            ? 'Upload a new file to replace existing...'
+                            : 'Upload assignment questions...'}
                         </span>
                       </label>
                     </div>
