@@ -1,9 +1,9 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import ReCAPTCHA from "react-google-recaptcha"
 import { useParams, useLocation } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { publicViewResultByToken } from '@/utils/coe_api'
+import { publicViewResultByToken, publicOrganizationInfoByToken } from '@/utils/coe_api'
 
 const ResultsView: React.FC = () => {
   const { token: paramToken } = useParams<{ token: string }>();
@@ -16,9 +16,20 @@ const ResultsView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
+  const [orgInfo, setOrgInfo] = useState<{ name: string; logo: string | null } | null>(null);
   const [exporting, setExporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (token) {
+      publicOrganizationInfoByToken(token).then((res) => {
+        if (res && res.success && res.organization) {
+          setOrgInfo(res.organization);
+        }
+      }).catch(err => console.error("Failed to fetch organization info:", err));
+    }
+  }, [token]);
 
   const calcPassPercent = (marks: any[]) => {
     if (!Array.isArray(marks) || marks.length === 0) return null;
@@ -142,12 +153,12 @@ const ResultsView: React.FC = () => {
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
             <img
-              src={result?.organization?.logo || "/logo.jpeg"}
-              alt={`${result?.organization?.name || 'College'} Logo`}
+              src={result?.organization?.logo || orgInfo?.logo || "/logo.jpeg"}
+              alt={`${result?.organization?.name || orgInfo?.name || 'College'} Logo`}
               className="w-16 h-16 object-contain"
             />
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{result?.organization?.name || 'Stalight Campus'}</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">{result?.organization?.name || orgInfo?.name || 'College'}</h1>
               <p className="text-xs text-gray-500">Official marks portal</p>
             </div>
           </div>
@@ -166,7 +177,7 @@ const ResultsView: React.FC = () => {
           <ul className="text-xs text-gray-600 mt-2 list-disc list-inside space-y-1">
             <li>Enter your USN exactly as on your ID (input will convert to UPPERCASE).</li>
             <li>Results shown are official. Use the export to download a marks card.</li>
-            <li>Passing requires meeting the minimum criteria set by the {result?.organization?.name || 'examination board'}.</li>
+            <li>Passing requires meeting the minimum criteria set by the {result?.organization?.name || orgInfo?.name || 'examination board'}.</li>
           </ul>
         </div>
 
@@ -180,9 +191,16 @@ const ResultsView: React.FC = () => {
             </div>
             <div>
               <ReCAPTCHA
-                sitekey="6LfdvQAtAAAAABkL98zTK_B1-qAjW8v_aX4HBctI"
+                sitekey={"6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
                 onChange={(token: string | null) => setRecaptchaToken(token)}
               />
+              {import.meta.env.DEV && (
+                <div className="mt-2 text-center">
+                  <button type="button" onClick={() => setRecaptchaToken("bypass")} className="text-xs text-indigo-600 underline hover:text-indigo-800">
+                    Bypass Captcha (Dev Only)
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -296,12 +314,12 @@ const ResultsView: React.FC = () => {
                   <div ref={cardRef as any} style={{ width: 800, padding: 20, background: '#fff', color: '#000' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <img
-                        src={result?.organization?.logo || "/logo.jpeg"}
+                        src={result?.organization?.logo || orgInfo?.logo || "/logo.jpeg"}
                         alt="Logo"
                         style={{ width: 80, height: 80, objectFit: 'contain' }}
                       />
                       <div>
-                        <div style={{ fontSize: 20, fontWeight: 700 }}>{result?.organization?.name || 'Stalight Campus'}</div>
+                        <div style={{ fontSize: 20, fontWeight: 700 }}>{result?.organization?.name || orgInfo?.name || 'College'}</div>
                         <div style={{ fontSize: 12 }}>Official Marks Card</div>
                       </div>
                     </div>
@@ -421,7 +439,7 @@ const ResultsView: React.FC = () => {
                         </tr>
                       </tbody>
                     </table>
-                    <div style={{ marginTop: 18, fontSize: 11 }}>This is an official marks card generated from {result?.organization?.name || 'Stalight Campus'}.</div>
+                    <div style={{ marginTop: 18, fontSize: 11 }}>This is an official marks card generated from {result?.organization?.name || orgInfo?.name || 'College'}.</div>
                   </div>
                 </div>
               </div>

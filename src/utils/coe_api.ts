@@ -487,6 +487,19 @@ export const publicViewResultByToken = async (token: string, usn: string, recapt
   }
 };
 
+// Get public organization info by token
+export const publicOrganizationInfoByToken = async (token: string) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/results/organization/${token}/`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
 /**
  * Toggle withhold status for a published result
  */
