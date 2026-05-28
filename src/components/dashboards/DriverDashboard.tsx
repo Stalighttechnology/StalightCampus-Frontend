@@ -5,6 +5,7 @@ import DriverDashboardContent from "../transport/driver/DriverDashboard";
 import DriverTripHistory from "../transport/driver/DriverTripHistory";
 import DriverComplaints from "../transport/driver/DriverComplaints";
 import Profile from "../common/Profile";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 
 interface DashboardProps {
   user: any;
@@ -51,6 +52,7 @@ const DriverDashboard = ({ user }: DashboardProps) => {
       onPageChange={handlePageChange}
       pageTitle="Driver Dashboard"
     >
+      <TutorialController />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

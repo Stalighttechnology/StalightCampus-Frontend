@@ -17,6 +17,7 @@ import { hmsTransform } from './hmsTransform';
 import { transportAdminTransform } from './transportAdminTransform';
 import { libraryAdminTransform } from './libraryAdminTransform';
 import { orgAdminTransform } from './orgAdminTransform';
+import { driverTransform } from './driverTransform';
 
 export { applyMobileLabels } from './mobileLabels';
 
@@ -51,6 +52,7 @@ export const ROLE_TRANSFORM_MAP: Record<string, RoleTransformFn> = {
   transport_admin: transportAdminTransform,
   library_admin: libraryAdminTransform,
   org_admin: orgAdminTransform,
+  driver: driverTransform,
 };
 
 /**

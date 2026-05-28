@@ -181,6 +181,7 @@ const getHomePath = (role: string): string => {
     library_admin: '/library-admin',
     org_admin: '/org-admin',
     orgadmin: '/org-admin',
+    driver: '/driver',
   };
   return roleMap[role.toLowerCase()] || '/dashboard';
 };
