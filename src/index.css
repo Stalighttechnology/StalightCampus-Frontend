@@ -686,6 +686,21 @@ html {
     overflow-x: hidden;
   }
 
+  body.tutorial-active,
+  body.tutorial-active #root,
+  html.tutorial-active {
+    background: #ffffff !important;
+  }
+
+  html.dark body.tutorial-active,
+  html.dark body.tutorial-active #root,
+  html.dark.tutorial-active,
+  .dark body.tutorial-active,
+  .dark body.tutorial-active #root,
+  .dark html.tutorial-active {
+    background: #030712 !important;
+  }
+
   body {
     overscroll-behavior-y: none;
   }
