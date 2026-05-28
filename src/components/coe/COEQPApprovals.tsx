@@ -173,19 +173,20 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       const data = await response.json();
       if (data.success) {
         MySwal.fire('Approved!', 'QP finalized and approved for use.', 'success');
-        // remove from pending list
-        setPendingQPs(pendingQPs.filter((qp) => qp.id !== qpId));
-        // add to finalized list so UI updates immediately without refetch
+        // Remove from both lists (QP could be from pending or finalized list)
+        setPendingQPs((prev) => prev.filter((qp) => qp.id !== qpId));
         if (selectedQP) {
-          const finalizedItem = { ...selectedQP, status: 'approved' };
-          setFinalizedQPs((prev) => [finalizedItem, ...prev.filter((q) => q.id !== finalizedItem.id)]);
+          const approvedItem = { ...selectedQP, status: 'approved' };
+          // Update finalized list (remove old entry and insert updated one at top)
+          setFinalizedQPs((prev) => [approvedItem, ...prev.filter((q) => q.id !== qpId)]);
         }
         setDialogOpen(false);
         setSelectedQP(null);
         setQpDetail(null);
         setComment("");
-        // Refresh pending QPs to get updated pagination
+        // Refresh both lists from server
         fetchPendingQPs();
+        fetchFinalizedQPs();
       } else {
         MySwal.fire('Error', data.message || 'Failed to finalize QP.', 'error');
       }
@@ -325,13 +326,20 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       const data = await response.json();
       if (data.success) {
         MySwal.fire('Rejected!', data.message || 'QP rejected and sent back to Admin for review.', 'success');
-        setPendingQPs(pendingQPs.filter((qp) => qp.id !== qpId));
+        // Remove from both lists (QP could be from pending or finalized list)
+        setPendingQPs((prev) => prev.filter((qp) => qp.id !== qpId));
+        if (selectedQP) {
+          const rejectedItem = { ...selectedQP, status: 'pending_admin' };
+          // Keep in finalized list with updated status (COE acted on it)
+          setFinalizedQPs((prev) => [rejectedItem, ...prev.filter((q) => q.id !== qpId)]);
+        }
         setDialogOpen(false);
         setSelectedQP(null);
         setQpDetail(null);
         setComment("");
-        // Refresh pending QPs to get updated pagination
+        // Refresh both lists from server
         fetchPendingQPs();
+        fetchFinalizedQPs();
       } else {
         MySwal.fire('Error', data.message || 'Failed to reject QP.', 'error');
       }
@@ -647,63 +655,87 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="text-center py-4 text-muted-foreground">Failed to load QP details</div>
             }
 
-            {selectedQP?.status !== 'approved' &&
             <div>
-                <label className="block text-sm font-medium mb-2">Comment (optional)</label>
-                <Textarea
+              <label className="block text-sm font-medium mb-2">Comment (optional)</label>
+              <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Add a final comment..."
                 rows={3} />
-              
-              </div>
-            }
+            </div>
           </div>
 
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            {selectedQP?.status === 'approved' ?
-            <>
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              {/* Show Finalize & Approve for all statuses EXCEPT already-approved — COE can re-approve rejected/sent-back QPs */}
+              {selectedQP?.status !== 'approved' && (
                 <Button
-                onClick={() => qpDetail && printQP(qpDetail)}
-                className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
-                
+                  onClick={() => selectedQP && handleFinalize(selectedQP.id)}
+                  disabled={actionLoading}
+                  className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}
+                >
+                  <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                  {selectedQP?.status === 'pending_admin' ? 'Re-Approve QP' : 'Finalize & Approve'}
+                </Button>
+              )}
+
+              {/* Show Reject & Send Back for all statuses — COE can reject an approved QP or re-reject */}
+              <Button
+                onClick={() => selectedQP && handleReject(selectedQP.id)}
+                disabled={actionLoading}
+                className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}
+              >
+                <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                {selectedQP?.status === 'approved' ? 'Revoke & Send Back' : 'Reject & Send Back'}
+              </Button>
+            </div>
+
+            {qpDetail && (
+              <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+                <Button
+                  onClick={() => printQP(qpDetail)}
+                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"
+                >
                   Print
                 </Button>
                 <Button
-                onClick={() => {
-                  if (!qpDetail) return;
-                  const doc = new jsPDF();
-                  let y = 10;
-                  doc.setFontSize(14);
-                  doc.text('Question Paper', 14, y);
-                  y += 10;
-                  doc.setFontSize(12);
-                  doc.text(`Subject: ${qpDetail.subject}`, 14, y);y += 6;
-                  doc.text(`Test Type: ${qpDetail.test_type}`, 14, y);y += 6;
-                  doc.text(`Faculty: ${qpDetail.faculty}`, 14, y);y += 8;
-                  qpDetail.questions.forEach((q: any) => {
-                    q.subparts.forEach((s: any) => {
-                      doc.setFontSize(12);
-                      doc.text(`${q.question_number}${s.subpart_label}. ${s.content}`, 14, y);
-                      y += 6;
-                      doc.setFontSize(10);
-                      doc.text(`(${s.max_marks} marks)`, 14, y);
-                      y += 6;
-                      doc.text(`CO: ${q.co}`, 14, y);
-                      y += 6;
-                      doc.text(`Blooms: ${q.blooms_level}`, 14, y);
-                      y += 8;
-                      if (y > 270) {doc.addPage();y = 10;}
+                  onClick={() => {
+                    const doc = new jsPDF();
+                    let y = 10;
+                    doc.setFontSize(14);
+                    doc.text('Question Paper', 14, y);
+                    y += 10;
+                    doc.setFontSize(12);
+                    doc.text(`Subject: ${qpDetail.subject}`, 14, y);y += 6;
+                    doc.text(`Test Type: ${qpDetail.test_type}`, 14, y);y += 6;
+                    doc.text(`Faculty: ${qpDetail.faculty}`, 14, y);y += 8;
+                    qpDetail.questions.forEach((q: any) => {
+                      q.subparts.forEach((s: any) => {
+                        doc.setFontSize(12);
+                        doc.text(`${q.question_number}${s.subpart_label}. ${s.content}`, 14, y);
+                        y += 6;
+                        doc.setFontSize(10);
+                        doc.text(`(${s.max_marks} marks)`, 14, y);
+                        y += 6;
+                        doc.text(`CO: ${q.co}`, 14, y);
+                        y += 6;
+                        doc.text(`Blooms: ${q.blooms_level}`, 14, y);
+                        y += 8;
+                        if (y > 270) {doc.addPage();y = 10;}
+                      });
                     });
-                  });
-                  doc.save(`qp-${qpDetail.subject}-${qpDetail.test_type}.pdf`);
-                }}
-                className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
-                
+                    doc.save(`qp-${qpDetail.subject}-${qpDetail.test_type}.pdf`);
+                  }}
+                  className="w-full sm:w-auto justify-center whitespace-normal text-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90"
+                >
                   <Download className="w-4 h-4 mr-1" />
                   Download PDF
                 </Button>
-                <Button
+              </div>
+            )}
+
+            <div className="w-full sm:w-auto">
+              <Button
                 variant="outline"
                 onClick={() => {
                   setDialogOpen(false);
@@ -711,47 +743,11 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                   setQpDetail(null);
                   setComment("");
                 }}
-                className="w-full sm:w-auto justify-center whitespace-normal text-center">
-                
-                  Close
-                </Button>
-              </> :
-
-            <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto">
-                  <Button
-                  onClick={() => selectedQP && handleFinalize(selectedQP.id)}
-                  disabled={actionLoading}
-                  className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}>
-                  
-                    <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                    Finalize & Approve
-                  </Button>
-                  <Button
-                  onClick={() => selectedQP && handleReject(selectedQP.id)}
-                  disabled={actionLoading}
-                  className={`w-full sm:w-auto justify-center transition-none whitespace-normal text-center ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}>
-                  
-                    <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                    Reject & Send Back
-                  </Button>
-                </div>
-                <div className="w-full sm:w-auto sm:ml-auto">
-                  <Button
-                  variant="outline"
-                  onClick={() => {
-                    setDialogOpen(false);
-                    setSelectedQP(null);
-                    setComment("");
-                    setQpDetail(null);
-                  }}
-                  className="w-full sm:w-auto justify-center whitespace-normal text-center">
-                  
-                    Cancel
-                  </Button>
-                </div>
-              </>
-            }
+                className="w-full sm:w-auto justify-center whitespace-normal text-center"
+              >
+                Close
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
