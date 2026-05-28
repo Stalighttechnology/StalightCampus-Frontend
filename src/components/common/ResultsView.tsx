@@ -60,6 +60,10 @@ const ResultsView: React.FC = () => {
   };
 
   const fetchResult = async () => {
+    if (!recaptchaToken) {
+      setError('Please complete the captcha verification.');
+      return;
+    }
     setError(null);
     setResult(null);
     setMessage(null);
@@ -74,7 +78,7 @@ const ResultsView: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await publicViewResultByToken(token, usn.trim());
+      const res = await publicViewResultByToken(token, usn.trim(), recaptchaToken);
       if (!res || !res.success) {
         setError(res?.message || 'Failed to fetch result');
         setResult(null);
@@ -131,21 +135,28 @@ const ResultsView: React.FC = () => {
   const cgpa = result ? (result.aggregate?.cgpa ?? calcCGPA(result.marks || [])) : null;
 
   return (
-    <div className="min-h-screen flex items-start justify-center bg-white py-8 px-4">
+    <div className="h-screen overflow-y-auto flex items-start justify-center bg-white py-8 px-4 w-full">
       <div className="w-full max-w-3xl bg-white rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
-            <img 
-              src={result?.organization?.logo || "/logo.jpeg"} 
-              alt={`${result?.organization?.name || 'College'} Logo`} 
-              className="w-16 h-16 object-contain" 
+            <img
+              src={result?.organization?.logo || "/logo.jpeg"}
+              alt={`${result?.organization?.name || 'College'} Logo`}
+              className="w-16 h-16 object-contain"
             />
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{result?.organization?.name || 'Neuro Campus'}</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">{result?.organization?.name || 'Stalight Campus'}</h1>
               <p className="text-xs text-gray-500">Official marks portal</p>
             </div>
           </div>
-          <div className="text-sm text-gray-600 text-right">Secure public result view</div>
+          <div className="text-sm text-gray-600 text-right flex flex-col items-end gap-2">
+            <div>Secure public result view</div>
+            {result && (
+              <Button onClick={() => { setResult(null); setUsn(''); setRecaptchaToken(null); }} className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs h-7 px-3">
+                Search Another USN
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="mb-4 p-3 bg-gray-50 rounded">
@@ -157,12 +168,22 @@ const ResultsView: React.FC = () => {
           </ul>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 items-start mb-4">
-          <Input value={usn} onChange={(e: any) => setUsn(String(e.target.value).toUpperCase())} placeholder="Enter USN (e.g. 25CI003)" maxLength={20} className="bg-white text-gray-900 border border-gray-300" />
-          <div className="flex-shrink-0">
-            <Button onClick={fetchResult} disabled={loading}className="bg-indigo-600 hover:bg-indigo-700 text-white">{loading ? 'Loading...' : 'View'}</Button>
+        {!result && (
+          <div className="flex flex-col gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-2 items-start">
+              <Input value={usn} onChange={(e: any) => setUsn(String(e.target.value).toUpperCase())} placeholder="Enter USN (e.g. 25CI003)" maxLength={20} className="bg-white text-gray-900 border border-gray-300" />
+              <div className="flex-shrink-0">
+                <Button onClick={fetchResult} disabled={loading || !recaptchaToken} className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">{loading ? 'Loading...' : 'View'}</Button>
+              </div>
+            </div>
+            <div>
+              <ReCAPTCHA
+                sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                onChange={(token: string | null) => setRecaptchaToken(token)}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {error && <div className="text-red-600 mb-4">{error}</div>}
         {message && <div className="text-sm text-gray-700 mb-4">{message}</div>}
@@ -189,221 +210,221 @@ const ResultsView: React.FC = () => {
                   </div>
                 </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="md:col-span-2">
-                <div className="text-gray-700"><strong>Name:</strong> <span className="text-gray-900">{result.student?.name || '-'}</span></div>
-                <div className="text-gray-700"><strong>USN:</strong> <span className="text-gray-900">{result.student?.usn || usn}</span></div>
-              </div>
-             
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="md:col-span-2">
+                    <div className="text-gray-700"><strong>Name:</strong> <span className="text-gray-900">{result.student?.name || '-'}</span></div>
+                    <div className="text-gray-700"><strong>USN:</strong> <span className="text-gray-900">{result.student?.usn || usn}</span></div>
+                  </div>
 
-            <div className="rounded-md overflow-hidden border border-gray-200 bg-white">
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto border-collapse">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="p-2 border-b text-gray-700">Subject Code</th>
-                      <th className="p-2 border-b text-gray-700">Subject Title</th>
-                      <th className="p-2 border-b text-gray-700 text-right">CIE</th>
-                      <th className="p-2 border-b text-gray-700 text-right">SEE</th>
-                      <th className="p-2 border-b text-gray-700 text-right">Total Marks</th>
-                      <th className="p-2 border-b text-gray-700">Result</th>
-                      <th className="p-2 border-b text-gray-700">Grade</th>
-                      <th className="p-2 border-b text-gray-700">Grade Point</th>
-                      <th className="p-2 border-b text-gray-700">Credits Assigned</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(result.marks) && result.marks.length > 0 ? (
-                      result.marks.map((m: {subject: string, subject_code: string, cie?: number, see?: number, total?: number, status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number}, idx: number) => {
-                        // Calculate grade and grade points based on total marks
-                        const total = m.total;
-                        let grade = '';
-                        let gradePoints = '';
-                        if (typeof total === 'number') {
-                          if (total >= 90) { grade = 'S'; gradePoints = '10'; }
-                          else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
-                          else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
-                          else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
-                          else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
-                          else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
-                          else { grade = 'F'; gradePoints = '0'; }
-                        }
-                        
-                        // Determine credits based on pass/fail status
-                        const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
-                        const credits = m.status === 'pass' ? availableCredits : 0;
-                        
-                        return (
-                        <tr key={idx} className="odd:bg-gray-50 even:bg-white">
-                          <td className="p-2 text-gray-900">{m.subject_code}</td>
-                          <td className="p-2 text-gray-900">{m.subject}</td>
-                          <td className="p-2 text-gray-900 text-right">{m.cie ?? '-'}</td>
-                          <td className="p-2 text-gray-900 text-right">{m.see ?? '-'}</td>
-                          <td className="p-2 text-gray-900 text-right">{m.total ?? '-'}</td>
-                          <td className={m.status === 'pass' ? 'p-2 text-green-600 font-medium' : 'p-2 text-red-600 font-medium'}>{m.status?.toUpperCase() ?? '-'}</td>
-                          <td className="p-2 text-gray-900">{grade}</td>
-                          <td className="p-2 text-gray-900">{gradePoints}</td>
-                          <td className="p-2 text-gray-900">{credits}</td>
+                </div>
+
+                <div className="rounded-md overflow-hidden border border-gray-200 bg-white">
+                  <div className="overflow-x-auto">
+                    <table className="w-full table-auto border-collapse">
+                      <thead>
+                        <tr className="text-left">
+                          <th className="p-2 border-b text-gray-700">Subject Code</th>
+                          <th className="p-2 border-b text-gray-700">Subject Title</th>
+                          <th className="p-2 border-b text-gray-700 text-right">CIE</th>
+                          <th className="p-2 border-b text-gray-700 text-right">SEE</th>
+                          <th className="p-2 border-b text-gray-700 text-right">Total Marks</th>
+                          <th className="p-2 border-b text-gray-700">Result</th>
+                          <th className="p-2 border-b text-gray-700">Grade</th>
+                          <th className="p-2 border-b text-gray-700">Grade Point</th>
+                          <th className="p-2 border-b text-gray-700">Credits Assigned</th>
                         </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td className="p-2 text-gray-600" colSpan={9}>No marks available</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                      </thead>
+                      <tbody>
+                        {Array.isArray(result.marks) && result.marks.length > 0 ? (
+                          result.marks.map((m: { subject: string, subject_code: string, cie?: number, see?: number, total?: number, status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number }, idx: number) => {
+                            // Calculate grade and grade points based on total marks
+                            const total = m.total;
+                            let grade = '';
+                            let gradePoints = '';
+                            if (typeof total === 'number') {
+                              if (total >= 90) { grade = 'S'; gradePoints = '10'; }
+                              else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
+                              else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
+                              else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
+                              else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
+                              else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
+                              else { grade = 'F'; gradePoints = '0'; }
+                            }
 
-            <div className="mt-4">
-              <div className="text-gray-700"><strong>Total Marks:</strong> <span className="text-gray-900">{result.aggregate?.total_marks ?? '-'}</span></div>
-              <div className="text-gray-700"><strong>CGPA:</strong> <span className="text-gray-900">{cgpa ?? '-'}</span></div>
-              <div className="text-gray-700"><strong>Overall Status:</strong> <span className={result.aggregate?.overall_status === 'pass' ? 'text-green-600' : 'text-red-600'}> {result.aggregate?.overall_status ?? '-'}</span></div>
-            </div>
+                            // Determine credits based on pass/fail status
+                            const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
+                            const credits = m.status === 'pass' ? availableCredits : 0;
 
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded text-sm text-gray-700">
-              <strong>Notes:</strong>
-              <div className="text-xs text-gray-600 mt-1">This is a provisional marks card issued for reference. The official marks card will be issued by the Administration in due course. The results and marks indicated are accurate and officially recognized.</div>
-            </div>
-
-            <div style={{ position: 'absolute', left: -9999, top: 0 }}>
-              <div ref={cardRef as any} style={{ width: 800, padding: 20, background: '#fff', color: '#000' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <img 
-                    src={result?.organization?.logo || "/logo.jpeg"} 
-                    alt="Logo" 
-                    style={{ width: 80, height: 80, objectFit: 'contain' }} 
-                  />
-                  <div>
-                    <div style={{ fontSize: 20, fontWeight: 700 }}>{result?.organization?.name || 'Neuro Campus'}</div>
-                    <div style={{ fontSize: 12 }}>Official Marks Card</div>
+                            return (
+                              <tr key={idx} className="odd:bg-gray-50 even:bg-white">
+                                <td className="p-2 text-gray-900">{m.subject_code}</td>
+                                <td className="p-2 text-gray-900">{m.subject}</td>
+                                <td className="p-2 text-gray-900 text-right">{m.cie ?? '-'}</td>
+                                <td className="p-2 text-gray-900 text-right">{m.see ?? '-'}</td>
+                                <td className="p-2 text-gray-900 text-right">{m.total ?? '-'}</td>
+                                <td className={m.status === 'pass' ? 'p-2 text-green-600 font-medium' : 'p-2 text-red-600 font-medium'}>{m.status?.toUpperCase() ?? '-'}</td>
+                                <td className="p-2 text-gray-900">{grade}</td>
+                                <td className="p-2 text-gray-900">{gradePoints}</td>
+                                <td className="p-2 text-gray-900">{credits}</td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td className="p-2 text-gray-600" colSpan={9}>No marks available</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-                <hr style={{ margin: '12px 0' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div><strong>Name:</strong> {result.student?.name || '-'}</div>
-                  <div><strong>USN:</strong> {result.student?.usn || usn}</div>
+
+                <div className="mt-4">
+                  <div className="text-gray-700"><strong>Total Marks:</strong> <span className="text-gray-900">{result.aggregate?.total_marks ?? '-'}</span></div>
+                  <div className="text-gray-700"><strong>CGPA:</strong> <span className="text-gray-900">{cgpa ?? '-'}</span></div>
+                  <div className="text-gray-700"><strong>Overall Status:</strong> <span className={result.aggregate?.overall_status === 'pass' ? 'text-green-600' : 'text-red-600'}> {result.aggregate?.overall_status ?? '-'}</span></div>
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Subject Code</th>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Subject Title</th>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>CIE</th>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>SEE</th>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>Total Marks</th>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Result</th>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Grade</th>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Grade Point</th>
-                      <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Credits Assigned</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(result.marks) && result.marks.map((m: {subject: string, subject_code: string, cie?: number, see?: number, total?: number, status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number}, i: number) => {
-                      // Calculate grade and grade points based on total marks
-                      const total = m.total;
-                      let grade = '';
-                      let gradePoints = '';
-                      if (typeof total === 'number') {
-                        if (total >= 90) { grade = 'S'; gradePoints = '10'; }
-                        else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
-                        else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
-                        else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
-                        else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
-                        else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
-                        else { grade = 'F'; gradePoints = '0'; }
-                      }
-                      
-                      // Determine credits based on pass/fail status
-                      const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
-                      const credits = m.status === 'pass' ? availableCredits : 0;
-                      
-                      return (
-                      <tr key={i}>
-                        <td style={{ padding: 6 }}>{m.subject_code}</td>
-                        <td style={{ padding: 6 }}>{m.subject}</td>
-                        <td style={{ padding: 6, textAlign: 'right' }}>{m.cie ?? '-'}</td>
-                        <td style={{ padding: 6, textAlign: 'right' }}>{m.see ?? '-'}</td>
-                        <td style={{ padding: 6, textAlign: 'right' }}>{m.total ?? '-'}</td>
-                        <td style={{ padding: 6 }}>{m.status?.toUpperCase() ?? '-'}</td>
-                        <td style={{ padding: 6 }}>{grade}</td>
-                        <td style={{ padding: 6 }}>{gradePoints}</td>
-                        <td style={{ padding: 6 }}>{credits}</td>
-                      </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                <table style={{ width: '100%', marginTop: 10, borderCollapse: 'collapse' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Total Credits Earned:</td>
-                      <td style={{ padding: 6, fontWeight: 'bold' }}>
-                        {(result.marks || []).reduce((acc: number, m: {status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number}) => {
+
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-100 rounded text-sm text-gray-700">
+                  <strong>Notes:</strong>
+                  <div className="text-xs text-gray-600 mt-1">This is a provisional marks card issued for reference. The official marks card will be issued by the Administration in due course. The results and marks indicated are accurate and officially recognized.</div>
+                </div>
+
+                <div style={{ position: 'absolute', left: -9999, top: 0 }}>
+                  <div ref={cardRef as any} style={{ width: 800, padding: 20, background: '#fff', color: '#000' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <img
+                        src={result?.organization?.logo || "/logo.jpeg"}
+                        alt="Logo"
+                        style={{ width: 80, height: 80, objectFit: 'contain' }}
+                      />
+                      <div>
+                        <div style={{ fontSize: 20, fontWeight: 700 }}>{result?.organization?.name || 'Stalight Campus'}</div>
+                        <div style={{ fontSize: 12 }}>Official Marks Card</div>
+                      </div>
+                    </div>
+                    <hr style={{ margin: '12px 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <div><strong>Name:</strong> {result.student?.name || '-'}</div>
+                      <div><strong>USN:</strong> {result.student?.usn || usn}</div>
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Subject Code</th>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Subject Title</th>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>CIE</th>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>SEE</th>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'right', padding: 6 }}>Total Marks</th>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Result</th>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Grade</th>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Grade Point</th>
+                          <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: 6 }}>Credits Assigned</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.isArray(result.marks) && result.marks.map((m: { subject: string, subject_code: string, cie?: number, see?: number, total?: number, status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number }, i: number) => {
+                          // Calculate grade and grade points based on total marks
+                          const total = m.total;
+                          let grade = '';
+                          let gradePoints = '';
+                          if (typeof total === 'number') {
+                            if (total >= 90) { grade = 'S'; gradePoints = '10'; }
+                            else if (total >= 80) { grade = 'A'; gradePoints = '9'; }
+                            else if (total >= 70) { grade = 'B'; gradePoints = '8'; }
+                            else if (total >= 60) { grade = 'C'; gradePoints = '7'; }
+                            else if (total >= 50) { grade = 'D'; gradePoints = '6'; }
+                            else if (total >= 40) { grade = 'E'; gradePoints = '5'; }
+                            else { grade = 'F'; gradePoints = '0'; }
+                          }
+
+                          // Determine credits based on pass/fail status
                           const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
                           const credits = m.status === 'pass' ? availableCredits : 0;
-                          return acc + credits;
-                        }, 0)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Total Marks Obtained:</td>
-                      <td style={{ padding: 6, fontWeight: 'bold' }}>
-                        {(result.marks || []).reduce((acc: number, m: {total?: number}) => {
-                          return acc + (typeof m.total === 'number' ? m.total : 0);
-                        }, 0)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>SGPA:</td>
-                      <td style={{ padding: 6, fontWeight: 'bold' }}>
-                        {(() => {
-                          const marks = result.marks || [];
-                          let totalGradePoints = 0;
-                          let totalCredits = 0;
-                          
-                          marks.forEach((m: {total?: number, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number, status: string}) => {
-                            const total = m.total;
-                            const credits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
-                            
-                            if (typeof total === 'number' && credits > 0 && m.status === 'pass') {
-                              let gradePoints = 0;
-                              if (total >= 90) gradePoints = 10;
-                              else if (total >= 80) gradePoints = 9;
-                              else if (total >= 70) gradePoints = 8;
-                              else if (total >= 60) gradePoints = 7;
-                              else if (total >= 50) gradePoints = 6;
-                              else if (total >= 40) gradePoints = 5;
-                              else gradePoints = 0;
-                              
-                              totalGradePoints += gradePoints * credits;
-                              totalCredits += credits;
-                            }
-                          });
-                          
-                          return totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
-                        })()}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>CGPA:</td>
-                      <td style={{ padding: 6, fontWeight: 'bold' }}>{cgpa ?? '-'}</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Overall Status:</td>
-                      <td style={{ padding: 6, fontWeight: 'bold' }}>{result.aggregate?.overall_status ?? '-'}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div style={{ marginTop: 18, fontSize: 11 }}>This is an official marks card generated from {result?.organization?.name || 'Neuro Campus'}.</div>
+
+                          return (
+                            <tr key={i}>
+                              <td style={{ padding: 6 }}>{m.subject_code}</td>
+                              <td style={{ padding: 6 }}>{m.subject}</td>
+                              <td style={{ padding: 6, textAlign: 'right' }}>{m.cie ?? '-'}</td>
+                              <td style={{ padding: 6, textAlign: 'right' }}>{m.see ?? '-'}</td>
+                              <td style={{ padding: 6, textAlign: 'right' }}>{m.total ?? '-'}</td>
+                              <td style={{ padding: 6 }}>{m.status?.toUpperCase() ?? '-'}</td>
+                              <td style={{ padding: 6 }}>{grade}</td>
+                              <td style={{ padding: 6 }}>{gradePoints}</td>
+                              <td style={{ padding: 6 }}>{credits}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    <table style={{ width: '100%', marginTop: 10, borderCollapse: 'collapse' }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Total Credits Earned:</td>
+                          <td style={{ padding: 6, fontWeight: 'bold' }}>
+                            {(result.marks || []).reduce((acc: number, m: { status: string, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number }) => {
+                              const availableCredits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
+                              const credits = m.status === 'pass' ? availableCredits : 0;
+                              return acc + credits;
+                            }, 0)}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Total Marks Obtained:</td>
+                          <td style={{ padding: 6, fontWeight: 'bold' }}>
+                            {(result.marks || []).reduce((acc: number, m: { total?: number }) => {
+                              return acc + (typeof m.total === 'number' ? m.total : 0);
+                            }, 0)}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>SGPA:</td>
+                          <td style={{ padding: 6, fontWeight: 'bold' }}>
+                            {(() => {
+                              const marks = result.marks || [];
+                              let totalGradePoints = 0;
+                              let totalCredits = 0;
+
+                              marks.forEach((m: { total?: number, credits?: number, credit?: number, credit_hours?: number, creditHours?: number, credit_hour?: number, status: string }) => {
+                                const total = m.total;
+                                const credits = m.credits ?? m.credit ?? m.credit_hours ?? m.creditHours ?? m.credit_hour ?? 0;
+
+                                if (typeof total === 'number' && credits > 0 && m.status === 'pass') {
+                                  let gradePoints = 0;
+                                  if (total >= 90) gradePoints = 10;
+                                  else if (total >= 80) gradePoints = 9;
+                                  else if (total >= 70) gradePoints = 8;
+                                  else if (total >= 60) gradePoints = 7;
+                                  else if (total >= 50) gradePoints = 6;
+                                  else if (total >= 40) gradePoints = 5;
+                                  else gradePoints = 0;
+
+                                  totalGradePoints += gradePoints * credits;
+                                  totalCredits += credits;
+                                }
+                              });
+
+                              return totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
+                            })()}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>CGPA:</td>
+                          <td style={{ padding: 6, fontWeight: 'bold' }}>{cgpa ?? '-'}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: 6, fontWeight: 'bold', textAlign: 'right' }}>Overall Status:</td>
+                          <td style={{ padding: 6, fontWeight: 'bold' }}>{result.aggregate?.overall_status ?? '-'}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div style={{ marginTop: 18, fontSize: 11 }}>This is an official marks card generated from {result?.organization?.name || 'Stalight Campus'}.</div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
-          )}
-        </div>
         )}
       </div>
     </div>
