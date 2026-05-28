@@ -192,6 +192,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
   });
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [matchingAssignments, setMatchingAssignments] = useState<FacultyAssignmentData[]>([]);
 
   useEffect(() => {
     const fetchFacultyAssignment = async () => {
@@ -209,24 +210,30 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
         }
 
         // Use faculty assignments from props instead of API call
-        // Debug: print diagnostics if assignment not found
-
-        const assignment = facultyAssignments.find(
+        const assignments = facultyAssignments.filter(
           (a: FacultyAssignmentData) => String(a.subject_id) === String(subject.id) && String(a.semester_id) === String(semesterId) && String(a.section_id) === String(sectionId)
         );
 
-        if (assignment) {
+        setMatchingAssignments(assignments);
+
+        if (assignments.length === 1) {
           setNewClassDetails((prev) => ({
             ...prev,
-            professor: (assignment as any).faculty_name || (assignment as any).faculty || ""
+            professor: (assignments[0] as any).faculty_name || (assignments[0] as any).faculty || ""
           }));
+        } else if (assignments.length > 1) {
+          // Keep existing if it matches one of the new assignments, else clear
+          setNewClassDetails((prev) => {
+            const currentProf = prev.professor;
+            const stillValid = assignments.some(a => ((a as any).faculty_name || (a as any).faculty) === currentProf);
+            return { ...prev, professor: stillValid ? currentProf : "" };
+          });
         } else {
-
           setNewClassDetails((prev) => ({ ...prev, professor: "" }));
         }
       } catch (err) {
-
         setNewClassDetails((prev) => ({ ...prev, professor: "" }));
+        setMatchingAssignments([]);
       } finally {
         setIsLoadingAssignments(false);
       }
@@ -281,18 +288,38 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
 
         <div className="mb-4">
           <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground/70' : 'text-gray-600'}`}>Professor:</label>
-          <div className={`w-full p-3 border rounded-lg flex items-center gap-3 transition-all duration-200 ${theme === 'dark' ? 'bg-muted/50 text-foreground border-border' : 'bg-gray-50 text-gray-900 border-gray-200'}`}>
-            <User className={`w-4 h-4 ${theme === 'dark' ? 'text-primary' : 'text-primary'}`} />
-            <span className="font-medium">
-              {isLoadingAssignments ?
-              <Skeleton className="h-4 w-32" /> :
-
-              newClassDetails.professor || <span className="text-destructive/70 italic">No professor assigned</span>
-              }
-            </span>
-          </div>
+          {matchingAssignments.length > 1 ? (
+            <Select value={newClassDetails.professor} onValueChange={(value) => handleSelectChange("professor", value)}>
+              <SelectTrigger className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
+                <SelectValue placeholder="Select Professor" />
+              </SelectTrigger>
+              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                {matchingAssignments.map((a: any) => {
+                  const profName = a.faculty_name || a.faculty || "";
+                  return (
+                    <SelectItem key={a.id} value={profName} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                      {profName}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className={`w-full p-3 border rounded-lg flex items-center gap-3 transition-all duration-200 ${theme === 'dark' ? 'bg-muted/50 text-foreground border-border' : 'bg-gray-50 text-gray-900 border-gray-200'}`}>
+              <User className={`w-4 h-4 ${theme === 'dark' ? 'text-primary' : 'text-primary'}`} />
+              <span className="font-medium">
+                {isLoadingAssignments ? (
+                  <Skeleton className="h-4 w-32" />
+                ) : newClassDetails.professor ? (
+                  newClassDetails.professor
+                ) : (
+                  <span className="text-destructive/70 italic">No professor assigned</span>
+                )}
+              </span>
+            </div>
+          )}
           {!isLoadingAssignments && !newClassDetails.professor && newClassDetails.subject &&
-          <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
+            <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
           }
         </div>
 
@@ -361,6 +388,10 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
                 }
                 if (newClassDetails.start_time >= newClassDetails.end_time) {
                   alert("Start time must be before end time.");
+                  return;
+                }
+                if (!newClassDetails.professor) {
+                  alert("Please select a professor.");
                   return;
                 }
                 onSave({
@@ -706,7 +737,7 @@ const Timetable = () => {
       }
 
       const assignment = state.facultyAssignments.find(
-        (a) => a.subject_id === subject.id && a.semester_id === state.semesterId && a.section_id === state.sectionId
+        (a) => a.subject_id === subject.id && a.semester_id === state.semesterId && a.section_id === state.sectionId && (a.faculty_name === newClassDetails.professor || a.faculty === newClassDetails.professor)
       );
 
       if (!assignment) {

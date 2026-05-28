@@ -419,6 +419,12 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
         updateState({ faculties: [], facultyTotalPages: 1, facultyPage: 1 });
         return;
       }
+      
+      // Prevent redundant fetch on initial load since bootstrap already provides this data
+      if (state.isFirstLoad && state.selectedBranchForFaculty === state.branchId && !state.facultySearch) {
+        updateState({ isFirstLoad: false });
+        return;
+      }
 
       updateState({ loadingFaculties: true });
       try {
@@ -462,15 +468,31 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     return () => clearTimeout(timer);
   }, [localFacultySearch, state.facultySearch, updateState]);
 
+  // Cache for subjects and sections to avoid refetching on optimistic update reverts
+  const semesterCache = useRef<{ subjects: Record<string, any[]>; sections: Record<string, any[]> }>({
+    subjects: {},
+    sections: {}
+  });
+
   // Fetch subjects and sections when semester changes
   useEffect(() => {
     const fetchSemesterData = async () => {
       if (!state.semesterId || !state.branchId) return;
 
+      if (semesterCache.current.subjects[state.semesterId] && semesterCache.current.sections[state.semesterId]) {
+        updateState({
+          subjects: semesterCache.current.subjects[state.semesterId],
+          sections: semesterCache.current.sections[state.semesterId]
+        });
+        return;
+      }
+
       updateState({ loading: true });
       try {
-        const res = await getHODTimetableSemesterData(state.semesterId);
+        const res = await getHODTimetableSemesterData(state.semesterId, "sections,subjects");
         if (res.success && res.data) {
+          semesterCache.current.subjects[state.semesterId] = res.data.subjects || [];
+          semesterCache.current.sections[state.semesterId] = res.data.sections || [];
           updateState({
             subjects: res.data.subjects || [],
             sections: res.data.sections || []

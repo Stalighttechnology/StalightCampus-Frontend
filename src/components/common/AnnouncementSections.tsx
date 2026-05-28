@@ -55,6 +55,8 @@ interface AnnouncementSectionsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   header?: React.ReactNode;
+  showExpired?: boolean;
+  setShowExpired?: (val: boolean) => void;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -139,9 +141,15 @@ export const AnnouncementSections = ({
   activeTab,
   onTabChange,
   header,
+  showExpired: propShowExpired,
+  setShowExpired: propSetShowExpired,
 }: AnnouncementSectionsProps) => {
   const { theme } = useTheme();
-  const [showExpired, setShowExpired] = useState(false);
+  const [localShowExpired, setLocalShowExpired] = useState(false);
+  
+  const showExpired = propShowExpired !== undefined ? propShowExpired : localShowExpired;
+  const setShowExpired = propSetShowExpired || setLocalShowExpired;
+
   const [viewingAnnouncement, setViewingAnnouncement] = useState<Announcement | null>(null);
 
   const filteredMyAnnouncements = showExpired

@@ -6,7 +6,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from ".
 import { Checkbox } from "../ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { SkeletonCard } from "../ui/skeleton";
-import { manageStudents, getElectiveEnrollmentBootstrap } from "../../utils/hod_api";
+import { manageStudents, getElectiveEnrollmentBootstrap, manageSections } from "../../utils/hod_api";
 import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
@@ -92,21 +92,12 @@ const StudentEnrollment = () => {
   useEffect(() => {
     const loadBootstrap = async () => {
       try {
-        const boot = await getElectiveEnrollmentBootstrap();
+        const boot = await getElectiveEnrollmentBootstrap(['profile', 'semesters']);
         if (boot.success && boot.data) {
           const bId = boot.data.profile?.branch_id;
           if (bId) setBranchId(String(bId));
           if (Array.isArray(boot.data.semesters)) setSemesters(boot.data.semesters.map((s: any) => ({ id: String(s.id), number: s.number })));
-          if (Array.isArray(boot.data.sections)) {
-            const map: Record<string, any[]> = {};
-            boot.data.sections.forEach((sec: any) => {
-              const semIdKey = String(sec.semester_id || "");
-              if (!map[semIdKey]) map[semIdKey] = [];
-              map[semIdKey].push({ ...sec, id: String(sec.id) });
-            });
-            setSectionsBySemester(map);
-          }
-          // Removed: elective_subjects loading - now loaded on demand
+          // Sections are now fetched lazily on semester selection
         }
       } catch (e) {
 
@@ -114,6 +105,25 @@ const StudentEnrollment = () => {
     };
     loadBootstrap();
   }, []);
+
+  // Fetch sections lazily when semester changes
+  useEffect(() => {
+    if (branchId && semesterId) {
+      const cached = sectionsBySemester[semesterId];
+      if (!cached) {
+        manageSections({ branch_id: branchId, semester_id: semesterId }, "GET")
+          .then((res: any) => {
+            if (res.success && res.data) {
+              setSectionsBySemester(prev => ({
+                ...prev,
+                [semesterId]: res.data.map((sec: any) => ({ ...sec, id: String(sec.id) }))
+              }));
+            }
+          })
+          .catch((err: any) => console.error(err));
+      }
+    }
+  }, [branchId, semesterId, sectionsBySemester]);
 
   useEffect(() => {
     const loadSubjects = async () => {

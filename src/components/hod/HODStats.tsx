@@ -497,7 +497,7 @@ const handleApprove = async (index: number) => {
                 </div>
               </div>
             ) : (
-              leaveRequests.slice(0, 20).map((row, index) => (
+              leaveRequests.slice(0, 10).map((row, index) => (
                 <div
                   key={row.id}
                   className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}
@@ -593,7 +593,7 @@ const handleApprove = async (index: number) => {
                     </td>
                   </tr>
                 ) : (
-                  leaveRequests.slice(0, 20).map((row, index) => (
+                  leaveRequests.slice(0, 10).map((row, index) => (
                     <tr
                       key={row.id}
                       className={`border-b last:border-none text-sm md:text-base hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} text-center`}

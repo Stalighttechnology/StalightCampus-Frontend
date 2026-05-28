@@ -1040,7 +1040,7 @@ branch_id?: string)
   }
 };
 
-export const getElectiveEnrollmentBootstrap = async (): Promise<{
+export const getElectiveEnrollmentBootstrap = async (include: string[] = ['profile', 'semesters', 'sections']): Promise<{
   success: boolean;
   message?: string;
   data?: {
@@ -1064,7 +1064,8 @@ export const getElectiveEnrollmentBootstrap = async (): Promise<{
   };
 }> => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/elective-enrollment-bootstrap/`, {
+    const params = new URLSearchParams({ include: include.join(',') }).toString();
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/elective-enrollment-bootstrap/?${params}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" }
     });
@@ -1086,7 +1087,7 @@ export const getHODStats = async (branch_id: string = ''): Promise<HODStatsRespo
 
   const promise = (async () => {
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/dashboard-stats/?branch_id=${branch_id}`, {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/dashboard-stats/?branch_id=${branch_id}&light=true`, {
         method: "GET",
         headers: { "Content-Type": "application/json" }
       });
@@ -1508,7 +1509,7 @@ method: "GET" | "POST" = "GET")
 };
 
 // Combined semester data: sections + subjects + faculty assignments
-export const getHODTimetableSemesterData = async (semester_id: string): Promise<{
+export const getHODTimetableSemesterData = async (semester_id: string, include: string = "sections,subjects,faculty_assignments"): Promise<{
   success: boolean;
   message?: string;
   data?: {
@@ -1530,7 +1531,7 @@ export const getHODTimetableSemesterData = async (semester_id: string): Promise<
 }> => {
   try {
     if (!semester_id) throw new Error("Semester ID is required");
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/timetable-semester-data/?semester_id=${semester_id}`, {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/timetable-semester-data/?semester_id=${semester_id}&include=${include}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" }
 
