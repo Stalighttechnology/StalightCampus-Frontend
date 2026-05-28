@@ -27,6 +27,7 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
         content:
           "Monitor today's faculty attendance summary and toggle between Today's Attendance and Attendance Records.",
         placement: isMobile ? step.placement : 'top',
+        switchTab: 'today',
       },
       {
         ...step,
@@ -139,6 +140,26 @@ export function hodTransform(step: any, isMobile: boolean): any[] | null {
         content:
           'Identify students below the attendance threshold. Use the filters to select a semester and section, then export a PDF report or notify students directly.',
         placement: isMobile ? ('bottom' as const) : ('top' as const),
+      },
+    ];
+  }
+
+  if (target === '#sidebar-co-attainment') {
+    return [
+      {
+        ...step,
+        target: '#co-attainment-selectors',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-exam-applications') {
+    return [
+      {
+        ...step,
+        target: '#exam-applications-filters',
+        placement: isMobile ? step.placement : 'top',
       },
     ];
   }

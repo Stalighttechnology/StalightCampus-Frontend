@@ -365,7 +365,7 @@ const ExamApplication: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div id="exam-applications-filters" className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Exam Period</label>
             <Select value={examPeriod} onValueChange={setExamPeriod}>

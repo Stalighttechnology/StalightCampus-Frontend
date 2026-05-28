@@ -113,11 +113,12 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#hod-attendance-today-section',
+        target: '#hod-attendance-stats-grid',
         title: "Today's HOD Attendance",
         content:
           "View today's attendance snapshot — total HODs, present, absent, and unmarked counts at a glance.",
         placement: isMobile ? step.placement : 'top',
+        switchTab: 'today',
       },
       {
         ...step,
@@ -131,11 +132,24 @@ export function adminTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-faculty-attendance') {
+    return [
+      {
+        ...step,
+        target: '#admin-faculty-attendance-header-select',
+        title: 'Select Branch',
+        content:
+          'Choose a branch from the dropdown to load and view faculty attendance data for that department.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
   if (target === '#sidebar-my-attendance') {
     return [
       {
         ...step,
-        target: '#admin-my-attendance-form',
+        target: '#today-attendance-toggle-section',
         title: 'My Attendance',
         content:
           'Mark your attendance as present or absent for today and optionally add notes.',

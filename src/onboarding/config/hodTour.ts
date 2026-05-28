@@ -148,6 +148,24 @@ export const hodTour: Step[] = [
     route: '/hod/low-attendance',
   },
   {
+    target: '#sidebar-co-attainment',
+    title: 'CO Attainment',
+    content:
+      'Calculate and analyze Course Outcome (CO) attainment levels for your courses.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/co-attainment',
+  },
+  {
+    target: '#sidebar-exam-applications',
+    title: 'Exam Applications',
+    content:
+      'Manage and review student exam applications, periods, and statuses.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hod/exam-applications',
+  },
+  {
     target: '#sidebar-faculty-attendance',
     title: 'Faculty Attendance',
     content:
