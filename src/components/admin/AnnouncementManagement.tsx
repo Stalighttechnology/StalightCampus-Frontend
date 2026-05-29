@@ -328,6 +328,7 @@ const AdminAnnouncementManagement = () => {
             </Button>
           </DialogTrigger>
           <DialogContent
+            onPointerDownOutside={(e) => e.preventDefault()}
             className="mobile-modal max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
             
             <DialogHeader>
@@ -425,6 +426,7 @@ const AdminAnnouncementManagement = () => {
                             }
                             setExpiresOpen(false);
                           }}
+                          disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                           className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'} />
                         
                       </div>

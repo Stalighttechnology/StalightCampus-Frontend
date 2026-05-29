@@ -9,6 +9,7 @@ import { markFacultyAttendance, getFacultyAttendanceRecords, MarkFacultyAttendan
 import { normalizePaginatedResponse } from '@/utils/normalizePagination';
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import Swal from "sweetalert2";
 
 const FacultyAttendance = () => {
   const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | null>(null);
@@ -93,6 +94,22 @@ const FacultyAttendance = () => {
   };
 
   const handleToggleAttendance = async (status: "present" | "absent") => {
+    const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1);
+    const confirmResult = await Swal.fire({
+      title: `Mark ${capitalizedStatus}?`,
+      text: `Are you sure you want to mark today's attendance as ${status}?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: `Yes, Mark ${capitalizedStatus}`,
+      cancelButtonText: "Cancel",
+      confirmButtonColor: status === "present" ? "#22c55e" : "#ef4444",
+      cancelButtonColor: theme === "dark" ? "#3f3f46" : "#d1d5db",
+      background: theme === "dark" ? "#1c1c1e" : "#ffffff",
+      color: theme === "dark" ? "#E4E4E7" : "#000000",
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
     setIsSubmitting(true);
     setMarkingStatus(status);
     setIsAnimating(true);
@@ -245,8 +262,8 @@ const FacultyAttendance = () => {
                 {/* Present Button */}
                 <motion.button
                   onClick={() => handleToggleAttendance("present")}
-                  disabled={isSubmitting}
-                  className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${markingStatus === 'present' ?
+                  disabled={isSubmitting || !!attendanceStatus}
+                  className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
                   'bg-blue-500 text-white animate-pulse' :
                   attendanceStatus === 'present' ?
                   'bg-green-500 text-white scale-110' :
@@ -271,8 +288,8 @@ const FacultyAttendance = () => {
                 {/* Absent Button */}
                 <motion.button
                   onClick={() => handleToggleAttendance("absent")}
-                  disabled={isSubmitting}
-                  className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg ${markingStatus === 'absent' ?
+                  disabled={isSubmitting || !!attendanceStatus}
+                  className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
                   'bg-blue-500 text-white animate-pulse' :
                   attendanceStatus === 'absent' ?
                   'bg-red-500 text-white scale-110' :
@@ -354,24 +371,6 @@ const FacultyAttendance = () => {
                 }
               </AnimatePresence>
 
-              {/* Reset Button */}
-              {attendanceStatus &&
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}>
-                
-                  <Button
-                  onClick={resetAttendance}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center space-x-2">
-                  
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Reset</span>
-                  </Button>
-                </motion.div>
-              }
             </div>
           </CardContent>
         </div>

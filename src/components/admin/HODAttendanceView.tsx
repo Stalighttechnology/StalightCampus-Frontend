@@ -101,6 +101,7 @@ const AdminHODAttendance: React.FC = () => {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const getStatusIcon = (status: string) => {
     const s = (status || '').toLowerCase();
@@ -211,6 +212,40 @@ const AdminHODAttendance: React.FC = () => {
       Swal.fire("Error", "Network error", "error");
     } finally {
       setIsDetailLoading(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (facultySummary.length === 0) {
+      Swal.fire("Info", "No records to export", "info");
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({
+        start_date: dateRange.start_date,
+        end_date: dateRange.end_date,
+      });
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/hod-attendance-records/export-pdf/?${params}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `HOD_Attendance_Summary_${dateRange.start_date}_to_${dateRange.end_date}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const result = await response.json().catch(() => ({}));
+        Swal.fire("Error", result.message || "Failed to export PDF", "error");
+      }
+    } catch (err) {
+      Swal.fire("Error", "Network error while exporting PDF", "error");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -534,7 +569,9 @@ const AdminHODAttendance: React.FC = () => {
                       disabled={(date) => {
                         const start = new Date(dateRange.start_date);
                         start.setHours(0, 0, 0, 0);
-                        return date <= start;
+                        const today = new Date();
+                        today.setHours(23, 59, 59, 999);
+                        return date <= start || date > today;
                       }}
                       initialFocus />
                     
@@ -548,8 +585,13 @@ const AdminHODAttendance: React.FC = () => {
                   fetchRecords(1);
                 }}
                 className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white">
-                
                 Apply Filter
+              </Button>
+              <Button
+                disabled={!hasSearched || exporting}
+                onClick={handleExportPDF}
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                {exporting ? "Exporting..." : "Export PDF"}
               </Button>
             </div>
           </div>

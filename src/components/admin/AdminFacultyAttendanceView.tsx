@@ -335,9 +335,13 @@ const AdminFacultyAttendanceView: React.FC = () => {
   };
 
   const handleExportTodayPDF = async () => {
+    if (!selectedBranch) {
+      Swal.fire("Info", "Please select a branch first", "info");
+      return;
+    }
     setExportingToday(true);
     try {
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/faculty-attendance-today/export-pdf/`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/faculty-attendance-today/export-pdf/?branch_id=${selectedBranch}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -361,6 +365,10 @@ const AdminFacultyAttendanceView: React.FC = () => {
   };
 
   const handleExportRecordsPDF = async () => {
+    if (!selectedBranch) {
+      Swal.fire("Info", "Please select a branch first", "info");
+      return;
+    }
     if (facultySummary.length === 0) {
       Swal.fire("Info", "No records to export", "info");
       return;
@@ -369,13 +377,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
     setExportingRecords(true);
     try {
       const params = new URLSearchParams({
+        branch_id: selectedBranch,
         start_date: dateRange.start_date,
         end_date: dateRange.end_date,
       });
       if (selectedFacultyId && selectedFacultyId !== "all") {
         params.append("faculty_id", selectedFacultyId);
       }
-      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/faculty-attendance-records/export-pdf/?${params}`);
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/faculty-attendance-records/export-pdf/?${params}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -851,7 +860,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         onSelect={(date) => date && setDateRange((prev) => ({ ...prev, end_date: date.toLocaleDateString('sv-SE') }))}
                         disabled={(date) => {
                           const start = new Date(dateRange.start_date);
-                          return isBefore(date, start) || isSameDay(date, start);
+                          const today = new Date();
+                          today.setHours(23, 59, 59, 999);
+                          return isBefore(date, start) || isSameDay(date, start) || date > today;
                         }}
                         initialFocus />
 
@@ -861,7 +872,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                 <div className="w-full sm:w-auto pt-4 sm:pt-0 ml-auto">
                   <button
                     onClick={handleExportRecordsPDF}
-                    disabled={exportingRecords || facultySummary.length === 0}
+                    disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50">
                     {exportingRecords ? (
                       <>

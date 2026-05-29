@@ -560,7 +560,7 @@ const AdminQPApprovals = () => {
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type}</DialogTitle>
           </DialogHeader>
-          <div className="overflow-auto px-4 py-2 space-y-4 flex-1">
+          <div className="overflow-auto custom-scrollbar px-4 py-2 space-y-4 flex-1">
             {detailLoading ?
               <div className="space-y-4">
                 <SkeletonCard />

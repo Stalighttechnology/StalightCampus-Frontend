@@ -184,7 +184,7 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
                   <SelectTrigger className={theme === 'dark' ? 'w-full mt-1 bg-card text-foreground border border-border' : 'w-full mt-1 bg-white text-gray-900 border border-gray-300'}>
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px]' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px]'}>
                     <SelectItem value="principal">Principal</SelectItem>
                     <SelectItem value="hod">HOD</SelectItem>
                     <SelectItem value="teacher">Faculty/Teacher</SelectItem>

@@ -9,6 +9,13 @@ import {
   DialogHeader,
   DialogTitle } from
 "../ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "../ui/select";
 import { manageHODLeaves } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import Swal from 'sweetalert2';
@@ -330,24 +337,25 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
 
                 <PopoverContent className={theme === 'dark' ? 'w-64 p-3 bg-background text-foreground border-border shadow-lg' : 'w-64 p-3 bg-white text-gray-900 border-gray-200 shadow-lg'}>
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <button
-                          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                          onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear() - 1, visibleMonth.getMonth(), 1))}
-                          aria-label="Previous year">
-                          
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
-
-                      <div className="text-center font-medium">{format(visibleMonth, 'yyyy')}</div>
-
-                      <button
-                          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                          onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear() + 1, visibleMonth.getMonth(), 1))}
-                          aria-label="Next year">
-                          
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
+                    <div className="flex items-center justify-center mb-3">
+                      <Select
+                        value={visibleMonth.getFullYear().toString()}
+                        onValueChange={(val) => setVisibleMonth(new Date(Number(val), visibleMonth.getMonth(), 1))}
+                      >
+                        <SelectTrigger className="w-[120px] h-8 text-xs font-semibold">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {Array.from({ length: 11 }, (_, i) => {
+                            const year = (new Date().getFullYear() - i).toString();
+                            return (
+                              <SelectItem key={year} value={year} className="text-xs">
+                                {year}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
@@ -355,14 +363,18 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                           const monthDate = new Date(visibleMonth.getFullYear(), i, 1);
                           const monthLabel = format(monthDate, 'MMM');
                           const monthValue = `${visibleMonth.getFullYear()}-${String(i + 1).padStart(2, '0')}`;
+                          const today = new Date();
+                          const isFutureMonth = visibleMonth.getFullYear() > today.getFullYear() || 
+                                                (visibleMonth.getFullYear() === today.getFullYear() && i > today.getMonth());
                           return (
                             <button
                               key={i}
+                              disabled={isFutureMonth}
                               onClick={() => {
                                 setSelectedMonth(monthValue);
                                 setMonthPickerOpen(false);
                               }}
-                              className={`px-3 py-2 rounded-md text-sm text-left w-full ${selectedMonth === monthValue ? 'bg-primary text-primary-foreground' : theme === 'dark' ? 'bg-card hover:bg-accent text-foreground' : 'bg-white hover:bg-gray-100 text-gray-900'} `}>
+                              className={`px-3 py-2 rounded-md text-sm text-left w-full disabled:opacity-30 disabled:cursor-not-allowed ${selectedMonth === monthValue ? 'bg-primary text-primary-foreground' : theme === 'dark' ? 'bg-card hover:bg-accent text-foreground' : 'bg-white hover:bg-gray-100 text-gray-900'} `}>
                               
                             {monthLabel}
                           </button>);
