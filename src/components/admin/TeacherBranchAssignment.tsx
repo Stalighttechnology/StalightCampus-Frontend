@@ -110,8 +110,39 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
     }
   };
 
+  // Load branches list on mount
   useEffect(() => {
-    fetchTeacherAssignments();
+    const fetchInitialBranches = async () => {
+      try {
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/teacher-assignments/?page=1&page_size=1`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+            "Content-Type": "application/json"
+          }
+        });
+        const result = await response.json();
+        const hasResults = result && typeof result === 'object' && 'results' in result;
+        const dataSource = hasResults ? result.results : result;
+        if (dataSource && dataSource.success) {
+          setBranches(dataSource.branches || []);
+        }
+      } catch (e) {
+        // fail silently
+      }
+    };
+    fetchInitialBranches();
+  }, []);
+
+  useEffect(() => {
+    if (branchFilter) {
+      fetchTeacherAssignments();
+    } else {
+      setTeachers([]);
+      setTotalCount(0);
+      setTotalPages(1);
+      setLoading(false);
+    }
   }, [currentPage, appliedSearch, branchFilter]);
 
   // Reset to first page when filters change
@@ -282,9 +313,9 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
               </Button>
             </div>
             <div className="filter-container sm:w-48">
-              <Select value={branchFilter || "all"} onValueChange={(value) => setBranchFilter(value === "all" ? "" : value)}>
+              <Select value={branchFilter || undefined} onValueChange={(value) => setBranchFilter(value === "all" ? "" : value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by branch" />
+                  <SelectValue placeholder="Choose Branch" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Branches</SelectItem>
@@ -303,51 +334,77 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             {loading ?
               <SkeletonTable rows={5} cols={1} /> :
 
-              <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                {teachers.map((teacher) =>
-                <Card
-                  key={teacher.id}
-                  className="teacher-card p-3 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
-                  onClick={() => {
-                    setSelectedTeacher(teacher);
-                    if (teacher.primary_branch) {
-                      setSelectedBranch(teacher.primary_branch.id.toString());
-                    } else {
-                      setSelectedBranch("");
-                    }
-                    setShowBranchDialog(true);
-                  }}>
-                  
-                    <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
-                      <div className="w-full">
-                        <h3 className="teacher-name text-sm sm:text-lg font-semibold">
-                          {teacher.first_name} {teacher.last_name}
-                        </h3>
-                        <p className="teacher-info text-sm text-gray-600 dark:text-gray-400">{teacher.email}</p>
-                        <p className="teacher-info text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          Branch: {teacher.primary_branch && teacher.primary_branch.name ? teacher.primary_branch.name : "Not Assigned"}
-                        </p>
-                      </div>
-                      <div className="badge-wrapper">
-                        {teacher.primary_branch && teacher.primary_branch.name ?
-                      <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-[10px] sm:text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-[10px] sm:text-xs'}>
-                            {teacher.primary_branch.name}
-                          </Badge> :
-
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
-                            Not Assigned
-                          </span>
+              branchFilter === "" ? (
+                <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                    <Building className="w-10 h-10 text-primary opacity-50" />
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    Select a Branch
+                  </h3>
+                  <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Please select a branch from the dropdown above to view and manage its faculty assignments.
+                  </p>
+                </div>
+              ) : teachers.length === 0 ? (
+                <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                  <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                    <Building className="w-10 h-10 text-primary opacity-50" />
+                  </div>
+                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    No Faculty Assignments Found
+                  </h3>
+                  <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    There are no faculty members assigned to the selected branch or matching your search.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                  {teachers.map((teacher) =>
+                  <Card
+                    key={teacher.id}
+                    className="teacher-card p-3 sm:p-4 cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => {
+                      setSelectedTeacher(teacher);
+                      if (teacher.primary_branch) {
+                        setSelectedBranch(teacher.primary_branch.id.toString());
+                      } else {
+                        setSelectedBranch("");
                       }
+                      setShowBranchDialog(true);
+                    }}>
+                    
+                      <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
+                        <div className="w-full">
+                          <h3 className="teacher-name text-sm sm:text-lg font-semibold">
+                            {teacher.first_name} {teacher.last_name}
+                          </h3>
+                          <p className="teacher-info text-sm text-gray-600 dark:text-gray-400">{teacher.email}</p>
+                          <p className="teacher-info text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Branch: {teacher.primary_branch && teacher.primary_branch.name ? teacher.primary_branch.name : "Not Assigned"}
+                          </p>
+                        </div>
+                        <div className="badge-wrapper">
+                          {teacher.primary_branch && teacher.primary_branch.name ?
+                        <Badge className={theme === 'dark' ? 'bg-purple-700 text-white border-transparent text-[10px] sm:text-xs' : 'bg-purple-100 text-purple-800 border-transparent text-[10px] sm:text-xs'}>
+                              {teacher.primary_branch.name}
+                            </Badge> :
+
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-purple-50 text-purple-700'}`}>
+                              Not Assigned
+                            </span>
+                        }
+                        </div>
                       </div>
-                    </div>
-                  </Card>
-                )}
-              </div>
+                    </Card>
+                  )}
+                </div>
+              )
               }
           </div>
 
         </CardContent>
-        {!loading &&
+        {!loading && totalPages > 1 &&
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} teachers
