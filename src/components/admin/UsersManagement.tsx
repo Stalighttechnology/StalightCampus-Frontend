@@ -625,32 +625,10 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                           }>
                           
                               <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
-                                {editingId === user.id ?
-                            <Input
-                              name="name"
-                              value={editData?.name || ""}
-                              onChange={handleEditChange}
-                              className={theme === 'dark' ?
-                              'bg-card text-foreground w-full' :
-                              'bg-white text-gray-900 w-full'} /> :
-
-
-                            user.name
-                            }
+                                {user.name}
                               </td>
                               <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[200px]">
-                                {editingId === user.id ?
-                            <Input
-                              name="email"
-                              value={editData?.email || ""}
-                              onChange={handleEditChange}
-                              className={theme === 'dark' ?
-                              'bg-card text-foreground w-full' :
-                              'bg-white text-gray-900 w-full'} /> :
-
-
-                            user.email
-                            }
+                                {user.email}
                               </td>
                                <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getRoleBadge(user.role, theme)}</td>
                               <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[250px]">
@@ -661,43 +639,28 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                               <td className="table-cell py-2 px-1 whitespace-nowrap md:w-[120px]">{getStatusBadge(user.status, theme)}</td>
                               <td className="table-cell py-2 px-1 text-right">
                                 <div className="action-buttons whitespace-nowrap justify-end gap-2">
-                                  {editingId === user.id ?
-                              <Button
-                                size="sm"
-                                onClick={saveEdit}
-                                disabled={loading}
-                                className={theme === 'dark' ?
-                                'bg-primary text-primary-foreground hover:bg-primary/90' :
-                                'bg-primary text-primary-foreground hover:bg-primary/90'}>
-                                
-                                      {loading ? "Saving..." : "Save"}
-                                    </Button> :
-
-                              <>
-                                      <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEdit(user)}
-                                  disabled={loading}
-                                  className={theme === 'dark' ?
-                                  'p-2 rounded hover:bg-accent' :
-                                  'p-2 rounded hover:bg-gray-100'}>
-                                  
-                                        <Pencil1Icon className={theme === 'dark' ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-blue-500'} />
-                                      </Button>
-                                      <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => confirmDelete(user.id)}
-                                  disabled={loading}
-                                  className={theme === 'dark' ?
-                                  'p-2 rounded hover:bg-accent' :
-                                  'p-2 rounded hover:bg-gray-100'}>
-                                  
-                                        <TrashIcon className={theme === 'dark' ? 'w-5 h-5 text-destructive' : 'w-5 h-5 text-red-500'} />
-                                      </Button>
-                                    </>
-                              }
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEdit(user)}
+                                    disabled={loading}
+                                    className={theme === 'dark' ?
+                                    'p-2 rounded hover:bg-accent' :
+                                    'p-2 rounded hover:bg-gray-100'}>
+                                    
+                                    <Pencil1Icon className={theme === 'dark' ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-blue-500'} />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => confirmDelete(user.id)}
+                                    disabled={loading}
+                                    className={theme === 'dark' ?
+                                    'p-2 rounded hover:bg-accent' :
+                                    'p-2 rounded hover:bg-gray-100'}>
+                                    
+                                    <TrashIcon className={theme === 'dark' ? 'w-5 h-5 text-destructive' : 'w-5 h-5 text-red-500'} />
+                                  </Button>
                                 </div>
                               </td>
                             </tr>
@@ -754,6 +717,56 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         }
       </Card>
       </div>
+
+      <Dialog open={editingId !== null} onOpenChange={(open) => !open && (setEditingId(null) || setEditData(null))}>
+        <DialogContent
+          className={
+          theme === 'dark' ?
+          'bg-card border border-border text-foreground w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto' :
+          'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
+          }>
+          <DialogHeader>
+            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Edit User Details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Full Name</label>
+              <Input
+                name="name"
+                value={editData?.name || ""}
+                onChange={handleEditChange}
+                className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Email</label>
+              <Input
+                name="email"
+                value={editData?.email || ""}
+                onChange={handleEditChange}
+                className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex flex-row justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => { setEditingId(null); setEditData(null); }}
+              disabled={loading}
+              className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={saveEdit}
+              disabled={loading}
+              className="bg-primary text-white hover:bg-primary/90"
+            >
+              {loading ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
         <DialogContent

@@ -564,52 +564,15 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                             }>
 
                             <td className="py-3 px-3 align-middle font-medium branch-name-cell">
-                              {editingId === branch.id ?
-                                <Input
-                                  name="name"
-                                  value={editData?.name || ""}
-                                  onChange={handleEditChange}
-                                  className="edit-input-mobile h-8" /> :
-
-
-                                <div className="break-words">{branch.name}</div>
-                              }
+                              <div className="break-words">{branch.name}</div>
                             </td>
 
                             <td className="py-3 px-3 hidden sm:table-cell align-middle">
-                              {editingId === branch.id ?
-                                <Input
-                                  name="branch_code"
-                                  value={editData?.branch_code || ""}
-                                  onChange={handleEditChange}
-                                  className="h-8" /> :
-
-
-                                <span className="opacity-70">{branch.branch_code || "--"}</span>
-                              }
+                              <span className="opacity-70">{branch.branch_code || "--"}</span>
                             </td>
 
                             <td className="py-3 px-3 align-middle hod-cell">
-                              {editingId === branch.id ?
-                                <Select
-                                  value={editData?.hod || "none"}
-                                  onValueChange={(val) => setEditData((prev) => prev ? { ...prev, hod: val === "none" ? null : val } : null)}>
-
-                                  <SelectTrigger className="edit-input-mobile h-8 w-full">
-                                    <SelectValue placeholder="Select HOD" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="none">-- Unassign --</SelectItem>
-                                    {users.map((u) =>
-                                      <SelectItem key={u.id} value={`${u.first_name} ${u.last_name}`.trim()}>
-                                        {`${u.first_name} ${u.last_name}`.trim()}
-                                      </SelectItem>
-                                    )}
-                                  </SelectContent>
-                                </Select> :
-
-                                <div className="break-words">{branch.hod || "--"}</div>
-                              }
+                              <div className="break-words">{branch.hod || "--"}</div>
                             </td>
 
                             <td className="py-3 px-3 hidden sm:table-cell align-middle text-xs opacity-70">
@@ -617,12 +580,6 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                             </td>
 
                             <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
-                              {editingId === branch.id ?
-                                <div className="edit-actions-wrapper flex gap-1 justify-end">
-                                  <Button size="sm" onClick={saveEdit} disabled={loading} className="edit-btn-mobile h-8 px-2">Save</Button>
-                                  <Button size="sm" variant="ghost" onClick={() => { setEditingId(null); setEditData(null); }} className="edit-btn-mobile h-8 px-2">Cancel</Button>
-                                </div> :
-
                                 <div className="flex items-center justify-end gap-1">
                                   <Button variant="ghost" size="icon" onClick={() => handleEdit(branch)} className="h-8 w-8">
                                     <PencilIcon className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
@@ -631,7 +588,6 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                                     <TrashIcon className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
                                   </Button>
                                 </div>
-                              }
                             </td>
                           </tr>
                         )
@@ -676,6 +632,56 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
         }
       </Card>
 
+
+        <Dialog open={editingId !== null} onOpenChange={(open) => !open && (setEditingId(null) || setEditData(null))}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
+            <DialogHeader><DialogTitle>Edit Branch Details</DialogTitle></DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Branch Name</label>
+                <Input
+                  name="name"
+                  value={editData?.name || ""}
+                  onChange={handleEditChange}
+                  className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Branch Code</label>
+                <Input
+                  name="branch_code"
+                  value={editData?.branch_code || ""}
+                  onChange={handleEditChange}
+                  className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Assigned HOD</label>
+                <Select
+                  value={editData?.hod || "none"}
+                  onValueChange={(val) => setEditData((prev) => prev ? { ...prev, hod: val === "none" ? null : val } : null)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select HOD" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-- Unassign --</SelectItem>
+                    {users.map((u) =>
+                      <SelectItem key={u.id} value={`${u.first_name} ${u.last_name}`.trim()}>
+                        {`${u.first_name} ${u.last_name}`.trim()}
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter className="flex gap-3">
+              <Button variant="ghost" onClick={() => { setEditingId(null); setEditData(null); }} className="flex-1">Cancel</Button>
+              <Button onClick={saveEdit} disabled={loading} className="flex-1 bg-primary text-white">
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
