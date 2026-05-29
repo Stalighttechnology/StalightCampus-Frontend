@@ -132,10 +132,10 @@ const StudentEnrollment = () => {
       if (response.success) {
         const createdId = response.data?.id || response.data?.section_id || String(Date.now());
         const newSec = { id: String(createdId), name: newSectionName, semester_id: semesterId };
-        const currentCached = sectionsCache[semesterId] || [];
+        const currentCached = sectionsBySemester[semesterId] || [];
         const updatedSections = [...currentCached, newSec].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i).sort((a, b) => a.name.localeCompare(b.name));
         
-        setSectionsCache(prev => ({ ...prev, [semesterId]: updatedSections }));
+        setSectionsBySemester(prev => ({ ...prev, [semesterId]: updatedSections }));
         setSectionId(String(createdId));
         showSuccessAlert("Success", `Section ${newSectionName} added successfully!`);
         setIsAddSectionOpen(false);
@@ -144,7 +144,7 @@ const StudentEnrollment = () => {
         showErrorAlert("Error", response.message || "Failed to create section");
       }
     } catch (err: any) {
-      showErrorAlert("Error", "An error occurred while creating section");
+      showErrorAlert("Error", err.message || "An error occurred while creating section");
     } finally {
       setAddingSection(false);
     }
