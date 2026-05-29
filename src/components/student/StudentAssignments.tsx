@@ -88,10 +88,10 @@ const StudentAssignments = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File Too Large",
-          description: "Maximum file size allowed is 10MB.",
+          description: "Maximum file size allowed is 5MB.",
           variant: "destructive"
         });
         e.target.value = '';
@@ -658,7 +658,7 @@ const StudentAssignments = () => {
                     {submissionFile ? submissionFile.name : 'Click to select or drag and drop'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1 text-center">
-                    Maximum file size: 10MB (PDF, DOC, DOCX)
+                    Maximum file size: 5MB (PDF, DOC, DOCX)
                   </p>
                 </label>
               </div>
