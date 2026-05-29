@@ -14,6 +14,7 @@ import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "../../lib/utils";
 import { useTheme } from "../../context/ThemeContext";
+import { showConfirmAlert, showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 
 interface Semester {
   id: string;
@@ -71,13 +72,9 @@ const SemesterManagement = () => {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
-  const [isDeleteSectionModalOpen, setIsDeleteSectionModalOpen] = useState(false);
   const [editingSemester, setEditingSemester] = useState<Semester | null>(null);
-  const [deletingSemester, setDeletingSemester] = useState<Semester | null>(null);
   const [managingSemester, setManagingSemester] = useState<Semester | null>(null);
-  const [deletingSection, setDeletingSection] = useState<Section | null>(null);
   const [form, setForm] = useState<FormState>({ number: "" });
   const [sectionForm, setSectionForm] = useState<SectionFormState>({ name: "" });
   const [branchId, setBranchId] = useState<string>("");
@@ -173,8 +170,15 @@ const SemesterManagement = () => {
   };
 
   const openDeleteModal = (sem: Semester) => {
-    setDeletingSemester(sem);
-    setIsDeleteModalOpen(true);
+    showConfirmAlert(
+      "Delete Semester?",
+      `Are you sure you want to delete ${getSemesterName(sem.number)}?`,
+      "Delete"
+    ).then((result) => {
+      if (result.isConfirmed) {
+        executeDelete(sem);
+      }
+    });
   };
 
   const openSectionModal = (sem: Semester) => {
@@ -184,8 +188,16 @@ const SemesterManagement = () => {
   };
 
   const openDeleteSectionModal = (section: Section) => {
-    setDeletingSection(section);
-    setIsDeleteSectionModalOpen(true);
+    const semNumber = semesters.find(s => s.id === section.semester_id)?.number;
+    showConfirmAlert(
+      "Delete Section?",
+      `Are you sure you want to delete Section ${section.name} from Semester ${semNumber || ""}?`,
+      "Delete"
+    ).then((result) => {
+      if (result.isConfirmed) {
+        executeDeleteSection(section);
+      }
+    });
   };
 
   const closeModal = () => {
@@ -194,20 +206,10 @@ const SemesterManagement = () => {
     setForm({ number: "" });
   };
 
-  const closeDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setDeletingSemester(null);
-  };
-
   const closeSectionModal = () => {
     setIsSectionModalOpen(false);
     setManagingSemester(null);
     setSectionForm({ name: "" });
-  };
-
-  const closeDeleteSectionModal = () => {
-    setIsDeleteSectionModalOpen(false);
-    setDeletingSection(null);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,13 +264,13 @@ const SemesterManagement = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deletingSemester || !branchId) return;
+  const executeDelete = async (sem: Semester) => {
+    if (!sem || !branchId) return;
     setLoading(true);
     try {
       const data: any = {
         action: "delete",
-        semester_id: deletingSemester.id,
+        semester_id: sem.id,
         branch_id: branchId,
       };
       const response = await manageSemesters(data);
@@ -282,14 +284,13 @@ const SemesterManagement = () => {
         if (returnedSections && Array.isArray(returnedSections)) {
           setSections(returnedSections.map((s: any) => ({ id: s.id, name: s.name, semester_id: s.semester_id?.toString() })));
         }
-        toast({ title: "Deleted", description: "Semester deleted successfully!" });
-        closeDeleteModal();
+        showSuccessAlert("Deleted", "Semester deleted successfully!");
       } else {
         throw new Error(response.message || "Semester deletion is not supported by the server");
       }
     } catch (err: any) {
       const errorMessage = err.message || "Network error";
-      toast({ variant: "destructive", title: "Error", description: errorMessage });
+      showErrorAlert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -340,13 +341,13 @@ const SemesterManagement = () => {
     }
   };
 
-  const handleDeleteSection = async () => {
-    if (!deletingSection || !branchId) return;
+  const executeDeleteSection = async (section: Section) => {
+    if (!section || !branchId) return;
     setLoading(true);
     try {
       const data: any = {
         action: "delete",
-        section_id: deletingSection.id,
+        section_id: section.id,
         branch_id: branchId,
       };
       const response = await manageSections(data, "POST");
@@ -356,14 +357,13 @@ const SemesterManagement = () => {
         if (returnedSections && Array.isArray(returnedSections)) {
           setSections(returnedSections.map((s: any) => ({ id: s.id, name: s.name, semester_id: s.semester_id?.toString() })));
         }
-        toast({ title: "Deleted", description: `Section ${deletingSection.name} deleted successfully!` });
-        closeDeleteSectionModal();
+        showSuccessAlert("Deleted", `Section ${section.name} deleted successfully!`);
       } else {
         throw new Error(response.message || "Section deletion is not supported by the server");
       }
     } catch (err: any) {
       const errorMessage = err.message || "Network error";
-      toast({ variant: "destructive", title: "Error", description: errorMessage });
+      showErrorAlert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -641,45 +641,6 @@ const SemesterManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Semester Confirmation Modal */}
-      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[92%] sm:max-w-lg rounded-md sm:rounded-lg`}>
-          <DialogHeader>
-            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Delete Semester?</h2>
-            <p className={`text-sm text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Are you sure you want to delete {getSemesterName(deletingSemester?.number || 0)}?
-            </p>
-          </DialogHeader>
-          <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
-        <Button onClick={closeDeleteModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
-          Cancel
-        </Button>
-        <Button variant="destructive" onClick={handleDelete} disabled={loading} className="w-full sm:w-auto">
-          Delete
-        </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Section Confirmation Modal */}
-      <Dialog open={isDeleteSectionModalOpen} onOpenChange={setIsDeleteSectionModalOpen}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[92%] sm:max-w-lg rounded-md sm:rounded-lg`}>
-          <DialogHeader>
-            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Delete Section?</h2>
-            <p className={`text-sm text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Are you sure you want to delete Section {deletingSection?.name} from Semester {semesters.find(s => s.id === deletingSection?.semester_id)?.number}?
-            </p>
-          </DialogHeader>
-          <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
-        <Button onClick={closeDeleteSectionModal} disabled={loading} className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-2 border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-200'}`}>
-          Cancel
-        </Button>
-        <Button variant="destructive" onClick={handleDeleteSection} disabled={loading} className="w-full sm:w-auto">
-          Delete
-        </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
