@@ -10,8 +10,9 @@ import {
   BarElement,
   ArcElement,
   Tooltip,
-  Legend } from
-"chart.js";
+  Legend
+} from
+  "chart.js";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import DashboardCard from "../common/DashboardCard";
@@ -27,14 +28,16 @@ import {
   Bell,
   GitBranch,
   UserCheck,
-  Loader2 } from
-"lucide-react";
+  Loader2
+} from
+  "lucide-react";
 import {
   SkeletonPageHeader,
   SkeletonStatsGrid,
   SkeletonChart,
-  SkeletonTable } from
-"../ui/skeleton";
+  SkeletonTable
+} from
+  "../ui/skeleton";
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
@@ -58,8 +61,8 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   };
   const normalize = (str: string) => str.toLowerCase().trim();
   const allLabels = Array.isArray(stats?.branch_distribution) ?
-  stats.branch_distribution.map((b: any) => b.name || "N/A") :
-  [];
+    stats.branch_distribution.map((b: any) => b.name || "N/A") :
+    [];
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -94,33 +97,33 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   }, [setError, toast]);
 
   const filteredBranches = Array.isArray(stats?.branch_distribution) ?
-  stats.branch_distribution.
-  filter(
-    (branch: any) =>
-    branch?.name &&
-    typeof branch.name === "string" &&
-    normalize(branch.name).includes(normalize(search))
-  ).
-  sort((a: any, b: any) => {
-    const aName = normalize(a.name);
-    const bName = normalize(b.name);
-    const s = normalize(search);
+    stats.branch_distribution.
+      filter(
+        (branch: any) =>
+          branch?.name &&
+          typeof branch.name === "string" &&
+          normalize(branch.name).includes(normalize(search))
+      ).
+      sort((a: any, b: any) => {
+        const aName = normalize(a.name);
+        const bName = normalize(b.name);
+        const s = normalize(search);
 
-    // 1. Prioritize startsWith over includes
-    const aStarts = aName.startsWith(s);
-    const bStarts = bName.startsWith(s);
-    if (aStarts && !bStarts) return -1;
-    if (bStarts && !aStarts) return 1;
+        // 1. Prioritize startsWith over includes
+        const aStarts = aName.startsWith(s);
+        const bStarts = bName.startsWith(s);
+        if (aStarts && !bStarts) return -1;
+        if (bStarts && !aStarts) return 1;
 
-    // 2. Prioritize by index of match (earlier is better)
-    const aIndex = aName.indexOf(s);
-    const bIndex = bName.indexOf(s);
-    if (aIndex !== bIndex) return aIndex - bIndex;
+        // 2. Prioritize by index of match (earlier is better)
+        const aIndex = aName.indexOf(s);
+        const bIndex = bName.indexOf(s);
+        if (aIndex !== bIndex) return aIndex - bIndex;
 
-    // 3. If equal relevance, sort alphabetically
-    return aName.localeCompare(bName);
-  }) :
-  [];
+        // 3. If equal relevance, sort alphabetically
+        return aName.localeCompare(bName);
+      }) :
+    [];
 
 
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -175,20 +178,20 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   const barData = {
     labels: filteredLabels,
     datasets: [
-    {
-      label: "Students",
-      data: filteredLabels.map((label: string) => studentMap[label] || 0),
-      backgroundColor: "rgba(59, 130, 246, 0.6)",
-      borderColor: "rgba(59, 130, 246, 1)",
-      borderWidth: 1
-    },
-    {
-      label: "Faculty",
-      data: filteredLabels.map((label: string) => facultyMap[label] || 0),
-      backgroundColor: "rgba(168, 85, 247, 0.6)",
-      borderColor: "rgba(168, 85, 247, 1)",
-      borderWidth: 1
-    }]
+      {
+        label: "Students",
+        data: filteredLabels.map((label: string) => studentMap[label] || 0),
+        backgroundColor: "rgba(59, 130, 246, 0.6)",
+        borderColor: "rgba(59, 130, 246, 1)",
+        borderWidth: 1
+      },
+      {
+        label: "Faculty",
+        data: filteredLabels.map((label: string) => facultyMap[label] || 0),
+        backgroundColor: "rgba(168, 85, 247, 0.6)",
+        borderColor: "rgba(168, 85, 247, 1)",
+        borderWidth: 1
+      }]
 
   };
 
@@ -196,33 +199,33 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   const pieData = {
     labels: ["Students", "Faculty", "HODs", "COE", "Fees Managers", "Principals"],
     datasets: [
-    {
-      data: [
-      stats?.role_distribution?.students || 0,
-      stats?.role_distribution?.faculty || 0,
-      stats?.role_distribution?.hods || 0,
-      stats?.role_distribution?.coe || 0,
-      stats?.role_distribution?.fees_managers || 0,
-      stats?.role_distribution?.principals || 0],
+      {
+        data: [
+          stats?.role_distribution?.students || 0,
+          stats?.role_distribution?.faculty || 0,
+          stats?.role_distribution?.hods || 0,
+          stats?.role_distribution?.coe || 0,
+          stats?.role_distribution?.fees_managers || 0,
+          stats?.role_distribution?.principals || 0],
 
-      backgroundColor: [
-      "rgba(59, 130, 246, 0.6)",
-      "rgba(168, 85, 247, 0.6)",
-      "rgba(234, 179, 8, 0.6)",
-      "rgba(34, 197, 94, 0.6)",
-      "rgba(249, 115, 22, 0.6)",
-      "rgba(236, 72, 153, 0.6)"],
+        backgroundColor: [
+          "rgba(59, 130, 246, 0.6)",
+          "rgba(168, 85, 247, 0.6)",
+          "rgba(234, 179, 8, 0.6)",
+          "rgba(34, 197, 94, 0.6)",
+          "rgba(249, 115, 22, 0.6)",
+          "rgba(236, 72, 153, 0.6)"],
 
-      borderColor: [
-      "rgba(59, 130, 246, 1)",
-      "rgba(168, 85, 247, 1)",
-      "rgba(234, 179, 8, 1)",
-      "rgba(34, 197, 94, 1)",
-      "rgba(249, 115, 22, 1)",
-      "rgba(236, 72, 153, 1)"],
+        borderColor: [
+          "rgba(59, 130, 246, 1)",
+          "rgba(168, 85, 247, 1)",
+          "rgba(234, 179, 8, 1)",
+          "rgba(34, 197, 94, 1)",
+          "rgba(249, 115, 22, 1)",
+          "rgba(236, 72, 153, 1)"],
 
-      borderWidth: 1
-    }]
+        borderWidth: 1
+      }]
 
   };
 
@@ -252,7 +255,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   return (
     <div className={`space-y-8 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <div>
-        
+
         {/* Dashboard Cards */}
         <div id="admin-stats-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <DashboardCard
@@ -260,31 +263,31 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             value={stats.total_branches || 0}
             description="Active branches"
             icon={<FaBuilding className={theme === 'dark' ? "text-indigo-400 text-3xl" : "text-indigo-500 text-3xl"} />} />
-          
+
           <DashboardCard
             title="Total Students"
             value={stats.total_students || 0}
             description="Across branches"
             icon={<FaUserGraduate className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />} />
-          
+
           <DashboardCard
             title="Total Faculty"
             value={stats.total_faculty || 0}
             description="Teaching staff"
             icon={<FaChalkboardTeacher className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />} />
-          
+
           <DashboardCard
             title="HODs"
             value={stats.total_hods || 0}
             description="Dept heads"
             icon={<FaUserTie className={theme === 'dark' ? "text-yellow-400 text-3xl" : "text-yellow-500 text-3xl"} />} />
-          
+
           <DashboardCard
             title="COE"
             value={stats.total_coe || 0}
             description="Exams controller"
             icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />} />
-          
+
           <DashboardCard
             title="Principals"
             value={stats.total_principals || 0}
@@ -329,13 +332,13 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={`w-full outline-none text-sm bg-transparent ${theme === 'dark' ? 'text-foreground placeholder:text-muted-foreground' : 'text-gray-900 placeholder:text-gray-500'}`} />
-            
+
           </div>
           <button
             onClick={handleExportPDF}
             disabled={downloadingPDF}
             className="flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-lg shadow-md transition duration-200 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">
-            
+
             {downloadingPDF ? <Loader2 className="animate-spin" size={16} /> : <FiDownload />}
             {downloadingPDF ? "Exporting..." : "Export PDF"}
           </button>
@@ -347,7 +350,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           <div
             id="branch-distribution-chart"
             className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
-            
+
             <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Branch Distribution
             </h3>
@@ -362,78 +365,78 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
                 const barData = {
                   labels: filteredLabels,
                   datasets: [
-                  {
-                    label: "Students",
-                    data: filteredLabels.map((label: string) => studentMap[label] || 0),
-                    backgroundColor: "rgba(59, 130, 246, 0.6)",
-                    borderColor: "rgba(59, 130, 246, 1)",
-                    borderWidth: 1
-                  },
-                  {
-                    label: "Faculty",
-                    data: filteredLabels.map((label: string) => facultyMap[label] || 0),
-                    backgroundColor: "rgba(168, 85, 247, 0.6)",
-                    borderColor: "rgba(168, 85, 247, 1)",
-                    borderWidth: 1
-                  }]
+                    {
+                      label: "Students",
+                      data: filteredLabels.map((label: string) => studentMap[label] || 0),
+                      backgroundColor: "rgba(59, 130, 246, 0.6)",
+                      borderColor: "rgba(59, 130, 246, 1)",
+                      borderWidth: 1
+                    },
+                    {
+                      label: "Faculty",
+                      data: filteredLabels.map((label: string) => facultyMap[label] || 0),
+                      backgroundColor: "rgba(168, 85, 247, 0.6)",
+                      borderColor: "rgba(168, 85, 247, 1)",
+                      borderWidth: 1
+                    }]
 
                 };
 
                 const hasData = barData.datasets.some((d) =>
-                d.data.some((val) => val > 0)
+                  d.data.some((val) => val > 0)
                 );
 
                 return hasData ?
-                <Bar
-                  data={barData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                      duration: 800,
-                      easing: "easeInOutQuart"
-                    },
-                    plugins: {
-                      legend: {
-                        position: "top",
-                        labels: {
-                          color: theme === 'dark' ? "#fff" : "#000"
-                        }
+                  <Bar
+                    data={barData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      animation: {
+                        duration: 800,
+                        easing: "easeInOutQuart"
                       },
-                      tooltip: { enabled: true }
-                    },
-                    scales: {
-                      x: {
-                        ticks: {
-                          color: theme === 'dark' ? "#fff" : "#000"
-                        }
-                      },
-                      y: {
-                        beginAtZero: true,
-                        title: {
-                          display: true,
-                          text: "Count",
-                          color: theme === 'dark' ? "#fff" : "#000"
+                      plugins: {
+                        legend: {
+                          position: "top",
+                          labels: {
+                            color: theme === 'dark' ? "#fff" : "#000"
+                          }
                         },
-                        ticks: {
-                          color: theme === 'dark' ? "#fff" : "#000"
+                        tooltip: { enabled: true }
+                      },
+                      scales: {
+                        x: {
+                          ticks: {
+                            color: theme === 'dark' ? "#fff" : "#000"
+                          }
+                        },
+                        y: {
+                          beginAtZero: true,
+                          title: {
+                            display: true,
+                            text: "Count",
+                            color: theme === 'dark' ? "#fff" : "#000"
+                          },
+                          ticks: {
+                            color: theme === 'dark' ? "#fff" : "#000"
+                          }
                         }
                       }
-                    }
-                  }} /> :
+                    }} /> :
 
 
-                <div
-                  className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  
+                  <div
+                    className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+
                     <p className="text-lg font-semibold">No data</p>
                     <p className="text-sm">This branch has no records</p>
                   </div>;
 
               })() :
-              <div
-                className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                
+                <div
+                  className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+
                   <p className="text-lg font-semibold">No results found</p>
                   <p className="text-sm">Try a different search term</p>
                 </div>
@@ -445,7 +448,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           <div
             id="role-distribution-chart"
             className={`rounded-lg shadow p-6 ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
-            
+
             <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Role Distribution
             </h3>
@@ -468,16 +471,16 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
                     tooltip: { enabled: true }
                   }
                 }} />
-              
+
             </div>
+          </div>
         </div>
-      </div>
 
         {/* Branch Statistics Table */}
         <div
           id="branch-statistics-table"
           className={`rounded-lg shadow p-6 mt-5 ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'}`}>
-          
+
           <h3 className={`text-lg font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             Branch Statistics
           </h3>
@@ -495,18 +498,18 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
               </thead>
               <tbody>
                 {filteredBranches.length > 0 ?
-                filteredBranches.map((branch: any, index: number) =>
-                <tr
-                  key={index}
-                  className={`border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'} transition`}>
-                  
+                  filteredBranches.map((branch: any, index: number) =>
+                    <tr
+                      key={index}
+                      className={`border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'} transition`}>
+
                       <td className="py-3 px-4">{branch.name || "N/A"}</td>
                       <td className="py-3 px-4">{branch.students || 0}</td>
                       <td className="py-3 px-4">{branch.faculty || 0}</td>
                     </tr>
-                ) :
+                  ) :
 
-                <tr>
+                  <tr>
                     <td colSpan={3} className={`text-center py-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       No branches match your search.
                     </td>
@@ -518,68 +521,68 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         </div>
       </div>
       {/* Action Cards */}
-        <div
+      <div
         id="admin-action-cards"
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-        
-          <DashboardCard
+
+        <DashboardCard
           id="enroll-user-card"
           title="Enroll User"
           description="Add new HOD or faculty"
           icon={<User size={20} />}
           onClick={() => handleCardClick("enroll-user")} />
-        
-          <DashboardCard
+
+        <DashboardCard
           id="bulk-upload-card"
           title="Bulk Upload Faculty"
           description="Upload faculty list"
           icon={<ClipboardList size={20} />}
           onClick={() => handleCardClick("bulk-upload")} />
-        
-          <DashboardCard
+
+        <DashboardCard
           id="manage-branches-card"
           title="Manage Branches"
           description="View or edit branches"
           icon={<GitBranch size={20} />}
           onClick={() => handleCardClick("branches")} />
-        
-          <DashboardCard
+
+        <DashboardCard
           id="faculty-assignments-card"
           title="Faculty Assignments"
           description="Assign teachers to branches & subjects"
           icon={<UserCheck size={20} />}
           onClick={() => handleCardClick("teacher-assignments")} />
-        
-          <DashboardCard
+
+        <DashboardCard
           id="manage-batches-card"
           title="Manage Batches"
           description="View or manage batches"
           icon={<ClipboardList size={20} />}
           onClick={() => handleCardClick("batches")} />
-        
-          <DashboardCard
+
+        <DashboardCard
           id="notifications-card"
           title="Notifications"
           description="Send or view notifications"
           icon={<Bell size={20} />}
-          onClick={() => handleCardClick("notifications")} />
-        
-          <DashboardCard
+          onClick={() => handleCardClick("announcement-management")} />
+
+        <DashboardCard
           id="hod-leaves-card"
           title="HOD Leaves"
           description="Manage HOD leave requests"
           icon={<UserCheck size={20} />}
           onClick={() => handleCardClick("hod-leaves")} />
-        
-          <DashboardCard
+
+        <DashboardCard
           id="users-management-card"
           title="Users Management"
           description="Manage all system users"
           icon={<Users size={20} />}
           onClick={() => handleCardClick("users")} />
-        
-        </div>
-      </div>);
+
+      </div>
+    </div>);
 
 };
 
