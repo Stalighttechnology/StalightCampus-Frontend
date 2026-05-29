@@ -97,18 +97,13 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
   const [appliedSearch, setAppliedSearch] = useState(""); // Applied search term
   const [branchFilter, setBranchFilter] = useState("");
 
-  // Function to perform search
-  const performSearch = () => {
-    setAppliedSearch(searchTerm.trim());
-    setCurrentPage(1); // Reset to first page when searching
-  };
-
-  // Handle Enter key press for search
-  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      performSearch();
-    }
-  };
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Load branches list on mount
   useEffect(() => {
@@ -136,6 +131,13 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
 
   useEffect(() => {
     if (branchFilter) {
+      setSearchTerm("");
+      setAppliedSearch("");
+    }
+  }, [branchFilter]);
+
+  useEffect(() => {
+    if (branchFilter || appliedSearch) {
       fetchTeacherAssignments();
     } else {
       setTeachers([]);
@@ -300,17 +302,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                   placeholder="Search teachers by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={handleSearchKeyPress}
                   className="search-input-mobile w-64" />
-                
-              <Button
-                  onClick={performSearch}
-                  variant="outline"
-                  size="sm"
-                  className="px-3">
-                  
-                <Search className="h-4 w-4" />
-              </Button>
             </div>
             <div className="filter-container sm:w-48">
               <Select value={branchFilter || undefined} onValueChange={(value) => setBranchFilter(value === "all" ? "" : value)}>
@@ -334,7 +326,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             {loading ?
               <SkeletonTable rows={5} cols={1} /> :
 
-              branchFilter === "" ? (
+              branchFilter === "" && appliedSearch === "" ? (
                 <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                   <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                     <Building className="w-10 h-10 text-primary opacity-50" />
