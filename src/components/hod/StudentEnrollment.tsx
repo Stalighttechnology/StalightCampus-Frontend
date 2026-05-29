@@ -6,15 +6,20 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from ".
 import { Checkbox } from "../ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { SkeletonCard } from "../ui/skeleton";
-import { manageStudents, getElectiveEnrollmentBootstrap, manageSections, manageSubjects } from "../../utils/hod_api";
+import { manageStudents, getElectiveEnrollmentBootstrap, manageSections, manageSubjects, manageSemesters } from "../../utils/hod_api";
 import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { Loader2, Users, UserX, UserCheck, FileDown } from "lucide-react";
+import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 
 const StudentEnrollment = () => {
   useHODBootstrap();
+  const getSemesterName = (number: number) => {
+    const suffixes = ["st", "nd", "rd", "th", "th", "th", "th", "th"];
+    return `${number}${suffixes[number - 1]} Semester`;
+  };
   const [branchId, setBranchId] = useState<string>("");
   const [semesters, setSemesters] = useState<any[]>([]);
   const [sectionsBySemester, setSectionsBySemester] = useState<Record<string, any[]>>({});
@@ -35,11 +40,118 @@ const StudentEnrollment = () => {
   const [resultData, setResultData] = useState<{added: number;removed: number;failed: any[];}>({ added: 0, removed: 0, failed: [] });
   const [downloadingPDF, setDownloadingPDF] = useState(false);
 
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+  const [isSubjectTypeOpen, setIsSubjectTypeOpen] = useState(false);
+  const [isSubjectOpen, setIsSubjectOpen] = useState(false);
+
+  // Add Semester / Section states
+  const [isAddSemesterOpen, setIsAddSemesterOpen] = useState(false);
+  const [newSemesterNumber, setNewSemesterNumber] = useState("");
+  const [addingSemester, setAddingSemester] = useState(false);
+
+  const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
+  const [addingSection, setAddingSection] = useState(false);
+
+  const handleOpenAddSemester = () => {
+    setNewSemesterNumber("");
+    setIsSemesterOpen(false);
+    setIsAddSemesterOpen(true);
+  };
+
+  const handleOpenAddSection = () => {
+    setNewSectionName("");
+    setIsSectionOpen(false);
+    setIsAddSectionOpen(true);
+  };
+
+  const handleAddSemester = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSemesterNumber || isNaN(Number(newSemesterNumber)) || Number(newSemesterNumber) < 1 || Number(newSemesterNumber) > 8) {
+      showErrorAlert("Error", "Please enter a valid semester number (1-8)");
+      return;
+    }
+    setAddingSemester(true);
+    try {
+      const response = await manageSemesters({
+        action: "create",
+        number: Number(newSemesterNumber),
+        branch_id: branchId
+      });
+      if (response.success) {
+        const returnedSemesters = (response as any).semesters || (response.data && Array.isArray((response.data as any).semesters) ? (response.data as any).semesters : null);
+        if (returnedSemesters && Array.isArray(returnedSemesters)) {
+          const mappedSemesters = returnedSemesters.map((s: any) => ({ id: s.id.toString(), number: s.number }));
+          setSemesters(mappedSemesters);
+          const newSem = mappedSemesters.find((s: any) => s.number === Number(newSemesterNumber));
+          if (newSem) {
+            setSemesterId(newSem.id);
+            setSectionId("");
+            setTimeout(() => setIsSectionOpen(true), 150);
+          }
+        } else {
+          const createdId = response.data?.semester_id || response.data?.id || String(Date.now());
+          const newSem = { id: String(createdId), number: Number(newSemesterNumber) };
+          setSemesters(prev => [...prev, newSem].sort((a, b) => a.number - b.number));
+          setSemesterId(String(createdId));
+          setSectionId("");
+          setTimeout(() => setIsSectionOpen(true), 150);
+        }
+        setIsAddSemesterOpen(false);
+      } else {
+        showErrorAlert("Error", response.message || "Failed to create semester");
+      }
+    } catch (err: any) {
+      showErrorAlert("Error", "An error occurred while creating semester");
+    } finally {
+      setAddingSemester(false);
+    }
+  };
+
+  const handleAddSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSectionName || !["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].includes(newSectionName)) {
+      showErrorAlert("Error", "Please select a valid section (A-Z)");
+      return;
+    }
+    setAddingSection(true);
+    try {
+      if (!semesterId) {
+        showErrorAlert("Error", "Please select a semester first.");
+        return;
+      }
+      const response = await manageSections({
+        action: "create",
+        name: newSectionName,
+        semester_id: semesterId,
+        branch_id: branchId
+      }, "POST");
+
+      if (response.success) {
+        const createdId = response.data?.id || response.data?.section_id || String(Date.now());
+        const newSec = { id: String(createdId), name: newSectionName, semester_id: semesterId };
+        const currentCached = sectionsBySemester[semesterId] || [];
+        const updatedSections = [...currentCached, newSec].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i).sort((a, b) => a.name.localeCompare(b.name));
+        
+        setSectionsBySemester(prev => ({ ...prev, [semesterId]: updatedSections }));
+        setSectionId(String(createdId));
+        setIsAddSectionOpen(false);
+        setTimeout(() => setIsSubjectTypeOpen(true), 150);
+      } else {
+        showErrorAlert("Error", response.message || "Failed to create section");
+      }
+    } catch (err: any) {
+      showErrorAlert("Error", err.message || "An error occurred while creating section");
+    } finally {
+      setAddingSection(false);
+    }
+  };
+
   // Add Subject Modal and versioning states
   const [isAddSubjectOpen, setIsAddSubjectOpen] = useState(false);
   const [subjectVersion, setSubjectVersion] = useState(0);
   const [addingSubject, setAddingSubject] = useState(false);
-  const [subjectError, setSubjectError] = useState<string | null>(null);
   const [newSubjectState, setNewSubjectState] = useState({
     subject_code: "",
     name: "",
@@ -56,18 +168,17 @@ const StudentEnrollment = () => {
       subject_type: subjectType || "elective",
       credits: 3
     });
-    setSubjectError(null);
+    setIsSubjectOpen(false);
     setIsAddSubjectOpen(true);
   };
 
   const handleAddSubject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSubjectState.subject_code || !newSubjectState.name || !newSubjectState.semester_id) {
-      setSubjectError("Please fill in all required fields.");
+      showErrorAlert("Error", "Please fill in all required fields.");
       return;
     }
     setAddingSubject(true);
-    setSubjectError(null);
     try {
       const res = await manageSubjects({
         action: "create",
@@ -87,10 +198,10 @@ const StudentEnrollment = () => {
         }
         setIsAddSubjectOpen(false);
       } else {
-        setSubjectError(res.message || "Failed to create subject");
+        showErrorAlert("Error", res.message || "Failed to create subject");
       }
     } catch (err: any) {
-      setSubjectError("An error occurred while creating subject");
+      showErrorAlert("Error", "An error occurred while creating subject");
     } finally {
       setAddingSubject(false);
     }
@@ -128,10 +239,10 @@ const StudentEnrollment = () => {
         window.URL.revokeObjectURL(url);
       } else {
         const result = await response.json().catch(() => ({}));
-        alert(result.message || "Failed to export PDF");
+        showErrorAlert("Error", result.message || "Failed to export PDF");
       }
     } catch (err) {
-      alert("Network error while exporting PDF");
+      showErrorAlert("Error", "Network error while exporting PDF");
     } finally {
       setDownloadingPDF(false);
     }
@@ -386,38 +497,77 @@ const StudentEnrollment = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Semester</label>
-                  <Select value={semesterId} onValueChange={(v: string) => {setSemesterId(v);setSectionId("");}}>
+                  <Select open={isSemesterOpen} onOpenChange={setIsSemesterOpen} value={semesterId} onValueChange={(v: string) => {
+                    setSemesterId(v);
+                    setSectionId("");
+                    setTimeout(() => setIsSectionOpen(true), 150);
+                  }}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose Semester" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                      {semesters.map((sem: any) =>
-                    <SelectItem key={sem.id} value={sem.id}>{`${sem.number}th Semester`}</SelectItem>
-                    )}
+                      {semesters.length === 0 ? (
+                        <div className="p-2 flex justify-center" onPointerDown={(e) => e.stopPropagation()}>
+                          <Button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleOpenAddSemester();
+                            }}
+                            className="w-full bg-primary hover:bg-[#9147e0] text-white shadow-sm transition-all active:scale-95 text-xs py-1.5 h-auto">
+                            Add Semester
+                          </Button>
+                        </div>
+                      ) : (
+                        semesters.map((sem: any) =>
+                          <SelectItem key={sem.id} value={sem.id}>{getSemesterName(sem.number)}</SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Section</label>
-                  <Select value={sectionId} onValueChange={setSectionId}>
+                  <Select open={isSectionOpen} onOpenChange={setIsSectionOpen} value={sectionId} onValueChange={(v: string) => {
+                    setSectionId(v);
+                    setTimeout(() => setIsSubjectTypeOpen(true), 150);
+                  }} disabled={!semesterId}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {(() => {
-                      const semObj = semesters.find((s: any) => String(s.id) === String(semesterId));
-                      const semNumberKey = semObj ? String(semObj.number) : "";
-                      const list = sectionsBySemester[String(semesterId)] || sectionsBySemester[semNumberKey] || [];
-                      return list.map((sec: any) =>
-                      <SelectItem key={String(sec.id)} value={String(sec.id)}>{sec.name}</SelectItem>
-                      );
-                    })()}
+                        const semObj = semesters.find((s: any) => String(s.id) === String(semesterId));
+                        const semNumberKey = semObj ? String(semObj.number) : "";
+                        const list = sectionsBySemester[String(semesterId)] || sectionsBySemester[semNumberKey] || [];
+                        if (semesterId && list.length === 0) {
+                          return (
+                            <div className="p-2 flex justify-center" onPointerDown={(e) => e.stopPropagation()}>
+                              <Button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleOpenAddSection();
+                                }}
+                                className="w-full bg-primary hover:bg-[#9147e0] text-white shadow-sm transition-all active:scale-95 text-xs py-1.5 h-auto">
+                                Add Section
+                              </Button>
+                            </div>
+                          );
+                        }
+                        return list.map((sec: any) =>
+                          <SelectItem key={String(sec.id)} value={String(sec.id)}>{sec.name}</SelectItem>
+                        );
+                      })()}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Subject Type</label>
-                  <Select value={subjectType} onValueChange={setSubjectType}>
+                  <Select open={isSubjectTypeOpen} onOpenChange={setIsSubjectTypeOpen} value={subjectType} onValueChange={(v: string) => {
+                    setSubjectType(v);
+                    setTimeout(() => setIsSubjectOpen(true), 150);
+                  }}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose Subject Type" />
                     </SelectTrigger>
@@ -429,15 +579,12 @@ const StudentEnrollment = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Subject</label>
-                  <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
+                  <Select open={isSubjectOpen} onOpenChange={setIsSubjectOpen} value={selectedSubjectId} onValueChange={setSelectedSubjectId} disabled={!semesterId || !sectionId || !subjectType}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose Subject" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                      {subjects.map((s: any) =>
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                    )}
-                      {semesterId && sectionId && subjectType && subjects.length === 0 && (
+                      {semesterId && sectionId && subjectType && subjects.length === 0 ? (
                         <div className="p-2 flex justify-center" onPointerDown={(e) => e.stopPropagation()}>
                           <Button
                             onClick={(e) => {
@@ -449,6 +596,10 @@ const StudentEnrollment = () => {
                             Add Subject
                           </Button>
                         </div>
+                      ) : (
+                        subjects.map((s: any) =>
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        )
                       )}
                     </SelectContent>
                   </Select>
@@ -678,11 +829,6 @@ const StudentEnrollment = () => {
                 <DialogTitle>Add New Subject</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddSubject} className="space-y-4 py-2">
-                {subjectError && (
-                  <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 p-2.5 rounded-md border border-red-200 dark:border-red-800">
-                    {subjectError}
-                  </div>
-                )}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Course Code</label>
                   <input
@@ -720,7 +866,7 @@ const StudentEnrollment = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {semesters.map((sem: any) => (
-                        <SelectItem key={sem.id} value={sem.id}>{`${sem.number}th Semester`}</SelectItem>
+                        <SelectItem key={sem.id} value={sem.id}>{getSemesterName(sem.number)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -771,6 +917,95 @@ const StudentEnrollment = () => {
                   >
                     {addingSubject ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Add Course
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isAddSemesterOpen} onOpenChange={setIsAddSemesterOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Semester</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddSemester} className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Semester Number</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="8"
+                    required
+                    placeholder="Enter semester number (1-8)"
+                    value={newSemesterNumber}
+                    onChange={(e) => setNewSemesterNumber(e.target.value)}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${
+                      theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  />
+                </div>
+                <DialogFooter className="pt-4 flex gap-2 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddSemesterOpen(false)}
+                    className={`${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={addingSemester}
+                    className="bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95"
+                  >
+                    {addingSemester ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Add Semester
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isAddSectionOpen} onOpenChange={setIsAddSectionOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Section</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAddSection} className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Section Name</label>
+                  <Select
+                    value={newSectionName}
+                    onValueChange={setNewSectionName}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Section" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                      {["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].map((section) => (
+                        <SelectItem key={section} value={section}>
+                          Section {section}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <DialogFooter className="pt-4 flex gap-2 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddSectionOpen(false)}
+                    className={`${theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={addingSection}
+                    className="bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95"
+                  >
+                    {addingSection ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Add Section
                   </Button>
                 </DialogFooter>
               </form>
