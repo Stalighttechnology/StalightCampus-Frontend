@@ -32,6 +32,7 @@ import {
   deleteExam,
   getFilterOptions,
   getSemesters,
+  getSubjects,
   Batch,
   Branch,
   Semester } from
@@ -45,7 +46,6 @@ const EXAM_TYPES = [
 { value: 'internal_2', label: '2nd Internal Assessment' },
 { value: 'internal_3', label: '3rd Internal Assessment' },
 { value: 'semester_exam', label: 'Semester End Exam' },
-{ value: 'revaluation', label: 'Revaluation Exam' },
 { value: 'makeup', label: 'Makeup Exam' },
 { value: 'supplementary', label: 'Supplementary Exam' }];
 
@@ -66,22 +66,25 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
+  const [listFilters, setListFilters] = useState({ batch_id: 'all', branch_id: 'all', semester_id: 'all' });
+  const [filterSemesters, setFilterSemesters] = useState<Semester[]>([]);
 
   // Form State
   const [showForm, setShowForm] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
+  const [roomsList, setRoomsList] = useState<string[]>(['']);
+  const [roomsSaved, setRoomsSaved] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     batch_id: '',
+    branch_id: '',
     semester_id: '',
     exam_type: '',
     exam_period: '',
-    date: '',
-    start_time: '09:00',
-    end_time: '12:00',
+    start_date: '',
+    end_date: '',
     room: '',
-    max_marks: '100',
-    weightage: '30'
+    subjects: [] as { subject_id: string; date: string; start_time: string; end_time: string }[]
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -111,10 +114,23 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     return `${h}:${m} ${p}`;
   };
 
-  const loadData = async (page = 1) => {
+  const loadData = async (page = 1, currentFilters = listFilters) => {
+    if (currentFilters.batch_id === 'all') {
+      setExams([]);
+      setPagination({ currentPage: 1, totalPages: 1, totalItems: 0 });
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const examRes = await getExamSchedule({ page, page_size: 10 });
+      const examRes = await getExamSchedule({ 
+        page, 
+        page_size: 10,
+        batch_id: currentFilters.batch_id !== 'all' ? currentFilters.batch_id : undefined,
+        branch_id: currentFilters.branch_id !== 'all' ? currentFilters.branch_id : undefined,
+        semester_id: currentFilters.semester_id !== 'all' ? currentFilters.semester_id : undefined
+      });
 
       if (examRes.success) {
         const normalized = normalizePaginatedResponse(examRes, 'data');
@@ -135,54 +151,135 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const loadFilters = async () => {
-    if (batches.length > 0 && semesters.length > 0) return; // already loaded
+    if (batches.length > 0) return; // already loaded
     try {
-      const [filters, semRes] = await Promise.all([
-      getFilterOptions(),
-      fetchWithTokenRefresh(`${API_ENDPOINT}/coe/semesters/`)]
-      );
-
-      setBatches(filters.batches || []);
-      setBranches(filters.branches || []);
-
-      const semJson = await semRes.json();
-      if (semJson.success) {
-        setSemesters(semJson.data.semesters || []);
-      }
+      const res = await getFilterOptions();
+      setBatches(res.batches);
+      setBranches(res.branches);
     } catch (e) {
-
+      console.error(e);
     }
   };
 
   useEffect(() => {
+    if (listFilters.branch_id !== 'all') {
+      const fetchSemesters = async () => {
+        try {
+          const sems = await getSemesters(Number(listFilters.branch_id));
+          setFilterSemesters(sems);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchSemesters();
+    } else {
+      setFilterSemesters([]);
+    }
+  }, [listFilters.branch_id]);
+
+  useEffect(() => {
+    if (formData.branch_id) {
+      const fetchSemesters = async () => {
+        try {
+          const sems = await getSemesters(Number(formData.branch_id));
+          setSemesters(sems);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchSemesters();
+    } else {
+      setSemesters([]);
+    }
+  }, [formData.branch_id]);
+
+  useEffect(() => {
+    if (formData.branch_id && formData.semester_id) {
+      const fetchSubjects = async () => {
+        try {
+          const subs = await getSubjects(
+            formData.branch_id, 
+            formData.semester_id,
+            formData.batch_id,
+            formData.exam_type,
+            formData.exam_period === 'none' ? '' : formData.exam_period
+          );
+          setSubjects(subs);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchSubjects();
+    } else {
+      setSubjects([]);
+    }
+  }, [formData.branch_id, formData.semester_id, formData.batch_id, formData.exam_type, formData.exam_period]);
+
+  useEffect(() => {
+    loadFilters();
     loadData();
   }, []);
+
+  const handleFilterChange = (key: string, value: string) => {
+    const newFilters = { ...listFilters, [key]: value };
+    if (key === 'batch_id') {
+      newFilters.branch_id = 'all';
+      newFilters.semester_id = 'all';
+    } else if (key === 'branch_id') {
+      newFilters.semester_id = 'all';
+    }
+    setListFilters(newFilters);
+    loadData(1, newFilters);
+  };
 
 
 
   const handleSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Frontend validation
+    if (formData.subjects.length > 0) {
+      const invalidSubject = formData.subjects.find(s => !s.subject_id || !s.date);
+      if (invalidSubject) {
+        toast.error("Please ensure all subjects have a selected subject and date.");
+        return;
+      }
+    }
+
     setLoading(true);
+    const finalRooms = roomsList.map(r => r.trim()).filter(r => r).join(', ');
+    const finalData = { ...formData, room: finalRooms };
     try {
-      const res = await scheduleExam(formData);
+      const res = await scheduleExam(finalData);
       if (res.success) {
         // Update state locally to avoid extra GET call
-        const newExam = res.data; // Backend should return the created exam object
-        if (newExam) {
-          setExams((prev) => [newExam, ...prev].slice(0, 10)); // Add to top and keep page size
-          setPagination((prev) => ({
-            ...prev,
-            totalItems: prev.totalItems + 1,
-            totalPages: Math.ceil((prev.totalItems + 1) / 10)
-          }));
+        const newExams = res.data; // Backend returns array of created exams
+        if (newExams) {
+          if (Array.isArray(newExams)) {
+            setExams((prev) => [...newExams, ...prev].slice(0, 10));
+            setPagination((prev) => ({
+              ...prev,
+              totalItems: prev.totalItems + newExams.length,
+              totalPages: Math.ceil((prev.totalItems + newExams.length) / 10)
+            }));
+          } else {
+            setExams((prev) => [newExams, ...prev].slice(0, 10));
+            setPagination((prev) => ({
+              ...prev,
+              totalItems: prev.totalItems + 1,
+              totalPages: Math.ceil((prev.totalItems + 1) / 10)
+            }));
+          }
         }
         setShowForm(false);
         setFormData({
-          title: '', batch_id: '', semester_id: '',
+          title: '', batch_id: '', branch_id: '', semester_id: '',
           exam_type: '', exam_period: '',
-          date: '', start_time: '', end_time: '', room: '',
-          max_marks: '100', weightage: '30'
+          start_date: '', end_date: '', room: '',
+          subjects: []
         });
+        setRoomsList(['']);
+        setRoomsSaved(false);
       } else {
         toast.error(res.message || "Failed to schedule exam");
       }
@@ -236,6 +333,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
     if (now < start) return 'upcoming';
     return 'past';
   };
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
   return (
     <div ref={ref} id="coe-exam-scheduling-container" className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
@@ -291,9 +392,19 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
 
               <div className="space-y-2">
+                <label className="text-[18px] sm:text-sm font-medium">Branch</label>
+                <Select value={formData.branch_id} onValueChange={(v) => setFormData({ ...formData, branch_id: v, semester_id: '' })}>
+                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Branch" /></SelectTrigger>
+                  <SelectContent>
+                    {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Semester</label>
-                <Select value={formData.semester_id} onValueChange={(v) => setFormData({ ...formData, semester_id: v })}>
-                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Semester" /></SelectTrigger>
+                <Select value={formData.semester_id} onValueChange={(v) => setFormData({ ...formData, semester_id: v })} disabled={!formData.branch_id}>
+                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.branch_id ? "Select Semester" : "Select Branch First"} /></SelectTrigger>
                   <SelectContent>
                     {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)}
                   </SelectContent>
@@ -312,130 +423,152 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Exam Period</label>
-                <Select value={formData.exam_period} onValueChange={(v) => setFormData({ ...formData, exam_period: v })}>
-                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Period" /></SelectTrigger>
+                <Select value={formData.exam_period} onValueChange={(v) => setFormData({ ...formData, exam_period: v === 'none' ? '' : v })}>
+                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm">
+                    <SelectValue placeholder="Select Period (Optional)" />
+                  </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None / Optional</SelectItem>
                     {EXAM_PERIODS.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="sm:col-span-2 space-y-2">
-                <label className="text-[18px] sm:text-sm font-semibold">Exam Date</label>
-                <Popover open={dateOpen} onOpenChange={setDateOpen}>
-                  <PopoverTrigger asChild>
+              <div className="space-y-2">
+                <label className="text-[18px] sm:text-sm font-semibold">Start Date</label>
+                <Input type="date" min={tomorrowStr} value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[18px] sm:text-sm font-semibold">End Date</label>
+                <Input type="date" min={formData.start_date || tomorrowStr} value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <label className="text-[18px] sm:text-sm font-semibold">Venue / Room(s)</label>
+                {!roomsSaved ? (
+                  <div className="space-y-2 border p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                    {roomsList.map((rm, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <Input
+                          placeholder="e.g. Room 302"
+                          value={rm}
+                          onChange={(e) => {
+                            const newRooms = [...roomsList];
+                            newRooms[idx] = e.target.value;
+                            setRoomsList(newRooms);
+                          }}
+                          className="h-12 text-[18px] sm:text-sm rounded-xl flex-1 bg-white dark:bg-background"
+                        />
+                        {roomsList.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive h-12 w-12"
+                            onClick={() => {
+                              const newRooms = roomsList.filter((_, i) => i !== idx);
+                              setRoomsList(newRooms);
+                            }}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </Button>
+                        )}
+                        {idx === roomsList.length - 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-12 px-4 whitespace-nowrap bg-white dark:bg-background"
+                            onClick={() => setRoomsList([...roomsList, ''])}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Add
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <div className="pt-2 flex justify-end">
+                      <Button
+                        type="button"
+                        className="h-10 px-6"
+                        onClick={() => {
+                          const validRooms = roomsList.map(r => r.trim()).filter(r => r);
+                          if (validRooms.length > 0) {
+                            setRoomsSaved(true);
+                            setRoomsList(validRooms);
+                            setFormData({ ...formData, room: validRooms.join(', ') });
+                          } else {
+                            toast.error("Please add at least one valid room number");
+                          }
+                        }}
+                      >
+                        Save Rooms
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3 border rounded-xl bg-secondary/10">
+                    <div className="flex flex-wrap gap-2">
+                      {roomsList.map((rm, idx) => (
+                        <Badge key={idx} variant="outline" className="px-3 py-1.5 text-sm bg-background">
+                          {rm}
+                        </Badge>
+                      ))}
+                    </div>
                     <Button
-                      variant="outline"
-                      className={`w-full justify-start text-left font-normal h-12 px-4 rounded-xl border ${!formData.date && "text-muted-foreground"} ${theme === 'dark' ? 'bg-background border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
-                      
-                      <Calendar className="mr-3 h-5 w-5 text-primary" />
-                      <span className="text-[18px] sm:text-sm">{formData.date ? format(new Date(formData.date), "PPP") : "Pick a date"}</span>
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setRoomsSaved(false)}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      Edit Rooms
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-2xl rounded-2xl' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-2xl rounded-2xl'} align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={formData.date ? new Date(formData.date) : undefined}
-                      onSelect={(date) => {
-                        setFormData({ ...formData, date: date ? format(date, "yyyy-MM-dd") : "" });
-                        setDateOpen(false);
-                      }}
-                      initialFocus
-                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
-                    
-                  </PopoverContent>
-                </Popover>
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[18px] sm:text-sm font-semibold">Start Time</label>
-                <div className="flex gap-2">
-                  <Select
-                    value={from24h(formData.start_time).h}
-                    onValueChange={(v) => setFormData({ ...formData, start_time: to24h(v, from24h(formData.start_time).m, from24h(formData.start_time).p) })}>
-                    
-                    <SelectTrigger className="flex-1 h-12 rounded-xl px-3 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent className="max-h-48">
-                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map((h) =>
-                      <SelectItem key={h} value={h}>{h}</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={from24h(formData.start_time).m}
-                    onValueChange={(v) => setFormData({ ...formData, start_time: to24h(from24h(formData.start_time).h, v, from24h(formData.start_time).p) })}>
-                    
-                    <SelectTrigger className="flex-1 h-12 rounded-xl px-3 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent className="max-h-48">
-                      {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((m) =>
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={from24h(formData.start_time).p}
-                    onValueChange={(v) => setFormData({ ...formData, start_time: to24h(from24h(formData.start_time).h, from24h(formData.start_time).m, v) })}>
-                    
-                    <SelectTrigger className="w-[75px] sm:w-[70px] h-12 rounded-xl px-2 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="AM">AM</SelectItem>
-                      <SelectItem value="PM">PM</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="sm:col-span-2 mt-4 space-y-4">
+                <div className="flex justify-between items-center border-b pb-2">
+                  <label className="text-lg font-semibold">Subjects Schedule</label>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setFormData({ ...formData, subjects: [...formData.subjects, { subject_id: '', date: '', start_time: '09:00', end_time: '12:00' }] })}>
+                    <Plus className="w-4 h-4 mr-2" /> Add Subject
+                  </Button>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[18px] sm:text-sm font-semibold">End Time</label>
-                <div className="flex gap-2">
-                  <Select
-                    value={from24h(formData.end_time).h}
-                    onValueChange={(v) => setFormData({ ...formData, end_time: to24h(v, from24h(formData.end_time).m, from24h(formData.end_time).p) })}>
-                    
-                    <SelectTrigger className="flex-1 h-12 rounded-xl px-3 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent className="max-h-48">
-                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map((h) =>
-                      <SelectItem key={h} value={h}>{h}</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={from24h(formData.end_time).m}
-                    onValueChange={(v) => setFormData({ ...formData, end_time: to24h(from24h(formData.end_time).h, v, from24h(formData.end_time).p) })}>
-                    
-                    <SelectTrigger className="flex-1 h-12 rounded-xl px-3 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent className="max-h-48">
-                      {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((m) =>
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={from24h(formData.end_time).p}
-                    onValueChange={(v) => setFormData({ ...formData, end_time: to24h(from24h(formData.end_time).h, from24h(formData.end_time).m, v) })}>
-                    
-                    <SelectTrigger className="w-[75px] sm:w-[70px] h-12 rounded-xl px-2 text-[18px] sm:text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="AM">AM</SelectItem>
-                      <SelectItem value="PM">PM</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[18px] sm:text-sm font-semibold">Venue / Room</label>
-                <Input placeholder="e.g. Room 302" value={formData.room} onChange={(e) => setFormData({ ...formData, room: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[18px] sm:text-sm font-semibold">Max Marks</label>
-                <Input type="number" value={formData.max_marks} onChange={(e) => setFormData({ ...formData, max_marks: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[18px] sm:text-sm font-semibold">Weightage (%)</label>
-                <Input type="number" value={formData.weightage} onChange={(e) => setFormData({ ...formData, weightage: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+                {formData.subjects.map((sub, index) => (
+                  <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 border rounded-xl relative bg-secondary/10">
+                    <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => { const newSubs = [...formData.subjects]; newSubs.splice(index, 1); setFormData({ ...formData, subjects: newSubs }); }}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                    <div className="space-y-2 sm:col-span-4 pr-8">
+                      <label className="text-sm font-medium">Subject</label>
+                      <Select value={sub.subject_id} onValueChange={(v) => { const newSubs = [...formData.subjects]; newSubs[index].subject_id = v; setFormData({ ...formData, subjects: newSubs }); }}>
+                        <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select Subject" /></SelectTrigger>
+                        <SelectContent>
+                          {subjects
+                            .filter(s => !formData.subjects.some((sub, i) => i !== index && sub.subject_id === s.id.toString()))
+                            .map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.subject_code})</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <label className="text-sm font-medium">Date</label>
+                      <Input type="date" min={formData.start_date || tomorrowStr} max={formData.end_date || undefined} value={sub.date} onChange={(e) => { const newSubs = [...formData.subjects]; newSubs[index].date = e.target.value; setFormData({ ...formData, subjects: newSubs }); }} className="bg-background" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Start Time</label>
+                      <Input type="time" value={sub.start_time} onChange={(e) => { const newSubs = [...formData.subjects]; newSubs[index].start_time = e.target.value; setFormData({ ...formData, subjects: newSubs }); }} className="bg-background" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">End Time</label>
+                      <Input type="time" value={sub.end_time} onChange={(e) => { const newSubs = [...formData.subjects]; newSubs[index].end_time = e.target.value; setFormData({ ...formData, subjects: newSubs }); }} className="bg-background" />
+                    </div>
+                  </div>
+                ))}
+                {formData.subjects.length === 0 && (
+                  <div className="text-center py-4 text-muted-foreground text-sm border-2 border-dashed rounded-xl">
+                    No subjects added. Click 'Add Subject' to schedule.
+                  </div>
+                )}
               </div>
 
               <div className="sm:col-span-2 flex justify-end gap-3 pt-6 border-t mt-4">
@@ -449,6 +582,38 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
         </Dialog>
 
         <CardContent className="p-0">
+          <div className="p-4 sm:p-6 border-b flex flex-col sm:flex-row gap-4 sm:items-center bg-muted/20">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Filter by Batch</label>
+              <Select value={listFilters.batch_id} onValueChange={(v) => handleFilterChange('batch_id', v)}>
+                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder="Select Batch" /></SelectTrigger>
+                <SelectContent>
+                  {batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Filter by Branch</label>
+              <Select value={listFilters.branch_id} onValueChange={(v) => handleFilterChange('branch_id', v)} disabled={listFilters.batch_id === 'all'}>
+                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={listFilters.batch_id === 'all' ? "Select Batch First" : "All Branches"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  {branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Filter by Semester</label>
+              <Select value={listFilters.semester_id} onValueChange={(v) => handleFilterChange('semester_id', v)} disabled={listFilters.branch_id === 'all'}>
+                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={listFilters.branch_id === 'all' ? "Select Branch First" : "All Semesters"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Semesters</SelectItem>
+                  {filterSemesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-4">
             {loading ? (
               <div className="p-6">
@@ -461,9 +626,15 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <div className="bg-primary/5 p-6 rounded-full mb-4">
                         <Calendar className="w-12 h-12 text-primary/40" />
                       </div>
-                      <h3 className="text-xl font-semibold mb-2">No exams scheduled yet</h3>
+                      <h3 className="text-xl font-semibold mb-2">
+                        {listFilters.batch_id === 'all'
+                          ? "Select Filters" 
+                          : "No exams scheduled yet"}
+                      </h3>
                       <p className="text-muted-foreground max-w-sm mx-auto">
-                        There are currently no active exam schedules. Click the <strong>Schedule New Exam</strong> button above to create a new one.
+                        {listFilters.batch_id === 'all'
+                          ? "Please select a Batch above to view scheduled exams."
+                          : "There are currently no active exam schedules for the selected filters. Click the Schedule New Exam button above to create one."}
                       </p>
                     </CardContent>
                  </Card>
@@ -475,7 +646,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                     <thead className={`border-b ${theme === 'dark' ? 'bg-muted/50 border-border text-muted-foreground' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
                       <tr className="whitespace-nowrap">
                         <th className="px-6 py-4 font-semibold">Exam Details</th>
-                        <th className="px-6 py-4 font-semibold text-center">Batch / Semester</th>
+                        <th className="px-6 py-4 font-semibold text-center">Batch / Branch / Sem</th>
                         <th className="px-6 py-4 font-semibold text-center">Date & Time</th>
                         <th className="px-6 py-4 font-semibold text-center">Venue</th>
                         <th className="px-6 py-4 font-semibold text-center">Status</th>
@@ -495,7 +666,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                             </div>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="font-medium">{ex.batch?.name}</div>
+                            <div className="font-medium">{ex.batch?.name || 'All Batches'}</div>
+                            <div className="text-xs text-muted-foreground">{ex.subject?.branch || 'All Branches'}</div>
                             <div className="text-xs text-muted-foreground">{ex.semester?.number ? `Sem ${ex.semester.number}` : ''}</div>
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -553,8 +725,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                               <span className="text-[16px] sm:text-sm font-medium">{ex.subject?.name || 'General'}</span>
                             </div>
                             <div className="grid grid-cols-[110px_1fr] items-start">
-                              <span className="text-[16px] sm:text-sm text-muted-foreground">Batch/Sem:</span>
-                              <span className="text-[16px] sm:text-sm font-medium">{ex.batch?.name} / Sem {ex.semester?.number}</span>
+                              <span className="text-[16px] sm:text-sm text-muted-foreground">Batch/Branch/Sem:</span>
+                              <span className="text-[16px] sm:text-sm font-medium">
+                                {ex.batch?.name || 'All Batches'} / {ex.subject?.branch || 'All Branches'} / Sem {ex.semester?.number || 'All'}
+                              </span>
                             </div>
                             <div className="grid grid-cols-[110px_1fr] items-start">
                               <span className="text-[16px] sm:text-sm text-muted-foreground">Date:</span>
