@@ -165,6 +165,22 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     setCurrentPage(1);
   }, [roleFilter, departmentFilter, appliedSearch]);
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchQuery.trim());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Clear search query when dropdown filters change
+  useEffect(() => {
+    if (roleFilter || departmentFilter) {
+      setSearchQuery("");
+      setAppliedSearch("");
+    }
+  }, [roleFilter, departmentFilter]);
+
   const handleRoleFilterChange = (val: string) => {
     setRoleFilter(val);
     if (rolesNeedingDept.includes(val)) {
@@ -555,16 +571,9 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                           placeholder="Search name, email or USN..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyPress={(e) => {if (e.key === 'Enter') {setAppliedSearch(searchQuery.trim());setCurrentPage(1);}}}
                           className={`search-input h-10 w-full pl-10 rounded-md shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`} />
                         
                       </div>
-                      <Button
-                        onClick={() => {setAppliedSearch(searchQuery.trim());setCurrentPage(1);}}
-                        className={`h-10 px-6 font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>
-                        
-                        Search
-                      </Button>
                     </div>
                   </div>
                 </div>
