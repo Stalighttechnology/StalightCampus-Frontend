@@ -74,6 +74,7 @@ const StudentManagement = () => {
   const [state, setState] = useState({
     students: [] as Student[],
     search: "",
+    appliedSearch: "",
     sectionFilter: "",
     semesterFilter: "",
     selectedStudent: null as Student | null,
@@ -148,7 +149,8 @@ const StudentManagement = () => {
       }, "POST");
 
       if (response.success) {
-        const newSec = { id: String(Date.now()), name: newSectionName, semester_id: semId };
+        const createdId = response.data?.id || response.data?.section_id || String(Date.now());
+        const newSec = { id: String(createdId), name: newSectionName, semester_id: semId };
         const cacheKey = semId || "ALL";
         const currentCached = sectionsCache[cacheKey] || [];
         const updatedSections = [...currentCached, newSec].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i).sort((a, b) => a.name.localeCompare(b.name));
@@ -190,7 +192,7 @@ const StudentManagement = () => {
         branch_id: state.branchId
       });
       if (response.success) {
-        const returnedSemesters = (response as any).semesters || (response.data && (response.data.semesters as any[]));
+        const returnedSemesters = (response as any).semesters || (response.data && Array.isArray((response.data as any).semesters) ? (response.data as any).semesters : null);
         if (returnedSemesters && Array.isArray(returnedSemesters)) {
           const mappedSemesters = returnedSemesters.map((s: any) => ({ id: s.id.toString(), number: s.number }));
           updateState({
@@ -198,7 +200,8 @@ const StudentManagement = () => {
             manualForm: { ...state.manualForm, semester: `${newSemesterNumber}th Semester` }
           });
         } else {
-          const newSem = { id: String(Date.now()), number: Number(newSemesterNumber) };
+          const createdId = response.data?.semester_id || response.data?.id || String(Date.now());
+          const newSem = { id: String(createdId), number: Number(newSemesterNumber) };
           updateState({
             semesters: [...state.semesters, newSem].sort((a, b) => a.number - b.number),
             manualForm: { ...state.manualForm, semester: `${newSemesterNumber}th Semester` }
@@ -345,9 +348,6 @@ const StudentManagement = () => {
         const branchId = boot.data.profile.branch_id;
         updateState({ branchId });
 
-        // Fetch initial students separately
-        await fetchStudents(branchId, 1, state.pageSize);
-
         // Batches
         if (Array.isArray(boot.data.batches)) {
           const batches = boot.data.batches.map((b: any) => ({ ...b, id: b.id.toString() }));
@@ -384,29 +384,29 @@ const StudentManagement = () => {
   // Handle search
   const handleSearch = () => {
     if (state.branchId) {
-      const sectionId = state.sectionFilter === "All" || state.sectionFilter === "" ? "" : state.sectionFilter;
-      fetchStudents(state.branchId, 1, state.pageSize, state.search, sectionId);
+      updateState({ appliedSearch: state.search.trim(), currentPage: 1 });
     }
   };
 
-  // Debounced search
+  // Debounce search input
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (state.branchId && (state.search || (state.semesterFilter !== "" && state.sectionFilter !== ""))) {
-        const sectionId = state.sectionFilter === "All" || state.sectionFilter === "" ? "" : state.sectionFilter;
-        fetchStudents(state.branchId, 1, state.pageSize, state.search, sectionId);
-      }
+    const timer = setTimeout(() => {
+      updateState({ appliedSearch: state.search.trim(), currentPage: 1 });
     }, 500);
-    return () => clearTimeout(delayDebounceFn);
+    return () => clearTimeout(timer);
   }, [state.search]);
 
-  // Fetch students when section filter changes
+  // Fetch students when filters, appliedSearch, or page changes
   useEffect(() => {
     if (state.branchId) {
       const sectionId = state.sectionFilter === "All" || state.sectionFilter === "" ? "" : state.sectionFilter;
-      fetchStudents(state.branchId, 1, state.pageSize, state.search, sectionId);
+      if (state.appliedSearch || (state.semesterFilter !== "" && state.sectionFilter !== "")) {
+        fetchStudents(state.branchId, state.currentPage, state.pageSize, state.appliedSearch, sectionId);
+      } else {
+        updateState({ students: [], totalStudents: 0, totalPages: 0, isLoading: false });
+      }
     }
-  }, [state.sectionFilter]);
+  }, [state.branchId, state.currentPage, state.appliedSearch, state.semesterFilter, state.sectionFilter]);
 
   const forceCloseDropdowns = () => {
     const escEvent = new KeyboardEvent('keydown', {
@@ -533,6 +533,13 @@ const StudentManagement = () => {
       return () => clearTimeout(timer);
     }
   }, [state.semesterFilter, state.listSections]);
+
+  // Clear search query when dropdown filters change in Student List filter
+  useEffect(() => {
+    if (state.semesterFilter !== "" || state.sectionFilter !== "") {
+      updateState({ search: "", appliedSearch: "" });
+    }
+  }, [state.semesterFilter, state.sectionFilter]);
 
   // Fetch sections when semester changes in Edit Dialog
   useEffect(() => {
@@ -1068,7 +1075,7 @@ const StudentManagement = () => {
   // Handle page change
   const handlePageChange = async (newPage: number) => {
     if (newPage >= 1 && newPage <= totalFilteredPages) {
-      await fetchStudents(state.branchId, newPage, state.pageSize, state.search, state.sectionFilter);
+      updateState({ currentPage: newPage });
     }
   };
 
@@ -1431,27 +1438,24 @@ const StudentManagement = () => {
 
           <CardContent className="pb-4">
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-              <div className="flex w-full md:w-auto gap-2">
+              <div className="flex w-full md:w-auto">
                 <div className="relative flex-grow md:w-64 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
                   <Input
                     placeholder="Search students..."
-                    className={`w-full pr-8 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                    className={`w-full pl-10 pr-12 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
                     value={state.search}
                     onChange={(e) => updateState({ search: e.target.value })}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
                   {state.search && (
                     <button
                       onClick={() => updateState({ search: "" })}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
                     >
-                      <X className="h-4 w-4" />
+                      Clear
                     </button>
                   )}
                 </div>
-                
-                <Button onClick={handleSearch} variant="outline" className="text-xs md:text-sm">
-                  Search
-                </Button>
               </div>
 
               {/* Right side: Dropdowns */}
