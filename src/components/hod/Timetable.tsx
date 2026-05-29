@@ -438,6 +438,8 @@ const Timetable = () => {
   const { theme } = useTheme();
   const { toast } = useToast();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [state, setState] = useState({
     branchId: "" as string,
     branchName: "" as string,
@@ -934,8 +936,9 @@ const Timetable = () => {
               </Button>
               <Button
                 variant="outline"
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4"
-                onClick={handleEdit}>
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md h-10 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleEdit}
+                disabled={!state.semesterId || !state.sectionId}>
                 
                 <EditIcon className="w-4 h-4" />
                 <span className="whitespace-nowrap">{state.isEditing ? "Save Edit" : "Edit"}</span>
@@ -949,15 +952,18 @@ const Timetable = () => {
                 <div className="flex flex-col sm:flex-row md:flex-row gap-2 sm:gap-4 w-full md:flex-1 md:items-center md:flex-nowrap">
                   <div className="w-full sm:w-auto md:flex-none">
                     <Select
+                      open={isSemesterOpen}
+                      onOpenChange={setIsSemesterOpen}
                       value={state.semesterId}
-                      onValueChange={(value) =>
-                      updateState({ semesterId: value, sectionId: "", timetable: [] })
-                      }>
+                      onValueChange={(value) => {
+                        updateState({ semesterId: value, sectionId: "", timetable: [] });
+                        setTimeout(() => setIsSectionOpen(true), 150);
+                      }}>
                       
                       <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
                         <SelectValue placeholder="Select Semester" />
                       </SelectTrigger>
-                      <SelectContent className="bg-card text-foreground border-border">
+                      <SelectContent className="bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar">
                         {state.semesters.map((semester) =>
                         <SelectItem key={semester.id} value={semester.id} className="text-foreground">
                             {semester.number} Semester
@@ -968,6 +974,8 @@ const Timetable = () => {
                   </div>
                   <div className="w-full sm:w-auto md:flex-none">
                     <Select
+                      open={isSectionOpen}
+                      onOpenChange={setIsSectionOpen}
                       value={state.sectionId}
                       onValueChange={(value) => updateState({ sectionId: value, timetable: [] })}
                       disabled={!state.semesterId}>
@@ -975,7 +983,7 @@ const Timetable = () => {
                       <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
                         <SelectValue placeholder="Select Section" />
                       </SelectTrigger>
-                      <SelectContent className="bg-card text-foreground border-border">
+                      <SelectContent className="bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar">
                         {state.sections.map((section) =>
                         <SelectItem key={section.id} value={section.id} className="text-foreground">
                             Section {section.name}
