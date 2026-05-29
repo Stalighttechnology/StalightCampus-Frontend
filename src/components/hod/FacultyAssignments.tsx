@@ -3,14 +3,13 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/card
 import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
-import { useToast } from "../ui/use-toast";
 import { Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, Search, FileDown } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "../ui/dialog";
 import { manageFacultyAssignments, manageSections, getFacultyAssignmentsBootstrap, getHODTimetableSemesterData, listFacultyBranches, manageFaculties } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import Swal from "sweetalert2";
+import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 
 // Interfaces
 interface FacultyAssignmentsProps {
@@ -170,8 +169,14 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
 const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   const { theme } = useTheme();
-  const { toast } = useToast();
   const formRef = useRef<HTMLDivElement>(null);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isFacultyOpen, setIsFacultyOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSubjectOpen, setIsSubjectOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+  const [isFilterSemesterOpen, setIsFilterSemesterOpen] = useState(false);
+  const [isFilterSectionOpen, setIsFilterSectionOpen] = useState(false);
   const [state, setState] = useState({
     facultyId: "",
     subjectId: "",
@@ -220,13 +225,13 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-        toast({ title: "Success", description: "Faculty assignments PDF exported successfully", className: "bg-green-100 text-green-800" });
+        showSuccessAlert("Success", "Faculty assignments PDF exported successfully");
       } else {
         const result = await response.json().catch(() => ({}));
-        toast({ variant: "destructive", title: "Error", description: result.message || "Failed to export PDF" });
+        showErrorAlert("Error", result.message || "Failed to export PDF");
       }
     } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "Network error while exporting PDF" });
+      showErrorAlert("Error", "Network error while exporting PDF");
     } finally {
       setDownloadingPDF(false);
     }
@@ -327,11 +332,11 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       revertOptimisticChanges(originalAssignmentsLocal, originalFormStateLocal);
       if (isErrorWithMessage(err)) {
         const errorMessage = err.message || "Network error";
-        toast({ variant: "destructive", title: "Error", description: errorMessage });
+        showErrorAlert("Error", errorMessage);
         setError(errorMessage);
       } else {
         const errorMessage = "Network error";
-        toast({ variant: "destructive", title: "Error", description: errorMessage });
+        showErrorAlert("Error", errorMessage);
         setError(errorMessage);
       }
     } finally {
@@ -351,11 +356,11 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       revertOptimisticChanges(originalAssignmentsLocal, originalFormStateLocal);
       if (isErrorWithMessage(err)) {
         const errorMessage = err.message || "Network error";
-        toast({ variant: "destructive", title: "Error", description: errorMessage });
+        showErrorAlert("Error", errorMessage);
         setError(errorMessage);
       } else {
         const errorMessage = "Network error";
-        toast({ variant: "destructive", title: "Error", description: errorMessage });
+        showErrorAlert("Error", errorMessage);
         setError(errorMessage);
       }
     } finally {
@@ -393,24 +398,24 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
             name: `${f.first_name} ${f.last_name || ""}`.trim()
           })),
           facultyTotalPages: facultiesPagination?.total_pages || 1,
-          selectedBranchForFaculty: profile.branch_id // Default to own branch
+          selectedBranchForFaculty: "" // Do not auto-select, allow choosing branch
         });
       } catch (err) {
         if (isErrorWithMessage(err)) {
           const errorMessage = err.message || "Network error";
           setError(errorMessage);
-          toast({ variant: "destructive", title: "Error", description: errorMessage });
+          showErrorAlert("Error", errorMessage);
         } else {
           const errorMessage = "Network error";
           setError(errorMessage);
-          toast({ variant: "destructive", title: "Error", description: errorMessage });
+          showErrorAlert("Error", errorMessage);
         }
       } finally {
         updateState({ loading: false });
       }
     };
     fetchInitialData();
-  }, [toast, setError, updateState]);
+  }, [setError, updateState]);
 
   // Fetch faculties when branch or search changes
   useEffect(() => {
@@ -452,11 +457,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       }
     };
 
-    const timer = setTimeout(() => {
-      fetchFacultiesData();
-    }, 500);
-
-    return () => clearTimeout(timer);
+    fetchFacultiesData();
   }, [state.selectedBranchForFaculty, state.facultySearch, updateState]);
 
   // Sync local search to state.facultySearch with debounce to avoid excessive re-renders
@@ -572,27 +573,23 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
 
   const validateForm = () => {
     if (!state.facultyId || !state.subjectId || !state.sectionId || !state.semesterId) {
-      toast({
-        title: "Error",
-        description: "Please select all required fields",
-        variant: "destructive"
-      });
+      showErrorAlert("Error", "Please select all required fields");
       return false;
     }
     if (!state.faculties.some((f) => f.id === state.facultyId)) {
-      toast({ title: "Error", description: "Invalid faculty selected", variant: "destructive" });
+      showErrorAlert("Error", "Invalid faculty selected");
       return false;
     }
     if (!state.subjects.some((s) => s.id === state.subjectId)) {
-      toast({ title: "Error", description: "Invalid subject selected", variant: "destructive" });
+      showErrorAlert("Error", "Invalid subject selected");
       return false;
     }
     if (!state.sections.some((s) => s.id === state.sectionId)) {
-      toast({ title: "Error", description: "Invalid section selected", variant: "destructive" });
+      showErrorAlert("Error", "Invalid section selected");
       return false;
     }
     if (!state.semesters.some((s) => s.id === state.semesterId)) {
-      toast({ title: "Error", description: "Invalid semester selected", variant: "destructive" });
+      showErrorAlert("Error", "Invalid semester selected");
       return false;
     }
     return true;
@@ -604,22 +601,14 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     // 🚨 Case 1: Prevent multiple faculties or duplicate faculty assignment for same subject/section/semester
     if (hasDuplicateAssignment(state.subjectId, state.sectionId, state.semesterId, state.editingId)) {
       const dup = state.assignments.find((a) => a.subject_id === state.subjectId && a.section_id === state.sectionId && a.semester_id === state.semesterId && a.id !== state.editingId);
-      toast({
-        variant: "destructive",
-        title: "Duplicate Assignment",
-        description: `Subject "${dup?.subject || ''}" is already assigned to Section ${dup?.section || ''}, Semester ${dup?.semester || ''}. Only one faculty can be assigned.`
-      });
+      showErrorAlert("Duplicate Assignment", `Subject "${dup?.subject || ''}" is already assigned to Section ${dup?.section || ''}, Semester ${dup?.semester || ''}. Only one faculty can be assigned.`);
       return;
     }
 
     if (hasDuplicateFaculty(state.facultyId, state.subjectId, state.sectionId, state.semesterId, state.editingId)) {
       const dupF = state.assignments.find((a) => a.faculty_id === state.facultyId && a.subject_id === state.subjectId && a.section_id === state.sectionId && a.semester_id === state.semesterId && a.id !== state.editingId);
       const facultyName = buildFacultyName(state.facultyId);
-      toast({
-        variant: "destructive",
-        title: "Duplicate Faculty Assignment",
-        description: `${facultyName} is already assigned to ${dupF?.subject || ''} - Section ${dupF?.section || ''}, Semester ${dupF?.semester || ''}.`
-      });
+      showErrorAlert("Duplicate Faculty Assignment", `${facultyName} is already assigned to ${dupF?.subject || ''} - Section ${dupF?.section || ''}, Semester ${dupF?.semester || ''}.`);
       return;
     }
 
@@ -638,9 +627,9 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
     const tempId = `temp-${Date.now()}`;
     if (isEditing) applyOptimisticEdit();else applyOptimisticCreate(tempId);
 
-    // Clear form optimistically and show success toast
+    // Clear form optimistically and show success alert
     resetForm();
-    toast({ title: isEditing ? "Updated" : "Success", description: isEditing ? "Assignment updated successfully" : "Faculty assigned successfully", className: "bg-green-100 text-green-800" });
+    showSuccessAlert(isEditing ? "Updated" : "Success", isEditing ? "Assignment updated successfully" : "Faculty assigned successfully");
 
     const data: ManageFacultyAssignmentsRequest = {
       action: isEditing ? "update" : "create",
@@ -662,6 +651,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
   const handleEdit = (assignment: Assignment) => {
     updateState({
       editingId: assignment.id,
+      selectedBranchForFaculty: assignment.branch_id || state.branchId,
       facultyId: assignment.faculty_id,
       subjectId: assignment.subject_id,
       sectionId: assignment.section_id,
@@ -728,7 +718,6 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
       updateState({ assignments: originalAssignments });
 
       const errorMessage = isErrorWithMessage(err) ? err.message : "Network error";
-      toast({ variant: "destructive", title: "Error", description: errorMessage });
       setError(errorMessage);
 
       Swal.fire({
@@ -765,14 +754,19 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch
                 <Select
+                    open={isBranchOpen}
+                    onOpenChange={setIsBranchOpen}
                     value={state.selectedBranchForFaculty}
-                    onValueChange={(value) => updateState({ selectedBranchForFaculty: value, facultyPage: 1, facultyId: "" })}
+                    onValueChange={(value) => {
+                      updateState({ selectedBranchForFaculty: value, facultyPage: 1, facultyId: "" });
+                      setTimeout(() => setIsFacultyOpen(true), 150);
+                    }}
                     disabled={state.loading || state.isAssigning || state.allBranches.length === 0}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder="Select Branch" />
+                    <SelectValue placeholder="Choose Branch" />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.allBranches.map((branch) =>
                       <SelectItem key={branch.id} value={branch.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                         {branch.name}
@@ -785,14 +779,19 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Faculty
                 <Select
+                    open={isFacultyOpen}
+                    onOpenChange={setIsFacultyOpen}
                     value={state.facultyId}
-                    onValueChange={(value) => updateState({ facultyId: value })}
+                    onValueChange={(value) => {
+                      updateState({ facultyId: value });
+                      setTimeout(() => setIsSemesterOpen(true), 150);
+                    }}
                     disabled={state.loading || state.isAssigning || !state.selectedBranchForFaculty}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder={state.loadingFaculties ? "Loading..." : "Select Faculty"} />
+                    <SelectValue placeholder={state.loadingFaculties ? "Loading..." : "Choose Faculty"} />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[320px] overflow-hidden flex flex-col' : 'bg-white text-gray-900 border-gray-300 max-h-[320px] overflow-hidden flex flex-col'}>
                     <div className="px-3 py-2 border-b border-border sticky top-0 bg-inherit z-10">
                       <div className="relative">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -809,20 +808,63 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                           
                       </div>
                     </div>
-                    <div className="max-h-60 overflow-y-auto">
-                      {state.loadingFaculties ?
-                        <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> :
-                        state.faculties.length === 0 ?
-                        <div className="p-4 text-center text-sm text-muted-foreground">No faculty found</div> :
+                    <div className="max-h-40 overflow-y-auto custom-scrollbar">
+                      {(() => {
+                        const selected = state.faculties.find((f) => f.id === state.facultyId) || 
+                          (() => {
+                            if (!state.facultyId) return undefined;
+                            const foundAssignment = state.assignments.find((a) => a.faculty_id === state.facultyId);
+                            if (foundAssignment) {
+                              const names = foundAssignment.faculty.split(' ');
+                              return {
+                                id: state.facultyId,
+                                username: '',
+                                first_name: names[0],
+                                last_name: names.slice(1).join(' ') || null,
+                                name: foundAssignment.faculty
+                              };
+                            }
+                            return undefined;
+                          })();
 
-                        state.faculties.
-                        slice((state.facultyPage - 1) * 10, state.facultyPage * 10).
-                        map((faculty) =>
-                        <SelectItem key={faculty.id} value={faculty.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                              {faculty.first_name} {faculty.last_name || ""} ({faculty.username})
-                            </SelectItem>
-                        )
+                        if (state.loadingFaculties) {
+                          return (
+                            <>
+                              <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
+                              {selected && (
+                                <SelectItem key={selected.id} value={selected.id} className="hidden">
+                                  {selected.first_name} {selected.last_name || ""}
+                                </SelectItem>
+                              )}
+                            </>
+                          );
                         }
+
+                        if (state.faculties.length === 0) {
+                          return (
+                            <>
+                              <div className="p-4 text-center text-sm text-muted-foreground">No faculty found</div>
+                              {selected && (
+                                <SelectItem key={selected.id} value={selected.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                                  {selected.first_name} {selected.last_name || ""}
+                                </SelectItem>
+                              )}
+                            </>
+                          );
+                        }
+                        
+                        const sliced = state.faculties.slice((state.facultyPage - 1) * 10, state.facultyPage * 10);
+                        const list = [...sliced];
+                        if (selected && !list.some((f) => f.id === selected.id)) {
+                          list.push(selected);
+                        }
+                        
+                        return list.map((faculty) => (
+                          <SelectItem key={faculty.id} value={faculty.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                            {faculty.first_name} {faculty.last_name || ""} {faculty.username ? `(${faculty.username})` : ""}
+                          </SelectItem>
+                        ));
+                      })()}
                     </div>
                     {state.facultyTotalPages > 1 &&
                       <div className="px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 bg-inherit z-10">
@@ -867,14 +909,19 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester
                 <Select
+                    open={isSemesterOpen}
+                    onOpenChange={setIsSemesterOpen}
                     value={state.semesterId}
-                    onValueChange={(value) => updateState({ semesterId: value, subjectId: "", sectionId: "" })}
+                    onValueChange={(value) => {
+                      updateState({ semesterId: value, subjectId: "", sectionId: "" });
+                      setTimeout(() => setIsSubjectOpen(true), 150);
+                    }}
                     disabled={state.loading || state.isAssigning || state.semesters.length === 0}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder={state.semesters.length === 0 ? "No semesters available" : "Select Semester"} />
+                    <SelectValue placeholder={state.semesters.length === 0 ? "No Semesters" : "Choose Semester"} />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.semesters.map((semester) =>
                       <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                         Semester {semester.number}
@@ -887,14 +934,19 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course
                 <Select
+                    open={isSubjectOpen}
+                    onOpenChange={setIsSubjectOpen}
                     value={state.subjectId}
-                    onValueChange={(value) => updateState({ subjectId: value })}
+                    onValueChange={(value) => {
+                      updateState({ subjectId: value });
+                      setTimeout(() => setIsSectionOpen(true), 150);
+                    }}
                     disabled={state.loading || state.isAssigning || !state.semesterId || state.subjects.length === 0}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder={state.subjects.length === 0 ? "No subjects available" : "Select Subject"} />
+                    <SelectValue placeholder={state.subjects.length === 0 ? "No Courses" : "Choose Course"} />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.subjects.
                       map((subject) =>
                       <SelectItem key={subject.id} value={subject.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
@@ -908,14 +960,18 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               <div>
                 <label className={`block mb-1 text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section
                 <Select
+                    open={isSectionOpen}
+                    onOpenChange={setIsSectionOpen}
                     value={state.sectionId}
-                    onValueChange={(value) => updateState({ sectionId: value })}
+                    onValueChange={(value) => {
+                      updateState({ sectionId: value });
+                    }}
                     disabled={state.loading || state.isAssigning || !state.semesterId || state.sections.length === 0}>
                     
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder={state.sections.length === 0 ? "No sections available" : "Select Section"} />
+                    <SelectValue placeholder={state.sections.length === 0 ? "No Sections" : "Choose Section"} />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.sections.
                       map((section) =>
                       <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
@@ -982,15 +1038,19 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Select
-                  value={state.filterSemesterId || "all"}
-                  onValueChange={(value) => updateState({ filterSemesterId: value === "all" ? "" : value, filterSectionId: "" })}
+                  open={isFilterSemesterOpen}
+                  onOpenChange={setIsFilterSemesterOpen}
+                  value={state.filterSemesterId}
+                  onValueChange={(value) => {
+                    updateState({ filterSemesterId: value, filterSectionId: "" });
+                    setTimeout(() => setIsFilterSectionOpen(true), 150);
+                  }}
                   disabled={state.loading || state.semesters.length === 0}>
                   
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder="All Semesters" />
+                    <SelectValue placeholder="Choose Semester" />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectItem value="all" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>All Semesters</SelectItem>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.semesters.map((semester) =>
                     <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                         Semester {semester.number}
@@ -1001,15 +1061,16 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
               </div>
               <div className="flex gap-2">
                 <Select
-                  value={state.filterSectionId || "all"}
-                  onValueChange={(value) => updateState({ filterSectionId: value === "all" ? "" : value })}
+                  open={isFilterSectionOpen}
+                  onOpenChange={setIsFilterSectionOpen}
+                  value={state.filterSectionId}
+                  onValueChange={(value) => updateState({ filterSectionId: value })}
                   disabled={state.loading || !state.filterSemesterId || state.filterSections.length === 0}>
                   
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectValue placeholder="All Sections" />
+                    <SelectValue placeholder="Choose Section" />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectItem value="all" className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>All Sections</SelectItem>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.filterSections.map((section) =>
                     <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
                         Section {section.name}

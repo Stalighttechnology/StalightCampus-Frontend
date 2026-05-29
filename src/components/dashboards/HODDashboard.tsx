@@ -299,11 +299,6 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         onNotificationClick={handleNotificationClick}
         pageTitle="HOD Dashboard">
         
-        {error &&
-        <div className={`p-3 rounded-lg mb-4 ${theme === 'dark' ? 'bg-destructive/10 border border-destructive/20 text-destructive-foreground' : 'bg-red-100 border border-red-200 text-red-700'}`}>
-            {error}
-          </div>
-        }
         <ErrorBoundary>
           {renderContent()}
         </ErrorBoundary>
