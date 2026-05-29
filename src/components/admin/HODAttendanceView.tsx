@@ -656,7 +656,7 @@ const AdminHODAttendance: React.FC = () => {
                         className={`h-8 gap-2 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20 hover:text-white' : 'bg-primary text-white hover:bg-primary/90 hover:text-white'}`}>
                         
                             <CalendarIcon className="w-3.5 h-3.5" />
-                            View Grid
+                            View
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -706,10 +706,18 @@ const AdminHODAttendance: React.FC = () => {
 
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
                   {(() => {
-                    const start = new Date(dateRange.start_date);
                     const end = new Date(dateRange.end_date);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
+                    const effectiveEnd = end < today ? end : today;
+                    
+                    const start = new Date(effectiveEnd);
+                    if (selectedHOD && selectedHOD.total_days > 0) {
+                      start.setDate(effectiveEnd.getDate() - (selectedHOD.total_days - 1));
+                    } else {
+                      start.setTime(new Date(dateRange.start_date).getTime());
+                    }
+                    const todayStr = new Date().toLocaleDateString('sv-SE');
                     const days = [];
                     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                       days.push(new Date(d));
@@ -718,7 +726,7 @@ const AdminHODAttendance: React.FC = () => {
                     return days.map((date) => {
                       const dateStr = date.toLocaleDateString('sv-SE');
                       const record = hodAttendanceDetails.find((r) => r.date === dateStr);
-                      const isFuture = date > today;
+                      const isFuture = dateStr > todayStr;
                       const isPresent = record?.status?.toLowerCase() === 'present';
                       const isAbsent = record?.status?.toLowerCase() === 'absent' || !record && !isFuture;
 
