@@ -5,7 +5,8 @@ import { Button } from "../ui/button";
 import { SkeletonTable } from "../ui/skeleton";
 import { Input } from "../ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
-import { manageSubjects, getSemesters, manageProfile, getHODSubjectBootstrap } from "../../utils/hod_api";
+import { manageSubjects, getSemesters, manageProfile, getHODSubjectBootstrap, manageSemesters } from "../../utils/hod_api";
+import { Dialog, DialogContent, DialogHeader, DialogFooter } from "../ui/dialog";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -98,6 +99,57 @@ const SubjectManagement = () => {
 
   const totalPages = state.totalPages;
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const [isAddSemesterOpen, setIsAddSemesterOpen] = useState(false);
+  const [newSemesterNumber, setNewSemesterNumber] = useState("");
+  const [addingSemester, setAddingSemester] = useState(false);
+
+  const handleOpenAddSemester = () => {
+    setNewSemesterNumber("");
+    setIsSemesterOpen(false);
+    setIsAddSemesterOpen(true);
+  };
+
+  const handleAddSemester = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSemesterNumber || isNaN(Number(newSemesterNumber)) || Number(newSemesterNumber) < 1 || Number(newSemesterNumber) > 8) {
+      showErrorAlert("Error", "Please enter a valid semester number (1-8)");
+      return;
+    }
+    setAddingSemester(true);
+    try {
+      const response = await manageSemesters({
+        action: "create",
+        number: Number(newSemesterNumber),
+        branch_id: state.branchId
+      });
+      if (response.success) {
+        const returnedSemesters = (response as any).semesters || (response.data && Array.isArray((response.data as any).semesters) ? (response.data as any).semesters : null);
+        if (returnedSemesters && Array.isArray(returnedSemesters)) {
+          const mappedSemesters = returnedSemesters.map((s: any) => ({ id: s.id.toString(), number: s.number }));
+          updateState({
+            semesters: mappedSemesters,
+            filters: { ...state.filters, semester_id: mappedSemesters.find((s: any) => s.number === Number(newSemesterNumber))?.id || "" }
+          });
+        } else {
+          const createdId = response.data?.semester_id || response.data?.id || String(Date.now());
+          const newSem = { id: String(createdId), number: Number(newSemesterNumber) };
+          updateState({
+            semesters: [...state.semesters, newSem].sort((a, b) => a.number - b.number),
+            filters: { ...state.filters, semester_id: String(createdId) }
+          });
+        }
+        setIsAddSemesterOpen(false);
+        setTimeout(() => setIsTypeOpen(true), 150);
+      } else {
+        showErrorAlert("Error", response.message || "Failed to create semester");
+      }
+    } catch (err: any) {
+      showErrorAlert("Error", "An error occurred while creating semester");
+    } finally {
+      setAddingSemester(false);
+    }
+  };
 
   const handleExportPDF = async () => {
     setDownloadingPDF(true);
@@ -374,15 +426,10 @@ const SubjectManagement = () => {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setIsSemesterOpen(false);
-                            updateState({
-                              showModal: "add",
-                              newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                              currentSubject: null
-                            });
+                            handleOpenAddSemester();
                           }}
                           className="w-full bg-primary hover:bg-[#9147e0] text-white shadow-sm transition-all active:scale-95 text-xs py-1.5 h-auto">
-                          Add Course
+                          Add Semester
                         </Button>
                       </div>
                     ) : (
@@ -742,8 +789,48 @@ const SubjectManagement = () => {
               </Button>
             </div>
           </div>
-        </div>
+       </div>
       }
+
+      {/* Add Semester Modal */}
+      <Dialog open={isAddSemesterOpen} onOpenChange={setIsAddSemesterOpen}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[90%] sm:max-w-lg rounded-md sm:rounded-lg`}>
+          <DialogHeader>
+            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Add Semester
+            </h2>
+          </DialogHeader>
+          <form onSubmit={handleAddSemester} className="space-y-4">
+            <div className="text-center">
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester Number</label>
+              <Input
+                type="number"
+                value={newSemesterNumber}
+                onChange={(e) => setNewSemesterNumber(e.target.value)}
+                placeholder="Enter semester number (1-8)"
+                min="1"
+                max="8"
+                disabled={addingSemester}
+                className={`text-center ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+              />
+            </div>
+            <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
+              <Button
+                type="button"
+                onClick={() => setIsAddSemesterOpen(false)}
+                disabled={addingSemester}
+                className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-200'}`}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={addingSemester} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+                {addingSemester ? <Loader2 className="h-4 w-4 mr-2 animate-spin inline-block" /> : null}
+                Add Semester
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>);
 
 };
