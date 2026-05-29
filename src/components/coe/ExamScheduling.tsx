@@ -383,7 +383,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Batch</label>
-                <Select value={formData.batch_id} onValueChange={(v) => setFormData({ ...formData, batch_id: v })}>
+                <Select value={formData.batch_id} onValueChange={(v) => setFormData({ ...formData, batch_id: v, branch_id: '', semester_id: '', exam_type: '', exam_period: '', subjects: [] })}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Batch" /></SelectTrigger>
                   <SelectContent>
                     {batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
@@ -393,8 +393,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Branch</label>
-                <Select value={formData.branch_id} onValueChange={(v) => setFormData({ ...formData, branch_id: v, semester_id: '' })}>
-                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Branch" /></SelectTrigger>
+                <Select value={formData.branch_id} onValueChange={(v) => setFormData({ ...formData, branch_id: v, semester_id: '', exam_type: '', exam_period: '', subjects: [] })} disabled={!formData.batch_id}>
+                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.batch_id ? "Select Branch" : "Select Batch First"} /></SelectTrigger>
                   <SelectContent>
                     {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                   </SelectContent>
@@ -403,7 +403,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Semester</label>
-                <Select value={formData.semester_id} onValueChange={(v) => setFormData({ ...formData, semester_id: v })} disabled={!formData.branch_id}>
+                <Select value={formData.semester_id} onValueChange={(v) => setFormData({ ...formData, semester_id: v, exam_type: '', exam_period: '', subjects: [] })} disabled={!formData.branch_id}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.branch_id ? "Select Semester" : "Select Branch First"} /></SelectTrigger>
                   <SelectContent>
                     {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)}
@@ -413,8 +413,8 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Exam Type</label>
-                <Select value={formData.exam_type} onValueChange={(v) => setFormData({ ...formData, exam_type: v })}>
-                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Type" /></SelectTrigger>
+                <Select value={formData.exam_type} onValueChange={(v) => setFormData({ ...formData, exam_type: v, exam_period: '', subjects: [] })} disabled={!formData.semester_id}>
+                  <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.semester_id ? "Select Type" : "Select Semester First"} /></SelectTrigger>
                   <SelectContent>
                     {EXAM_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                   </SelectContent>
@@ -423,9 +423,9 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Exam Period</label>
-                <Select value={formData.exam_period} onValueChange={(v) => setFormData({ ...formData, exam_period: v === 'none' ? '' : v })}>
+                <Select value={formData.exam_period} onValueChange={(v) => setFormData({ ...formData, exam_period: v === 'none' ? '' : v, subjects: [] })} disabled={!formData.exam_type}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm">
-                    <SelectValue placeholder="Select Period (Optional)" />
+                    <SelectValue placeholder={formData.exam_type ? "Select Period (Optional)" : "Select Exam Type First"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None / Optional</SelectItem>
@@ -436,12 +436,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-semibold">Start Date</label>
-                <Input type="date" min={tomorrowStr} value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+                <Input type="date" disabled={!formData.exam_type} min={tomorrowStr} value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-semibold">End Date</label>
-                <Input type="date" min={formData.start_date || tomorrowStr} value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+                <Input type="date" disabled={!formData.start_date} min={formData.start_date || tomorrowStr} value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
               </div>
 
               <div className="space-y-2 sm:col-span-2">
@@ -530,7 +530,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
               <div className="sm:col-span-2 mt-4 space-y-4">
                 <div className="flex justify-between items-center border-b pb-2">
                   <label className="text-lg font-semibold">Subjects Schedule</label>
-                  <Button type="button" variant="outline" size="sm" onClick={() => setFormData({ ...formData, subjects: [...formData.subjects, { subject_id: '', date: '', start_time: '09:00', end_time: '12:00' }] })}>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setFormData({ ...formData, subjects: [...formData.subjects, { subject_id: '', date: '', start_time: '09:00', end_time: '12:00' }] })} disabled={!formData.end_date || !roomsSaved}>
                     <Plus className="w-4 h-4 mr-2" /> Add Subject
                   </Button>
                 </div>

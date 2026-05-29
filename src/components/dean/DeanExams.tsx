@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { RefreshCcw, BookOpen, Clock, Calendar, CheckCircle2, History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
 
 type ExamEntry = {
   id: string | number;
@@ -37,6 +38,69 @@ type ExamEntry = {
   end_time?: string; // HH:MM
   room?: string;
   is_published?: boolean;
+};
+
+type ExamGroup = {
+  id: string;
+  title: string;
+  batch: string;
+  branch: string;
+  semester: string;
+  exam_type: string;
+  exam_period: string;
+  dateStr: string;
+  is_published: boolean;
+  status: string;
+  subjects: ExamEntry[];
+};
+
+const groupExams = (exams: ExamEntry[]): ExamGroup[] => {
+  const groups: Record<string, ExamGroup> = {};
+  exams.forEach(ex => {
+    const key = `${ex.batch}-${ex.branch}-${ex.semester}-${ex.exam_type}-${ex.exam_period}`;
+    if (!groups[key]) {
+      groups[key] = {
+        id: key,
+        title: ex.title || ex.exam_type?.replace('_', ' ') || 'Exam',
+        batch: ex.batch || '-',
+        branch: ex.branch || '-',
+        semester: ex.semester ? `Sem ${ex.semester}` : '-',
+        exam_type: ex.exam_type || '',
+        exam_period: ex.exam_period || '',
+        dateStr: '',
+        status: 'upcoming',
+        is_published: false,
+        subjects: [],
+      };
+    }
+    groups[key].subjects.push(ex);
+  });
+
+  return Object.values(groups).map(g => {
+    let hasOngoing = false;
+    let allPast = true;
+    let allPublished = true;
+
+    g.subjects.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    g.subjects.forEach(ex => {
+      const s = computeStatus(ex);
+      if (s === 'ongoing') hasOngoing = true;
+      if (s !== 'past') allPast = false;
+      if (!ex.is_published) allPublished = false;
+    });
+
+    g.status = hasOngoing ? 'ongoing' : allPast ? 'past' : 'upcoming';
+    g.is_published = allPublished;
+    
+    if (g.subjects.length > 0) {
+      const firstD = formatDate(g.subjects[0].date);
+      const lastD = formatDate(g.subjects[g.subjects.length - 1].date);
+      g.dateStr = firstD === lastD ? firstD : `${firstD} - ${lastD}`;
+    }
+    
+    return g;
+  });
 };
 
 const now = () => new Date();
@@ -87,6 +151,7 @@ const DeanExams: React.FC = () => {
     totalItems: 0
   });
   const [firstLoad, setFirstLoad] = useState(true);
+  const [viewGroupId, setViewGroupId] = useState<string | null>(null);
 
   const load = async (page = 1) => {
     setLoading(true);setError(null);
@@ -167,6 +232,27 @@ const DeanExams: React.FC = () => {
     }
   };
 
+  const publishAllExams = async (group: ExamGroup) => {
+    const unpublished = group.subjects.filter(ex => !ex.is_published);
+    if (unpublished.length === 0) return;
+    if (!confirm(`Publish all ${unpublished.length} scheduled subjects?`)) return;
+    
+    try {
+      setLoading(true);
+      await Promise.all(unpublished.map(ex => 
+        fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/exams/${ex.id}/publish/`, { method: 'POST' })
+      ));
+      
+      const publishedIds = unpublished.map(ex => ex.id);
+      setExams((prev) => prev.map((ex) => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex));
+      setActiveExams((prev) => prev.map((ex) => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex));
+    } catch (e: any) {
+      alert('Some subjects failed to publish.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const grouped = {
     ongoing: [] as ExamEntry[],
     upcoming: [] as ExamEntry[],
@@ -175,28 +261,29 @@ const DeanExams: React.FC = () => {
   };
 
   // Use activeExams for ongoing and upcoming sections
-  activeExams.forEach((ex) => {
-    const s = computeStatus(ex);
-    if (s === 'ongoing') grouped.ongoing.push(ex);else
-    if (s === 'upcoming') grouped.upcoming.push(ex);else
-    if (s === 'past') grouped.past.push(ex); // Handle exams that finished today
-    else grouped.other.push(ex);
+  const groupedActiveExams = groupExams(activeExams);
+  groupedActiveExams.forEach((g) => {
+    if (g.status === 'ongoing') grouped.ongoing.push(g as any);
+    else if (g.status === 'upcoming') grouped.upcoming.push(g as any);
+    else if (g.status === 'past') grouped.past.push(g as any);
+    else grouped.other.push(g as any);
   });
 
   // Use main exams list for past section (and avoid duplicates if some are on Page 1)
-  exams.forEach((ex) => {
-    const s = computeStatus(ex);
-    if (s === 'past') {
-      grouped.past.push(ex);
+  const groupedMainExams = groupExams(exams);
+  groupedMainExams.forEach((g) => {
+    if (g.status === 'past') {
+      if (!grouped.past.find(x => x.id === g.id)) grouped.past.push(g as any);
     } else if (pagination.currentPage > 1) {
+      if (g.status === 'ongoing' && !grouped.ongoing.find(x => x.id === g.id)) grouped.ongoing.push(g as any);
+      else if (g.status === 'upcoming' && !grouped.upcoming.find(x => x.id === g.id)) grouped.upcoming.push(g as any);
+      else if (g.status === 'past' && !grouped.past.find(x => x.id === g.id)) grouped.past.push(g as any);
+      else if (!grouped.other.find(x => x.id === g.id)) grouped.other.push(g as any);
+    }
+  });
 
-
-      // If we are on page 2+, we only show past exams in the main list
-      // Ongoing/Upcoming are already covered by activeExams
-    } else {
-      // On page 1, we might have duplicates if we're not careful
-      // But grouped.ongoing/upcoming are already populated from activeExams
-    }});
+  const allGroups = [...grouped.ongoing, ...grouped.upcoming, ...grouped.past, ...grouped.other] as any as ExamGroup[];
+  const currentGroup = allGroups.find(g => g.id === viewGroupId);
   const countCards = [
   { key: 'ongoing', title: 'Ongoing', count: counts.ongoing, color: 'green' },
   { key: 'upcoming', title: 'Upcoming', count: counts.upcoming, color: 'blue' },
@@ -303,7 +390,7 @@ const DeanExams: React.FC = () => {
                                 <tr className={`text-left text-xs font-semibold uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`
                             }>
                                   <th className="px-6 py-4">Exam Details</th>
-                                  <th className="px-6 py-4 text-center">Batch / Sem</th>
+                                  <th className="px-6 py-4 text-center">Batch / Branch / Sem</th>
                                   <th className="px-6 py-4 text-center">Date & Time</th>
                                   <th className="px-6 py-4">Venue</th>
                                   <th className="px-6 py-4 text-center">Status</th>
@@ -312,63 +399,56 @@ const DeanExams: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                                {list.map((ex: ExamEntry) =>
-                            <tr key={ex.id} className={`text-sm hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
+                                {list.map((g: any) =>
+                            <tr key={g.id} className={`text-sm hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
                                     <td className="px-6 py-4">
                                       <div className="font-semibold text-foreground">
-                                        {ex.title || ex.subject || 'Exam'}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground mt-0.5">
-                                        {ex.subject} • {ex.branch}
+                                        {g.title}
                                       </div>
                                       <div className="mt-1 flex gap-1">
-                                        {ex.exam_type && <Badge variant="outline" className="text-[10px] py-0">{ex.exam_type.replace('_', ' ')}</Badge>}
-                                        {ex.exam_period && <Badge variant="outline" className="text-[10px] py-0">{ex.exam_period.replace('_', '/')}</Badge>}
+                                        {g.exam_type && <Badge variant="outline" className="text-[10px] py-0">{g.exam_type.replace('_', ' ')}</Badge>}
+                                        {g.exam_period && <Badge variant="outline" className="text-[10px] py-0">{g.exam_period.replace('_', '/')}</Badge>}
                                       </div>
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                      <div className="font-medium">{ex.batch || '-'}</div>
-                                      <div className="text-xs text-muted-foreground">Sem {ex.semester || '-'}</div>
+                                      <div className="font-medium">{g.batch}</div>
+                                      <div className="text-xs text-muted-foreground">{g.branch} • {g.semester}</div>
                                     </td>
                                     <td className="px-6 py-4 text-center whitespace-nowrap">
-                                      <div className="font-medium">{formatDate(ex.date)}</div>
+                                      <div className="font-medium">{g.dateStr}</div>
                                       <div className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-1">
-                                        <Clock className="w-3 h-3" />
-                                        {ex.start_time || '-'} - {ex.end_time || '-'}
+                                        <BookOpen className="w-3 h-3" />
+                                        {g.subjects.length} Subjects
                                       </div>
                                     </td>
                                     <td className="px-6 py-4">
                                       <Badge variant="secondary" className="font-medium">
-                                        {ex.room || 'TBD'}
+                                        {g.subjects[0]?.room || 'TBD'}
                                       </Badge>
                                     </td>
 
                                     <td className="px-6 py-4 text-center">
-                                      <Badge className={`capitalize ${computeStatus(ex) === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                                computeStatus(ex) === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                                      <Badge className={`capitalize ${g.status === 'ongoing' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                                g.status === 'upcoming' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
                                 'bg-gray-500/10 text-gray-600 border-gray-500/20'}`
                                 } variant="outline">
-                                        {computeStatus(ex)}
+                                        {g.status}
                                       </Badge>
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                      {ex.is_published ?
+                                      {g.is_published ?
                                 <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> :
-
                                 <span className="text-xs text-muted-foreground">Draft</span>
                                 }
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                      {!ex.is_published &&
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => publishExam(ex.id)}
-                                  className="h-8 text-xs font-semibold">
-                                  
-                                          Publish
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          onClick={() => setViewGroupId(g.id)}
+                                          className="h-8 text-xs font-semibold">
+                                          View
                                         </Button>
-                                }
                                     </td>
                                   </tr>
                             )}
@@ -416,6 +496,47 @@ const DeanExams: React.FC = () => {
           </CardFooter>
         )}
       </Card>
+      
+      <Dialog open={!!viewGroupId} onOpenChange={(open) => !open && setViewGroupId(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{currentGroup?.title} - Detailed Schedule</DialogTitle>
+            <DialogDescription>
+              {currentGroup?.batch} • {currentGroup?.branch} • {currentGroup?.semester}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 border rounded-md overflow-hidden">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-muted/50 border-b">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Subject</th>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">Time</th>
+                  <th className="px-4 py-3 font-semibold">Room</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {currentGroup?.subjects.map(ex => (
+                  <tr key={ex.id} className="hover:bg-muted/30">
+                    <td className="px-4 py-3 font-medium">{ex.subject}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{formatDate(ex.date)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{ex.start_time || '-'} - {ex.end_time || '-'}</td>
+                    <td className="px-4 py-3">{ex.room || 'TBD'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex justify-end gap-3">
+            {currentGroup?.subjects.some(ex => !ex.is_published) && (
+              <Button onClick={() => currentGroup && publishAllExams(currentGroup)} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Publish All Schedule
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setViewGroupId(null)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>);
 
 };
