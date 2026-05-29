@@ -140,19 +140,21 @@ const LoginActivity: React.FC = () => {
                     : (theme === 'dark' ? 'border-border bg-card hover:border-border/80' : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm')
                   }`}
               >
-                {/* Current session badge */}
-                {isRecent && (
-                  <span className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-white">
-                    Latest
-                  </span>
-                )}
-
-                {/* Logout button */}
-                <div className="absolute top-3 right-3">
+                {/* Action / Status Badges */}
+                <div className="absolute top-3 right-3 flex items-center gap-2">
+                  {isRecent && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-white">
+                      Latest
+                    </span>
+                  )}
                   <button
                     onClick={() => terminateSession(entry.id)}
                     disabled={!!entry.is_current}
-                    className={`text-xs px-2 py-1 rounded ${entry.is_current ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}
+                    className={`text-xs px-2.5 py-1 rounded-md transition-all font-medium ${
+                      entry.is_current
+                        ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 cursor-not-allowed'
+                        : 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50 dark:border dark:border-red-900/30'
+                    }`}
                   >
                     {entry.is_current ? 'Current' : 'Logout'}
                   </button>

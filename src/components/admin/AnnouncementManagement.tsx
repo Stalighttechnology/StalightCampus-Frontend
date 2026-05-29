@@ -516,7 +516,6 @@ const AdminAnnouncementManagement = () => {
     <>
       <style>{`
         @media (max-width: 480px) {
-          .announcements-container { padding: 12px !important; }
           .announcements-card { border-radius: 12px !important; }
           .announcements-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
           .announcements-card-title { font-size: 1.25rem !important; line-height: 1.2 !important; }
@@ -529,7 +528,7 @@ const AdminAnnouncementManagement = () => {
         }
       `}</style>
 
-      <div className={`announcements-container py-6 px-4 sm:px-6 text-sm sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
+      <div className={`text-sm sm:text-base max-w-[390px] sm:max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         <Card id="announcement-management-card" className={`announcements-card shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           {loading ? (
             <>

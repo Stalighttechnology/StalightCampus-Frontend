@@ -317,13 +317,17 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                 <SelectTrigger>
                   <SelectValue placeholder="Choose Branch" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   <SelectItem value="all">All Branches</SelectItem>
-                  {branches.map((branch) =>
-                    <SelectItem key={branch.id} value={branch.id.toString()}>
-                      {branch.name}
-                    </SelectItem>
-                    )}
+                  {branches.length === 0 ? (
+                    <SelectItem value="none" disabled>No branches found</SelectItem>
+                  ) : (
+                    branches.map((branch) =>
+                      <SelectItem key={branch.id} value={branch.id.toString()}>
+                        {branch.name}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -517,18 +521,20 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                     }>
                     
                   <div className="pt-1">
-                    {loading ?
+                    {loading ? (
                       <div className="p-4 flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                         <span className="text-[10px] text-muted-foreground">Loading...</span>
-                      </div> :
-
-                      teachers.map((teacher) =>
-                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                      </div>
+                    ) : teachers.length === 0 ? (
+                      <SelectItem value="none" disabled>No faculty found</SelectItem>
+                    ) : (
+                      teachers.map((teacher) => (
+                        <SelectItem key={teacher.id} value={teacher.id.toString()}>
                           {teacher.first_name} {teacher.last_name}
                         </SelectItem>
-                      )
-                      }
+                      ))
+                    )}
                   </div>
                 </CustomSelectContent>
               </Select>
@@ -541,11 +547,15 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                   <SelectValue placeholder="Choose a branch" />
                 </SelectTrigger>
                 <CustomSelectContent className="max-h-[180px]">
-                  {branches.map((branch) =>
-                    <SelectItem key={branch.id} value={branch.id.toString()}>
-                      {branch.name}
-                    </SelectItem>
-                    )}
+                  {branches.length === 0 ? (
+                    <SelectItem value="none" disabled>No branches found</SelectItem>
+                  ) : (
+                    branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id.toString()}>
+                        {branch.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </CustomSelectContent>
               </Select>
             </div>

@@ -735,9 +735,13 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a branch" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {branches.map((branch) =>
-                      <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                    {branches.length === 0 ? (
+                      <SelectItem value="none" disabled>No branches found</SelectItem>
+                    ) : (
+                      branches.map((branch) =>
+                        <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
+                      )
                     )}
                   </SelectContent>
                 </Select>
@@ -752,11 +756,15 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select HOD" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) =>
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {`${user.first_name} ${user.last_name}`.trim()}
-                      </SelectItem>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                    {users.length === 0 ? (
+                      <SelectItem value="none" disabled>No HODs found</SelectItem>
+                    ) : (
+                      users.map((user) =>
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {`${user.first_name} ${user.last_name}`.trim()}
+                        </SelectItem>
+                      )
                     )}
                   </SelectContent>
                 </Select>

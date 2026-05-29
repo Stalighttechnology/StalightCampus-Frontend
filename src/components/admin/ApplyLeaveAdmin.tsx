@@ -183,7 +183,6 @@ const ApplyLeaveAdmin = () => {
     <>
       <style>{`
         @media (max-width: 480px) {
-          .apply-leave-container { padding: 12px !important; }
           .apply-leave-card { border-radius: 12px !important; }
           .apply-leave-title { font-size: 1.25rem !important; margin-bottom: 4px !important; }
           .apply-leave-desc { font-size: 0.8125rem !important; }
@@ -204,7 +203,7 @@ const ApplyLeaveAdmin = () => {
         }
       `}</style>
 
-      <div className={`apply-leave-container p-4 sm:p-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+      <div className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Main Container with Flex Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave Application Form - Left Side */}
