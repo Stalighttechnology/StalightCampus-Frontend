@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { CheckCircle, Clock, Download, Eye, XCircle, Search } from 'lucide-react';
-import { getMakeupRequests, getExamRequestFilters, updateMakeupRequestStatus, getSemesters, MakeupRequest, ExamRequestFilters } from '@/utils/coe_api';
+import { getMakeupRequests, getExamRequestFilters, updateMakeupRequestStatus, getSemesters, toggleMakeupApplications, MakeupRequest, ExamRequestFilters } from '@/utils/coe_api';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { SkeletonTable } from '@/components/ui/skeleton';
@@ -49,6 +50,11 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [examPeriod, setExamPeriod] = useState<string>('');
   const [status, setStatus] = useState<string>('');
   const [search, setSearch] = useState('');
+
+  // Makeup window state
+  const [makeupApplicationsOpen, setMakeupApplicationsOpen] = useState<boolean>(false);
+  const [uploadId, setUploadId] = useState<number | null>(null);
+  const [togglingMakeup, setTogglingMakeup] = useState(false);
 
   useEffect(() => {
     loadFilters();
@@ -108,12 +114,40 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         const uiPag = paginationToUI(result.data, result.data.requests || [], pageSize);
         setTotalCount(uiPag.total_items || 0);
         setTotalPages(uiPag.total_pages || 1);
+        // Update makeup window state
+        if (typeof (result.data as any).makeup_applications_open === 'boolean') {
+          setMakeupApplicationsOpen((result.data as any).makeup_applications_open);
+        }
+        if ((result.data as any).upload_id) {
+          setUploadId((result.data as any).upload_id);
+        }
       }
     } catch (error) {
 
       toast.error('Failed to load makeup requests');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleMakeup = async () => {
+    if (!uploadId) {
+      toast.error('Please select all filters (batch, branch, semester, exam period) first to toggle the makeup window.');
+      return;
+    }
+    try {
+      setTogglingMakeup(true);
+      const result = await toggleMakeupApplications(uploadId);
+      if (result.success) {
+        setMakeupApplicationsOpen(result.makeup_applications_open ?? !makeupApplicationsOpen);
+        toast.success(result.message || (result.makeup_applications_open ? 'Makeup applications opened' : 'Makeup applications closed'));
+      } else {
+        toast.error(result.message || 'Failed to toggle makeup window');
+      }
+    } catch (error) {
+      toast.error('Failed to toggle makeup window');
+    } finally {
+      setTogglingMakeup(false);
     }
   };
 
@@ -204,9 +238,33 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
     <div ref={ref} id="coe-makeup-requests-container" className="space-y-6">
       <Card id="coe-makeup-requests-filters">
         <CardHeader className="pb-2">
-          <CardTitle>
-            Makeup Exam Requests
-          </CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <CardTitle>
+              Makeup Exam Requests
+            </CardTitle>
+            {/* Makeup Application Window Toggle */}
+            <div className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${
+              makeupApplicationsOpen
+                ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-800'
+                : 'border-border bg-muted/30'
+            }`}>
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Makeup Window</span>
+                <span className={`text-sm font-bold ${
+                  makeupApplicationsOpen ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'
+                }`}>
+                  {makeupApplicationsOpen ? 'Open — accepting applications' : 'Closed — not accepting'}
+                </span>
+              </div>
+              <Switch
+                id="makeup-toggle"
+                checked={makeupApplicationsOpen}
+                onCheckedChange={handleToggleMakeup}
+                disabled={togglingMakeup || !uploadId}
+                className={makeupApplicationsOpen ? 'data-[state=checked]:bg-emerald-500' : ''}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-6 pt-2">
           {/* Filters */}

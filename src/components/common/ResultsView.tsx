@@ -13,6 +13,7 @@ const ResultsView: React.FC = () => {
   // Accept token from route param or query string (?token=...)
   const q = new URLSearchParams(location.search);
   const token = paramToken || q.get('token') || '';
+  const resultType = q.get('type') || '';
   const [usn, setUsn] = useState('');
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -93,7 +94,7 @@ const ResultsView: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await publicViewResultByToken(token, usn.trim(), recaptchaToken);
+      const res = await publicViewResultByToken(token, usn.trim(), recaptchaToken, resultType);
       if (!res || !res.success) {
         setError(res?.message || 'Failed to fetch result');
         setResult(null);

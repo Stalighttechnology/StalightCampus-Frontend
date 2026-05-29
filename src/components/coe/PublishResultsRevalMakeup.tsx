@@ -390,7 +390,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               size="sm"
               className="h-7 px-2 text-xs ml-2"
               onClick={() => {
-                const url = `${window.location.origin}/results/view/${upload.token}`;
+                const type = selected.request_type && selected.request_type !== 'all' ? selected.request_type : 'revaluation';
+                const url = `${window.location.origin}/results/view/${upload.token}?type=${type}`;
                 navigator.clipboard.writeText(url);
                 toast.success('Result link copied to clipboard');
               }}>
@@ -402,7 +403,8 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               size="sm"
               className="h-7 px-2 text-xs"
               onClick={() => {
-                window.open(`/results/view/${upload.token}`, '_blank');
+                const type = selected.request_type && selected.request_type !== 'all' ? selected.request_type : 'revaluation';
+                window.open(`/results/view/${upload.token}?type=${type}`, '_blank');
               }}>
               
               <ExternalLink className="h-3 w-3 mr-1" /> Open Link
