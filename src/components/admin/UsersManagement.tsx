@@ -91,6 +91,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [roleFilter, setRoleFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
+  const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(""); // input value
   const [appliedSearch, setAppliedSearch] = useState(""); // applied term
@@ -164,6 +165,15 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   useEffect(() => {
     setCurrentPage(1);
   }, [roleFilter, departmentFilter, appliedSearch]);
+
+  const handleRoleFilterChange = (val: string) => {
+    setRoleFilter(val);
+    if (rolesNeedingDept.includes(val)) {
+      setTimeout(() => {
+        setDeptDropdownOpen(true);
+      }, 100);
+    }
+  };
 
   // Fetch departments for filter
   useEffect(() => {
@@ -412,11 +422,21 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     placeholder,
     value,
     onChange,
-    options
-  }: {label: string;placeholder?: string;value: string;onChange: (val: string) => void;options: string[];}) => (
+    options,
+    open,
+    onOpenChange
+  }: {
+    label: string;
+    placeholder?: string;
+    value: string;
+    onChange: (val: string) => void;
+    options: string[];
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+  }) => (
     <div className="flex flex-col">
       {label && <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{label}</label>}
-      <Select value={value || undefined} onValueChange={onChange}>
+      <Select value={value || undefined} onValueChange={onChange} open={open} onOpenChange={onOpenChange}>
         <SelectTrigger className={theme === 'dark' ? 'w-full bg-card text-foreground border border-border' : 'w-full bg-white text-gray-900 border border-gray-300'}>
           <SelectValue placeholder={placeholder || label} />
         </SelectTrigger>
@@ -506,7 +526,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         label=""
                         placeholder="Choose Role"
                         value={roleFilter}
-                        onChange={setRoleFilter}
+                        onChange={handleRoleFilterChange}
                         options={roles} />
                       
                     </div>
@@ -518,7 +538,9 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         placeholder="Choose Department"
                         value={departmentFilter}
                         onChange={setDepartmentFilter}
-                        options={departments} />
+                        options={departments}
+                        open={deptDropdownOpen}
+                        onOpenChange={setDeptDropdownOpen} />
                       
                     </div>
                   </div>
