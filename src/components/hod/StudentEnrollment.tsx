@@ -98,7 +98,6 @@ const StudentEnrollment = () => {
           setSectionId("");
           setTimeout(() => setIsSectionOpen(true), 150);
         }
-        showSuccessAlert("Success", "Semester added successfully!");
         setIsAddSemesterOpen(false);
       } else {
         showErrorAlert("Error", response.message || "Failed to create semester");
