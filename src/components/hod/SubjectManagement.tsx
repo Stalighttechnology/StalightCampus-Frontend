@@ -10,6 +10,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import Swal from "sweetalert2";
+import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 
 interface Subject {
   id: string;
@@ -59,15 +60,12 @@ interface SubjectManagementState {
   showModal: "add" | "edit" | null;
   currentSubject: Subject | null;
   newSubject: {code: string;name: string;semester_id: string;subject_type: string;credits: number;};
-  error: string | null;
-  success: string | null;
   loading: boolean;
   branchId: string;
   currentPage: number;
   pageSize: number;
   totalCount: number;
   totalPages: number;
-  modalError: string | null;
   filters: {
     semester_id: string;
     subject_type: string;
@@ -83,20 +81,20 @@ const SubjectManagement = () => {
     showModal: null,
     currentSubject: null,
     newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-    error: null,
-    success: null,
     loading: false,
     branchId: "",
     currentPage: 1,
     pageSize: 10,
     totalCount: 0,
     totalPages: 0,
-    modalError: null,
     filters: {
-      semester_id: "all",
-      subject_type: "all"
+      semester_id: "",
+      subject_type: ""
     }
   });
+
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
 
   const totalPages = state.totalPages;
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -133,16 +131,6 @@ const SubjectManagement = () => {
     setState((prev) => ({ ...prev, ...newState }));
   };
 
-  // Clear messages after 5 seconds
-  useEffect(() => {
-    if (state.error || state.success) {
-      const timer = setTimeout(() => {
-        updateState({ error: null, success: null });
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [state.error, state.success]);
-
   // Fetch branch ID and semesters (one-time bootstrap)
   const fetchBootstrap = async () => {
     try {
@@ -157,21 +145,20 @@ const SubjectManagement = () => {
       const semestersRes = boot.data.semesters ? { success: true, data: boot.data.semesters } : await getSemesters(branchId);
 
       if (semestersRes.success) {
-
         updateState({ semesters: semestersRes.data || [] });
         if (!semestersRes.data?.length) {
-          updateState({ error: "No semesters found for this branch" });
+          showErrorAlert("Error", "No semesters found for this branch");
         }
       } else {
-        updateState({ error: semestersRes.message || "Failed to fetch semesters" });
+        showErrorAlert("Error", semestersRes.message || "Failed to fetch semesters");
       }
 
       return branchId;
     } catch (err) {
       if (isErrorWithMessage(err)) {
-        updateState({ error: err.message || "Failed to fetch bootstrap data" });
+        showErrorAlert("Error", err.message || "Failed to fetch bootstrap data");
       } else {
-        updateState({ error: "Failed to fetch bootstrap data" });
+        showErrorAlert("Error", "Failed to fetch bootstrap data");
       }
       return null;
     }
@@ -179,7 +166,7 @@ const SubjectManagement = () => {
 
   // Fetch subjects with pagination
   const fetchSubjects = async (branchId: string, page: number = 1, pageSize: number = 10, filters = state.filters) => {
-    if (filters.semester_id === "all") {
+    if (!filters.semester_id || !filters.subject_type || filters.semester_id === "all" || filters.subject_type === "all") {
       updateState({
         subjects: [],
         totalCount: 0,
@@ -194,12 +181,11 @@ const SubjectManagement = () => {
         branch_id: branchId,
         page,
         page_size: pageSize,
-        semester_id: filters.semester_id === "all" ? undefined : filters.semester_id,
-        subject_type: filters.subject_type === "all" ? undefined : filters.subject_type
+        semester_id: filters.semester_id,
+        subject_type: filters.subject_type || undefined
       }, "GET");
 
       if (subjectsRes.success) {
-
         updateState({
           subjects: subjectsRes.data || [],
           totalCount: subjectsRes.count || 0,
@@ -207,13 +193,13 @@ const SubjectManagement = () => {
           currentPage: subjectsRes.current_page || 1
         });
       } else {
-        updateState({ error: subjectsRes.message || "Failed to fetch subjects" });
+        showErrorAlert("Error", subjectsRes.message || "Failed to fetch subjects");
       }
     } catch (err) {
       if (isErrorWithMessage(err)) {
-        updateState({ error: err.message || "Failed to fetch subjects" });
+        showErrorAlert("Error", err.message || "Failed to fetch subjects");
       } else {
-        updateState({ error: "Failed to fetch subjects" });
+        showErrorAlert("Error", "Failed to fetch subjects");
       }
     } finally {
       updateState({ loading: false });
@@ -225,7 +211,7 @@ const SubjectManagement = () => {
     const initialize = async () => {
       updateState({ loading: true });
       const branchId = await fetchBootstrap();
-      if (branchId && state.filters.semester_id !== "all") {
+      if (branchId && state.filters.semester_id && state.filters.semester_id !== "all") {
         await fetchSubjects(branchId, state.currentPage, state.pageSize);
       }
       updateState({ loading: false });
@@ -235,9 +221,9 @@ const SubjectManagement = () => {
 
   // Fetch subjects when pagination or filters change (but not on initial mount)
   useEffect(() => {
-    if (state.branchId && state.filters.semester_id !== "all") {
+    if (state.branchId && state.filters.semester_id && state.filters.subject_type && state.filters.semester_id !== "all" && state.filters.subject_type !== "all") {
       fetchSubjects(state.branchId, state.currentPage, state.pageSize, state.filters);
-    } else if (state.filters.semester_id === "all" && state.subjects.length > 0) {
+    } else if ((!state.filters.semester_id || !state.filters.subject_type || state.filters.semester_id === "all" || state.filters.subject_type === "all") && state.subjects.length > 0) {
       updateState({
         subjects: [],
         totalCount: 0,
@@ -246,79 +232,6 @@ const SubjectManagement = () => {
       });
     }
   }, [state.currentPage, state.pageSize, state.filters]);
-
-  // Handle adding or updating a subject
-  const handleSubmit = async () => {
-    if (!state.newSubject.code || !state.newSubject.name || !state.newSubject.semester_id) {
-      updateState({ error: "All fields are required" });
-      return;
-    }
-
-    const data: ManageSubjectsRequest = {
-      action: state.showModal === "add" ? "create" : "update",
-      branch_id: state.branchId,
-      name: state.newSubject.name,
-      subject_code: state.newSubject.code,
-      semester_id: state.newSubject.semester_id,
-      subject_type: state.newSubject.subject_type,
-      credits: Number(state.newSubject.credits),
-      ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {})
-    };
-
-    updateState({ loading: true });
-    try {
-      const response = await manageSubjects(data, "POST");
-      if (response.success) {
-        // Update local state to reflect create/update without refetching
-        const isCreate = data.action === 'create';
-        const createdId = response.data?.subject_id as unknown as string;
-        const updatedSubject: Subject = {
-          id: isCreate ? createdId || `${Date.now()}` : state.currentSubject ? state.currentSubject.id : createdId || `${Date.now()}`,
-          name: state.newSubject.name,
-          subject_code: state.newSubject.code,
-          semester_id: state.newSubject.semester_id,
-          subject_type: state.newSubject.subject_type,
-          credits: state.newSubject.credits
-        };
-
-        if (isCreate) {
-          // Prepend to current page; keep page size stable
-          const newSubjects = [updatedSubject, ...state.subjects].slice(0, state.pageSize);
-          const newTotalCount = state.totalCount + 1;
-          const newTotalPages = Math.ceil(newTotalCount / state.pageSize);
-          updateState({
-            subjects: newSubjects,
-            totalCount: newTotalCount,
-            totalPages: newTotalPages,
-            success: "Course added successfully",
-            showModal: null,
-            newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-            currentSubject: null
-          });
-        } else {
-          // Update in-place
-          const newSubjects = state.subjects.map((s) => s.id === updatedSubject.id ? updatedSubject : s);
-          updateState({
-            subjects: newSubjects,
-            success: "Course updated successfully",
-            showModal: null,
-            newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-            currentSubject: null
-          });
-        }
-      } else {
-        updateState({ error: response.message });
-      }
-    } catch (err) {
-      if (isErrorWithMessage(err)) {
-        updateState({ error: err.message || "Failed to save subject" });
-      } else {
-        updateState({ error: "Failed to save subject" });
-      }
-    } finally {
-      updateState({ loading: false });
-    }
-  };
 
   const handleEdit = (subject: Subject) => {
     updateState({
@@ -374,58 +287,37 @@ const SubjectManagement = () => {
 
         if (newSubjectsList.length === 0 && state.currentPage > 1) {
           newPage = Math.max(1, newTotalPages);
-          updateState({ loading: false, success: "Course deleted successfully", currentPage: newPage, totalCount: newTotalCount, totalPages: newTotalPages });
+          updateState({ loading: false, currentPage: newPage, totalCount: newTotalCount, totalPages: newTotalPages });
+          showSuccessAlert("Success", "Course deleted successfully");
           await fetchSubjects(state.branchId, newPage, state.pageSize);
         } else {
-          updateState({ subjects: newSubjectsList, totalCount: newTotalCount, totalPages: newTotalPages, success: "Course deleted successfully" });
+          updateState({ subjects: newSubjectsList, totalCount: newTotalCount, totalPages: newTotalPages });
+          showSuccessAlert("Success", "Course deleted successfully");
         }
-
-        Swal.fire({
-          title: "Deleted!",
-          text: "The course has been deleted.",
-          icon: "success",
-          timer: 1500,
-          showConfirmButton: false,
-          background: theme === 'dark' ? '#1f2937' : '#ffffff',
-          color: theme === 'dark' ? '#f3f4f6' : '#111827'
-        });
       } else {
-        updateState({ error: response.message });
-        Swal.fire({
-          title: "Error!",
-          text: response.message || "Failed to delete subject",
-          icon: "error",
-          background: theme === 'dark' ? '#1f2937' : '#ffffff',
-          color: theme === 'dark' ? '#f3f4f6' : '#111827'
-        });
+        showErrorAlert("Error", response.message);
       }
     } catch (err) {
       const msg = isErrorWithMessage(err) ? err.message : "Failed to delete subject";
-      updateState({ error: msg });
-      Swal.fire({
-        title: "Error!",
-        text: msg,
-        icon: "error",
-        background: theme === 'dark' ? '#1f2937' : '#ffffff',
-        color: theme === 'dark' ? '#f3f4f6' : '#111827'
-      });
+      showErrorAlert("Error", msg);
     } finally {
       updateState({ loading: false });
     }
   };
 
+  const getSemesterName = (number: number) => {
+    const suffixes = ["st", "nd", "rd", "th", "th", "th", "th", "th"];
+    return `${number}${suffixes[number - 1]} Semester`;
+  };
+
   // Helper to get semester number by ID
   const getSemesterNumber = (semesterId: string): string => {
     const semester = state.semesters.find((s) => s.id === semesterId);
-    return semester ? `Semester ${semester.number}` : `Semester ID: ${semesterId} (Not Found)`;
+    return semester ? getSemesterName(semester.number) : `Semester ID: ${semesterId} (Not Found)`;
   };
 
   return (
     <div id="hod-subjects-container" className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-
-      {state.error && <div className={`mb-4 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{state.error}</div>}
-      {state.success && <div className={`mb-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>{state.success}</div>}
-
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <div id="courses-header-filters-section">
           <CardHeader>
@@ -434,7 +326,7 @@ const SubjectManagement = () => {
               <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                 <Button
                   onClick={handleExportPDF}
-                  disabled={state.loading || downloadingPDF || state.filters.semester_id === "all"}
+                  disabled={state.loading || downloadingPDF || !state.filters.semester_id || !state.filters.subject_type || state.filters.semester_id === "all" || state.filters.subject_type === "all"}
                   className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
                   {downloadingPDF ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -464,16 +356,20 @@ const SubjectManagement = () => {
               <div className="w-full md:w-48">
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Semester</label>
                 <Select
+                  open={isSemesterOpen}
+                  onOpenChange={setIsSemesterOpen}
                   value={state.filters.semester_id}
-                  onValueChange={(val) => updateState({ filters: { ...state.filters, semester_id: val }, currentPage: 1 })}>
+                  onValueChange={(val) => {
+                    updateState({ filters: { ...state.filters, semester_id: val }, currentPage: 1 });
+                    setTimeout(() => setIsTypeOpen(true), 150);
+                  }}>
                   
                   <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                    <SelectValue placeholder="All Semesters" />
+                    <SelectValue placeholder="Choose Semester" />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                    <SelectItem value="all">All Semesters</SelectItem>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     {state.semesters.map((sem) =>
-                    <SelectItem key={sem.id} value={sem.id}>Semester {sem.number}</SelectItem>
+                    <SelectItem key={sem.id} value={sem.id}>{getSemesterName(sem.number)}</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
@@ -481,14 +377,15 @@ const SubjectManagement = () => {
               <div className="w-full md:w-48">
                 <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Filter by Type</label>
                 <Select
+                  open={isTypeOpen}
+                  onOpenChange={setIsTypeOpen}
                   value={state.filters.subject_type}
                   onValueChange={(val) => updateState({ filters: { ...state.filters, subject_type: val }, currentPage: 1 })}>
                   
                   <SelectTrigger className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                    <SelectValue placeholder="All Types" />
+                    <SelectValue placeholder="Choose Type" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-                    <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="regular">Regular</SelectItem>
                     <SelectItem value="elective">Elective</SelectItem>
                     <SelectItem value="open_elective">Open Elective</SelectItem>
@@ -504,14 +401,14 @@ const SubjectManagement = () => {
             <div className="py-4">
               <SkeletonTable rows={10} cols={6} />
             </div>
-          ) : state.filters.semester_id === "all" ? (
+          ) : !state.filters.semester_id || !state.filters.subject_type || state.filters.semester_id === "all" || state.filters.subject_type === "all" ? (
             <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
               <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                 <BookOpen className="w-12 h-12 opacity-80" />
               </div>
-              <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Semester Selected</h3>
+              <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Incomplete</h3>
               <p className="max-w-xs text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                Please select a <strong className="font-semibold text-foreground">Semester</strong> above to load and view the courses.
+                Please select both <strong className="font-semibold text-foreground">Semester</strong> and <strong className="font-semibold text-foreground">Course Type</strong> above to load and view the courses.
               </p>
             </div>
           ) : (
@@ -606,7 +503,7 @@ const SubjectManagement = () => {
           )}
 
         </CardContent>
-        {state.filters.semester_id !== "all" && (
+        {state.filters.semester_id && state.filters.subject_type && state.filters.semester_id !== "all" && state.filters.subject_type !== "all" && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {state.totalCount === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalCount)} of {state.totalCount} courses
@@ -647,11 +544,6 @@ const SubjectManagement = () => {
               {state.showModal === "add" ? "Add New Subject" : "Edit Subject"}
             </h3>
 
-            {/* Display modal-level error below title */}
-            {state.modalError &&
-          <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{state.modalError}</p>
-          }
-
             {/* Course Code */}
             <div className="mb-4">
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Code</label>
@@ -661,8 +553,7 @@ const SubjectManagement = () => {
               onChange={(e) => {
                 const code = e.target.value.toUpperCase(); // auto-uppercase
                 updateState({
-                  newSubject: { ...state.newSubject, code },
-                  modalError: null
+                  newSubject: { ...state.newSubject, code }
                 });
               }}
               placeholder="e.g., PH1L001, BCS601"
@@ -679,8 +570,7 @@ const SubjectManagement = () => {
               value={state.newSubject.name}
               onChange={(e) =>
               updateState({
-                newSubject: { ...state.newSubject, name: e.target.value },
-                modalError: null
+                newSubject: { ...state.newSubject, name: e.target.value }
               })
               }
               placeholder="e.g., Mathematics"
@@ -694,7 +584,7 @@ const SubjectManagement = () => {
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester</label>
               <Select
               value={state.newSubject.semester_id}
-              onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val }, modalError: null })}
+              onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, semester_id: val } })}
               disabled={state.loading}>
               
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
@@ -715,7 +605,7 @@ const SubjectManagement = () => {
               <label className={`block mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Course Type</label>
               <Select
               value={state.newSubject.subject_type}
-              onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val }, modalError: null })}
+              onValueChange={(val: string) => updateState({ newSubject: { ...state.newSubject, subject_type: val } })}
               disabled={state.loading}>
               
                 <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
@@ -737,7 +627,7 @@ const SubjectManagement = () => {
               min={0}
               value={state.newSubject.credits}
               onChange={(e) =>
-              updateState({ newSubject: { ...state.newSubject, credits: Number(e.target.value) }, modalError: null })
+              updateState({ newSubject: { ...state.newSubject, credits: Number(e.target.value) } })
               }
               placeholder="e.g., 3"
               disabled={state.loading}
@@ -752,8 +642,7 @@ const SubjectManagement = () => {
                 updateState({
                   showModal: null,
                   newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                  currentSubject: null,
-                  modalError: null
+                  currentSubject: null
                 });
               }}
               className={`${theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 bottom-1 '}`}
@@ -765,7 +654,7 @@ const SubjectManagement = () => {
               <Button
               onClick={async () => {
                 if (!state.newSubject.code || !state.newSubject.name || !state.newSubject.semester_id) {
-                  updateState({ modalError: "All fields are required" });
+                  showErrorAlert("Error", "All fields are required");
                   return;
                 }
 
@@ -780,7 +669,7 @@ const SubjectManagement = () => {
                   ...(state.showModal === "edit" && state.currentSubject ? { subject_id: state.currentSubject.id } : {})
                 };
 
-                updateState({ loading: true, modalError: null, success: null });
+                updateState({ loading: true });
                 try {
                   const response = await manageSubjects(data, "POST");
                   if (response.success) {
@@ -799,32 +688,30 @@ const SubjectManagement = () => {
                       const newSubjects = [updatedSubject, ...state.subjects].slice(0, state.pageSize);
                       const newTotalCount = state.totalCount + 1;
                       const newTotalPages = Math.ceil(newTotalCount / state.pageSize);
+                      showSuccessAlert("Success", "Subject added successfully!");
                       updateState({
                         subjects: newSubjects,
                         totalCount: newTotalCount,
                         totalPages: newTotalPages,
-                        success: "Subject added successfully",
                         showModal: null,
                         newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                        currentSubject: null,
-                        modalError: null
+                        currentSubject: null
                       });
                     } else {
                       const newSubjects = state.subjects.map((s) => s.id === updatedSubject.id ? updatedSubject : s);
+                      showSuccessAlert("Success", "Subject updated successfully!");
                       updateState({
                         subjects: newSubjects,
-                        success: "Subject updated successfully",
                         showModal: null,
                         newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
-                        currentSubject: null,
-                        modalError: null
+                        currentSubject: null
                       });
                     }
                   } else {
-                    updateState({ modalError: response.message });
+                    showErrorAlert("Error", response.message);
                   }
                 } catch (err) {
-                  updateState({ modalError: "Failed to save subject" });
+                  showErrorAlert("Error", "Failed to save subject");
                 } finally {
                   updateState({ loading: false });
                 }

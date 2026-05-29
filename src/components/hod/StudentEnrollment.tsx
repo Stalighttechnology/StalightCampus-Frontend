@@ -137,7 +137,6 @@ const StudentEnrollment = () => {
         
         setSectionsBySemester(prev => ({ ...prev, [semesterId]: updatedSections }));
         setSectionId(String(createdId));
-        showSuccessAlert("Success", `Section ${newSectionName} added successfully!`);
         setIsAddSectionOpen(false);
         setTimeout(() => setIsSubjectTypeOpen(true), 150);
       } else {
@@ -198,7 +197,6 @@ const StudentEnrollment = () => {
         if (res.data?.subject_id) {
           setSelectedSubjectId(String(res.data.subject_id));
         }
-        showSuccessAlert("Success", "Subject added successfully!");
         setIsAddSubjectOpen(false);
       } else {
         showErrorAlert("Error", res.message || "Failed to create subject");
