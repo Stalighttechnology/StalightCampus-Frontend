@@ -306,6 +306,51 @@ export const getSemesters = async (branchId: number): Promise<Semester[]> => {
 };
 
 /**
+ * Fetch subjects for COE (filtered by branch and semester)
+ */
+export const getSubjects = async (
+  branchId?: string | number, 
+  semesterId?: string | number,
+  batchId?: string | number,
+  examType?: string,
+  examPeriod?: string
+): Promise<any[]> => {
+  try {
+    const params = new URLSearchParams();
+    if (branchId) params.append('branch_id', branchId.toString());
+    if (semesterId) params.append('semester_id', semesterId.toString());
+    if (batchId) params.append('batch_id', batchId.toString());
+    if (examType) params.append('exam_type', examType);
+    if (examPeriod) params.append('exam_period', examPeriod);
+    
+    let url = `${API_ENDPOINT}/coe/subjects/`;
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      return Array.isArray(result.data?.subjects) ? result.data.subjects : [];
+    } else {
+      throw new Error(result.message || 'Failed to fetch subjects');
+    }
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    return [];
+  }
+};
+
+/**
  * Fetch paginated exam applications (COE)
  */
 export const getExamApplications = async (paramsObj: {
