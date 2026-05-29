@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import DashboardLayout from "../common/DashboardLayout";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 import AdminStats from "../admin/AdminStats";
@@ -9,7 +9,6 @@ import EnrollUser from "../admin/EnrollUser";
 import BulkUpload from "../admin/BulkUpload";
 import BranchesManagement from "../admin/BranchesManagement";
 import BatchManagement from "../admin/BatchManagement";
-import NotificationsManagement from "../admin/NotificationsManagement";
 import HODLeavesManagement from "../admin/HODLeavesManagement";
 import UsersManagement from "../admin/UsersManagement";
 import AdminProfile from "../admin/AdminProfile";
@@ -129,12 +128,6 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
             <BatchManagement setError={setError} toast={toast} />
           </div>);
 
-      case "notifications":
-        return (
-          <div>
-            <NotificationsManagement setError={setError} toast={toast} />
-          </div>);
-
       case "hod-leaves":
         return (
           <div>
@@ -192,7 +185,7 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
           </div>);
 
       default:
-        return <AdminStats setError={setError} />;
+        return <Navigate to="/not-found" replace />;
     }
   };
 
