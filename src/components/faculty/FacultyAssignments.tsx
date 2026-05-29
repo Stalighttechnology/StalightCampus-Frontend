@@ -406,10 +406,10 @@ const FacultyAssignments = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File Too Large",
-          description: "Maximum file size allowed is 10MB.",
+          description: "Maximum file size allowed is 5MB.",
           variant: "destructive"
         });
         e.target.value = '';
@@ -1101,7 +1101,7 @@ const FacultyAssignments = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold">Attachment (PDF/DOC, Max 10MB)</label>
+                    <label className="text-sm font-semibold">Attachment (PDF/DOC, Max 5MB)</label>
 
                     {/* Show existing attachment when editing */}
                     {editingAssignment && editingAssignment.file_url && (

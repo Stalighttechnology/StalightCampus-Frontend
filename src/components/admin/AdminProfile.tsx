@@ -282,8 +282,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
   const handleProfilePictureSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 1024 * 1024) {
-      showErrorAlert('Error', 'Profile picture must be less than 1MB');
+    if (file.size > 50 * 1024) {
+      showErrorAlert('Error', 'Profile picture must be less than 50KB');
       e.target.value = '';
       return;
     }
