@@ -434,16 +434,61 @@ const Revaluation = () => {
                     });
                     const json = (await res.json()) as Record<string, unknown>;
                     const success = json.success as boolean | undefined;
-                    const checkoutUrl = json.checkout_url as string | undefined;
+                    const order_id = json.order_id as string | undefined;
+                    const razorpay_key_id = json.razorpay_key_id as string | undefined;
                     const message = json.message as string | undefined;
 
-                    if (success && checkoutUrl && globalThis.window) {
-                      globalThis.window.location.href = checkoutUrl;
+                    if (success && order_id) {
+                      const keyId = razorpay_key_id || (import.meta.env.VITE_RAZORPAY_KEY_ID as string);
+
+                      // Load Razorpay checkout script dynamically
+                      await new Promise<void>((resolve, reject) => {
+                        if ((window as any).Razorpay) return resolve();
+                        const script = document.createElement('script');
+                        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                        script.onload = () => resolve();
+                        script.onerror = () => reject(new Error('Failed to load Razorpay checkout'));
+                        document.body.appendChild(script);
+                      });
+
+                      const options: any = {
+                        key: keyId,
+                        order_id: order_id,
+                        name: 'Stalight Campus',
+                        description: `Payment for exam revaluation`,
+                        handler: async function (resp: any) {
+                          try {
+                            setLoading(true);
+                            const verifyRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/payments/verify/`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(resp)
+                            });
+                            const verifyJson = await verifyRes.json();
+                            if (verifyJson.success) {
+                              setMessageModal({ open: true, title: 'Success', message: 'Payment successful! Revaluation applied.' });
+                              // Reload students to show the updated "Applied" status
+                              loadStudents();
+                              // Reset selection map
+                              setSelectionMap({});
+                            } else {
+                              setMessageModal({ open: true, title: 'Error', message: 'Payment verification failed.' });
+                            }
+                          } catch (e) {
+                            setMessageModal({ open: true, title: 'Error', message: 'Verification error' });
+                          } finally {
+                            setLoading(false);
+                          }
+                        },
+                        theme: { color: '#3399cc' }
+                      };
+
+                      const rzp = new (window as any).Razorpay(options);
+                      rzp.open();
                     } else {
                       setMessageModal({ open: true, title: 'Error', message: message || 'Failed to initiate payment' });
                     }
                   } catch (err) {
-
                     setMessageModal({ open: true, title: 'Error', message: 'Network error' });
                   }
                   setLoading(false);
