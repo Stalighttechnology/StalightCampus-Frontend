@@ -115,30 +115,26 @@ const StudentManagement = () => {
   const [isAddSemesterOpen, setIsAddSemesterOpen] = useState(false);
   const [newSemesterNumber, setNewSemesterNumber] = useState("");
   const [addingSemester, setAddingSemester] = useState(false);
-  const [semesterError, setSemesterError] = useState<string | null>(null);
   const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
   const [newSectionName, setNewSectionName] = useState("");
   const [addingSection, setAddingSection] = useState(false);
-  const [sectionError, setSectionError] = useState<string | null>(null);
 
   const handleOpenAddSection = () => {
     setNewSectionName("");
-    setSectionError(null);
     setIsAddSectionOpen(true);
   };
 
   const handleAddSection = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSectionName || !["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].includes(newSectionName)) {
-      setSectionError("Please select a valid section (A-Z)");
+      showErrorAlert("Error", "Please select a valid section (A-Z)");
       return;
     }
     setAddingSection(true);
-    setSectionError(null);
     try {
       const semId = getSemesterId(state.manualForm.semester);
       if (!semId) {
-        setSectionError("Please select a semester first.");
+        showErrorAlert("Error", "Please select a semester first.");
         return;
       }
       const response = await manageSections({
@@ -147,7 +143,7 @@ const StudentManagement = () => {
         semester_id: semId,
         branch_id: state.branchId
       }, "POST");
-
+ 
       if (response.success) {
         const createdId = response.data?.id || response.data?.section_id || String(Date.now());
         const newSec = { id: String(createdId), name: newSectionName, semester_id: semId };
@@ -162,10 +158,10 @@ const StudentManagement = () => {
         });
         setIsAddSectionOpen(false);
       } else {
-        setSectionError(response.message || "Failed to create section");
+        showErrorAlert("Error", response.message || "Failed to create section");
       }
     } catch (err: any) {
-      setSectionError("An error occurred while creating section");
+      showErrorAlert("Error", "An error occurred while creating section");
     } finally {
       setAddingSection(false);
     }
@@ -173,18 +169,16 @@ const StudentManagement = () => {
 
   const handleOpenAddSemester = () => {
     setNewSemesterNumber("");
-    setSemesterError(null);
     setIsAddSemesterOpen(true);
   };
 
   const handleAddSemester = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSemesterNumber || isNaN(Number(newSemesterNumber)) || Number(newSemesterNumber) < 1 || Number(newSemesterNumber) > 8) {
-      setSemesterError("Please enter a valid semester number (1-8)");
+      showErrorAlert("Error", "Please enter a valid semester number (1-8)");
       return;
     }
     setAddingSemester(true);
-    setSemesterError(null);
     try {
       const response = await manageSemesters({
         action: "create",
@@ -209,10 +203,10 @@ const StudentManagement = () => {
         }
         setIsAddSemesterOpen(false);
       } else {
-        setSemesterError(response.message || "Failed to create semester");
+        showErrorAlert("Error", response.message || "Failed to create semester");
       }
     } catch (err: any) {
-      setSemesterError("An error occurred while creating semester");
+      showErrorAlert("Error", "An error occurred while creating semester");
     } finally {
       setAddingSemester(false);
     }
@@ -2084,11 +2078,6 @@ const StudentManagement = () => {
             </h2>
           </DialogHeader>
           <form onSubmit={handleAddSemester} className="space-y-4">
-            {semesterError && (
-              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 p-2.5 rounded-md border border-red-200 dark:border-red-800">
-                {semesterError}
-              </div>
-            )}
             <div className="text-center">
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester Number</label>
               <Input
@@ -2129,11 +2118,6 @@ const StudentManagement = () => {
             </h2>
           </DialogHeader>
           <form onSubmit={handleAddSection} className="space-y-4">
-            {sectionError && (
-              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 p-2.5 rounded-md border border-red-200 dark:border-red-800">
-                {sectionError}
-              </div>
-            )}
             <div className="text-center">
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section Name</label>
               <Select

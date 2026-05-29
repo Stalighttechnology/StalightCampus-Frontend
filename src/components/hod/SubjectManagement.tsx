@@ -368,8 +368,27 @@ const SubjectManagement = () => {
                     <SelectValue placeholder="Choose Semester" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {state.semesters.map((sem) =>
-                    <SelectItem key={sem.id} value={sem.id}>{getSemesterName(sem.number)}</SelectItem>
+                    {state.semesters.length === 0 ? (
+                      <div className="p-2 flex justify-center" onPointerDown={(e) => e.stopPropagation()}>
+                        <Button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsSemesterOpen(false);
+                            updateState({
+                              showModal: "add",
+                              newSubject: { code: "", name: "", semester_id: "", subject_type: "regular", credits: 3 },
+                              currentSubject: null
+                            });
+                          }}
+                          className="w-full bg-primary hover:bg-[#9147e0] text-white shadow-sm transition-all active:scale-95 text-xs py-1.5 h-auto">
+                          Add Course
+                        </Button>
+                      </div>
+                    ) : (
+                      state.semesters.map((sem) =>
+                        <SelectItem key={sem.id} value={sem.id}>{getSemesterName(sem.number)}</SelectItem>
+                      )
                     )}
                   </SelectContent>
                 </Select>
