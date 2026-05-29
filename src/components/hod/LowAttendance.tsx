@@ -240,6 +240,19 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
     }
   }, [bootstrap]);
 
+  // Automatically open the Section dropdown when selectedSemester changes and selectedSection is reset
+  useEffect(() => {
+    if (state.selectedSemester && state.selectedSection === "") {
+      const timer = setTimeout(() => {
+        const trigger = document.getElementById("section-select-trigger");
+        if (trigger) {
+          trigger.click();
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [state.selectedSemester, state.selectedSection]);
+
   // Helper to update state
   const updateState = (newState: Partial<typeof state>) => {
     setState((prev) => ({ ...prev, ...newState }));
@@ -750,7 +763,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder="Select Semester" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                    <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {state.semesters.map((semester) =>
                         <SelectItem key={semester.id} value={semester.id}>
                           Sem {semester.number}
@@ -768,10 +781,10 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                     onValueChange={handleSectionChange}
                     disabled={!state.selectedSemester}>
 
-                    <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
+                    <SelectTrigger id="section-select-trigger" className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                       <SelectValue placeholder="Select Section" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                    <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {state.sections.map((section) =>
                         <SelectItem key={section.id} value={section.id}>
                           {section.name}
@@ -825,59 +838,6 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
 
                   </div>
 
-                  {/* Pagination Controls */}
-                  {state.totalCount > 0 &&
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-                      <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        Showing {Math.min((state.currentPage - 1) * state.pageSize + 1, state.totalCount)} to {Math.min(state.currentPage * state.pageSize, state.totalCount)} of {state.totalCount} students
-                      </div>
-                      <div className="flex gap-2 items-center justify-center sm:justify-end flex-wrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={goToPreviousPage}
-                          disabled={!state.previous || state.loading}
-                          className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
-
-                          <ChevronLeft className="w-3 h-3 mr-1" />
-                          Prev
-                        </Button>
-
-                        <div className="flex items-center space-x-1">
-                          {Array.from(
-                            { length: Math.min(5, Math.ceil(state.totalCount / state.pageSize)) },
-                            (_, i) => {
-                              const pageNum = Math.max(1, state.currentPage - 2) + i;
-                              if (pageNum > Math.ceil(state.totalCount / state.pageSize)) return null;
-                              return (
-                                <Button
-                                  key={pageNum}
-                                  variant={pageNum === state.currentPage ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => goToPage(pageNum)}
-                                  disabled={state.loading}
-                                  className="text-sm">
-
-                                  {pageNum}
-                                </Button>);
-
-                            }
-                          )}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={goToNextPage}
-                          disabled={!state.next || state.loading}
-                          className={`text-sm ${theme === 'dark' ? 'bg-card text-foreground border-border hover:bg-accent' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`}>
-
-                          Next
-                          <ChevronRight className="w-3 h-3 ml-1" />
-                        </Button>
-                      </div>
-                    </div>
-                  }
                 </div> :
 
                 <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>

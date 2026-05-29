@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Eye, Download, ClipboardCheck } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Download, ClipboardCheck, Loader2 } from "lucide-react";
 import { SkeletonTable } from "../ui/skeleton";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../hooks/use-toast";
@@ -56,9 +56,11 @@ const QPApprovals = () => {
   const [comment, setComment] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const { theme } = useTheme();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isHistoryView, setIsHistoryView] = useState(false);
   const MySwal = withReactContent(Swal);
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -192,6 +194,7 @@ const QPApprovals = () => {
 
   const downloadPDF = async () => {
     if (!qpDetail) return;
+    setDownloadingPDF(true);
     try {
       const response = await fetch(`${API_ENDPOINT}/admin/qps/${qpDetail.id}/export-pdf/`, {
         headers: {
@@ -214,12 +217,15 @@ const QPApprovals = () => {
       }
     } catch (err) {
       toast({ title: 'Error', description: 'Network error while exporting PDF.' });
+    } finally {
+      setDownloadingPDF(false);
     }
   };
 
-  const handleReview = (qp: QPPending) => {
+  const handleReview = (qp: QPPending, isHistory: boolean = false) => {
     setSelectedQP(qp);
     setQpDetail(null);
+    setIsHistoryView(isHistory);
     setDialogOpen(true);
     fetchQPDetail(qp.id);
   };
@@ -384,7 +390,7 @@ const QPApprovals = () => {
                 variant="outline"
                 size="sm"
                 className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
-                onClick={() => handleReview(qp)}>
+                onClick={() => handleReview(qp, isHistory)}>
                 <Eye className="w-4 h-4" />
                 {isHistory ? 'View Details' : 'Review & Action'}
               </Button>
@@ -593,44 +599,50 @@ const QPApprovals = () => {
               </div>
             }
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Comment (optional)</label>
-              <Textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a comment for the faculty..."
-                rows={3} />
-              
-            </div>
+            {!isHistoryView && (
+              <div>
+                <label className="block text-sm font-medium mb-2">Comment (optional)</label>
+                <Textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Add a comment for the faculty..."
+                  rows={3} />
+              </div>
+            )}
           </div>
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button
-                onClick={() => selectedQP && handleApprove(selectedQP.id)}
-                disabled={actionLoading}
-                className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}>
-                
-                <CheckCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                <span className="whitespace-normal">Approve</span>
-              </Button>
-              <Button
-                onClick={() => selectedQP && handleReject(selectedQP.id)}
-                disabled={actionLoading}
-                className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
-                
-                <XCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                <span className="whitespace-normal">Reject</span>
-              </Button>
-              {qpDetail && qpDetail.id && historyQPs.some(q => q.id === qpDetail.id) && (
-                <div className="ml-2 flex items-center text-xs text-muted-foreground">
-                  (History View)
+              {!isHistoryView && (
+                <>
+                  <Button
+                    onClick={() => selectedQP && handleApprove(selectedQP.id)}
+                    disabled={actionLoading}
+                    className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}>
+                    
+                    <CheckCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                    <span className="whitespace-normal">Approve</span>
+                  </Button>
+                  <Button
+                    onClick={() => selectedQP && handleReject(selectedQP.id)}
+                    disabled={actionLoading}
+                    className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
+                    
+                    <XCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                    <span className="whitespace-normal">Reject</span>
+                  </Button>
+                </>
+              )}
+              {isHistoryView && (
+                <div className="flex items-center text-sm font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg border border-border">
+                  <CheckCircle className="w-4 h-4 mr-1.5 text-blue-500" />
+                  <span>Archived Request (Read Only)</span>
                 </div>
               )}
             </div>
             <div className="ml-auto">
-              <Button variant="outline" onClick={() => downloadPDF()} className="bg-primary hover:bg-primary/90 text-white hover:text-white w-full sm:w-auto justify-center transition-none">
-                <Download className="w-4 h-4 mr-1 hidden sm:inline-block" />
-                <span className="whitespace-normal">Download</span>
+              <Button variant="outline" onClick={() => downloadPDF()} disabled={downloadingPDF} className="bg-primary hover:bg-primary/90 text-white hover:text-white w-full sm:w-auto justify-center transition-none disabled:opacity-50">
+                {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+                <span className="whitespace-normal">{downloadingPDF ? "Downloading..." : "Download"}</span>
               </Button>
             </div>
           </DialogFooter>

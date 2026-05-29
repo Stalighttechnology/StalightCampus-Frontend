@@ -383,12 +383,11 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
               )}
             </div>
             <div className="filter-container sm:w-48">
-              <Select value={branchFilter || undefined} onValueChange={(value) => setBranchFilter(value === "all" ? "" : value)}>
+              <Select value={branchFilter || undefined} onValueChange={(value) => setBranchFilter(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose Branch" />
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                  <SelectItem value="all">All Branches</SelectItem>
                   {branches.length === 0 ? (
                     <SelectItem value="none" disabled>No branches found</SelectItem>
                   ) : (
