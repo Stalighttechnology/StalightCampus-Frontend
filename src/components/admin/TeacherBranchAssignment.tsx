@@ -97,6 +97,14 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
   const [appliedSearch, setAppliedSearch] = useState(""); // Applied search term
   const [branchFilter, setBranchFilter] = useState("");
 
+  // Dialog-specific states
+  const [dialogTeachers, setDialogTeachers] = useState<Teacher[]>([]);
+  const [dialogCurrentPage, setDialogCurrentPage] = useState(1);
+  const [dialogTotalPages, setDialogTotalPages] = useState(1);
+  const [dialogSearchTerm, setDialogSearchTerm] = useState("");
+  const [dialogAppliedSearch, setDialogAppliedSearch] = useState("");
+  const [dialogLoading, setDialogLoading] = useState(false);
+
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -136,6 +144,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
     }
   }, [branchFilter]);
 
+  // Main dashboard fetch effect
   useEffect(() => {
     if (branchFilter || appliedSearch) {
       fetchTeacherAssignments();
@@ -147,10 +156,71 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
     }
   }, [currentPage, appliedSearch, branchFilter]);
 
-  // Reset to first page when filters change
+  // Dialog-specific search debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDialogAppliedSearch(dialogSearchTerm.trim());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [dialogSearchTerm]);
+
+  // Dialog-specific fetch effect
+  useEffect(() => {
+    if (showBranchDialog) {
+      fetchDialogTeachers();
+    }
+  }, [dialogCurrentPage, dialogAppliedSearch, showBranchDialog]);
+
+  // Reset dialog search and page when opening the dialog
+  useEffect(() => {
+    if (showBranchDialog) {
+      setDialogSearchTerm("");
+      setDialogAppliedSearch("");
+      setDialogCurrentPage(1);
+    }
+  }, [showBranchDialog]);
+
+  // Reset main to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [appliedSearch, branchFilter]);
+
+  const fetchDialogTeachers = async () => {
+    try {
+      setDialogLoading(true);
+      let url = `${API_ENDPOINT}/admin/teacher-assignments/?page=${dialogCurrentPage}&page_size=10`;
+      if (dialogAppliedSearch) url += `&search=${encodeURIComponent(dialogAppliedSearch)}`;
+
+      const response = await fetchWithTokenRefresh(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+          "Content-Type": "application/json"
+        }
+      });
+      const result = await response.json();
+
+      if (!result.success && result.message && result.message.includes("Invalid page")) {
+        setDialogCurrentPage(1);
+        return;
+      }
+
+      const hasResults = result && typeof result === 'object' && 'results' in result;
+      const dataSource = hasResults ? result.results : result;
+
+      if (dataSource && dataSource.success) {
+        setDialogTeachers(dataSource.teachers || []);
+        const count = result.count || (dataSource && dataSource.count);
+        if (count !== undefined) {
+          setDialogTotalPages(Math.ceil(count / 10));
+        }
+      }
+    } catch (error) {
+      // fail silently
+    } finally {
+      setDialogLoading(false);
+    }
+  };
 
   const fetchTeacherAssignments = async () => {
     try {
@@ -452,7 +522,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
             <div>
               <label className="text-sm font-medium">Select Faculty</label>
               <Select value={selectedTeacher?.id.toString() || ""} onValueChange={(value) => {
-                  const teacher = teachers.find((t) => t.id.toString() === value);
+                  const teacher = dialogTeachers.find((t) => t.id.toString() === value) || teachers.find((t) => t.id.toString() === value);
                   setSelectedTeacher(teacher || null);
                   if (teacher?.primary_branch) {
                     setSelectedBranch(teacher.primary_branch.id.toString());
@@ -471,65 +541,66 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
                         <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                         <Input
                           placeholder="Search faculty..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
+                          value={dialogSearchTerm}
+                          onChange={(e) => setDialogSearchTerm(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault();
-                              performSearch();
+                              setDialogAppliedSearch(dialogSearchTerm.trim());
                             }
                             e.stopPropagation();
                           }}
                           onPointerDown={(e) => e.stopPropagation()}
                           className="h-8 pl-8 text-xs bg-muted/50 border-none ring-1 focus-visible:ring-primary" />
-                        
                       </div>
-                      <div className="flex items-center justify-between px-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0"
-                          onPointerDown={(e) => e.preventDefault()}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setCurrentPage((prev) => Math.max(1, prev - 1));
-                          }}
-                          disabled={currentPage === 1 || loading}>
-                          
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                          Page {currentPage} of {totalPages}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0"
-                          onPointerDown={(e) => e.preventDefault()}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setCurrentPage((prev) => Math.min(totalPages, prev + 1));
-                          }}
-                          disabled={currentPage === totalPages || loading}>
-                          
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {dialogTotalPages > 1 && (
+                        <div className="flex items-center justify-between px-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onPointerDown={(e) => e.preventDefault()}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setDialogCurrentPage((prev) => Math.max(1, prev - 1));
+                            }}
+                            disabled={dialogCurrentPage === 1 || dialogLoading}>
+                            
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                            Page {dialogCurrentPage} of {dialogTotalPages}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onPointerDown={(e) => e.preventDefault()}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setDialogCurrentPage((prev) => Math.min(dialogTotalPages, prev + 1));
+                            }}
+                            disabled={dialogCurrentPage === dialogTotalPages || dialogLoading}>
+                            
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     }>
                     
                   <div className="pt-1">
-                    {loading ? (
+                    {dialogLoading ? (
                       <div className="p-4 flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                         <span className="text-[10px] text-muted-foreground">Loading...</span>
                       </div>
-                    ) : teachers.length === 0 ? (
+                    ) : dialogTeachers.length === 0 ? (
                       <SelectItem value="none" disabled>No faculty found</SelectItem>
                     ) : (
-                      teachers.map((teacher) => (
+                      dialogTeachers.map((teacher) => (
                         <SelectItem key={teacher.id} value={teacher.id.toString()}>
                           {teacher.first_name} {teacher.last_name}
                         </SelectItem>
