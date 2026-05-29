@@ -213,17 +213,19 @@ export const AnnouncementSections = ({
           </TabsTrigger>
         </TabsList>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowExpired(!showExpired)}
-          className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed mt-5 hover:border-solid ${showExpired
-              ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
-              : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
-            }`}
-        >
-          {showExpired ? "Hide Archive" : "Show Archive"}
-        </Button>
+        {activeTab !== "received" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowExpired(!showExpired)}
+            className={`ann-archive-btn text-xs font-semibold transition-all h-9 px-4 rounded-xl border-dashed mt-5 hover:border-solid ${showExpired
+                ? "bg-primary/5 border-primary text-primary hover:bg-primary/10"
+                : "text-muted-foreground hover:text-foreground border-muted-foreground/20 hover:border-foreground/30"
+              }`}
+          >
+            {showExpired ? "Hide Archive" : "Show Archive"}
+          </Button>
+        )}
           </div>
         </div>
 
