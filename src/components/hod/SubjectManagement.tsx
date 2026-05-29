@@ -198,9 +198,6 @@ const SubjectManagement = () => {
 
       if (semestersRes.success) {
         updateState({ semesters: semestersRes.data || [] });
-        if (!semestersRes.data?.length) {
-          showErrorAlert("Error", "No semesters found for this branch");
-        }
       } else {
         showErrorAlert("Error", semestersRes.message || "Failed to fetch semesters");
       }
