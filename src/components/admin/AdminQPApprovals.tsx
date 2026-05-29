@@ -49,6 +49,7 @@ const AdminQPApprovals = () => {
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
   const [historyTotalCount, setHistoryTotalCount] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [isHistoryView, setIsHistoryView] = useState(false);
   const { theme } = useTheme();
   const { toast } = useToast();
 
@@ -383,7 +384,7 @@ const AdminQPApprovals = () => {
                 variant="outline"
                 size="sm"
                 className={`w-full gap-1.5 ${theme === 'dark' ? 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary' : 'hover:bg-primary/90 hover:text-white bg-primary text-white border-primary'}`}
-                onClick={() => {setSelectedQP(qp);setQpDetail(null);fetchQPDetail(qp.id);setDialogOpen(true);}}>
+                onClick={() => {setSelectedQP(qp);setQpDetail(null);fetchQPDetail(qp.id);setIsHistoryView(isHistory);setDialogOpen(true);}}>
                 <Eye className="w-4 h-4" />
                 {isHistory ? 'View Details' : 'Review & Action'}
               </Button>
@@ -620,37 +621,41 @@ const AdminQPApprovals = () => {
               </div>
               }
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Comment (optional)</label>
-              <Textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add comment..."
-                  rows={3} />
-                
-            </div>
+            {!isHistoryView && (
+              <div>
+                <label className="block text-sm font-medium mb-2">Comment (optional)</label>
+                <Textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Add comment..."
+                    rows={3} />
+              </div>
+            )}
           </div>
           <DialogFooter className="qp-dialog-footer flex flex-col sm:flex-row gap-2">
             <div className="action-buttons-group flex gap-2 w-full sm:w-auto">
-              <Button
-                  onClick={() => selectedQP && handleApprove(selectedQP.id)}
-                  disabled={actionLoading}
-                  className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}>
-                  
-                <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                <span className="whitespace-normal">Approve</span>
-              </Button>
-              <Button
-                  onClick={() => selectedQP && handleReject(selectedQP.id)}
-                  disabled={actionLoading}
-                  className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}>
-                  
-                <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                <span className="whitespace-normal">Reject</span>
-              </Button>
-              {qpDetail && qpDetail.id && historyQPs.some(q => q.id === qpDetail.id) && (
-                <div className="ml-2 flex items-center text-xs text-muted-foreground">
-                  (History View)
+              {!isHistoryView && (
+                <>
+                  <Button
+                      onClick={() => selectedQP && handleApprove(selectedQP.id)}
+                      disabled={actionLoading}
+                      className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}>
+                    <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                    <span className="whitespace-normal">Approve</span>
+                  </Button>
+                  <Button
+                      onClick={() => selectedQP && handleReject(selectedQP.id)}
+                      disabled={actionLoading}
+                      className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}>
+                    <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                    <span className="whitespace-normal">Reject</span>
+                  </Button>
+                </>
+              )}
+              {isHistoryView && (
+                <div className="flex items-center text-sm font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg border border-border">
+                  <CheckCircle className="w-4 h-4 mr-1.5 text-blue-500" />
+                  <span>Archived Request (Read Only)</span>
                 </div>
               )}
             </div>

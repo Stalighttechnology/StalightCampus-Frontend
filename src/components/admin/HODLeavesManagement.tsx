@@ -66,12 +66,23 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   const { theme } = useTheme();
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => {
-    try {
-      return new Date(`${selectedMonth}-01`);
-    } catch (e) {
-      return new Date();
+    if (selectedMonth) {
+      const d = new Date(`${selectedMonth}-01`);
+      if (!isNaN(d.getTime())) {
+        return d;
+      }
     }
+    return new Date();
   });
+
+  useEffect(() => {
+    if (selectedMonth) {
+      const d = new Date(`${selectedMonth}-01`);
+      if (!isNaN(d.getTime())) {
+        setVisibleMonth(d);
+      }
+    }
+  }, [selectedMonth]);
 
   const fetchLeaves = async (month?: string, page: number = 1) => {
     setLoading(true);
