@@ -296,12 +296,12 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       if (fileUrl) {
         // Update backend immediately
         const currentUser = fetchedUser || propUser;
-        const res = await manageAdminProfile({ 
-          user_id: currentUser.user_id, 
-          action: 'edit', 
-          updates: { profile_picture_url: fileUrl } 
+        const res = await manageAdminProfile({
+          user_id: currentUser.user_id,
+          action: 'edit',
+          updates: { profile_picture_url: fileUrl }
         }, 'POST');
-        
+
         if (res.success) {
           setProfile(prev => ({ ...prev, profile_picture: fileUrl } as any));
           // Update local storage
@@ -517,11 +517,11 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   </div>
                 </div>
                 {subscriptionData.plan_name.toLowerCase() !== 'advance' &&
-                <Button
-                  size="sm"
-                  className="bg-primary hover:bg-primary/90 text-white text-xs h-8 px-3 rounded-lg"
-                  onClick={() => setIsUpgradeOpen(true)}>
-                  
+                  <Button
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90 text-white text-xs h-8 px-3 rounded-lg"
+                    onClick={() => setIsUpgradeOpen(true)}>
+
                     Upgrade Plan
                   </Button>
                 }
@@ -531,7 +531,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             <Card className={cn("border-none shadow-sm", theme === 'dark' ? 'bg-zinc-900' : 'bg-white')}>
               <CardContent className="p-4 flex items-center gap-4">
                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center",
-                subscriptionData.is_active ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30")}>
+                  subscriptionData.is_active ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30")}>
                   <Activity size={24} />
                 </div>
                 <div>
@@ -552,10 +552,10 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   <p className="text-xs text-muted-foreground font-medium">Expiry Date</p>
                   <p className="text-sm font-semibold">
                     {subscriptionData.subscription_expires_at ?
-                    format(new Date(subscriptionData.subscription_expires_at), 'dd MMM yyyy') :
-                    subscriptionData.trial_ends_at ?
-                    format(new Date(subscriptionData.trial_ends_at), 'dd MMM yyyy HH:mm') :
-                    'Lifetime Access'}
+                      format(new Date(subscriptionData.subscription_expires_at), 'dd MMM yyyy') :
+                      subscriptionData.trial_ends_at ?
+                        format(new Date(subscriptionData.trial_ends_at), 'dd MMM yyyy HH:mm') :
+                        'Lifetime Access'}
                   </p>
                 </div>
               </CardContent>
@@ -583,8 +583,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 </TableHeader>
                 <TableBody>
                   {subscriptionData.payments && subscriptionData.payments.length > 0 ?
-                  subscriptionData.payments.map((p: any) =>
-                  <TableRow key={p.id}>
+                    subscriptionData.payments.map((p: any) =>
+                      <TableRow key={p.id}>
                         <TableCell className="font-medium text-xs sm:text-sm whitespace-nowrap">
                           {format(new Date(p.date), 'dd MMM yyyy')}
                         </TableCell>
@@ -604,24 +604,24 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleDownloadReceipt(p.id)}
-                        disabled={downloadingId === p.id}
-                        title="Download Receipt">
-                        
-                            {downloadingId === p.id ?
-                        <Loader2 size={14} className="text-primary animate-spin" /> :
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleDownloadReceipt(p.id)}
+                            disabled={downloadingId === p.id}
+                            title="Download Receipt">
 
-                        <Download size={14} className="text-primary" />
-                        }
+                            {downloadingId === p.id ?
+                              <Loader2 size={14} className="text-primary animate-spin" /> :
+
+                              <Download size={14} className="text-primary" />
+                            }
                           </Button>
                         </TableCell>
                       </TableRow>
-                  ) :
+                    ) :
 
-                  <TableRow>
+                    <TableRow>
                       <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                         No payment records found.
                       </TableCell>
@@ -661,7 +661,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                     <Select
                       value={ticketForm.priority}
                       onValueChange={(value) => setTicketForm({ ...ticketForm, priority: value })}>
-                      
+
                       <SelectTrigger className="w-full" disabled={submittingTicket}>
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
@@ -682,7 +682,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         disabled={submittingTicket}
                         placeholder="Detailed description..."
                         className="h-full w-full resize-none border-none focus-visible:ring-0 shadow-none custom-scrollbar" />
-                      
+
                     </div>
                   </div>
                   <Button className="w-full" onClick={handleRaiseTicket} disabled={submittingTicket}>
@@ -698,27 +698,27 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   <DialogTitle>Ticket Details</DialogTitle>
                 </DialogHeader>
                 {viewTicket &&
-                <div className="space-y-4 pt-4">
+                  <div className="space-y-4 pt-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-[10px] uppercase text-muted-foreground">Status</Label>
                         <div className="mt-1">
                           <Badge className={
-                        viewTicket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                        viewTicket.status === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
-                        viewTicket.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                        'bg-blue-100 text-blue-800 border-blue-200'
-                        } variant="outline">{viewTicket.status}</Badge>
+                            viewTicket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                              viewTicket.status === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
+                                viewTicket.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                                  'bg-blue-100 text-blue-800 border-blue-200'
+                          } variant="outline">{viewTicket.status}</Badge>
                         </div>
                       </div>
                       <div>
                         <Label className="text-[10px] uppercase text-muted-foreground">Priority</Label>
                         <div className="mt-1">
                           <Badge variant="outline" className={
-                        viewTicket.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50' :
-                        viewTicket.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50' :
-                        'border-blue-500 text-blue-600 bg-blue-50'
-                        }>{viewTicket.priority}</Badge>
+                            viewTicket.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50' :
+                              viewTicket.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50' :
+                                'border-blue-500 text-blue-600 bg-blue-50'
+                          }>{viewTicket.priority}</Badge>
                         </div>
                       </div>
                     </div>
@@ -733,13 +733,13 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                       </ScrollArea>
                     </div>
                     {viewTicket.response &&
-                  <div>
+                      <div>
                         <Label className="text-[10px] uppercase text-muted-foreground">HQ Response</Label>
                         <div className="mt-1 p-3 rounded-md bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/20">
                           <p className="text-sm italic">{viewTicket.response}</p>
                         </div>
                       </div>
-                  }
+                    }
                   </div>
                 }
               </DialogContent>
@@ -760,52 +760,52 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               </TableHeader>
               <TableBody>
                 {loadingTickets ? <TableRow><TableCell colSpan={6} className="text-center h-24">Loading tickets...</TableCell></TableRow> :
-                tickets.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center h-24 text-muted-foreground">No support tickets found.</TableCell></TableRow> :
-                tickets.map((t) =>
-                <TableRow key={t.id}>
+                  tickets.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center h-24 text-muted-foreground">No support tickets found.</TableCell></TableRow> :
+                    tickets.map((t) =>
+                      <TableRow key={t.id}>
                         <TableCell className="font-medium">{t.id}</TableCell>
                         <TableCell className="font-medium">{t.subject}</TableCell>
                         <TableCell>
                           <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
-                      onClick={() => setViewTicket(t)}>
-                      
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
+                            onClick={() => setViewTicket(t)}>
+
                             <Eye size={14} />
                             View
                           </Button>
                           <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2 flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                      onClick={() => handleDeleteTicket(t.id)}
-                      disabled={deletingTicketId === t.id}
-                      >
-                        {deletingTicketId === t.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash size={14} />}
-                        Delete
-                      </Button>
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                            onClick={() => handleDeleteTicket(t.id)}
+                            disabled={deletingTicketId === t.id}
+                          >
+                            {deletingTicketId === t.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash size={14} />}
+                            Delete
+                          </Button>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={
-                    t.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
-                    t.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-900/10' :
-                    'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/10'
-                    }>{t.priority}</Badge>
+                            t.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/10' :
+                              t.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-900/10' :
+                                'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/10'
+                          }>{t.priority}</Badge>
                         </TableCell>
                         <TableCell>
                           <Badge className={
-                    t.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-emerald-200' :
-                    t.status === 'Closed' ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300' :
-                    t.status === 'Pending' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200' :
-                    'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200'
-                    } variant="outline">
+                            t.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-emerald-200' :
+                              t.status === 'Closed' ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300' :
+                                t.status === 'Pending' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200' :
+                                  'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200'
+                          } variant="outline">
                             {t.status}
                           </Badge>
                         </TableCell>
                         <TableCell>{t.date}</TableCell>
                       </TableRow>
-                )}
+                    )}
               </TableBody>
             </Table>
           </div>
@@ -869,26 +869,26 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
             {editing &&
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                if (originalProfile) setProfile(originalProfile);
-                setEditing(false);
-                setLocalErrors({});
-              }}>
-              
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  if (originalProfile) setProfile(originalProfile);
+                  setEditing(false);
+                  setLocalErrors({});
+                }}>
+
                 Cancel
               </Button>
             }
 
             <Button
               size="sm"
-              onClick={() => {if (editing) handleSaveProfile();else setEditing(true);}}
+              onClick={() => { if (editing) handleSaveProfile(); else setEditing(true); }}
               variant="outline"
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
               disabled={loading}>
-              
+
               {editing ? loading ? 'Saving...' : 'Save' : 'Edit Profile'}
             </Button>
 
@@ -910,13 +910,13 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         value={passwordData.current_password}
                         onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                         aria-label={showPasswords.current ? 'Hide current password' : 'Show current password'}>
-                        
+
                         {showPasswords.current ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -930,13 +930,13 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         value={passwordData.new_password}
                         onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, next: !prev.next }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                         aria-label={showPasswords.next ? 'Hide new password' : 'Show new password'}>
-                        
+
                         {showPasswords.next ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -950,13 +950,13 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                         value={passwordData.confirm_password}
                         onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button
                         type="button"
                         onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                         aria-label={showPasswords.confirm ? 'Hide confirm password' : 'Show confirm password'}>
-                        
+
                         {showPasswords.confirm ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
                     </div>
@@ -986,18 +986,18 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                     </AvatarFallback>
                   )}
                 </Avatar>
-                <label 
-                  htmlFor="profile-picture-upload" 
+                <label
+                  htmlFor="profile-picture-upload"
                   className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
                 >
                   <Camera className="h-4 w-4" />
                 </label>
-                <input 
-                  id="profile-picture-upload" 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleProfilePictureSelect} 
-                  className="hidden" 
+                <input
+                  id="profile-picture-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureSelect}
+                  className="hidden"
                 />
               </div>
 
@@ -1009,7 +1009,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               )}
 
               <div className="text-base sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
-              <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>System Administrator</div>
+              <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Principle</div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
                 <h4 className={`text-xs sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
@@ -1052,7 +1052,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         orgName={localStorage.getItem("org_name") || "Your Institution"}
         currentPlan={subscriptionData?.plan_name || "basic"}
         onSuccess={() => fetchSubscriptionDetails()} />
-      
+
     </div>);
 
 };
