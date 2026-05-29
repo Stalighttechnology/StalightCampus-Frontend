@@ -388,9 +388,9 @@ const StudentEnrollment = () => {
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Semester</label>
                   <Select value={semesterId} onValueChange={(v: string) => {setSemesterId(v);setSectionId("");}}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select semester" />
+                      <SelectValue placeholder="Choose Semester" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {semesters.map((sem: any) =>
                     <SelectItem key={sem.id} value={sem.id}>{`${sem.number}th Semester`}</SelectItem>
                     )}
@@ -401,9 +401,9 @@ const StudentEnrollment = () => {
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Section</label>
                   <Select value={sectionId} onValueChange={setSectionId}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select section" />
+                      <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {(() => {
                       const semObj = semesters.find((s: any) => String(s.id) === String(semesterId));
                       const semNumberKey = semObj ? String(semObj.number) : "";
@@ -419,9 +419,9 @@ const StudentEnrollment = () => {
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Subject Type</label>
                   <Select value={subjectType} onValueChange={setSubjectType}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Subject type" />
+                      <SelectValue placeholder="Choose Subject Type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       <SelectItem value="elective">Elective</SelectItem>
                       <SelectItem value="open_elective">Open Elective</SelectItem>
                     </SelectContent>
@@ -431,9 +431,9 @@ const StudentEnrollment = () => {
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Subject</label>
                   <Select value={selectedSubjectId} onValueChange={setSelectedSubjectId}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select subject" />
+                      <SelectValue placeholder="Choose Subject" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {subjects.map((s: any) =>
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                     )}

@@ -30,7 +30,7 @@ import {
   SelectItem,
   SelectValue } from
 "../ui/select";
-import { manageStudents, getSemesters, manageSections, manageProfile, manageBatches, getHODStudentBootstrap } from "../../utils/hod_api";
+import { manageStudents, getSemesters, manageSections, manageProfile, manageBatches, getHODStudentBootstrap, manageSemesters } from "../../utils/hod_api";
 import { useHODBootstrap } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -79,13 +79,13 @@ const StudentManagement = () => {
     confirmDelete: false,
     editDialog: false,
     addStudentModal: false,
-    editForm: { name: "", email: "", section: "", semester: "", cycle: "", phone: "", mode_of_admission: "KCET" },
+    editForm: { name: "", email: "", section: "", semester: "", cycle: "", phone: "", mode_of_admission: "" },
     uploadErrors: [] as string[],
     uploadedCount: 0,
     updatedCount: 0,
     droppedFileName: null as string | null,
     selectedFile: null as File | null,
-    manualForm: { usn: "", name: "", email: "", section: "", semester: "", batch: "", cycle: "", phone: "", mode_of_admission: "KCET" },
+    manualForm: { usn: "", name: "", email: "", section: "", semester: "", batch: "", cycle: "", phone: "", mode_of_admission: "" },
     currentPage: 1,
     totalPages: 1,
     selectedSemester: "",
@@ -110,6 +110,109 @@ const StudentManagement = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [isAddSemesterOpen, setIsAddSemesterOpen] = useState(false);
+  const [newSemesterNumber, setNewSemesterNumber] = useState("");
+  const [addingSemester, setAddingSemester] = useState(false);
+  const [semesterError, setSemesterError] = useState<string | null>(null);
+  const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
+  const [addingSection, setAddingSection] = useState(false);
+  const [sectionError, setSectionError] = useState<string | null>(null);
+
+  const handleOpenAddSection = () => {
+    setNewSectionName("");
+    setSectionError(null);
+    setIsAddSectionOpen(true);
+  };
+
+  const handleAddSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSectionName || !["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].includes(newSectionName)) {
+      setSectionError("Please select a valid section (A-Z)");
+      return;
+    }
+    setAddingSection(true);
+    setSectionError(null);
+    try {
+      const semId = getSemesterId(state.manualForm.semester);
+      if (!semId) {
+        setSectionError("Please select a semester first.");
+        return;
+      }
+      const response = await manageSections({
+        action: "create",
+        name: newSectionName,
+        semester_id: semId,
+        branch_id: state.branchId
+      }, "POST");
+
+      if (response.success) {
+        const newSec = { id: String(Date.now()), name: newSectionName, semester_id: semId };
+        const cacheKey = semId || "ALL";
+        const currentCached = sectionsCache[cacheKey] || [];
+        const updatedSections = [...currentCached, newSec].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i).sort((a, b) => a.name.localeCompare(b.name));
+        
+        setSectionsCache(prev => ({ ...prev, [cacheKey]: updatedSections }));
+        updateState({
+          manualSections: updatedSections,
+          manualForm: { ...state.manualForm, section: newSectionName }
+        });
+        setIsAddSectionOpen(false);
+      } else {
+        setSectionError(response.message || "Failed to create section");
+      }
+    } catch (err: any) {
+      setSectionError("An error occurred while creating section");
+    } finally {
+      setAddingSection(false);
+    }
+  };
+
+  const handleOpenAddSemester = () => {
+    setNewSemesterNumber("");
+    setSemesterError(null);
+    setIsAddSemesterOpen(true);
+  };
+
+  const handleAddSemester = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSemesterNumber || isNaN(Number(newSemesterNumber)) || Number(newSemesterNumber) < 1 || Number(newSemesterNumber) > 8) {
+      setSemesterError("Please enter a valid semester number (1-8)");
+      return;
+    }
+    setAddingSemester(true);
+    setSemesterError(null);
+    try {
+      const response = await manageSemesters({
+        action: "create",
+        number: Number(newSemesterNumber),
+        branch_id: state.branchId
+      });
+      if (response.success) {
+        const returnedSemesters = (response as any).semesters || (response.data && (response.data.semesters as any[]));
+        if (returnedSemesters && Array.isArray(returnedSemesters)) {
+          const mappedSemesters = returnedSemesters.map((s: any) => ({ id: s.id.toString(), number: s.number }));
+          updateState({
+            semesters: mappedSemesters,
+            manualForm: { ...state.manualForm, semester: `${newSemesterNumber}th Semester` }
+          });
+        } else {
+          const newSem = { id: String(Date.now()), number: Number(newSemesterNumber) };
+          updateState({
+            semesters: [...state.semesters, newSem].sort((a, b) => a.number - b.number),
+            manualForm: { ...state.manualForm, semester: `${newSemesterNumber}th Semester` }
+          });
+        }
+        setIsAddSemesterOpen(false);
+      } else {
+        setSemesterError(response.message || "Failed to create semester");
+      }
+    } catch (err: any) {
+      setSemesterError("An error occurred while creating semester");
+    } finally {
+      setAddingSemester(false);
+    }
+  };
 
   const handleExportPDF = async () => {
     setDownloadingPDF(true);
@@ -218,10 +321,9 @@ const StudentManagement = () => {
     try {
       const batchRes = await manageBatches();
       if (batchRes.success && batchRes.batches) {
-        const defaultBatch = batchRes.batches[0]?.name || "";
         updateState({
           batches: batchRes.batches,
-          manualForm: { ...state.manualForm, batch: defaultBatch }
+          manualForm: { ...state.manualForm, batch: "" }
         });
       } else {
         updateState({ uploadErrors: [...state.uploadErrors, `Batches API: ${batchRes.message || "No batches found"}`] });
@@ -249,8 +351,7 @@ const StudentManagement = () => {
         // Batches
         if (Array.isArray(boot.data.batches)) {
           const batches = boot.data.batches.map((b: any) => ({ ...b, id: b.id.toString() }));
-          const defaultBatch = batches[0]?.name || "";
-          updateState({ batches, manualForm: { ...state.manualForm, batch: defaultBatch } });
+          updateState({ batches, manualForm: { ...state.manualForm, batch: "" } });
         } else {
           await fetchBatches();
         }
@@ -258,8 +359,7 @@ const StudentManagement = () => {
         // Semesters
         if (Array.isArray(boot.data.semesters) && boot.data.semesters.length > 0) {
           const semesters = boot.data.semesters.map((s: any) => ({ id: s.id.toString(), number: s.number }));
-          const defaultSemester = `${semesters[0].number}th Semester`;
-          updateState({ semesters, selectedSemester: defaultSemester, manualForm: { ...state.manualForm, semester: defaultSemester } });
+          updateState({ semesters, selectedSemester: "", manualForm: { ...state.manualForm, semester: "" } });
           // Manual sections will be populated by useEffect based on semester selection
         } else {
           updateState({ uploadErrors: [...state.uploadErrors, "No semesters found"] });
@@ -308,8 +408,25 @@ const StudentManagement = () => {
     }
   }, [state.sectionFilter]);
 
+  const forceCloseDropdowns = () => {
+    const escEvent = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      code: 'Escape',
+      keyCode: 27,
+      which: 27,
+      bubbles: true,
+      cancelable: true
+    });
+    document.activeElement?.dispatchEvent(escEvent);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
   // Fetch sections when semester changes in Add Student Manually
   useEffect(() => {
+    let active = true;
+    let timer: NodeJS.Timeout;
     if (state.branchId && state.manualForm.semester) {
       const semesterId = getSemesterId(state.manualForm.semester);
       const cacheKey = semesterId || "ALL";
@@ -317,11 +434,18 @@ const StudentManagement = () => {
       if (cached) {
         updateState({
           manualSections: cached,
-          manualForm: { ...state.manualForm, section: state.manualForm.section || cached[0]?.name || "" }
+          manualForm: { ...state.manualForm, section: state.manualForm.section || "" }
         });
+        if (!state.manualForm.section && active) {
+          timer = setTimeout(() => {
+            forceCloseDropdowns();
+            const trigger = document.getElementById("section-select-trigger");
+            if (trigger) trigger.click();
+          }, 150);
+        }
       } else if (semesterId) {
         manageSections({ branch_id: state.branchId, semester_id: semesterId }, "GET").then((res: any) => {
-          if (res.success && res.data) {
+          if (res.success && res.data && active) {
             const sections = res.data.map((s: any) => ({ id: String(s.id), name: s.name, semester_id: String(s.semester_id) }));
             setSectionsCache(prev => ({ ...prev, [cacheKey]: sections }));
           }
@@ -330,7 +454,50 @@ const StudentManagement = () => {
     } else if (state.branchId) {
       updateState({ manualSections: [], manualForm: { ...state.manualForm, section: "" } });
     }
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
   }, [state.branchId, state.manualForm.semester, sectionsCache]);
+
+  // Automatically trigger semester select when mode of admission changes from empty to selected
+  useEffect(() => {
+    if (state.manualForm.mode_of_admission !== "") {
+      const timer = setTimeout(() => {
+        forceCloseDropdowns();
+        const trigger = document.getElementById("semester-select-trigger");
+        if (trigger) trigger.click();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [state.manualForm.mode_of_admission]);
+
+  // Automatically trigger batch select when section changes from empty to selected
+  useEffect(() => {
+    if (state.manualForm.section !== "" && state.manualForm.semester !== "") {
+      const timer = setTimeout(() => {
+        forceCloseDropdowns();
+        const trigger = document.getElementById("batch-select-trigger");
+        if (trigger) trigger.click();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [state.manualForm.section]);
+
+  // Automatically trigger cycle select when batch changes from empty to selected (for semesters 1 and 2)
+  useEffect(() => {
+    if (state.manualForm.batch !== "" && state.manualForm.section !== "") {
+      const showCycle = state.manualForm.semester && getSemesterNumber(state.manualForm.semester) <= 2;
+      if (showCycle) {
+        const timer = setTimeout(() => {
+          forceCloseDropdowns();
+          const trigger = document.getElementById("cycle-select-trigger");
+          if (trigger) trigger.click();
+        }, 150);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [state.manualForm.batch]);
 
   // Fetch sections when semester changes in Student List filter
   useEffect(() => {
@@ -689,14 +856,12 @@ const StudentManagement = () => {
             usn: "",
             name: "",
             email: "",
-            section: state.manualSections[0]?.name || "",
-            semester: state.semesters[0]?.number ?
-            `${state.semesters[0].number}th Semester` :
-            "",
+            section: "",
+            semester: "",
             batch: "",
             cycle: "",
             phone: "",
-            mode_of_admission: "KCET"
+            mode_of_admission: ""
           },
           manualErrors: {},
           uploadErrors: [],
@@ -1082,10 +1247,10 @@ const StudentManagement = () => {
                 value={state.manualForm.mode_of_admission}
                 onValueChange={(value) => updateState({ manualForm: { ...state.manualForm, mode_of_admission: value } })}>
                 
-                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} focus:ring-0`}>
-                  <SelectValue placeholder="Mode of Admission" />
+                <SelectTrigger id="mode-select-trigger" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} focus:ring-0`}>
+                  <SelectValue placeholder="Choose Mode of Admission" />
                 </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   <SelectItem value="KCET">KCET</SelectItem>
                   <SelectItem value="COMEDK">COMEDK</SelectItem>
                   <SelectItem value="JEE Main">JEE Main</SelectItem>
@@ -1106,42 +1271,72 @@ const StudentManagement = () => {
                 manualSections: []
               })
               }
-              disabled={state.isLoading || state.semesters.length === 0}>
+              disabled={state.isLoading}>
               
-              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
+              <SelectTrigger id="semester-select-trigger" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
                 <SelectValue
-                  placeholder={state.semesters.length === 0 ? "No semesters available" : "Select Semester"} />
+                  placeholder={state.semesters.length === 0 ? "No semesters available" : "Choose Semester"} />
                 
               </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                 {state.semesters.map((s) =>
                 <SelectItem key={s.id} value={`${s.number}th Semester`} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
                     Semester {s.number}
                   </SelectItem>
+                )}
+                {state.semesters.length === 0 && (
+                  <div className="p-2 flex justify-center" onPointerDown={(e) => e.stopPropagation()}>
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        forceCloseDropdowns();
+                        handleOpenAddSemester();
+                      }}
+                      className="w-full bg-primary hover:bg-[#9147e0] text-white shadow-sm transition-all active:scale-95 text-xs py-1.5 h-auto">
+                      Add Semester
+                    </Button>
+                  </div>
                 )}
               </SelectContent>
             </Select>
             <Select
               value={state.manualForm.section}
               onValueChange={(value) => updateState({ manualForm: { ...state.manualForm, section: value } })}
-              disabled={state.isLoading || !state.manualForm.semester || state.manualSections.length === 0}>
+              disabled={state.isLoading || !state.manualForm.semester}>
               
-              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
+              <SelectTrigger id="section-select-trigger" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
                 <SelectValue
                   placeholder={
-                  state.manualSections.length === 0 || !state.manualForm.semester ?
+                  !state.manualForm.semester ?
                   "Select semester first" :
-                  "Select Section"
+                  state.manualSections.length === 0 ?
+                  "No sections available" :
+                  "Choose Section"
                   } />
                 
               </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                 {state.manualSections.
                 filter((section) => section.semester_id === getSemesterId(state.manualForm.semester)).
                 map((section) =>
                 <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
                       Section {section.name}
                     </SelectItem>
+                )}
+                {state.manualForm.semester && state.manualSections.length === 0 && (
+                  <div className="p-2 flex justify-center" onPointerDown={(e) => e.stopPropagation()}>
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        forceCloseDropdowns();
+                        handleOpenAddSection();
+                      }}
+                      className="w-full bg-primary hover:bg-[#9147e0] text-white shadow-sm transition-all active:scale-95 text-xs py-1.5 h-auto">
+                      Add Section
+                    </Button>
+                  </div>
                 )}
               </SelectContent>
             </Select>
@@ -1150,12 +1345,12 @@ const StudentManagement = () => {
               onValueChange={(value) => updateState({ manualForm: { ...state.manualForm, batch: value } })}
               disabled={state.isLoading || state.batches.length === 0}>
               
-              <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
+              <SelectTrigger id="batch-select-trigger" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
                 <SelectValue
-                  placeholder={state.batches.length === 0 ? "No batches available" : "Select Batch"} />
+                  placeholder={state.batches.length === 0 ? "No batches available" : "Choose Batch"} />
                 
               </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                 {state.batches.map((batch) =>
                 <SelectItem key={batch.id} value={batch.name} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
                     {batch.name}
@@ -1169,10 +1364,10 @@ const StudentManagement = () => {
               onValueChange={(value) => updateState({ manualForm: { ...state.manualForm, cycle: value } })}
               disabled={state.isLoading}>
               
-                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
-                  <SelectValue placeholder="Select Cycle" />
+                <SelectTrigger id="cycle-select-trigger" className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} placeholder:text-muted-foreground focus:ring-0`}>
+                  <SelectValue placeholder="Choose Cycle" />
                 </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   <SelectItem value="P" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
                     P Cycle (Physics)
                   </SelectItem>
@@ -1280,12 +1475,12 @@ const StudentManagement = () => {
                       placeholder={
                       state.semesters.length === 0 ?
                       "No semesters available" :
-                      "Select Semester"
+                      "Choose Semester"
                       } />
                     
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                    <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Choose Semesters</SelectItem>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                    <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>Choose Semester</SelectItem>
                     {state.semesters.map((s) =>
                     <SelectItem key={s.id} value={s.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
                         Semester {s.number}
@@ -1311,11 +1506,11 @@ const StudentManagement = () => {
                       state.listSections.length === 0 ||
                       state.semesterFilter === "All" ?
                       "Select semester first" :
-                      "Select Section"
+                      "Choose Section"
                       } />
                     
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                     <SelectItem value="All" className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>All Sections</SelectItem>
                     {state.listSections.
                     filter((section) => section.semester_id === state.semesterFilter).
@@ -1476,11 +1671,11 @@ const StudentManagement = () => {
                     placeholder={
                     state.batches.length === 0 ?
                     "No batches available" :
-                    "Select Batch"
+                    "Choose Batch"
                     } />
                   
                 </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   {state.batches.map((batch) =>
                   <SelectItem
                     key={batch.id}
@@ -1513,11 +1708,11 @@ const StudentManagement = () => {
                     placeholder={
                     state.semesters.length === 0 ?
                     "No semesters available" :
-                    "Select Semester"
+                    "Choose Semester"
                     } />
                   
                 </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   {state.semesters.map((s) =>
                   <SelectItem
                     key={s.id}
@@ -1547,11 +1742,11 @@ const StudentManagement = () => {
                     placeholder={
                     state.manualSections.length === 0 || !state.manualForm.semester ?
                     "Select semester first" :
-                    "Select Section"
+                    "Choose Section"
                     } />
                   
                 </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                   {state.manualSections.
                   filter(
                     (section) =>
@@ -1877,6 +2072,102 @@ const StudentManagement = () => {
               Save
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Semester Modal */}
+      <Dialog open={isAddSemesterOpen} onOpenChange={setIsAddSemesterOpen}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[90%] sm:max-w-lg rounded-md sm:rounded-lg`}>
+          <DialogHeader>
+            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Add Semester
+            </h2>
+          </DialogHeader>
+          <form onSubmit={handleAddSemester} className="space-y-4">
+            {semesterError && (
+              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 p-2.5 rounded-md border border-red-200 dark:border-red-800">
+                {semesterError}
+              </div>
+            )}
+            <div className="text-center">
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Semester Number</label>
+              <Input
+                type="number"
+                value={newSemesterNumber}
+                onChange={(e) => setNewSemesterNumber(e.target.value)}
+                placeholder="Enter semester number (1-8)"
+                min="1"
+                max="8"
+                disabled={addingSemester}
+                className={`text-center ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+              />
+            </div>
+            <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
+              <Button
+                type="button"
+                onClick={() => setIsAddSemesterOpen(false)}
+                disabled={addingSemester}
+                className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-200'}`}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={addingSemester} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+                {addingSemester ? <Loader2 className="w-4 h-4 mr-2 animate-spin inline-block" /> : null}
+                Add Semester
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Section Modal */}
+      <Dialog open={isAddSectionOpen} onOpenChange={setIsAddSectionOpen}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'} w-[90%] sm:max-w-lg rounded-md sm:rounded-lg`}>
+          <DialogHeader>
+            <h2 className={`text-lg font-semibold text-center ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Add Section for Semester {state.manualForm.semester ? state.manualForm.semester.replace(/[^0-9]/g, '') : ""}
+            </h2>
+          </DialogHeader>
+          <form onSubmit={handleAddSection} className="space-y-4">
+            {sectionError && (
+              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 p-2.5 rounded-md border border-red-200 dark:border-red-800">
+                {sectionError}
+              </div>
+            )}
+            <div className="text-center">
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Section Name</label>
+              <Select
+                value={newSectionName}
+                onValueChange={setNewSectionName}
+                disabled={addingSection}
+              >
+                <SelectTrigger className={`w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectValue placeholder="Select Section" />
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                  {["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].map((section) => (
+                    <SelectItem key={section} value={section} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
+                      Section {section}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
+              <Button
+                type="button"
+                onClick={() => setIsAddSectionOpen(false)}
+                disabled={addingSection}
+                className={`w-full sm:w-auto ${theme === 'dark' ? 'bg-card border-border hover:bg-accent text-foreground' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-200'}`}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={addingSection} className="w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90">
+                {addingSection ? <Loader2 className="w-4 h-4 mr-2 animate-spin inline-block" /> : null}
+                Add Section
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>);
