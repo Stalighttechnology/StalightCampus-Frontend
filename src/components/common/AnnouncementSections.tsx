@@ -696,7 +696,7 @@ export const AnnouncementSections = ({
 
       {/* View Announcement Dialog */}
       <Dialog open={!!viewingAnnouncement} onOpenChange={(open) => !open && setViewingAnnouncement(null)}>
-        <DialogContent className="w-[92vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl p-0 border-none shadow-2xl">
+        <DialogContent className="w-[92vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl sm:rounded-2xl p-0 border-none shadow-2xl">
           <div className="p-6 sm:p-8 space-y-6">
             <DialogHeader className="space-y-4">
               <div className="flex items-center justify-between gap-4">
