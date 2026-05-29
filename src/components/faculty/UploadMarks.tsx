@@ -1689,7 +1689,10 @@ const UploadMarks = () => {
                                   onChange={(e) => {
                                     const v = e.target.value;
                                     if (!/^\d*$/.test(v)) return;
-                                    
+
+                                    // Cap total to the question paper's total max marks
+                                    if (v !== "" && parseInt(v) > totalMarks) return;
+
                                     const studentQuestions = studentMarks[student.id] || {};
                                     const hasAnyQuestionMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "");
                                     if (!hasAnyQuestionMark) {
