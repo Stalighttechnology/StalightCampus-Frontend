@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle, XCircle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -64,6 +64,12 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const { theme } = useTheme();
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  const filteredLeaveRequests = Array.isArray(leaveRequests) ? leaveRequests.filter((leave) => {
+    if (statusFilter === "All") return true;
+    return leave.status.toLowerCase() === statusFilter.toLowerCase();
+  }) : [];
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState<Date>(() => {
     if (selectedMonth) {
@@ -322,92 +328,109 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 Review and approve leave requests from Heads of Departments
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
-              <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                      variant="outline"
-                      className={`leave-month-picker ${theme === 'dark' ? 'w-full sm:w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full sm:w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
-                      
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedMonth ?
-                      (() => {
-                        try {
-                          const d = new Date(`${selectedMonth}-01`);
-                          return format(d, 'MMMM yyyy');
-                        } catch (e) {
-                          return selectedMonth;
+            <div className="flex items-center gap-4 flex-wrap w-full md:w-auto">
+              <div className="flex items-center gap-2">
+                <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
+                <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className={`leave-month-picker ${theme === 'dark' ? 'w-full sm:w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full sm:w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
+                        
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedMonth ?
+                        (() => {
+                          try {
+                            const d = new Date(`${selectedMonth}-01`);
+                            return format(d, 'MMMM yyyy');
+                          } catch (e) {
+                            return selectedMonth;
+                          }
+                        })() :
+
+                        <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select month</span>
                         }
-                      })() :
+                    </Button>
+                  </PopoverTrigger>
 
-                      <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select month</span>
-                      }
-                  </Button>
-                </PopoverTrigger>
+                  <PopoverContent className={theme === 'dark' ? 'w-64 p-3 bg-background text-foreground border-border shadow-lg' : 'w-64 p-3 bg-white text-gray-900 border-gray-200 shadow-lg'}>
+                    <div>
+                      <div className="flex items-center justify-center mb-3">
+                        <Select
+                          value={visibleMonth.getFullYear().toString()}
+                          onValueChange={(val) => setVisibleMonth(new Date(Number(val), visibleMonth.getMonth(), 1))}
+                        >
+                          <SelectTrigger className="w-[120px] h-8 text-xs font-semibold">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {Array.from({ length: 11 }, (_, i) => {
+                              const year = (new Date().getFullYear() - i).toString();
+                              return (
+                                <SelectItem key={year} value={year} className="text-xs">
+                                  {year}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                <PopoverContent className={theme === 'dark' ? 'w-64 p-3 bg-background text-foreground border-border shadow-lg' : 'w-64 p-3 bg-white text-gray-900 border-gray-200 shadow-lg'}>
-                  <div>
-                    <div className="flex items-center justify-center mb-3">
-                      <Select
-                        value={visibleMonth.getFullYear().toString()}
-                        onValueChange={(val) => setVisibleMonth(new Date(Number(val), visibleMonth.getMonth(), 1))}
-                      >
-                        <SelectTrigger className="w-[120px] h-8 text-xs font-semibold">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[200px]">
-                          {Array.from({ length: 11 }, (_, i) => {
-                            const year = (new Date().getFullYear() - i).toString();
+                      <div className="grid grid-cols-3 gap-2">
+                        {Array.from({ length: 12 }).map((_, i) => {
+                            const monthDate = new Date(visibleMonth.getFullYear(), i, 1);
+                            const monthLabel = format(monthDate, 'MMM');
+                            const monthValue = `${visibleMonth.getFullYear()}-${String(i + 1).padStart(2, '0')}`;
+                            const today = new Date();
+                            const isFutureMonth = visibleMonth.getFullYear() > today.getFullYear() || 
+                                                  (visibleMonth.getFullYear() === today.getFullYear() && i > today.getMonth());
                             return (
-                              <SelectItem key={year} value={year} className="text-xs">
-                                {year}
-                              </SelectItem>
-                            );
+                              <button
+                                key={i}
+                                disabled={isFutureMonth}
+                                onClick={() => {
+                                  setSelectedMonth(monthValue);
+                                  setMonthPickerOpen(false);
+                                }}
+                                className={`px-3 py-2 rounded-md text-sm text-left w-full disabled:opacity-30 disabled:cursor-not-allowed ${selectedMonth === monthValue ? 'bg-primary text-primary-foreground' : theme === 'dark' ? 'bg-card hover:bg-accent text-foreground' : 'bg-white hover:bg-gray-100 text-gray-900'} `}>
+                                
+                              {monthLabel}
+                            </button>);
+
                           })}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      </div>
 
-                    <div className="grid grid-cols-3 gap-2">
-                      {Array.from({ length: 12 }).map((_, i) => {
-                          const monthDate = new Date(visibleMonth.getFullYear(), i, 1);
-                          const monthLabel = format(monthDate, 'MMM');
-                          const monthValue = `${visibleMonth.getFullYear()}-${String(i + 1).padStart(2, '0')}`;
-                          const today = new Date();
-                          const isFutureMonth = visibleMonth.getFullYear() > today.getFullYear() || 
-                                                (visibleMonth.getFullYear() === today.getFullYear() && i > today.getMonth());
-                          return (
-                            <button
-                              key={i}
-                              disabled={isFutureMonth}
-                              onClick={() => {
-                                setSelectedMonth(monthValue);
-                                setMonthPickerOpen(false);
-                              }}
-                              className={`px-3 py-2 rounded-md text-sm text-left w-full disabled:opacity-30 disabled:cursor-not-allowed ${selectedMonth === monthValue ? 'bg-primary text-primary-foreground' : theme === 'dark' ? 'bg-card hover:bg-accent text-foreground' : 'bg-white hover:bg-gray-100 text-gray-900'} `}>
-                              
-                            {monthLabel}
-                          </button>);
-
-                        })}
+                      <div className="mt-3 flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedMonth('');
+                              setMonthPickerOpen(false);
+                            }}>
+                            
+                          Clear
+                        </Button>
+                      </div>
                     </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-                    <div className="mt-3 flex justify-end gap-2">
-                      <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedMonth('');
-                            setMonthPickerOpen(false);
-                          }}>
-                          
-                        Clear
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-9 h-9 p-0 flex items-center justify-center rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm">
+                  <Filter className="h-4 w-4" />
+                  <span className="sr-only">
+                    <SelectValue placeholder="All" />
+                  </span>
+                </SelectTrigger>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
+                  <SelectItem value="All">All Statuses</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                  <SelectItem value="Rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -415,8 +438,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           <div className="border rounded-xl overflow-hidden shadow-sm">
             {/* Mobile: stacked cards */}
             <div className="md:hidden space-y-3 p-2">
-              {Array.isArray(leaveRequests) && leaveRequests.length > 0 ?
-                leaveRequests.map((leave) =>
+              {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
+                filteredLeaveRequests.map((leave) =>
                 <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -499,8 +522,8 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {Array.isArray(leaveRequests) && leaveRequests.length > 0 ?
-                  leaveRequests.map((leave) =>
+                {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
+                  filteredLeaveRequests.map((leave) =>
                   <tr
                     key={leave.id}
                     className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
