@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
-import * as Select from "@radix-ui/react-select";
-import { ChevronDownIcon, CheckIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "../ui/select";
+import { cn } from "../../lib/utils";
+import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { Search, FileDownIcon, Loader2 } from "lucide-react";
 import { Input } from "../ui/input";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -65,7 +72,7 @@ const getRoleBadge = (role: string, theme: string) => {
 
 };
 
-const roles = ["All", "Student", "Head of Department", "Teacher", "COE", "Fees Manager", "Principal", "Org Admin", "HMS", "Warden", "Dean"];
+const roles = ["Student", "Head of Department", "Teacher", "COE", "Fees Manager", "Principal", "Org Admin", "HMS", "Warden", "Dean"];
 
 const roleMap: Record<string, string> = {
   "Student": "student",
@@ -82,9 +89,9 @@ const roleMap: Record<string, string> = {
 
 const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [users, setUsers] = useState<User[]>([]);
-  const [roleFilter, setRoleFilter] = useState("All");
-  const [departmentFilter, setDepartmentFilter] = useState("All");
-  const [departments, setDepartments] = useState<string[]>(["All"]);
+  const [roleFilter, setRoleFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(""); // input value
   const [appliedSearch, setAppliedSearch] = useState(""); // applied term
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -101,18 +108,18 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
   const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
   const isAnyFilterActive =
-    (roleFilter !== "All" && (!rolesNeedingDept.includes(roleFilter) || departmentFilter !== "All")) ||
-    (roleFilter === "All" && departmentFilter !== "All") ||
+    (roleFilter !== "" && (!rolesNeedingDept.includes(roleFilter) || departmentFilter !== "")) ||
+    (roleFilter === "" && departmentFilter !== "") ||
     appliedSearch !== "";
 
   const handleDownloadPDF = async () => {
     setDownloadingPDF(true);
     try {
       let queryParams = `?page_size=5000`;
-      if (roleFilter !== "All") {
+      if (roleFilter) {
         queryParams += `&role=${roleMap[roleFilter]}`;
       }
-      if (departmentFilter !== "All") {
+      if (departmentFilter) {
         queryParams += `&department=${encodeURIComponent(departmentFilter)}`;
       }
       if (appliedSearch.trim()) {
@@ -167,7 +174,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           const dataSource = res.results || res.branches || (res as any).data || [];
           const branchList = Array.isArray(dataSource) ? dataSource : [];
           const names = branchList.map((b: {name: string;}) => b.name).filter(Boolean);
-          setDepartments(["All", ...names]);
+          setDepartments(names);
         }
       } catch (e) {
 
@@ -199,13 +206,13 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
         // Debug: show filter params
 
 
-        // Add role filter if not "All"
-        if (roleFilter !== "All") {
+        // Add role filter if selected
+        if (roleFilter) {
           filterParams.role = roleMap[roleFilter];
         }
 
-        // Add department filter if not "All"
-        if (departmentFilter !== "All") {
+        // Add department filter if selected
+        if (departmentFilter) {
           filterParams.department = departmentFilter;
         }
         // Add search filter if provided
@@ -402,58 +409,27 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
 
   const SelectMenu = ({
     label,
+    placeholder,
     value,
     onChange,
     options
-
-
-
-
-
-  }: {label: string;value: string;onChange: (val: string) => void;options: string[];}) =>
-  <div className="flex flex-col">
-      <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{label}</label>
-      <Select.Root value={value} onValueChange={onChange}>
-        <Select.Trigger className={`select-trigger inline-flex items-center justify-between px-3 py-2 rounded w-full text-sm shadow-sm outline-none focus:ring-2 ${
-      theme === 'dark' ?
-      'bg-card border border-border text-foreground focus:ring-primary' :
-      'bg-white border border-gray-300 text-gray-900 focus:ring-blue-500'}`
-      }>
-          <div className="truncate flex-1 text-left mr-2">
-            <Select.Value />
-          </div>
-          <Select.Icon>
-            <ChevronDownIcon className={theme === 'dark' ? 'text-foreground' : 'text-gray-500'} />
-          </Select.Icon>
-        </Select.Trigger>
-        <Select.Portal>
-          <Select.Content className={`rounded shadow-lg z-50 ${
-        theme === 'dark' ?
-        'bg-card border border-border text-foreground' :
-        'bg-white border border-gray-300 text-gray-900'}`
-        }>
-            <Select.Viewport>
-              {options.map((opt) =>
-            <Select.Item
-              key={opt}
-              value={opt}
-              className={`px-3 py-2 cursor-pointer text-sm flex items-center ${
-              theme === 'dark' ?
-              'hover:bg-accent text-foreground' :
-              'hover:bg-gray-100 text-gray-900'}`
-              }>
-              
-                  <Select.ItemText>{opt}</Select.ItemText>
-                  <Select.ItemIndicator className="ml-2">
-                    <CheckIcon className={theme === 'dark' ? 'text-primary' : 'text-blue-500'} />
-                  </Select.ItemIndicator>
-                </Select.Item>
-            )}
-            </Select.Viewport>
-          </Select.Content>
-        </Select.Portal>
-      </Select.Root>
-    </div>;
+  }: {label: string;placeholder?: string;value: string;onChange: (val: string) => void;options: string[];}) => (
+    <div className="flex flex-col">
+      {label && <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{label}</label>}
+      <Select value={value || undefined} onValueChange={onChange}>
+        <SelectTrigger className={theme === 'dark' ? 'w-full bg-card text-foreground border border-border' : 'w-full bg-white text-gray-900 border border-gray-300'}>
+          <SelectValue placeholder={placeholder || label} />
+        </SelectTrigger>
+        <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+          {options.map((opt) => (
+            <SelectItem key={opt} value={opt}>
+              {opt}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
 
   if (loading && users.length === 0) {
@@ -528,6 +504,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                       <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
                       <SelectMenu
                         label=""
+                        placeholder="Choose Role"
                         value={roleFilter}
                         onChange={setRoleFilter}
                         options={roles} />
@@ -538,6 +515,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                       <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>Department</span>
                       <SelectMenu
                         label=""
+                        placeholder="Choose Department"
                         value={departmentFilter}
                         onChange={setDepartmentFilter}
                         options={departments} />
@@ -576,7 +554,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           <CardContent className="users-card-content pt-0">
             {(() => {
               if (!isAnyFilterActive) {
-                const needsDept = rolesNeedingDept.includes(roleFilter) && departmentFilter === "All";
+                const needsDept = rolesNeedingDept.includes(roleFilter) && departmentFilter === "";
 
                 return (
                   <div className={`flex flex-col items-center justify-center py-20 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
