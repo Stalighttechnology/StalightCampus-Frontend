@@ -297,12 +297,20 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
           </CardHeader>
           {/* Search and Filter Controls */}
           <div className="controls-wrapper px-4 sm:px-6 flex flex-col sm:flex-row gap-4 mb-4">
-            <div className="search-container flex gap-2">
+            <div className="search-container relative w-full sm:w-64">
               <Input
                   placeholder="Search teachers by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input-mobile w-64" />
+                  className="search-input-mobile w-full pr-12" />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
             <div className="filter-container sm:w-48">
               <Select value={branchFilter || undefined} onValueChange={(value) => setBranchFilter(value === "all" ? "" : value)}>

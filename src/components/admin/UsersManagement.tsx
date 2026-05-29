@@ -571,8 +571,15 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                           placeholder="Search name, email or USN..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className={`search-input h-10 w-full pl-10 rounded-md shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`} />
-                        
+                          className={`search-input h-10 w-full pl-10 pr-12 rounded-md shadow-sm ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`} />
+                        {searchQuery && (
+                          <button
+                            onClick={() => setSearchQuery("")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                          >
+                            Clear
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

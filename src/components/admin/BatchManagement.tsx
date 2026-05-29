@@ -345,12 +345,22 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
             <p className={`batch-desc text-sm md:text-base ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Manage, edit, or delete created batches
             </p>
-            <Input
-              placeholder="Search batches..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`batch-search-mobile h-9 w-full sm:w-64 ${theme === 'dark' ? 'bg-card border-border' : 'bg-gray-50 border-gray-200'}`}
-            />
+            <div className="relative w-full sm:w-64">
+              <Input
+                placeholder="Search batches..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`batch-search-mobile h-9 w-full pr-12 ${theme === 'dark' ? 'bg-card border-border' : 'bg-gray-50 border-gray-200'}`}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="batch-card-content flex-1 overflow-hidden flex flex-col pt-0">

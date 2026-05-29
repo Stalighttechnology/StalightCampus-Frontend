@@ -521,12 +521,21 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
             </CardHeader>
 
             <div className="px-2 sm:px-4 pt-3 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <Input
-                placeholder="Search by branch name..."
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className={theme === 'dark' ? 'w-full sm:w-64 bg-card text-foreground py-1' : 'w-full sm:w-64 bg-white text-gray-900 py-1'} />
-
+              <div className="relative w-full sm:w-64">
+                <Input
+                  placeholder="Search by branch name..."
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  className={theme === 'dark' ? 'w-full bg-card text-foreground py-1 pr-12' : 'w-full bg-white text-gray-900 py-1 pr-12'} />
+                {filter && (
+                  <button
+                    onClick={() => setFilter("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
