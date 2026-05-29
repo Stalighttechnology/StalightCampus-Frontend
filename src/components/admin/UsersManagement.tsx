@@ -91,7 +91,6 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [roleFilter, setRoleFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
-  const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
   const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(""); // input value
   const [appliedSearch, setAppliedSearch] = useState(""); // applied term
@@ -170,8 +169,11 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     setRoleFilter(val);
     if (rolesNeedingDept.includes(val)) {
       setTimeout(() => {
-        setDeptDropdownOpen(true);
-      }, 100);
+        const trigger = document.getElementById("dept-select-trigger");
+        if (trigger) {
+          trigger.click();
+        }
+      }, 150);
     }
   };
 
@@ -423,21 +425,19 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     value,
     onChange,
     options,
-    open,
-    onOpenChange
+    triggerId
   }: {
     label: string;
     placeholder?: string;
     value: string;
     onChange: (val: string) => void;
     options: string[];
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
+    triggerId?: string;
   }) => (
     <div className="flex flex-col">
       {label && <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{label}</label>}
-      <Select value={value || undefined} onValueChange={onChange} open={open} onOpenChange={onOpenChange}>
-        <SelectTrigger className={theme === 'dark' ? 'w-full bg-card text-foreground border border-border' : 'w-full bg-white text-gray-900 border border-gray-300'}>
+      <Select value={value || undefined} onValueChange={onChange}>
+        <SelectTrigger id={triggerId} className={theme === 'dark' ? 'w-full bg-card text-foreground border border-border' : 'w-full bg-white text-gray-900 border border-gray-300'}>
           <SelectValue placeholder={placeholder || label} />
         </SelectTrigger>
         <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
@@ -539,8 +539,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         value={departmentFilter}
                         onChange={setDepartmentFilter}
                         options={departments}
-                        open={deptDropdownOpen}
-                        onOpenChange={setDeptDropdownOpen} />
+                        triggerId="dept-select-trigger" />
                       
                     </div>
                   </div>
