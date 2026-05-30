@@ -133,6 +133,36 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     const response = await fetch(url, options);
 
     if (response.status === 401) {
+      let isRevoked = false;
+      try {
+        const clone = response.clone();
+        const json = await clone.json();
+        if (json.session_revoked) isRevoked = true;
+      } catch (e) {
+        // Ignore JSON parse error
+      }
+
+      if (isRevoked) {
+        sessionStorage.clear();
+        localStorage.removeItem("has_session");
+        stopTokenRefresh();
+        
+        // Dynamically import SweetAlert to avoid blocking initial load
+        const Swal = (await import('sweetalert2')).default;
+        await Swal.fire({
+          title: 'Session Terminated',
+          text: 'Your session has been logged out from another device for security reasons.',
+          icon: 'warning',
+          confirmButtonText: 'Login Again',
+          confirmButtonColor: '#3085d6',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+        });
+
+        window.location.href = "/";
+        throw new Error("Session revoked");
+      }
+
       const refreshResult = await refreshToken();
       if (refreshResult.success && refreshResult.access) {
         sessionStorage.setItem("access_token", refreshResult.access);
@@ -143,6 +173,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
         return fetch(url, options);
       } else {
         sessionStorage.clear();
+        localStorage.removeItem("has_session");
         stopTokenRefresh();
         window.location.href = "/"; // Redirect to home
         throw new Error("Failed to refresh token");
