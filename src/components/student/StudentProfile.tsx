@@ -791,11 +791,11 @@ const StudentProfile: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>First Name</Label>
-                        <Input name="first_name" value={form.first_name} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="first_name" value={form.first_name} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-gray-100 text-gray-500 border-gray-300'}`} />
                       </div>
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Last Name</Label>
-                        <Input name="last_name" value={form.last_name} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="last_name" value={form.last_name} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-gray-100 text-gray-500 border-gray-300'}`} />
                       </div>
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>USN</Label>
@@ -826,10 +826,7 @@ const StudentProfile: React.FC = () => {
                 {activeTab === 'personal' &&
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Preferred Name</Label>
-                      <Input name="preferred_name" value={form.preferred_name || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
-                    </div>
+
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Birth</Label>
                       <Input name="date_of_birth" type="date" value={form.date_of_birth || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />

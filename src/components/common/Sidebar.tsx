@@ -257,6 +257,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
       // User & Profile
       { name: "Users", page: "users" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Profile", page: "profile" },
     ],
     org_admin: [
@@ -264,6 +265,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Users", page: "users" },
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Billing & Plans", page: "billing" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Profile", page: "profile" },
     ],
     admin: [
@@ -293,6 +295,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
       // User & Profile
       { name: "Users", page: "users" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Profile", page: "profile" },
     ],
 
@@ -414,6 +417,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Publish Results (Reval/Makeup)", page: "publish-results-reval-makeup" },
       { name: "Exam Scheduling", page: "exam-scheduling" },
 
+      { name: "Scan for Student Info", page: "scan-student-info" },
+
       // Profile
       { name: "Profile", page: "profile" },
     ],
@@ -421,7 +426,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Dashboard", page: "dashboard" },
       { name: "Today's Attendance", page: "attendance" },
       { name: "Attendance Filters", page: "attendance-filters" },
-      { name: "Scan for Student Info", page: "performance" },
+      { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Exams", page: "exams" },
       { name: "Faculty", page: "faculty" },
       { name: "Finance", page: "finance" },

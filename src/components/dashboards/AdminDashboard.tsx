@@ -21,6 +21,7 @@ import AdminFacultyAttendanceView from "../admin/AdminFacultyAttendanceView";
 import ApplyLeaveAdmin from "../admin/ApplyLeaveAdmin";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
+import StudentInfoScanner from "../hod/StudentInfoScanner";
 
 import {
   Users,
@@ -182,6 +183,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <AdminProfile user={user} setError={setError} />
+          </div>);
+
+      case "scan-student-info":
+        return (
+          <div>
+            <StudentInfoScanner />
           </div>);
 
       default:

@@ -504,6 +504,8 @@ const TakeAttendance = () => {
       const res = await takeAttendance(data);
       if (res.success) {
         showSuccessAlert("Success", "Attendance submitted successfully!");
+        setSubjectId(null); // This triggers the useEffect that clears branch, semester, section, and students
+        setAttendanceDate(new Date().toLocaleDateString('sv-SE'));
       } else {
         showErrorAlert("Attendance Error", res.message || "Failed to submit attendance");
         setErrorMsg(res.message || "Failed to submit attendance");

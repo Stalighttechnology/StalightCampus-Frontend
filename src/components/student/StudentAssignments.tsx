@@ -20,6 +20,13 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { useTheme } from "../../context/ThemeContext";
 import { getStudentAssignments, submitAssignment } from "../../utils/student_api";
 import { normalizePaginatedResponse } from "../../utils/normalizePagination";
@@ -46,7 +53,7 @@ const StudentAssignments = () => {
       fetchAssignments(1);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, filterStatus]);
 
   useEffect(() => {
     fetchAssignments(currentPage);
@@ -58,7 +65,8 @@ const StudentAssignments = () => {
       const res = await getStudentAssignments({
         search: searchTerm,
         page: page,
-        page_size: 10
+        page_size: 10,
+        status: filterStatus
       });
       if (res.success) {
         const normalized = normalizePaginatedResponse(res, 'assignments');
@@ -149,20 +157,7 @@ const StudentAssignments = () => {
     }
   };
 
-  const filteredAssignments = useMemo(() => {
-    return assignments.filter((a) => {
-      const now = new Date();
-      const dueDate = new Date(a.due_date);
-      const isOverdue = !a.is_submitted && dueDate < now;
-
-      let matchesStatus = true;
-      if (filterStatus === 'pending') matchesStatus = !a.is_submitted && !isOverdue;
-      if (filterStatus === 'submitted') matchesStatus = a.is_submitted;
-      if (filterStatus === 'overdue') matchesStatus = isOverdue;
-
-      return matchesStatus;
-    });
-  }, [assignments, filterStatus]);
+  const filteredAssignments = assignments;
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -250,9 +245,22 @@ const StudentAssignments = () => {
                   onChange={(e) => setSearchTerm(e.target.value)} />
                 
               </div>
-              <Button variant="outline" size="icon" className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                <Filter size={18} />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="bg-[#a855f7] hover:bg-[#9333ea] text-white gap-2 rounded-xl px-5 h-10 shadow-sm border-none">
+                    <Filter size={18} />
+                    <span className="font-semibold text-sm">Filter</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuRadioGroup value={filterStatus} onValueChange={(val) => { setFilterStatus(val); setCurrentPage(1); }}>
+                    <DropdownMenuRadioItem value="all">All Assignments</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="submitted">Submitted</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="overdue">Overdue</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 

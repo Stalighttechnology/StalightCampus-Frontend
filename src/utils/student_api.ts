@@ -687,12 +687,13 @@ export const getFullStudentProfile = async () => {
   }
 };
 
-export const getStudentAssignments = async (params?: {search?: string;page?: number;page_size?: number;}) => {
+export const getStudentAssignments = async (params?: {search?: string; page?: number; page_size?: number; status?: string;}) => {
   try {
     const query = new URLSearchParams();
     if (params?.search) query.append('search', params.search);
     if (params?.page) query.append('page', params.page.toString());
     if (params?.page_size) query.append('page_size', params.page_size.toString());
+    if (params?.status && params.status !== 'all') query.append('status', params.status);
 
     const qs = query.toString() ? `?${query.toString()}` : '';
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/assignments/${qs}`, {
