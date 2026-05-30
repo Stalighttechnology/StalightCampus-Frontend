@@ -301,13 +301,13 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
-                <Input value={formData.firstName} onChange={(e) => handleChange("firstName", e.target.value)} disabled={!isEditing} placeholder="First name" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.firstName} onChange={(e) => handleChange("firstName", e.target.value)} disabled={true} placeholder="First name" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
                 {localErrors.firstName && <p className={`text-sm mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.firstName}</p>}
               </div>
 
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
-                <Input value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} disabled={!isEditing} placeholder="Last name" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} disabled={true} placeholder="Last name" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
                 {localErrors.lastName && <p className={`text-sm mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.lastName}</p>}
               </div>
             </div>
@@ -367,7 +367,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           <div className="space-y-4 sm:space-y-5">
             <div>
               <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
-              <Input value={formData.email} onChange={(e) => handleChange("email", e.target.value)} disabled={!isEditing} placeholder="Email address" className="text-sm h-8 sm:h-10" />
+              <Input value={formData.email} onChange={(e) => handleChange("email", e.target.value)} disabled={true} placeholder="Email address" className="text-sm h-8 sm:h-10" />
               {localErrors.email && <p className={`text-sm mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.email}</p>}
             </div>
 

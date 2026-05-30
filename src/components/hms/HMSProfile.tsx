@@ -174,7 +174,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                 {isSkeleton ?
                 <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                <Input name="first_name" value={profile.first_name} onChange={handleChange} disabled={!editing} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
+                <Input name="first_name" value={profile.first_name} onChange={handleChange} disabled={true} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
                 }
               </div>
               <div className="w-full">
@@ -182,7 +182,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                 {isSkeleton ?
                 <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                <Input name="last_name" value={profile.last_name} onChange={handleChange} disabled={!editing} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
+                <Input name="last_name" value={profile.last_name} onChange={handleChange} disabled={true} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
                 }
               </div>
             </div>
@@ -193,7 +193,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                 {isSkeleton ?
                 <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                <Input name="email" value={profile.email} onChange={handleChange} disabled={!editing} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
+                <Input name="email" value={profile.email} onChange={handleChange} disabled={true} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
                 }
               </div>
               <div>

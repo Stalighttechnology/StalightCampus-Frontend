@@ -360,7 +360,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <Input
                       id="first_name"
                       value={formData.first_name}
-                      disabled={!editing}
+                      disabled={true}
                       onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                       className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full" />
                     
@@ -370,7 +370,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                       <Input
                       id="last_name"
                       value={formData.last_name}
-                      disabled={!editing}
+                      disabled={true}
                       onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                       className="text-[18px] sm:text-sm h-12 sm:h-9 md:h-10 w-full" />
                     
@@ -391,7 +391,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
                     id="email"
                     type="email"
                     value={formData.email}
-                    disabled={!editing}
+                    disabled={true}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="text-[18px] sm:text-sm h-12 sm:h-10" />
                   

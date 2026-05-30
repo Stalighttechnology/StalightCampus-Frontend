@@ -278,18 +278,18 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
-                <Input id="first_name" name="first_name" value={profile.first_name} onChange={handleChange} disabled={!editing || loading} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
+                <Input id="first_name" name="first_name" value={profile.first_name} onChange={handleChange} disabled={true} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
               </div>
               <div className="w-full">
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
-                <Input id="last_name" name="last_name" value={profile.last_name} onChange={handleChange} disabled={!editing || loading} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
+                <Input id="last_name" name="last_name" value={profile.last_name} onChange={handleChange} disabled={true} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
-                <Input id="email" name="email" value={profile.email} onChange={handleChange} disabled={!editing || loading} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
+                <Input id="email" name="email" value={profile.email} onChange={handleChange} disabled={true} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
               </div>
               <div>
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
