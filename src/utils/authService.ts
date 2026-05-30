@@ -275,6 +275,7 @@ export const loginUser = async ({ username, password }: LoginRequest): Promise<L
       if (result.access) sessionStorage.setItem("access_token", result.access);
       if (result.role) sessionStorage.setItem("role", result.role);
       if (result.profile) sessionStorage.setItem("user", JSON.stringify(result.profile));
+      localStorage.setItem("has_session", "true");
       // AuthContext will start its own refresh interval based on the HttpOnly cookie
       // No localStorage usage or startTokenRefresh here
     }
@@ -311,6 +312,7 @@ export const verifyOTP = async ({ user_id, otp }: VerifyOTPRequest): Promise<Log
       if (result.access) sessionStorage.setItem("access_token", result.access);
       if (result.role) sessionStorage.setItem("role", result.role);
       if (result.profile) sessionStorage.setItem("user", JSON.stringify(result.profile));
+      localStorage.setItem("has_session", "true");
       // AuthContext will manage periodic refresh; no need to startTokenRefresh here
 
         // Store server-provided session id (used to identify current session)
@@ -418,6 +420,7 @@ export const logoutUser = async (): Promise<GenericResponse> => {
     });
     // Clear any persisted non‑sensitive data.
     sessionStorage.clear();
+    localStorage.removeItem("has_session");
     // AuthContext will stop its refresh interval after logout.
     if (!response.ok) {
       return { success: true, message: "Logged out successfully (server error ignored)" };
@@ -427,6 +430,7 @@ export const logoutUser = async (): Promise<GenericResponse> => {
   } catch (error: any) {
 
     sessionStorage.clear();
+    localStorage.removeItem("has_session");
     stopTokenRefresh();
     return { success: true, message: "Logged out successfully (error ignored)" };
   }
