@@ -1577,28 +1577,41 @@ const StudentManagement = () => {
                   }
                   disabled={
                     state.isLoading ||
-                    state.semesterFilter === "" ||
-                    state.listSections.length === 0
+                    state.semesterFilter === ""
                   }>
 
-                  <SelectTrigger id="list-section-select-trigger" className={`flex-1 md:w-40 md:max-w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectTrigger
+                    id="list-section-select-trigger"
+                    className={`flex-1 md:w-40 md:max-w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                    disabled={
+                      state.isLoading ||
+                      state.semesterFilter === ""
+                    }
+                  >
                     <SelectValue
                       placeholder={
-                        state.listSections.length === 0 ||
-                          state.semesterFilter === "" ?
+                        state.semesterFilter === "" ?
                           "Select semester first" :
+                          state.listSections.filter((section) => section.semester_id === state.semesterFilter).length === 0 ?
+                          "No section available" :
                           "Choose Section"
                       } />
 
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {state.listSections.
-                      filter((section) => section.semester_id === state.semesterFilter).
-                      map((section) =>
-                        <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
-                          Section {section.name}
-                        </SelectItem>
-                      )}
+                    {state.listSections.filter((section) => section.semester_id === state.semesterFilter).length === 0 ? (
+                      <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                        No section available
+                      </div>
+                    ) : (
+                      state.listSections.
+                        filter((section) => section.semester_id === state.semesterFilter).
+                        map((section) =>
+                          <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground hover:bg-accent' : 'text-gray-900 hover:bg-gray-100'}>
+                            Section {section.name}
+                          </SelectItem>
+                        )
+                    )}
                   </SelectContent>
                 </Select>
               </div>

@@ -532,7 +532,7 @@ const StudentEnrollment = () => {
                     setSectionId(v);
                     setTimeout(() => setIsSubjectTypeOpen(true), 150);
                   }} disabled={!semesterId}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full" disabled={!semesterId}>
                       <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
@@ -567,8 +567,8 @@ const StudentEnrollment = () => {
                   <Select open={isSubjectTypeOpen} onOpenChange={setIsSubjectTypeOpen} value={subjectType} onValueChange={(v: string) => {
                     setSubjectType(v);
                     setTimeout(() => setIsSubjectOpen(true), 150);
-                  }}>
-                    <SelectTrigger className="w-full">
+                  }} disabled={!sectionId}>
+                    <SelectTrigger className="w-full" disabled={!sectionId}>
                       <SelectValue placeholder="Choose Subject Type" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
@@ -580,7 +580,7 @@ const StudentEnrollment = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold block text-gray-700 dark:text-gray-300">Subject</label>
                   <Select open={isSubjectOpen} onOpenChange={setIsSubjectOpen} value={selectedSubjectId} onValueChange={setSelectedSubjectId} disabled={!semesterId || !sectionId || !subjectType}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full" disabled={!semesterId || !sectionId || !subjectType}>
                       <SelectValue placeholder="Choose Subject" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
@@ -881,7 +881,6 @@ const StudentEnrollment = () => {
                       <SelectValue placeholder="Select Course Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="regular">Regular</SelectItem>
                       <SelectItem value="elective">Elective</SelectItem>
                       <SelectItem value="open_elective">Open Elective</SelectItem>
                     </SelectContent>
