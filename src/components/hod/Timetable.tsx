@@ -180,6 +180,91 @@ function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
 
 }
 
+const formatTo12h = (timeStr: string | null | undefined): string => {
+  if (!timeStr) return "—";
+  const parts = timeStr.split(":");
+  if (parts.length < 2) return timeStr;
+  let hh = parseInt(parts[0], 10);
+  const mm = parts[1];
+  if (isNaN(hh)) return timeStr;
+  const ampm = hh >= 12 ? "PM" : "AM";
+  hh = hh % 12;
+  if (hh === 0) hh = 12;
+  const hhStr = hh.toString().padStart(2, "0");
+  return `${hhStr}:${mm} ${ampm}`;
+};
+
+interface TimePickerProps {
+  value: string;
+  onChange: (val: string) => void;
+  label: string;
+  labelClass?: string;
+}
+
+const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelClass }) => {
+  const [h24Str, minute] = (value || "08:00").split(":");
+  let h24 = parseInt(h24Str, 10);
+  if (isNaN(h24)) h24 = 8;
+  const period = h24 >= 12 ? "PM" : "AM";
+  let h12 = h24 % 12;
+  if (h12 === 0) h12 = 12;
+  const hour12Str = h12.toString().padStart(2, "0");
+
+  const to24h = (h12Val: string, minVal: string, periodVal: string) => {
+    let h = parseInt(h12Val, 10);
+    if (periodVal === "PM") {
+      if (h < 12) h += 12;
+    } else {
+      if (h === 12) h = 0;
+    }
+    const h24Val = h.toString().padStart(2, "0");
+    return `${h24Val}:${minVal}`;
+  };
+
+  const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, "0"));
+  const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0"));
+  const periods = ["AM", "PM"];
+
+  return (
+    <div className="w-full">
+      <label className={labelClass || "block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2"}>{label}</label>
+      <div className="flex gap-2 items-center w-full flex-nowrap">
+        <Select value={hour12Str} onValueChange={h => onChange(to24h(h, minute, period))}>
+          <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
+            <SelectValue placeholder="HH" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[200px] z-[10001] bg-card border-border text-foreground overflow-y-auto custom-scrollbar">
+            {hours.map(h => (
+              <SelectItem key={h} value={h} className="text-foreground">{h}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="text-xs font-bold opacity-60">:</span>
+        <Select value={minute} onValueChange={m => onChange(to24h(hour12Str, m, period))}>
+          <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
+            <SelectValue placeholder="MM" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[200px] z-[10001] bg-card border-border text-foreground overflow-y-auto custom-scrollbar">
+            {minutes.map(m => (
+              <SelectItem key={m} value={m} className="text-foreground">{m}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={period} onValueChange={p => onChange(to24h(hour12Str, minute, p))}>
+          <SelectTrigger className="w-[68px] h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
+            <SelectValue placeholder="Period" />
+          </SelectTrigger>
+          <SelectContent className="z-[10001] bg-card border-border text-foreground">
+            {periods.map(p => (
+              <SelectItem key={p} value={p} className="text-foreground">{p}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+};
+
 // Edit Modal Component
 const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, facultyAssignments, semesterId, sectionId, branchId }: EditModalProps) => {
   const { theme } = useTheme();
@@ -265,7 +350,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
 
   return (
     <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-background/60' : 'bg-gray-900/60'} text-gray-200`}>
-      <div className={`w-11/12 md:w-3/4 lg:w-1/2 p-8 rounded-lg shadow-2xl border-2 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+      <div className={`w-[90%] sm:w-[420px] max-h-[85vh] overflow-y-auto custom-scrollbar p-6 md:p-8 rounded-lg shadow-2xl border-2 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
         <h2 className={`text-2xl md:text-3xl font-semibold mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
           {classDetails.timetable_id ? "Edit Class" : "Add Class"} — {dayFull}
         </h2>
@@ -276,11 +361,17 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
             <SelectTrigger className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
               <SelectValue placeholder="Select Course" />
             </SelectTrigger>
-            <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-              {subjects.map((subject: Subject) =>
-              <SelectItem key={subject.id} value={subject.name} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                  {subject.name}
+            <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+              {subjects.length === 0 ? (
+                <SelectItem value="no_course" disabled className="text-center text-xs text-muted-foreground">
+                  No courses available
                 </SelectItem>
+              ) : (
+                subjects.map((subject: Subject) =>
+                  <SelectItem key={subject.id} value={subject.name} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                    {subject.name}
+                  </SelectItem>
+                )
               )}
             </SelectContent>
           </Select>
@@ -293,7 +384,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
               <SelectTrigger className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
                 <SelectValue placeholder="Select Professor" />
               </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
+              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                 {matchingAssignments.map((a: any) => {
                   const profName = a.faculty_name || a.faculty || "";
                   return (
@@ -336,40 +427,31 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
         </div>
 
         <div className="mb-4">
-          <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Start Time:</label>
-          <input
-            type="time"
-            name="start_time"
-            value={newClassDetails.start_time}
-            onChange={handleChange}
-            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`} />
-          
+          <TimePicker
+            label="Start Time:"
+            value={newClassDetails.start_time || "09:00"}
+            onChange={(val) => setNewClassDetails((prev) => ({ ...prev, start_time: val }))}
+          />
         </div>
 
         <div className="mb-4">
-          <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>End Time:</label>
-          <input
-            type="time"
-            name="end_time"
-            value={newClassDetails.end_time}
-            onChange={handleChange}
-            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`} />
-          
+          <TimePicker
+            label="End Time:"
+            value={newClassDetails.end_time || "10:00"}
+            onChange={(val) => setNewClassDetails((prev) => ({ ...prev, end_time: val }))}
+          />
         </div>
 
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <Button
-              variant="destructive"
-              onClick={() => setShowConfirmDelete(true)}
-              disabled={!classDetails.timetable_id}
-              className={theme === 'dark' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-600 text-white hover:bg-red-700'}>
-              
-              Delete
-            </Button>
-            {!classDetails.timetable_id &&
-            <span className="text-xs text-muted-foreground">No existing class to delete</span>
-            }
+            {classDetails.timetable_id && (
+              <Button
+                variant="destructive"
+                onClick={() => setShowConfirmDelete(true)}
+                className={theme === 'dark' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-600 text-white hover:bg-red-700'}>
+                Delete
+              </Button>
+            )}
           </div>
           <div className="flex justify-end space-x-4">
             <Button
@@ -400,7 +482,7 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
                   timetable_id: classDetails.timetable_id
                 });
               }}
-              className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100'}>
+              className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent bg-primary text-white hover:bg-primary/90 hover:text-white' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100 bg-primary text-white hover:bg-primary/90 hover:text-white'}>
               
               Save
             </Button>
@@ -1055,8 +1137,8 @@ const Timetable = () => {
                   </thead>
                   <tbody>
                     {getTableData().map((row, idx) =>
-                  <tr key={idx} className="border-t hover:bg-accent border-border">
-                        <td className="py-3 px-4 font-medium text-foreground">{row.time}</td>
+                      <tr key={idx} className="border-t hover:bg-accent border-border">
+                        <td className="py-3 px-4 font-medium text-foreground">{formatTo12h(row.time)}</td>
                         {["mon", "tue", "wed", "thu", "fri", "sat"].map((day, i) =>
                     <td
                       key={i}
@@ -1074,7 +1156,7 @@ const Timetable = () => {
                         }}>
                         
                                   <div className="font-semibold">{entry.faculty_assignment.subject}</div>
-                                  <div className="text-xs text-muted-foreground">{entry.start_time} - {entry.end_time}</div>
+                                  <div className="text-xs text-muted-foreground">{formatTo12h(entry.start_time)} - {formatTo12h(entry.end_time)}</div>
                                   <div className="text-xs">{entry.faculty_assignment.faculty}</div>
                                   <div className="text-xs italic">Room {entry.room}</div>
                                 </div>

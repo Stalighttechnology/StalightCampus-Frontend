@@ -824,7 +824,7 @@ const StudentEnrollment = () => {
           </Dialog>
 
           <Dialog open={isAddSubjectOpen} onOpenChange={setIsAddSubjectOpen}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto custom-scrollbar">
               <DialogHeader>
                 <DialogTitle>Add New Subject</DialogTitle>
               </DialogHeader>
@@ -864,7 +864,7 @@ const StudentEnrollment = () => {
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Semester" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {semesters.map((sem: any) => (
                         <SelectItem key={sem.id} value={sem.id}>{getSemesterName(sem.number)}</SelectItem>
                       ))}
@@ -880,7 +880,7 @@ const StudentEnrollment = () => {
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Course Type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       <SelectItem value="elective">Elective</SelectItem>
                       <SelectItem value="open_elective">Open Elective</SelectItem>
                     </SelectContent>
