@@ -31,6 +31,7 @@ const MakeupExam = () => {
   const [reason, setReason] = useState("");
   const [confirmMakeup, setConfirmMakeup] = useState<{open: boolean;student_id?: number;subject_id?: number;subject_name?: string;}>({ open: false });
   const [viewModal, setViewModal] = useState<{open: boolean;request?: any;}>({ open: false });
+  const [makeupApplicationsOpen, setMakeupApplicationsOpen] = useState<boolean | null>(null);
 
   const loadStudents = async () => {
     if (loading) return; // Prevent duplicate calls
@@ -60,6 +61,10 @@ const MakeupExam = () => {
           subjects: (st.subjects || []).map((sb) => ({ ...sb, applied: !!sb.applied }))
         }));
         setStudents(safeStudents);
+        // Track makeup window state
+        if (typeof (payload as any).makeup_applications_open === 'boolean') {
+          setMakeupApplicationsOpen((payload as any).makeup_applications_open);
+        }
       } else {
         setStudents([]);
 
@@ -182,9 +187,10 @@ const MakeupExam = () => {
       </Button> :
 
   <Button
-    disabled={loading}
+    disabled={loading || makeupApplicationsOpen === false}
     onClick={() => handleApplyClick(studentId, subjectId, subjectName)}
     variant="default"
+    title={makeupApplicationsOpen === false ? 'Makeup applications are currently closed' : undefined}
     className="text-xs sm:text-sm h-auto px-2 py-1 bg-primary hover:bg-primary/90 text-white">
     
         Apply
@@ -211,6 +217,9 @@ const MakeupExam = () => {
       }
 
       // Otherwise allow selecting the subject for applying
+      if (makeupApplicationsOpen === false) {
+        return <span className="text-xs text-muted-foreground italic">Closed</span>;
+      }
       return (
         <label className="text-xs flex items-center gap-1">
           <input
@@ -229,6 +238,16 @@ const MakeupExam = () => {
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <div className="w-full mx-auto">
+        {/* Closed banner */}
+        {makeupApplicationsOpen === false && (
+          <div className="mb-4 flex items-center gap-3 rounded-xl border border-orange-300 bg-orange-50 dark:bg-orange-950/30 dark:border-orange-800 px-4 py-3">
+            <span className="text-orange-600 dark:text-orange-400 text-lg">🔒</span>
+            <div>
+              <p className="font-semibold text-orange-800 dark:text-orange-300 text-sm">Makeup applications are currently closed</p>
+              <p className="text-xs text-orange-700 dark:text-orange-400">The COE has not opened the makeup exam window yet. You can view existing requests but cannot apply for new ones.</p>
+            </div>
+          </div>
+        )}
         <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
           <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
             <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Makeup Exam Requests</CardTitle>

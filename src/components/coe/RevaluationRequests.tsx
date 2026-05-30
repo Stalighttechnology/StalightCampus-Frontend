@@ -5,24 +5,26 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, Clock, Download, Eye, XCircle, Search } from 'lucide-react';
-import { getRevaluationRequests, getExamRequestFilters, updateRevaluationRequestStatus, getSemesters, RevaluationRequest, ExamRequestFilters } from '@/utils/coe_api';
+import { getRevaluationRequests, getExamRequestFilters, getSemesters, RevaluationRequest, ExamRequestFilters, toggleRevalApplications } from '@/utils/coe_api';
 import { paginationToUI } from '@/utils/paginationToUI';
 import { fetchWithTokenRefresh } from '@/utils/authService';
+import { downloadFileViaBackendProxy } from '@/utils/common_api';
+import { API_ENDPOINT } from '@/utils/config';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { SkeletonTable } from '@/components/ui/skeleton';
 import { useTheme } from '@/context/ThemeContext';
 import { toast } from 'sonner';
 
 const EXAM_PERIODS = [
-{ value: 'june_july', label: 'June/July' },
-{ value: 'nov_dec', label: 'November/December' },
-{ value: 'jan_feb', label: 'January/February' },
-{ value: 'apr_may', label: 'April/May' },
-{ value: 'supplementary', label: 'Supplementary' }];
+  { value: 'june_july', label: 'June/July' },
+  { value: 'nov_dec', label: 'November/December' },
+  { value: 'jan_feb', label: 'January/February' },
+  { value: 'apr_may', label: 'April/May' },
+  { value: 'supplementary', label: 'Supplementary' }];
 
 
 const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
@@ -34,10 +36,10 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [selectedRequest, setSelectedRequest] = useState<RevaluationRequest | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [actionDialogOpen, setActionDialogOpen] = useState(false);
-  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
-  const [responseNote, setResponseNote] = useState('');
-  const [processing, setProcessing] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [revalApplicationsOpen, setRevalApplicationsOpen] = useState<boolean>(false);
+  const [uploadId, setUploadId] = useState<number | null>(null);
+  const [togglingReval, setTogglingReval] = useState<boolean>(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,11 +54,21 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [examPeriod, setExamPeriod] = useState<string>('');
   const [status, setStatus] = useState<string>('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   useEffect(() => {
     loadFilters();
     // Don't load requests on initial mount - wait for filters to be selected
   }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
 
   useEffect(() => {
     // Only load requests when all required filters are selected
@@ -69,8 +81,10 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       setRequests([]);
       setTotalCount(0);
       setTotalPages(0);
+      setRevalApplicationsOpen(false);
+      setUploadId(null);
     }
-  }, [batchId, branchId, semesterId, examPeriod, status, search]);
+  }, [batchId, branchId, semesterId, examPeriod, status, debouncedSearch]);
 
   useEffect(() => {
     // Reload requests when page or page size changes (but only if filters are complete)
@@ -103,7 +117,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       if (semesterId && semesterId !== 'all') params.semester_id = parseInt(semesterId);
       if (examPeriod && examPeriod !== 'all') params.exam_period = examPeriod;
       if (status && status !== 'all') params.status = status;
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
 
       const result = await getRevaluationRequests(params);
       if (result.success && result.data) {
@@ -112,6 +126,8 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
         const uiPag = paginationToUI(result.data, result.data.requests || [], pageSize);
         setTotalCount(uiPag.total_items || 0);
         setTotalPages(uiPag.total_pages || 1);
+        setRevalApplicationsOpen(!!result.data.reval_applications_open);
+        setUploadId(result.data.upload_id || null);
       }
     } catch (error) {
 
@@ -121,55 +137,25 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
     }
   };
 
-  const handleAction = async (request: RevaluationRequest, action: 'approve' | 'reject') => {
-    setSelectedRequest(request);
-    setActionType(action);
-    setResponseNote('');
-    setActionDialogOpen(true);
-  };
-
-  const handleActionDialogOpenChange = (open: boolean) => {
-    setActionDialogOpen(open);
-    if (!open) {
-      setSelectedRequest(null);
-      setActionType(null);
-      setResponseNote('');
-    }
-  };
-
-  const submitAction = async () => {
-    if (!selectedRequest || !actionType) return;
-
+  const handleToggleRevalWindow = async () => {
+    if (!uploadId) return;
+    setTogglingReval(true);
     try {
-      setProcessing(true);
-      const result = await updateRevaluationRequestStatus(
-        selectedRequest.id,
-        actionType === 'approve' ? 'approved' : 'rejected',
-        responseNote
-      );
-
-      if (result.success) {
-        toast.success(`Revaluation request ${actionType}d successfully`);
-        // Update the request status in local state instead of refetching
-        setRequests((prevRequests) =>
-        prevRequests.map((req) =>
-        req.id === selectedRequest.id ?
-        { ...req, status: actionType === 'approve' ? 'approved' : 'rejected' } :
-        req
-        )
-        );
-        setActionDialogOpen(false);
-        loadRequests(); // Refresh the list
+      const res = await toggleRevalApplications(uploadId);
+      if (res.success) {
+        setRevalApplicationsOpen(!!res.reval_applications_open);
+        toast.success(res.message || 'Updated revaluation status successfully');
       } else {
-        toast.error(result.message || 'Failed to update request');
+        toast.error(res.message || 'Failed to update revaluation status');
       }
-    } catch (error) {
-
-      toast.error('Failed to update request');
+    } catch (err) {
+      toast.error('An error occurred');
     } finally {
-      setProcessing(false);
+      setTogglingReval(false);
     }
   };
+
+
 
   const getStatusBadge = (status: string) => {
     const baseClass = 'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold shadow-sm';
@@ -224,7 +210,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <SelectContent>
                   <SelectItem value="all">All Batches</SelectItem>
                   {filters?.batches.map((batch) =>
-                  <SelectItem key={batch.id} value={batch.id.toString()}>{batch.name}</SelectItem>
+                    <SelectItem key={batch.id} value={batch.id.toString()}>{batch.name}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -232,14 +218,14 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             <div>
               <Label htmlFor="branch">Branch</Label>
-              <Select value={branchId} onValueChange={(value) => {setBranchId(value);setSemesterId('');fetchSemesters(value);}}>
+              <Select value={branchId} onValueChange={(value) => { setBranchId(value); setSemesterId(''); fetchSemesters(value); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Branches</SelectItem>
                   {filters?.branches.map((branch) =>
-                  <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
+                    <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -254,7 +240,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <SelectContent>
                   <SelectItem value="all">All Semesters</SelectItem>
                   {getAvailableSemesters().map((semester) =>
-                  <SelectItem key={semester.id} value={semester.id.toString()}>{semester.number}</SelectItem>
+                    <SelectItem key={semester.id} value={semester.id.toString()}>{semester.number}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -269,7 +255,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <SelectContent>
                   <SelectItem value="all">All Periods</SelectItem>
                   {EXAM_PERIODS.map((period) =>
-                  <SelectItem key={period.value} value={period.value}>{period.label}</SelectItem>
+                    <SelectItem key={period.value} value={period.value}>{period.label}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -283,9 +269,9 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="photocopy">Photocopy Only</SelectItem>
+                  <SelectItem value="revaluation">Revaluation Only</SelectItem>
+                  <SelectItem value="both">Both Photocopy & Reval</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -300,7 +286,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 placeholder="Search by name, USN, subject..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)} />
-              
+
             </div>
           </div>
         </CardContent>
@@ -322,6 +308,45 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       ) : (
         <Card>
           <CardContent className="p-6">
+            {/* Revaluation applications window control */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-border">
+              <div>
+                <h3 className="text-lg font-semibold">Revaluation Application Window</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Control student submissions for the selected batch, branch, semester, and exam period.
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Status:</span>
+                  {revalApplicationsOpen ? (
+                    <Badge className="border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+                      Active / Open
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="border-red-200 bg-red-100 text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+                      Inactive / Closed
+                    </Badge>
+                  )}
+                </div>
+                {uploadId ? (
+                  <Button
+                    onClick={handleToggleRevalWindow}
+                    disabled={togglingReval}
+                    variant={revalApplicationsOpen ? "destructive" : "default"}
+                    size="sm"
+                    className="font-medium shadow-sm transition-all animate-in fade-in duration-200"
+                  >
+                    {togglingReval ? 'Updating...' : revalApplicationsOpen ? 'Close Applications' : 'Open Applications'}
+                  </Button>
+                ) : (
+                  <div className="text-xs text-muted-foreground italic max-w-xs text-right">
+                    No result batch found. Create the result upload batch first to manage applications.
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="border rounded-lg">
               <Table>
                 <TableHeader>
@@ -387,27 +412,9 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.open(request.attachment!, '_blank')}>
+                                onClick={() => downloadFileViaBackendProxy(request.attachment!, `${request.student_usn}_${request.subject_code}_Photocopy`)}>
                                 <Download className="w-4 h-4" />
                               </Button>
-                            )}
-                            {request.status === 'pending' && (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleAction(request, 'approve')}
-                                  className="text-green-700 border-green-600 hover:bg-green-100">
-                                  Approve
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleAction(request, 'reject')}
-                                  className="text-red-700 border-red-600 hover:bg-red-100">
-                                  Reject
-                                </Button>
-                              </>
                             )}
                           </div>
                         </TableCell>
@@ -500,13 +507,13 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       )}
 
       {/* Request Details Dialog */}
-      <Dialog open={!!selectedRequest && !actionDialogOpen} onOpenChange={() => setSelectedRequest(null)}>
+      <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
         <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[calc(100vw-2rem)] sm:w-[90vw] rounded-lg flex flex-col max-h-[92vh]`}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Revaluation Request Details</DialogTitle>
           </DialogHeader>
           {selectedRequest &&
-          <div className="space-y-4 overflow-auto px-1 sm:px-2 py-1">
+            <div className="space-y-4 overflow-auto px-1 sm:px-2 py-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Student</Label>
@@ -560,100 +567,108 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <p className={`mt-1 rounded-md p-3 whitespace-pre-wrap ${theme === 'dark' ? 'bg-muted/20' : 'bg-gray-50 border border-gray-200'}`}>{selectedRequest.reason}</p>
               </div>
               {selectedRequest.response_note &&
-            <div>
+                <div>
                   <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Response Note</Label>
                   <p className={`mt-1 rounded-md p-3 whitespace-pre-wrap ${theme === 'dark' ? 'bg-muted/20' : 'bg-gray-50 border border-gray-200'}`}>{selectedRequest.response_note}</p>
                 </div>
-            }
+              }
               {selectedRequest.processed_by &&
-            <div>
+                <div>
                   <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Processed By</Label>
                   <p>{selectedRequest.processed_by}</p>
                   {selectedRequest.processed_at &&
-              <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       on {new Date(selectedRequest.processed_at).toLocaleString()}
                     </p>
-              }
+                  }
                 </div>
-            }
+              }
               {/* Photocopy upload UI for approved requests that include photocopy type and lack attachment */}
               {selectedRequest && selectedRequest.types?.includes('photocopy') && selectedRequest.status === 'approved' && !selectedRequest.attachment &&
-            <div>
+                <div>
                   <Label className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Upload Photocopy</Label>
                   <div className="flex items-center gap-2 mt-2">
-                    <input type="file" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} />
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        if (file) {
+                          const ext = file.name.split('.').pop()?.toLowerCase();
+                          if (!ext || !['pdf', 'jpg', 'jpeg', 'png'].includes(ext)) {
+                            toast.error('Invalid file type. Only PDF, JPG, JPEG, and PNG are allowed.');
+                            e.target.value = '';
+                            setUploadFile(null);
+                            return;
+                          }
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error('Photocopy file size must be below 5MB');
+                            e.target.value = '';
+                            setUploadFile(null);
+                            return;
+                          }
+                        }
+                        setUploadFile(file);
+                      }}
+                    />
                     <Button
-                  disabled={!uploadFile || uploading}
-                  onClick={async () => {
-                    if (!selectedRequest || !uploadFile) return;
-                    setUploading(true);
-                    try {
-                      const form = new FormData();
-                      form.append('attachment', uploadFile);
-                      const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/revaluation-requests/${selectedRequest.id}/upload-photocopy/`, {
-                        method: 'POST',
-                        body: form
-                      });
-                      const json = await res.json();
-                      if (json.success && json.revaluation_request) {
-                        toast.success('Photocopy uploaded');
-                        // refresh list
-                        loadRequests(currentPage);
-                        setSelectedRequest(json.revaluation_request as RevaluationRequest);
-                      } else {
-                        toast.error(json.message || 'Upload failed');
-                      }
-                    } catch (err) {
+                      disabled={!uploadFile || uploading}
+                      onClick={async () => {
+                        if (!selectedRequest || !uploadFile) return;
+                        setUploading(true);
+                        try {
+                          const form = new FormData();
+                          form.append('attachment', uploadFile);
+                          const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/revaluation-requests/${selectedRequest.id}/upload-photocopy/`, {
+                            method: 'POST',
+                            body: form
+                          });
+                          const json = await res.json();
+                          if (json.success && json.revaluation_request) {
+                            toast.success('Photocopy uploaded');
+                            // refresh list
+                            loadRequests(currentPage);
+                            setSelectedRequest(json.revaluation_request as RevaluationRequest);
+                            setShowSuccessDialog(true);
+                          } else {
+                            toast.error(json.message || 'Upload failed');
+                          }
+                        } catch (err) {
 
-                      toast.error('Upload failed');
-                    }
-                    setUploading(false);
-                    setUploadFile(null);
-                  }}>
-                  
+                          toast.error('Upload failed');
+                        }
+                        setUploading(false);
+                        setUploadFile(null);
+                      }}>
+
                       {uploading ? 'Uploading...' : 'Upload'}
                     </Button>
                   </div>
                 </div>
-            }
+              }
             </div>
           }
         </DialogContent>
       </Dialog>
 
-      {/* Action Dialog */}
-      <Dialog open={actionDialogOpen} onOpenChange={handleActionDialogOpenChange}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[80%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
+      {/* Upload Confirmation Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-sm rounded-lg`}>
           <DialogHeader>
-            <DialogTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-lg font-semibold`}>
-              {actionType === 'approve' ? 'Approve' : 'Reject'} Revaluation Request
-            </DialogTitle>
+            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Upload Successful</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className={`p-4 rounded-md ${actionType === 'approve' ? 'bg-green-50 border border-green-200 text-green-700 space-y-2' : 'bg-red-50 border border-red-200 text-red-700 space-y-2'}`}>
-              <Label htmlFor="response-note" className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Response Note (Optional)</Label>
-              <Textarea
-                id="response-note"
-                placeholder="Add a note for the student..."
-                value={responseNote}
-                onChange={(e) => setResponseNote(e.target.value)} />
-              
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'} onClick={() => handleActionDialogOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={submitAction}
-                disabled={processing}
-                variant="outline"
-                className={actionType === 'approve' ? 'text-green-700 border-green-600 hover:bg-green-100' : 'text-red-700 border-red-600 hover:bg-red-100'}>
-                {processing ? 'Processing...' : actionType === 'approve' ? 'Approve' : 'Reject'}
-              </Button>
-            </div>
+          <div className="py-4 text-center space-y-3">
+            <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto" />
+            <p className="text-sm">The photocopy has been uploaded successfully.</p>
           </div>
+          <DialogFooter className="justify-center">
+            <Button onClick={() => setShowSuccessDialog(false)} className="bg-primary hover:bg-primary/90 text-white w-full">
+              OK
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>);
 
 });

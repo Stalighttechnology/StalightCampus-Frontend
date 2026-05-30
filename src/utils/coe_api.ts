@@ -521,9 +521,13 @@ export const getPublishedResults = async (filters: {
 };
 
 // Public view by token
-export const publicViewResultByToken = async (token: string, usn: string, recaptchaToken: string) => {
+export const publicViewResultByToken = async (token: string, usn: string, recaptchaToken: string, type?: string) => {
   try {
-    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/results/view/${token}/?usn=${encodeURIComponent(usn)}&recaptcha_token=${encodeURIComponent(recaptchaToken)}`, {
+    let url = `${API_ENDPOINT}/results/view/${token}/?usn=${encodeURIComponent(usn)}&recaptcha_token=${encodeURIComponent(recaptchaToken)}`;
+    if (type) {
+      url += `&type=${encodeURIComponent(type)}`;
+    }
+    const response = await fetchWithTokenRefresh(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -660,7 +664,7 @@ export const getMakeupRequests = async (params: {
   search?: string;
   page?: number;
   page_size?: number;
-}): Promise<{success: boolean;message?: string;data?: {requests: MakeupRequest[];pagination?: any;};}> => {
+}): Promise<{success: boolean;message?: string;data?: {requests: MakeupRequest[];pagination?: any;makeup_applications_open?: boolean;upload_id?: number;};pagination?: any;}> => {
   try {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -693,7 +697,8 @@ export const getRevaluationRequests = async (params: {
   search?: string;
   page?: number;
   page_size?: number;
-}): Promise<{success: boolean;message?: string;data?: {requests: RevaluationRequest[];pagination?: any;};}> => {
+  exam_period?: string;
+}): Promise<{success: boolean;message?: string;data?: {requests: RevaluationRequest[];pagination?: any;reval_applications_open?: boolean;upload_id?: number;};}> => {
   try {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -836,3 +841,47 @@ export const deleteExam = async (examId: number): Promise<{success: boolean;mess
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
+
+/**
+ * Toggle revaluation applications open/closed status for a result upload batch
+ */
+export const toggleRevalApplications = async (uploadId: number): Promise<{
+  success: boolean;
+  message?: string;
+  reval_applications_open?: boolean;
+}> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/result-upload/${uploadId}/toggle-reval/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+/**
+ * Toggle makeup exam applications open/closed status for a result upload batch
+ */
+export const toggleMakeupApplications = async (uploadId: number): Promise<{
+  success: boolean;
+  message?: string;
+  makeup_applications_open?: boolean;
+}> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/result-upload/${uploadId}/toggle-makeup/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};

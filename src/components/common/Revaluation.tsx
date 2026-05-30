@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
+import { downloadFileViaBackendProxy } from "@/utils/common_api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/context/ThemeContext";
-import { ChevronDown, UserX } from "lucide-react";
+import { ChevronDown, UserX, Download } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,12 +22,13 @@ type Filters = {usn: string;exam_period: string;};
 
 const Revaluation = () => {
   const [filters, setFilters] = useState<Filters>({ usn: "", exam_period: "" });
-  const [students, setStudents] = useState<Array<{usn: string;name: string;student_id: number;subjects: Array<{subject_id: number;subject_name: string;cie_marks?: number;see_marks?: number;total_marks?: number;status: string;applied: boolean;subject_mark_id: number;}>;}>>([]);
+  const [students, setStudents] = useState<Array<{usn: string;name: string;student_id: number;subjects: Array<{subject_id: number;subject_name: string;cie_marks?: number;see_marks?: number;total_marks?: number;status: string;applied: boolean;subject_mark_id: number;request_details?: {status: string;types: string[];requested_at: string;processed_by?: string;processed_at?: string;response_note?: string;attachment?: string | null;};}>;}>>([]);
   const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.sessionStorage.getItem("role") : null;
   const [selectionMap, setSelectionMap] = useState<Record<number, {revaluation: boolean;photocopy: boolean;}>>({});
   const [viewModal, setViewModal] = useState<{open: boolean;request?: any;}>({ open: false });
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
+  const [revalApplicationsOpen, setRevalApplicationsOpen] = useState<boolean | null>(null);
 
   const sanitizeMessage = (msg: string | object | null | undefined): string | null => {
     if (!msg) return null;
@@ -105,6 +107,7 @@ const Revaluation = () => {
 
   const loadStudents = async () => {
     setLoading(true);
+    setRevalApplicationsOpen(null);
     const qs = new URLSearchParams();
     qs.set("usn", filters.usn.trim());
     qs.set("exam_period", filters.exam_period);
@@ -123,14 +126,16 @@ const Revaluation = () => {
           subjects: (st.subjects || []).map((sb) => ({ ...sb, applied: !!sb.applied }))
         }));
         setStudents(safeStudents);
+        setRevalApplicationsOpen(payload.reval_applications_open !== undefined ? Boolean(payload.reval_applications_open) : true);
       } else {
         setStudents([]);
-
+        setRevalApplicationsOpen(null);
         setMessageModal({ open: true, title: 'Error', message: message || 'Failed to load students' });
       }
     } catch (err) {
 
       setStudents([]);
+      setRevalApplicationsOpen(null);
       setMessageModal({ open: true, title: 'Error', message: 'Failed to load students (network or auth error)' });
     }
     setLoading(false);
@@ -138,15 +143,17 @@ const Revaluation = () => {
 
 
 
-  const getStatusBadge = (status: string, applied: boolean) => {
+  const getStatusBadge = (status: string, applied: boolean, requestDetails?: { types?: string[] }) => {
     if (applied) {
-      return <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Applied</span>;
+      const types = requestDetails?.types || [];
+      const typesDisplay = types.length > 0
+        ? ` (${types.map(t => t === 'photocopy' ? 'Copy' : 'Reval').join(', ')})`
+        : '';
+      return <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>Applied{typesDisplay}</span>;
     }
     return status === 'pass' ?
     <span className="text-green-600">Pass</span> :
-
     <span className="text-red-600">Fail</span>;
-
   };
 
   const handleRevaluationCheckbox = (subjectMarkId: number, checked: boolean) => {
@@ -169,24 +176,25 @@ const Revaluation = () => {
     }));
   };
 
-  const renderActionCell = (sub: {subject_mark_id: number;subject_name: string;applied: boolean;}, isStudentRole: boolean) => {
+  const renderActionCell = (sub: {
+    subject_mark_id: number;
+    subject_name: string;
+    applied: boolean;
+    request_details?: {
+      status: string;
+      types: string[];
+      requested_at: string;
+      processed_by?: string;
+      processed_at?: string;
+      response_note?: string;
+    };
+  }, isStudentRole: boolean) => {
     if (!sub.subject_mark_id) {
       return 'N/A';
     }
     if (isStudentRole) {
-      // for students, if already applied show View button, else show checkboxes
-      if (sub.applied) {
-        return (
-          <Button
-            onClick={() => handleViewRequest(sub.subject_mark_id)}
-            variant="outline"
-            className="text-xs sm:text-sm h-auto px-2 py-1 border-blue-500 text-blue-600 hover:bg-blue-50">
-            
-            View
-          </Button>);
-
-      }
-      return renderStudentCheckboxes(sub.subject_mark_id);
+      const appliedTypes = sub.request_details?.types || [];
+      return renderStudentCheckboxes(sub.subject_mark_id, appliedTypes, sub.applied);
     }
     return renderApproveButton(sub.subject_mark_id, sub.subject_name, sub.applied);
   };
@@ -204,7 +212,8 @@ const Revaluation = () => {
           processed_by_name: rd.processed_by,
           processed_at: rd.processed_at,
           response_note: rd.response_note,
-          types: rd.types || []
+          types: rd.types || [],
+          attachment: rd.attachment
         };
         setViewModal({ open: true, request });
         return;
@@ -214,25 +223,44 @@ const Revaluation = () => {
     setMessageModal({ open: true, title: 'Info', message: 'No request details available' });
   };
 
-  const renderStudentCheckboxes = (subjectMarkId: number) =>
-  <div className="flex gap-2 items-center">
-      <label className="text-xs flex items-center gap-1">
-        <input
-        type="checkbox"
-        checked={!!selectionMap[subjectMarkId]?.revaluation}
-        onChange={(e) => handleRevaluationCheckbox(subjectMarkId, e.target.checked)} />
-      
-        <span>Reval</span>
-      </label>
-      <label className="text-xs flex items-center gap-1">
-        <input
-        type="checkbox"
-        checked={!!selectionMap[subjectMarkId]?.photocopy}
-        onChange={(e) => handlePhotocopCheckbox(subjectMarkId, e.target.checked)} />
-      
-        <span>Copy</span>
-      </label>
-    </div>;
+  const renderStudentCheckboxes = (subjectMarkId: number, appliedTypes: string[], hasAppliedAny: boolean) => {
+    const hasReval = appliedTypes.includes("revaluation");
+    const hasCopy = appliedTypes.includes("photocopy");
+    const isClosed = revalApplicationsOpen === false;
+
+    return (
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <div className="flex gap-2 items-center">
+          <label className={`text-xs flex items-center gap-1 ${(hasReval || isClosed) ? 'text-gray-400 dark:text-muted-foreground' : ''}`}>
+            <input
+              type="checkbox"
+              disabled={hasReval || isClosed}
+              checked={hasReval || !!selectionMap[subjectMarkId]?.revaluation}
+              onChange={(e) => handleRevaluationCheckbox(subjectMarkId, e.target.checked)}
+            />
+            <span>Reval {hasReval && "(Applied)"}</span>
+          </label>
+          <label className={`text-xs flex items-center gap-1 ${(hasCopy || isClosed) ? 'text-gray-400 dark:text-muted-foreground' : ''}`}>
+            <input
+              type="checkbox"
+              disabled={hasCopy || isClosed}
+              checked={hasCopy || !!selectionMap[subjectMarkId]?.photocopy}
+              onChange={(e) => handlePhotocopCheckbox(subjectMarkId, e.target.checked)}
+            />
+            <span>Copy {hasCopy && "(Applied)"}</span>
+          </label>
+        </div>
+        {hasAppliedAny && (
+          <Button
+            onClick={() => handleViewRequest(subjectMarkId)}
+            variant="outline"
+            className="text-xs h-auto px-2 py-0.5 border-blue-500 text-blue-600 hover:bg-blue-50 mt-1 sm:mt-0 sm:ml-2">
+            View Request
+          </Button>
+        )}
+      </div>
+    );
+  };
 
 
   const renderApproveButton = (subjectMarkId: number, subjectName: string, applied: boolean) =>
@@ -306,6 +334,17 @@ const Revaluation = () => {
             {/* Results Section */}
             {!loading && students.length > 0 ?
             <div className="space-y-6 pt-4 border-t">
+                {revalApplicationsOpen === false && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/20 text-red-800 dark:text-red-200 text-xs sm:text-sm animate-in slide-in-from-top-2 duration-200">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                      Revaluation Applications Closed
+                    </div>
+                    <p className="mt-1 text-muted-foreground">
+                      The Controller of Examinations (COE) has not opened or has closed the application receiving window for this batch, branch, semester, and exam period. You cannot apply at this time.
+                    </p>
+                  </div>
+                )}
                 {students.map((s) =>
               <div key={s.student_id} className={`rounded-xl border ${theme === 'dark' ? 'bg-background/50 border-border' : 'bg-gray-50 border-gray-200'} overflow-hidden`}>
                     <div className="p-3 sm:p-4 lg:p-6 pb-2 sm:pb-3">
@@ -342,7 +381,7 @@ const Revaluation = () => {
                                 <td className="text-right p-2 sm:p-3">{sub.see_marks ?? '-'}</td>
                                 <td className="text-right p-2 sm:p-3">{sub.total_marks ?? '-'}</td>
                                 <td className="p-2 sm:p-3">
-                                  {getStatusBadge(sub.status, sub.applied)}
+                                  {getStatusBadge(sub.status, sub.applied, sub.request_details)}
                                 </td>
                                 <td className="p-2 sm:p-3">
                                   {renderActionCell(sub, role === 'student')}
@@ -369,7 +408,7 @@ const Revaluation = () => {
                                 </div>
                               </div>
                               <div className="text-right ml-2">
-                                {getStatusBadge(sub.status, sub.applied)}
+                                {getStatusBadge(sub.status, sub.applied, sub.request_details)}
                               </div>
                             </div>
 
@@ -493,7 +532,7 @@ const Revaluation = () => {
                   }
                   setLoading(false);
                 }}
-                disabled={loading}
+                disabled={loading || revalApplicationsOpen === false}
                 className="text-xs sm:text-sm h-auto px-3 py-2 bg-primary hover:bg-primary/90 text-white">
                 
                   {loading ? 'Processing...' : 'Pay & Apply'}
@@ -551,9 +590,16 @@ const Revaluation = () => {
               <div><strong>Status:</strong> {viewModal.request.status}</div>
               <div><strong>Types:</strong> {(viewModal.request.types || []).map((t: string) => t === 'photocopy' ? 'Photocopy' : 'Revaluation').join(', ') || '-'}</div>
               <div><strong>Requested At:</strong> {viewModal.request.requested_at || '-'}</div>
-              <div><strong>Processed By:</strong> {viewModal.request.processed_by_name || '-'}</div>
-              <div><strong>Processed At:</strong> {viewModal.request.processed_at || '-'}</div>
-              <div><strong>Response:</strong> {viewModal.request.response_note || '-'}</div>
+              {viewModal.request.attachment && (
+                <div className="pt-2">
+                  <Button
+                    onClick={() => downloadFileViaBackendProxy(viewModal.request.attachment, `${viewModal.request.subject_name}_Photocopy`)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg mt-2"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download Photocopy
+                  </Button>
+                </div>
+              )}
             </div> :
 
           <p className="text-xs sm:text-sm">No details available</p>
