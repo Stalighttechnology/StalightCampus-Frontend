@@ -445,17 +445,37 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
     state.students;
 
     const confirmRes = await Swal.fire({
-      title: 'Confirm Promotion',
-      text: `Are you sure you want to promote ${studentsToPromote.length} student(s) to Semester ${nextSemester.number}?`,
-      icon: 'question',
+      title: 'Are you sure?',
+      html: `You are about to promote ${studentsToPromote.length} student(s) to Semester ${nextSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, Promote',
+      confirmButtonText: 'Yes, proceed',
       cancelButtonText: 'Cancel',
       background: theme === 'dark' ? '#0f172a' : '#fff',
       color: theme === 'dark' ? '#fff' : '#000'
     });
 
     if (!confirmRes.isConfirmed) {
+      return;
+    }
+
+    const typedConfirm = await Swal.fire({
+      title: 'Confirm Action',
+      text: 'To confirm, type "PROMOTE" in the box below:',
+      input: 'text',
+      inputPlaceholder: 'PROMOTE',
+      showCancelButton: true,
+      confirmButtonText: 'Confirm Promotion',
+      background: theme === 'dark' ? '#0f172a' : '#fff',
+      color: theme === 'dark' ? '#fff' : '#000',
+      inputValidator: (value) => {
+        if (value !== 'PROMOTE') {
+          return 'You must type "PROMOTE" to confirm!';
+        }
+      }
+    });
+
+    if (!typedConfirm.isConfirmed) {
       return;
     }
 
@@ -570,17 +590,37 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
     const allStudents = [...state.students];
 
     const confirmRes = await Swal.fire({
-      title: 'Confirm Bulk Promotion',
-      text: `Are you sure you want to promote all ${allStudents.length} students in this section to Semester ${nextSemester.number}?`,
+      title: 'Are you sure?',
+      html: `You are about to promote ALL ${allStudents.length} student(s) in this section to Semester ${nextSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Yes, Promote All',
+      confirmButtonText: 'Yes, proceed',
       cancelButtonText: 'Cancel',
       background: theme === 'dark' ? '#0f172a' : '#fff',
       color: theme === 'dark' ? '#fff' : '#000'
     });
 
     if (!confirmRes.isConfirmed) {
+      return;
+    }
+
+    const typedConfirm = await Swal.fire({
+      title: 'Confirm Action',
+      text: 'To confirm, type "PROMOTE" in the box below:',
+      input: 'text',
+      inputPlaceholder: 'PROMOTE',
+      showCancelButton: true,
+      confirmButtonText: 'Confirm Bulk Promotion',
+      background: theme === 'dark' ? '#0f172a' : '#fff',
+      color: theme === 'dark' ? '#fff' : '#000',
+      inputValidator: (value) => {
+        if (value !== 'PROMOTE') {
+          return 'You must type "PROMOTE" to confirm!';
+        }
+      }
+    });
+
+    if (!typedConfirm.isConfirmed) {
       return;
     }
 
@@ -1120,6 +1160,41 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
 
     // Optimistic update: immediately remove demoted students from the list
     const studentsToDemote = state.selectedStudents.length > 0 ? state.students.filter((student) => state.selectedStudents.includes(student.usn)) : state.students;
+
+    const confirmRes = await Swal.fire({
+      title: 'Are you sure?',
+      html: `You are about to demote ${studentsToDemote.length} student(s) to Semester ${prevSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once demoted, they will be returned to the previous semester and their current semester data will be adjusted.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, proceed',
+      cancelButtonText: 'Cancel',
+      background: theme === 'dark' ? '#0f172a' : '#fff',
+      color: theme === 'dark' ? '#fff' : '#000'
+    });
+
+    if (!confirmRes.isConfirmed) {
+      return;
+    }
+
+    const typedConfirm = await Swal.fire({
+      title: 'Confirm Action',
+      text: 'To confirm, type "DEMOTE" in the box below:',
+      input: 'text',
+      inputPlaceholder: 'DEMOTE',
+      showCancelButton: true,
+      confirmButtonText: 'Confirm Demotion',
+      background: theme === 'dark' ? '#0f172a' : '#fff',
+      color: theme === 'dark' ? '#fff' : '#000',
+      inputValidator: (value) => {
+        if (value !== 'DEMOTE') {
+          return 'You must type "DEMOTE" to confirm!';
+        }
+      }
+    });
+
+    if (!typedConfirm.isConfirmed) {
+      return;
+    }
 
     updateState({
       students: state.students.filter((student) => !state.selectedStudents.includes(student.usn)),
