@@ -4,6 +4,43 @@ import { fetchWithTokenRefresh } from '../../utils/authService';
 import { useTheme } from '../../context/ThemeContext';
 import { Clock, Globe, Smartphone, Monitor, Tablet, ShieldCheck, RefreshCw } from 'lucide-react';
 
+import { 
+  SiAndroid, SiApple, SiWindows, SiLinux, SiGooglechrome, 
+  SiXiaomi, SiOneplus, SiMotorola, SiSamsung, SiHuawei, 
+  SiLenovo, SiAsus, SiNokia, SiOppo, SiVivo, SiGoogle
+} from 'react-icons/si';
+import { FaWindows, FaApple, FaLinux } from 'react-icons/fa';
+
+const getBrandIcon = (entry: any) => {
+  const brand = (entry.brand || '').toLowerCase();
+  const os = (entry.os || '').toLowerCase();
+  const deviceName = (entry.device || '').toLowerCase();
+
+  // Brands
+  if (brand.includes('apple') || os.includes('mac') || os.includes('ios')) return FaApple;
+  if (brand.includes('windows') || os.includes('windows')) return FaWindows;
+  if (brand.includes('linux') || os.includes('linux')) return FaLinux;
+  if (brand.includes('chrome') || os.includes('chrome')) return SiGooglechrome;
+  if (brand.includes('xiaomi') || brand.includes('redmi') || brand.includes('poco')) return SiXiaomi;
+  if (brand.includes('oneplus')) return SiOneplus;
+  if (brand.includes('motorola') || brand.includes('moto')) return SiMotorola;
+  if (brand.includes('samsung')) return SiSamsung;
+  if (brand.includes('huawei')) return SiHuawei;
+  if (brand.includes('lenovo')) return SiLenovo;
+  if (brand.includes('asus')) return SiAsus;
+  if (brand.includes('nokia')) return SiNokia;
+  if (brand.includes('oppo') || brand.includes('realme')) return SiOppo; // Realme shares Oppo heritage
+  if (brand.includes('vivo')) return SiVivo;
+  if (brand.includes('google') || deviceName.includes('pixel')) return SiGoogle;
+  if (brand.includes('android') || os.includes('android')) return SiAndroid;
+
+  // Fallbacks based on device type
+  if (entry.device_type === 'mobile') return Smartphone;
+  if (entry.device_type === 'tablet') return Tablet;
+  if (entry.device_type === 'desktop') return Monitor;
+  return Globe;
+};
+
 const LoginActivity: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -113,10 +150,7 @@ const LoginActivity: React.FC = () => {
               return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
             })();
 
-            const DeviceIcon = entry.device_type === 'mobile' ? Smartphone
-              : entry.device_type === 'tablet' ? Tablet
-              : entry.device_type === 'desktop' ? Monitor
-              : Globe;
+            const DeviceIcon = getBrandIcon(entry);
 
             const iconColor = entry.device_type === 'mobile' ? 'text-emerald-600'
               : entry.device_type === 'tablet' ? 'text-blue-600'
