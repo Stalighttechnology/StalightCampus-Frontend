@@ -139,3 +139,6 @@ QODER.md
 .cursorrules
 .windsurfrules
 .github/code-review-graph.instruction.md
+
+# Vite PWA Dev Output
+dev-dist/

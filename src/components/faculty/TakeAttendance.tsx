@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
@@ -42,13 +42,13 @@ const TakeAttendance = () => {
   const { toast } = useToast();
   const { data: assignments = [], isLoading: assignmentsLoading, error: assignmentsError } = useFacultyAssignmentsQuery();
   // Normalize assignment IDs to numbers to avoid string/number mismatch from backend
-  const normalizedAssignments = assignments.map((a) => ({
+  const normalizedAssignments = useMemo(() => assignments.map((a) => ({
     ...a,
     subject_id: a.subject_id ? Number(a.subject_id) : null,
     branch_id: a.branch_id ? Number(a.branch_id) : null,
     semester_id: a.semester_id ? Number(a.semester_id) : null,
     section_id: a.section_id ? Number(a.section_id) : null
-  }));
+  })), [assignments]);
   const { theme } = useTheme();
   const [branchId, setBranchId] = useState<number | null>(null);
   const [semesterId, setSemesterId] = useState<number | null>(null);
@@ -97,6 +97,8 @@ const TakeAttendance = () => {
   const lastBootstrapParamsRef = useRef<any>(null);
   // When auto-deriving branch/semester/section, suppress the branch-change clearing effect once
   const suppressBranchClearRef = useRef(false);
+  const suppressSemesterClearRef = useRef(false);
+  const hasTriggeredAutoOpenRef = useRef<number | null>(null);
 
   // Central runLoader function (moved to component scope so multiple effects can use it)
   const runLoader = (loader: any, paramsObj: any, mapStudents: boolean = true) => {
@@ -104,7 +106,6 @@ const TakeAttendance = () => {
     const params: any = makeParams(paramsObj);
     // Prevent duplicate calls by comparing against lastBootstrapParams (use ref for synchronous check)
     if (lastBootstrapParamsRef.current && JSON.stringify(params) === JSON.stringify(lastBootstrapParamsRef.current)) {
-      setLoadingStudents(false);
       return Promise.resolve();
     }
     setLastBootstrapParams(params);
@@ -155,10 +156,6 @@ const TakeAttendance = () => {
     return p;
   };
 
-  const debouncedSubjectId = useDebounced(subjectId, 300);
-  const debouncedBranchId = useDebounced(branchId, 300);
-  const debouncedSemesterId = useDebounced(semesterId, 300);
-  const debouncedSectionId = useDebounced(sectionId, 300);
   const debouncedPage = useDebounced(page, 300);
   const debouncedPageSize = useDebounced(pageSize, 300);
 
@@ -182,25 +179,47 @@ const TakeAttendance = () => {
 
   // Assignments are now loaded via context
 
-  // Reset selections and load students when debounced subject or class selection changes
+  // Reset selections and load students when subject or class selection changes
   useEffect(() => {
+    if (!subjectId) {
+      setStudents([]);
+      setAttendance({});
+      setRecentRecords([]);
+      setErrorMsg("");
+      return;
+    }
+
+    const currentParams = makeParams({
+      subject_id: subjectId,
+      branch_id: branchId,
+      semester_id: semesterId,
+      section_id: sectionId,
+      page: debouncedPage,
+      page_size: debouncedPageSize,
+      date: attendanceDate
+    });
+
+    const isDuplicate = lastBootstrapParamsRef.current && 
+      JSON.stringify(currentParams) === JSON.stringify(lastBootstrapParamsRef.current);
+
+    if (isDuplicate) {
+      return;
+    }
+
+    // Only clear states and show loader if it is a new request
     setStudents([]);
     setAttendance({});
     setRecentRecords([]);
     setErrorMsg("");
 
-    if (!debouncedSubjectId) return;
-
-
-
     // CASE 0: Elective (Branch + Semester + Subject, section optional)
-    if (debouncedSubjectId && debouncedBranchId && debouncedSemesterId && subjectType === 'elective') {
-      runLoader(getStudentsForElective, { subject_id: debouncedSubjectId, branch_id: debouncedBranchId, semester_id: debouncedSemesterId, section_id: debouncedSectionId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
+    if (subjectId && branchId && semesterId && subjectType === 'elective') {
+      runLoader(getStudentsForElective, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, section_id: sectionId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
       return;
     }
 
     // CASE 1: Combined class (Subject only)
-    if (debouncedSubjectId && !debouncedBranchId) {
+    if (subjectId && !branchId) {
       if (subjectStudents.length) {
         const mapped = subjectStudents.map((s) => ({ id: s.id, name: s.name, usn: s.usn }));
         setStudents(mapped);
@@ -210,45 +229,45 @@ const TakeAttendance = () => {
     }
 
     // CASE 2: Branch-specific class (Subject + Branch)
-    if (debouncedSubjectId && debouncedBranchId && !debouncedSemesterId && !debouncedSectionId) {
+    if (subjectId && branchId && !semesterId && !sectionId) {
       // For elective subjects we require semester selection before calling the elective endpoint
       if (subjectType === 'elective') return;
 
-      // For open_elective we DO NOT load students on branch-only selection; require branch+semester+section
-      if (subjectType === 'open_elective') return;
+      // For open_elective and regular subjects: require full selection before loading students
+      if (subjectType === 'open_elective' || subjectType === 'regular' || !subjectType) return;
 
-      // Regular subject: call regular loader
+      // Regular subject fallback or other: call regular loader
       const loader = getStudentsForRegular;
-      runLoader(loader, { subject_id: debouncedSubjectId, branch_id: debouncedBranchId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
+      runLoader(loader, { subject_id: subjectId, branch_id: branchId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
       return;
     }
 
     // CASE 2b: Branch + Semester selected (section optional)
-    if (debouncedSubjectId && debouncedBranchId && debouncedSemesterId && !debouncedSectionId) {
+    if (subjectId && branchId && semesterId && !sectionId) {
       if (subjectType === 'elective') {
         // Elective requires semester selection; call elective loader
-        runLoader(getStudentsForElective, { subject_id: debouncedSubjectId, branch_id: debouncedBranchId, semester_id: debouncedSemesterId, page: debouncedPage, page_size: debouncedPageSize });
+        runLoader(getStudentsForElective, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, page: debouncedPage, page_size: debouncedPageSize });
         return;
       }
 
-      // For open_elective: still require section selection before loading students
-      if (subjectType === 'open_elective') return;
+      // For open_elective and regular subjects: require section selection before loading students
+      if (subjectType === 'open_elective' || subjectType === 'regular' || !subjectType) return;
 
-      // Regular subject: call regular loader
+      // Regular subject fallback or other: call regular loader
       const loader = getStudentsForRegular;
-      runLoader(loader, { subject_id: debouncedSubjectId, branch_id: debouncedBranchId, semester_id: debouncedSemesterId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
+      runLoader(loader, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate });
       return;
     }
 
     // CASE 3: Section-specific class (Subject + Branch + Semester + Section)
-    if (debouncedSubjectId && debouncedBranchId && debouncedSemesterId && debouncedSectionId) {
+    if (subjectId && branchId && semesterId && sectionId) {
       const loader = subjectType === 'regular' || !subjectType ? getStudentsForRegular : subjectType === 'elective' ? getStudentsForElective : getStudentsForOpenElective;
-      runLoader(loader, { subject_id: debouncedSubjectId, branch_id: debouncedBranchId, semester_id: debouncedSemesterId, section_id: debouncedSectionId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate }, subjectType === 'regular');
+      runLoader(loader, { subject_id: subjectId, branch_id: branchId, semester_id: semesterId, section_id: sectionId, page: debouncedPage, page_size: debouncedPageSize, date: attendanceDate }, subjectType === 'regular');
       return;
     }
-  }, [debouncedSubjectId, debouncedBranchId, debouncedSemesterId, debouncedSectionId, debouncedPage, debouncedPageSize, attendanceDate]);
+  }, [subjectId, branchId, semesterId, sectionId, debouncedPage, debouncedPageSize, attendanceDate, subjectType, subjectStudents]);
 
-  // When subject changes, reset branch/semester/section selections
+  // When subject changes, reset branch/semester/section selections and set subject type immediately
   useEffect(() => {
     setBranchId(null);
     setSemesterId(null);
@@ -257,7 +276,21 @@ const TakeAttendance = () => {
     setAttendance({});
     setRecentRecords([]);
     setErrorMsg("");
-  }, [subjectId]);
+    hasTriggeredAutoOpenRef.current = null;
+    setSubjectStudents([]);
+
+    if (subjectId) {
+      const match = normalizedAssignments.find((a) => a.subject_id === subjectId);
+      const subjType = match?.subject_type || 'regular';
+      setSubjectType(subjType);
+      if (subjType === 'open_elective') {
+        setBootstrapParams(null);
+        updatePagination({ pagination: { page: 1, page_size: 50, total_pages: 1, total_students: 0 } });
+      }
+    } else {
+      setSubjectType(null);
+    }
+  }, [subjectId, normalizedAssignments]);
 
   // Auto-derive branch/semester/section from faculty assignments when subject selected
   useEffect(() => {
@@ -265,6 +298,7 @@ const TakeAttendance = () => {
     // Wait until subjectType is known (fetched by getSubjectDetail) to correctly
     // decide behavior for elective vs open_elective. If unknown, skip auto-derive.
     if (!subjectType) return;
+    if (hasTriggeredAutoOpenRef.current === subjectId) return;
     try {
       const subjectAssignments = normalizedAssignments.filter((a) => a.subject_id === Number(subjectId));
       if (!subjectAssignments || subjectAssignments.length === 0) return;
@@ -273,29 +307,66 @@ const TakeAttendance = () => {
       const uniqSemesters = Array.from(new Set(subjectAssignments.map((a) => a.semester_id))).filter(Boolean);
       const uniqSections = Array.from(new Set(subjectAssignments.map((a) => a.section_id))).filter(Boolean);
 
+      hasTriggeredAutoOpenRef.current = subjectId;
+
       // Behavior by subject type:
       // - open_elective: do not auto-select anything; require manual picks
       // - elective: auto-select branch & semester if unique; do NOT auto-select section (optional)
       // - regular/other: keep existing behavior (auto-select branch/semester/section when unique)
       if (subjectType === 'open_elective') {
+        setTimeout(() => setIsBranchOpen(true), 150);
         return;
       }
 
       if (subjectType === 'elective') {
-        if (uniqBranches.length === 1 || uniqSemesters.length === 1) {
-          suppressBranchClearRef.current = true;
-          if (uniqBranches.length === 1) setBranchId(uniqBranches[0]);
-          if (uniqSemesters.length === 1) setSemesterId(uniqSemesters[0]);
+        const isBranchUnique = uniqBranches.length === 1;
+        const isSemUnique = uniqSemesters.length === 1;
+        if (isBranchUnique || isSemUnique) {
+          if (isBranchUnique) {
+            suppressBranchClearRef.current = true;
+            setBranchId(uniqBranches[0]);
+          }
+          if (isSemUnique) {
+            suppressSemesterClearRef.current = true;
+            setSemesterId(uniqSemesters[0]);
+          }
+        }
+        if (isBranchUnique && isSemUnique) {
+          setTimeout(() => setIsSectionOpen(true), 150);
+        } else if (isBranchUnique) {
+          setTimeout(() => setIsSemesterOpen(true), 150);
+        } else {
+          setTimeout(() => setIsBranchOpen(true), 150);
         }
         return;
       }
 
       // regular or unknown subject_type: auto-select all unique values including section
-      if (uniqBranches.length === 1 || uniqSemesters.length === 1 || uniqSections.length === 1) {
-        suppressBranchClearRef.current = true;
-        if (uniqBranches.length === 1) setBranchId(uniqBranches[0]);
-        if (uniqSemesters.length === 1) setSemesterId(uniqSemesters[0]);
-        if (uniqSections.length === 1) setSectionId(uniqSections[0]);
+      const isBranchUnique = uniqBranches.length === 1;
+      const isSemUnique = uniqSemesters.length === 1;
+      const isSectionUnique = uniqSections.length === 1;
+      if (isBranchUnique || isSemUnique || isSectionUnique) {
+        if (isBranchUnique) {
+          suppressBranchClearRef.current = true;
+          setBranchId(uniqBranches[0]);
+        }
+        if (isSemUnique) {
+          suppressSemesterClearRef.current = true;
+          setSemesterId(uniqSemesters[0]);
+        }
+        if (isSectionUnique) {
+          setSectionId(uniqSections[0]);
+        }
+      }
+
+      if (isBranchUnique && isSemUnique && isSectionUnique) {
+        // All unique, everything is auto-selected, do nothing
+      } else if (isBranchUnique && isSemUnique) {
+        setTimeout(() => setIsSectionOpen(true), 150);
+      } else if (isBranchUnique) {
+        setTimeout(() => setIsSemesterOpen(true), 150);
+      } else {
+        setTimeout(() => setIsBranchOpen(true), 150);
       }
     } catch (e) {
 
@@ -324,6 +395,10 @@ const TakeAttendance = () => {
 
   // When semester changes, clear section and refresh students derived from registrations
   useEffect(() => {
+    if (suppressSemesterClearRef.current) {
+      suppressSemesterClearRef.current = false;
+      return;
+    }
     setSectionId(null);
     setStudents([]);
     // Preserve subjectStudents for open electives to allow branch/semester dropdown derivation
@@ -366,40 +441,7 @@ const TakeAttendance = () => {
     catch(() => {});
   }, [page, pageSize, bootstrapParams]);
 
-  // When a subject is selected, fetch subject detail first. For open electives, fetch subject-only bootstrap to discover available registrations.
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      setSubjectStudents([]);
-      if (!subjectId) return;
-      setLoadingStudents(true);
-      try {
-        const subjRes = await getSubjectDetail(subjectId.toString());
-        if (cancelled) return;
-        if (subjRes.success && subjRes.data) {
-          const subjType = subjRes.data.subject_type;
-          setSubjectType(subjType);
-          if (subjType === 'open_elective') {
-            // For open electives: do NOT load students on subject-only selection.
-            // Wait for faculty to pick branch (and optionally semester/section) before loading.
-            setSubjectStudents([]);
-            setRecentRecords([]);
-            setBootstrapParams(null);
-            updatePagination({ pagination: { page: 1, page_size: 50, total_pages: 1, total_students: 0 } });
-          } else {
-            // normal subject: do not call subject-only bootstrap; wait for branch/sem/section selection
-            setSubjectStudents([]);
-          }
-        }
-      } catch (e) {
-        setSubjectStudents([]);
-      } finally {
-        if (!cancelled) setLoadingStudents(false);
-      }
-    };
-    run();
-    return () => {cancelled = true;};
-  }, [subjectId]);
+
 
   // Dropdown options (deduplicated by id)
   // Subject-first behavior: list all subjects assigned to this faculty
@@ -583,7 +625,6 @@ const TakeAttendance = () => {
                 <div id="take-attendance-selectors" className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-5 w-full">
                   <Select value={subjectId?.toString()} onValueChange={(v) => {
                     setSubjectId(Number(v));
-                    setTimeout(() => setIsBranchOpen(true), 150);
                   }}>
                     <SelectTrigger className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} w-full`}>
                       <SelectValue placeholder="Select Subject" />
@@ -721,9 +762,24 @@ const TakeAttendance = () => {
             {/* Manual Entry Tab */}
             <TabsContent value="manual" className="mt-0">
               {loadingStudents ?
-              <div className="mt-4">
-                  <SkeletonTable rows={10} cols={5} />
-                </div> :
+              <div className="mt-4 space-y-4">
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="relative flex items-center justify-center w-20 h-20 mb-6">
+                    {/* Glowing outer ring */}
+                    <div className="absolute inset-0 rounded-full bg-primary/25 animate-ping duration-1000"></div>
+                    {/* Main gradient pulsing circle */}
+                    <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-purple-600 text-white shadow-lg shadow-primary/30 animate-pulse">
+                      <UsersIcon className="w-8 h-8 animate-bounce duration-1000" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent animate-pulse mb-2">
+                    Loading Students...
+                  </h3>
+                  <p className={`text-sm max-w-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Please wait a moment while we retrieve the class roster.
+                  </p>
+                </div>
+              </div> :
               students.length > 0 ?
               <div id="take-attendance-roster" className={`border rounded-md mt-4 w-full max-w-full overflow-hidden min-h-0 ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
                   <div className={`p-3 sm:p-4 font-semibold border-b ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>Student Attendance</div>
@@ -846,120 +902,138 @@ const TakeAttendance = () => {
 
             {/* AI Tab */}
             <TabsContent value="ai" id="take-attendance-ai-panel" className="mt-0">
-              {loadingStudents ?
-              <div className="mt-4">
-                  <SkeletonTable rows={10} cols={5} />
-                </div> :
-              students.length > 0 ?
-              <div className={`border rounded-md mt-4 w-full max-w-full ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-white'}`}>
-                  <div className={`p-3 font-semibold border-b ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>AI Attendance Processing</div>
-                  <div className="p-4">
-                    <div className="flex flex-col items-center justify-center py-6">
-                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-14 h-14 flex items-center justify-center mb-4">
-                        <UploadCloud className={`w-8 h-8 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+              {students.length > 0 ?
+              <div className="mt-4 space-y-6 w-full max-w-full text-sm">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                  {/* Left Column: Upload Dropzone & Trigger Action */}
+                  <div className={`lg:col-span-7 p-6 border rounded-2xl flex flex-col justify-between ${theme === 'dark' ? 'border-border bg-card/60' : 'border-gray-200 bg-white shadow-sm'}`}>
+                    <div>
+                      <div className="flex items-center gap-2 mb-4 border-b pb-3 border-border/40">
+                        <UsersIcon className="w-5 h-5 text-primary" />
+                        <h4 className="text-base font-semibold">AI Recognition Portal</h4>
                       </div>
-                      <h3 className={`text-base font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AI Attendance Processing</h3>
-                      <p className={`text-sm mb-4 text-center max-w-full ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        Upload a class photo for automatic attendance marking using facial recognition technology.
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-3 w-full">
-                        <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                        className="hidden"
-                        id="photo-upload" />
-                      
-                        <label
-                        htmlFor="photo-upload"
-                        className={`w-full flex-1 px-4 py-2 text-sm font-medium rounded-md border cursor-pointer text-center transition ${theme === 'dark' ?
-                        'border-border text-foreground hover:bg-accent' :
-                        'border-gray-300 text-gray-700 hover:bg-gray-100'}`
-                        }>
-                        
-                          {aiPhoto ? aiPhoto.name : 'Upload Photo'}
-                        </label>
-                        <Button
-                        onClick={handleAIProcess}
-                        disabled={processingAI || !aiPhoto || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-                        
-                          {processingAI ?
-                        <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Processing...
-                            </> :
 
-                        "Process Attendance"
-                        }
-                        </Button>
+                      {/* Dropzone area */}
+                      <div className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center transition-all duration-300 ${aiPhoto ? (theme === 'dark' ? 'border-primary/50 bg-primary/5' : 'border-primary/40 bg-blue-50/30') : (theme === 'dark' ? 'border-border bg-muted/20 hover:border-primary/45' : 'border-gray-200 bg-gray-50/50 hover:border-primary/40')}`}>
+                        <div className={`p-4 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                          <UploadCloud className="w-8 h-8" />
+                        </div>
+                        <h5 className="font-semibold text-sm mb-1">Upload Class Image</h5>
+                        <p className={`text-xs text-center max-w-xs mb-5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          Mark attendance using automatic face recognition
+                        </p>
+
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          id="photo-upload" />
+
+                        <label
+                          htmlFor="photo-upload"
+                          className={`px-5 py-2 text-xs font-semibold rounded-lg border cursor-pointer transition-all shadow-sm ${aiPhoto ? 
+                          (theme === 'dark' ? 'border-primary bg-primary text-white hover:bg-primary/90' : 'border-primary bg-primary text-white hover:bg-primary/95') : 
+                          (theme === 'dark' ? 'border-border text-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100')}`}>
+                          {aiPhoto ? aiPhoto.name : 'Choose Image File'}
+                        </label>
                       </div>
                     </div>
 
-                    {aiResults &&
-                  <div className={`mt-6 p-3 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                        <h4 className={`font-medium mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AI Processing Results:</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                          <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                            <div className="text-2xl font-bold text-green-600">{aiResults.present_count}</div>
-                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present</div>
-                          </div>
-                          <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                            <div className="text-2xl font-bold text-red-600">{aiResults.absent_count}</div>
-                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent</div>
-                          </div>
-                          <div className={`p-3 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                            <div className="text-2xl font-bold text-blue-600">{aiResults.total_students}</div>
-                            <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Students</div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div>
-                            <h5 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Present Students:</h5>
-                            <div className={`max-h-32 overflow-y-auto p-2 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                              {aiResults.present_students.length > 0 ?
-                          aiResults.present_students.map((student: any) =>
-                          <div key={student.id} className="text-sm break-words">
-                                    {student.name} ({student.usn})
-                                  </div>
-                          ) :
-
-                          <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No students detected as present</div>
-                          }
-                            </div>
-                          </div>
-
-                          <div>
-                            <h5 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Absent Students:</h5>
-                            <div className={`max-h-32 overflow-y-auto p-2 rounded ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
-                              {aiResults.absent_students.length > 0 ?
-                          aiResults.absent_students.map((student: any) =>
-                          <div key={student.id} className="text-sm break-words">
-                                    {student.name} ({student.usn})
-                                  </div>
-                          ) :
-
-                          <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>All students detected as present</div>
-                          }
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                  }
-
-                    <div className={`mt-6 p-3 rounded-lg ${theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}`}>
-                      <h4 className={`font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>How it works:</h4>
-                      <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        <li>• Take a clear photo of your entire class</li>
-                        <li>• Upload the image using the button above</li>
-                        <li>• Our AI will recognize students and mark attendance automatically</li>
-                        <li>• Review and confirm the results before submitting</li>
-                      </ul>
+                    {/* Process Action */}
+                    <div className="mt-6">
+                      <Button
+                        onClick={handleAIProcess}
+                        disabled={processingAI || !aiPhoto || recentRecords.filter((r) => r.date === attendanceDate).length >= 3}
+                        className="w-full py-5 flex items-center justify-center gap-2 text-sm font-semibold bg-gradient-to-r from-primary to-purple-600 hover:from-primary/95 hover:to-purple-600/95 text-white shadow-md shadow-primary/20 transition-all rounded-xl border-none">
+                        {processingAI ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Analyzing Face Data...
+                          </>
+                        ) : (
+                          "Start AI Processing"
+                        )}
+                      </Button>
                     </div>
                   </div>
 
-                </div> :
+                  {/* Right Column: Dynamic Guides & Steps */}
+                  <div className={`lg:col-span-5 p-6 border rounded-2xl ${theme === 'dark' ? 'border-border bg-card/60' : 'border-gray-200 bg-white shadow-sm'}`}>
+                    <h4 className="font-semibold text-base mb-4 border-b pb-2 border-border/40">How it works:</h4>
+                    <div className="space-y-4">
+                      {[
+                        "Take a clear, high-resolution photo of your entire active class.",
+                        "Upload the image in the portal using the Choose Image File button.",
+                        "Our system automatically matches student faces with database encodings.",
+                        "Review and confirm the identified roster before submitting attendance."
+                      ].map((step, idx) => (
+                        <div key={idx} className="flex gap-3 items-start">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-primary to-purple-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm shadow-primary/10">
+                            {idx + 1}
+                          </div>
+                          <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-650'}`}>
+                            {step}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Results Section */}
+                {aiResults && (
+                  <div className={`mt-6 p-4 rounded-xl border ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-gray-50 border-gray-200'}`}>
+                    <h4 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AI Processing Results:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                      <div className={`p-4 rounded-xl border text-center ${theme === 'dark' ? 'bg-background border-border/40' : 'bg-white border-gray-100 shadow-sm'}`}>
+                        <div className="text-3xl font-extrabold text-green-500 mb-1">{aiResults.present_count}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>Present</div>
+                      </div>
+                      <div className={`p-4 rounded-xl border text-center ${theme === 'dark' ? 'bg-background border-border/40' : 'bg-white border-gray-100 shadow-sm'}`}>
+                        <div className="text-3xl font-extrabold text-red-500 mb-1">{aiResults.absent_count}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>Absent</div>
+                      </div>
+                      <div className={`p-4 rounded-xl border text-center ${theme === 'dark' ? 'bg-background border-border/40' : 'bg-white border-gray-100 shadow-sm'}`}>
+                        <div className="text-3xl font-extrabold text-primary mb-1">{aiResults.total_students}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>Total Students</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h5 className={`font-semibold text-xs mb-2 uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present Students:</h5>
+                        <div className={`max-h-40 overflow-y-auto p-3 rounded-lg border ${theme === 'dark' ? 'bg-background/80 border-border/40' : 'bg-white border-gray-100'}`}>
+                          {aiResults.present_students.length > 0 ? (
+                            aiResults.present_students.map((student: any) => (
+                              <div key={student.id} className="text-xs py-1 border-b border-border/10 last:border-none">
+                                {student.name} ({student.usn})
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-xs text-muted-foreground text-center py-4">No students detected as present</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h5 className={`font-semibold text-xs mb-2 uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent Students:</h5>
+                        <div className={`max-h-40 overflow-y-auto p-3 rounded-lg border ${theme === 'dark' ? 'bg-background/80 border-border/40' : 'bg-white border-gray-100'}`}>
+                          {aiResults.absent_students.length > 0 ? (
+                            aiResults.absent_students.map((student: any) => (
+                              <div key={student.id} className="text-xs py-1 border-b border-border/10 last:border-none">
+                                {student.name} ({student.usn})
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-xs text-muted-foreground text-center py-4">All students detected as present</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div> :
 
               <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
               }>
