@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Index from "./components/common/Index";
+import { PwaInstaller } from "./components/pwa/PwaInstaller";
 
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
@@ -56,7 +57,7 @@ const ProtectedRoute = ({
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
           <img
-            src="/logo.jpeg"
+            src="/applogo.png"
             alt="Stalight Campus Logo"
             className="w-16 h-16 rounded-full object-cover animate-pulse shadow-lg"
           />
@@ -87,7 +88,7 @@ const AppContent = () => {
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen bg-background">
           <div className="flex flex-col items-center gap-4">
-            <img src="/logo.jpeg" alt="Stalight Campus Logo" className="w-16 h-16 rounded-full object-cover animate-pulse shadow-lg" />
+            <img src="/applogo.png" alt="Stalight Campus Logo" className="w-16 h-16 rounded-full object-cover animate-pulse shadow-lg" />
             <p className="text-sm font-medium text-muted-foreground animate-pulse">Loading Stalight Campus...</p>
           </div>
         </div>
@@ -476,6 +477,8 @@ const AppContent = () => {
       {/* ✅ Toast components rendered OUTSIDE routes but INSIDE AppContent */}
       <Toaster />
       <Sonner />
+      {/* ✅ PWA Installation Prompt */}
+      <PwaInstaller />
     </>
   );
 };
