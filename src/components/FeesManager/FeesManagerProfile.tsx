@@ -251,18 +251,18 @@ const FeesManagerProfile: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                       <div>
                         <Label htmlFor="first_name" className="text-md sm:text-sm">First Name</Label>
-                        <Input id="first_name" value={formData.first_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
+                        <Input id="first_name" value={formData.first_name} disabled={true} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
                       </div>
                       <div>
                         <Label htmlFor="last_name" className="text-md sm:text-sm">Last Name</Label>
-                        <Input id="last_name" value={formData.last_name} disabled={!editing} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
+                        <Input id="last_name" value={formData.last_name} disabled={true} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} className="text-md sm:text-sm h-10 sm:h-9 md:h-10 w-full" />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor="email" className="text-md sm:text-sm">Email</Label>
-                        <Input id="email" value={formData.email} disabled={!editing} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
+                        <Input id="email" value={formData.email} disabled={true} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="text-md sm:text-sm h-10 w-full" />
                       </div>
                       <div>
                         <Label htmlFor="phone" className="text-md sm:text-sm">Mobile</Label>
