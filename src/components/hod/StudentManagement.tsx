@@ -84,7 +84,7 @@ const StudentManagement = () => {
     confirmDelete: false,
     editDialog: false,
     addStudentModal: false,
-    editForm: { name: "", email: "", section: "", semester: "", cycle: "", phone: "", mode_of_admission: "" },
+    editForm: { usn: "", name: "", email: "", section: "", semester: "", cycle: "", phone: "", mode_of_admission: "" },
     uploadErrors: [] as string[],
     uploadedCount: 0,
     updatedCount: 0,
@@ -1009,6 +1009,7 @@ const StudentManagement = () => {
         action: "update",
         branch_id: state.branchId,
         student_id: state.selectedStudent!.usn,
+        new_usn: state.editForm.usn,
         name: state.editForm.name,
         email: state.editForm.email,
         phone: state.editForm.phone || undefined,
@@ -1022,7 +1023,7 @@ const StudentManagement = () => {
         // Optimistically update local list so changes appear immediately
         const updated = state.students.map((s) =>
           s.usn === state.selectedStudent!.usn ?
-            { ...s, name: state.editForm.name, email: state.editForm.email, phone: state.editForm.phone, section: state.editForm.section, semester: state.editForm.semester, cycle: state.editForm.cycle, mode_of_admission: state.editForm.mode_of_admission } :
+            { ...s, usn: state.editForm.usn, name: state.editForm.name, email: state.editForm.email, phone: state.editForm.phone, section: state.editForm.section, semester: state.editForm.semester, cycle: state.editForm.cycle, mode_of_admission: state.editForm.mode_of_admission } :
             s
         );
         updateState({ students: updated, editDialog: false, uploadErrors: [], editSections: [], currentPage: 1 });
@@ -1165,6 +1166,7 @@ const StudentManagement = () => {
     updateState({
       selectedStudent: student,
       editForm: {
+        usn: student.usn,
         name: student.name,
         email: student.email,
         section: student.section,
@@ -2043,6 +2045,14 @@ const StudentManagement = () => {
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Edit Student</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+            <div className="col-span-2 space-y-1">
+              <label className="text-[15px] font-medium ml-1">USN</label>
+              <Input
+                className={`h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                placeholder="USN"
+                value={state.editForm.usn}
+                onChange={(e) => updateState({ editForm: { ...state.editForm, usn: e.target.value.toUpperCase() } })} />
+            </div>
             <div className="col-span-2 space-y-1">
               <label className="text-[15px] font-medium ml-1">Full Name</label>
               <Input
