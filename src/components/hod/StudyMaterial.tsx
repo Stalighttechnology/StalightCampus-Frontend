@@ -74,7 +74,7 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
   useEffect(() => {
     const fetchMaterials = async () => {
       // Only load materials when all filters are selected
-      if (!sectionsLoaded || !branchId || semesterFilter === 'All Semesters' || sectionFilter === 'All Sections') {
+      if (!sectionsLoaded || !branchId || semesterFilter === 'Choose Semester' || sectionFilter === 'Choose Section') {
         setStudyMaterials([]);
         setTotalPages(1);
         setTotalCount(0);
@@ -82,8 +82,8 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
       }
       setLoading(true);
       try {
-        const sem = semesterFilter === 'All Semesters' ? undefined : semesterFilter;
-        const sec = sectionFilter === 'All Sections' ? undefined : sectionFilter;
+        const sem = semesterFilter === 'Choose Semester' ? undefined : semesterFilter;
+        const sec = sectionFilter === 'Choose Section' ? undefined : sectionFilter;
         const resp = await getStudyMaterials(branchId || undefined, sem, sec, searchQuery, page);
         if (resp && resp.success && Array.isArray(resp.data)) {
           const mapped = resp.data.map((m: any) => ({
@@ -336,8 +336,8 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
 // Main component
 const StudyMaterials = () => {
   const { theme } = useTheme();
-  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("All Branches");
-  const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>("All Sections");
+  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("Choose Branch");
+  const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>("Choose Section");
   const [branches, setBranches] = useState<Array<{ id: string; name: string; }>>([]);
   const [sections, setSections] = useState<Array<{ id: string; name: string; }>>([]);
   const [pageSectionsLoaded, setPageSectionsLoaded] = useState<boolean>(false);
@@ -347,10 +347,10 @@ const StudyMaterials = () => {
   const [modalSections, setModalSections] = useState<Array<{ id: string; name: string; }>>([]);
   const [modalSubjects, setModalSubjects] = useState<Array<{ id: string; name: string; subject_code: string; }>>([]);
 
-  // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
+  // Pass null when 'Choose Branch' to hook; but hook expects branch id, so use null to represent none
   const [searchQuery, setSearchQuery] = useState("");
   const [localSearchQuery, setLocalSearchQuery] = useState("");
-  const [semesterFilter, setSemesterFilter] = useState("All Semesters");
+  const [semesterFilter, setSemesterFilter] = useState("Choose Semester");
   const [currentPage, setCurrentPage] = useState(1);
 
   // Debounce sync local search to searchQuery
@@ -362,8 +362,8 @@ const StudyMaterials = () => {
     return () => clearTimeout(timer);
   }, [localSearchQuery]);
 
-  // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
-  const branchIdForHook = selectedBranchFilter === "All Branches" ? null : selectedBranchFilter;
+  // Pass null when 'Choose Branch' to hook; but hook expects branch id, so use null to represent none
+  const branchIdForHook = selectedBranchFilter === "Choose Branch" ? null : selectedBranchFilter;
   const { studyMaterials, addStudyMaterial, removeStudyMaterial, loading, totalPages, totalCount } = useStudyMaterials(branchIdForHook, semesterFilter, selectedSectionFilter, searchQuery, pageSectionsLoaded, currentPage);
   const {
     showUploadModal,
@@ -412,11 +412,11 @@ const StudyMaterials = () => {
   // Load semesters for the page and sections when branch/semester filters change
   useEffect(() => {
     const loadPageSemesters = async () => {
-      if (!selectedBranchFilter || selectedBranchFilter === "All Branches") {
+      if (!selectedBranchFilter || selectedBranchFilter === "Choose Branch") {
         setPageSemesters([]);
-        setSemesterFilter("All Semesters");
+        setSemesterFilter("Choose Semester");
         setSections([]);
-        setSelectedSectionFilter("All Sections");
+        setSelectedSectionFilter("Choose Section");
         return;
       }
       try {
@@ -430,8 +430,8 @@ const StudyMaterials = () => {
 
         setPageSemesters([]);
       }
-      setSemesterFilter("All Semesters");
-      setSelectedSectionFilter("All Sections");
+      setSemesterFilter("Choose Semester");
+      setSelectedSectionFilter("Choose Section");
       setCurrentPage(1);
     };
     loadPageSemesters();
@@ -441,9 +441,9 @@ const StudyMaterials = () => {
     const loadSections = async () => {
       // Only load sections when a branch AND a semester are selected
       setPageSectionsLoaded(false);
-      if (!selectedBranchFilter || selectedBranchFilter === "All Branches" || semesterFilter === 'All Semesters') {
+      if (!selectedBranchFilter || selectedBranchFilter === "Choose Branch" || semesterFilter === 'Choose Semester') {
         setSections([]);
-        setSelectedSectionFilter("All Sections");
+        setSelectedSectionFilter("Choose Section");
         setPageSectionsLoaded(true);
         return;
       }
@@ -459,7 +459,7 @@ const StudyMaterials = () => {
 
         setSections([]);
       }
-      setSelectedSectionFilter("All Sections");
+      setSelectedSectionFilter("Choose Section");
       setCurrentPage(1);
       setPageSectionsLoaded(true);
     };
@@ -648,10 +648,10 @@ const StudyMaterials = () => {
                     onValueChange={(value) => setSelectedBranchFilter(value)}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder="All Branches" />
+                      <SelectValue placeholder="Choose Branch" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                      <SelectItem value="All Branches">All Branches</SelectItem>
+                      <SelectItem value="Choose Branch">Choose Branch</SelectItem>
                       {branches.map((b) =>
                         <SelectItem key={b.id} value={b.id}>
                           {b.name}
@@ -667,10 +667,10 @@ const StudyMaterials = () => {
                     onValueChange={(value) => setSemesterFilter(value)}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder="All Semesters" />
+                      <SelectValue placeholder="Choose Semester" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                      <SelectItem value="All Semesters">All Semesters</SelectItem>
+                      <SelectItem value="Choose Semester">Choose Semester</SelectItem>
                       {pageSemesters && pageSemesters.length > 0 ?
                         pageSemesters.map((s) =>
                           <SelectItem key={s.id} value={s.id}>
@@ -694,10 +694,10 @@ const StudyMaterials = () => {
                     onValueChange={(value) => setSelectedSectionFilter(value)}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder="All Sections" />
+                      <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                      <SelectItem value="All Sections">All Sections</SelectItem>
+                      <SelectItem value="Choose Section">Choose Section</SelectItem>
                       {sections.map((s) =>
                         <SelectItem key={s.id} value={s.id}>
                           {s.name}
@@ -722,7 +722,7 @@ const StudyMaterials = () => {
         <CardContent className="space-y-6 pt-2">
           {/* Table Area Section */}
           <div className="pt-4 border-t">
-            {(!pageSectionsLoaded || !branchIdForHook || semesterFilter === 'All Semesters' || selectedSectionFilter === 'All Sections') ? (
+            {(!pageSectionsLoaded || !branchIdForHook || semesterFilter === 'Choose Semester' || selectedSectionFilter === 'Choose Section') ? (
               <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
                 <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner animate-pulse ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                   <FileText className="w-12 h-12" />
