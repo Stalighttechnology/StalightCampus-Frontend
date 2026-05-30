@@ -28,8 +28,21 @@ const DummyBeacon = () => null;
 const scrollTargetIntoView = (selector: string) => {
   try {
     if (selector === 'body') return;
-    const el = document.querySelector(selector);
+    const el = document.querySelector(selector) as HTMLElement;
     if (!el) return;
+
+    // Find scroll parent
+    const scrollParent = (() => {
+      let parent = el.parentElement;
+      while (parent) {
+        const style = window.getComputedStyle(parent);
+        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+          return parent;
+        }
+        parent = parent.parentElement;
+      }
+      return null;
+    })();
 
     // Scroll to top for top-level stats grids, header elements, or filters cards to avoid being cut off by the sticky topbar.
     // Exclude selectors that contain 'stats-grid' but are nested BELOW a header (e.g. faculty stats, which are inside a profile card).
@@ -45,19 +58,6 @@ const scrollTargetIntoView = (selector: string) => {
       selector === '#feesmanager-payments-header';
 
     if (isTopElement) {
-      // Find scroll parent and scroll it to top
-      const scrollParent = (() => {
-        let parent = el.parentElement;
-        while (parent) {
-          const style = window.getComputedStyle(parent);
-          if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
-            return parent;
-          }
-          parent = parent.parentElement;
-        }
-        return null;
-      })();
-
       if (scrollParent) {
         scrollParent.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -66,9 +66,23 @@ const scrollTargetIntoView = (selector: string) => {
       return;
     }
 
-    // Use smooth centering scroll to ensure targets are fully visible and centered
-    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-    console.log('[ONBOARDING DEBUG] Programmatically scrolled target into view:', selector);
+    // For other elements, calculate the relative position to scrollParent and center it
+    if (scrollParent) {
+      const parentRect = scrollParent.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const relativeTop = elRect.top - parentRect.top + scrollParent.scrollTop;
+      const targetScrollTop = relativeTop - parentRect.height / 2 + elRect.height / 2;
+
+      scrollParent.scrollTo({
+        top: Math.max(0, targetScrollTop),
+        behavior: 'smooth'
+      });
+      console.log('[ONBOARDING DEBUG] Programmatically scrolled scrollParent to target:', selector, { targetScrollTop });
+    } else {
+      // Fallback
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      console.log('[ONBOARDING DEBUG] Programmatically scrolled target into view (fallback):', selector);
+    }
   } catch (err) {
     console.error('[ONBOARDING DEBUG] Failed to scroll target into view:', err);
   }
@@ -140,7 +154,26 @@ const shouldScrollStep = (targetStep: any): boolean => {
       typeof target === 'string' &&
       (target.startsWith('#library-') || target.startsWith('#sidebar-library-') || target === '#sidebar-library');
 
-    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary;
+    // 9. Admin/Principal tour targets
+    const isAdmin =
+      typeof target === 'string' &&
+      (target.startsWith('#admin-') ||
+       target.startsWith('#branch-') ||
+       target.startsWith('#role-') ||
+       target.includes('enroll') ||
+       target.includes('bulk') ||
+       target.includes('branch') ||
+       target.includes('teacher') ||
+       target.includes('qp') ||
+       target.includes('batch') ||
+       target.includes('announcement') ||
+       target.includes('hod') ||
+       target.includes('user') ||
+       target.includes('leave') ||
+       target === '#apply-leave-form-card' ||
+       target === '#recent-leaves-card');
+
+    return isChart || isDashboardCard || isStats || isRecentLeaves || isHMS || isWarden || isTransport || isLibrary || isAdmin;
   }
   return !targetStep.disableScrolling;
 };
