@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -198,7 +199,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
     students: [] as Student[],
     selectedStudents: [] as string[],
     selectedSemester: "",
-    selectedSection: "all-sections",
+    selectedSection: "",
     branchId: "",
     isLoading: false,
     isPromoting: false,
@@ -209,7 +210,8 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
     totalPages: 1,
     totalStudents: 0,
     hasNext: false,
-    hasPrevious: false
+    hasPrevious: false,
+    isSectionOpen: false
   });
 
   // Helper to update state
@@ -263,10 +265,11 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
                 name: s.name,
                 semester_id: s.semester_id.toString()
               })),
-              selectedSection: "all-sections"
+              selectedSection: "",
+              isSectionOpen: true
             });
           } else {
-            updateState({ sections: [], selectedSection: "all-sections" });
+            updateState({ sections: [], selectedSection: "", isSectionOpen: true });
           }
         }
       } catch (err) {
@@ -281,7 +284,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
   // Fetch students when semester and section change
   useEffect(() => {
     const fetchStudents = async () => {
-      if (!state.selectedSemester || !state.branchId || !state.selectedSection || state.selectedSection === "all-sections") {
+      if (!state.selectedSemester || !state.branchId || !state.selectedSection) {
         updateState({ students: [], selectedStudents: [] });
         return;
       }
@@ -340,21 +343,8 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
 
 
 
-          // Filter students to ensure they belong to the selected semester
-          const currentSemesterNumber = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.number;
-          const filteredStudents = results.filter((student: Student) => {
-            // Check if batch contains the correct semester number
-            const batchSemesterMatch = student.batch?.match(/Sem(\d+)/);
-            if (batchSemesterMatch) {
-              const studentSemester = parseInt(batchSemesterMatch[1]);
-              return studentSemester === currentSemesterNumber;
-            }
-            return true; // If no semester in batch, include by default
-          });
-
-
           updateState({
-            students: filteredStudents,
+            students: results,
             selectedStudents: []
           });
         }
@@ -478,7 +468,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
         });
       } else {
         // Bulk promotion
-        const sectionId = state.selectedSection !== "all-sections" ?
+        const sectionId = state.selectedSection ?
         state.sections.find((s) => s.name === state.selectedSection)?.id :
         undefined;
 
@@ -500,24 +490,30 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
           !successfulPromotions.some((p) => p.usn === student.usn)
           ),
           selectedStudents: [],
-          promotionResults: {
-            message: res.message || `${successfulPromotions.length} students promoted successfully${failedPromotions.length > 0 ? `, ${failedPromotions.length} failed` : ''}`,
-            promoted: successfulPromotions.map((p) => ({
-              name: p.name,
-              usn: p.usn,
-              to_semester: p.to_semester,
-              section: p.section
-            })),
-            failed: failedPromotions
-          }
+          promotionResults: null
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Promotion Success',
+          text: res.message || `${successfulPromotions.length} students promoted successfully${failedPromotions.length > 0 ? `, ${failedPromotions.length} failed` : ''}`,
+          background: theme === 'dark' ? '#0f172a' : '#fff',
+          color: theme === 'dark' ? '#fff' : '#000'
         });
       } else {
         // Revert optimistic update on failure
         updateState({
           students: [...state.students, ...studentsToPromote],
           selectedStudents: state.selectedStudents.length > 0 ? state.selectedStudents : studentsToPromote.map((s) => s.usn),
-          promotionResults: null,
-          errors: [res.message || "Failed to promote students"]
+          promotionResults: null
+        });
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Promotion Failed',
+          text: res.message || "Failed to promote students",
+          background: theme === 'dark' ? '#0f172a' : '#fff',
+          color: theme === 'dark' ? '#fff' : '#000'
         });
       }
     } catch (err) {
@@ -526,8 +522,15 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
       updateState({
         students: [...state.students, ...studentsToPromote],
         selectedStudents: state.selectedStudents.length > 0 ? state.selectedStudents : studentsToPromote.map((s) => s.usn),
-        promotionResults: null,
-        errors: ["Failed to promote students"]
+        promotionResults: null
+      });
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: "Failed to promote students due to a network or server error",
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
       });
     }
   };
@@ -563,7 +566,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
     });
 
     try {
-      const sectionId = state.selectedSection !== "all-sections" ?
+      const sectionId = state.selectedSection ?
       state.sections.find((s) => s.name === state.selectedSection)?.id :
       undefined;
 
@@ -584,24 +587,30 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
           !successfulPromotions.some((p) => p.usn === student.usn)
           ),
           selectedStudents: [],
-          promotionResults: {
-            message: res.message || `${successfulPromotions.length} students promoted successfully${failedPromotions.length > 0 ? `, ${failedPromotions.length} failed` : ''}`,
-            promoted: successfulPromotions.map((p) => ({
-              name: p.name,
-              usn: p.usn,
-              to_semester: p.to_semester,
-              section: p.section
-            })),
-            failed: failedPromotions
-          }
+          promotionResults: null
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Promotion Success',
+          text: res.message || `${successfulPromotions.length} students promoted successfully${failedPromotions.length > 0 ? `, ${failedPromotions.length} failed` : ''}`,
+          background: theme === 'dark' ? '#0f172a' : '#fff',
+          color: theme === 'dark' ? '#fff' : '#000'
         });
       } else {
         // Revert optimistic update on failure
         updateState({
           students: allStudents,
           selectedStudents: [],
-          promotionResults: null,
-          errors: [res.message || "Failed to promote students"]
+          promotionResults: null
+        });
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Promotion Failed',
+          text: res.message || "Failed to promote students",
+          background: theme === 'dark' ? '#0f172a' : '#fff',
+          color: theme === 'dark' ? '#fff' : '#000'
         });
       }
     } catch (err) {
@@ -610,8 +619,15 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
       updateState({
         students: allStudents,
         selectedStudents: [],
-        promotionResults: null,
-        errors: ["Failed to promote students"]
+        promotionResults: null
+      });
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: "Failed to promote students due to a network or server error",
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
       });
     }
   };
@@ -638,50 +654,6 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
         </CardHeader>
       </Card>
 
-      {/* Error Messages */}
-      {state.errors.length > 0 &&
-      <Card className={theme === 'dark' ? 'bg-destructive/10 border-destructive' : 'bg-red-50 border-red-200'}>
-          <CardContent className="pt-6">
-            <ul className={`text-sm list-disc list-inside ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>
-              {state.errors.map((err, idx) =>
-            <li key={idx}>{err}</li>
-            )}
-            </ul>
-          </CardContent>
-        </Card>
-      }
-
-      {/* Success Messages */}
-      {state.promotionResults &&
-      <Card className={theme === 'dark' ? 'bg-green-900/20 border-green-500' : 'bg-green-50 border-green-200'}>
-          <CardContent className="pt-6">
-            <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
-              <CheckCircle className="h-5 w-5" />
-              <span>{state.promotionResults.message}</span>
-            </div>
-            {state.promotionResults.promoted &&
-          <div className="mt-2">
-                <p className={`text-sm ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>Promoted students:</p>
-                <ul className={`text-xs list-disc list-inside ml-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
-                  {state.promotionResults.promoted.map((student: any, idx: number) =>
-              <li key={idx}>{student.name} ({student.usn}) - Semester {student.to_semester}{student.section ? `, Section ${student.section}` : ''}</li>
-              )}
-                </ul>
-              </div>
-          }
-            {state.promotionResults.failed && state.promotionResults.failed.length > 0 &&
-          <div className="mt-2">
-                <p className={`text-sm ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'}`}>Failed to promote:</p>
-                <ul className={`text-xs list-disc list-inside ml-4 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                  {state.promotionResults.failed.map((student: any, idx: number) =>
-              <li key={idx}>{student.name} ({student.usn}) - {student.reason}</li>
-              )}
-                </ul>
-              </div>
-          }
-          </CardContent>
-        </Card>
-      }
 
       {/* Promotion Controls */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
@@ -692,17 +664,21 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
           <div className="flex flex-wrap gap-4">
             <Select
               value={state.selectedSemester}
-              onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "all-sections" })}
+              onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
               disabled={state.isLoading}>
               
               <SelectTrigger className={theme === 'dark' ? 'w-48 bg-background text-foreground border-border' : 'w-48 bg-white text-gray-900 border-gray-300'}>
                 <SelectValue placeholder="Select Semester" />
               </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                {state.semesters.map((semester) =>
-                <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                    Semester {semester.number}
-                  </SelectItem>
+              <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                {state.semesters.length === 0 ? (
+                  <SelectItem value="none" disabled className="text-muted-foreground">No Semester</SelectItem>
+                ) : (
+                  state.semesters.map((semester) => (
+                    <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                      Semester {semester.number}
+                    </SelectItem>
+                  ))
                 )}
               </SelectContent>
             </Select>
@@ -710,22 +686,25 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
             <Select
               value={state.selectedSection}
               onValueChange={(value) => updateState({ selectedSection: value })}
-              disabled={state.isLoading || !state.selectedSemester || state.sections.length === 0}>
+              open={state.isSectionOpen}
+              onOpenChange={(open) => updateState({ isSectionOpen: open })}
+              disabled={state.isLoading || !state.selectedSemester}>
               
               <SelectTrigger className={theme === 'dark' ? 'w-48 bg-background text-foreground border-border' : 'w-48 bg-white text-gray-900 border-gray-300'}>
-                <SelectValue placeholder="All Sections" />
+                <SelectValue placeholder="Select Section" />
               </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                <SelectItem value="all-sections" className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>All Sections</SelectItem>
+              <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                 {(() => {
                   const semesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
-                  return state.sections.
-                  filter((section) => semesterId ? section.semester_id === semesterId : false).
-                  map((section) =>
-                  <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                        Section {section.name}
-                      </SelectItem>
-                  );
+                  const filteredSections = state.sections.filter((section) => semesterId ? section.semester_id === semesterId : false);
+                  if (filteredSections.length === 0) {
+                    return <SelectItem value="none" disabled className="text-muted-foreground">No Section</SelectItem>;
+                  }
+                  return filteredSections.map((section) => (
+                    <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                      Section {section.name}
+                    </SelectItem>
+                  ));
                 })()}
               </SelectContent>
             </Select>
@@ -866,7 +845,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
     students: [] as Student[],
     selectedStudents: [] as string[],
     selectedSemester: "",
-    selectedSection: "all-sections",
+    selectedSection: "",
     branchId: "",
     isLoading: false,
     isDemoting: false,
@@ -879,7 +858,8 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
     totalPages: 1,
     totalStudents: 0,
     hasNext: false,
-    hasPrevious: false
+    hasPrevious: false,
+    isSectionOpen: false
   });
 
   // Helper to update state
@@ -933,10 +913,11 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
                 name: s.name,
                 semester_id: s.semester_id.toString()
               })),
-              selectedSection: "all-sections"
+              selectedSection: "",
+              isSectionOpen: true
             });
           } else {
-            updateState({ sections: [], selectedSection: "all-sections" });
+            updateState({ sections: [], selectedSection: "", isSectionOpen: true });
           }
         }
       } catch (err) {
@@ -951,7 +932,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
   // Fetch students when semester and section change
   useEffect(() => {
     const fetchStudents = async () => {
-      if (!state.selectedSemester || !state.branchId || !state.selectedSection || state.selectedSection === "all-sections") {
+      if (!state.selectedSemester || !state.branchId || !state.selectedSection) {
         updateState({ students: [], selectedStudents: [] });
         return;
       }
@@ -1010,21 +991,8 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
 
 
 
-          // Filter students to ensure they belong to the selected semester
-          const currentSemesterNumber = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.number;
-          const filteredStudents = results.filter((student: Student) => {
-            // Check if batch contains the correct semester number
-            const batchSemesterMatch = student.batch?.match(/Sem(\d+)/);
-            if (batchSemesterMatch) {
-              const studentSemester = parseInt(batchSemesterMatch[1]);
-              return studentSemester === currentSemesterNumber;
-            }
-            return true; // If no semester in batch, include by default
-          });
-
-
           updateState({
-            students: filteredStudents,
+            students: results,
             selectedStudents: []
           });
         }
@@ -1130,7 +1098,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
     });
 
     try {
-      const sectionId = state.selectedSection !== "all-sections" ?
+      const sectionId = state.selectedSection ?
       state.sections.find((s) => s.name === state.selectedSection)?.id :
       undefined;
 
@@ -1157,19 +1125,15 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
         }
 
         updateState({
-          demotionResults: {
-            message: res.message || `${demotedCount} students demoted successfully`,
-            demoted: (apiData.demoted_students || []).map((student: any) => ({
-              name: student.name || 'Unknown',
-              usn: student.usn || '',
-              to_semester: apiData.target_semester || prevSemester.number
-            })),
-            failed: (apiData.failed_students || []).map((student: any) => ({
-              name: student.name || 'Unknown',
-              usn: student.usn || '',
-              reason: student.reason || 'Unknown error'
-            }))
-          }
+          demotionResults: null
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Demotion Success',
+          text: res.message || `${demotedCount} students demoted successfully`,
+          background: theme === 'dark' ? '#0f172a' : '#fff',
+          color: theme === 'dark' ? '#fff' : '#000'
         });
       } else {
         // Revert optimistic update on failure
@@ -1178,8 +1142,15 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
           selectedStudents: state.selectedStudents.length > 0 ? state.selectedStudents : studentsToDemote.map((s) => s.usn),
           showBulkDemoteDialog: true,
           bulkDemoteReason: state.bulkDemoteReason,
-          demotionResults: null,
-          errors: [res.message || "Failed to demote students"]
+          demotionResults: null
+        });
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Demotion Failed',
+          text: res.message || "Failed to demote students",
+          background: theme === 'dark' ? '#0f172a' : '#fff',
+          color: theme === 'dark' ? '#fff' : '#000'
         });
       }
     } catch (err) {
@@ -1190,8 +1161,15 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
         selectedStudents: state.selectedStudents.length > 0 ? state.selectedStudents : studentsToDemote.map((s) => s.usn),
         showBulkDemoteDialog: true,
         bulkDemoteReason: state.bulkDemoteReason,
-        demotionResults: null,
-        errors: ["Failed to demote students"]
+        demotionResults: null
+      });
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: "Failed to demote students due to a network or server error",
+        background: theme === 'dark' ? '#0f172a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000'
       });
     } finally {
       updateState({ isDemoting: false });
@@ -1220,50 +1198,6 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
         </CardHeader>
       </Card>
 
-      {/* Error Messages */}
-      {state.errors.length > 0 &&
-      <Card className={theme === 'dark' ? 'bg-destructive/10 border-destructive' : 'bg-red-50 border-red-200'}>
-          <CardContent className="pt-6">
-            <ul className={`text-sm list-disc list-inside ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>
-              {state.errors.map((err, idx) =>
-            <li key={idx}>{err}</li>
-            )}
-            </ul>
-          </CardContent>
-        </Card>
-      }
-
-      {/* Success Messages */}
-      {state.demotionResults &&
-      <Card className={theme === 'dark' ? 'bg-red-900/20 border-red-500' : 'bg-red-50 border-red-200'}>
-          <CardContent className="pt-6">
-            <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
-              <UserX className="h-5 w-5" />
-              <span>{state.demotionResults.message}</span>
-            </div>
-            {state.demotionResults.demoted &&
-          <div className="mt-2">
-                <p className={`text-sm ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>Demoted students:</p>
-                <ul className={`text-xs list-disc list-inside ml-4 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
-                  {state.demotionResults.demoted.map((student: any, idx: number) =>
-              <li key={idx}>{student.name} ({student.usn}) - Semester {student.to_semester}{student.section ? `, Section ${student.section}` : ''}</li>
-              )}
-                </ul>
-              </div>
-          }
-            {state.demotionResults.failed && state.demotionResults.failed.length > 0 &&
-          <div className="mt-2">
-                <p className={`text-sm ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'}`}>Failed to demote:</p>
-                <ul className={`text-xs list-disc list-inside ml-4 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                  {state.demotionResults.failed.map((student: any, idx: number) =>
-              <li key={idx}>{student.name} ({student.usn}) - {student.reason}</li>
-              )}
-                </ul>
-              </div>
-          }
-          </CardContent>
-        </Card>
-      }
 
       {/* Demotion Controls */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
@@ -1274,17 +1208,21 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
           <div className="flex flex-wrap gap-4">
             <Select
               value={state.selectedSemester}
-              onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "all-sections" })}
+              onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
               disabled={state.isLoading}>
               
               <SelectTrigger className={theme === 'dark' ? 'w-48 bg-background text-foreground border-border' : 'w-48 bg-white text-gray-900 border-gray-300'}>
                 <SelectValue placeholder="Select Semester" />
               </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                {state.semesters.map((semester) =>
-                <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                    Semester {semester.number}
-                  </SelectItem>
+              <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                {state.semesters.length === 0 ? (
+                  <SelectItem value="none" disabled className="text-muted-foreground">No Semester</SelectItem>
+                ) : (
+                  state.semesters.map((semester) => (
+                    <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                      Semester {semester.number}
+                    </SelectItem>
+                  ))
                 )}
               </SelectContent>
             </Select>
@@ -1292,22 +1230,25 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
             <Select
               value={state.selectedSection}
               onValueChange={(value) => updateState({ selectedSection: value })}
-              disabled={state.isLoading || !state.selectedSemester || state.sections.length === 0}>
+              open={state.isSectionOpen}
+              onOpenChange={(open) => updateState({ isSectionOpen: open })}
+              disabled={state.isLoading || !state.selectedSemester}>
               
               <SelectTrigger className={theme === 'dark' ? 'w-48 bg-background text-foreground border-border' : 'w-48 bg-white text-gray-900 border-gray-300'}>
-                <SelectValue placeholder="All Sections" />
+                <SelectValue placeholder="Select Section" />
               </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                <SelectItem value="all-sections" className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>All Sections</SelectItem>
+              <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
                 {(() => {
                   const semesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
-                  return state.sections.
-                  filter((section) => semesterId ? section.semester_id === semesterId : false).
-                  map((section) =>
-                  <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                        Section {section.name}
-                      </SelectItem>
-                  );
+                  const filteredSections = state.sections.filter((section) => semesterId ? section.semester_id === semesterId : false);
+                  if (filteredSections.length === 0) {
+                    return <SelectItem value="none" disabled className="text-muted-foreground">No Section</SelectItem>;
+                  }
+                  return filteredSections.map((section) => (
+                    <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                      Section {section.name}
+                    </SelectItem>
+                  ));
                 })()}
               </SelectContent>
             </Select>
@@ -1451,7 +1392,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
           <div className="space-y-4">
             <div className={`text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               <p><strong>Semester:</strong> {state.selectedSemester}</p>
-              <p><strong>Section:</strong> {state.selectedSection === "all-sections" ? "All Sections" : state.selectedSection}</p>
+              <p><strong>Section:</strong> {state.selectedSection || "All Sections"}</p>
               <p className={`mt-2 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'}`}>
                 ⚠️ This will demote {state.selectedStudents.length > 0 ? `the ${state.selectedStudents.length} selected students` : 'ALL students'} in the selected semester/section to the previous semester.
               </p>
@@ -1464,7 +1405,7 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
                 <SelectTrigger className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                   <SelectValue placeholder="Select reason for demotion" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px]">
                   <SelectItem value="exam_failure">Exam Failure</SelectItem>
                   <SelectItem value="attendance_shortage">Attendance Shortage</SelectItem>
                   <SelectItem value="academic_misconduct">Academic Misconduct</SelectItem>

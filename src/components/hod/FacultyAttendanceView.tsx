@@ -592,7 +592,7 @@ const FacultyAttendanceView: React.FC = () => {
                 </CardTitle>
                 <button
                   onClick={handleExportTodayPDF}
-                  disabled={exportingToday}
+                  disabled={exportingToday || todayAttendance.length === 0}
                   className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50`}>
                   {exportingToday ? (
                     <>
@@ -623,8 +623,8 @@ const FacultyAttendanceView: React.FC = () => {
                         <tr>
                           <td colSpan={4} className="py-12">
                             <div className={`flex flex-col items-center justify-center space-y-3 p-8 border-2 border-dashed rounded-xl mx-auto max-w-sm ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                              <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                                <CalendarX className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                              <div className={`p-3 rounded-full  bg-primary/20 ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                                <CalendarX className={`w-8 h-8 text-white ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
                               </div>
                               <div className="text-center">
                                 <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No attendance records for today</p>
@@ -734,7 +734,7 @@ const FacultyAttendanceView: React.FC = () => {
                     )}>
                       <SelectValue placeholder="Choose Faculty" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900'}>
+                    <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-slate-950 border-white/10 text-foreground' : 'bg-white border-gray-200 text-gray-900')}>
                       <SelectItem value="all">All Faculty</SelectItem>
                       {uniqueFaculties.map((f) => (
                         <SelectItem key={f.id} value={f.id}>
@@ -748,66 +748,95 @@ const FacultyAttendanceView: React.FC = () => {
                   <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
                     Start Date
                   </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
-                          !dateRange.start_date && "text-muted-foreground",
-                          theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                        )}>
-
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <ShadcnCalendar
-                        mode="single"
-                        selected={new Date(dateRange.start_date)}
-                        onSelect={(date) => date && setDateRange((prev) => ({ ...prev, start_date: date.toLocaleDateString('sv-SE') }))}
-                        initialFocus />
-
-                    </PopoverContent>
-                  </Popover>
+                  {!selectedFacultyId ? (
+                    <Button
+                      variant={"outline"}
+                      disabled={true}
+                      className={cn(
+                        "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm disabled:opacity-50",
+                        theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                      )}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  ) : (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                            !dateRange.start_date && "text-muted-foreground",
+                            theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                          )}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateRange.start_date ? format(new Date(dateRange.start_date), "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <ShadcnCalendar
+                          mode="single"
+                          selected={new Date(dateRange.start_date)}
+                          onSelect={(date) => date && setDateRange((prev) => ({ ...prev, start_date: date.toLocaleDateString('sv-SE') }))}
+                          disabled={(date) => {
+                            const today = new Date();
+                            today.setHours(23, 59, 59, 999);
+                            return date > today;
+                          }}
+                          initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                  )}
                 </div>
                 <div className="w-full sm:w-auto">
                   <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
                     End Date
                   </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
-                          !dateRange.end_date && "text-muted-foreground",
-                          theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                        )}>
-
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <ShadcnCalendar
-                        mode="single"
-                        selected={new Date(dateRange.end_date)}
-                        onSelect={(date) => date && setDateRange((prev) => ({ ...prev, end_date: date.toLocaleDateString('sv-SE') }))}
-                        disabled={(date) => {
-                          const start = new Date(dateRange.start_date);
-                          return isBefore(date, start) || isSameDay(date, start);
-                        }}
-                        initialFocus />
-
-                    </PopoverContent>
-                  </Popover>
+                  {!selectedFacultyId ? (
+                    <Button
+                      variant={"outline"}
+                      disabled={true}
+                      className={cn(
+                        "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm disabled:opacity-50",
+                        theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                      )}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  ) : (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full sm:w-[180px] justify-start text-left font-normal h-9 text-xs sm:text-sm",
+                            !dateRange.end_date && "text-muted-foreground",
+                            theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-accent' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                          )}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateRange.end_date ? format(new Date(dateRange.end_date), "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <ShadcnCalendar
+                          mode="single"
+                          selected={new Date(dateRange.end_date)}
+                          onSelect={(date) => date && setDateRange((prev) => ({ ...prev, end_date: date.toLocaleDateString('sv-SE') }))}
+                          disabled={(date) => {
+                            const start = new Date(dateRange.start_date);
+                            const today = new Date();
+                            today.setHours(23, 59, 59, 999);
+                            return isBefore(date, start) || isSameDay(date, start) || date > today;
+                          }}
+                          initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                  )}
                 </div>
                 <div className="w-full sm:w-auto pt-4 sm:pt-0 ml-auto">
                   <button
                     onClick={handleExportRecordsPDF}
-                    disabled={exportingRecords || facultySummary.length === 0}
+                    disabled={exportingRecords || !selectedFacultyId || facultySummary.length === 0}
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50">
                     {exportingRecords ? (
                       <>
@@ -828,8 +857,8 @@ const FacultyAttendanceView: React.FC = () => {
             {/* Faculty Summary */}
             {!selectedFacultyId ? (
               <div className={`p-12 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'} mt-4`}>
-                <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                  <Users className={`w-10 h-10 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                <div className={`p-4 rounded-full bg-primary/20 ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                  <Users className={`w-10 h-10 text-white ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
                 </div>
                 <div className="text-center">
                   <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Faculty Selected</p>
@@ -949,9 +978,8 @@ const FacultyAttendanceView: React.FC = () => {
         }
       </div>
 
-      {/* Attendance Details Modal */}
       <Dialog open={!!selectedFaculty} onOpenChange={(open) => !open && setSelectedFaculty(null)}>
-        <DialogContent className={`max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar rounded-xl w-[90%] ${theme === 'dark' ? 'bg-slate-950 border-white/10' : 'bg-white'}`}>
+        <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl w-[95%] ${theme === 'dark' ? 'bg-slate-950 border-white/10' : 'bg-white'}`}>
           <DialogHeader className="pb-4 border-b border-border/50">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -984,22 +1012,16 @@ const FacultyAttendanceView: React.FC = () => {
 
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
                 {(() => {
-                  const start = new Date(dateRange.start_date);
-                  const end = new Date(dateRange.end_date);
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const days = [];
-                  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                    days.push(new Date(d));
-                  }
+                  // Sort details chronologically
+                  const sortedDetails = [...facultyAttendanceDetails].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-                  return days.map((date) => {
-                    const dateStr = date.toLocaleDateString('sv-SE');
-                    const record = facultyAttendanceDetails.find((r) => r.date === dateStr);
-                    const isFuture = date > today;
+                  return sortedDetails.map((record) => {
+                    const date = new Date(record.date + "T00:00:00");
+                    const dateStr = record.date;
+                    const isFuture = date > new Date().setHours(0,0,0,0);
 
                     const isPresent = record?.status?.toLowerCase() === 'present';
-                    const isAbsent = record?.status?.toLowerCase() === 'absent' || !record && !isFuture;
+                    const isAbsent = record?.status?.toLowerCase() === 'absent';
 
                     return (
                       <div
@@ -1036,7 +1058,6 @@ const FacultyAttendanceView: React.FC = () => {
 
                         <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
                           <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
-                          {!record && !isFuture && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
                           {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
                         </div>
                       </div>);
