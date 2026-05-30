@@ -1,3 +1,5 @@
+import { Switch } from "@/components/ui/switch";
+import { requestForToken } from "@/lib/firebase";
 import HelpLearningCard from "../common/HelpLearningCard";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -59,7 +61,8 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity' | 'help'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity' | 'help' | 'settings'>('personal');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -305,6 +308,52 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
 
 
       
+      
+      case 'settings':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+            <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+              <div className="space-y-0.5">
+                <Label className="text-base font-medium">Push Notifications</Label>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Receive real-time alerts for attendance, leaves, exams, and more.</p>
+              </div>
+              <Switch checked={notificationsEnabled} onCheckedChange={async (checked) => {
+                try {
+                  setNotificationsEnabled(checked);
+                  const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
+                  if (checked) {
+                    const token = await requestForToken();
+                    if (token && userToken) {
+                      await fetch(`${API_ENDPOINT}/profile/register-device/`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                        body: JSON.stringify({ fcm_token: token, device_type: 'web' })
+                      });
+                      showSuccessAlert('Success', 'Push notifications enabled!');
+                    } else {
+                      throw new Error('Permission denied or token missing');
+                    }
+                  } else {
+                    const token = await requestForToken();
+                    if (token && userToken) {
+                      await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                        body: JSON.stringify({ fcm_token: token })
+                      });
+                      showInfoAlert('Disabled', 'Push notifications disabled for this device. You may also need to revoke permission in your browser settings.');
+                    } else {
+                      throw new Error('Permission denied or token missing');
+                    }
+                  }
+                } catch (error) {
+                  setNotificationsEnabled(!checked);
+                  showErrorAlert('Error', 'Failed to update notification settings');
+                }
+              }} />
+            </div>
+          </div>
+        );
+
       case 'help':
         return (
           <div className="animate-in fade-in duration-300">
@@ -476,6 +525,7 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0 custom-scrollbar">
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal Info</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact & Bio</button>
+                <button onClick={() => setActiveTab('settings')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
                 <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-base sm:text-sm rounded-md whitespace-nowrap transition-colors font-semibold flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>

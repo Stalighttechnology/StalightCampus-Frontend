@@ -13,6 +13,8 @@ import { useTheme } from "../../context/ThemeContext";
 import { Camera, Eye, EyeOff } from "lucide-react";
 import { Progress } from "../ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Switch } from "../ui/switch";
+import { requestForToken } from "../../lib/firebase";
 import LoginActivity from '../common/LoginActivity';
 import { SkeletonCard } from "../ui/skeleton";
 import HelpLearningCard from "./HelpLearningCard";
@@ -39,7 +41,8 @@ const Profile = ({ role, user }: ProfileProps) => {
   const [localError, setLocalError] = useState<string | null>(null);
   const { theme } = useTheme();
   
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help' | 'settings'>('personal');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
@@ -271,6 +274,65 @@ const Profile = ({ role, user }: ProfileProps) => {
             <HelpLearningCard />
           </div>
         );
+      case 'settings':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+            
+            <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+              <div className="space-y-0.5">
+                <Label className="text-base font-medium">Push Notifications</Label>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Receive real-time alerts for attendance, leaves, exams, and more.
+                </p>
+              </div>
+              <Switch
+                checked={notificationsEnabled}
+                onCheckedChange={async (checked) => {
+                  try {
+                    setNotificationsEnabled(checked);
+                    const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
+                    
+                    if (checked) {
+                      // Enable notifications
+                      const token = await requestForToken();
+                      if (token && userToken) {
+                        await fetch(`${API_ENDPOINT}/profile/register-device/`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${userToken}`
+                          },
+                          body: JSON.stringify({ fcm_token: token, device_type: 'web' })
+                        });
+                        showSuccessAlert('Success', 'Push notifications enabled!');
+                      }
+                    } else {
+                      // Disable notifications
+                      const token = await requestForToken(); // get current token to unregister
+                      if (token && userToken) {
+                        await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${userToken}`
+                          },
+                          body: JSON.stringify({ fcm_token: token })
+                        });
+                        showInfoAlert('Disabled', 'Push notifications disabled for this device. You may also need to revoke permission in your browser settings.');
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Error toggling notifications:', error);
+                    // Revert state on error
+                    setNotificationsEnabled(!checked);
+                    showErrorAlert('Error', 'Failed to update notification settings');
+                  }
+                }}
+              />
+            </div>
+          </div>
+        );
       default:
         return null;
     }
@@ -427,6 +489,7 @@ const Profile = ({ role, user }: ProfileProps) => {
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
+                <button onClick={() => setActiveTab('settings')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
                 <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>

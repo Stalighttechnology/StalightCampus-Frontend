@@ -1,3 +1,5 @@
+import { Switch } from "@/components/ui/switch";
+import { requestForToken } from "@/lib/firebase";
 import React, { useEffect, useRef, useState } from "react";
 import HelpLearningCard from "../common/HelpLearningCard";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -33,6 +35,7 @@ const FeesManagerProfile: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({ first_name: "", last_name: "", email: "", phone: "", address: "", bio: "" });
   const [activeTab, setActiveTab] = useState<'details' | 'activity'>('details');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   // Change password state
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -242,6 +245,7 @@ const FeesManagerProfile: React.FC = () => {
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
                 <button onClick={() => setActiveTab('details')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'details' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Details</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
+                <button onClick={() => setActiveTab('settings')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
                 <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-md sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white shadow-sm' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
               </div>
 

@@ -20,8 +20,15 @@ export const messaging = typeof window !== 'undefined' ? getMessaging(app) : nul
 export const requestForToken = async () => {
     if (!messaging) return null;
     try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+          console.log('Notification permission not granted.');
+          return null;
+      }
+      const registration = await navigator.serviceWorker.getRegistration();
       const currentToken = await getToken(messaging, { 
-          vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY 
+          vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+          serviceWorkerRegistration: registration
       });
       if (currentToken) {
         return currentToken;
@@ -29,8 +36,11 @@ export const requestForToken = async () => {
         console.log('No registration token available. Request permission to generate one.');
         return null;
       }
-    } catch (err) {
-      console.log('An error occurred while retrieving token. ', err);
+    } catch (err: any) {
+      console.error('An error occurred while retrieving token:', err);
+      if (err && err.message) {
+        console.error('Error message:', err.message);
+      }
       return null;
     }
   };
