@@ -461,11 +461,7 @@ const StudentInfoScanner = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold w-32">Preferred Name:</span>
-                    <span className="text-sm">{studentData.personal_info.preferred_name || '—'}</span>
-                  </div>
+
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-semibold w-32">Date of Birth:</span>
