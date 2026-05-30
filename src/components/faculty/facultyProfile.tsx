@@ -330,33 +330,33 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Department</label>
-                <Input value={formData.department} onChange={(e) => handleChange("department", e.target.value)} disabled={!isEditing} placeholder="Department" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.department} onChange={(e) => handleChange("department", e.target.value)} disabled={true} placeholder="Department" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</label>
-                <Input value={formData.designation} onChange={(e) => handleChange("designation", e.target.value)} disabled={!isEditing} placeholder="Designation" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.designation} onChange={(e) => handleChange("designation", e.target.value)} disabled={true} placeholder="Designation" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Qualification</label>
-                <Input value={formData.qualification} onChange={(e) => handleChange("qualification", e.target.value)} disabled={!isEditing} placeholder="Qualification" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.qualification} onChange={(e) => handleChange("qualification", e.target.value)} disabled={true} placeholder="Qualification" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</label>
-                <Input value={formData.branch} onChange={(e) => handleChange("branch", e.target.value)} disabled={!isEditing} placeholder="Branch" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.branch} onChange={(e) => handleChange("branch", e.target.value)} disabled={true} placeholder="Branch" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Experience (years)</label>
-                <Input value={formData.experience_years} onChange={(e) => handleChange("experience_years", e.target.value)} disabled={!isEditing} placeholder="Experience" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.experience_years} onChange={(e) => handleChange("experience_years", e.target.value)} disabled={true} placeholder="Experience" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
               <div className="w-full">
                 <label className={`block text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Office Location</label>
-                <Input value={formData.office_location} onChange={(e) => handleChange("office_location", e.target.value)} disabled={!isEditing} placeholder="Office" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
+                <Input value={formData.office_location} onChange={(e) => handleChange("office_location", e.target.value)} disabled={true} placeholder="Office" className="text-sm h-8 sm:h-9 md:h-10 w-full" />
               </div>
             </div>
           </div>);
