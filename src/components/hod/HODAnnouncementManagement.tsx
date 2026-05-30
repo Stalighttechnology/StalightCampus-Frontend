@@ -436,6 +436,7 @@ const HODAnnouncementManagement = () => {
                                     onSelect={(date) =>
                                     setFormData({ ...formData, expires_at: date ? format(date, "yyyy-MM-dd") : "" })
                                     }
+                                    disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                                     initialFocus />
                                   
                               </PopoverContent>
