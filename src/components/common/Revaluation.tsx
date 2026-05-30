@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue } from
 "@/components/ui/select";
+import { showSuccessAlert, showErrorAlert, showWarningAlert, showInfoAlert } from "@/utils/sweetalert";
 
 type Filters = {usn: string;exam_period: string;};
 
@@ -52,9 +53,6 @@ const Revaluation = () => {
     setConfirmModal({ open: true, subject_mark_id, subject_name });
   };
 
-  // message modal state (replaces native alert())
-  const [messageModal, setMessageModal] = useState<{open: boolean;title?: string;message?: string;}>({ open: false });
-
   const confirmApply = async (subject_mark_id?: number) => {
     if (!subject_mark_id) {
       setConfirmModal({ open: false });
@@ -70,7 +68,7 @@ const Revaluation = () => {
       await handleRevaluationResponse(json, subject_mark_id);
     } catch (err) {
 
-      setMessageModal({ open: true, title: 'Error', message: 'Network error contacting server' });
+      showErrorAlert('Error', 'Network error contacting server');
     } finally {
       setLoading(false);
     }
@@ -94,18 +92,22 @@ const Revaluation = () => {
 
     if (success) {
       markSubjectAsApplied(subjectMarkId);
-      setMessageModal({ open: true, title: 'Success', message: 'Revaluation requested' });
+      showSuccessAlert('Success', 'Revaluation requested');
     } else if (applied) {
       markSubjectAsApplied(subjectMarkId);
       const safe = sanitizeMessage(message) || 'Revaluation already applied';
-      setMessageModal({ open: true, title: 'Info', message: safe });
+      showInfoAlert('Info', safe);
     } else {
       const safe = sanitizeMessage(message) || 'Failed to submit revaluation request';
-      setMessageModal({ open: true, title: 'Error', message: safe });
+      showErrorAlert('Error', safe);
     }
   };
 
   const loadStudents = async () => {
+    if (!filters.usn.trim()) {
+      showWarningAlert("Validation Error", "Please enter the USN");
+      return;
+    }
     setLoading(true);
     setRevalApplicationsOpen(null);
     const qs = new URLSearchParams();
@@ -130,13 +132,13 @@ const Revaluation = () => {
       } else {
         setStudents([]);
         setRevalApplicationsOpen(null);
-        setMessageModal({ open: true, title: 'Error', message: message || 'Failed to load students' });
+        showErrorAlert('Error', message || 'Failed to load students');
       }
     } catch (err) {
 
       setStudents([]);
       setRevalApplicationsOpen(null);
-      setMessageModal({ open: true, title: 'Error', message: 'Failed to load students (network or auth error)' });
+      showErrorAlert('Error', 'Failed to load students (network or auth error)');
     }
     setLoading(false);
   };
@@ -220,7 +222,7 @@ const Revaluation = () => {
       }
     }
     // fallback: no request details available
-    setMessageModal({ open: true, title: 'Info', message: 'No request details available' });
+    showInfoAlert('Info', 'No request details available');
   };
 
   const renderStudentCheckboxes = (subjectMarkId: number, appliedTypes: string[], hasAppliedAny: boolean) => {
@@ -461,7 +463,8 @@ const Revaluation = () => {
                   filter((it) => it.revaluation || it.photocopy);
 
                   if (items.length === 0) {
-                    return setMessageModal({ open: true, title: 'Error', message: 'Select at least one item to pay' });
+                    showErrorAlert('Error', 'Select at least one item to pay');
+                    return;
                   }
 
                   setLoading(true);
@@ -505,16 +508,16 @@ const Revaluation = () => {
                             });
                             const verifyJson = await verifyRes.json();
                             if (verifyJson.success) {
-                              setMessageModal({ open: true, title: 'Success', message: 'Payment successful! Revaluation applied.' });
+                               showSuccessAlert('Success', 'Payment successful! Revaluation applied.');
                               // Reload students to show the updated "Applied" status
                               loadStudents();
                               // Reset selection map
                               setSelectionMap({});
                             } else {
-                              setMessageModal({ open: true, title: 'Error', message: 'Payment verification failed.' });
+                              showErrorAlert('Error', 'Payment verification failed.');
                             }
                           } catch (e) {
-                            setMessageModal({ open: true, title: 'Error', message: 'Verification error' });
+                            showErrorAlert('Error', 'Verification error');
                           } finally {
                             setLoading(false);
                           }
@@ -525,10 +528,10 @@ const Revaluation = () => {
                       const rzp = new (window as any).Razorpay(options);
                       rzp.open();
                     } else {
-                      setMessageModal({ open: true, title: 'Error', message: message || 'Failed to initiate payment' });
+                      showErrorAlert('Error', message || 'Failed to initiate payment');
                     }
                   } catch (err) {
-                    setMessageModal({ open: true, title: 'Error', message: 'Network error' });
+                    showErrorAlert('Error', 'Network error');
                   }
                   setLoading(false);
                 }}
@@ -563,20 +566,6 @@ const Revaluation = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Message Dialog */}
-      <Dialog open={messageModal.open} onOpenChange={(open) => !open && setMessageModal({ open: false })}>
-        <DialogContent className={`max-w-[95vw] sm:max-w-[90vw] md:max-w-md ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-          <DialogHeader>
-            <DialogTitle className="text-sm sm:text-base">{messageModal.title}</DialogTitle>
-          </DialogHeader>
-          <p className="text-xs sm:text-sm">{messageModal.message}</p>
-          <DialogFooter>
-            <Button onClick={() => setMessageModal({ open: false })} className="text-xs sm:text-sm h-auto px-3 py-1 bg-primary hover:bg-primary/90 text-white">
-              OK
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* View Request Dialog */}
       <Dialog open={viewModal.open} onOpenChange={(open) => !open && setViewModal({ open: false })}>

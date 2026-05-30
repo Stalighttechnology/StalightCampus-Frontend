@@ -354,6 +354,8 @@ const FacultyAnnouncementManagement = () => {
                         </Button>
                       </DialogTrigger>
                       <DialogContent
+                        onPointerDownOutside={(e) => e.preventDefault()}
+                        onInteractOutside={(e) => e.preventDefault()}
                         className="mobile-modal max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                         
                       <DialogHeader>

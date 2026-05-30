@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue } from
 "@/components/ui/select";
+import { showSuccessAlert, showErrorAlert, showWarningAlert, showInfoAlert } from "@/utils/sweetalert";
 
 
 
@@ -22,7 +23,6 @@ const MakeupExam = () => {
   const { theme } = useTheme();
   const [filters, setFilters] = useState({ batch_id: "", branch_id: "", semester_id: "", section_id: "", exam_period: "" });
   const [usn, setUsn] = useState("");
-  const [messageModal, setMessageModal] = useState<{open: boolean;title?: string;message?: string;}>({ open: false });
   const [students, setStudents] = useState<Array<{usn: string;name: string;student_id: number;subjects: Array<{subject_id: number;subject_name: string;cie_marks?: number;see_marks?: number;total_marks?: number;status: string;applied: boolean;request_details?: any;}>;}>>([]);
   const [loading, setLoading] = useState(false);
   const [selectionMap, setSelectionMap] = useState<Record<number, boolean>>({});
@@ -34,18 +34,15 @@ const MakeupExam = () => {
   const [makeupApplicationsOpen, setMakeupApplicationsOpen] = useState<boolean | null>(null);
 
   const loadStudents = async () => {
+    if (!usn.trim()) {
+      showWarningAlert("Validation Error", "Please enter the USN");
+      return;
+    }
     if (loading) return; // Prevent duplicate calls
     setLoading(true);
     const qs = new URLSearchParams();
-    if (usn.trim()) {
-      qs.set('usn', usn.trim());
-      qs.set('exam_period', filters.exam_period);
-    } else {
-      qs.set("batch_id", filters.batch_id);
-      qs.set("branch_id", filters.branch_id);
-      qs.set("semester_id", filters.semester_id);
-      qs.set("exam_period", filters.exam_period);
-    }
+    qs.set('usn', usn.trim());
+    qs.set('exam_period', filters.exam_period);
 
     try {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/makeup/students/?${qs.toString()}`, { method: 'GET' });
@@ -68,19 +65,19 @@ const MakeupExam = () => {
       } else {
         setStudents([]);
 
-        setMessageModal({ open: true, title: 'Error', message: message || 'Failed to load students' });
+        showErrorAlert('Error', message || 'Failed to load students');
       }
     } catch (err) {
 
       setStudents([]);
-      setMessageModal({ open: true, title: 'Error', message: 'Failed to load students (network or auth error)' });
+      showErrorAlert('Error', 'Failed to load students (network or auth error)');
     }
     setLoading(false);
   };
 
   const applyMakeup = async () => {
     if (!selectedStudent || !selectedSubject) {
-      setMessageModal({ open: true, title: 'Error', message: 'Select student and subject' });
+      showErrorAlert('Error', 'Select student and subject');
       return;
     }
     const form = new FormData();
@@ -100,18 +97,18 @@ const MakeupExam = () => {
       const message = json.message as string | undefined;
 
       if (success) {
-        setMessageModal({ open: true, title: 'Success', message: 'Makeup request submitted' });
+        showSuccessAlert('Success', 'Makeup request submitted');
         setSelectedStudent(null);
         setSelectedSubject(null);
         setReason("");
       } else if (makeup_request) {
-        setMessageModal({ open: true, title: 'Success', message: 'Makeup request submitted' });
+        showSuccessAlert('Success', 'Makeup request submitted');
       } else {
-        setMessageModal({ open: true, title: 'Error', message: message || 'Error' });
+        showErrorAlert('Error', message || 'Error');
       }
     } catch (err) {
 
-      setMessageModal({ open: true, title: 'Error', message: 'Network error' });
+      showErrorAlert('Error', 'Network error');
     }
   };
 
@@ -411,10 +408,12 @@ const MakeupExam = () => {
                 onClick={async () => {
                   const items = Object.entries(selectionMap).map(([k]) => ({ subject_id: Number(k) })).filter((it) => selectionMap[it.subject_id]);
                   if (items.length === 0) {
-                    return setMessageModal({ open: true, title: 'Error', message: 'Select at least one subject to pay' });
+                    showErrorAlert('Error', 'Select at least one subject to pay');
+                    return;
                   }
                   if (!filters.exam_period) {
-                    return setMessageModal({ open: true, title: 'Error', message: 'Select exam period' });
+                    showErrorAlert('Error', 'Select exam period');
+                    return;
                   }
 
                   setLoading(true);
@@ -458,16 +457,16 @@ const MakeupExam = () => {
                             });
                             const verifyJson = await verifyRes.json();
                             if (verifyJson.success) {
-                              setMessageModal({ open: true, title: 'Success', message: 'Payment successful! Makeup request applied.' });
+                               showSuccessAlert('Success', 'Payment successful! Makeup request applied.');
                               // Reload students to show the updated "Applied" status
                               loadStudents();
                               // Reset selection map
                               setSelectionMap({});
                             } else {
-                              setMessageModal({ open: true, title: 'Error', message: 'Payment verification failed.' });
+                              showErrorAlert('Error', 'Payment verification failed.');
                             }
                           } catch (e) {
-                            setMessageModal({ open: true, title: 'Error', message: 'Verification error' });
+                            showErrorAlert('Error', 'Verification error');
                           } finally {
                             setLoading(false);
                           }
@@ -478,10 +477,10 @@ const MakeupExam = () => {
                       const rzp = new (window as any).Razorpay(options);
                       rzp.open();
                     } else {
-                      setMessageModal({ open: true, title: 'Error', message: message || 'Failed to initiate payment' });
+                      showErrorAlert('Error', message || 'Failed to initiate payment');
                     }
                   } catch (err) {
-                    setMessageModal({ open: true, title: 'Error', message: 'Network error' });
+                    showErrorAlert('Error', 'Network error');
                   }
                   setLoading(false);
                 }}
@@ -516,20 +515,6 @@ const MakeupExam = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Message Dialog */}
-      <Dialog open={messageModal.open} onOpenChange={(open) => !open && setMessageModal({ open: false })}>
-        <DialogContent className={`max-w-[95vw] sm:max-w-[90vw] md:max-w-md ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-          <DialogHeader>
-            <DialogTitle className="text-sm sm:text-base">{messageModal.title}</DialogTitle>
-          </DialogHeader>
-          <p className="text-xs sm:text-sm">{messageModal.message}</p>
-          <DialogFooter>
-            <Button onClick={() => setMessageModal({ open: false })} className="text-xs sm:text-sm h-auto px-3 py-1 bg-primary hover:bg-primary/90 text-white">
-              OK
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* View Request Details Dialog */}
       <Dialog open={viewModal.open} onOpenChange={(open) => !open && setViewModal({ open: false })}>
