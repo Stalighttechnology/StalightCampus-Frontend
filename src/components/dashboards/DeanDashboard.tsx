@@ -36,7 +36,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'campus-locations': 'campus-locations',
     'attendance': 'attendance',
     'attendance-filters': 'attendance-filters',
-    'performance': 'performance',
+    'scan-student-info': 'scan-student-info',
     'exams': 'exams',
     'faculty': 'faculty',
     'finance': 'finance',
@@ -81,7 +81,7 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <div><DeanAttendanceFilters /></div>;
       case 'campus-locations':
         return <div><CampusLocationManager /></div>;
-      case 'performance':
+      case 'scan-student-info':
         return <div><StudentInfoScanner /></div>;
 
       case 'exams':

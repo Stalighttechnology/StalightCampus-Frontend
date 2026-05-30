@@ -18,6 +18,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import { logoutUser } from "../../utils/authService";
+import StudentInfoScanner from "../hod/StudentInfoScanner";
 
 interface COEDashboardProps {
   user: {
@@ -52,6 +53,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'exam-scheduling': 'exam-scheduling',
       'qp-approvals': 'qp-approvals',
       'apply-leave': 'apply-leave',
+      'scan-student-info': 'scan-student-info',
       'profile': 'profile'
     };
 
@@ -87,6 +89,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'exam-scheduling': '/coe/exam-scheduling',
       'qp-approvals': '/coe/qp-approvals',
       'apply-leave': '/coe/apply-leave',
+      'scan-student-info': '/coe/scan-student-info',
       'profile': '/coe/profile'
     };
 
@@ -134,6 +137,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <ApplyLeave />;
       case 'profile':
         return <COEProfile />;
+      case 'scan-student-info':
+        return <StudentInfoScanner />;
       default:
         return <COEDashboardStats />;
     }

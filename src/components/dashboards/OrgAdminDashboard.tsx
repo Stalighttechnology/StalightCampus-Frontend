@@ -10,6 +10,7 @@ import BillingManagement from "../org_admin/BillingManagement";
 import { useToast } from "../../hooks/use-toast";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
+import StudentInfoScanner from "../hod/StudentInfoScanner";
 
 interface OrgAdminDashboardProps {
   user: any;
@@ -56,7 +57,10 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
         return <BillingManagement />;
 
       case "profile":
-        return <AdminProfile user={user} setError={setError} />;
+        return <AdminProfile user={user} setError={setError} />
+
+      case "scan-student-info":
+        return <StudentInfoScanner />
 
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
