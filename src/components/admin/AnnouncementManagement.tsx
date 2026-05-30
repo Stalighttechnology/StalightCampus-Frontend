@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle } from
 "@/components/ui/alert-dialog";
-import { Loader2, Plus, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Plus, Calendar as CalendarIcon, Check } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -45,6 +45,7 @@ import {
   Announcement,
   CreateAnnouncementRequest } from
 "@/utils/announcements_api";
+import { manageBranches } from "@/utils/admin_api";
 import AnnouncementSections from "@/components/common/AnnouncementSections";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -78,10 +79,26 @@ const AdminAnnouncementManagement = () => {
     message: "",
     target_roles: [],
     is_global: true,
+    branch: null,
     expires_at: "",
     priority: "normal"
   });
   const [expiresOpen, setExpiresOpen] = useState(false);
+  const [branches, setBranches] = useState<Array<{ id: number; name: string }>>([]);
+
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const resp = await manageBranches({ compact: true }, undefined, "GET");
+        if (resp.success && resp.branches) {
+          setBranches(resp.branches);
+        }
+      } catch (e) {
+        console.error("Error loading branches", e);
+      }
+    };
+    loadBranches();
+  }, []);
 
   const loadAnnouncements = async () => {
     setLoading(true);
@@ -303,6 +320,7 @@ const AdminAnnouncementManagement = () => {
       message: "",
       target_roles: [],
       is_global: true,
+      branch: null,
       expires_at: "",
       priority: "normal"
     });
@@ -436,58 +454,78 @@ const AdminAnnouncementManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Scope</Label>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="is_global"
-                      checked={formData.is_global}
-                      onCheckedChange={(checked) =>
+                <Label>Scope / Department</Label>
+                <Select
+                  value={formData.is_global ? "all" : String(formData.branch || "")}
+                  onValueChange={(val) => {
+                    if (val === "all") {
                       setFormData({
                         ...formData,
-                        is_global: checked as boolean
-                      })
-                      } />
-                    
-                    <Label htmlFor="is_global" className="font-normal">
-                      Global (All branches)
-                    </Label>
-                  </div>
-                </div>
+                        is_global: true,
+                        branch: null
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        is_global: false,
+                        branch: Number(val)
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
+                    <SelectValue placeholder="Select Department Scope" />
+                  </SelectTrigger>
+                  <SelectContent className={`max-h-[200px] ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}`}>
+                    <SelectItem value="all">All Departments (Global)</SelectItem>
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <Label>Target Roles *</Label>
                 <div className="grid grid-cols-2 gap-3">
-                  {roles.map((role) =>
-                  <div key={role} className="flex items-center gap-2">
-                      <Checkbox
-                      id={role}
-                      checked={formData.target_roles?.includes(role) || false}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setFormData({
-                            ...formData,
-                            target_roles: [
-                            ...(formData.target_roles || []),
-                            role]
-
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            target_roles: (formData.target_roles || []).filter(
-                              (r) => r !== role
-                            )
-                          });
-                        }
-                      }} />
-                    
-                      <Label htmlFor={role} className="font-normal capitalize">
-                        {role}
-                      </Label>
-                    </div>
-                  )}
+                  {roles.map((role) => {
+                    const isSelected = formData.target_roles?.includes(role) || false;
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setFormData({
+                              ...formData,
+                              target_roles: (formData.target_roles || []).filter((r) => r !== role)
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              target_roles: [...(formData.target_roles || []), role]
+                            });
+                          }
+                        }}
+                        className={`flex items-center justify-between p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${
+                          isSelected
+                            ? theme === 'dark'
+                              ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
+                              : 'bg-primary/10 border-primary text-primary shadow-sm'
+                            : theme === 'dark'
+                              ? 'bg-card border-border hover:bg-accent text-muted-foreground'
+                              : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
+                        }`}
+                      >
+                        <span className="capitalize">{role}</span>
+                        {isSelected && (
+                          <Check className="h-4 w-4 text-primary" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

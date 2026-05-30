@@ -156,9 +156,7 @@ export const AnnouncementSections = ({
     ? myAnnouncements
     : myAnnouncements.filter(a => !isExpired(a.expires_at) && a.is_active);
 
-  const filteredReceivedAnnouncements = showExpired
-    ? receivedAnnouncements
-    : receivedAnnouncements.filter(a => !isExpired(a.expires_at));
+  const filteredReceivedAnnouncements = receivedAnnouncements.filter(a => !isExpired(a.expires_at));
 
   const totalUnread = receivedAnnouncements.filter(
     (a) => !a.is_read && !isExpired(a.expires_at)
@@ -198,15 +196,15 @@ export const AnnouncementSections = ({
           <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
             <span className="text-sm font-semibold">Received</span>
             {receivedPagination && receivedPagination.unreadCount !== undefined ? (
-              receivedPagination.unreadCount > 0 && (
+              totalUnread > 0 && (
                 <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-primary text-white border-none shadow-sm pointer-events-none select-none">
-                  {receivedPagination.unreadCount}
+                  {totalUnread}
                 </Badge>
               )
             ) : (
-              receivedPagination && receivedPagination.count > 0 && (
+              filteredReceivedAnnouncements.length > 0 && (
                 <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-muted text-muted-foreground border-none pointer-events-none select-none">
-                  {receivedPagination.count}
+                  {filteredReceivedAnnouncements.length}
                 </Badge>
               )
             )}

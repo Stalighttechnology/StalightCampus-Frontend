@@ -613,7 +613,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
               }
 
               return (
-                <div className="table-wrapper block overflow-x-auto custom-scrollbar">
+                <div className="table-wrapper block overflow-x-auto custom-scrollbar    ">
                 {loading ?
                   <SkeletonTable rows={pageSize} cols={6} /> :
 

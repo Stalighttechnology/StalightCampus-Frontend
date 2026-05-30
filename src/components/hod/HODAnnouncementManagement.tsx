@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle } from
 "@/components/ui/alert-dialog";
-import { Loader2, Plus, CalendarIcon } from "lucide-react";
+import { Loader2, Plus, CalendarIcon, Check, Info } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -443,44 +443,52 @@ const HODAnnouncementManagement = () => {
                           </div>
                         </div>
 
-                        <div className="p-3 rounded-lg bg-muted">
+                        <div className="p-3 rounded-lg bg-muted flex items-start gap-2">
+                          <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                           <p className="text-sm text-muted-foreground">
-                            ℹ️ This announcement will be visible to your branch only
+                            This announcement will be visible to your branch only
                           </p>
                         </div>
 
                         <div className="space-y-2">
                           <Label>Target Roles *</Label>
                           <div className="grid grid-cols-2 gap-3">
-                            {roles.map((role) =>
-                              <div key={role} className="flex items-center gap-2">
-                                <Checkbox
-                                  id={role}
-                                  checked={formData.target_roles?.includes(role) || false}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
+                            {roles.map((role) => {
+                              const isSelected = formData.target_roles?.includes(role) || false;
+                              return (
+                                <button
+                                  key={role}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
                                       setFormData({
                                         ...formData,
-                                        target_roles: [
-                                        ...(formData.target_roles || []),
-                                        role]
-
+                                        target_roles: (formData.target_roles || []).filter((r) => r !== role)
                                       });
                                     } else {
                                       setFormData({
                                         ...formData,
-                                        target_roles: (formData.target_roles || []).filter(
-                                          (r) => r !== role
-                                        )
+                                        target_roles: [...(formData.target_roles || []), role]
                                       });
                                     }
-                                  }} />
-                                
-                                <Label htmlFor={role} className="font-normal capitalize">
-                                  {role}
-                                </Label>
-                              </div>
-                              )}
+                                  }}
+                                  className={`flex items-center justify-between p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${
+                                    isSelected
+                                      ? theme === 'dark'
+                                        ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
+                                        : 'bg-primary/10 border-primary text-primary shadow-sm'
+                                      : theme === 'dark'
+                                        ? 'bg-card border-border hover:bg-accent text-muted-foreground'
+                                        : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
+                                  }`}
+                                >
+                                  <span className="capitalize">{role}</span>
+                                  {isSelected && (
+                                    <Check className="h-4 w-4 text-primary" />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
 
