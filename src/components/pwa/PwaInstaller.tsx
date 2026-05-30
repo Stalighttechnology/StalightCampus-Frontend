@@ -15,7 +15,7 @@ export const PwaInstaller: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const { isAuthenticated } = useAuth();
-  
+
   const [permissions, setPermissions] = useState({
     installed: false,
     notifications: Notification.permission === 'granted',
@@ -99,25 +99,25 @@ export const PwaInstaller: React.FC = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); setIsOpen(open); }}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] rounded-2xl">
         <DialogHeader>
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex items-start gap-4">
+            <img src="/applogo.png" alt="Logo" className="w-12 h-12 rounded-xl object-cover shadow-sm flex-shrink-0 mt-5" />
+            <div className="flex-grow text-left">
               <DialogTitle className="text-xl font-bold">
                 {showInstallStep ? "Step 1: Install App" : showNotificationStep ? "Step 2: Enable Notifications" : "All Set!"}
               </DialogTitle>
-              <DialogDescription className="mt-2">
+              <DialogDescription className="mt-2 text-left">
                 {showInstallStep && "Install Stalight Campus to your home screen for quick access."}
                 {showNotificationStep && "Enable notifications to get attendance and exam alerts directly to your device."}
                 {allDone && "You are all set to use Stalight Campus!"}
               </DialogDescription>
             </div>
-            <img src="/applogo.png" alt="Logo" className="w-12 h-12 rounded-xl object-cover shadow-sm" />
           </div>
         </DialogHeader>
-        
+
         <div className="py-4">
-          
+
           {showInstallStep && (
             <div className="flex items-center justify-between p-4 rounded-lg border bg-slate-50 dark:bg-slate-900 shadow-sm transition-all hover:border-blue-200">
               <div className="flex items-center gap-4">
@@ -147,7 +147,7 @@ export const PwaInstaller: React.FC = () => {
               <Button onClick={requestNotification}>Enable</Button>
             </div>
           )}
-          
+
           {allDone && (
             <div className="flex flex-col items-center justify-center p-6 text-center">
               <div className="p-4 rounded-full bg-green-100 text-green-600 mb-4">
@@ -159,7 +159,7 @@ export const PwaInstaller: React.FC = () => {
           )}
 
         </div>
-        
+
         <div className="flex justify-end items-center mt-2 border-t pt-4">
           <Button variant="ghost" onClick={handleClose}>
             {allDone ? 'Close' : 'Skip for now'}
