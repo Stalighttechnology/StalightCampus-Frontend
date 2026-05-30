@@ -167,9 +167,9 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   const { theme } = useTheme();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [grouped, setGrouped] = useState<AssignedSubject[]>([]);
-  const [selectedBranch, setSelectedBranch] = useState<string>("All Branches");
-  const [selectedSemester, setSelectedSemester] = useState<string>("All Semesters");
-  const [selectedSection, setSelectedSection] = useState<string>("All Sections");
+  const [selectedBranch, setSelectedBranch] = useState<string>("Choose Branch");
+  const [selectedSemester, setSelectedSemester] = useState<string>("Choose Semester");
+  const [selectedSection, setSelectedSection] = useState<string>("Choose Section");
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -254,7 +254,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   }, [showUploadModal]);
 
   useEffect(() => {
-    if (selectedBranch !== "All Branches") {
+    if (selectedBranch !== "Choose Branch") {
       const loadSemesters = async () => {
         const resp = await getSemesters(selectedBranch);
         if (resp && resp.success) {
@@ -262,21 +262,21 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
         } else {
           setSemesters([]);
         }
-        setSelectedSemester("All Semesters");
+        setSelectedSemester("Choose Semester");
         setSections([]);
-        setSelectedSection("All Sections");
+        setSelectedSection("Choose Section");
       };
       loadSemesters();
     } else {
       setSemesters([]);
-      setSelectedSemester("All Semesters");
+      setSelectedSemester("Choose Semester");
       setSections([]);
-      setSelectedSection("All Sections");
+      setSelectedSection("Choose Section");
     }
   }, [selectedBranch]);
 
   useEffect(() => {
-    if (selectedBranch !== "All Branches" && selectedSemester !== "All Semesters") {
+    if (selectedBranch !== "Choose Branch" && selectedSemester !== "Choose Semester") {
       const loadSections = async () => {
         const resp = await getSections(selectedBranch, selectedSemester);
         if (resp && resp.success) {
@@ -284,21 +284,21 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
         } else {
           setSections([]);
         }
-        setSelectedSection("All Sections");
+        setSelectedSection("Choose Section");
       };
       loadSections();
     } else {
       setSections([]);
-      setSelectedSection("All Sections");
+      setSelectedSection("Choose Section");
     }
   }, [selectedBranch, selectedSemester]);
 
   const loadMaterials = async () => {
     setLoading(true);
     const resp = await getStudyMaterials(
-      selectedBranch === 'All Branches' ? undefined : selectedBranch,
-      selectedSemester === 'All Semesters' ? undefined : selectedSemester,
-      selectedSection === 'All Sections' ? undefined : selectedSection,
+      selectedBranch === 'Choose Branch' ? undefined : selectedBranch,
+      selectedSemester === 'Choose Semester' ? undefined : selectedSemester,
+      selectedSection === 'Choose Section' ? undefined : selectedSection,
       debouncedSearch || undefined,
       pagination.page,
       pagination.pageSize
@@ -315,7 +315,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   };
 
   useEffect(() => {
-    if (selectedBranch !== "All Branches" && selectedSemester !== "All Semesters" && selectedSection !== "All Sections") {
+    if (selectedBranch !== "Choose Branch" && selectedSemester !== "Choose Semester" && selectedSection !== "Choose Section") {
       loadMaterials();
     } else {
       setMaterials([]);
@@ -344,15 +344,15 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
               <Select value={selectedBranch} onValueChange={(value) => {
                 setSelectedBranch(value);
-                if (value !== "All Branches") {
+                if (value !== "Choose Branch") {
                   setTimeout(() => setIsSemesterOpen(true), 150);
                 }
               }}>
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="All Branches" />
+                  <SelectValue placeholder="Choose Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Branches">All Branches</SelectItem>
+                  <SelectItem value="Choose Branch">Choose Branch</SelectItem>
                   {branches.length > 0 ? (
                     branches.map((b) =>
                       <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
@@ -369,19 +369,19 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 value={selectedSemester}
                 onValueChange={(value) => {
                   setSelectedSemester(value);
-                  if (value !== "All Semesters") {
+                  if (value !== "Choose Semester") {
                     setTimeout(() => setIsSectionOpen(true), 150);
                   }
                 }}
-                disabled={selectedBranch === "All Branches" || semesters.length === 0}
+                disabled={selectedBranch === "Choose Branch" || semesters.length === 0}
                 open={isSemesterOpen}
                 onOpenChange={setIsSemesterOpen}>
 
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedBranch === "All Branches" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedBranch === "All Branches" || semesters.length === 0}>
-                  <SelectValue placeholder="All Semesters" />
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedBranch === "Choose Branch" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedBranch === "Choose Branch" || semesters.length === 0}>
+                  <SelectValue placeholder="Choose Semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Semesters">All Semesters</SelectItem>
+                  <SelectItem value="Choose Semester">Choose Semester</SelectItem>
                   {semesters.length > 0 ? (
                     semesters.map((s) =>
                       <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
@@ -397,15 +397,15 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               <Select
                 value={selectedSection}
                 onValueChange={(value) => setSelectedSection(value)}
-                disabled={selectedSemester === "All Semesters" || sections.length === 0}
+                disabled={selectedSemester === "Choose Semester" || sections.length === 0}
                 open={isSectionOpen}
                 onOpenChange={setIsSectionOpen}>
 
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedSemester === "All Semesters" || sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedSemester === "All Semesters" || sections.length === 0}>
-                  <SelectValue placeholder="All Sections" />
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedSemester === "Choose Semester" || sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedSemester === "Choose Semester" || sections.length === 0}>
+                  <SelectValue placeholder="Choose Section" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Sections">All Sections</SelectItem>
+                  <SelectItem value="Choose Section">Choose Section</SelectItem>
                   {sections.length > 0 ? (
                     sections.map((sec) =>
                       <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>

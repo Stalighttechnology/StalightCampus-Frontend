@@ -116,9 +116,9 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
 
 const StudyMaterialsStudent = () => {
   const { theme } = useTheme();
-  const [selectedBranch, setSelectedBranch] = useState<string>("All Branches");
-  const [selectedSemester, setSelectedSemester] = useState<string>("All Semesters");
-  const [selectedSection, setSelectedSection] = useState<string>("All Sections");
+  const [selectedBranch, setSelectedBranch] = useState<string>("Choose Branch");
+  const [selectedSemester, setSelectedSemester] = useState<string>("Choose Semester");
+  const [selectedSection, setSelectedSection] = useState<string>("Choose Section");
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
@@ -138,7 +138,7 @@ const StudyMaterialsStudent = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedBranch !== "All Branches") {
+    if (selectedBranch !== "Choose Branch") {
       const loadSemesters = async () => {
         const resp = await getSemesters(selectedBranch);
         if (resp && resp.success) {
@@ -146,21 +146,21 @@ const StudyMaterialsStudent = () => {
         } else {
           setSemesters([]);
         }
-        setSelectedSemester("All Semesters");
+        setSelectedSemester("Choose Semester");
         setSections([]);
-        setSelectedSection("All Sections");
+        setSelectedSection("Choose Section");
       };
       loadSemesters();
     } else {
       setSemesters([]);
-      setSelectedSemester("All Semesters");
+      setSelectedSemester("Choose Semester");
       setSections([]);
-      setSelectedSection("All Sections");
+      setSelectedSection("Choose Section");
     }
   }, [selectedBranch]);
 
   useEffect(() => {
-    if (selectedBranch !== "All Branches" && selectedSemester !== "All Semesters") {
+    if (selectedBranch !== "Choose Branch" && selectedSemester !== "Choose Semester") {
       const loadSections = async () => {
         const resp = await getSections(selectedBranch, selectedSemester);
         if (resp && resp.success) {
@@ -168,12 +168,12 @@ const StudyMaterialsStudent = () => {
         } else {
           setSections([]);
         }
-        setSelectedSection("All Sections");
+        setSelectedSection("Choose Section");
       };
       loadSections();
     } else {
       setSections([]);
-      setSelectedSection("All Sections");
+      setSelectedSection("Choose Section");
     }
   }, [selectedBranch, selectedSemester]);
 
@@ -185,9 +185,9 @@ const StudyMaterialsStudent = () => {
     setLoading(true);
 
     const resp = await getAllStudyMaterials(
-      selectedBranch === 'All Branches' ? undefined : selectedBranch,
-      selectedSemester === 'All Semesters' ? undefined : selectedSemester,
-      selectedSection === 'All Sections' ? undefined : selectedSection,
+      selectedBranch === 'Choose Branch' ? undefined : selectedBranch,
+      selectedSemester === 'Choose Semester' ? undefined : selectedSemester,
+      selectedSection === 'Choose Section' ? undefined : selectedSection,
       searchQuery || undefined,
       page
     );
@@ -240,7 +240,7 @@ const StudyMaterialsStudent = () => {
 
   // Load materials only when all filters are selected
   useEffect(() => {
-    if (selectedBranch !== "All Branches" && selectedSemester !== "All Semesters" && selectedSection !== "All Sections") {
+    if (selectedBranch !== "Choose Branch" && selectedSemester !== "Choose Semester" && selectedSection !== "Choose Section") {
       loadMaterials(1);
     } else {
       setMaterials([]);
@@ -263,10 +263,10 @@ const StudyMaterialsStudent = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
               <Select value={selectedBranch} onValueChange={setSelectedBranch}>
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="All Branches" />
+                  <SelectValue placeholder="Choose Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Branches">All Branches</SelectItem>
+                  <SelectItem value="Choose Branch">Choose Branch</SelectItem>
                   {branches.map((b) => (
                     <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
                   ))}
@@ -279,10 +279,10 @@ const StudyMaterialsStudent = () => {
                 disabled={semesters.length === 0}
               >
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="All Semesters" />
+                  <SelectValue placeholder="Choose Semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Semesters">All Semesters</SelectItem>
+                  <SelectItem value="Choose Semester">Choose Semester</SelectItem>
                   {semesters.map((s) => (
                     <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>
                   ))}
@@ -295,10 +295,10 @@ const StudyMaterialsStudent = () => {
                 disabled={sections.length === 0}
               >
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                  <SelectValue placeholder="All Sections" />
+                  <SelectValue placeholder="Choose Section" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All Sections">All Sections</SelectItem>
+                  <SelectItem value="Choose Section">Choose Section</SelectItem>
                   {sections.map((sec) => (
                     <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
                   ))}
