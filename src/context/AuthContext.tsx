@@ -7,7 +7,8 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import { refreshToken } from "../utils/authService";
+import { refreshToken, fetchWithTokenRefresh } from "../utils/authService";
+import { API_ENDPOINT } from "../utils/config";
 import { useNavigate } from "react-router-dom";
 
 interface AuthContextProps {
@@ -51,8 +52,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const silentRefresh = async () => {
       const storedRole = sessionStorage.getItem("role");
       const storedUserRaw = sessionStorage.getItem("user");
+      const hasSession = localStorage.getItem("has_session");
 
-      if (!storedRole || !storedUserRaw) {
+      if (!hasSession && (!storedRole || !storedUserRaw)) {
         // No previous session – skip refresh attempt immediately
         setIsInitializing(false);
         return;
@@ -63,12 +65,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (result.success && result.access) {
           setAccessToken(result.access);
           sessionStorage.setItem("access_token", result.access);
-          setRole(storedRole);
+          
           try {
-            setUser(JSON.parse(storedUserRaw));
-          } catch {
-            // Corrupted user data – clear session
-            sessionStorage.clear();
+             const profileRes = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/`, {
+                headers: { 'Content-Type': 'application/json' }
+             }).then(res => res.json());
+             
+             if (profileRes.success && profileRes.profile) {
+                setRole(profileRes.profile.role);
+                setUser(profileRes.profile);
+                sessionStorage.setItem("role", profileRes.profile.role);
+                sessionStorage.setItem("user", JSON.stringify(profileRes.profile));
+             } else {
+                if (storedRole && storedUserRaw) {
+                   setRole(storedRole);
+                   setUser(JSON.parse(storedUserRaw));
+                }
+             }
+          } catch (e) {
+             if (storedRole && storedUserRaw) {
+                 setRole(storedRole);
+                 setUser(JSON.parse(storedUserRaw));
+             }
           }
         } else {
           // HttpOnly cookie expired or invalid – clear stale session
@@ -134,6 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole(null);
     setUser(null);
     sessionStorage.clear();
+    localStorage.removeItem("has_session");
   }, []);
 
   // ─── refreshAccessToken ─────────────────────────────────────────────────────
