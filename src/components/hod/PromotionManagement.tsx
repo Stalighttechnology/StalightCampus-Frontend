@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { cn } from "@/lib/utils";
 import {
   Card,
@@ -443,6 +444,21 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
     state.students.filter((student) => state.selectedStudents.includes(student.usn)) :
     state.students;
 
+    const confirmRes = await Swal.fire({
+      title: 'Confirm Promotion',
+      text: `Are you sure you want to promote ${studentsToPromote.length} student(s) to Semester ${nextSemester.number}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Promote',
+      cancelButtonText: 'Cancel',
+      background: theme === 'dark' ? '#0f172a' : '#fff',
+      color: theme === 'dark' ? '#fff' : '#000'
+    });
+
+    if (!confirmRes.isConfirmed) {
+      return;
+    }
+
     updateState({
       students: state.students.filter((student) => !state.selectedStudents.includes(student.usn)),
       selectedStudents: [],
@@ -552,6 +568,22 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
 
     // Optimistic update: immediately clear the student list and show success
     const allStudents = [...state.students];
+
+    const confirmRes = await Swal.fire({
+      title: 'Confirm Bulk Promotion',
+      text: `Are you sure you want to promote all ${allStudents.length} students in this section to Semester ${nextSemester.number}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Promote All',
+      cancelButtonText: 'Cancel',
+      background: theme === 'dark' ? '#0f172a' : '#fff',
+      color: theme === 'dark' ? '#fff' : '#000'
+    });
+
+    if (!confirmRes.isConfirmed) {
+      return;
+    }
+
     updateState({
       students: [],
       selectedStudents: [],
