@@ -758,16 +758,23 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Semester</label>
                   <Select
                     value={state.selectedSemester}
-                    onValueChange={handleSemesterChange}>
+                    onValueChange={handleSemesterChange}
+                    disabled={state.loading || state.semesters.length === 0}>
 
-                    <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <SelectValue placeholder="Select Semester" />
+                    <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.semesters.length === 0}>
+                      <SelectValue placeholder={state.semesters.length === 0 ? "No semester available" : "Select Semester"} />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                      {state.semesters.map((semester) =>
-                        <SelectItem key={semester.id} value={semester.id}>
-                          Sem {semester.number}
-                        </SelectItem>
+                      {state.semesters.length === 0 ? (
+                        <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                          No semester available
+                        </div>
+                      ) : (
+                        state.semesters.map((semester) =>
+                          <SelectItem key={semester.id} value={semester.id}>
+                            Sem {semester.number}
+                          </SelectItem>
+                        )
                       )}
                     </SelectContent>
                   </Select>
@@ -779,16 +786,32 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                   <Select
                     value={state.selectedSection}
                     onValueChange={handleSectionChange}
-                    disabled={!state.selectedSemester}>
+                    disabled={state.loading || !state.selectedSemester}>
 
-                    <SelectTrigger id="section-select-trigger" className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <SelectValue placeholder="Select Section" />
+                    <SelectTrigger id="section-select-trigger" className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || !state.selectedSemester}>
+                      <SelectValue placeholder={
+                        !state.selectedSemester ?
+                          "Select Semester" :
+                          state.sections.length === 0 ?
+                          "No section available" :
+                          "Select Section"
+                      } />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                      {state.sections.map((section) =>
-                        <SelectItem key={section.id} value={section.id}>
-                          {section.name}
-                        </SelectItem>
+                      {!state.selectedSemester ? (
+                        <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                          Select semester first
+                        </div>
+                      ) : state.sections.length === 0 ? (
+                        <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                          No section available
+                        </div>
+                      ) : (
+                        state.sections.map((section) =>
+                          <SelectItem key={section.id} value={section.id}>
+                            {section.name}
+                          </SelectItem>
+                        )
                       )}
                     </SelectContent>
                   </Select>

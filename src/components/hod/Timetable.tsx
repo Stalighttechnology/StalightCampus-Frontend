@@ -958,16 +958,23 @@ const Timetable = () => {
                       onValueChange={(value) => {
                         updateState({ semesterId: value, sectionId: "", timetable: [] });
                         setTimeout(() => setIsSectionOpen(true), 150);
-                      }}>
+                      }}
+                      disabled={state.loading || state.semesters.length === 0}>
                       
-                      <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
-                        <SelectValue placeholder="Select Semester" />
+                      <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border" disabled={state.loading || state.semesters.length === 0}>
+                        <SelectValue placeholder={state.semesters.length === 0 ? "No semester available" : "Select Semester"} />
                       </SelectTrigger>
                       <SelectContent className="bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar">
-                        {state.semesters.map((semester) =>
-                        <SelectItem key={semester.id} value={semester.id} className="text-foreground">
-                            {semester.number} Semester
-                          </SelectItem>
+                        {state.semesters.length === 0 ? (
+                          <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                            No semester available
+                          </div>
+                        ) : (
+                          state.semesters.map((semester) =>
+                            <SelectItem key={semester.id} value={semester.id} className="text-foreground">
+                              {semester.number} Semester
+                            </SelectItem>
+                          )
                         )}
                       </SelectContent>
                     </Select>
@@ -978,16 +985,32 @@ const Timetable = () => {
                       onOpenChange={setIsSectionOpen}
                       value={state.sectionId}
                       onValueChange={(value) => updateState({ sectionId: value, timetable: [] })}
-                      disabled={!state.semesterId}>
+                      disabled={state.loading || !state.semesterId}>
                       
-                      <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border">
-                        <SelectValue placeholder="Select Section" />
+                      <SelectTrigger className="w-full sm:w-40 md:w-48 bg-card text-foreground border-border" disabled={state.loading || !state.semesterId}>
+                        <SelectValue placeholder={
+                          !state.semesterId ?
+                            "Select Semester" :
+                            state.sections.length === 0 ?
+                            "No section available" :
+                            "Select Section"
+                        } />
                       </SelectTrigger>
                       <SelectContent className="bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar">
-                        {state.sections.map((section) =>
-                        <SelectItem key={section.id} value={section.id} className="text-foreground">
-                            Section {section.name}
-                          </SelectItem>
+                        {!state.semesterId ? (
+                          <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                            Select semester first
+                          </div>
+                        ) : state.sections.length === 0 ? (
+                          <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                            No section available
+                          </div>
+                        ) : (
+                          state.sections.map((section) =>
+                            <SelectItem key={section.id} value={section.id} className="text-foreground">
+                              Section {section.name}
+                            </SelectItem>
+                          )
                         )}
                       </SelectContent>
                     </Select>

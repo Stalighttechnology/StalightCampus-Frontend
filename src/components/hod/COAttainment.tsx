@@ -37,6 +37,8 @@ const COAttainment = () => {
 
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
 
@@ -320,67 +322,97 @@ const COAttainment = () => {
     <div id="co-attainment-container">
       <Card>
         <CardContent className="pt-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50">
-            <div id="co-attainment-selectors" className="col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Semester</label>
-                <Select onValueChange={(value) => handleSelectChange('semester_id', Number(value))}>
-                  <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
-                    <SelectValue placeholder="Select Semester" />
-                  </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
-                    {dropdownData.semester.map((item) =>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl border border-border/50 items-end">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Semester</label>
+              <Select
+                open={isSemesterOpen}
+                onOpenChange={setIsSemesterOpen}
+                value={selected.semester_id?.toString() || ""}
+                onValueChange={(value) => {
+                  handleSelectChange('semester_id', Number(value));
+                  setTimeout(() => setIsSubjectOpen(true), 150);
+                }}
+                disabled={dropdownData.semester.length === 0}>
+                <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={dropdownData.semester.length === 0}>
+                  <SelectValue placeholder={dropdownData.semester.length === 0 ? "No semester available" : "Select Semester"} />
+                </SelectTrigger>
+                <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                  {dropdownData.semester.length === 0 ? (
+                    <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      No semester available
+                    </div>
+                  ) : (
+                    dropdownData.semester.map((item) =>
                       <SelectItem key={item.id} value={item.id.toString()}>
                         Semester {item.number}
                       </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+                    )
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Subject</label>
-                <Select onValueChange={(value) => handleSelectChange('subject_id', Number(value))} disabled={!selected.semester_id || dropdownData.subject.length === 0}>
-                  <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
-                    <SelectValue placeholder={!selected.semester_id ? "Select Semester First" : "Select Subject"} />
-                  </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}>
-                    {dropdownData.subject.map((item) =>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Subject</label>
+              <Select
+                open={isSubjectOpen}
+                onOpenChange={setIsSubjectOpen}
+                value={selected.subject_id?.toString() || ""}
+                onValueChange={(value) => handleSelectChange('subject_id', Number(value))}
+                disabled={!selected.semester_id || dropdownData.subject.length === 0}>
+                <SelectTrigger className={`h-11 ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`} disabled={!selected.semester_id || dropdownData.subject.length === 0}>
+                  <SelectValue placeholder={
+                    !selected.semester_id ?
+                      "Select Semester First" :
+                      dropdownData.subject.length === 0 ?
+                      "No subject available" :
+                      "Select Subject"
+                  } />
+                </SelectTrigger>
+                <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                  {!selected.semester_id ? (
+                    <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      Select semester first
+                    </div>
+                  ) : dropdownData.subject.length === 0 ? (
+                    <div className="p-2 text-center text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                      No subject available
+                    </div>
+                  ) : (
+                    dropdownData.subject.map((item) =>
                       <SelectItem key={item.id} value={item.id.toString()}>
                         {item.name}
                       </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+                    )
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Target Threshold</label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={targetThreshold}
-                    onChange={(e) => handleTargetThresholdChange(e.target.value)}
-                    className={`h-11 pr-8 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`} />
-                  
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
-                </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Target Threshold</label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={targetThreshold}
+                  onChange={(e) => handleTargetThresholdChange(e.target.value)}
+                  className={`h-11 pr-8 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`} />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
               </div>
             </div>
 
-            {selected.subject_id &&
-            <div className="col-span-1 md:col-span-2 lg:col-span-2 flex items-end h-full">
-                <Button
+            <div className="flex items-end h-full">
+              <Button
                 onClick={handleExportPDF}
-                disabled={downloadingPDF}
-                className="w-full h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center justify-center gap-2">
-                  {downloadingPDF && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  Download PDF Report
-                </Button>
-              </div>
-            }
+                disabled={downloadingPDF || !selected.subject_id || Object.keys(coAttainment).length === 0}
+                className="w-full h-11 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50">
+                {downloadingPDF && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                Download PDF Report
+              </Button>
+            </div>
           </div>
 
           {errorMessage &&

@@ -314,7 +314,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="hod-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
         <CardHeader id="hod-leaves-header-section" className="leave-card-header pb-2">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <CardTitle className={`leave-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</CardTitle>
@@ -328,14 +328,14 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 Review and approve leave requests from Heads of Departments
               </p>
             </div>
-            <div className="flex items-center gap-4 flex-wrap w-full md:w-auto">
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
                 <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
                   <PopoverTrigger asChild>
                     <Button
                         variant="outline"
-                        className={`leave-month-picker ${theme === 'dark' ? 'w-full sm:w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full sm:w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
+                        className={`leave-month-picker ${theme === 'dark' ? 'w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
                         
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {selectedMonth ?
@@ -418,11 +418,9 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
               </div>
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-9 h-9 p-0 flex items-center justify-center rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm">
+                <SelectTrigger className="w-[100px] px-3 h-9 flex items-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
                   <Filter className="h-4 w-4" />
-                  <span className="sr-only">
-                    <SelectValue placeholder="All" />
-                  </span>
+                  <span>Filter</span>
                 </SelectTrigger>
                 <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                   <SelectItem value="All">All Statuses</SelectItem>

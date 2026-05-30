@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
-import { FileDown, Loader2 } from "lucide-react";
+import { FileDown, Loader2, Users } from "lucide-react";
 
 const ExamApplication: React.FC = () => {
   const { theme } = useTheme();
@@ -20,10 +20,13 @@ const ExamApplication: React.FC = () => {
   const queryClient = useQueryClient();
   const printRef = useRef<HTMLDivElement | null>(null);
   
-  const [examPeriod, setExamPeriod] = useState("june_july");
+  const [examPeriod, setExamPeriod] = useState("");
   const [batchId, setBatchId] = useState("");
   const [semesterId, setSemesterId] = useState("");
   const [sectionId, setSectionId] = useState("");
+  const [isBatchOpen, setIsBatchOpen] = useState(false);
+  const [isSemOpen, setIsSemOpen] = useState(false);
+  const [isSecOpen, setIsSecOpen] = useState(false);
   
   const [dropdownData, setDropdownData] = useState<{
     batches: any[];
@@ -54,6 +57,38 @@ const ExamApplication: React.FC = () => {
   const [editingApplication, setEditingApplication] = useState<any>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadingHallTicketId, setDownloadingHallTicketId] = useState<string | null>(null);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const exportPDF = async () => {
+    if (!batchId || !semesterId || !sectionId) {
+      toast({ title: "Error", description: "Please select all filters before exporting.", variant: "destructive" });
+      return;
+    }
+    setDownloadingPDF(true);
+    try {
+      const response = await fetchWithTokenRefresh(
+        `${API_ENDPOINT}/hod/exam-applications/export-pdf/?batch_id=${batchId}&semester_id=${semesterId}&section_id=${sectionId}&exam_period=${examPeriod}`
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Exam_Applications_${examPeriod || "Report"}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const errorData = await response.json();
+        toast({ title: "Error", description: errorData.message || "Failed to export PDF", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to export PDF", variant: "destructive" });
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   // Fetch dropdowns on mount
   useEffect(() => {
@@ -360,19 +395,42 @@ const ExamApplication: React.FC = () => {
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Exam Applications</CardTitle>
+        <Button
+          onClick={exportPDF}
+          disabled={!batchId || !semesterId || !sectionId || students.length === 0 || downloadingPDF}
+          className="bg-primary hover:bg-primary/90 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2"
+        >
+          {downloadingPDF ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Exporting...</span>
+            </>
+          ) : (
+            <>
+              <FileDown className="h-4 w-4" />
+              <span>Export PDF</span>
+            </>
+          )}
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         
         <div id="exam-applications-filters" className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Exam Period</label>
-            <Select value={examPeriod} onValueChange={setExamPeriod}>
+            <Select 
+              value={examPeriod} 
+              onValueChange={(v) => {
+                setExamPeriod(v);
+                setTimeout(() => setIsBatchOpen(true), 150);
+              }}
+            >
               <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
                 <SelectValue placeholder="Select exam period" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px]">
                 <SelectItem value="june_july">June/July</SelectItem>
                 <SelectItem value="nov_dec">November/December</SelectItem>
                 <SelectItem value="jan_feb">January/February</SelectItem>
@@ -385,43 +443,79 @@ const ExamApplication: React.FC = () => {
           
           <div className="space-y-2">
             <label className="text-sm font-medium">Batch</label>
-            <Select value={batchId} onValueChange={setBatchId} disabled={loadingDropdowns}>
+            <Select 
+              value={batchId} 
+              onValueChange={(v) => {
+                setBatchId(v);
+                setTimeout(() => setIsSemOpen(true), 150);
+              }} 
+              disabled={loadingDropdowns || !examPeriod}
+              open={isBatchOpen}
+              onOpenChange={setIsBatchOpen}
+            >
               <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
                 <SelectValue placeholder="Select batch" />
               </SelectTrigger>
-              <SelectContent>
-                {dropdownData.batches.map(b => (
-                  <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
-                ))}
+              <SelectContent className="max-h-[200px]">
+                {dropdownData.batches.length === 0 ? (
+                  <SelectItem value="no_batches" disabled>No batches available</SelectItem>
+                ) : (
+                  dropdownData.batches.map(b => (
+                    <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
           
           <div className="space-y-2">
             <label className="text-sm font-medium">Semester</label>
-            <Select value={semesterId} onValueChange={(v) => { setSemesterId(v); setSectionId(""); }} disabled={loadingDropdowns}>
+            <Select 
+              value={semesterId} 
+              onValueChange={(v) => { 
+                setSemesterId(v); 
+                setSectionId(""); 
+                setTimeout(() => setIsSecOpen(true), 150);
+              }} 
+              disabled={loadingDropdowns || !batchId}
+              open={isSemOpen}
+              onOpenChange={setIsSemOpen}
+            >
               <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
                 <SelectValue placeholder="Select semester" />
               </SelectTrigger>
-              <SelectContent>
-                {dropdownData.semesters.map(s => (
-                  <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
-                ))}
+              <SelectContent className="max-h-[200px]">
+                {dropdownData.semesters.length === 0 ? (
+                  <SelectItem value="no_semesters" disabled>No semesters available</SelectItem>
+                ) : (
+                  dropdownData.semesters.map(s => (
+                    <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Section (Optional)</label>
-            <Select value={sectionId} onValueChange={setSectionId} disabled={loadingDropdowns || !semesterId || loadingSections}>
+            <label className="text-sm font-medium">Section</label>
+            <Select 
+              value={sectionId} 
+              onValueChange={setSectionId} 
+              disabled={loadingDropdowns || !semesterId || loadingSections}
+              open={isSecOpen}
+              onOpenChange={setIsSecOpen}
+            >
               <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
-                <SelectValue placeholder={loadingSections ? "Loading sections..." : "All Sections"} />
+                <SelectValue placeholder={loadingSections ? "Loading sections..." : "Select section"} />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sections</SelectItem>
-                {sections.map(s => (
-                  <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
-                ))}
+              <SelectContent className="max-h-[200px]">
+                {sections.length === 0 && !loadingSections ? (
+                  <SelectItem value="no_sections" disabled>No sections available</SelectItem>
+                ) : (
+                  sections.map(s => (
+                    <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -434,9 +528,25 @@ const ExamApplication: React.FC = () => {
           </div> :
           <>
               {!batchId || !semesterId || !sectionId ? (
-                <div className="text-center py-10 text-muted-foreground border rounded-lg">Please select Batch, Semester, and Section to view students.</div>
+                <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <Users className="w-12 h-12 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Select Filters</h3>
+                  <p className="max-w-xs text-base leading-relaxed">
+                    Please select Batch, Semester, and Section to view students.
+                  </p>
+                </div>
               ) : students.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground border rounded-lg">No students found.</div>
+                <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-4 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                  <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                    <Users className="w-12 h-12 opacity-80" />
+                  </div>
+                  <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Found</h3>
+                  <p className="max-w-xs text-base leading-relaxed">
+                    No students were found matching your criteria. Try adjusting your filters.
+                  </p>
+                </div>
               ) : (
                 <table className={`hidden md:table w-full rounded-md ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'} border-collapse`}>
                   <thead className={theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-100 text-gray-900'}>
@@ -487,10 +597,37 @@ const ExamApplication: React.FC = () => {
       </CardContent>
 
       {totalPages > 1 && (
-        <CardFooter className="flex justify-between items-center px-6 py-4 border-t border-border mt-auto">
-          <Button disabled={currentPage <= 1} onClick={() => fetchStudents(currentPage - 1)}>Previous</Button>
-          <span>Page {currentPage} of {totalPages} ({totalStudentsCount} records)</span>
-          <Button disabled={currentPage >= totalPages} onClick={() => fetchStudents(currentPage + 1)}>Next</Button>
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+          <div>
+            Showing {Math.min((currentPage - 1) * 50 + 1, totalStudentsCount)} to {Math.min(currentPage * 50, totalStudentsCount)} of {totalStudentsCount} records
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchStudents(currentPage - 1)}
+              disabled={currentPage <= 1 || loadingStudents}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Previous
+            </Button>
+
+            <div className="flex items-center justify-center min-w-[2rem]">
+              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {currentPage}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchStudents(currentPage + 1)}
+              disabled={currentPage >= totalPages || loadingStudents}
+              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+            >
+              Next
+            </Button>
+          </div>
         </CardFooter>
       )}
 

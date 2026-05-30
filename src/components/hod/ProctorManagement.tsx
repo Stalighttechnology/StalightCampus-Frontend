@@ -61,15 +61,18 @@ const ProctorStudents = () => {
     branchId: "",
     branchName: "Computer Science", // Fallback
     filters: {
-      semester_id: "all",
-      section_id: "all",
-      proctor_id: "all",
+      semester_id: "",
+      section_id: "",
+      proctor_id: "",
     },
     saving: false,
     cancelling: false,
   });
-  const [localSearch, setLocalSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [proctorSearch, setProctorSearch] = useState("");
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+  const [isProctorOpen, setIsProctorOpen] = useState(false);
 
   const studentsPerPage = 20;
 
@@ -79,7 +82,7 @@ const ProctorStudents = () => {
   };
 
   const handleExportPDF = async () => {
-    if (!state.search.trim() && (state.filters.semester_id === "all" || state.filters.section_id === "all" || state.filters.proctor_id === "all")) {
+    if (!state.search.trim() && (!state.filters.semester_id || !state.filters.section_id || !state.filters.proctor_id)) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -93,7 +96,7 @@ const ProctorStudents = () => {
         semester_id: state.filters.semester_id,
         section_id: state.filters.section_id,
       });
-      if (state.filters.proctor_id !== "all") {
+      if (state.filters.proctor_id) {
         params.append("proctor_id", state.filters.proctor_id);
       }
       if (state.search.trim()) {
@@ -211,15 +214,15 @@ const ProctorStudents = () => {
         page_size: studentsPerPage.toString(),
       });
 
-      if (state.filters.semester_id !== "all") {
+      if (state.filters.semester_id) {
         params.append("semester_id", state.filters.semester_id);
       }
 
-      if (state.filters.section_id !== "all") {
+      if (state.filters.section_id) {
         params.append("section_id", state.filters.section_id);
       }
 
-      if (state.filters.proctor_id !== "all") {
+      if (state.filters.proctor_id) {
         params.append("proctor_id", state.filters.proctor_id);
       }
 
@@ -284,7 +287,7 @@ const ProctorStudents = () => {
   // Fetch sections lazily when semester changes
   useEffect(() => {
     const semId = state.filters.semester_id;
-    if (semId !== "all" && state.branchId) {
+    if (semId && state.branchId) {
       manageSections({ branch_id: state.branchId, semester_id: semId }, "GET").then(res => {
         if (res.success && res.data) {
           updateState({ sections: res.data.map((s: any) => ({ ...s, id: String(s.id), semester_id: String(s.semester_id) })) as any });
@@ -301,7 +304,7 @@ const ProctorStudents = () => {
     const sem = state.filters.semester_id;
     const sec = state.filters.section_id;
     const proc = state.filters.proctor_id;
-    if (state.search.trim() || (sem !== "all" && sec !== "all" && proc !== "all")) {
+    if (state.search.trim() || (sem && sec && proc)) {
       loadStudents();
     } else {
       // clear students if selection is incomplete and no search is active
@@ -314,13 +317,21 @@ const ProctorStudents = () => {
     const newFilters = {
       ...state.filters,
       [field]: value,
-      ...(field === "semester_id" && { section_id: "all" }),
+      ...(field === "semester_id" && { section_id: "" }),
     };
 
+    setSearchQuery("");
     updateState({
       filters: newFilters,
       currentPage: 1,
+      search: "",
     });
+
+    if (field === "semester_id" && value) {
+      setTimeout(() => setIsSectionOpen(true), 150);
+    } else if (field === "section_id" && value) {
+      setTimeout(() => setIsProctorOpen(true), 150);
+    }
   };
 
   const handleSearch = () => {
@@ -330,6 +341,14 @@ const ProctorStudents = () => {
     loadStudents(state.search);
   };
 
+  // Debounce search input to main state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateState({ search: searchQuery });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Debounced search for real-time filtering
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -338,14 +357,14 @@ const ProctorStudents = () => {
         const sem = state.filters.semester_id;
         const sec = state.filters.section_id;
         const proc = state.filters.proctor_id;
-        if (state.search.trim() || (sem !== "all" && sec !== "all" && proc !== "all")) {
+        if (state.search.trim() || (sem && sec && proc)) {
           loadStudents();
         } else {
           // clear students if selection is incomplete and no search is active
           updateState({ students: [], totalCount: 0, totalAssigned: 0, totalUnassigned: 0 });
         }
       }
-    }, 500);
+    }, 50); // Small delay to let state.search update trigger search
     return () => clearTimeout(delayDebounceFn);
   }, [state.search]);
 
@@ -592,22 +611,20 @@ const ProctorStudents = () => {
                   Search Students
                 </label>
                 <div className="relative w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-muted-foreground" />
                   <Input
                     placeholder="Search by name, USN, dept..."
-                    value={state.search}
-                    onChange={(e) => updateState({ search: e.target.value })}
-                    className={`w-full pr-8 ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`w-full pl-10 pr-12 ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
                   />
-                  {state.search && (
+                  {searchQuery && (
                     <button
-                      onClick={() => updateState({ search: "" })}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
                     >
-                      <X className="w-4 h-4" />
+                      Clear
                     </button>
-                  )}
-                  {!state.search && (
-                    <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   )}
                 </div>
               </div>
@@ -666,15 +683,16 @@ const ProctorStudents = () => {
                 <div className="flex flex-col w-full sm:flex-1 lg:w-56">
                   <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Semester</label>
                   <Select
+                    open={isSemesterOpen}
+                    onOpenChange={setIsSemesterOpen}
                     value={state.filters.semester_id}
                     onValueChange={(value) => handleFilterChange("semester_id", value)}
                     disabled={state.loading || state.semesters.length === 0}
                   >
                     <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <SelectValue placeholder="All Semesters" />
+                      <SelectValue placeholder="Choose Semester" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                      <SelectItem value="all">All Semesters</SelectItem>
+                    <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {state.semesters.map((semester) => (
                         <SelectItem key={semester.id} value={semester.id}>
                           Sem {semester.number}
@@ -688,17 +706,18 @@ const ProctorStudents = () => {
                 <div className="flex flex-col w-full sm:flex-1 lg:w-56">
                   <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Section</label>
                   <Select
+                    open={isSectionOpen}
+                    onOpenChange={setIsSectionOpen}
                     value={state.filters.section_id}
                     onValueChange={(value) => handleFilterChange("section_id", value)}
-                    disabled={state.loading || state.sections.length === 0 || state.filters.semester_id === "all"}
+                    disabled={state.loading || state.sections.length === 0 || !state.filters.semester_id}
                   >
-                    <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <SelectValue placeholder="All Sections" />
+                    <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.sections.length === 0 || !state.filters.semester_id}>
+                      <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
-                      <SelectItem value="all">All Sections</SelectItem>
+                    <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white border border-gray-300 text-gray-900 max-h-[200px] overflow-y-auto custom-scrollbar'}>
                       {state.sections
-                        .filter((section) => state.filters.semester_id === "all" || section.semester_id === state.filters.semester_id)
+                        .filter((section) => section.semester_id === state.filters.semester_id)
                         .map((section) => (
                           <SelectItem key={section.id} value={section.id}>
                             Section {section.name}
@@ -712,15 +731,17 @@ const ProctorStudents = () => {
                 <div className="flex flex-col w-full sm:flex-1 lg:w-56">
                   <label className={`text-sm sm:text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Proctor</label>
                   <Select
+                    open={isProctorOpen}
+                    onOpenChange={setIsProctorOpen}
                     value={state.filters.proctor_id}
                     onValueChange={(value) => handleFilterChange("proctor_id", value)}
-                    disabled={state.loading || state.proctors.length === 0 || state.filters.section_id === "all"}
+                    disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}
                   >
-                    <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <SelectValue placeholder="All Proctors" />
+                    <SelectTrigger className={`text-sm ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`} disabled={state.loading || state.proctors.length === 0 || !state.filters.section_id}>
+                      <SelectValue placeholder="Choose Proctor" />
                     </SelectTrigger>
-                    <SelectContent className={`max-h-60 overflow-y-auto ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
-                      <div className="p-2 border-b border-border">
+                    <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
+                      <div className="p-2 border-b border-border" onPointerDown={(e) => e.stopPropagation()}>
                         <input
                           type="text"
                           placeholder="Search proctor..."
@@ -731,7 +752,6 @@ const ProctorStudents = () => {
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
-                      <SelectItem value="all">All Proctors</SelectItem>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
                       {state.proctors
                         .filter((proctor) => proctor.name.toLowerCase().includes(proctorSearch.toLowerCase()))
@@ -748,31 +768,22 @@ const ProctorStudents = () => {
               {/* Search on the right */}
               <div className="flex flex-col sm:flex-row gap-2 w-full">
                 <div className="relative w-full sm:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40 text-muted-foreground" />
                   <Input
                     placeholder="Search students by name or USN..."
-                    className={`w-full pr-8 text-base ${theme === 'dark' ? 'bg-card text-foreground border border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border border-gray-300 placeholder:text-gray-500'}`}
-                    value={state.search}
-                    onChange={(e) => updateState({ search: e.target.value })}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    disabled={state.loading}
+                    className={`w-full pl-10 pr-12 text-base ${theme === 'dark' ? 'bg-card text-foreground border border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border border-gray-300 placeholder:text-gray-500'}`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                  {state.search && (
+                  {searchQuery && (
                     <button
-                      onClick={() => updateState({ search: "" })}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
                     >
-                      <X className="w-4 h-4" />
+                      Clear
                     </button>
                   )}
                 </div>
-                <Button
-                  onClick={handleSearch}
-                  variant="outline"
-                  disabled={state.loading}
-                  className={`text-base font-semibold px-4 whitespace-nowrap w-full sm:w-auto ${theme === 'dark' ? 'bg-card text-foreground border border-border hover:bg-accent' : 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-100'}`}
-                >
-                  Search
-                </Button>
               </div>
               </div>
             </div>
