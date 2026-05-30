@@ -1045,16 +1045,20 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                     updateState({ filterSemesterId: value, filterSectionId: "" });
                     setTimeout(() => setIsFilterSectionOpen(true), 150);
                   }}
-                  disabled={state.loading || state.semesters.length === 0}>
+                  disabled={state.loading}>
                   
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder="Choose Semester" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {state.semesters.map((semester) =>
-                    <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                        Semester {semester.number}
-                      </SelectItem>
+                    {state.semesters.length === 0 ? (
+                      <div className="p-2 text-center text-sm text-muted-foreground">No semesters available</div>
+                    ) : (
+                      state.semesters.map((semester) => (
+                        <SelectItem key={semester.id} value={semester.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                          Semester {semester.number}
+                        </SelectItem>
+                      ))
                     )}
                   </SelectContent>
                 </Select>
@@ -1065,16 +1069,20 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   onOpenChange={setIsFilterSectionOpen}
                   value={state.filterSectionId}
                   onValueChange={(value) => updateState({ filterSectionId: value })}
-                  disabled={state.loading || !state.filterSemesterId || state.filterSections.length === 0}>
+                  disabled={state.loading || !state.filterSemesterId}>
                   
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder="Choose Section" />
                   </SelectTrigger>
                   <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                    {state.filterSections.map((section) =>
-                    <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                        Section {section.name}
-                      </SelectItem>
+                    {state.filterSections.length === 0 ? (
+                      <div className="p-2 text-center text-sm text-muted-foreground">No sections available</div>
+                    ) : (
+                      state.filterSections.map((section) => (
+                        <SelectItem key={section.id} value={section.id} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                          Section {section.name}
+                        </SelectItem>
+                      ))
                     )}
                   </SelectContent>
                 </Select>
@@ -1102,7 +1110,21 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   </p>
                 </div>);
 
-              if (filteredAssignments.length === 0) return <div className={`text-center py-4 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No assignments found for the selected criteria.</div>;
+              if (filteredAssignments.length === 0) {
+                const semNum = state.semesters.find((s) => s.id === state.filterSemesterId)?.number;
+                const secName = state.filterSections.find((s) => s.id === state.filterSectionId)?.name;
+                return (
+                  <div className={`flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`p-5 rounded-full mb-5 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                      <Search className="w-10 h-10 opacity-80" />
+                    </div>
+                    <h3 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Assignments Found</h3>
+                    <p className="max-w-md text-base leading-relaxed">
+                      There are no faculty assignments assigned to <span className="font-semibold text-primary">Semester {semNum || ''}</span>, <span className="font-semibold text-primary">Section {secName || ''}</span>.
+                    </p>
+                  </div>
+                );
+              }
 
               return (
                 <div className={`rounded-md overflow-x-auto ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`}>
