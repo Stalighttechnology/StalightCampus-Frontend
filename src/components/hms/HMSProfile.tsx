@@ -1,3 +1,5 @@
+import { Switch } from "@/components/ui/switch";
+import { requestForToken } from "@/lib/firebase";
 import HelpLearningCard from "../common/HelpLearningCard";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -59,7 +61,8 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help' | 'settings'>('personal');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -217,6 +220,52 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
           </div>);
 
       
+      
+      case 'settings':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+            <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+              <div className="space-y-0.5">
+                <Label className="text-base font-medium">Push Notifications</Label>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Receive real-time alerts for attendance, leaves, exams, and more.</p>
+              </div>
+              <Switch checked={notificationsEnabled} onCheckedChange={async (checked) => {
+                try {
+                  setNotificationsEnabled(checked);
+                  const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
+                  if (checked) {
+                    const token = await requestForToken();
+                    if (token && userToken) {
+                      await fetch(`${API_ENDPOINT}/profile/register-device/`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                        body: JSON.stringify({ fcm_token: token, device_type: 'web' })
+                      });
+                      showSuccessAlert('Success', 'Push notifications enabled!');
+                    } else {
+                      throw new Error('Permission denied or token missing');
+                    }
+                  } else {
+                    const token = await requestForToken();
+                    if (token && userToken) {
+                      await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                        body: JSON.stringify({ fcm_token: token })
+                      });
+                      showInfoAlert('Disabled', 'Push notifications disabled for this device. You may also need to revoke permission in your browser settings.');
+                    } else {
+                      throw new Error('Permission denied or token missing');
+                    }
+                  }
+                } catch (error) {
+                  setNotificationsEnabled(!checked);
+                  showErrorAlert('Error', 'Failed to update notification settings');
+                }
+              }} />
+            </div>
+          </div>
+        );
+
       case 'help':
         return (
           <div className="animate-in fade-in duration-300">
@@ -361,6 +410,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
               <div className="flex gap-2 mb-4 border-b pb-2 overflow-x-auto custom-scrollbar">
                 <button onClick={() => setActiveTab('personal')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'personal' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Personal Info</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'contact' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Contact & Bio</button>
+                <button onClick={() => setActiveTab('settings')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'settings' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Settings</button>
                 <button onClick={() => setActiveTab('help')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'help' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Help & Learning</button>
               </div>
               <div className={`p-4 sm:p-6 rounded-lg border min-h-[300px] ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>

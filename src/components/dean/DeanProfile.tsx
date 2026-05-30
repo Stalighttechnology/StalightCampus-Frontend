@@ -1,3 +1,5 @@
+import { Switch } from "@/components/ui/switch";
+import { requestForToken } from "@/lib/firebase";
 import React, { useEffect, useRef, useState } from "react";
 import HelpLearningCard from "../common/HelpLearningCard";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -59,6 +61,7 @@ const DeanProfile = () => {
   });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity'>('personal');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   const getInitials = (p: DeanProfileShape) => {
     const fn = p.first_name || "";

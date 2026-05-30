@@ -41,24 +41,16 @@ export const PwaInstaller: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Show wizard automatically if not fully set up (just once per session or based on localstorage)
-    if (isAuthenticated) {
-      const hasSeenWizard = localStorage.getItem('hasSeenPwaWizard');
-      if (!hasSeenWizard) {
-        // If they already have everything set up, don't show
-        if (permissions.installed && permissions.notifications) {
-          localStorage.setItem('hasSeenPwaWizard', 'true');
-          return;
-        }
-        
-        const timer = setTimeout(() => setIsOpen(true), 3000); // delay 3s
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isAuthenticated, permissions.installed, permissions.notifications]);
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open_pwa_installer', handleOpen);
+    return () => {
+      window.removeEventListener('open_pwa_installer', handleOpen);
+    };
+  }, []);
 
   const handleClose = () => {
     localStorage.setItem('hasSeenPwaWizard', 'true');
+    window.dispatchEvent(new CustomEvent('pwa_setup_complete'));
     setIsOpen(false);
   };
 
@@ -96,11 +88,14 @@ export const PwaInstaller: React.FC = () => {
     }
   };
 
-  const showInstallStep = !permissions.installed && installPrompt !== null;
-  const showNotificationStep = permissions.installed && !permissions.notifications;
+  const canInstall = !permissions.installed && installPrompt !== null;
+  const needsNotifications = !permissions.notifications;
+
+  const showInstallStep = canInstall;
+  const showNotificationStep = !canInstall && needsNotifications;
 
   // If neither step is needed but it's open, just render a "All Set" state or close
-  const allDone = permissions.installed && permissions.notifications;
+  const allDone = !canInstall && !needsNotifications;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); setIsOpen(open); }}>

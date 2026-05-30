@@ -1,3 +1,5 @@
+import { Switch } from "@/components/ui/switch";
+import { requestForToken } from "@/lib/firebase";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -68,7 +70,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
 
   // Tabs: details (Personal + Contact), other (Address + Bio), subscription (Plan Details)
-  const [activeTab, setActiveTab] = useState<'details' | 'other' | 'subscription' | 'support' | 'activity' | 'help'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'other' | 'subscription' | 'support' | 'activity' | 'help' | 'settings'>('details');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
@@ -824,6 +827,49 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
       );
     }
 
+    
+    if (activeTab === 'settings') {
+      return (
+        <div className="animate-in fade-in duration-300">
+          <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+          <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+            <div className="space-y-0.5">
+              <Label className="text-base font-medium">Push Notifications</Label>
+              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Receive real-time alerts for attendance, leaves, exams, and more.</p>
+            </div>
+            <Switch checked={notificationsEnabled} onCheckedChange={async (checked) => {
+              try {
+                setNotificationsEnabled(checked);
+                const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
+                if (checked) {
+                  const token = await requestForToken();
+                  if (token && userToken) {
+                    await fetch(`${API_ENDPOINT}/profile/register-device/`, {
+                      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                      body: JSON.stringify({ fcm_token: token, device_type: 'web' })
+                    });
+                    showSuccessAlert('Success', 'Push notifications enabled!');
+                  }
+                } else {
+                  const token = await requestForToken();
+                  if (token && userToken) {
+                    await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
+                      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                      body: JSON.stringify({ fcm_token: token })
+                    });
+                    showInfoAlert('Disabled', 'Push notifications disabled for this device. You may also need to revoke permission in your browser settings.');
+                  }
+                }
+              } catch (error) {
+                setNotificationsEnabled(!checked);
+                showErrorAlert('Error', 'Failed to update notification settings');
+              }
+            }} />
+          </div>
+        </div>
+      );
+    }
+
     if (activeTab === 'help') {
       return (
         <div className="animate-in fade-in duration-300">
@@ -1035,6 +1081,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                 <button onClick={() => setActiveTab('subscription')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'subscription' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Plan Details</button>
                 <button onClick={() => setActiveTab('support')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'support' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Support Tickets</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
+                <button onClick={() => setActiveTab('settings')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
                 <button onClick={() => setActiveTab('help')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors font-medium ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
               </div>
 

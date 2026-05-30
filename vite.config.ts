@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
+        gcm_sender_id: '103953800507',
         icons: [
           {
             src: 'logo-192.png',
@@ -40,6 +41,9 @@ export default defineConfig(({ mode }) => ({
             type: 'image/png'
           }
         ]
+      },
+      devOptions: {
+        enabled: true
       }
     }),
   ],
