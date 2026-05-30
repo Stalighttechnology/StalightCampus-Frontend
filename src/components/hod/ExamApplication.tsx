@@ -395,12 +395,12 @@ const ExamApplication: React.FC = () => {
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0 pb-4">
         <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Exam Applications</CardTitle>
         <Button
           onClick={exportPDF}
           disabled={!batchId || !semesterId || !sectionId || students.length === 0 || downloadingPDF}
-          className="bg-primary hover:bg-primary/90 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2"
+          className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-medium px-4 py-2 rounded-lg flex items-center justify-center gap-2"
         >
           {downloadingPDF ? (
             <>

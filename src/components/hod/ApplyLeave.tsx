@@ -429,20 +429,20 @@ const ApplyLeave = () => {
         {/* Recent Leave Applications - Right Side */}
         <Card id="hod-recent-leave-applications" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
               <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
             </div>
-            <div className="relative" ref={filterRef}>
+            <div className="relative sm:flex-shrink-0" ref={filterRef}>
               <Button
                 onClick={() => setShowFilter((prev) => !prev)}
-                className="h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90">
+                className="w-full sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90">
                 <FilterIcon className="w-4 h-4" />
                 {statusFilter === "All" ? "Filter" : statusFilter}
               </Button>
               {showFilter &&
-                <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                <div className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
                   <div className="py-1">
                     {["All", "Approved", "Pending", "Rejected"].map((status) => (
                       <button

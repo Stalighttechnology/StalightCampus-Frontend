@@ -377,20 +377,20 @@ const SemesterManagement = () => {
     <div id="hod-semester-container" className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader>
-          <div id="semester-list-header" className="flex items-center justify-between w-full">
+          <div id="semester-list-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Semester List</CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Button
                 onClick={() => openModal()}
                 disabled={loading || !branchId}
-                className="text-foreground bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white justify-center"
+                className="w-full sm:w-auto text-foreground bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white justify-center"
               >
                 + Add Semester
               </Button>
               <Button
                 onClick={handleExportPDF}
                 disabled={loading || !branchId || downloadingPDF}
-                className="flex items-center gap-1.5 bg-primary text-white border-primary hover:bg-primary/90"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-primary text-white border-primary hover:bg-primary/90"
               >
                 {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 {downloadingPDF ? "Exporting..." : "Export PDF"}

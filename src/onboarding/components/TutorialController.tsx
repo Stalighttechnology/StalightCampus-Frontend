@@ -116,6 +116,7 @@ const shouldScrollStep = (targetStep: any): boolean => {
       target === '#hod-leave-header' ||
       target === '#admin-search-bar' ||
       target === '#hod-search-student-card' ||
+      target === '#student-list-header-section' ||
       target === '#dean-attendance-filters-card' ||
       target === '#dean-faculty-filters-header-wrapper' ||
       target === '#dean-campus-locations-header' ||

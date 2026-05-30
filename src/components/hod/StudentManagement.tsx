@@ -1191,7 +1191,7 @@ const StudentManagement = () => {
         <CardHeader>
           <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Add Student Manually</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-y-auto max-h-[60vh] sm:max-h-none sm:overflow-visible custom-scrollbar">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-3">
             {/* USN */}
             <div className="flex flex-col">
@@ -1519,29 +1519,28 @@ const StudentManagement = () => {
           </CardHeader>
 
           <CardContent className="pb-4">
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-              <div className="flex w-full md:w-auto">
-                <div className="relative flex-grow md:w-64 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
-                  <Input
-                    placeholder="Search students..."
-                    className={`w-full pl-10 pr-12 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-                    value={state.search}
-                    onChange={(e) => updateState({ search: e.target.value })}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
-                  {state.search && (
-                    <button
-                      onClick={() => updateState({ search: "" })}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
+            <div className="flex flex-col gap-3">
+              {/* Search bar — full width on all screens */}
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
+                <Input
+                  placeholder="Search students..."
+                  className={`w-full pl-10 pr-12 ${theme === 'dark' ? 'bg-card text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                  value={state.search}
+                  onChange={(e) => updateState({ search: e.target.value })}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()} />
+                {state.search && (
+                  <button
+                    onClick={() => updateState({ search: "" })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
 
-              {/* Right side: Dropdowns */}
-              <div className="flex gap-2 md:gap-4">
+              {/* Semester + Section selects — stack on mobile, row on md+ */}
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Select
                   value={state.semesterFilter}
                   onValueChange={(value) =>
@@ -1554,7 +1553,7 @@ const StudentManagement = () => {
                   }
                   disabled={state.isLoading || state.semesters.length === 0}>
 
-                  <SelectTrigger id="list-semester-select-trigger" className={`flex-1 md:w-40 md:max-w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
+                  <SelectTrigger id="list-semester-select-trigger" className={`w-full sm:w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
                     <SelectValue
                       placeholder={
                         state.semesters.length === 0 ?
@@ -1584,7 +1583,7 @@ const StudentManagement = () => {
 
                   <SelectTrigger
                     id="list-section-select-trigger"
-                    className={`flex-1 md:w-40 md:max-w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                    className={`w-full sm:w-40 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
                     disabled={
                       state.isLoading ||
                       state.semesterFilter === ""

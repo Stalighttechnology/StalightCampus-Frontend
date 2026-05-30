@@ -6,6 +6,7 @@ import { DownloadIcon, EditIcon, User, Calendar, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useToast } from "../ui/use-toast";
 import { getSemesters, manageSections, manageSubjects, manageFaculties, manageTimetable, manageProfile, manageFacultyAssignments, getBranches, getHODTimetableBootstrap, getHODTimetableSemesterData } from "../../utils/hod_api";
+import { showWarningAlert } from "../../utils/sweetalert";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -463,17 +464,17 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
+              onClick={async () => {
                 if (!newClassDetails.start_time || !newClassDetails.end_time) {
-                  alert("Please enter both start and end times.");
+                  await showWarningAlert("Missing Fields", "Please enter both start and end times.");
                   return;
                 }
                 if (newClassDetails.start_time >= newClassDetails.end_time) {
-                  alert("Start time must be before end time.");
+                  await showWarningAlert("Invalid Time", "Start time must be before end time.");
                   return;
                 }
                 if (!newClassDetails.professor) {
-                  alert("Please select a professor.");
+                  await showWarningAlert("No Professor", "Please select a professor before saving.");
                   return;
                 }
                 onSave({
