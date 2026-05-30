@@ -567,7 +567,7 @@ const Monitoring = () => {
                         ></div>
                       </div>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-2">
-                        {healthData?.cpu?.cores} Physical & Logical Cores Active
+                        {healthData?.cpu?.cores}
                       </p>
                     </CardContent>
                   </Card>
