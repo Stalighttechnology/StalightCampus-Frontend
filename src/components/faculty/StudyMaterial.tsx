@@ -29,6 +29,8 @@ interface StudyMaterial {
   subject_code: string;
   semester: string;
   uploaded_by: string;
+  uploaded_by_name?: string;
+  uploaded_by_role?: string | null;
   file_url: string;
 }
 
@@ -126,12 +128,17 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
       <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
         {material.semester || "N/A"}
       </TableCell>
-      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap`}>
+      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
-            {material.uploaded_by.charAt(0)}
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary shadow-sm flex-shrink-0">
+            {(material.uploaded_by_name ?? 'U').charAt(0).toUpperCase()}
           </div>
-          <span className="truncate font-medium">{material.uploaded_by}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="truncate font-medium">{material.uploaded_by_name ?? 'Unknown'}</span>
+            {material.uploaded_by_role && (
+              <span className="text-xs text-muted-foreground truncate">{material.uploaded_by_role}</span>
+            )}
+          </div>
         </div>
       </TableCell>
       <TableCell className="text-right px-6 py-4">

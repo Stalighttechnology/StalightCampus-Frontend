@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Filter as FilterIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { adminLeaveApplications } from "../../utils/admin_api";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -34,7 +34,10 @@ interface AdminLeave {
 
 const ApplyLeaveAdmin = () => {
   const { theme } = useTheme();
+  const filterRef = useRef<HTMLDivElement>(null);
   const [leaves, setLeaves] = useState<AdminLeave[]>([]);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [showFilter, setShowFilter] = useState(false);
   const [leaveTitle, setLeaveTitle] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
@@ -87,6 +90,31 @@ const ApplyLeaveAdmin = () => {
   useEffect(() => {
     fetchLeaves(1);
   }, []);
+
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setShowFilter(false);
+      }
+    };
+
+    if (showFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilter]);
+
+  // Filter leaves based on statusFilter
+  const filteredLeaves = leaves.filter((leave) => {
+    if (statusFilter === "All") {
+      return true;
+    }
+    return leave.status === statusFilter.toUpperCase();
+  });
 
   const handleSubmit = async () => {
     if (!leaveTitle || !dateRange?.from || !reason.trim()) {
@@ -306,9 +334,41 @@ const ApplyLeaveAdmin = () => {
         {/* Recent Leave Applications - Right Side */}
         <Card id="recent-leaves-card" className={`apply-leave-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader>
-            <div>
-              <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
-              <p className={`apply-leave-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
+                <p className={`apply-leave-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+              </div>
+              <div className="relative" ref={filterRef}>
+                <Button
+                  onClick={() => setShowFilter((prev) => !prev)}
+                  className="h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90">
+                  <FilterIcon className="w-4 h-4" />
+                  {statusFilter === "All" ? "Filter" : statusFilter}
+                </Button>
+                {showFilter &&
+                  <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                    <div className="py-1">
+                      {["All", "Approved", "Pending", "Rejected"].map((status) => (
+                        <button
+                          key={status}
+                          type="button"
+                          className={cn(
+                            "block w-full text-left px-4 py-2 text-sm hover:bg-accent cursor-pointer",
+                            theme === 'dark' ? 'hover:bg-accent text-foreground' : 'hover:bg-gray-100 text-gray-700',
+                            statusFilter === status && "font-semibold bg-accent/50"
+                          )}
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setShowFilter(false);
+                          }}>
+                          {status === "All" ? "All Status" : status}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
           </CardHeader>
           <CardContent className="flex-1 max-h-[500px] overflow-y-auto custom-scrollbar">
@@ -317,18 +377,20 @@ const ApplyLeaveAdmin = () => {
               <div className="md:hidden space-y-3">
                 {loading ? (
                   <SkeletonList items={3} />
-                ) : leaves.length === 0 ? (
-                  <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-                    <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                      <CalendarIcon className="w-8 h-8 text-primary opacity-50" />
+                ) : filteredLeaves.length === 0 ? (
+                  <div className={`flex flex-col items-center justify-center p-8 text-center space-y-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                      <FilterIcon className={`w-8 h-8 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
                     </div>
-                    <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications</h3>
-                    <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      There are currently no leave requests to display for your account.
-                    </p>
+                    <div className="max-w-xs mx-auto text-center">
+                      <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests Found</h3>
+                      <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        There are no leave requests matching the selected status or filters.
+                      </p>
+                    </div>
                   </div>
                 ) : (
-                  leaves.map((leave) => (
+                  filteredLeaves.map((leave) => (
                     <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -376,22 +438,22 @@ const ApplyLeaveAdmin = () => {
                         <SkeletonList items={3} />
                       </td>
                     </tr>
-                  ) : leaves.length === 0 ? (
+                  ) : filteredLeaves.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-20 px-4">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                            <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+                      <td colSpan={4} className="p-0">
+                        <div className={`border-2 border-dashed flex flex-col items-center justify-center p-12 text-center space-y-4 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                          <div className={`p-4 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                            <FilterIcon className={`w-10 h-10 ${theme === 'dark' ? 'text-primary/70' : 'text-primary/70'}`} />
                           </div>
-                          <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No applications found</h3>
+                          <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests Found</h3>
                           <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            There are currently no leave requests to display for your account.
+                            There are no leave requests matching the selected status or filters.
                           </p>
                         </div>
                       </td>
                     </tr>
                   ) : (
-                    leaves.map((leave) => (
+                    filteredLeaves.map((leave) => (
                       <tr
                         key={leave.id}
                         className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>

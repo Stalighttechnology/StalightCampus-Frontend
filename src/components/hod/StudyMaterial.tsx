@@ -29,6 +29,7 @@ import { SkeletonTable } from "../ui/skeleton";
 import { toast } from "react-hot-toast";
 import { AdminPagination } from "../common/AdminPagination";
 import Swal from "sweetalert2";
+import { cn } from "@/lib/utils";
 
 // Interface for study material from API
 interface ApiStudyMaterial {
@@ -39,6 +40,8 @@ interface ApiStudyMaterial {
   semester_id: string;
   branch_id: string;
   uploaded_by: string;
+  uploaded_by_name?: string;
+  uploaded_by_role?: string | null;
   uploaded_at: string;
   file_url: string;
   drive_file_id?: string | null;
@@ -58,6 +61,8 @@ interface StudyMaterial {
   branch: string | null;
   branch_id?: string | null;
   uploaded_by: string;
+  uploaded_by_name?: string;
+  uploaded_by_role?: string | null;
   uploaded_at: string;
   file_url: string;
   section?: string | null;
@@ -73,8 +78,9 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
 
   useEffect(() => {
     const fetchMaterials = async () => {
-      // Only load materials when all filters are selected
-      if (!sectionsLoaded || !branchId || semesterFilter === 'All Semesters' || sectionFilter === 'All Sections') {
+      // Only load materials when all filters are selected, unless a search query is active
+      const hasSearch = searchQuery.trim() !== "";
+      if (!hasSearch && (!sectionsLoaded || !branchId || !semesterFilter || !sectionFilter)) {
         setStudyMaterials([]);
         setTotalPages(1);
         setTotalCount(0);
@@ -82,8 +88,8 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
       }
       setLoading(true);
       try {
-        const sem = semesterFilter === 'All Semesters' ? undefined : semesterFilter;
-        const sec = sectionFilter === 'All Sections' ? undefined : sectionFilter;
+        const sem = semesterFilter;
+        const sec = sectionFilter;
         const resp = await getStudyMaterials(branchId || undefined, sem, sec, searchQuery, page);
         if (resp && resp.success && Array.isArray(resp.data)) {
           const mapped = resp.data.map((m: any) => ({
@@ -98,6 +104,8 @@ const useStudyMaterials = (branchId: string | null, semesterFilter: string, sect
             section: m.section || null,
             section_id: m.section_id || null,
             uploaded_by: m.uploaded_by || '',
+            uploaded_by_name: m.uploaded_by_name || '',
+            uploaded_by_role: m.uploaded_by_role || null,
             uploaded_at: m.uploaded_at || '',
             file_url: m.drive_web_view_link || m.file_url
           }));
@@ -219,6 +227,7 @@ const useUploadModal = () => {
 // Row component for each study material
 const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMaterial; theme: string; onDelete: (id: string) => void; }) => {
   const [deleting, setDeleting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const handleDelete = async () => {
     Swal.fire({
@@ -272,10 +281,17 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!material.file_url) return;
-    if (material.file_url.includes('drive.google.com') || material.file_url.includes('docs.google.com')) {
-      window.open(material.file_url, '_blank', 'noopener,noreferrer');
-    } else {
-      await downloadFileViaBackendProxy(material.file_url, material.title);
+    setDownloading(true);
+    try {
+      if (material.file_url.includes('drive.google.com') || material.file_url.includes('docs.google.com')) {
+        window.open(material.file_url, '_blank', 'noopener,noreferrer');
+      } else {
+        await downloadFileViaBackendProxy(material.file_url, material.title);
+      }
+    } catch (err) {
+      toast.error("Failed to download file");
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -303,21 +319,27 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
       <TableCell className={`hidden md:table-cell text-sm md:text-base font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap text-center`}>
         {material.semester || "N/A"}
       </TableCell>
-      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4 whitespace-nowrap`}>
+      <TableCell className={`hidden lg:table-cell text-sm md:text-base ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} px-6 py-4`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary shadow-sm">
-            {material.uploaded_by.charAt(0)}
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary shadow-sm flex-shrink-0">
+            {(material.uploaded_by_name ?? 'U').charAt(0).toUpperCase()}
           </div>
-          <span className="truncate font-medium">{material.uploaded_by}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="truncate font-medium">{material.uploaded_by_name ?? 'Unknown'}</span>
+            {material.uploaded_by_role && (
+              <span className="text-xs text-muted-foreground truncate">{material.uploaded_by_role}</span>
+            )}
+          </div>
         </div>
       </TableCell>
       <TableCell className="text-right px-6 py-4">
         <div className="flex justify-end items-center gap-3">
           <button
             onClick={handleDownload}
+            disabled={downloading}
             className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
           >
-            <Download size={22} />
+            {downloading ? <Loader2 className="animate-spin" size={22} /> : <Download size={22} />}
           </button>
           <button
             onClick={handleDelete}
@@ -336,8 +358,19 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
 // Main component
 const StudyMaterials = () => {
   const { theme } = useTheme();
-  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("All Branches");
-  const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>("All Sections");
+  // Open states for select dropdown triggers
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+
+  // Upload modal open states
+  const [isModalBranchOpen, setIsModalBranchOpen] = useState(false);
+  const [isModalSemesterOpen, setIsModalSemesterOpen] = useState(false);
+  const [isModalSectionOpen, setIsModalSectionOpen] = useState(false);
+  const [isModalSubjectOpen, setIsModalSubjectOpen] = useState(false);
+
+  const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>("");
+  const [selectedSectionFilter, setSelectedSectionFilter] = useState<string>("");
   const [branches, setBranches] = useState<Array<{ id: string; name: string; }>>([]);
   const [sections, setSections] = useState<Array<{ id: string; name: string; }>>([]);
   const [pageSectionsLoaded, setPageSectionsLoaded] = useState<boolean>(false);
@@ -347,10 +380,10 @@ const StudyMaterials = () => {
   const [modalSections, setModalSections] = useState<Array<{ id: string; name: string; }>>([]);
   const [modalSubjects, setModalSubjects] = useState<Array<{ id: string; name: string; subject_code: string; }>>([]);
 
-  // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
+  // Pass null when empty to hook; but hook expects branch id, so use null to represent none
   const [searchQuery, setSearchQuery] = useState("");
   const [localSearchQuery, setLocalSearchQuery] = useState("");
-  const [semesterFilter, setSemesterFilter] = useState("All Semesters");
+  const [semesterFilter, setSemesterFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
   // Debounce sync local search to searchQuery
@@ -362,8 +395,16 @@ const StudyMaterials = () => {
     return () => clearTimeout(timer);
   }, [localSearchQuery]);
 
-  // Pass null when 'All Branches' to hook; but hook expects branch id, so use null to represent none
-  const branchIdForHook = selectedBranchFilter === "All Branches" ? null : selectedBranchFilter;
+  // Clear search query when dropdown filters change
+  useEffect(() => {
+    if (selectedBranchFilter || semesterFilter || selectedSectionFilter) {
+      setLocalSearchQuery("");
+      setSearchQuery("");
+    }
+  }, [selectedBranchFilter, semesterFilter, selectedSectionFilter]);
+
+  // Pass null when empty to hook; but hook expects branch id, so use null to represent none
+  const branchIdForHook = selectedBranchFilter || null;
   const { studyMaterials, addStudyMaterial, removeStudyMaterial, loading, totalPages, totalCount } = useStudyMaterials(branchIdForHook, semesterFilter, selectedSectionFilter, searchQuery, pageSectionsLoaded, currentPage);
   const {
     showUploadModal,
@@ -412,11 +453,11 @@ const StudyMaterials = () => {
   // Load semesters for the page and sections when branch/semester filters change
   useEffect(() => {
     const loadPageSemesters = async () => {
-      if (!selectedBranchFilter || selectedBranchFilter === "All Branches") {
+      if (!selectedBranchFilter) {
         setPageSemesters([]);
-        setSemesterFilter("All Semesters");
+        setSemesterFilter("");
         setSections([]);
-        setSelectedSectionFilter("All Sections");
+        setSelectedSectionFilter("");
         return;
       }
       try {
@@ -430,8 +471,8 @@ const StudyMaterials = () => {
 
         setPageSemesters([]);
       }
-      setSemesterFilter("All Semesters");
-      setSelectedSectionFilter("All Sections");
+      setSemesterFilter("");
+      setSelectedSectionFilter("");
       setCurrentPage(1);
     };
     loadPageSemesters();
@@ -441,9 +482,9 @@ const StudyMaterials = () => {
     const loadSections = async () => {
       // Only load sections when a branch AND a semester are selected
       setPageSectionsLoaded(false);
-      if (!selectedBranchFilter || selectedBranchFilter === "All Branches" || semesterFilter === 'All Semesters') {
+      if (!selectedBranchFilter || !semesterFilter) {
         setSections([]);
-        setSelectedSectionFilter("All Sections");
+        setSelectedSectionFilter("");
         setPageSectionsLoaded(true);
         return;
       }
@@ -459,12 +500,14 @@ const StudyMaterials = () => {
 
         setSections([]);
       }
-      setSelectedSectionFilter("All Sections");
+      setSelectedSectionFilter("");
       setCurrentPage(1);
       setPageSectionsLoaded(true);
     };
     loadSections();
   }, [selectedBranchFilter, semesterFilter]);
+
+
 
   // Load semesters when branchId (upload modal) changes
   useEffect(() => {
@@ -529,34 +572,81 @@ const StudyMaterials = () => {
     loadSectionsAndSubjects();
   }, [branchId, semesterId]);
 
+
+
   const handleUpload = async () => {
 
     if (!file || !title) {
-      alert("Please provide a title and select a file.");
+      Swal.fire({
+        title: "Missing Information",
+        text: "Please provide a title and select a file.",
+        icon: "warning",
+        confirmButtonText: "OK",
+        confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#ffffff' : '#000000',
+        customClass: { popup: 'rounded-2xl border border-border shadow-2xl' }
+      });
       return;
     }
 
     if (!branchId || !semesterId) {
-      alert("Please provide branch ID and semester ID.");
+      Swal.fire({
+        title: "Missing Configuration",
+        text: "Please select branch and semester.",
+        icon: "warning",
+        confirmButtonText: "OK",
+        confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#ffffff' : '#000000',
+        customClass: { popup: 'rounded-2xl border border-border shadow-2xl' }
+      });
       return;
     }
 
     if (!subjectId && !subjectName) {
-      alert("Please select a course (Course Name).");
+      Swal.fire({
+        title: "Missing Course Selection",
+        text: "Please select a course (Course Name).",
+        icon: "warning",
+        confirmButtonText: "OK",
+        confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#ffffff' : '#000000',
+        customClass: { popup: 'rounded-2xl border border-border shadow-2xl' }
+      });
       return;
     }
 
     // Validate file size <= 20MB
     const MAX_SIZE = 20 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      alert("File size must not exceed 20MB.");
+      Swal.fire({
+        title: "File Too Large",
+        text: "File size must not exceed 20MB.",
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#ffffff' : '#000000',
+        customClass: { popup: 'rounded-2xl border border-border shadow-2xl' }
+      });
       return;
     }
     
     // Validate file type
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowedTypes.includes(file.type)) {
-      alert("Only PDF, DOC, and DOCX files are allowed.");
+      Swal.fire({
+        title: "Invalid File Type",
+        text: "Only PDF, DOC, and DOCX files are allowed.",
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+        background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+        color: theme === 'dark' ? '#ffffff' : '#000000',
+        customClass: { popup: 'rounded-2xl border border-border shadow-2xl' }
+      });
       return;
     }
 
@@ -588,6 +678,8 @@ const StudyMaterials = () => {
           semester: apiMaterial.semester_id ? parseInt(apiMaterial.semester_id) || null : apiMaterial.semester ? parseInt(apiMaterial.semester as any) || null : null,
           branch: apiMaterial.branch_id || apiMaterial.branch || null,
           uploaded_by: apiMaterial.uploaded_by,
+          uploaded_by_name: apiMaterial.uploaded_by_name,
+          uploaded_by_role: apiMaterial.uploaded_by_role,
           uploaded_at: apiMaterial.uploaded_at,
           file_url: apiMaterial.file_url
         };
@@ -644,18 +736,26 @@ const StudyMaterials = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <Select
+                    open={isBranchOpen}
+                    onOpenChange={setIsBranchOpen}
                     value={selectedBranchFilter}
-                    onValueChange={(value) => setSelectedBranchFilter(value)}>
+                    onValueChange={(value) => {
+                      setSelectedBranchFilter(value);
+                      setTimeout(() => setIsSemesterOpen(true), 150);
+                    }}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder="All Branches" />
+                      <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                      <SelectItem value="All Branches">All Branches</SelectItem>
-                      {branches.map((b) =>
-                        <SelectItem key={b.id} value={b.id}>
-                          {b.name}
-                        </SelectItem>
+                    <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                      {branches.length > 0 ? (
+                        branches.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            {b.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">No branches available</div>
                       )}
                     </SelectContent>
                   </Select>
@@ -663,45 +763,52 @@ const StudyMaterials = () => {
 
                 <div>
                   <Select
+                    open={isSemesterOpen}
+                    onOpenChange={setIsSemesterOpen}
                     value={semesterFilter}
-                    onValueChange={(value) => setSemesterFilter(value)}>
+                    onValueChange={(value) => {
+                      setSemesterFilter(value);
+                      setTimeout(() => setIsSectionOpen(true), 150);
+                    }}
+                    disabled={!selectedBranchFilter}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder="All Semesters" />
+                      <SelectValue placeholder="Select Semester" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                      <SelectItem value="All Semesters">All Semesters</SelectItem>
-                      {pageSemesters && pageSemesters.length > 0 ?
-                        pageSemesters.map((s) =>
+                    <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                      {pageSemesters && pageSemesters.length > 0 ? (
+                        pageSemesters.map((s) => (
                           <SelectItem key={s.id} value={s.id}>
                             {`Semester ${s.number}`}
                           </SelectItem>
-                        ) :
-
-                        ["1", "2", "3", "4", "5", "6", "7", "8"].map((semester) =>
-                          <SelectItem key={semester} value={semester}>
-                            {semester}
-                          </SelectItem>
-                        )
-                      }
+                        ))
+                      ) : (
+                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">No semesters available</div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <Select
+                    open={isSectionOpen}
+                    onOpenChange={setIsSectionOpen}
                     value={selectedSectionFilter}
-                    onValueChange={(value) => setSelectedSectionFilter(value)}>
+                    onValueChange={(value) => setSelectedSectionFilter(value)}
+                    disabled={!semesterFilter}>
 
                     <SelectTrigger className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
-                      <SelectValue placeholder="All Sections" />
+                      <SelectValue placeholder="Select Section" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-                      <SelectItem value="All Sections">All Sections</SelectItem>
-                      {sections.map((s) =>
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}
-                        </SelectItem>
+                    <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                      {sections.length > 0 ? (
+                        sections.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">No sections available</div>
                       )}
                     </SelectContent>
                   </Select>
@@ -710,11 +817,24 @@ const StudyMaterials = () => {
 
               {/* Search Row */}
               <div className="w-full">
-                <Input
-                  placeholder="Search materials..."
-                  className={`w-full text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
-                  value={localSearchQuery}
-                  onChange={(e) => setLocalSearchQuery(e.target.value)} />
+                <div className="relative">
+                  <Input
+                    placeholder="Search materials..."
+                    className={`w-full text-sm sm:text-base h-10 sm:h-11 pr-16 ${theme === 'dark' ? 'bg-background text-foreground border-border placeholder:text-muted-foreground' : 'bg-white text-gray-900 border-gray-300 placeholder:text-gray-500'}`}
+                    value={localSearchQuery}
+                    onChange={(e) => setLocalSearchQuery(e.target.value)} />
+                  {localSearchQuery && (
+                    <button
+                      onClick={() => {
+                        setLocalSearchQuery("");
+                        setSearchQuery("");
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -722,7 +842,7 @@ const StudyMaterials = () => {
         <CardContent className="space-y-6 pt-2">
           {/* Table Area Section */}
           <div className="pt-4 border-t">
-            {(!pageSectionsLoaded || !branchIdForHook || semesterFilter === 'All Semesters' || selectedSectionFilter === 'All Sections') ? (
+            {(!searchQuery.trim() && (!pageSectionsLoaded || !branchIdForHook || !semesterFilter || !selectedSectionFilter)) ? (
               <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
                 <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner animate-pulse ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                   <FileText className="w-12 h-12" />
@@ -825,18 +945,27 @@ const StudyMaterials = () => {
               <div className="space-y-2">
                 <Label>Branch *</Label>
                 <Select
+                  open={isModalBranchOpen}
+                  onOpenChange={setIsModalBranchOpen}
                   value={branchId}
-                  onValueChange={(value) => setBranchId(value)}
+                  onValueChange={(value) => {
+                    setBranchId(value);
+                    setTimeout(() => setIsModalSemesterOpen(true), 150);
+                  }}
                   disabled={uploading}>
 
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select Branch" />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                    {branches.map((b) =>
-                      <SelectItem key={b.id} value={b.id}>
-                        {b.name}
-                      </SelectItem>
+                  <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900')}>
+                    {branches.length > 0 ? (
+                      branches.map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="py-2 px-8 text-sm text-muted-foreground text-center">No branches available</div>
                     )}
                   </SelectContent>
                 </Select>
@@ -846,18 +975,27 @@ const StudyMaterials = () => {
                 <div className="space-y-2">
                   <Label>Semester *</Label>
                   <Select
+                    open={isModalSemesterOpen}
+                    onOpenChange={setIsModalSemesterOpen}
                     value={semesterId}
-                    onValueChange={(value) => setSemesterId(value)}
+                    onValueChange={(value) => {
+                      setSemesterId(value);
+                      setTimeout(() => setIsModalSectionOpen(true), 150);
+                    }}
                     disabled={uploading || !branchId}>
 
                     <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                       <SelectValue placeholder="Select Sem" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                      {modalSemesters.map((s) =>
-                        <SelectItem key={s.id} value={s.id}>
-                          Sem {s.number}
-                        </SelectItem>
+                    <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900')}>
+                      {modalSemesters.length > 0 ? (
+                        modalSemesters.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            Sem {s.number}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">No semesters available</div>
                       )}
                     </SelectContent>
                   </Select>
@@ -865,18 +1003,27 @@ const StudyMaterials = () => {
                 <div className="space-y-2">
                   <Label>Section</Label>
                   <Select
+                    open={isModalSectionOpen}
+                    onOpenChange={setIsModalSectionOpen}
                     value={sectionId}
-                    onValueChange={(value) => setSectionId(value)}
+                    onValueChange={(value) => {
+                      setSectionId(value);
+                      setTimeout(() => setIsModalSubjectOpen(true), 150);
+                    }}
                     disabled={uploading || !semesterId}>
 
                     <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                       <SelectValue placeholder="Optional" />
                     </SelectTrigger>
-                    <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                      {modalSections.map((s) =>
-                        <SelectItem key={s.id} value={s.id}>
-                          Sec {s.name}
-                        </SelectItem>
+                    <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900')}>
+                      {modalSections.length > 0 ? (
+                        modalSections.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            Sec {s.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="py-2 px-8 text-sm text-muted-foreground text-center">No sections available</div>
                       )}
                     </SelectContent>
                   </Select>
@@ -886,6 +1033,8 @@ const StudyMaterials = () => {
               <div className="space-y-2">
                 <Label>Course / Subject *</Label>
                 <Select
+                  open={isModalSubjectOpen}
+                  onOpenChange={setIsModalSubjectOpen}
                   value={subjectId}
                   onValueChange={(sid) => {
                     setSubjectId(sid);
@@ -903,11 +1052,15 @@ const StudyMaterials = () => {
                   <SelectTrigger className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select Course" />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                    {modalSubjects.map((s) =>
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name} ({s.subject_code})
-                      </SelectItem>
+                  <SelectContent className={cn("max-h-[200px] overflow-y-auto", theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900')}>
+                    {modalSubjects.length > 0 ? (
+                      modalSubjects.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name} ({s.subject_code})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="py-2 px-8 text-sm text-muted-foreground text-center">No courses available</div>
                     )}
                   </SelectContent>
                 </Select>
