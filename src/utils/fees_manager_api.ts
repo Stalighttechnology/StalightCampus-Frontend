@@ -730,4 +730,5 @@ export const STAFF_ROLES = [
 { value: 'coe', label: 'COE' },
 { value: 'fees_manager', label: 'Fees Manager' },
 { value: 'warden', label: 'Warden' },
-{ value: 'caretaker', label: 'Caretaker' }];
+{ value: 'caretaker', label: 'Caretaker' },
+{ value: 'placement_officer', label: 'Placement Officer' }];
