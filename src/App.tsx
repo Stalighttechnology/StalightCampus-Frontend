@@ -488,7 +488,7 @@ const App = () => {
     // ✅ NO QueryClientProvider here - it's in main.tsx
     // ✅ NO ThemeProvider here - it's in main.tsx
     // ✅ NO TooltipProvider here - it's in main.tsx
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <WardenProvider>
           <AppContent />

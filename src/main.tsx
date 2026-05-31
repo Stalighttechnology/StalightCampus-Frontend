@@ -32,21 +32,18 @@ createRoot(document.getElementById("root")!).render(
 
 );
 
-// Service worker with cache busting
+// Service worker registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    const swUrl = `/sw.js?v=${Date.now()}`;
+    const swUrl = '/sw.js';
 
-    navigator.serviceWorker.register(swUrl).
-    then((registration) => {
-
-      registration.update();
-      setInterval(() => {
+    navigator.serviceWorker.register(swUrl)
+      .then((registration) => {
+        // Clean registration
         registration.update();
-      }, 5000);
-    }).
-    catch((error) => {
-
-    });
+      })
+      .catch((error) => {
+        console.error('Service worker registration failed:', error);
+      });
   });
 }

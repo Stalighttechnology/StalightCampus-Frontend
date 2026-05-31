@@ -25,7 +25,8 @@ export const requestForToken = async () => {
           console.log('Notification permission not granted.');
           return null;
       }
-      const registration = await navigator.serviceWorker.getRegistration();
+      // Explicitly register/get our combined service worker (caching + FCM)
+      const registration = await navigator.serviceWorker.register('/sw.js');
       const currentToken = await getToken(messaging, { 
           vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
           serviceWorkerRegistration: registration
@@ -45,12 +46,12 @@ export const requestForToken = async () => {
     }
   };
 
-export const onMessageListener = () =>
-    new Promise((resolve) => {
-        if (!messaging) return;
-        onMessage(messaging, (payload) => {
-            resolve(payload);
-        });
+// Persistent foreground message listener — calls the callback every time a message arrives
+export const onMessageListener = (callback: (payload: any) => void): (() => void) => {
+    if (!messaging) return () => {};
+    return onMessage(messaging, (payload) => {
+        callback(payload);
     });
+};
 
 export default app;
