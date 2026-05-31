@@ -340,6 +340,15 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
 
+          <Route path="/class-schedule" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <>
+                <StudentDashboard user={userData} setPage={() => { }} />
+                {shouldShowFloatingAssistant() && <FloatingAssistant />}
+              </>
+            </ProtectedRoute>
+          } />
+
           {/* Admin routes */}
           <Route path="/admin/*" element={
             <ProtectedRoute allowedRoles={["admin", "principal"]}>

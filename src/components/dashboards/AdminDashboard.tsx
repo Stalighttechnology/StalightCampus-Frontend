@@ -22,6 +22,7 @@ import ApplyLeaveAdmin from "../admin/ApplyLeaveAdmin";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
+import GoogleSetup from "../admin/GoogleSetup";
 
 import {
   Users,
@@ -189,6 +190,12 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
         return (
           <div>
             <StudentInfoScanner />
+          </div>);
+
+      case "google-setup":
+        return (
+          <div>
+            <GoogleSetup setError={setError} toast={toast} />
           </div>);
 
       default:

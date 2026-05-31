@@ -65,7 +65,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     if (!hasSeenWizard) {
       setShowPwaBadge(true);
     }
-    
+
     // Also listen for when they finish the setup to remove the badge immediately
     const handlePwaDone = () => setShowPwaBadge(false);
     window.addEventListener('pwa_setup_complete', handlePwaDone);
@@ -208,7 +208,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "library-books": <BookOpen size={20} />,
       "library-circulation": <Users size={20} />,
       "library-fines": <CreditCard size={20} />,
-      
+
       "admission-dashboard": <LayoutDashboard size={20} />,
       "campus-builder": <LayoutDashboard size={20} />,
       "admission-enquiries": <Users size={20} />,
@@ -221,6 +221,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "admission-communication": <Bell size={20} />,
       "admission-reports": <BarChart2 size={20} />,
       "admission-settings": <Settings size={20} />,
+      "google-setup": <Settings size={20} />,
+      "schedule-class": <Calendar size={20} />,
+      "class-schedule": <Calendar size={20} />,
     };
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
@@ -270,6 +273,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Apply Leave", page: "apply-leave" },
 
+      // Integrations
+      { name: "Google Setup", page: "google-setup" },
+
       // User & Profile
       { name: "Users", page: "users" },
       { name: "Scan for Student Info", page: "scan-student-info" },
@@ -307,6 +313,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Apply Leave", page: "apply-leave" },
+
+      // Integrations
+
 
       // User & Profile
       { name: "Users", page: "users" },
@@ -378,6 +387,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Study Material", page: "study-materials" },
       { name: "Announcements for Students", page: "faculty-announcement-management" },
+      { name: "Schedule Class", page: "schedule-class" },
 
       // Profile
       { name: "Profile", page: "faculty-profile" },
@@ -410,6 +420,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
       // Leave Management
       { name: "Leaves", page: "leave-request" },
+      { name: "Class Schedule", page: "class-schedule" },
 
       // Profile
       { name: "Profile", page: "profile" },

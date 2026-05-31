@@ -1,0 +1,937 @@
+import { useEffect, useState, useRef, useMemo } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import {
+  Calendar,
+  Clock,
+  Video,
+  Home,
+  Loader2,
+  CalendarDays,
+  BookOpen,
+  ClipboardList,
+  CheckCircle2,
+  MapPin,
+  ExternalLink,
+  Copy,
+  Share2,
+} from "lucide-react";
+import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
+import { useTheme } from "@/context/ThemeContext";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+
+interface ScheduleClassProps {
+  user: any;
+  setError: (error: string | null) => void;
+  toast?: any;
+}
+
+interface ScheduledClassRecord {
+  id: number;
+  subject: string;
+  subject_code: string;
+  faculty: string;
+  topic: string;
+  description: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  meeting_type: "online" | "offline";
+  classroom_room: string | null;
+  meeting_link: string | null;
+  status: string;
+}
+
+// ─── Helper: cascading dropdown options from assignments ─────────────────────
+
+function useAssignmentDropdowns(assignments: any[]) {
+  const [subjectId, setSubjectId] = useState<number | null>(null);
+  const [branchId, setBranchId] = useState<number | null>(null);
+  const [semesterId, setSemesterId] = useState<number | null>(null);
+  const [sectionId, setSectionId] = useState<number | null>(null);
+
+  // open-control refs for auto-cascade
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+
+  const suppressBranchClear = useRef(false);
+  const suppressSemClear = useRef(false);
+  const autoTriggered = useRef<number | null>(null);
+
+  const normalized = useMemo(
+    () =>
+      assignments.map((a) => ({
+        ...a,
+        subject_id: a.subject_id ? Number(a.subject_id) : null,
+        branch_id: a.branch_id ? Number(a.branch_id) : null,
+        semester_id: a.semester_id ? Number(a.semester_id) : null,
+        section_id: a.section_id ? Number(a.section_id) : null,
+      })),
+    [assignments]
+  );
+
+  // subjects (de-duped)
+  const subjects = useMemo(
+    () =>
+      Array.from(
+        new Map(normalized.map((a) => [a.subject_id, { id: a.subject_id, name: a.subject_name }])).values()
+      ),
+    [normalized]
+  );
+
+  // branches for selected subject
+  const branches = useMemo(
+    () =>
+      subjectId
+        ? Array.from(
+            new Map(
+              normalized
+                .filter((a) => a.subject_id === subjectId)
+                .map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])
+            ).values()
+          )
+        : [],
+    [normalized, subjectId]
+  );
+
+  // semesters for selected subject+branch
+  const semesters = useMemo(
+    () =>
+      subjectId && branchId
+        ? Array.from(
+            new Map(
+              normalized
+                .filter((a) => a.subject_id === subjectId && a.branch_id === branchId)
+                .map((a) => [a.semester_id, { id: a.semester_id, name: String(a.semester) }])
+            ).values()
+          )
+        : [],
+    [normalized, subjectId, branchId]
+  );
+
+  // sections for selected subject+branch+semester
+  const sections = useMemo(
+    () =>
+      subjectId && branchId && semesterId
+        ? Array.from(
+            new Map(
+              normalized
+                .filter(
+                  (a) =>
+                    a.subject_id === subjectId &&
+                    a.branch_id === branchId &&
+                    a.semester_id === semesterId
+                )
+                .map((a) => [a.section_id, { id: a.section_id, name: a.section }])
+            ).values()
+          )
+        : [],
+    [normalized, subjectId, branchId, semesterId]
+  );
+
+  // Auto-derive single unique values when subject changes
+  useEffect(() => {
+    setBranchId(null);
+    setSemesterId(null);
+    setSectionId(null);
+    autoTriggered.current = null;
+    if (!subjectId) return;
+    const sub = normalized.filter((a) => a.subject_id === subjectId);
+    const uBranches = [...new Set(sub.map((a) => a.branch_id))].filter(Boolean);
+    const uSems = [...new Set(sub.map((a) => a.semester_id))].filter(Boolean);
+    const uSecs = [...new Set(sub.map((a) => a.section_id))].filter(Boolean);
+    autoTriggered.current = subjectId;
+    if (uBranches.length === 1) { suppressBranchClear.current = true; setBranchId(uBranches[0]); }
+    if (uSems.length === 1) { suppressSemClear.current = true; setSemesterId(uSems[0]); }
+    if (uSecs.length === 1) setSectionId(uSecs[0]);
+    // open next unfilled
+    if (uBranches.length !== 1) setTimeout(() => setIsBranchOpen(true), 150);
+    else if (uSems.length !== 1) setTimeout(() => setIsSemesterOpen(true), 150);
+    else if (uSecs.length !== 1) setTimeout(() => setIsSectionOpen(true), 150);
+  }, [subjectId, normalized]);
+
+  // When branch changes manually, clear downstream
+  useEffect(() => {
+    if (suppressBranchClear.current) { suppressBranchClear.current = false; return; }
+    setSemesterId(null);
+    setSectionId(null);
+  }, [branchId]);
+
+  useEffect(() => {
+    if (suppressSemClear.current) { suppressSemClear.current = false; return; }
+    setSectionId(null);
+  }, [semesterId]);
+
+  const reset = () => {
+    setSubjectId(null);
+    setBranchId(null);
+    setSemesterId(null);
+    setSectionId(null);
+  };
+
+  // current full assignment match (for ids we need to POST)
+  const currentAssignment = useMemo(
+    () =>
+      subjectId && branchId && semesterId && sectionId
+        ? normalized.find(
+            (a) =>
+              a.subject_id === subjectId &&
+              a.branch_id === branchId &&
+              a.semester_id === semesterId &&
+              a.section_id === sectionId
+          ) ?? null
+        : null,
+    [normalized, subjectId, branchId, semesterId, sectionId]
+  );
+
+  const isFullySelected = !!(subjectId && branchId && semesterId && sectionId);
+
+  return {
+    subjectId, setSubjectId,
+    branchId, setBranchId,
+    semesterId, setSemesterId,
+    sectionId, setSectionId,
+    isBranchOpen, setIsBranchOpen,
+    isSemesterOpen, setIsSemesterOpen,
+    isSectionOpen, setIsSectionOpen,
+    subjects, branches, semesters, sections,
+    currentAssignment,
+    isFullySelected,
+    reset,
+  };
+}
+
+// ─── Sub-component: Cascading Dropdowns ────────────────────────────────────
+
+interface DropdownGroupProps {
+  dropdowns: ReturnType<typeof useAssignmentDropdowns>;
+  theme: string;
+  disabled?: boolean;
+}
+
+const DropdownGroup = ({ dropdowns, theme, disabled }: DropdownGroupProps) => {
+  const {
+    subjectId, setSubjectId,
+    branchId, setBranchId,
+    semesterId, setSemesterId,
+    sectionId, setSectionId,
+    isBranchOpen, setIsBranchOpen,
+    isSemesterOpen, setIsSemesterOpen,
+    isSectionOpen, setIsSectionOpen,
+    subjects, branches, semesters, sections,
+  } = dropdowns;
+
+  const selectCls = `${
+    theme === "dark"
+      ? "bg-background border border-input text-foreground"
+      : "bg-white border border-gray-300 text-gray-900"
+  } w-full`;
+
+  const contentCls =
+    theme === "dark"
+      ? "bg-background border border-input text-foreground"
+      : "bg-white border border-gray-300 text-gray-900";
+
+  return (
+    <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-4 w-full">
+      {/* Subject */}
+      <Select
+        value={subjectId?.toString()}
+        onValueChange={(v) => setSubjectId(Number(v))}
+        disabled={disabled}
+      >
+        <SelectTrigger className={selectCls} disabled={disabled}>
+          <SelectValue placeholder="Select Subject" />
+        </SelectTrigger>
+        <SelectContent className={contentCls}>
+          {subjects.length > 0 ? (
+            subjects.map((s) => (
+              <SelectItem key={s.id} value={s.id.toString()}>
+                {s.name}
+              </SelectItem>
+            ))
+          ) : (
+            <div className="p-2 text-sm text-center text-muted-foreground">No subjects</div>
+          )}
+        </SelectContent>
+      </Select>
+
+      {/* Branch */}
+      <Select
+        value={branchId?.toString()}
+        onValueChange={(v) => {
+          setBranchId(Number(v));
+          setTimeout(() => setIsSemesterOpen(true), 150);
+        }}
+        disabled={!subjectId || disabled}
+        open={isBranchOpen}
+        onOpenChange={setIsBranchOpen}
+      >
+        <SelectTrigger className={selectCls} disabled={!subjectId || disabled}>
+          <SelectValue placeholder="Select Branch" />
+        </SelectTrigger>
+        <SelectContent className={contentCls}>
+          {branches.map((b) => (
+            <SelectItem key={b.id} value={b.id.toString()}>
+              {b.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Semester */}
+      <Select
+        value={semesterId?.toString()}
+        onValueChange={(v) => {
+          setSemesterId(Number(v));
+          setTimeout(() => setIsSectionOpen(true), 150);
+        }}
+        disabled={!branchId || semesters.length === 0 || disabled}
+        open={isSemesterOpen}
+        onOpenChange={setIsSemesterOpen}
+      >
+        <SelectTrigger className={selectCls} disabled={!branchId || semesters.length === 0 || disabled}>
+          <SelectValue placeholder="Select Semester" />
+        </SelectTrigger>
+        <SelectContent className={contentCls}>
+          {semesters.map((s) => (
+            <SelectItem key={s.id} value={s.id.toString()}>
+              Sem {s.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Section */}
+      <Select
+        value={sectionId?.toString() || ""}
+        onValueChange={(v) => setSectionId(v ? Number(v) : null)}
+        disabled={!semesterId || sections.length === 0 || disabled}
+        open={isSectionOpen}
+        onOpenChange={setIsSectionOpen}
+      >
+        <SelectTrigger className={selectCls} disabled={!semesterId || sections.length === 0 || disabled}>
+          <SelectValue placeholder="Select Section" />
+        </SelectTrigger>
+        <SelectContent className={contentCls}>
+          {sections.map((s) => (
+            <SelectItem key={s.id} value={s.id.toString()}>
+              {s.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+// ─── Sub-component: Class History Card ─────────────────────────────────────
+
+const ClassHistoryCard = ({ cls, theme }: { cls: ScheduledClassRecord; theme: string }) => {
+  const { toast } = useToast();
+  const isOnline = cls.meeting_type === "online";
+  const dateStr = (() => {
+    try { return format(new Date(cls.date), "dd MMM yyyy"); } catch { return cls.date; }
+  })();
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!cls.meeting_link) return;
+    navigator.clipboard.writeText(cls.meeting_link);
+    toast({
+      title: "Copied!",
+      description: "Google Meet link copied to clipboard.",
+    });
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!cls.meeting_link) return;
+    const title = `Class: ${cls.topic}`;
+    const text = `Join class for "${cls.topic}" via Google Meet:`;
+    if (navigator.share) {
+      navigator.share({
+        title,
+        text,
+        url: cls.meeting_link,
+      }).catch(err => console.log(err));
+    } else {
+      navigator.clipboard.writeText(cls.meeting_link);
+      toast({
+        title: "Link Copied!",
+        description: "Sharing not supported. Link copied to clipboard!",
+      });
+    }
+  };
+
+  return (
+    <div
+      className={`rounded-lg border p-4 flex flex-col gap-2 transition-all hover:shadow-md ${
+        theme === "dark"
+          ? "bg-card border-border"
+          : "bg-white border-gray-200"
+      }`}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full ${
+              isOnline ? "bg-blue-100 dark:bg-blue-950/50" : "bg-amber-100 dark:bg-amber-950/50"
+            }`}
+          >
+            {isOnline ? (
+              <Video className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            ) : (
+              <Home className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="font-semibold text-sm truncate">{cls.topic}</p>
+            <p className="text-xs text-muted-foreground truncate">{cls.subject} ({cls.subject_code})</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
+          <span
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+              isOnline
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                : "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
+            }`}
+          >
+            {isOnline ? "Online" : "Offline"}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground border-b pb-2.5">
+        <span className="flex items-center gap-1">
+          <CalendarDays className="w-3.5 h-3.5" /> {dateStr}
+        </span>
+        <span className="flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5" /> {cls.start_time} – {cls.end_time}
+        </span>
+        {cls.classroom_room && (
+          <span className="flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5" /> {cls.classroom_room}
+          </span>
+        )}
+      </div>
+
+      {cls.meeting_link && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+          <a
+            href={cls.meeting_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80 transition-colors font-mono truncate max-w-full sm:max-w-[200px] md:max-w-xs break-all"
+          >
+            {cls.meeting_link}
+            <ExternalLink className="w-3 h-3 flex-shrink-0" />
+          </a>
+          <div className="flex items-center gap-1.5 shrink-0 sm:self-auto self-end">
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
+              title="Copy Link"
+              onClick={handleCopy}
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
+              title="Share Link"
+              onClick={handleShare}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Main Component ──────────────────────────────────────────────────────────
+
+const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
+  const { theme } = useTheme();
+  const { toast } = useToast();
+  const { data: rawAssignments = [], isLoading: assignmentsLoading } = useFacultyAssignmentsQuery();
+
+  // ── Section 1: Schedule dropdowns ────────────────────────────────────────
+  const scheduleDropdowns = useAssignmentDropdowns(rawAssignments);
+
+  // ── Dialog / form state ──────────────────────────────────────────────────
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [meetingType, setMeetingType] = useState<"online" | "offline">("online");
+  const [classroomRoom, setClassroomRoom] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Optimistic history (prepend from POST response, no GET after save)
+  const [immediateHistory, setImmediateHistory] = useState<ScheduledClassRecord[]>([]);
+
+  // ── Section 2: History dropdowns ─────────────────────────────────────────
+  const historyDropdowns = useAssignmentDropdowns(rawAssignments);
+  const [historyClasses, setHistoryClasses] = useState<ScheduledClassRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  // Open dialog when scheduleDropdowns is fully selected
+  useEffect(() => {
+    if (scheduleDropdowns.isFullySelected) {
+      setDialogOpen(true);
+    }
+  }, [scheduleDropdowns.isFullySelected]);
+
+  // Close dialog resets the schedule dropdowns
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    scheduleDropdowns.reset();
+    setTopic("");
+    setDescription("");
+    setDate("");
+    setStartTime("");
+    setEndTime("");
+    setMeetingType("online");
+    setClassroomRoom("");
+  };
+
+  // Fetch history when history dropdown is fully selected
+  useEffect(() => {
+    if (!historyDropdowns.isFullySelected) {
+      setHistoryClasses([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const fetchHistory = async () => {
+      setHistoryLoading(true);
+      try {
+        const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/scheduled-classes/`, {
+          signal: ctrl.signal,
+        });
+        const data = await resp.json();
+        if (resp.ok && data?.success && data.data) {
+          // Filter to the selected section (the API already filters by role/org)
+          const filtered: ScheduledClassRecord[] = (data.data as ScheduledClassRecord[]).slice(0, 5);
+          setHistoryClasses(filtered);
+        }
+      } catch (e: any) {
+        if (e?.name !== "AbortError") {
+          setHistoryClasses([]);
+        }
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+    fetchHistory();
+    return () => ctrl.abort();
+  }, [
+    historyDropdowns.subjectId,
+    historyDropdowns.branchId,
+    historyDropdowns.semesterId,
+    historyDropdowns.sectionId,
+  ]);
+
+  // Submit schedule class — POST only, prepend result to immediateHistory
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!topic || !date || !startTime || !endTime) {
+      toast({ title: "Missing Fields", description: "Please fill in all required fields.", variant: "destructive" });
+      return;
+    }
+    if (meetingType === "offline" && !classroomRoom) {
+      toast({ title: "Missing Field", description: "Please enter a classroom name for offline sessions.", variant: "destructive" });
+      return;
+    }
+    const assignment = scheduleDropdowns.currentAssignment;
+    if (!assignment) return;
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const resp = await fetchWithTokenRefresh(`${API_ENDPOINT}/scheduled-classes/create/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject_id: assignment.subject_id,
+          branch_id: assignment.branch_id,
+          semester_id: assignment.semester_id,
+          section_id: assignment.section_id,
+          topic,
+          description,
+          date,
+          start_time: startTime,
+          end_time: endTime,
+          meeting_type: meetingType,
+          classroom_room: classroomRoom,
+        }),
+      });
+
+      const data = await resp.json();
+
+      if (resp.ok) {
+        // Optimistically prepend new class to immediate history list
+        const newRecord: ScheduledClassRecord = {
+          id: data.id,
+          subject: assignment.subject_name,
+          subject_code: assignment.subject_code || "",
+          faculty: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
+          topic: data.topic,
+          description,
+          date,
+          start_time: startTime,
+          end_time: endTime,
+          meeting_type: meetingType,
+          classroom_room: meetingType === "offline" ? classroomRoom : null,
+          meeting_link: data.meeting_link || null,
+          status: "scheduled",
+        };
+        setImmediateHistory((prev) => [newRecord, ...prev].slice(0, 5));
+
+        toast({
+          title: "Class Scheduled! 🎉",
+          description:
+            meetingType === "online"
+              ? "Google Meet link generated. Students notified!"
+              : `Offline class in "${classroomRoom}" saved. Students notified!`,
+        });
+
+        handleDialogClose();
+      } else {
+        const msg = data.error || "Failed to schedule class.";
+        setError(msg);
+        toast({ title: "Scheduling Failed", description: msg, variant: "destructive" });
+      }
+    } catch {
+      setError("A network error occurred. Please try again.");
+      toast({ title: "Network Error", description: "Could not reach server.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const selectorCardCls = `w-full ${
+    theme === "dark" ? "bg-card text-foreground" : "bg-white text-gray-900"
+  }`;
+
+  return (
+    <div className={`w-full space-y-6 ${theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"}`}>
+
+      {/* ── Section 1: Schedule a New Class ─────────────────────────────── */}
+      <Card className={selectorCardCls}>
+        <CardHeader className="border-b border-border/50 pb-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <CalendarDays className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle>Schedule a New Class</CardTitle>
+              <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
+                Select a subject assignment to open the scheduling form
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-5">
+          {assignmentsLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading your assignments…
+            </div>
+          ) : (
+            <DropdownGroup dropdowns={scheduleDropdowns} theme={theme} />
+          )}
+
+          {!assignmentsLoading && scheduleDropdowns.subjects.length === 0 && (
+            <p className="text-sm text-muted-foreground mt-4 text-center py-4">
+              No subject assignments found. Contact your administrator.
+            </p>
+          )}
+
+          {!scheduleDropdowns.isFullySelected && scheduleDropdowns.subjectId && (
+            <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5" />
+              Complete all four selections above to open the scheduling form.
+            </p>
+          )}
+
+          {/* Optimistic immediately-added history (from this session's saves) */}
+          {immediateHistory.length > 0 && (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <h3 className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                  Just Scheduled This Session
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {immediateHistory.map((cls) => (
+                  <ClassHistoryCard key={`immediate-${cls.id}`} cls={cls} theme={theme} />
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Schedule Class Dialog Modal ──────────────────────────────────── */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleDialogClose(); }}>
+        <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <CalendarDays className="w-5 h-5 text-primary" />
+              Schedule Class
+            </DialogTitle>
+            {scheduleDropdowns.currentAssignment && (
+              <DialogDescription>
+                <span className="font-medium text-foreground">
+                  {scheduleDropdowns.currentAssignment.subject_name}
+                </span>
+                {" "}·{" "}
+                {scheduleDropdowns.currentAssignment.branch} · Sem{" "}
+                {scheduleDropdowns.currentAssignment.semester} ·{" "}
+                {scheduleDropdowns.currentAssignment.section}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+            {/* Topic */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Class Topic / Title <span className="text-destructive">*</span>
+              </label>
+              <Input
+                required
+                type="text"
+                placeholder="e.g., Introduction to Neural Networks"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+              />
+            </div>
+
+            {/* Date + Times */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5" /> Date <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  required
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" /> Start Time <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  required
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" /> End Time <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  required
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Meeting Type */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">Meeting Type</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label
+                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${
+                    meetingType === "online"
+                      ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-600"
+                      : "border-border bg-transparent text-foreground hover:border-muted-foreground"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="meetingType"
+                    className="sr-only"
+                    checked={meetingType === "online"}
+                    onChange={() => setMeetingType("online")}
+                  />
+                  <Video className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span className="truncate">Online (Google Meet)</span>
+                </label>
+                <label
+                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${
+                    meetingType === "offline"
+                      ? "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-600"
+                      : "border-border bg-transparent text-foreground hover:border-muted-foreground"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="meetingType"
+                    className="sr-only"
+                    checked={meetingType === "offline"}
+                    onChange={() => setMeetingType("offline")}
+                  />
+                  <Home className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span className="truncate">Offline (Classroom)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Classroom room — only when offline */}
+            {meetingType === "offline" && (
+              <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-200">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  Classroom / Room Number <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  required
+                  type="text"
+                  placeholder="e.g., Room 302, Block C"
+                  value={classroomRoom}
+                  onChange={(e) => setClassroomRoom(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Description */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">Description (Optional)</label>
+              <Textarea
+                placeholder="Provide context, lecture notes, or pre-requisite reading..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/20 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDialogClose}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto sm:mr-auto"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto min-w-[130px]">
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Scheduling…
+                  </>
+                ) : (
+                  "Save & Schedule"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Section 2: Class History ─────────────────────────────────────── */}
+      <Card className={selectorCardCls}>
+        <CardHeader className="border-b border-border/50 pb-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-muted">
+              <ClipboardList className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <CardTitle>Class History</CardTitle>
+              <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
+                Select a subject to view last 5 scheduled classes
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-5 space-y-4">
+          <DropdownGroup dropdowns={historyDropdowns} theme={theme} />
+
+          {/* History list */}
+          {historyDropdowns.isFullySelected && (
+            <div className="mt-4">
+              {historyLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Loading class history…
+                </div>
+              ) : historyClasses.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium mb-2">
+                    Showing {historyClasses.length} most recent scheduled class{historyClasses.length !== 1 ? "es" : ""}
+                  </p>
+                  {historyClasses.map((cls) => (
+                    <ClassHistoryCard key={cls.id} cls={cls} theme={theme} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
+                  <CalendarDays className="w-10 h-10 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">No scheduled classes found for this section.</p>
+                  <p className="text-xs text-muted-foreground/70">
+                    Use the "Schedule a New Class" section above to create one.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!historyDropdowns.isFullySelected && !historyLoading && (
+            <div className="flex flex-col items-center justify-center py-8 text-center space-y-2">
+              <ClipboardList className="w-8 h-8 text-muted-foreground/30" />
+              <p className="text-xs text-muted-foreground">
+                Select all four filters above to load class history.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default ScheduleClass;
