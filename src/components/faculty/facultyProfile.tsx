@@ -48,7 +48,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState<"personal" | "academic" | "contact" | "help" | "activity">("personal");
+  const [activeTab, setActiveTab] = useState<"personal" | "academic" | "contact" | "help" | "activity" | "settings">("personal");
   const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
   const { theme } = useTheme();
   // Change password states
@@ -397,6 +397,64 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         return (
           <div className="animate-in fade-in duration-300">
             <HelpLearningCard />
+          </div>
+        );
+      case "settings":
+        return (
+          <div className="animate-in fade-in duration-300">
+            <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+            
+            <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+              <div className="space-y-0.5">
+                <Label className="text-base font-medium">Push Notifications</Label>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Receive real-time alerts for attendance, leaves, exams, and more.
+                </p>
+              </div>
+              <Switch
+                checked={notificationsEnabled}
+                onCheckedChange={async (checked) => {
+                  try {
+                    setNotificationsEnabled(checked);
+                    const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
+                    
+                    if (checked) {
+                      // Enable notifications
+                      const token = await requestForToken();
+                      if (token && userToken) {
+                        await fetch(`${API_ENDPOINT}/profile/register-device/`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${userToken}`
+                          },
+                          body: JSON.stringify({ fcm_token: token, device_type: 'web' })
+                        });
+                        showSuccessAlert('Success', 'Push notifications enabled!');
+                      }
+                    } else {
+                      // Disable notifications
+                      const token = await requestForToken();
+                      if (token && userToken) {
+                        await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${userToken}`
+                          },
+                          body: JSON.stringify({ fcm_token: token })
+                        });
+                        showSuccessAlert('Disabled', 'Push notifications disabled.');
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Error toggling notifications:', error);
+                    setNotificationsEnabled(!checked);
+                    showErrorAlert('Error', 'Failed to update notification settings');
+                  }
+                }}
+              />
+            </div>
           </div>
         );
       case "activity":
