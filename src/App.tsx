@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import NetworkStatus from "./components/common/NetworkStatus";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Index from "./components/common/Index";
@@ -477,6 +478,7 @@ const AppContent = () => {
       {/* ✅ Toast components rendered OUTSIDE routes but INSIDE AppContent */}
       <Toaster />
       <Sonner />
+      <NetworkStatus />
       {/* ✅ PWA Installation Prompt */}
       <PwaInstaller />
     </>
