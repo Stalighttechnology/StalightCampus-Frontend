@@ -435,6 +435,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Scan for Student Info", page: "scan-student-info" },
 
       // Profile
+      { name: "Fee Settings", page: "fee-settings" },
       { name: "Profile", page: "profile" },
     ],
     dean: [

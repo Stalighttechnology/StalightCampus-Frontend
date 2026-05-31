@@ -488,6 +488,39 @@ export const unpublishUploadBatch = async (uploadId: number) => {
 };
 
 /**
+ * Fetch COE exam fee settings (revaluation/photocopy/makeup)
+ */
+export const getCOEFeeSettings = async (): Promise<any> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/fee-settings/`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+/**
+ * Save COE exam fee settings (PUT)
+ */
+export const saveCOEFeeSettings = async (payload: any): Promise<any> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/coe/fee-settings/`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+/**
  * Fetch paginated published results with optional filters
  */
 export const getPublishedResults = async (filters: {
@@ -884,4 +917,4 @@ export const toggleMakeupApplications = async (uploadId: number): Promise<{
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
-};
+};

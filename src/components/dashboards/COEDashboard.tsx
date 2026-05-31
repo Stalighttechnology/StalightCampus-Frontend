@@ -13,6 +13,7 @@ import ApplyLeave from "../coe/ApplyLeave";
 import MakeupRequests from "../coe/MakeupRequests";
 import RevaluationRequests from "../coe/RevaluationRequests";
 import ExamScheduling from "../coe/ExamScheduling";
+import COEFeeSettings from "../coe/COEFeeSettings";
 import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "../../context/ThemeContext";
 import { isPageAllowed } from "../../utils/planGating";
@@ -43,6 +44,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
 
     // Map URL paths to page names
     const pathMap: {[key: string]: string;} = {
+      'fee-settings': 'fee-settings',
       'dashboard': 'dashboard',
       'student-status': 'student-status',
       'course-statistics': 'course-statistics',
@@ -90,7 +92,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'qp-approvals': '/coe/qp-approvals',
       'apply-leave': '/coe/apply-leave',
       'scan-student-info': '/coe/scan-student-info',
-      'profile': '/coe/profile'
+      'profile': '/coe/profile',
+      'fee-settings': '/coe/fee-settings'
     };
 
     navigate(pathMap[page] || '/coe/dashboard');
@@ -137,6 +140,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <ApplyLeave />;
       case 'profile':
         return <COEProfile />;
+      case 'fee-settings':
+        return <COEFeeSettings />;
       case 'scan-student-info':
         return <StudentInfoScanner />;
       default:

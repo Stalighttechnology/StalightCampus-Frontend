@@ -16,6 +16,7 @@ import {
   SelectValue } from
 "@/components/ui/select";
 import { showSuccessAlert, showErrorAlert, showWarningAlert, showInfoAlert } from "@/utils/sweetalert";
+import { getCOEFeeSettings } from "@/utils/coe_api";
 
 type Filters = {usn: string;exam_period: string;};
 
@@ -30,6 +31,7 @@ const Revaluation = () => {
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
   const [revalApplicationsOpen, setRevalApplicationsOpen] = useState<boolean | null>(null);
+  const [feeSettings, setFeeSettings] = useState<{revaluation_fee?: number;photocopy_fee?: number;makeup_fee?: number}>({});
 
   const sanitizeMessage = (msg: string | object | null | undefined): string | null => {
     if (!msg) return null;
@@ -129,6 +131,20 @@ const Revaluation = () => {
         }));
         setStudents(safeStudents);
         setRevalApplicationsOpen(payload.reval_applications_open !== undefined ? Boolean(payload.reval_applications_open) : true);
+        // fetch fee settings so totals reflect configured values
+        try {
+          const feeResp = await getCOEFeeSettings();
+          if (feeResp && feeResp.success) {
+            const data = feeResp.data || feeResp;
+            setFeeSettings({
+              revaluation_fee: Number(data.revaluation_fee) || Number(data.revaluation_fee_cents) / 100 || undefined,
+              photocopy_fee: Number(data.photocopy_fee) || Number(data.photocopy_fee_cents) / 100 || undefined,
+              makeup_fee: Number(data.makeup_fee) || Number(data.makeup_fee_cents) / 100 || undefined
+            });
+          }
+        } catch (e) {
+          // ignore fee fetch errors; UI will fallback to legacy values
+        }
       } else {
         setStudents([]);
         setRevalApplicationsOpen(null);
@@ -452,7 +468,9 @@ const Revaluation = () => {
                     {Object.keys(selectionMap).reduce((acc, k) => {
                     const s = selectionMap[Number(k)];
                     if (!s) return acc;
-                    return acc + (s.revaluation ? 600 : 0) + (s.photocopy ? 400 : 0);
+                    const revalFee = typeof feeSettings.revaluation_fee === 'number' ? feeSettings.revaluation_fee : 600;
+                    const copyFee = typeof feeSettings.photocopy_fee === 'number' ? feeSettings.photocopy_fee : 400;
+                    return acc + (s.revaluation ? revalFee : 0) + (s.photocopy ? copyFee : 0);
                   }, 0)}
                   </p>
                 </div>
