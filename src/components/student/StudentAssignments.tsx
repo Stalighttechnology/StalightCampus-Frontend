@@ -173,6 +173,14 @@ const StudentAssignments = () => {
     const now = new Date();
     const dueDate = new Date(assignment.due_date);
 
+    if (assignment.auto_zero) {
+      return (
+        <Badge className={theme === 'dark' ? "bg-red-500/20 text-red-400" : "bg-red-100 text-red-700 border-red-200"}>
+          <AlertCircle size={12} className="mr-1" />
+          Not Submitted
+        </Badge>);
+    }
+
     if (assignment.marks_obtained !== null && assignment.marks_obtained !== undefined) {
       return (
         <Badge className={theme === 'dark' ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-100 text-indigo-700 border-indigo-200"}>
@@ -394,13 +402,13 @@ const StudentAssignments = () => {
                         </div>
                       </div>
 
-                      {/* Inline submission summary for submitted assignments */}
-                      {assignment.is_submitted &&
+                      {/* Inline submission summary for submitted or auto_zero assignments */}
+                      {(assignment.is_submitted || assignment.auto_zero) &&
                   <div className={`mt-5 p-5 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/80 border-gray-200'}`}>
                           <div className="flex flex-col md:flex-row justify-between gap-6">
                             <div className="space-y-1.5">
-                              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Submission Date</p>
-                              <p className="text-sm font-medium">{new Date(assignment.submission_date).toLocaleString()}</p>
+                              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{assignment.auto_zero ? 'Deadline Passed' : 'Submission Date'}</p>
+                              <p className="text-sm font-medium">{assignment.auto_zero ? new Date(assignment.due_date).toLocaleString() : new Date(assignment.submission_date).toLocaleString()}</p>
                             </div>
                             <div className="space-y-1.5 md:text-center">
                               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Resubmissions</p>
@@ -410,7 +418,7 @@ const StudentAssignments = () => {
                             </div>
                             <div className="md:text-right">
                               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Grade Status</p>
-                              <p className={`text-xl font-semibold ${assignment.marks_obtained !== null ? 'text-indigo-500' : 'text-amber-500'}`}>
+                              <p className={`text-xl font-semibold ${assignment.marks_obtained !== null ? (assignment.auto_zero ? 'text-red-500' : 'text-indigo-500') : 'text-amber-500'}`}>
                                 {assignment.marks_obtained !== null ?
                           `${assignment.marks_obtained} / ${assignment.max_marks}` :
                           'Awaiting Grade'}

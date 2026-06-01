@@ -1307,9 +1307,14 @@ const FacultyAssignments = () => {
                               <td className="px-6 py-4 text-sm font-mono">{student.usn}</td>
                               <td className="px-6 py-4 text-sm font-semibold">{student.name}</td>
                               <td className="px-6 py-4">
-                                <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500">
-                                  Pending
-                                </span>
+                                {student.auto_zero ?
+                                  <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-red-500/10 text-red-500">
+                                    0 Marks (Missed)
+                                  </span> :
+                                  <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500">
+                                    Pending
+                                  </span>
+                                }
                               </td>
                             </tr>
                           )}
