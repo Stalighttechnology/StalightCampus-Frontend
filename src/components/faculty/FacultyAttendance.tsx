@@ -19,6 +19,13 @@ const FacultyAttendance = () => {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [todayRecord, setTodayRecord] = useState<FacultyAttendanceRecord | null>(null);
   const [recentRecords, setRecentRecords] = useState<FacultyAttendanceRecord[]>([]);
+  const [recentPage, setRecentPage] = useState<number>(1);
+  const recentPageSize = 5;
+  const recentTotalPages = Math.ceil(recentRecords.length / recentPageSize);
+  const paginatedRecentRecords = recentRecords.slice(
+    (recentPage - 1) * recentPageSize,
+    recentPage * recentPageSize
+  );
   const [historyRecords, setHistoryRecords] = useState<FacultyAttendanceRecord[]>([]);
   const [historyPage, setHistoryPage] = useState<number>(1);
   const [historyPageSize] = useState<number>(10);
@@ -431,25 +438,111 @@ const FacultyAttendance = () => {
           </AnimatePresence>
         </CardContent>
       </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Attendance Records */}
+        <Card className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+          <CardHeader>
+            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+              Recent Attendance Records
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1">
+            {recentRecords.length > 0 ?
+            <div className="space-y-3">
+                {paginatedRecentRecords.map((record) =>
+              <motion.div
+                key={record.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
+                
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {getStatusIcon(record.status)}
+                        <div>
+                          <p className="font-medium capitalize">{record.status}</p>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                            {new Date(record.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        {new Date(record.marked_at).toLocaleTimeString()}
+                      </div>
+                    </div>
+                    {record.notes &&
+                      <div className="mt-2 flex items-start space-x-2">
+                        <FileText className="w-4 h-4 mt-0.5 text-gray-500" />
+                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                          {record.notes}
+                        </p>
+                      </div>
+                    }
+                    {/* Location removed from UI */}
+                  </motion.div>
+              )}
+              </div> :
 
-      {/* Recent Attendance Records */}
-      <Card className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}>
-        <CardHeader>
-          <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-            Recent Attendance Records
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentRecords.length > 0 ?
-          <div className="space-y-3">
-              {recentRecords.map((record) =>
-            <motion.div
-              key={record.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
-              
+            <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                  <Clock className="w-8 h-8 text-primary opacity-50" />
+                </div>
+                <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No recent records</h3>
+                <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  You haven't marked any attendance in the last 7 days.
+                </p>
+              </div>
+            }
+          </CardContent>
+          {!loading && recentRecords.length > 0 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing <span className="font-medium">{Math.min((recentPage - 1) * recentPageSize + 1, recentRecords.length)}</span> to <span className="font-medium">{Math.min(recentPage * recentPageSize, recentRecords.length)}</span> of <span className="font-medium">{recentRecords.length}</span> records
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRecentPage(Math.max(1, recentPage - 1))}
+                  disabled={recentPage === 1}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Previous
+                </Button>
+
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {recentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRecentPage(Math.min(recentTotalPages, recentPage + 1))}
+                  disabled={recentPage === recentTotalPages}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+
+        {/* Attendance History (paginated) */}
+        <Card id="faculty-attendance-history" className={`hidden md:flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+          <CardHeader id="faculty-attendance-history-header">
+            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+              Attendance History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1">
+            {historyLoading ?
+            <SkeletonList items={5} /> :
+            historyRecords.length > 0 ?
+            <div className="space-y-3">
+              {historyRecords.map((record) =>
+                <div key={record.id} className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       {getStatusIcon(record.status)}
@@ -464,109 +557,56 @@ const FacultyAttendance = () => {
                       {new Date(record.marked_at).toLocaleTimeString()}
                     </div>
                   </div>
-                  {record.notes &&
-                    <div className="mt-2 flex items-start space-x-2">
-                      <FileText className="w-4 h-4 mt-0.5 text-gray-500" />
-                      <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {record.notes}
-                      </p>
-                    </div>
-                  }
-                  {/* Location removed from UI */}
-                </motion.div>
-            )}
+                </div>
+              )}
             </div> :
 
-          <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-              <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                <Clock className="w-8 h-8 text-primary opacity-50" />
-              </div>
-              <h3 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No recent records</h3>
-              <p className={`text-xs text-center max-w-[250px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                You haven't marked any attendance in the last 7 days.
-              </p>
-            </div>
-          }
-        </CardContent>
-      </Card>
-
-      {/* Attendance History (paginated) */}
-      <Card id="faculty-attendance-history" className={`hidden md:block ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader id="faculty-attendance-history-header">
-          <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-            Attendance History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {historyLoading ?
-          <SkeletonList items={5} /> :
-          historyRecords.length > 0 ?
-          <div className="space-y-3">
-            {historyRecords.map((record) =>
-              <div key={record.id} className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    {getStatusIcon(record.status)}
-                    <div>
-                      <p className="font-medium capitalize">{record.status}</p>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        {new Date(record.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                    {new Date(record.marked_at).toLocaleTimeString()}
-                  </div>
+            <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                  <RotateCcw className="w-10 h-10 text-primary opacity-50" />
                 </div>
+                <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>History empty</h3>
+                <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  There are no historical attendance records found for your account.
+                </p>
               </div>
-            )}
-          </div> :
+            }
+          </CardContent>
 
-          <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
-              <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                <RotateCcw className="w-10 h-10 text-primary opacity-50" />
+          {!historyLoading && historyRecords.length > 0 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+              <div>
+                Showing <span className="font-medium">{Math.min((historyPage - 1) * historyPageSize + 1, historyTotalItems)}</span> to <span className="font-medium">{Math.min(historyPage * historyPageSize, historyTotalItems)}</span> of <span className="font-medium">{historyTotalItems}</span> records
               </div>
-              <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>History empty</h3>
-              <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                There are no historical attendance records found for your account.
-              </p>
-            </div>
-          }
-        </CardContent>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchHistoryPage(Math.max(1, historyPage - 1))}
+                  disabled={historyLoading || historyPage === 1}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Previous
+                </Button>
 
-        {!historyLoading && historyRecords.length > 0 && (
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing <span className="font-medium">{Math.min((historyPage - 1) * historyPageSize + 1, historyTotalItems)}</span> to <span className="font-medium">{Math.min(historyPage * historyPageSize, historyTotalItems)}</span> of <span className="font-medium">{historyTotalItems}</span> records
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchHistoryPage(Math.max(1, historyPage - 1))}
-                disabled={historyLoading || historyPage === 1}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Previous
-              </Button>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {historyPage}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {historyPage}
-                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
+                  disabled={historyLoading || historyPage === historyTotalPages}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Next
+                </Button>
               </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
-                disabled={historyLoading || historyPage === historyTotalPages}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Next
-              </Button>
-            </div>
-          </CardFooter>
-        )}
-      </Card>
+            </CardFooter>
+          )}
+        </Card>
+      </div>
     </div>);
 
 };

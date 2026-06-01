@@ -118,7 +118,7 @@ const Timetable = ({ role }: TimetableProps) => {
   };
 
   return (
-    <Card id="timetable-card" className={`shadow-xl ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+    <Card id="timetable-card">
       <CardHeader id="timetable-card-header" className="flex flex-row items-center justify-between bg-card px-4 py-3 rounded-t-md">
         <CardTitle>Timetable</CardTitle>
         <div className="flex space-x-2">

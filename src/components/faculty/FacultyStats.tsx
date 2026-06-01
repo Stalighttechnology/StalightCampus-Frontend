@@ -300,7 +300,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="All Subjects" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px]">
                   {subjectOptions.map((opt) =>
                   <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   )}

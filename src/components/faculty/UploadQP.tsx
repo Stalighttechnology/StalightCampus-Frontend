@@ -502,7 +502,6 @@ const UploadQP = () => {
                     const subjectsForBranch = assignments.filter((a) => a.branch_id === branchId);
                     const firstSubject = subjectsForBranch.length > 0 ? subjectsForBranch[0].subject_id : undefined;
                     setSelected((s) => ({ ...s, branch_id: branchId, subject_id: firstSubject }));
-                    setTimeout(() => setIsSubjectOpen(true), 150);
                   }}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Branch" />
@@ -522,7 +521,6 @@ const UploadQP = () => {
                   <label htmlFor="subject-select" className="text-sm">Subject</label>
                   <Select value={selected.subject_id ? String(selected.subject_id) : undefined} onValueChange={(v) => {
                     setSelected((s) => ({ ...s, subject_id: Number(v) }));
-                    setTimeout(() => setIsTestTypeOpen(true), 150);
                   }} disabled={!selected.branch_id} open={isSubjectOpen} onOpenChange={setIsSubjectOpen}>
                     <SelectTrigger className="w-full" disabled={!selected.branch_id}>
                       <SelectValue placeholder="Select Subject" />
