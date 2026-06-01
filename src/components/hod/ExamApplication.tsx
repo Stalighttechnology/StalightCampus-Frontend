@@ -646,7 +646,7 @@ const ExamApplication: React.FC = () => {
                     </div>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                       <div className="font-bold text-lg uppercase" style={{ letterSpacing: '0.6px' }}>
-                        {JSON.parse(sessionStorage.getItem("user") || '{}').org_name || "NEURO CAMPUS"}
+                        {JSON.parse(sessionStorage.getItem("user") || '{}').org_name || "STALIGHT CAMPUS"}
                       </div>
                       <div className="text-xs text-muted-foreground">Official Campus Portal</div>
                     </div>

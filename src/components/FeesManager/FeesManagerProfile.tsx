@@ -34,7 +34,7 @@ const FeesManagerProfile: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({ first_name: "", last_name: "", email: "", phone: "", address: "", bio: "" });
-  const [activeTab, setActiveTab] = useState<'details' | 'activity'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'activity' | 'settings' | 'help'>('details');
   const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   // Change password state
@@ -298,6 +298,46 @@ const FeesManagerProfile: React.FC = () => {
                 {activeTab === 'help' && (
                   <div className="animate-in fade-in duration-300">
                     <HelpLearningCard />
+                  </div>
+                )}
+
+                {activeTab === 'settings' && (
+                  <div className="animate-in fade-in duration-300">
+                    <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+                    <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+                      <div className="space-y-0.5">
+                        <Label className="text-base font-medium">Push Notifications</Label>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Receive real-time alerts for attendance, leaves, exams, and more.</p>
+                      </div>
+                      <Switch checked={notificationsEnabled} onCheckedChange={async (checked) => {
+                        try {
+                          setNotificationsEnabled(checked);
+                          const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
+                          if (checked) {
+                            const token = await requestForToken();
+                            if (token && userToken) {
+                              await fetch(`${API_ENDPOINT}/profile/register-device/`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                                body: JSON.stringify({ fcm_token: token, device_type: 'web' })
+                              });
+                              showSuccessAlert('Success', 'Push notifications enabled!');
+                            }
+                          } else {
+                            const token = await requestForToken();
+                            if (token && userToken) {
+                              await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                                body: JSON.stringify({ fcm_token: token })
+                              });
+                              showSuccessAlert('Disabled', 'Push notifications disabled.');
+                            }
+                          }
+                        } catch (error) {
+                          setNotificationsEnabled(!checked);
+                          showErrorAlert('Error', 'Failed to update notification settings');
+                        }
+                      }} />
+                    </div>
                   </div>
                 )}
 

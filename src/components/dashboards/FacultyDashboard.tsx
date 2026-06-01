@@ -24,6 +24,7 @@ import StudyMaterial from "../faculty/StudyMaterial";
 import { logoutUser, fetchWithTokenRefresh } from "../../utils/authService";
 import FacultyAnnouncementManagement from "../faculty/FacultyAnnouncementManagement";
 import FacultyAssignments from "../faculty/FacultyAssignments";
+import ScheduleClass from "../faculty/ScheduleClass";
 import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "../../context/ThemeContext";
 import { useProctorStudentsQuery } from "../../hooks/useApiQueries";
@@ -74,7 +75,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'statistics': 'statistics',
       'scan-student-info': 'scan-student-info',
       'study-materials': 'study-materials',
-      'assignments': 'faculty-assignments'
+      'assignments': 'faculty-assignments',
+      'schedule-class': 'schedule-class'
     };
 
     // Add direct mappings for additional top-level routes
@@ -125,7 +127,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
       'scan-student-info': '/faculty/scan-student-info',
       'study-materials': '/faculty/study-materials',
       'faculty-announcement-management': '/faculty/announcements',
-      'faculty-assignments': '/faculty/assignments'
+      'faculty-assignments': '/faculty/assignments',
+      'schedule-class': '/faculty/schedule-class'
     };
 
     const path = pathMap[page] || '/faculty/dashboard';
@@ -202,6 +205,8 @@ const FacultyDashboard = ({ user, setPage }: FacultyDashboardProps) => {
         return <StudyMaterial />;
       case "faculty-assignments":
         return <FacultyAssignments />;
+      case "schedule-class":
+        return <ScheduleClass user={user} setError={setError} toast={null} />;
       default:
         return <FacultyStats setActivePage={handlePageChange} />;
     }

@@ -50,7 +50,7 @@ const Login = ({ setRole, setPage, setUser }: LoginProps) => {
           >
             Welcome to <br />
             <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-              NEURO CAMPUS
+              STALIGHT CAMPUS
             </span>
           </motion.h2>
           <motion.p

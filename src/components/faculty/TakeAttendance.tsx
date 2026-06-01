@@ -593,9 +593,17 @@ const TakeAttendance = () => {
         photo: aiPhoto,
         date: attendanceDate
       });
-      if (res.success) {
+      if (res.success && res.data) {
         setAiResults(res.data);
-        showSuccessAlert("Success", "AI attendance processed successfully!");
+        
+        // Auto-populate manual attendance state
+        const newAttendance = { ...attendance };
+        res.data.present_students.forEach(s => newAttendance[s.id] = true);
+        res.data.review_students.forEach(s => newAttendance[s.id] = true); // Default review to present, they can change it
+        res.data.absent_students.forEach(s => newAttendance[s.id] = false);
+        setAttendance(newAttendance);
+        
+        showSuccessAlert("Success", "AI attendance processed successfully! Please review the results.");
       } else {
         showErrorAlert("AI Error", res.message || "Failed to process AI attendance");
         setErrorMsg(res.message || "Failed to process AI attendance");
@@ -985,14 +993,18 @@ const TakeAttendance = () => {
                 {aiResults && (
                   <div className={`mt-6 p-4 rounded-xl border ${theme === 'dark' ? 'bg-muted/40 border-border' : 'bg-gray-50 border-gray-200'}`}>
                     <h4 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>AI Processing Results:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
                       <div className={`p-4 rounded-xl border text-center ${theme === 'dark' ? 'bg-background border-border/40' : 'bg-white border-gray-100 shadow-sm'}`}>
-                        <div className="text-3xl font-extrabold text-green-500 mb-1">{aiResults.present_count}</div>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>Present</div>
+                        <div className="text-3xl font-extrabold text-green-500 mb-1">{aiResults.present_students?.length || 0}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>High Confidence</div>
                       </div>
                       <div className={`p-4 rounded-xl border text-center ${theme === 'dark' ? 'bg-background border-border/40' : 'bg-white border-gray-100 shadow-sm'}`}>
-                        <div className="text-3xl font-extrabold text-red-500 mb-1">{aiResults.absent_count}</div>
-                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>Absent</div>
+                        <div className="text-3xl font-extrabold text-yellow-500 mb-1">{aiResults.review_students?.length || 0}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>Needs Review</div>
+                      </div>
+                      <div className={`p-4 rounded-xl border text-center ${theme === 'dark' ? 'bg-background border-border/40' : 'bg-white border-gray-100 shadow-sm'}`}>
+                        <div className="text-3xl font-extrabold text-red-500 mb-1">{aiResults.absent_students?.length || 0}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-505'}`}>Not Detected</div>
                       </div>
                       <div className={`p-4 rounded-xl border text-center ${theme === 'dark' ? 'bg-background border-border/40' : 'bg-white border-gray-100 shadow-sm'}`}>
                         <div className="text-3xl font-extrabold text-primary mb-1">{aiResults.total_students}</div>
@@ -1000,36 +1012,59 @@ const TakeAttendance = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                       <div>
-                        <h5 className={`font-semibold text-xs mb-2 uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Present Students:</h5>
+                        <h5 className={`font-semibold text-xs mb-2 uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>High Confidence:</h5>
                         <div className={`max-h-40 overflow-y-auto p-3 rounded-lg border ${theme === 'dark' ? 'bg-background/80 border-border/40' : 'bg-white border-gray-100'}`}>
-                          {aiResults.present_students.length > 0 ? (
+                          {aiResults.present_students?.length > 0 ? (
                             aiResults.present_students.map((student: any) => (
-                              <div key={student.id} className="text-xs py-1 border-b border-border/10 last:border-none">
-                                {student.name} ({student.usn})
+                              <div key={student.id} className="text-xs py-1 border-b border-border/10 last:border-none flex justify-between">
+                                <span>{student.name} ({student.usn})</span>
+                                <span className="text-green-500 font-medium">{(student.confidence * 100).toFixed(1)}%</span>
                               </div>
                             ))
                           ) : (
-                            <div className="text-xs text-muted-foreground text-center py-4">No students detected as present</div>
+                            <div className="text-xs text-muted-foreground text-center py-4">No students detected with high confidence</div>
                           )}
                         </div>
                       </div>
 
                       <div>
-                        <h5 className={`font-semibold text-xs mb-2 uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Absent Students:</h5>
+                        <h5 className={`font-semibold text-xs mb-2 uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Needs Review:</h5>
                         <div className={`max-h-40 overflow-y-auto p-3 rounded-lg border ${theme === 'dark' ? 'bg-background/80 border-border/40' : 'bg-white border-gray-100'}`}>
-                          {aiResults.absent_students.length > 0 ? (
+                          {aiResults.review_students?.length > 0 ? (
+                            aiResults.review_students.map((student: any) => (
+                              <div key={student.id} className="text-xs py-1 border-b border-border/10 last:border-none flex justify-between">
+                                <span>{student.name} ({student.usn})</span>
+                                <span className="text-yellow-500 font-medium">{(student.confidence * 100).toFixed(1)}%</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-xs text-muted-foreground text-center py-4">No students need review</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h5 className={`font-semibold text-xs mb-2 uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Not Detected:</h5>
+                        <div className={`max-h-40 overflow-y-auto p-3 rounded-lg border ${theme === 'dark' ? 'bg-background/80 border-border/40' : 'bg-white border-gray-100'}`}>
+                          {aiResults.absent_students?.length > 0 ? (
                             aiResults.absent_students.map((student: any) => (
                               <div key={student.id} className="text-xs py-1 border-b border-border/10 last:border-none">
                                 {student.name} ({student.usn})
                               </div>
                             ))
                           ) : (
-                            <div className="text-xs text-muted-foreground text-center py-4">All students detected as present</div>
+                            <div className="text-xs text-muted-foreground text-center py-4">All students detected</div>
                           )}
                         </div>
                       </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button onClick={() => setActiveTab("manual")} className="bg-primary hover:bg-primary/90 text-white shadow-md">
+                        Review in Manual Entry Tab
+                      </Button>
                     </div>
                   </div>
                 )}

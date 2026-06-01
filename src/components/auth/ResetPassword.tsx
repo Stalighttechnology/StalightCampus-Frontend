@@ -268,7 +268,7 @@ const ResetPassword = ({ setPage }: ResetPasswordProps) => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.2 }}>
             
-            NEURO CAMPUS Security
+            STALIGHT CAMPUS Security
             <br />
             <span className="text-xs text-white/60 mt-2 block">
               Your data is protected with enterprise-grade security

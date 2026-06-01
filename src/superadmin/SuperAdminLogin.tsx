@@ -118,7 +118,7 @@ const SuperAdminLogin = ({ setIsAuthenticated }: Props) => {
           >
             Authorized personnel only. All access is logged and monitored.
             <br />
-            <span className="text-xs text-gray-400 mt-2 block">© {new Date().getFullYear()} Stalight - Neuro Campus</span>
+            <span className="text-xs text-gray-400 mt-2 block">© {new Date().getFullYear()} Stalight Campus</span>
           </motion.div>
         </div>
       </motion.div>

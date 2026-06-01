@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -41,7 +41,25 @@ const Profile = ({ role, user }: ProfileProps) => {
   const [localError, setLocalError] = useState<string | null>(null);
   const { theme } = useTheme();
   
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help' | 'settings'>('personal');
+  const urlParams = new URLSearchParams(window.location.search);
+  const defaultTab = urlParams.get('google_connected') !== null ? 'integrations' : 'personal';
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help' | 'settings' | 'integrations'>(defaultTab as any);
+  
+  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
+  const [googleConnectLoading, setGoogleConnectLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'integrations' && googleConnected === null) {
+      setGoogleConnectLoading(true);
+      fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/status/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.connected !== undefined) setGoogleConnected(data.connected);
+        })
+        .catch(err => console.error("Failed to fetch google status", err))
+        .finally(() => setGoogleConnectLoading(false));
+    }
+  }, [activeTab]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
@@ -333,6 +351,65 @@ const Profile = ({ role, user }: ProfileProps) => {
             </div>
           </div>
         );
+      case 'integrations':
+        return (
+          <div className="animate-in fade-in duration-300">
+            <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Integrations</h3>
+            
+            <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+              <div className="space-y-0.5">
+                <Label className="text-base font-medium">Google Account</Label>
+                <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Connect your Google account to automatically generate Meet links for your online classes.
+                </p>
+              </div>
+              <div>
+                {googleConnectLoading ? (
+                  <Button disabled variant="outline">Loading...</Button>
+                ) : googleConnected ? (
+                  <Button
+                    variant="outline"
+                    className="text-red-500 border-red-500 hover:bg-red-50"
+                    onClick={async () => {
+                      try {
+                        const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/disconnect/`, { method: 'POST' });
+                        if (res.ok) {
+                          setGoogleConnected(false);
+                          showSuccessAlert('Disconnected', 'Your Google account has been disconnected.');
+                        } else {
+                          showErrorAlert('Error', 'Failed to disconnect Google account.');
+                        }
+                      } catch (e) {
+                        showErrorAlert('Error', 'An error occurred.');
+                      }
+                    }}
+                  >
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    className="bg-primary text-white border-primary hover:bg-primary/90"
+                    onClick={async () => {
+                      try {
+                        const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/`);
+                        const data = await res.json();
+                        if (data.authorization_url) {
+                          window.location.href = data.authorization_url;
+                        } else {
+                          showErrorAlert('Error', 'Failed to initiate Google connection.');
+                        }
+                      } catch (e) {
+                        showErrorAlert('Error', 'An error occurred.');
+                      }
+                    }}
+                  >
+                    Connect Google Account
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
       default:
         return null;
     }
@@ -490,6 +567,9 @@ const Profile = ({ role, user }: ProfileProps) => {
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
                 <button onClick={() => setActiveTab('contact')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'contact' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Contact</button>
                 <button onClick={() => setActiveTab('settings')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
+                {(role === 'teacher' || role === 'hod' || role === 'dean') && (
+                  <button onClick={() => setActiveTab('integrations')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'integrations' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Integrations</button>
+                )}
                 <button onClick={() => setActiveTab('help')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
                 <button onClick={() => setActiveTab('activity')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
               </div>

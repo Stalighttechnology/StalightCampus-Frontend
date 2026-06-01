@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import NetworkStatus from "./components/common/NetworkStatus";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Index from "./components/common/Index";
@@ -339,6 +340,15 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
 
+          <Route path="/class-schedule" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <>
+                <StudentDashboard user={userData} setPage={() => { }} />
+                {shouldShowFloatingAssistant() && <FloatingAssistant />}
+              </>
+            </ProtectedRoute>
+          } />
+
           {/* Admin routes */}
           <Route path="/admin/*" element={
             <ProtectedRoute allowedRoles={["admin", "principal"]}>
@@ -477,6 +487,7 @@ const AppContent = () => {
       {/* ✅ Toast components rendered OUTSIDE routes but INSIDE AppContent */}
       <Toaster />
       <Sonner />
+      <NetworkStatus />
       {/* ✅ PWA Installation Prompt */}
       <PwaInstaller />
     </>
@@ -488,7 +499,7 @@ const App = () => {
     // ✅ NO QueryClientProvider here - it's in main.tsx
     // ✅ NO ThemeProvider here - it's in main.tsx
     // ✅ NO TooltipProvider here - it's in main.tsx
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <WardenProvider>
           <AppContent />

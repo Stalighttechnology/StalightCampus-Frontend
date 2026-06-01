@@ -325,7 +325,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const handleReject = async (qpId: number) => {
     const result = await MySwal.fire({
       title: 'Confirm rejection',
-      text: 'Are you sure you want to reject this question paper and send it back to Admin?',
+      text: 'Are you sure you want to reject this question paper and send it back to Principal?',
       icon: 'warning',
       showCancelButton: true,
       showCloseButton: true,

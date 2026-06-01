@@ -62,7 +62,7 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            NEURO CAMPUS
+            STALIGHT CAMPUS
           </motion.h1>
           <motion.p 
             className="text-xl text-blue-100 font-light tracking-wide"
@@ -128,7 +128,7 @@ const AuthLayout = ({ children, title, subtitle }: AuthLayoutProps) => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 1 }}
         >
-          © {new Date().getFullYear()} NEURO CAMPUS. All rights reserved.
+          © {new Date().getFullYear()} STALIGHT CAMPUS. All rights reserved.
         </motion.div>
       </div>
     </div>

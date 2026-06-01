@@ -27,6 +27,7 @@ const StudentHostelDetails = lazy(() => import("../student/StudentHostelDetails"
 const StudentFees = lazy(() => import("../student/StudentFees"));
 const StudentTransportPage = lazy(() => import("../student/StudentTransportPage"));
 const StudentLibraryPage = lazy(() => import("../student/StudentLibraryPage"));
+const ClassSchedule = lazy(() => import("../student/ClassSchedule"));
 import PaymentSuccess from "../common/PaymentSuccess";
 import PaymentCancel from "../common/PaymentCancel";
 import Revaluation from "../common/Revaluation";
@@ -141,6 +142,8 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
         return <StudentTransportPage />;
       case "library":
         return <StudentLibraryPage />;
+      case "class-schedule":
+        return <ClassSchedule user={user} setError={setError} />;
       default:
         return <StudentDashboardOverview setPage={handlePageChange} user={user} />;
     }

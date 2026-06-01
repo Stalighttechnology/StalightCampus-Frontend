@@ -326,7 +326,7 @@ const AdminAnnouncementManagement = () => {
     });
   };
 
-  const roles = ["student", "hod", "faculty", "principal"];
+  const roles = ["student", "hod", "faculty", "principal", "placement_officer"];
 
   const renderHeader = (
     <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

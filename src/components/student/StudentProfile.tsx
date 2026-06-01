@@ -16,7 +16,7 @@ import { useStudentProfileUpdateMutation } from "@/hooks/useApiQueries";
 import { useFileUpload } from "../../hooks/useOptimizations";
 import { Progress } from "../ui/progress";
 import { SkeletonForm } from "../ui/skeleton";
-import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
+import { showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
@@ -370,19 +370,27 @@ const StudentProfile: React.FC = () => {
 
       }
 
-      // check face status
-      try {
-        const resp = await fetch(`${API_ENDPOINT}/student/check-face-status/`, { headers: { 'Authorization': `Bearer ${sessionStorage.getItem("access_token")}` } });
-        const j = await resp.json();
-        if (j.success) setHasFaceTrained(Boolean(j.has_face));
-      } catch (err) {
-
-      }
+      // Face status check is now handled in a separate useEffect that listens to activeTab
     };
 
     fetchProfile().finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'face') {
+      const checkFaceStatus = async () => {
+        try {
+          const resp = await fetch(`${API_ENDPOINT}/student/check-face-status/`, { headers: { 'Authorization': `Bearer ${sessionStorage.getItem("access_token")}` } });
+          const j = await resp.json();
+          if (j.success) setHasFaceTrained(Boolean(j.has_face));
+        } catch (err) {
+          console.error("Failed to check face status", err);
+        }
+      };
+      checkFaceStatus();
+    }
+  }, [activeTab]);
 
   const fetchLoginHistory = async () => {
     setLoginHistoryLoading(true);
@@ -1110,60 +1118,107 @@ const StudentProfile: React.FC = () => {
                       <p className="text-[16px] sm:text-sm text-gray-600 dark:text-gray-400">Upload 3-5 clear face photos to train the AI recognition system</p>
                     </div>
 
-                    {hasFaceTrained &&
-                  <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-[16px] sm:text-sm text-green-700 dark:text-green-300">Face recognition is active for your account</span>
-                      </div>
-                  }
-
-                    <div>
-                      <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Upload Face Images</Label>
-                      <div className="mt-2">
-                        <input type="file" multiple accept="image/*" onChange={handleFaceImageSelect} className="hidden" id="face-images" />
-                        <label htmlFor="face-images" className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                          <div className="text-center">
-                            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-[16px] sm:text-sm text-gray-600 dark:text-gray-400">Click to upload face images</p>
-                            <p className="text-[12px] sm:text-xs text-gray-500">PNG, JPG up to 5MB each</p>
-                          </div>
-                        </label>
-                      </div>
-
-                      {faceImages.length > 0 &&
-                    <div className="space-y-2">
-                          <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Selected Images ({faceImages.length}/5)</Label>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {faceImages.map((image, idx) =>
-                        <div key={idx} className="relative">
-                                <img src={URL.createObjectURL(image)} alt={`Face ${idx + 1}`} className="w-full h-20 object-cover rounded-lg" />
-                                <button onClick={() => removeFaceImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600">×</button>
-                              </div>
-                        )}
-                          </div>
+                    {hasFaceTrained ? (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <span className="text-[16px] sm:text-sm font-medium text-green-700 dark:text-green-300">Face recognition is active for your account</span>
                         </div>
-                    }
-
-                      {faceTrainingStatus !== 'idle' &&
-                    <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            {faceTrainingStatus === 'training' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>}
-                            {faceTrainingStatus === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                            {faceTrainingStatus === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
-                            <span className="text-sm">{faceTrainingMessage}</span>
-                          </div>
-                          {faceTrainingStatus === 'training' && <Progress value={faceTrainingProgress} className="w-full h-2" />}
-                        </div>
-                    }
-
-                      <div className="flex justify-center mt-2">
-                        <Button onClick={trainFace} disabled={faceImages.length < 3 || faceTrainingStatus === 'training'} className="bg-primary hover:bg-primary/90 text-white">{faceTrainingStatus === 'training' ? 'Training...' : 'Train Face AI'}</Button>
+                        <Button variant="outline" size="sm" onClick={() => setHasFaceTrained(false)} className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300 dark:bg-card dark:text-foreground dark:border-border">Re-train Face</Button>
                       </div>
-                    </div>
+                    ) : (
+                      <div>
+                        <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Upload Face Images</Label>
+                        <div className="mt-2">
+                          <input type="file" multiple accept="image/*" onChange={handleFaceImageSelect} className="hidden" id="face-images" />
+                          <label htmlFor="face-images" className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                            <div className="text-center">
+                              <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-[16px] sm:text-sm text-gray-600 dark:text-gray-400">Click to upload face images</p>
+                              <p className="text-[12px] sm:text-xs text-gray-500">PNG, JPG up to 5MB each</p>
+                            </div>
+                          </label>
+                        </div>
+
+                        {faceImages.length > 0 &&
+                      <div className="space-y-2 mt-4">
+                            <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Selected Images ({faceImages.length}/5)</Label>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                              {faceImages.map((image, idx) =>
+                          <div key={idx} className="relative">
+                                  <img src={URL.createObjectURL(image)} alt={`Face ${idx + 1}`} className="w-full h-20 object-cover rounded-lg" />
+                                  <button onClick={() => removeFaceImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                                </div>
+                          )}
+                            </div>
+                          </div>
+                      }
+
+                        {faceTrainingStatus !== 'idle' &&
+                      <div className="space-y-2 mt-4">
+                            <div className="flex items-center gap-2">
+                              {faceTrainingStatus === 'training' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>}
+                              {faceTrainingStatus === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                              {faceTrainingStatus === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                              <span className="text-sm">{faceTrainingMessage}</span>
+                            </div>
+                            {faceTrainingStatus === 'training' && <Progress value={faceTrainingProgress} className="w-full h-2" />}
+                          </div>
+                      }
+
+                        <div className="flex justify-center mt-6">
+                          <Button onClick={trainFace} disabled={faceImages.length < 3 || faceTrainingStatus === 'training'} className="bg-primary hover:bg-primary/90 text-white px-8">{faceTrainingStatus === 'training' ? 'Training...' : 'Train Face AI'}</Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 }
 
                 
+                {activeTab === 'settings' && (
+                  <div className="animate-in fade-in duration-300">
+                    <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+                    <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+                      <div className="space-y-0.5">
+                        <Label className="text-base font-medium">Push Notifications</Label>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Receive real-time alerts for attendance, leaves, exams, and more.</p>
+                      </div>
+                      <Switch checked={notificationsEnabled} onCheckedChange={async (checked) => {
+                        try {
+                          setNotificationsEnabled(checked);
+                          const userToken = sessionStorage.getItem('access_token') || localStorage.getItem('access_token');
+                          if (checked) {
+                            const token = await requestForToken();
+                            if (token && userToken) {
+                              await fetch(`${API_ENDPOINT}/profile/register-device/`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                                body: JSON.stringify({ fcm_token: token, device_type: 'web' })
+                              });
+                              showSuccessAlert('Success', 'Push notifications enabled!');
+                            } else {
+                              throw new Error('Permission denied or token missing');
+                            }
+                          } else {
+                            const token = await requestForToken(); // get current token to unregister
+                            if (token && userToken) {
+                              await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
+                                body: JSON.stringify({ fcm_token: token })
+                              });
+                              showInfoAlert('Disabled', 'Push notifications disabled for this device. You may also need to revoke permission in your browser settings.');
+                            } else {
+                              throw new Error('Permission denied or token missing');
+                            }
+                          }
+                        } catch (error) {
+                          setNotificationsEnabled(!checked);
+                          showErrorAlert('Error', 'Failed to update notification settings');
+                        }
+                      }} />
+                    </div>
+                  </div>
+                )}
+
                 {activeTab === 'help' && (
                   <div className="animate-in fade-in duration-300">
                     <HelpLearningCard />

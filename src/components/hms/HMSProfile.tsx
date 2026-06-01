@@ -1,6 +1,7 @@
 import { Switch } from "@/components/ui/switch";
 import { requestForToken } from "@/lib/firebase";
 import HelpLearningCard from "../common/HelpLearningCard";
+import LoginActivity from "../common/LoginActivity";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -61,7 +62,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help' | 'settings'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help' | 'settings' | 'activity'>('personal');
   const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   useEffect(() => {
@@ -272,6 +273,15 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             <HelpLearningCard />
           </div>
         );
+      case 'activity':
+        return (
+          <div>
+            <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Login Activity</h3>
+            <div className="mt-3">
+              <LoginActivity />
+            </div>
+          </div>
+        );
       case 'contact': 
         return (
           <div className="space-y-4 sm:space-y-5">
@@ -412,6 +422,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                 <button onClick={() => setActiveTab('contact')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'contact' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Contact & Bio</button>
                 <button onClick={() => setActiveTab('settings')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'settings' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Settings</button>
                 <button onClick={() => setActiveTab('help')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'help' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Help & Learning</button>
+                <button onClick={() => setActiveTab('activity')} className={`px-4 py-2 rounded-md transition-colors font-semibold text-base sm:text-sm whitespace-nowrap ${activeTab === 'activity' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-accent'}`}>Login Activity</button>
               </div>
               <div className={`p-4 sm:p-6 rounded-lg border min-h-[300px] ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                 {renderTabContent()}

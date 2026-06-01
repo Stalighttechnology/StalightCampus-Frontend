@@ -60,7 +60,7 @@ const DeanProfile = () => {
     confirm: false
   });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help' | 'settings'>('personal');
   const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   const getInitials = (p: DeanProfileShape) => {
@@ -396,6 +396,14 @@ const DeanProfile = () => {
                 }>
                 Help & Learning
               </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md transition-all font-medium whitespace-nowrap ${activeTab === 'settings' ?
+                'bg-primary text-white shadow-sm' :
+                theme === 'dark' ? 'text-muted-foreground hover:text-foreground hover:bg-muted/50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
+                }>
+                Settings
+              </button>
             </div>
 
             <div className={`p-4 sm:p-6 rounded-xl border flex-1 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'}`}>
@@ -531,6 +539,63 @@ const DeanProfile = () => {
                 </div>
               </div>
               }
+              {activeTab === 'settings' && (
+                <div className="animate-in fade-in duration-300">
+                  <h3 className={`font-semibold text-base mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Settings</h3>
+                  
+                  <div className={`flex items-center justify-between p-4 border rounded-lg ${theme === 'dark' ? 'bg-card border-input' : 'bg-white border-gray-200'}`}>
+                    <div className="space-y-0.5">
+                      <Label className="text-base font-medium">Push Notifications</Label>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        Receive real-time alerts for attendance, leaves, exams, and more.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={notificationsEnabled}
+                      onCheckedChange={async (checked) => {
+                        try {
+                          setNotificationsEnabled(checked);
+                          const userToken = sessionStorage.getItem('token') || localStorage.getItem('token');
+                          
+                          if (checked) {
+                            // Enable notifications
+                            const token = await requestForToken();
+                            if (token && userToken) {
+                              await fetch(`${API_ENDPOINT}/profile/register-device/`, {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${userToken}`
+                                },
+                                body: JSON.stringify({ fcm_token: token, device_type: 'web' })
+                              });
+                              showSuccessAlert('Success', 'Push notifications enabled!');
+                            }
+                          } else {
+                            // Disable notifications
+                            const token = await requestForToken();
+                            if (token && userToken) {
+                              await fetch(`${API_ENDPOINT}/profile/unregister-device/`, {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${userToken}`
+                                },
+                                body: JSON.stringify({ fcm_token: token })
+                              });
+                              showSuccessAlert('Disabled', 'Push notifications disabled.');
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Error toggling notifications:', error);
+                          setNotificationsEnabled(!checked);
+                          showErrorAlert('Error', 'Failed to update notification settings');
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

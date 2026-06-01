@@ -596,14 +596,18 @@ interface AIAttendanceResponse {
   success: boolean;
   message?: string;
   data?: {
-    attendance_record_id: number;
     total_students: number;
-    present_count: number;
-    absent_count: number;
     present_students: Array<{
       id: number;
       name: string;
       usn: string;
+      confidence: number;
+    }>;
+    review_students: Array<{
+      id: number;
+      name: string;
+      usn: string;
+      confidence: number;
     }>;
     absent_students: Array<{
       id: number;

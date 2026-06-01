@@ -54,6 +54,18 @@ type ExamGroup = {
   subjects: ExamEntry[];
 };
 
+const formatTime = (timeStr?: string) => {
+  if (!timeStr) return '';
+  try {
+    const [h, m] = timeStr.split(':');
+    const d = new Date();
+    d.setHours(parseInt(h, 10), parseInt(m, 10));
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return timeStr;
+  }
+};
+
 const groupExams = (exams: ExamEntry[]): ExamGroup[] => {
   const groups: Record<string, ExamGroup> = {};
   exams.forEach(ex => {
@@ -96,7 +108,16 @@ const groupExams = (exams: ExamEntry[]): ExamGroup[] => {
     if (g.subjects.length > 0) {
       const firstD = formatDate(g.subjects[0].date);
       const lastD = formatDate(g.subjects[g.subjects.length - 1].date);
-      g.dateStr = firstD === lastD ? firstD : `${firstD} - ${lastD}`;
+      if (firstD === lastD) {
+        if (g.subjects[0].start_time && g.subjects[0].end_time) {
+          const timeStr = `${formatTime(g.subjects[0].start_time)} - ${formatTime(g.subjects[0].end_time)}`;
+          g.dateStr = `${firstD}, ${timeStr}`;
+        } else {
+          g.dateStr = firstD;
+        }
+      } else {
+        g.dateStr = `${firstD} - ${lastD}`;
+      }
     }
     
     return g;

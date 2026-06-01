@@ -12,6 +12,7 @@ import { getFacultyDashboardBootstrap } from "../../utils/faculty_api";
 import { getHODStats } from "../../utils/hod_api";
 import { getAdminStats } from "../../utils/admin_api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFCM } from "../../hooks/useFCM";
 
 interface User {
   username: string;
@@ -47,11 +48,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const isMobile = useIsMobile();
   const { theme } = useTheme();
   const { clearAuth } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 1024); // Start expanded on desktop, collapsed on mobile
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const navigate = useNavigate();
   const mainContentRef = useRef<HTMLElement>(null);
+
+  // Mount FCM listener for all roles — keeps bell count real-time
+  const accessToken = sessionStorage.getItem('access_token');
+  useFCM(accessToken);
 
   // Lock sidebar open on desktop, collapsible only on mobile/tablet
   useEffect(() => {
@@ -78,36 +83,32 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     queryKey: ["dashboard", "student", "overview"],
     queryFn: getDashboardOverview,
     enabled: role === 'student',
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true
   });
 
   const facultyQuery = useQuery({
     queryKey: ["dashboard", "faculty", "bootstrap"],
     queryFn: getFacultyDashboardBootstrap,
     enabled: role === 'faculty',
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true
   });
 
   const hodQuery = useQuery({
     queryKey: ["dashboard", "hod", (user as any)?.extra?.branch_id || (user as any)?.branch_id || ''],
     queryFn: () => getHODStats((user as any)?.extra?.branch_id || (user as any)?.branch_id || ''),
     enabled: role === 'hod',
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true
   });
 
   const adminQuery = useQuery({
     queryKey: ["dashboard", "admin", "stats"],
     queryFn: getAdminStats,
     enabled: role === 'admin' || role === 'principal' || role === 'org_admin',
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true
   });
 
   // Derive unreadCount from whichever query is active for the role
@@ -129,18 +130,34 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     }
   }, [role, studentQuery.data, facultyQuery.data, hodQuery.data, adminQuery.data]);
 
-  // Listen for manual refresh events — invalidate relevant queries instead of calling APIs directly
+  // Listen for manual refresh events AND service worker push messages — both update the bell count
   useEffect(() => {
     const handleRefresh = (e: any) => {
       if (e.detail?.decrement) {
         setUnreadCount((prev) => Math.max(0, prev - (e.detail.decrement || 1)));
         return;
       }
-      // Invalidate all dashboard queries so they refetch according to React Query rules
+      // Immediately increment optimistically, then sync with server
+      setUnreadCount((prev) => prev + 1);
       queryClient.invalidateQueries(["dashboard"]);
     };
     window.addEventListener('refresh-unread-count', handleRefresh);
-    return () => window.removeEventListener('refresh-unread-count', handleRefresh);
+
+    // Listen for postMessage from firebase-messaging-sw.js (background push received)
+    const handleSWMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'FCM_PUSH_RECEIVED') {
+        setUnreadCount((prev) => prev + 1);
+        queryClient.invalidateQueries(["dashboard"]);
+        // Play the chime sound in the background tab
+        window.dispatchEvent(new CustomEvent('play-notification-sound'));
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', handleSWMessage);
+
+    return () => {
+      window.removeEventListener('refresh-unread-count', handleRefresh);
+      navigator.serviceWorker?.removeEventListener('message', handleSWMessage);
+    };
   }, [queryClient]);
 
   // Close sidebar when page changes on mobile/tablet only
