@@ -28,7 +28,7 @@ export const facultyTour: Step[] = [
     route: '/faculty/dashboard',
   },
   {
-    target: '#faculty-live-timer',
+    target: '#live-session-timer-header',
     title: 'Live Session Timer',
     content:
       'Monitor your active live sessions with real-time timing and student participation.',

@@ -355,7 +355,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
         <section id="faculty-live-timer" className="w-full">
           <Card className={`h-full flex flex-col justify-between w-full ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
             <CardHeader className="p-3 md:p-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 sm:gap-0">
+              <div id="live-session-timer-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 sm:gap-0">
                 <CardTitle>Current & Next Session</CardTitle>
                 <div className="flex items-center gap-2 text-xs md:text-xs">
                   <Clock className="w-4 h-4" />
