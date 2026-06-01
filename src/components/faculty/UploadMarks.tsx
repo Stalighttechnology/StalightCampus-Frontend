@@ -1323,6 +1323,8 @@ const UploadMarks = () => {
     if (field === 'subject_id') {
       if (updated.branch_id && updated.semester_id && updated.section_id) {
         setTimeout(() => setIsTestTypeOpen(true), 150);
+      } else if (updated.branch_id && updated.semester_id) {
+        setTimeout(() => setIsSectionOpen(true), 150);
       } else {
         setTimeout(() => setIsBranchOpen(true), 150);
       }
@@ -1402,7 +1404,7 @@ const UploadMarks = () => {
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
               <SelectValue placeholder="Select Subject" />
             </SelectTrigger>
-            <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+            <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
               {dropdownData.subject.length > 0 ? (
                 dropdownData.subject.map((item) =>
                   <SelectItem key={item.id} value={item.id.toString()}>
@@ -1420,7 +1422,7 @@ const UploadMarks = () => {
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.subject_id}>
               <SelectValue placeholder="Select Branch" />
             </SelectTrigger>
-            <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+            <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
               {dropdownData.branch.length > 0 ? (
                 dropdownData.branch.map((item) =>
                   <SelectItem key={item.id} value={item.id.toString()}>
@@ -1438,7 +1440,7 @@ const UploadMarks = () => {
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.branch_id || dropdownData.semester.length === 0}>
               <SelectValue placeholder="Select Semester" />
             </SelectTrigger>
-            <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+            <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
               {dropdownData.semester.length > 0 ? (
                 dropdownData.semester.map((item) =>
                   <SelectItem key={item.id} value={item.id.toString()}>
@@ -1456,7 +1458,7 @@ const UploadMarks = () => {
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.semester_id || dropdownData.section.length === 0}>
               <SelectValue placeholder="Select Section" />
             </SelectTrigger>
-            <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+            <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
               {dropdownData.section.length > 0 ? (
                 dropdownData.section.map((item) =>
                   <SelectItem key={item.id} value={item.id.toString()}>
@@ -1474,7 +1476,7 @@ const UploadMarks = () => {
             <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} disabled={!selected.subject_id}>
               <SelectValue placeholder="Select TestType" />
             </SelectTrigger>
-            <SelectContent className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+            <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
               {dropdownData.testType.length > 0 ? (
                 dropdownData.testType.map((item) =>
                   <SelectItem key={item} value={item}>
@@ -1555,7 +1557,7 @@ const UploadMarks = () => {
                     </div>
 
                     {/* Table with new structure based on question format */}
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto custom-scrollbar">
                       <table className="min-w-full divide-y divide-gray-200  dark:divide-border">
                         <thead>
                           <tr>
