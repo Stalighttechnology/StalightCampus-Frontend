@@ -425,7 +425,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader>
+      <CardHeader id="exam-applications-header">
         <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Exam Applications</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

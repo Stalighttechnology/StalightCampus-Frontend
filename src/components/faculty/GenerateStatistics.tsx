@@ -140,87 +140,95 @@ const GenerateStatistics: React.FC = () => {
       {/* Charts */}
       <div id="statistics-charts-container" className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
         {/* Attendance Overview */}
-        <Card className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg`}>
+        <Card id="statistics-attendance-overview-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg overflow-hidden`}>
           <CardHeader>
             <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Attendance Overview
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4">
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={attendanceData} margin={{ bottom: 30, left: 0, right: 10, top: 10 }}>
-                <CartesianGrid stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} vertical={false} />
-                <XAxis
-                  dataKey="name"
-                  stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'}
-                  interval="preserveStartEnd"
-                  tick={{ fontSize: 9 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={70}
-                />
-                <YAxis stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-                    border: theme === 'dark' ? '1px solid #2e2e30' : '1px solid #e5e7eb',
-                    color: theme === 'dark' ? '#f3f4f6' : '#1f2937'
-                  }}
-                  itemStyle={{ color: theme === 'dark' ? '#f3f4f6' : '#1f2937' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="attendance"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  name="Attendance %"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+              <div style={{ width: proctorStudents.length > 6 ? `${proctorStudents.length * 70}px` : "100%", minWidth: "100%" }}>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={attendanceData} margin={{ bottom: 30, left: 0, right: 10, top: 10 }}>
+                    <CartesianGrid stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'}
+                      interval={0}
+                      tick={{ fontSize: 9 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={70}
+                    />
+                    <YAxis stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+                        border: theme === 'dark' ? '1px solid #2e2e30' : '1px solid #e5e7eb',
+                        color: theme === 'dark' ? '#f3f4f6' : '#1f2937'
+                      }}
+                      itemStyle={{ color: theme === 'dark' ? '#f3f4f6' : '#1f2937' }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="attendance"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      name="Attendance %"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {/* Average Marks */}
-        <Card className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg`}>
+        <Card id="statistics-average-marks-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg overflow-hidden`}>
           <CardHeader>
             <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Average Marks
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4">
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={marksData} margin={{ bottom: 30, left: 0, right: 10, top: 10 }}>
-                <CartesianGrid stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} vertical={false} />
-                <XAxis
-                  dataKey="name"
-                  stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'}
-                  interval="preserveStartEnd"
-                  tick={{ fontSize: 9 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={70}
-                />
-                <YAxis stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-                    border: theme === 'dark' ? '1px solid #2e2e30' : '1px solid #e5e7eb',
-                    color: theme === 'dark' ? '#f3f4f6' : '#1f2937'
-                  }}
-                  itemStyle={{ color: theme === 'dark' ? '#f3f4f6' : '#1f2937' }}
-                />
-                <Bar dataKey="avgMark" fill="#6366f1" radius={[4, 4, 0, 0]}>
-                  {/* 👇 Label inside each bar, only if marks exist */}
-                  <LabelList
-                    dataKey="avgMark"
-                    position="top"
-                    fill={theme === 'dark' ? '#94a3b8' : '#64748b'}
-                    fontSize={9}
-                    formatter={(val: any) => val > 0 ? val : ''}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+              <div style={{ width: proctorStudents.length > 6 ? `${proctorStudents.length * 70}px` : "100%", minWidth: "100%" }}>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={marksData} margin={{ bottom: 30, left: 0, right: 10, top: 10 }}>
+                    <CartesianGrid stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'}
+                      interval={0}
+                      tick={{ fontSize: 9 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={70}
+                    />
+                    <YAxis stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+                        border: theme === 'dark' ? '1px solid #2e2e30' : '1px solid #e5e7eb',
+                        color: theme === 'dark' ? '#f3f4f6' : '#1f2937'
+                      }}
+                      itemStyle={{ color: theme === 'dark' ? '#f3f4f6' : '#1f2937' }}
+                    />
+                    <Bar dataKey="avgMark" fill="#6366f1" radius={[4, 4, 0, 0]}>
+                      {/* 👇 Label inside each bar, only if marks exist */}
+                      <LabelList
+                        dataKey="avgMark"
+                        position="top"
+                        fill={theme === 'dark' ? '#94a3b8' : '#64748b'}
+                        fontSize={9}
+                        formatter={(val: any) => val > 0 ? val : ''}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

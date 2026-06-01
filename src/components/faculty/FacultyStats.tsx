@@ -311,33 +311,41 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
           <CardContent className="flex-1 h-full mt-3">
             <div className="h-full flex flex-col md:flex-row gap-4 items-stretch">
               {/* Bar chart - Average Attendance */}
-              <div className="flex-1 min-h-[240px]">
+              <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
                 <h4 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average Attendance (30 days)</h4>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
-                    <XAxis dataKey="subject" tick={{ fontSize: 12 }} />
-                    <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                    <Tooltip formatter={(value: any) => `${value}%`} />
-                    <Bar dataKey="attendance" fill="#3b82f6" radius={[6, 6, 0, 0]}>
-                      <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                  <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
+                    <ResponsiveContainer width="100%" height={240}>
+                      <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
+                        <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
+                        <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                        <Tooltip formatter={(value: any) => `${value}%`} />
+                        <Bar dataKey="attendance" fill="#3b82f6" radius={[6, 6, 0, 0]}>
+                          <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: 10 }} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </div>
 
               {/* Line chart - IA Marks */}
-              <div className="flex-1 min-h-[240px]">
+              <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
                 <h4 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average IA Marks</h4>
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
-                    <XAxis dataKey="subject" tick={{ fontSize: 12 }} />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="iaMarks" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                  <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
+                    <ResponsiveContainer width="100%" height={240}>
+                      <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
+                        <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
+                        <YAxis />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="iaMarks" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -347,7 +355,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
         <section id="faculty-live-timer" className="w-full">
           <Card className={`h-full flex flex-col justify-between w-full ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
             <CardHeader className="p-3 md:p-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 sm:gap-0">
+              <div id="live-session-timer-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 sm:gap-0">
                 <CardTitle>Current & Next Session</CardTitle>
                 <div className="flex items-center gap-2 text-xs md:text-xs">
                   <Clock className="w-4 h-4" />

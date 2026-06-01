@@ -17,6 +17,7 @@ import { libraryAdminTour } from '../config/libraryAdminTour';
 import { orgAdminTour } from '../config/orgAdminTour';
 import { driverTour } from '../config/driverTour';
 import { applyRoleTransform, applyMobileLabels } from './transforms';
+import { isPageAllowed } from '../../utils/planGating';
 
 const ROLE_TO_TOUR_MAP: Record<string, any> = {
   student: { steps: studentTour, keys: TUTORIAL_KEYS.STUDENT },
@@ -38,13 +39,34 @@ const ROLE_TO_TOUR_MAP: Record<string, any> = {
   driver: { steps: driverTour, keys: TUTORIAL_KEYS.DRIVER },
 };
 
-const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, role: string): any[] => {
+const resolveOrgPlan = (authUser: Record<string, any> | null): string => {
+  if (authUser?.org_plan) return String(authUser.org_plan);
+  try {
+    const stored = sessionStorage.getItem('user');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed?.org_plan) return String(parsed.org_plan);
+    }
+  } catch {
+    // ignore
+  }
+  return 'basic';
+};
+
+const transformStepsForHighlights = (originalSteps: any[], isMobile: boolean, role: string, orgPlan: string): any[] => {
   const steps: any[] = [];
 
   for (const step of originalSteps) {
     const target = step.target;
 
     if (typeof target === 'string') {
+      if (target.startsWith('#sidebar-')) {
+        const page = target.replace('#sidebar-', '').toLowerCase();
+        if (!isPageAllowed(page, orgPlan)) {
+          continue; // Skip the step if the target page is not allowed under the organization plan
+        }
+      }
+
       // Delegate to the per-role transform for this step's sidebar target
       const transformed = applyRoleTransform(step, isMobile, role);
       if (transformed !== null) {
@@ -114,8 +136,10 @@ export const useTutorial = () => {
       keys: TUTORIAL_KEYS.STUDENT,
     };
 
+    const orgPlan = resolveOrgPlan(authUser);
+
     // Transform steps for both mobile and laptop to highlight actual page sections
-    const processedSteps = transformStepsForHighlights(tourConfig.steps, isMobile, role);
+    const processedSteps = transformStepsForHighlights(tourConfig.steps, isMobile, role, orgPlan);
 
     // Force skipBeacon: true on all steps to avoid pulsing dots (beacons)
     const stepsWithDisabledBeacons = processedSteps.map((step: any) => ({
@@ -131,7 +155,7 @@ export const useTutorial = () => {
       steps: stepsWithDisabledBeacons,
       keys: tourConfig.keys,
     };
-  }, [role, isMobile]);
+  }, [role, isMobile, authUser]);
 
   /**
    * ACCOUNT-SCOPED ONBOARDING TRIGGER

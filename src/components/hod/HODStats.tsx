@@ -391,26 +391,30 @@ const handleApprove = async (index: number) => {
             {chartData.length === 1 && chartData[0].week === "No Data" ? (
               <p className={`text-sm text-center italic ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>No attendance data available</p>
             ) : (
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#3f3f46' : '#e5e7eb'} />
-                  <XAxis dataKey="week" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} fontSize={12} />
-                  <YAxis domain={[0, 100]} stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} fontSize={12} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }}
-                    labelStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
-                    itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="attendance"
-                    stroke="#2563eb"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    name="Attendance Percentage"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={chartData} margin={{ top: 10, right: 25, left: -10, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#3f3f46' : '#e5e7eb'} />
+                      <XAxis dataKey="week" stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} fontSize={12} interval={0} />
+                      <YAxis domain={[0, 100]} stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'} fontSize={12} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: theme === 'dark' ? '#1c1c1e' : '#fff', borderRadius: "8px", border: theme === 'dark' ? '1px solid #3f3f46' : '1px solid #e5e7eb' }}
+                        labelStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                        itemStyle={{ color: theme === 'dark' ? '#e5e7eb' : '#111827' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="attendance"
+                        stroke="#2563eb"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        name="Attendance Percentage"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             )}
           </div>
         </div>
