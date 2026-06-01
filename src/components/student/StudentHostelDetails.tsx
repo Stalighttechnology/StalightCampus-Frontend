@@ -20,7 +20,11 @@ import {
   FaDrumstickBite,
   FaCheckCircle,
   FaDirections,
-  FaExclamationTriangle } from
+  FaExclamationTriangle,
+  FaClock,
+  FaCog,
+  FaHardHat,
+  FaCalendarAlt } from
 'react-icons/fa';
 import { SkeletonCard, SkeletonList } from '../ui/skeleton';
 import { Card, CardHeader, CardContent } from '../ui/card';
@@ -581,10 +585,10 @@ const StudentHostelDetails: React.FC = () => {
                   };
 
                   const statusIcons: Record<string, React.ReactNode> = {
-                    pending: '⏳',
-                    in_progress: '⚙️',
-                    waiting_for_workers: '👷',
-                    completed: '✅'
+                    pending: <FaClock className="w-4 h-4 text-yellow-500" />,
+                    in_progress: <FaCog className="w-4 h-4 text-blue-500 animate-spin" />,
+                    waiting_for_workers: <FaHardHat className="w-4 h-4 text-orange-500" />,
+                    completed: <FaCheckCircle className="w-4 h-4 text-green-500" />
                   };
 
                   const statusLabels: Record<string, string> = {
@@ -606,7 +610,7 @@ const StudentHostelDetails: React.FC = () => {
                           <div className="flex items-start justify-between gap-4 mb-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="text-lg">{statusIcon}</span>
+                                <span className="flex items-center justify-center w-5 h-5 flex-shrink-0">{statusIcon}</span>
                                 <h4 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                                   {issue.title}
                                 </h4>
@@ -622,8 +626,9 @@ const StudentHostelDetails: React.FC = () => {
                           
                           {/* Footer with timestamps and updates */}
                           <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-300/30">
-                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
-                              📅 {new Date(issue.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(issue.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            <p className={`text-xs flex items-center gap-1.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+                              <FaCalendarAlt className="w-3 h-3 flex-shrink-0" />
+                              {new Date(issue.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(issue.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                             {issue.update_count && issue.update_count > 0 &&
                         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${theme === 'dark' ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
@@ -668,7 +673,7 @@ const StudentHostelDetails: React.FC = () => {
                               </h4>
                               <div className="mt-1 flex flex-wrap gap-4">
                                 <div className="flex items-center gap-2">
-                                  <span className={`h-4 w-4 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>🕐</span>
+                                  <FaClock className={`h-3.5 w-3.5 flex-shrink-0 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
                                   <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                     {m.time_from && m.time_to ? `${m.time_from.substring(0, 5)} - ${m.time_to.substring(0, 5)}` : 'N/A'}
                                   </span>
