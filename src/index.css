@@ -300,13 +300,20 @@ body,
 .select-scrollbar,
 [data-radix-select-viewport] {
   overflow-y: scroll !important;
-  -ms-overflow-style: scrollbar !important; /* Force scrollbar in IE/Edge */
+  scrollbar-gutter: stable !important;
+  -ms-overflow-style: scrollbar !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #c4c8cf #f3f4f6 !important;
 }
 
+/* Webkit (Chrome, Edge, Safari) — defining any ::-webkit-scrollbar forces
+   classic (non-overlay) scrollbars that are always visible */
 .select-scrollbar::-webkit-scrollbar,
 [data-radix-select-viewport]::-webkit-scrollbar {
   width: 6px !important;
   display: block !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
 .select-scrollbar::-webkit-scrollbar-track,
@@ -327,23 +334,12 @@ body,
   background-color: #9ca3af;
 }
 
-/* Light theme overrides */
-.light .select-scrollbar::-webkit-scrollbar-track,
-.light [data-radix-select-viewport]::-webkit-scrollbar-track {
-  background: #f3f4f6;
+/* Dark theme */
+.dark .select-scrollbar,
+.dark [data-radix-select-viewport] {
+  scrollbar-color: #555 #1e1e22 !important;
 }
 
-.light .select-scrollbar::-webkit-scrollbar-thumb,
-.light [data-radix-select-viewport]::-webkit-scrollbar-thumb {
-  background-color: #c4c8cf;
-}
-
-.light .select-scrollbar::-webkit-scrollbar-thumb:hover,
-.light [data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
-  background-color: #9ca3af;
-}
-
-/* Dark theme overrides */
 .dark .select-scrollbar::-webkit-scrollbar-track,
 .dark [data-radix-select-viewport]::-webkit-scrollbar-track {
   background: #1e1e22;
@@ -357,19 +353,6 @@ body,
 .dark .select-scrollbar::-webkit-scrollbar-thumb:hover,
 .dark [data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
   background-color: #777;
-}
-
-/* Firefox */
-.light .select-scrollbar,
-.light [data-radix-select-viewport] {
-  scrollbar-width: thin !important;
-  scrollbar-color: #c4c8cf #f3f4f6 !important;
-}
-
-.dark .select-scrollbar,
-.dark [data-radix-select-viewport] {
-  scrollbar-width: thin !important;
-  scrollbar-color: #555 #1e1e22 !important;
 }
 
 /* Theme-aware Scrollbar */
