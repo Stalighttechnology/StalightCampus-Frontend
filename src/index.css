@@ -297,56 +297,79 @@ body,
 }
 
 /* ── Always-visible scrollbar for Select dropdowns ────────────────────────── */
+.select-scrollbar,
 [data-radix-select-viewport] {
   overflow-y: scroll !important;
+  -ms-overflow-style: scrollbar !important; /* Force scrollbar in IE/Edge */
 }
 
+.select-scrollbar::-webkit-scrollbar,
 [data-radix-select-viewport]::-webkit-scrollbar {
-  width: 6px;
+  width: 6px !important;
+  display: block !important;
 }
 
+.select-scrollbar::-webkit-scrollbar-track,
 [data-radix-select-viewport]::-webkit-scrollbar-track {
   border-radius: 6px;
+  background: #f3f4f6;
 }
 
+.select-scrollbar::-webkit-scrollbar-thumb,
 [data-radix-select-viewport]::-webkit-scrollbar-thumb {
   border-radius: 6px;
   min-height: 24px;
+  background-color: #c4c8cf;
 }
 
+.select-scrollbar::-webkit-scrollbar-thumb:hover,
+[data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+/* Light theme overrides */
+.light .select-scrollbar::-webkit-scrollbar-track,
 .light [data-radix-select-viewport]::-webkit-scrollbar-track {
   background: #f3f4f6;
 }
 
+.light .select-scrollbar::-webkit-scrollbar-thumb,
 .light [data-radix-select-viewport]::-webkit-scrollbar-thumb {
   background-color: #c4c8cf;
 }
 
+.light .select-scrollbar::-webkit-scrollbar-thumb:hover,
 .light [data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
   background-color: #9ca3af;
 }
 
+/* Dark theme overrides */
+.dark .select-scrollbar::-webkit-scrollbar-track,
 .dark [data-radix-select-viewport]::-webkit-scrollbar-track {
   background: #1e1e22;
 }
 
+.dark .select-scrollbar::-webkit-scrollbar-thumb,
 .dark [data-radix-select-viewport]::-webkit-scrollbar-thumb {
   background-color: #555;
 }
 
+.dark .select-scrollbar::-webkit-scrollbar-thumb:hover,
 .dark [data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
   background-color: #777;
 }
 
 /* Firefox */
+.light .select-scrollbar,
 .light [data-radix-select-viewport] {
-  scrollbar-width: thin;
-  scrollbar-color: #c4c8cf #f3f4f6;
+  scrollbar-width: thin !important;
+  scrollbar-color: #c4c8cf #f3f4f6 !important;
 }
 
+.dark .select-scrollbar,
 .dark [data-radix-select-viewport] {
-  scrollbar-width: thin;
-  scrollbar-color: #555 #1e1e22;
+  scrollbar-width: thin !important;
+  scrollbar-color: #555 #1e1e22 !important;
 }
 
 /* Theme-aware Scrollbar */
