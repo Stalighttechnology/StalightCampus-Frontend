@@ -507,7 +507,7 @@ const UploadQP = () => {
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[200px]">
                       {dropdownData.branch.length > 0 ? (
                         dropdownData.branch.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
                       ) : (
@@ -527,7 +527,7 @@ const UploadQP = () => {
                     <SelectTrigger className="w-full" disabled={!selected.branch_id}>
                       <SelectValue placeholder="Select Subject" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[200px]">
                       {dropdownData.subject.length > 0 ? (
                         dropdownData.subject.map((s) => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)
                       ) : (
@@ -544,7 +544,7 @@ const UploadQP = () => {
                     <SelectTrigger className="w-full" disabled={!selected.subject_id}>
                       <SelectValue placeholder="Select Test Type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[200px]">
                       {dropdownData.testType.length > 0 ? (
                         dropdownData.testType.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)
                       ) : (
@@ -765,7 +765,7 @@ const UploadQP = () => {
                     </div>
                   }
                   <div className={`border rounded-lg ${theme === 'dark' ? 'bg-gray-800 border-border' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="space-y-4">
+                    <div className="space-y-4 p-4">
                       {loading ?
                         <SkeletonList items={4} /> :
                         Object.keys(groupQuestionsByMain()).map((mainQ) => {

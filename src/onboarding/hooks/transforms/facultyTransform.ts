@@ -82,13 +82,6 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
         content: 'Marks Entry (to enter grades manually)',
         placement: isMobile ? step.placement : 'top',
       },
-      {
-        ...step,
-        target: '#upload-marks-tab-bulk',
-        title: 'Bulk Upload',
-        content: 'Bulk Upload (to download templates and import scores via Excel)',
-        placement: isMobile ? step.placement : 'top',
-      },
     ];
   }
 
