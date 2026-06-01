@@ -79,6 +79,14 @@ const FacultyAssignments = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] = useState<any>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSubjectOpen, setIsSubjectOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+
+  const branchOpenRef = React.useRef(false);
+  const subjectOpenRef = React.useRef(false);
+  const semesterOpenRef = React.useRef(false);
 
   // Create Assignment Form State
   const [formData, setFormData] = useState({
@@ -425,120 +433,109 @@ const FacultyAssignments = () => {
   };
 
   // Cascaded Selection Helpers & Auto-selection Logic
-  const handleSubjectChange = (subjectId: string) => {
-    const subject = assignedSubjects.find((s) => String(s.subject_id) === String(subjectId));
-    let newFormData = {
-      ...formData,
-      subject_id: subjectId,
-      branch_id: '',
-      semester_id: '',
-      section_id: ''
-    };
-
-    if (subject) {
-      const branches = Array.from(new Set(subject.sections.map((sec) => String(sec.branch_id))));
-      if (branches.length === 1) {
-        newFormData.branch_id = branches[0];
-
-        const semesters = Array.from(new Set(
-          subject.sections.
-            filter((sec) => String(sec.branch_id) === String(newFormData.branch_id)).
-            map((sec) => String(sec.semester_id))
-        ));
-        if (semesters.length === 1) {
-          newFormData.semester_id = semesters[0];
-
-          const sections = subject.sections.
-            filter((sec) =>
-              String(sec.branch_id) === String(newFormData.branch_id) &&
-              String(sec.semester_id) === String(newFormData.semester_id)
-            );
-          if (sections.length === 1) {
-            newFormData.section_id = String(sections[0].section_id);
-          }
-        }
-      }
-    }
-    setFormData(newFormData);
-  };
 
   const handleBranchChange = (branchId: string) => {
-    const subject = assignedSubjects.find((s) => String(s.subject_id) === String(formData.subject_id));
     let newFormData = {
       ...formData,
       branch_id: branchId,
+      subject_id: '',
       semester_id: '',
       section_id: ''
     };
 
-    if (subject) {
-      const semesters = Array.from(new Set(
-        subject.sections.
-          filter((sec) => String(sec.branch_id) === String(branchId)).
-          map((sec) => String(sec.semester_id))
-      ));
-      if (semesters.length === 1) {
-        newFormData.semester_id = semesters[0];
-
-        const sections = subject.sections.
-          filter((sec) =>
-            String(sec.branch_id) === String(branchId) &&
-            String(sec.semester_id) === String(newFormData.semester_id)
-          );
-        if (sections.length === 1) {
-          newFormData.section_id = String(sections[0].section_id);
-        }
-      }
-    }
     setFormData(newFormData);
+
+    // Auto-open next unfilled dropdown based on the selection flow: Branch -> Subject -> Semester -> Section
+    if (!newFormData.subject_id) {
+      setTimeout(() => setIsSubjectOpen(true), 150);
+    } else if (!newFormData.semester_id) {
+      setTimeout(() => setIsSemesterOpen(true), 150);
+    } else if (!newFormData.section_id) {
+      setTimeout(() => setIsSectionOpen(true), 150);
+    }
+  };
+
+  const handleSubjectChange = (subjectId: string) => {
+    let newFormData = {
+      ...formData,
+      subject_id: subjectId,
+      semester_id: '',
+      section_id: ''
+    };
+
+    setFormData(newFormData);
+
+    // Auto-open next unfilled dropdown based on the selection flow: Subject -> Semester -> Section
+    if (!newFormData.semester_id) {
+      setTimeout(() => setIsSemesterOpen(true), 150);
+    } else if (!newFormData.section_id) {
+      setTimeout(() => setIsSectionOpen(true), 150);
+    }
   };
 
   const handleSemesterChange = (semesterId: string) => {
-    const subject = assignedSubjects.find((s) => String(s.subject_id) === String(formData.subject_id));
     let newFormData = {
       ...formData,
       semester_id: semesterId,
       section_id: ''
     };
 
-    if (subject) {
-      const sections = subject.sections.
-        filter((sec) =>
-          String(sec.branch_id) === String(formData.branch_id) &&
-          String(sec.semester_id) === String(semesterId)
-        );
-      if (sections.length === 1) {
-        newFormData.section_id = String(sections[0].section_id);
-      }
-    }
     setFormData(newFormData);
+
+    // Auto-open next unfilled dropdown based on the selection flow: Semester -> Section
+    if (!newFormData.section_id) {
+      setTimeout(() => setIsSectionOpen(true), 150);
+    }
   };
 
-  const selectedSubject = assignedSubjects.find((s) => String(s.subject_id) === String(formData.subject_id));
-  const uniqueBranches = selectedSubject ?
-    Array.from(new Map(selectedSubject.sections.map((sec) => [String(sec.branch_id), { id: String(sec.branch_id), name: sec.branch }])).values()) :
-    [];
+  const uniqueBranches = useMemo(() => {
+    const branchesMap = new Map();
+    assignedSubjects.forEach((sub) => {
+      sub.sections.forEach((sec) => {
+        branchesMap.set(String(sec.branch_id), { id: String(sec.branch_id), name: sec.branch });
+      });
+    });
+    return Array.from(branchesMap.values());
+  }, [assignedSubjects]);
 
-  const uniqueSemesters = selectedSubject && formData.branch_id ?
-    Array.from(new Map(selectedSubject.sections.
-      filter((sec) => String(sec.branch_id) === String(formData.branch_id)).
-      map((sec) => [String(sec.semester_id), { id: String(sec.semester_id), number: sec.semester }])).values()) :
-    [];
+  const uniqueSubjects = useMemo(() => {
+    if (!formData.branch_id) return [];
+    return assignedSubjects.filter((sub) =>
+      sub.sections.some((sec) => String(sec.branch_id) === String(formData.branch_id))
+    );
+  }, [assignedSubjects, formData.branch_id]);
 
-  const uniqueSections = selectedSubject && formData.branch_id && formData.semester_id ?
-    selectedSubject.sections.
-      filter((sec) =>
+  const uniqueSemesters = useMemo(() => {
+    if (!formData.branch_id || !formData.subject_id) return [];
+    const selectedSubject = assignedSubjects.find((s) => String(s.subject_id) === String(formData.subject_id));
+    if (!selectedSubject) return [];
+    const semestersMap = new Map();
+    selectedSubject.sections
+      .filter((sec) => String(sec.branch_id) === String(formData.branch_id))
+      .forEach((sec) => {
+        semestersMap.set(String(sec.semester_id), { id: String(sec.semester_id), number: sec.semester });
+      });
+    return Array.from(semestersMap.values());
+  }, [assignedSubjects, formData.branch_id, formData.subject_id]);
+
+  const uniqueSections = useMemo(() => {
+    if (!formData.branch_id || !formData.subject_id || !formData.semester_id) return [];
+    const selectedSubject = assignedSubjects.find((s) => String(s.subject_id) === String(formData.subject_id));
+    if (!selectedSubject) return [];
+    return selectedSubject.sections
+      .filter((sec) =>
         String(sec.branch_id) === String(formData.branch_id) &&
         String(sec.semester_id) === String(formData.semester_id)
-      ).
-      map((sec) => ({ id: String(sec.section_id), name: sec.section })) :
-    [];
+      )
+      .map((sec) => ({ id: String(sec.section_id), name: sec.section }));
+  }, [assignedSubjects, formData.branch_id, formData.subject_id, formData.semester_id]);
 
   const filteredAssignments = useMemo(() => {
-    // Backend now handles search filtering, we just filter by subject locally if needed
-    // or we can remove this local filter entirely and rely on backend for all.
-    return assignments;
-  }, [assignments]);
+    if (filterSubject === 'all') {
+      return assignments;
+    }
+    return assignments.filter((a) => a.subject === filterSubject);
+  }, [assignments, filterSubject]);
 
   const stats = {
     total: assignments.length,
@@ -592,23 +589,30 @@ const FacultyAssignments = () => {
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <h2 className="text-xl font-semibold">All Assignments</h2>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-3 flex-nowrap">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                   <Input
                     placeholder="Search assignments..."
-                    className="pl-10 w-full md:w-64 rounded-xl h-10"
+                    className="pl-10 pr-12 w-full md:w-64 rounded-xl h-10"
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
                       setCurrentPage(1);
                     }} />
-
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
                 </div>
                 <Select value={filterSubject} onValueChange={setFilterSubject}>
-                  <SelectTrigger className="w-[180px] rounded-xl h-10">
-                    <Filter size={16} className="mr-2" />
-                    <SelectValue placeholder="All Subjects" />
+                  <SelectTrigger className="bg-primary hover:bg-primary/90 text-white border-0 rounded-full h-10 px-5 flex items-center gap-2 font-semibold shadow-md shadow-primary/20 transition-all cursor-pointer [&>svg]:text-white [&>svg:last-child]:hidden">
+                    <Filter size={16} />
+                    <span>{filterSubject === 'all' ? 'Filter' : filterSubject}</span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Subjects</SelectItem>
@@ -898,296 +902,318 @@ const FacultyAssignments = () => {
 
 
       {/* Create Assignment Modal */}
-      <AnimatePresence>
-        {showCreateModal &&
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowCreateModal(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      {showCreateModal &&
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => setShowCreateModal(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`relative w-[90%] max-w-xl max-h-[80vh] overflow-y-auto rounded-3xl shadow-xl ${theme === 'dark' ? 'bg-background border border-border custom-scrollbar' : 'bg-white custom-scrollbar'}`}>
+          <div
+            className={`relative w-[90%] max-w-xl max-h-[80vh] overflow-y-auto rounded-3xl shadow-xl ${theme === 'dark' ? 'bg-background border border-border custom-scrollbar' : 'bg-white custom-scrollbar'}`}>
 
-              <div className="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-inherit z-10">
-                <div>
-                  <h2 className="text-xl font-semibold">{editingAssignment ? 'Edit Assignment' : 'New Assignment'}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {editingAssignment ? 'Update the assignment details' : 'Fill in the details to publish a new assignment'}
-                  </p>
+            <div className="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-inherit z-10">
+              <div>
+                <h2 className="text-xl font-semibold">{editingAssignment ? 'Edit Assignment' : 'New Assignment'}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {editingAssignment ? 'Update the assignment details' : 'Fill in the details to publish a new assignment'}
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setShowCreateModal(false)}>
+                <X size={20} />
+              </Button>
+            </div>
+
+            <form onSubmit={handleCreateAssignment} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-semibold">Assignment Title</label>
+                  <Input
+                    required
+                    placeholder="e.g. Introduction to Data Structures"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setShowCreateModal(false)}>
-                  <X size={20} />
-                </Button>
+
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-semibold">Description / Instructions</label>
+                  <Textarea
+                    required
+                    placeholder="Enter assignment details, rules, and guidelines..."
+                    className="min-h-[80px] max-h-[200px] resize-none overflow-y-auto custom-scrollbar"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Branch</label>
+                  <Select
+                    required
+                    value={formData.branch_id}
+                    onValueChange={handleBranchChange}
+                    open={isBranchOpen}
+                    onOpenChange={(open) => {
+                      setIsBranchOpen(open);
+                      if (open) {
+                        branchOpenRef.current = true;
+                      } else {
+                        setTimeout(() => { branchOpenRef.current = false; }, 300);
+                      }
+                    }}
+                    disabled={assignedSubjects.length === 0 || uniqueBranches.length === 0}>
+
+                    <SelectTrigger>
+                      <SelectValue placeholder={assignedSubjects.length === 0 ? "No branches assigned" : "Select Branch"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {uniqueBranches.length === 0 ? (
+                        <SelectItem value="none" disabled>No branches assigned</SelectItem>
+                      ) : (
+                        uniqueBranches.map((b: any) =>
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Subject</label>
+                  <Select
+                    required
+                    value={formData.subject_id}
+                    onValueChange={handleSubjectChange}
+                    open={isSubjectOpen}
+                    onOpenChange={(open) => {
+                      setIsSubjectOpen(open);
+                      if (open) {
+                        subjectOpenRef.current = true;
+                      } else {
+                        setTimeout(() => { subjectOpenRef.current = false; }, 300);
+                      }
+                    }}
+                    disabled={!formData.branch_id || uniqueSubjects.length === 0}>
+
+                    <SelectTrigger>
+                      <SelectValue placeholder={!formData.branch_id ? "Select Branch first" : uniqueSubjects.length === 0 ? "No subjects assigned" : "Select Subject"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {uniqueSubjects.length === 0 ? (
+                        <SelectItem value="none" disabled>No subjects assigned</SelectItem>
+                      ) : (
+                        uniqueSubjects.map((s) =>
+                          <SelectItem key={s.subject_id} value={s.subject_id}>{s.subject_name}</SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Semester</label>
+                  <Select
+                    required
+                    value={formData.semester_id}
+                    onValueChange={handleSemesterChange}
+                    open={isSemesterOpen}
+                    onOpenChange={(open) => {
+                      setIsSemesterOpen(open);
+                      if (open) {
+                        semesterOpenRef.current = true;
+                      } else {
+                        setTimeout(() => { semesterOpenRef.current = false; }, 300);
+                      }
+                    }}
+                    disabled={!formData.subject_id || uniqueSemesters.length === 0}>
+
+                    <SelectTrigger>
+                      <SelectValue placeholder={!formData.subject_id ? "Select Subject first" : uniqueSemesters.length === 0 ? "No semesters assigned" : "Select Semester"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {uniqueSemesters.length === 0 ? (
+                        <SelectItem value="none" disabled>No semesters assigned</SelectItem>
+                      ) : (
+                        uniqueSemesters.map((s: any) =>
+                          <SelectItem key={s.id} value={s.id}>Semester {s.number}</SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Section</label>
+                  <Select
+                    required
+                    value={formData.section_id}
+                    onValueChange={(v) => setFormData({ ...formData, section_id: v })}
+                    open={isSectionOpen}
+                    onOpenChange={setIsSectionOpen}
+                    disabled={!formData.semester_id || uniqueSections.length === 0}>
+
+                    <SelectTrigger>
+                      <SelectValue placeholder={!formData.semester_id ? "Select Semester first" : uniqueSections.length === 0 ? "No sections assigned" : "Select Section"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {uniqueSections.length === 0 ? (
+                        <SelectItem value="none" disabled>No sections assigned</SelectItem>
+                      ) : (
+                        uniqueSections.map((s: any) =>
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Due Date</label>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal h-10 px-3 relative pl-10",
+                          !formData.due_date && "text-muted-foreground",
+                          theme === 'dark' ?
+                            'bg-background border-border text-foreground hover:bg-muted/50' :
+                            'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                        )}
+                      >
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                        <span className="truncate">
+                          {formData.due_date ?
+                            format(new Date(formData.due_date), "PPP") :
+                            "Pick a date"
+                          }
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
+                      <ShadcnCalendar
+                        mode="single"
+                        selected={formData.due_date ? new Date(formData.due_date) : undefined}
+                        onSelect={(date) => {
+                          setFormData({
+                            ...formData,
+                            due_date: date ? format(date, "yyyy-MM-dd") + "T23:59" : ""
+                          });
+                          setIsCalendarOpen(false);
+                        }}
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Max Marks</label>
+                  <Input
+                    required
+                    type="number"
+                    placeholder="e.g. 50"
+                    value={formData.max_marks}
+                    onChange={(e) => setFormData({ ...formData, max_marks: e.target.value })} />
+
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Weightage (%)</label>
+                  <Input
+                    required
+                    type="number"
+                    placeholder="e.g. 10"
+                    value={formData.weightage}
+                    onChange={(e) => setFormData({ ...formData, weightage: e.target.value })} />
+
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Attachment (PDF/DOC, Max 5MB)</label>
+
+                  {/* Show existing attachment when editing */}
+                  {editingAssignment && editingAssignment.file_url && (
+                    <div className={`flex items-center gap-3 px-3 py-2 rounded-md border mb-2 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'
+                      }`}>
+                      <FileText size={16} className="text-primary flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground flex-1 truncate">
+                        {selectedFile ? 'New file selected — will replace existing' : 'Current attachment'}
+                      </span>
+                      {!selectedFile && (
+                        <a
+                          href={editingAssignment.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-shrink-0"
+                        >
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 gap-1.5 text-xs border-primary/50 text-primary hover:bg-primary hover:text-white transition-colors"
+                          >
+                            <Eye size={13} />
+                            View
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="assignment-file"
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onChange={handleFileChange} />
+
+                    <label
+                      htmlFor="assignment-file"
+                      className={`flex items-center gap-3 px-3 py-2 rounded-md border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors ${selectedFile ? 'border-primary bg-primary/5' : ''}`}>
+
+                      <Upload size={16} className="text-muted-foreground" />
+                      <span className="text-sm truncate">
+                        {selectedFile
+                          ? selectedFile.name
+                          : editingAssignment?.file_url
+                            ? 'Upload a new file to replace existing...'
+                            : 'Upload assignment questions...'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
-              <form onSubmit={handleCreateAssignment} className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-semibold">Assignment Title</label>
-                    <Input
-                      required
-                      placeholder="e.g. Introduction to Data Structures"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+              <div className="flex items-center gap-3 pt-4 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowCreateModal(false)}>
 
-                  </div>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-[2] bg-primary text-white"
+                  disabled={submitting}>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-semibold">Description / Instructions</label>
-                    <Textarea
-                      required
-                      placeholder="Enter assignment details, rules, and guidelines..."
-                      className="min-h-[80px] max-h-[200px] resize-none overflow-y-auto custom-scrollbar"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Subject</label>
-                    <Select
-                      required
-                      value={formData.subject_id}
-                      onValueChange={handleSubjectChange}
-                      disabled={assignedSubjects.length === 0}>
-
-                      <SelectTrigger>
-                        <SelectValue placeholder={assignedSubjects.length === 0 ? "No subjects assigned" : "Select Subject"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {assignedSubjects.length === 0 ? (
-                          <SelectItem value="none" disabled>No subjects assigned</SelectItem>
-                        ) : (
-                          assignedSubjects.map((s) =>
-                            <SelectItem key={s.subject_id} value={s.subject_id}>{s.subject_name}</SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Branch</label>
-                    <Select
-                      required
-                      value={formData.branch_id}
-                      onValueChange={handleBranchChange}
-                      disabled={!formData.subject_id || uniqueBranches.length === 0}>
-
-                      <SelectTrigger>
-                        <SelectValue placeholder={formData.subject_id && uniqueBranches.length === 0 ? "No branches assigned" : "Select Branch"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formData.subject_id && uniqueBranches.length === 0 ? (
-                          <SelectItem value="none" disabled>No branches assigned</SelectItem>
-                        ) : (
-                          uniqueBranches.map((b: any) =>
-                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Semester</label>
-                    <Select
-                      required
-                      value={formData.semester_id}
-                      onValueChange={handleSemesterChange}
-                      disabled={!formData.branch_id || uniqueSemesters.length === 0}>
-
-                      <SelectTrigger>
-                        <SelectValue placeholder={formData.branch_id && uniqueSemesters.length === 0 ? "No semesters assigned" : "Select Semester"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formData.branch_id && uniqueSemesters.length === 0 ? (
-                          <SelectItem value="none" disabled>No semesters assigned</SelectItem>
-                        ) : (
-                          uniqueSemesters.map((s: any) =>
-                            <SelectItem key={s.id} value={s.id}>Semester {s.number}</SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Section</label>
-                    <Select
-                      required
-                      value={formData.section_id}
-                      onValueChange={(v) => setFormData({ ...formData, section_id: v })}
-                      disabled={!formData.semester_id || uniqueSections.length === 0}>
-
-                      <SelectTrigger>
-                        <SelectValue placeholder={formData.semester_id && uniqueSections.length === 0 ? "No sections assigned" : "Select Section"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formData.semester_id && uniqueSections.length === 0 ? (
-                          <SelectItem value="none" disabled>No sections assigned</SelectItem>
-                        ) : (
-                          uniqueSections.map((s: any) =>
-                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Due Date</label>
-                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-10 px-3 relative pl-10",
-                            !formData.due_date && "text-muted-foreground",
-                            theme === 'dark' ?
-                              'bg-background border-border text-foreground hover:bg-muted/50' :
-                              'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                          )}
-                        >
-                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                          <span className="truncate">
-                            {formData.due_date ?
-                              format(new Date(formData.due_date), "PPP") :
-                              "Pick a date"
-                            }
-                          </span>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
-                        <ShadcnCalendar
-                          mode="single"
-                          selected={formData.due_date ? new Date(formData.due_date) : undefined}
-                          onSelect={(date) => {
-                            setFormData({
-                              ...formData,
-                              due_date: date ? format(date, "yyyy-MM-dd") + "T23:59" : ""
-                            });
-                            setIsCalendarOpen(false);
-                          }}
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Max Marks</label>
-                    <Input
-                      required
-                      type="number"
-                      placeholder="e.g. 50"
-                      value={formData.max_marks}
-                      onChange={(e) => setFormData({ ...formData, max_marks: e.target.value })} />
-
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Weightage (%)</label>
-                    <Input
-                      required
-                      type="number"
-                      placeholder="e.g. 10"
-                      value={formData.weightage}
-                      onChange={(e) => setFormData({ ...formData, weightage: e.target.value })} />
-
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Attachment (PDF/DOC, Max 5MB)</label>
-
-                    {/* Show existing attachment when editing */}
-                    {editingAssignment && editingAssignment.file_url && (
-                      <div className={`flex items-center gap-3 px-3 py-2 rounded-md border mb-2 ${theme === 'dark' ? 'bg-muted/30 border-border' : 'bg-gray-50 border-gray-200'
-                        }`}>
-                        <FileText size={16} className="text-primary flex-shrink-0" />
-                        <span className="text-sm text-muted-foreground flex-1 truncate">
-                          {selectedFile ? 'New file selected — will replace existing' : 'Current attachment'}
-                        </span>
-                        {!selectedFile && (
-                          <a
-                            href={editingAssignment.file_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-shrink-0"
-                          >
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-7 gap-1.5 text-xs border-primary/50 text-primary hover:bg-primary hover:text-white transition-colors"
-                            >
-                              <Eye size={13} />
-                              View
-                            </Button>
-                          </a>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="relative">
-                      <input
-                        type="file"
-                        id="assignment-file"
-                        className="hidden"
-                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        onChange={handleFileChange} />
-
-                      <label
-                        htmlFor="assignment-file"
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors ${selectedFile ? 'border-primary bg-primary/5' : ''}`}>
-
-                        <Upload size={16} className="text-muted-foreground" />
-                        <span className="text-sm truncate">
-                          {selectedFile
-                            ? selectedFile.name
-                            : editingAssignment?.file_url
-                              ? 'Upload a new file to replace existing...'
-                              : 'Upload assignment questions...'}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-4 border-t border-border">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setShowCreateModal(false)}>
-
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="flex-[2] bg-primary text-white"
-                    disabled={submitting}>
-
-                    {submitting ?
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        {editingAssignment ? 'Updating...' : 'Publishing...'}
-                      </div> :
-                      editingAssignment ? 'Update Assignment' : 'Publish Assignment'}
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
+                  {submitting ?
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      {editingAssignment ? 'Updating...' : 'Publishing...'}
+                    </div> :
+                    editingAssignment ? 'Update Assignment' : 'Publish Assignment'}
+                </Button>
+              </div>
+            </form>
           </div>
-        }
-      </AnimatePresence>
+        </div>
+      }
+
 
       {/* View Submissions Modal */}
       <AnimatePresence>
