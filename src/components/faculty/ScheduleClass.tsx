@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
+import Swal from "sweetalert2";
 import {
   Card,
   CardContent,
@@ -45,6 +46,9 @@ import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
+import { Calendar as ShadcnCalendar } from "../ui/calendar";
+import { cn } from "@/lib/utils";
 
 const GoogleLogo = () => (
   <svg className="w-4 h-4 mr-2 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -363,6 +367,20 @@ const DropdownGroup = ({ dropdowns, theme, disabled }: DropdownGroupProps) => {
   );
 };
 
+const formatTo12Hour = (timeStr: string) => {
+  if (!timeStr) return "";
+  try {
+    const [hoursStr, minutesStr] = timeStr.split(":");
+    let hours = parseInt(hoursStr, 10);
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // hour '0' should be '12'
+    return `${String(hours).padStart(2, "0")}:${minutesStr} ${ampm}`;
+  } catch (e) {
+    return timeStr;
+  }
+};
+
 // ─── Sub-component: Class History Card ─────────────────────────────────────
 
 const ClassHistoryCard = ({ cls, theme }: { cls: ScheduledClassRecord; theme: string }) => {
@@ -443,7 +461,7 @@ const ClassHistoryCard = ({ cls, theme }: { cls: ScheduledClassRecord; theme: st
           <CalendarDays className="w-3.5 h-3.5" /> {dateStr}
         </span>
         <span className="flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" /> {cls.start_time} – {cls.end_time}
+          <Clock className="w-3.5 h-3.5" /> {formatTo12Hour(cls.start_time)} – {formatTo12Hour(cls.end_time)}
         </span>
         {cls.classroom_room && (
           <span className="flex items-center gap-1">
@@ -509,6 +527,30 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const [meetingType, setMeetingType] = useState<"online" | "offline">("online");
   const [classroomRoom, setClassroomRoom] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  // AM/PM time states
+  const [startHour, setStartHour] = useState("09");
+  const [startMinute, setStartMinute] = useState("00");
+  const [startPeriod, setStartPeriod] = useState("AM");
+  const [endHour, setEndHour] = useState("10");
+  const [endMinute, setEndMinute] = useState("00");
+  const [endPeriod, setEndPeriod] = useState("AM");
+
+  // Sync AM/PM states to 24h format strings for backend
+  useEffect(() => {
+    let hr = parseInt(startHour, 10);
+    if (startPeriod === "PM" && hr < 12) hr += 12;
+    if (startPeriod === "AM" && hr === 12) hr = 0;
+    setStartTime(`${String(hr).padStart(2, "0")}:${startMinute}`);
+  }, [startHour, startMinute, startPeriod]);
+
+  useEffect(() => {
+    let hr = parseInt(endHour, 10);
+    if (endPeriod === "PM" && hr < 12) hr += 12;
+    if (endPeriod === "AM" && hr === 12) hr = 0;
+    setEndTime(`${String(hr).padStart(2, "0")}:${endMinute}`);
+  }, [endHour, endMinute, endPeriod]);
 
   // Optimistic history (prepend from POST response, no GET after save)
   const [immediateHistory, setImmediateHistory] = useState<ScheduledClassRecord[]>([]);
@@ -562,6 +604,12 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     setEndTime("");
     setMeetingType("online");
     setClassroomRoom("");
+    setStartHour("09");
+    setStartMinute("00");
+    setStartPeriod("AM");
+    setEndHour("10");
+    setEndMinute("00");
+    setEndPeriod("AM");
   };
 
   // Fetch history when history dropdown is fully selected
@@ -682,12 +730,17 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         };
         setImmediateHistory((prev) => [newRecord, ...prev].slice(0, 5));
 
-        toast({
+        Swal.fire({
           title: "Class Scheduled! 🎉",
-          description:
-            meetingType === "online"
-              ? "Google Meet link generated. Students notified!"
-              : `Offline class in "${classroomRoom}" saved. Students notified!`,
+          text: "Google Meet link generated. Students notified!",
+          icon: "success",
+          confirmButtonText: "Awesome",
+          confirmButtonColor: theme === 'dark' ? 'hsl(var(--primary))' : '#3b82f6',
+          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: theme === 'dark' ? '#ffffff' : '#000000',
+          customClass: {
+            popup: 'rounded-2xl border border-border shadow-2xl'
+          }
         });
 
         handleDialogClose();
@@ -847,76 +900,121 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                 <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" /> Date <span className="text-destructive">*</span>
                 </label>
-                <Input
-                  required
-                  type="date"
-                  min={todayStr}
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal h-10 px-3 relative pl-10",
+                        !date && "text-muted-foreground",
+                        theme === 'dark' ?
+                          'bg-background border-border text-foreground hover:bg-muted/50' :
+                          'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                      )}
+                    >
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                      <span className="truncate text-xs">
+                        {date ? format(new Date(date), "dd-MM-yyyy") : "dd-mm-yyyy"}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 rounded-xl shadow-xl" align="start">
+                    <ShadcnCalendar
+                      mode="single"
+                      selected={date ? new Date(date) : undefined}
+                      onSelect={(d) => {
+                        setDate(d ? format(d, "yyyy-MM-dd") : "");
+                        setIsCalendarOpen(false);
+                      }}
+                      disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" /> Start Time <span className="text-destructive">*</span>
                 </label>
-                <Input
-                  required
-                  type="time"
-                  min={isToday ? currentTimeStr : undefined}
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
+                <div className="flex items-center gap-1">
+                  <Select value={startHour} onValueChange={setStartHour}>
+                    <SelectTrigger className="w-full h-10 px-2 text-xs">
+                      <SelectValue placeholder="Hr" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                        <SelectItem key={h} value={h}>{h}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="font-semibold text-xs">:</span>
+                  <Select value={startMinute} onValueChange={setStartMinute}>
+                    <SelectTrigger className="w-full h-10 px-2 text-xs">
+                      <SelectValue placeholder="Min" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={startPeriod} onValueChange={setStartPeriod}>
+                    <SelectTrigger className="w-full h-10 px-2 text-xs">
+                      <SelectValue placeholder="AM/PM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" /> End Time <span className="text-destructive">*</span>
                 </label>
-                <Input
-                  required
-                  type="time"
-                  min={startTime || (isToday ? currentTimeStr : undefined)}
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
+                <div className="flex items-center gap-1">
+                  <Select value={endHour} onValueChange={setEndHour}>
+                    <SelectTrigger className="w-full h-10 px-2 text-xs">
+                      <SelectValue placeholder="Hr" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                        <SelectItem key={h} value={h}>{h}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="font-semibold text-xs">:</span>
+                  <Select value={endMinute} onValueChange={setEndMinute}>
+                    <SelectTrigger className="w-full h-10 px-2 text-xs">
+                      <SelectValue placeholder="Min" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={endPeriod} onValueChange={setEndPeriod}>
+                    <SelectTrigger className="w-full h-10 px-2 text-xs">
+                      <SelectValue placeholder="AM/PM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
             {/* Meeting Type */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Meeting Type</label>
-              <div className="grid grid-cols-1 gap-3">
-                <label
-                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${meetingType === "online"
-                    ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-600"
-                    : "border-border bg-transparent text-foreground hover:border-muted-foreground"
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="meetingType"
-                    className="sr-only"
-                    checked={meetingType === "online"}
-                    onChange={() => setMeetingType("online")}
-                  />
-                  <Video className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span className="truncate">Online (Google Meet)</span>
-                </label>
-                <label
-                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${meetingType === "offline"
-                    ? "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-600"
-                    : "border-border bg-transparent text-foreground hover:border-muted-foreground"
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="meetingType"
-                    className="sr-only"
-                    checked={meetingType === "offline"}
-                    onChange={() => setMeetingType("offline")}
-                  />
-                  <Home className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span className="truncate">Offline (Classroom)</span>
-                </label>
+              <div className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-lg border border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-600">
+                <Video className="w-4 h-4 text-blue-500 shrink-0" />
+                <span className="truncate">Online (Google Meet)</span>
               </div>
             </div>
 
@@ -960,8 +1058,8 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
       <Card className={selectorCardCls}>
         <CardHeader className="border-b border-border/50 pb-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-muted">
-              <ClipboardList className="w-5 h-5 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-muted bg-primary/10">
+              <ClipboardList className="w-5 h-5 text-muted-foreground text-primary" />
             </div>
             <div>
               <CardTitle>Class History</CardTitle>

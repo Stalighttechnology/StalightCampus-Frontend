@@ -47,6 +47,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMaterial; theme: string; onDelete: (id: number) => void; }) => {
   const [deleting, setDeleting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const handleDelete = async () => {
     Swal.fire({
@@ -99,11 +100,18 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!material.file_url) return;
-    if (material.file_url.includes('drive.google.com') || material.file_url.includes('docs.google.com')) {
-      window.open(material.file_url, '_blank', 'noopener,noreferrer');
-    } else {
-      await downloadFileViaBackendProxy(material.file_url, material.title);
+    if (!material.file_url || downloading) return;
+    setDownloading(true);
+    try {
+      if (material.file_url.includes('drive.google.com') || material.file_url.includes('docs.google.com')) {
+        window.open(material.file_url, '_blank', 'noopener,noreferrer');
+      } else {
+        await downloadFileViaBackendProxy(material.file_url, material.title);
+      }
+    } catch (err) {
+      toast.error("Failed to download study material");
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -145,9 +153,10 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
         <div className="flex justify-end items-center gap-3">
           <button
             onClick={handleDownload}
-            className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'}`}
+            disabled={downloading}
+            className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-primary/5 text-primary hover:bg-primary/10'} ${downloading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            <Download size={22} />
+            {downloading ? <Loader2 className="animate-spin" size={22} /> : <Download size={22} />}
           </button>
           <button
             onClick={handleDelete}
@@ -167,9 +176,9 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   const { theme } = useTheme();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [grouped, setGrouped] = useState<AssignedSubject[]>([]);
-  const [selectedBranch, setSelectedBranch] = useState<string>("Choose Branch");
-  const [selectedSemester, setSelectedSemester] = useState<string>("Choose Semester");
-  const [selectedSection, setSelectedSection] = useState<string>("Choose Section");
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
+  const [selectedSemester, setSelectedSemester] = useState<string>("");
+  const [selectedSection, setSelectedSection] = useState<string>("");
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -254,7 +263,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   }, [showUploadModal]);
 
   useEffect(() => {
-    if (selectedBranch !== "Choose Branch") {
+    if (selectedBranch !== "") {
       const loadSemesters = async () => {
         const resp = await getSemesters(selectedBranch);
         if (resp && resp.success) {
@@ -262,21 +271,21 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
         } else {
           setSemesters([]);
         }
-        setSelectedSemester("Choose Semester");
+        setSelectedSemester("");
         setSections([]);
-        setSelectedSection("Choose Section");
+        setSelectedSection("");
       };
       loadSemesters();
     } else {
       setSemesters([]);
-      setSelectedSemester("Choose Semester");
+      setSelectedSemester("");
       setSections([]);
-      setSelectedSection("Choose Section");
+      setSelectedSection("");
     }
   }, [selectedBranch]);
 
   useEffect(() => {
-    if (selectedBranch !== "Choose Branch" && selectedSemester !== "Choose Semester") {
+    if (selectedBranch !== "" && selectedSemester !== "") {
       const loadSections = async () => {
         const resp = await getSections(selectedBranch, selectedSemester);
         if (resp && resp.success) {
@@ -284,21 +293,21 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
         } else {
           setSections([]);
         }
-        setSelectedSection("Choose Section");
+        setSelectedSection("");
       };
       loadSections();
     } else {
       setSections([]);
-      setSelectedSection("Choose Section");
+      setSelectedSection("");
     }
   }, [selectedBranch, selectedSemester]);
 
   const loadMaterials = async () => {
     setLoading(true);
     const resp = await getStudyMaterials(
-      selectedBranch === 'Choose Branch' ? undefined : selectedBranch,
-      selectedSemester === 'Choose Semester' ? undefined : selectedSemester,
-      selectedSection === 'Choose Section' ? undefined : selectedSection,
+      selectedBranch === '' ? undefined : selectedBranch,
+      selectedSemester === '' ? undefined : selectedSemester,
+      selectedSection === '' ? undefined : selectedSection,
       debouncedSearch || undefined,
       pagination.page,
       pagination.pageSize
@@ -315,7 +324,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   };
 
   useEffect(() => {
-    if (selectedBranch !== "Choose Branch" && selectedSemester !== "Choose Semester" && selectedSection !== "Choose Section") {
+    if (selectedBranch !== "" && selectedSemester !== "" && selectedSection !== "") {
       loadMaterials();
     } else {
       setMaterials([]);
@@ -326,7 +335,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   return (
     <div ref={ref} className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`} {...props}>
       <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader id="study-materials-header" className="p-3 sm:p-4 lg:p-6 border-b">
+        <CardHeader id="study-materials-header" className="p-3 sm:p-4 border-b">
           <div className="flex flex-row justify-between items-center gap-2 sm:gap-3">
             <div>
               <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900">Study Materials</h1>
@@ -344,15 +353,14 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
               <Select value={selectedBranch} onValueChange={(value) => {
                 setSelectedBranch(value);
-                if (value !== "Choose Branch") {
+                if (value !== "") {
                   setTimeout(() => setIsSemesterOpen(true), 150);
                 }
               }}>
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="Choose Branch" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Choose Branch">Choose Branch</SelectItem>
+                <SelectContent className="max-h-[200px]">
                   {branches.length > 0 ? (
                     branches.map((b) =>
                       <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
@@ -369,19 +377,18 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                 value={selectedSemester}
                 onValueChange={(value) => {
                   setSelectedSemester(value);
-                  if (value !== "Choose Semester") {
+                  if (value !== "") {
                     setTimeout(() => setIsSectionOpen(true), 150);
                   }
                 }}
-                disabled={selectedBranch === "Choose Branch" || semesters.length === 0}
+                disabled={selectedBranch === "" || semesters.length === 0}
                 open={isSemesterOpen}
                 onOpenChange={setIsSemesterOpen}>
 
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedBranch === "Choose Branch" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedBranch === "Choose Branch" || semesters.length === 0}>
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedBranch === "" || semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedBranch === "" || semesters.length === 0}>
                   <SelectValue placeholder="Choose Semester" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Choose Semester">Choose Semester</SelectItem>
+                <SelectContent className="max-h-[200px]">
                   {semesters.length > 0 ? (
                     semesters.map((s) =>
                       <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>
@@ -397,15 +404,14 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
               <Select
                 value={selectedSection}
                 onValueChange={(value) => setSelectedSection(value)}
-                disabled={selectedSemester === "Choose Semester" || sections.length === 0}
+                disabled={selectedSemester === "" || sections.length === 0}
                 open={isSectionOpen}
                 onOpenChange={setIsSectionOpen}>
 
-                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedSemester === "Choose Semester" || sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedSemester === "Choose Semester" || sections.length === 0}>
+                <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${selectedSemester === "" || sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`} disabled={selectedSemester === "" || sections.length === 0}>
                   <SelectValue placeholder="Choose Section" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Choose Section">Choose Section</SelectItem>
+                <SelectContent className="max-h-[200px]">
                   {sections.length > 0 ? (
                     sections.map((sec) =>
                       <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
@@ -425,10 +431,18 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
                   placeholder="Search materials..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className={`w-full pl-10 pr-3 py-2 text-sm sm:text-base h-10 sm:h-11 border rounded transition-all outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark' ?
+                  className={`w-full pl-10 pr-12 py-2 text-sm sm:text-base h-10 sm:h-11 border rounded transition-all outline-none focus:ring-2 focus:ring-primary/20 ${theme === 'dark' ?
                     'border-border bg-background text-foreground focus:border-primary' :
                     'border-gray-200 bg-white text-gray-900 focus:border-primary'}`
                   } />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
             </div>
           </div>

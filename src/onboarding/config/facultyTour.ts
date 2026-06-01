@@ -151,22 +151,7 @@ export const facultyTour: Step[] = [
     disableBeacon: false,
     route: '/faculty/exam-applications',
   },
-  {
-    target: '#sidebar-revaluation',
-    title: 'Revaluation',
-    content: 'Manage student applications for revaluation or grade review.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/revaluation',
-  },
-  {
-    target: '#sidebar-makeupexam',
-    title: 'Makeup Exam',
-    content: 'Track and schedule makeup exam requests for absent students.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/faculty/makeupexam',
-  },
+
   {
     target: '#sidebar-proctor-students',
     title: 'Proctor Students',

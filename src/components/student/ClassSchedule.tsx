@@ -50,6 +50,20 @@ interface ClassScheduleProps {
   setError: (error: string | null) => void;
 }
 
+const formatTo12Hour = (timeStr: string) => {
+  if (!timeStr) return "";
+  try {
+    const [hoursStr, minutesStr] = timeStr.split(":");
+    let hours = parseInt(hoursStr, 10);
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // hour '0' should be '12'
+    return `${String(hours).padStart(2, "0")}:${minutesStr} ${ampm}`;
+  } catch (e) {
+    return timeStr;
+  }
+};
+
 const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
   const { toast } = useToast();
   const { theme } = useTheme();
@@ -280,7 +294,7 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                         <CalendarDays className="w-3.5 h-3.5" /> {dateStr}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" /> {item.start_time} – {item.end_time}
+                        <Clock className="w-3.5 h-3.5" /> {formatTo12Hour(item.start_time)} – {formatTo12Hour(item.end_time)}
                       </span>
                       <span className="flex items-center gap-1">
                         <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -331,10 +345,10 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                             </Button>
                           )}
                           {classState === "upcoming" && (
-                            <span className="text-[10px] font-medium text-muted-foreground mr-1">
-                              Join at {item.start_time}
-                            </span>
-                          )}
+                             <span className="text-[10px] font-medium text-muted-foreground mr-1">
+                               Join at {formatTo12Hour(item.start_time)}
+                             </span>
+                           )}
                           <Button
                             variant="outline"
                             size="icon"
