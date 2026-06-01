@@ -552,22 +552,31 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
               </div>
 
               {/* Bottom Section: Connected Account Info */}
-              {googleConnected && googleUserInfo && (
+              {googleConnected && (
                 <>
                   <div className={`my-5 border-t ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`} />
                   <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-lg border ${theme === 'dark' ? 'bg-accent/20 border-border' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border shadow-sm">
-                        {googleUserInfo.picture ? (
-                          <AvatarImage src={googleUserInfo.picture} alt={googleUserInfo.name} />
-                        ) : (
-                          <AvatarFallback className="text-sm font-medium">{googleUserInfo.name?.[0] || googleUserInfo.email?.[0]}</AvatarFallback>
-                        )}
-                      </Avatar>
-                      <div className="flex flex-col leading-tight gap-0.5">
-                        <span className="text-sm font-semibold text-foreground">{googleUserInfo.name}</span>
-                        <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{googleUserInfo.email}</span>
-                      </div>
+                      {googleUserInfo ? (
+                        <>
+                          <Avatar className="h-10 w-10 border shadow-sm">
+                            {googleUserInfo.picture ? (
+                              <AvatarImage src={googleUserInfo.picture} alt={googleUserInfo.name} />
+                            ) : (
+                              <AvatarFallback className="text-sm font-medium">{googleUserInfo.name?.[0] || googleUserInfo.email?.[0]}</AvatarFallback>
+                            )}
+                          </Avatar>
+                          <div className="flex flex-col leading-tight gap-0.5">
+                            <span className="text-sm font-semibold text-foreground">{googleUserInfo.name}</span>
+                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{googleUserInfo.email}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col leading-tight gap-0.5">
+                          <span className="text-sm font-semibold text-foreground">Account Connected</span>
+                          <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Unable to fetch account details. The token may have expired.</span>
+                        </div>
+                      )}
                     </div>
                     <div className="w-full sm:w-auto">
                       <Button
