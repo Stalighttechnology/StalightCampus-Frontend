@@ -34,6 +34,8 @@ const AIInterview = lazy(() => import("./components/common/AIInterview"));
 const TrialExpired = lazy(() => import("./components/common/TrialExpired"));
 const OnboardingSuccess = lazy(() => import("./components/common/OnboardingSuccess"));
 const SuperAdminIndex = lazy(() => import("./superadmin/index"));
+const PrivacyPolicy = lazy(() => import("./components/legal/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./components/legal/TermsOfService"));
 
 import { WardenProvider } from "./context/WardenContext";
 import { shouldShowFloatingAssistant } from "./utils/config";
@@ -127,6 +129,20 @@ const AppContent = () => {
           {/* Public Admission routes */}
           <Route path="/admissions/:org_slug" element={<AdmissionLanding />} />
           <Route path="/admissions/:org_slug/apply" element={<ApplicationWizard />} />
+
+          {/* Legal routes */}
+          <Route path="/privacy-policy" element={
+            <>
+              <PrivacyPolicy />
+              {shouldShowFloatingAssistant() && <FloatingAssistant />}
+            </>
+          } />
+          <Route path="/terms-of-service" element={
+            <>
+              <TermsOfService />
+              {shouldShowFloatingAssistant() && <FloatingAssistant />}
+            </>
+          } />
 
           {/* Public results view (students) */}
           <Route path="/results/view/:token" element={
