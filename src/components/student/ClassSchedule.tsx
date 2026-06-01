@@ -56,9 +56,16 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
 
   const [classes, setClasses] = useState<ScheduledClassItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "online" | "offline">("all");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const handleCopyLink = (link: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -125,12 +132,10 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
       const state = checkClassState(item);
       if (state === "completed") return false;
       const matchesSearch =
-        item.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.faculty.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesFilter =
-        filterType === "all" || item.meeting_type === filterType;
-      return matchesSearch && matchesFilter;
+        item.subject.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        item.topic.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        item.faculty.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+      return matchesSearch;
     })
     .sort((a, b) => {
       const stateA = checkClassState(a);
@@ -188,32 +193,6 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
               />
             </div>
 
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              <Button
-                variant={filterType === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterType("all")}
-                className="text-[11px] sm:text-xs h-9 px-2.5 sm:px-3 flex-1 sm:flex-initial"
-              >
-                All
-              </Button>
-              <Button
-                variant={filterType === "online" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterType("online")}
-                className="text-[11px] sm:text-xs h-9 px-2.5 sm:px-3 flex-1 sm:flex-initial"
-              >
-                Google Meet
-              </Button>
-              <Button
-                variant={filterType === "offline" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterType("offline")}
-                className="text-[11px] sm:text-xs h-9 px-2.5 sm:px-3 flex-1 sm:flex-initial"
-              >
-                Classroom
-              </Button>
-            </div>
           </div>
 
           {/* Loading State */}

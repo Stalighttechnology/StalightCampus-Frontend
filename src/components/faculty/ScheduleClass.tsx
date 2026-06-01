@@ -46,6 +46,15 @@ import { API_ENDPOINT } from "../../utils/config";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
+const GoogleLogo = () => (
+  <svg className="w-4 h-4 mr-2 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
+
 interface ScheduleClassProps {
   user: any;
   setError: (error: string | null) => void;
@@ -56,6 +65,9 @@ interface ScheduledClassRecord {
   id: number;
   subject: string;
   subject_code: string;
+  branch_id?: number;
+  semester_id?: number;
+  section_id?: number;
   faculty: string;
   topic: string;
   description: string;
@@ -510,12 +522,38 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const [historyClasses, setHistoryClasses] = useState<ScheduledClassRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // ── Google Connection State ──────────────────────────────────────────────
+  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
+  const [googleConnectLoading, setGoogleConnectLoading] = useState(true);
+  const [googleDialogOpen, setGoogleDialogOpen] = useState(false);
+
+  // Time calculation for UI limits
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isToday = date === todayStr;
+  const now = new Date();
+  const currentTimeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+  useEffect(() => {
+    fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/status/`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.connected !== undefined) setGoogleConnected(data.connected);
+      })
+      .catch(err => console.error("Failed to fetch google status", err))
+      .finally(() => setGoogleConnectLoading(false));
+  }, []);
+
   // Open dialog when scheduleDropdowns is fully selected
   useEffect(() => {
     if (scheduleDropdowns.isFullySelected) {
-      setDialogOpen(true);
+      if (googleConnected === false) {
+        setGoogleDialogOpen(true);
+        scheduleDropdowns.reset();
+      } else {
+        setDialogOpen(true);
+      }
     }
-  }, [scheduleDropdowns.isFullySelected]);
+  }, [scheduleDropdowns.isFullySelected, googleConnected]);
 
   // Close dialog resets the schedule dropdowns
   const handleDialogClose = () => {
@@ -545,8 +583,16 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         });
         const data = await resp.json();
         if (resp.ok && data?.success && data.data) {
-          // Filter to the selected section (the API already filters by role/org)
-          const filtered: ScheduledClassRecord[] = (data.data as ScheduledClassRecord[]).slice(0, 5);
+          // Filter to the selected section
+          const assignment = historyDropdowns.currentAssignment;
+          const filtered: ScheduledClassRecord[] = (data.data as ScheduledClassRecord[])
+            .filter((cls) => !assignment || (
+              cls.subject === assignment.subject_name &&
+              cls.branch_id === assignment.branch_id &&
+              cls.semester_id === assignment.semester_id &&
+              cls.section_id === assignment.section_id
+            ))
+            .slice(0, 5);
           setHistoryClasses(filtered);
         }
       } catch (e: any) {
@@ -580,6 +626,20 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     const assignment = scheduleDropdowns.currentAssignment;
     if (!assignment) return;
 
+    // Date/Time validation
+    const startDateTime = new Date(`${date}T${startTime}`);
+    const endDateTime = new Date(`${date}T${endTime}`);
+    const now = new Date();
+
+    if (startDateTime < now) {
+      toast({ title: "Invalid Time", description: "Class cannot be scheduled in the past.", variant: "destructive" });
+      return;
+    }
+    if (endDateTime <= startDateTime) {
+      toast({ title: "Invalid Time", description: "End time must be after start time.", variant: "destructive" });
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -610,6 +670,9 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           id: data.id,
           subject: assignment.subject_name,
           subject_code: assignment.subject_code || "",
+          branch_id: assignment.branch_id,
+          semester_id: assignment.semester_id,
+          section_id: assignment.section_id,
           faculty: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
           topic: data.topic,
           description,
@@ -708,6 +771,45 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         </CardContent>
       </Card>
 
+      {/* ── Google Not Connected Dialog ──────────────────────────────────── */}
+      <Dialog open={googleDialogOpen} onOpenChange={setGoogleDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <GoogleLogo />
+              Not Connected to Google
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              You must connect your Google account to automatically generate Meet links for your online classes. Please connect your account to schedule a class.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            <Button
+              className={`w-full sm:w-auto font-medium shadow-sm transition-colors border ${theme === 'dark' ? 'bg-[#131314] hover:bg-[#1e1e20] text-[#e3e3e3] border-[#8e918f]' : 'bg-white hover:bg-[#f8f9fa] text-[#3c4043] border-[#747775]'}`}
+              onClick={async () => {
+                try {
+                  const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/`);
+                  const data = await res.json();
+                  if (data.authorization_url) {
+                    window.location.href = data.authorization_url;
+                  } else {
+                    toast({ title: 'Error', description: 'Failed to initiate Google connection.', variant: 'destructive' });
+                  }
+                } catch (e) {
+                  toast({ title: 'Error', description: 'An error occurred.', variant: 'destructive' });
+                }
+              }}
+            >
+              <GoogleLogo />
+              Connect Google Account
+            </Button>
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => setGoogleDialogOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* ── Schedule Class Dialog Modal ──────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleDialogClose(); }}>
         <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
@@ -753,6 +855,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                 <Input
                   required
                   type="date"
+                  min={todayStr}
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                 />
@@ -764,6 +867,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                 <Input
                   required
                   type="time"
+                  min={isToday ? currentTimeStr : undefined}
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                 />
@@ -775,6 +879,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                 <Input
                   required
                   type="time"
+                  min={startTime || (isToday ? currentTimeStr : undefined)}
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
                 />
@@ -784,7 +889,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
             {/* Meeting Type */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground">Meeting Type</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <label
                   className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${
                     meetingType === "online"
@@ -802,41 +907,8 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                   <Video className="w-4 h-4 text-blue-500 shrink-0" />
                   <span className="truncate">Online (Google Meet)</span>
                 </label>
-                <label
-                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${
-                    meetingType === "offline"
-                      ? "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-600"
-                      : "border-border bg-transparent text-foreground hover:border-muted-foreground"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="meetingType"
-                    className="sr-only"
-                    checked={meetingType === "offline"}
-                    onChange={() => setMeetingType("offline")}
-                  />
-                  <Home className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span className="truncate">Offline (Classroom)</span>
-                </label>
               </div>
             </div>
-
-            {/* Classroom room — only when offline */}
-            {meetingType === "offline" && (
-              <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-200">
-                <label className="text-xs font-semibold text-muted-foreground">
-                  Classroom / Room Number <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  required
-                  type="text"
-                  placeholder="e.g., Room 302, Block C"
-                  value={classroomRoom}
-                  onChange={(e) => setClassroomRoom(e.target.value)}
-                />
-              </div>
-            )}
 
             {/* Description */}
             <div className="space-y-1.5">

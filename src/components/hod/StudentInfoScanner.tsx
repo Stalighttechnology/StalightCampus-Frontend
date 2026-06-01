@@ -29,6 +29,7 @@ interface StudentInfo {
   blood_group: string;
   email: string;
   mobile_number: string;
+  photo_url?: string | null;
   proctor: {
     name: string;
     email: string;
@@ -722,10 +723,25 @@ const StudentInfoScanner = () => {
           {/* Basic Information */}
           <Card className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <User className="h-5 w-5 text-primary" />
-                Basic Information
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <User className="h-5 w-5 text-primary" />
+                  Basic Information
+                </CardTitle>
+                <div className="flex-shrink-0">
+                  {studentData.student_info.photo_url ? (
+                    <img 
+                      src={studentData.student_info.photo_url} 
+                      alt={studentData.student_info.name} 
+                      className="h-16 w-16 rounded-full object-cover border-2 border-primary/20 shadow-sm"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 rounded-full border-2 border-primary/20 shadow-sm flex items-center justify-center bg-primary/10">
+                      <User className="h-8 w-8 text-primary/50" />
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1572,7 +1572,6 @@ const UploadMarks = () => {
 
                             {/* Final Columns - Removed Marks After Weightage */}
                             <th rowSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider align-middle">Total Marks</th>
-                            <th rowSpan={3} className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider align-middle">Action</th>
                           </tr>
                           <tr>
                             {/* Sub-columns for each question */}
@@ -1649,7 +1648,6 @@ const UploadMarks = () => {
                               value={studentMarks[student.id]?.[question.number] || ""}
                               min="0"
                               max={question.maxMarks}
-                              readOnly={actionModes[student.id] !== 'edit'}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 const maxMarks = parseInt(question.maxMarks);
@@ -1685,7 +1683,6 @@ const UploadMarks = () => {
                                   className="w-20 text-center mx-auto"
                                   placeholder="Total"
                                   value={displayTotal}
-                                  readOnly={actionModes[student.id] !== 'edit'}
                                   onChange={(e) => {
                                     const v = e.target.value;
                                     if (!/^\d*$/.test(v)) return;
@@ -1720,39 +1717,6 @@ const UploadMarks = () => {
                                       </div>);
 
                           })()}
-                                </td>
-                                <td className="px-4 py-2 text-center">
-                                  {actionModes[student.id] === 'edit' ?
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-primary text-primary hover:bg-primary hover:text-white"
-                            disabled={JSON.stringify(studentMarks[student.id] || {}) === JSON.stringify(originalStudentMarks[student.id] || {})}
-                            onClick={() => {
-                              // Row-level save only locks the row locally
-                              setActionModes((prev) => ({
-                                ...prev,
-                                [student.id]: 'view'
-                              }));
-                            }}>
-                            
-                                      Save
-                                    </Button> :
-
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-primary text-primary hover:bg-primary hover:text-white"
-                            onClick={() => {
-                              setActionModes((prev) => ({
-                                ...prev,
-                                [student.id]: 'edit'
-                              }));
-                            }}>
-                            
-                                      Edit
-                                    </Button>
-                          }
                                 </td>
                               </tr>
                       )
