@@ -129,22 +129,20 @@ const StudentTimetable = () => {
         <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
           Timetable
         </CardTitle>
-        {timetableData.length > 0 &&
-          <Button
-            variant="outline"
-            size="sm"
-            className={`${styles.exportButton} bg-primary hover:bg-primary/90 text-white border-primary`}
-            disabled={exportingPDF}
-            onClick={exportToPDF}>
+        <Button
+          variant="outline"
+          size="sm"
+          className={`${styles.exportButton} bg-primary hover:bg-primary/90 text-white border-primary`}
+          disabled={exportingPDF || timetableData.length === 0}
+          onClick={exportToPDF}>
 
-            {exportingPDF ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <FileDown className="w-4 h-4 mr-2" />
-            )}
-            {exportingPDF ? "Exporting..." : "Export"}
-          </Button>
-        }
+          {exportingPDF ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <FileDown className="w-4 h-4 mr-2" />
+          )}
+          {exportingPDF ? "Exporting..." : "Export"}
+        </Button>
       </CardHeader>
 
       <CardContent className={`p-0 ${styles.card}`}>

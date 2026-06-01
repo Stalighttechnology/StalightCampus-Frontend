@@ -505,7 +505,7 @@ const InternalMarks = () => {
 
       {/* Filter Dialog */}
       <Dialog open={showFilter} onOpenChange={setShowFilter}>
-        <DialogContent className={`w-[90%] sm:w-[80%] md:w-auto md:max-w-2xl lg:max-w-4xl mx-auto rounded-lg ${theme === 'dark' ? 'bg-[#1c1c1e] text-gray-200 border-gray-700' : 'bg-white text-gray-900 border-gray-200'}`}>
+        <DialogContent className={`max-w-md w-[90%] sm:w-full mx-auto rounded-2xl ${theme === 'dark' ? 'bg-[#1c1c1e] text-gray-200 border-gray-700' : 'bg-white text-gray-900 border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className={`text-base sm:text-lg font-semibold ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
               Filter by Subject

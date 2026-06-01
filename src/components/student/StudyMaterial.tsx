@@ -116,9 +116,9 @@ const StudyMaterialRow = ({ material, theme }: { material: StudyMaterial; theme:
 
 const StudyMaterialsStudent = () => {
   const { theme } = useTheme();
-  const [selectedBranch, setSelectedBranch] = useState<string>("Choose Branch");
-  const [selectedSemester, setSelectedSemester] = useState<string>("Choose Semester");
-  const [selectedSection, setSelectedSection] = useState<string>("Choose Section");
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
+  const [selectedSemester, setSelectedSemester] = useState<string>("");
+  const [selectedSection, setSelectedSection] = useState<string>("");
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
@@ -126,6 +126,9 @@ const StudyMaterialsStudent = () => {
   const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const [isSemesterOpen, setIsSemesterOpen] = useState<boolean>(false);
+  const [isSectionOpen, setIsSectionOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -138,42 +141,44 @@ const StudyMaterialsStudent = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedBranch !== "Choose Branch") {
+    if (selectedBranch) {
       const loadSemesters = async () => {
         const resp = await getSemesters(selectedBranch);
         if (resp && resp.success) {
           setSemesters(resp.data || []);
+          setIsSemesterOpen(true);
         } else {
           setSemesters([]);
         }
-        setSelectedSemester("Choose Semester");
+        setSelectedSemester("");
         setSections([]);
-        setSelectedSection("Choose Section");
+        setSelectedSection("");
       };
       loadSemesters();
     } else {
       setSemesters([]);
-      setSelectedSemester("Choose Semester");
+      setSelectedSemester("");
       setSections([]);
-      setSelectedSection("Choose Section");
+      setSelectedSection("");
     }
   }, [selectedBranch]);
 
   useEffect(() => {
-    if (selectedBranch !== "Choose Branch" && selectedSemester !== "Choose Semester") {
+    if (selectedBranch && selectedSemester) {
       const loadSections = async () => {
         const resp = await getSections(selectedBranch, selectedSemester);
         if (resp && resp.success) {
           setSections(resp.data || []);
+          setIsSectionOpen(true);
         } else {
           setSections([]);
         }
-        setSelectedSection("Choose Section");
+        setSelectedSection("");
       };
       loadSections();
     } else {
       setSections([]);
-      setSelectedSection("Choose Section");
+      setSelectedSection("");
     }
   }, [selectedBranch, selectedSemester]);
 
@@ -185,9 +190,9 @@ const StudyMaterialsStudent = () => {
     setLoading(true);
 
     const resp = await getAllStudyMaterials(
-      selectedBranch === 'Choose Branch' ? undefined : selectedBranch,
-      selectedSemester === 'Choose Semester' ? undefined : selectedSemester,
-      selectedSection === 'Choose Section' ? undefined : selectedSection,
+      !selectedBranch ? undefined : selectedBranch,
+      !selectedSemester ? undefined : selectedSemester,
+      !selectedSection ? undefined : selectedSection,
       searchQuery || undefined,
       page
     );
@@ -238,9 +243,16 @@ const StudyMaterialsStudent = () => {
     return pages;
   };
 
-  // Load materials only when all filters are selected
+  // Clear search query when dropdown filters change
   useEffect(() => {
-    if (selectedBranch !== "Choose Branch" && selectedSemester !== "Choose Semester" && selectedSection !== "Choose Section") {
+    if (selectedBranch || selectedSemester || selectedSection) {
+      setSearchQuery("");
+    }
+  }, [selectedBranch, selectedSemester, selectedSection]);
+
+  // Load materials only when all filters are selected OR there is a search query
+  useEffect(() => {
+    if ((selectedBranch && selectedSemester && selectedSection) || searchQuery.trim() !== "") {
       loadMaterials(1);
     } else {
       setMaterials([]);
@@ -261,12 +273,11 @@ const StudyMaterialsStudent = () => {
           {/* Filters & Search */}
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <Select value={selectedBranch || undefined} onValueChange={setSelectedBranch}>
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="Choose Branch" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Choose Branch">Choose Branch</SelectItem>
+                <SelectContent className="max-h-[200px]">
                   {branches.map((b) => (
                     <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
                   ))}
@@ -274,15 +285,16 @@ const StudyMaterialsStudent = () => {
               </Select>
 
               <Select
-                value={selectedSemester}
+                value={selectedSemester || undefined}
                 onValueChange={setSelectedSemester}
                 disabled={semesters.length === 0}
+                open={isSemesterOpen}
+                onOpenChange={setIsSemesterOpen}
               >
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${semesters.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="Choose Semester" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Choose Semester">Choose Semester</SelectItem>
+                <SelectContent className="max-h-[200px]">
                   {semesters.map((s) => (
                     <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>
                   ))}
@@ -290,15 +302,16 @@ const StudyMaterialsStudent = () => {
               </Select>
 
               <Select
-                value={selectedSection}
+                value={selectedSection || undefined}
                 onValueChange={setSelectedSection}
                 disabled={sections.length === 0}
+                open={isSectionOpen}
+                onOpenChange={setIsSectionOpen}
               >
                 <SelectTrigger className={`text-sm sm:text-base h-10 sm:h-11 ${sections.length === 0 ? 'opacity-50 cursor-not-allowed' : ''} ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}>
                   <SelectValue placeholder="Choose Section" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Choose Section">Choose Section</SelectItem>
+                <SelectContent className="max-h-[200px]">
                   {sections.map((sec) => (
                     <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>
                   ))}
@@ -306,13 +319,23 @@ const StudyMaterialsStudent = () => {
               </Select>
             </div>
 
-            <input
-              type="text"
-              placeholder="Search by title, course name, course code, semester, or uploaded by..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full px-3 py-2 text-sm sm:text-base h-10 sm:h-11 border rounded ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}
-            />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by title, course name, course code, semester, or uploaded by..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-3 pr-12 py-2 text-sm sm:text-base h-10 sm:h-11 border rounded ${theme === 'dark' ? 'border-border bg-background text-foreground' : 'border-gray-300 bg-white text-gray-900'}`}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Materials Table Section */}

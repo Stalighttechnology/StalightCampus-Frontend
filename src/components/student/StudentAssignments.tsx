@@ -13,7 +13,8 @@ import {
   Info,
   X,
   Eye,
-  RefreshCw } from
+  RefreshCw,
+  Loader2 } from
 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
@@ -48,6 +49,27 @@ const StudentAssignments = () => {
   const [submissionFile, setSubmissionFile] = useState<File | null>(null);
   // true when modal is opened from Details dialog for re-submit
   const [isResubmit, setIsResubmit] = useState(false);
+
+  const [downloadingIds, setDownloadingIds] = useState<Record<string, boolean>>({});
+
+  const triggerDownload = async (id: string, url: string, filename: string) => {
+    setDownloadingIds(prev => ({ ...prev, [id]: true }));
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (e) {
+      // Non-blocking
+    } finally {
+      setDownloadingIds(prev => ({ ...prev, [id]: false }));
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -337,18 +359,26 @@ const StudentAssignments = () => {
                           </div>
                         </div>
 
-                        <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-start gap-4 shrink-0">
+                        <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-start gap-4 shrink-0 w-full lg:w-auto">
                           {getStatusBadge(assignment)}
-                          <div className="flex items-center gap-2 flex-wrap justify-end">
+                          <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end w-full lg:w-auto">
                             {/* View assignment questions if faculty uploaded one */}
-                            {assignment.file_url &&
-                        <Button variant="outline" size="sm" asChild className="rounded-xl">
-                                <a href={assignment.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-2">
-                                  <Download size={14} />
-                                  Questions
-                                </a>
-                              </Button>
-                        }
+                            {assignment.file_url && (
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="rounded-xl flex items-center gap-2"
+                                 disabled={downloadingIds[`q-${assignment.id}`]}
+                                 onClick={() => triggerDownload(`q-${assignment.id}`, assignment.file_url, `${assignment.title}_Questions.pdf`)}
+                               >
+                                 {downloadingIds[`q-${assignment.id}`] ? (
+                                   <Loader2 size={14} className="animate-spin" />
+                                 ) : (
+                                   <Download size={14} />
+                                 )}
+                                 {downloadingIds[`q-${assignment.id}`] ? "Downloading..." : "Questions"}
+                               </Button>
+                             )}
 
                             {!assignment.is_submitted ? (
                               /* Not yet submitted → Submit button (only if within deadline) */
@@ -603,10 +633,18 @@ const StudentAssignments = () => {
                           View
                         </a>
                       </Button>
-                      <Button variant="outline" size="sm" asChild className="rounded-xl">
-                        <a href={selectedAssignment.submission_file_url} download>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl"
+                        disabled={downloadingIds[`sub-${selectedAssignment.id}`]}
+                        onClick={() => triggerDownload(`sub-${selectedAssignment.id}`, selectedAssignment.submission_file_url, `Submission_${selectedAssignment.title}.pdf`)}
+                      >
+                        {downloadingIds[`sub-${selectedAssignment.id}`] ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
                           <Download size={14} />
-                        </a>
+                        )}
                       </Button>
                     </div>
                   </div>
