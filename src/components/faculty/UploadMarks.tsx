@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from "react";
-import { Pencil, Plus, Trash2, Layers, Settings2, FileDown } from "lucide-react";
+import { Pencil, Plus, Trash2, Layers, Settings2, FileDown, RotateCcw, Save, Check } from "lucide-react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -226,11 +226,26 @@ const UploadMarks = () => {
           }
         });
         const newStudents = response.data.map((s) => {
-          const marksForStudent = initialMarks[s.id?.toString()] || {};
-          const autoTotal = calculateTotal(marksForStudent) || '';
-          const existingTotal = existingTotals[s.id];
-          const totalValue = existingTotal != null ? String(existingTotal) : String(totalMarks);
-          const isEdited = existingTotal != null ? String(existingTotal) !== String(autoTotal) : false;
+          const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${s.id}`;
+          const localDataStr = localStorage.getItem(localKey);
+          let loadedMarks = initialMarks[s.id?.toString()] || {};
+          let totalValue = existingTotals[s.id] != null ? String(existingTotals[s.id]) : String(totalMarks);
+          let isEdited = existingTotals[s.id] != null ? String(existingTotals[s.id]) !== String(calculateTotal(loadedMarks) || '') : false;
+
+          if (localDataStr) {
+            try {
+              const localData = JSON.parse(localDataStr);
+              if (localData.questionMarks) {
+                initialMarks[s.id.toString()] = localData.questionMarks;
+                loadedMarks = localData.questionMarks;
+              }
+              totalValue = localData.total || '';
+              isEdited = localData.totalEdited || false;
+            } catch (e) {
+              console.error("Failed to parse local draft marks", e);
+            }
+          }
+
           return {
             id: s.id,
             name: s.name,
@@ -560,14 +575,13 @@ const UploadMarks = () => {
     if (!areAllDropdownsSelected()) return;
 
     try {
-      const isQuestionPaperTab = tabValue === 'questionPaper';
       const qpResponse = await getQuestionPapers({
         branch_id: selected.branch_id?.toString(),
         semester_id: selected.semester_id?.toString(),
         section_id: selected.section_id?.toString(),
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
-        detail: isQuestionPaperTab,
+        detail: true,
         approved_only: true
       });
       if (qpResponse.success && qpResponse.data) {
@@ -582,7 +596,7 @@ const UploadMarks = () => {
           setQpId(existingQp.id);
           setExistingQpSummary(existingQp);
 
-          if (isQuestionPaperTab && existingQp.questions) {
+          if (existingQp.questions) {
             const loadedQuestions: Question[] = [];
             (existingQp.questions || []).forEach((q: any) => {
               if (q.subparts && q.subparts.length > 0) {
@@ -751,6 +765,23 @@ const UploadMarks = () => {
       return;
     }
 
+    const confirmSubmit = await MySwal.fire({
+      title: "Are you sure?",
+      text: "Do you want to upload and submit these marks to the database?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Submit",
+      cancelButtonText: "Cancel",
+      customClass: {
+        confirmButton: 'bg-primary text-white hover:bg-primary/95',
+      }
+    });
+
+    if (!confirmSubmit.isConfirmed) {
+      setSavingMarks(false);
+      return;
+    }
+
     // Auto-fill unentered fields to 0 if at least one question has been graded for that student
     const updatedStudentMarks = JSON.parse(JSON.stringify(studentMarks));
     students.forEach((s) => {
@@ -801,6 +832,11 @@ const UploadMarks = () => {
 
       const res = await uploadIAMarks(marksData);
       if (res.success) {
+        // Clear local storage drafts
+        students.forEach((s) => {
+          const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${s.id}`;
+          localStorage.removeItem(localKey);
+        });
         MySwal.fire({
           title: "Marks uploaded!",
           icon: "success",
@@ -1264,6 +1300,33 @@ const UploadMarks = () => {
                                     {(() => {
                                       const autoTotal = calculateTotal(studentMarks[student.id] || {});
                                       const displayTotal = student.totalEdited ? student.total ?? '' : autoTotal || (student.total ?? '');
+
+                                      // Check if current page state matches localStorage
+                                      const isSaved = (() => {
+                                        const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${student.id}`;
+                                        const localDataStr = localStorage.getItem(localKey);
+                                        if (!localDataStr) return false;
+                                        try {
+                                          const localData = JSON.parse(localDataStr);
+                                          const savedQuestions = localData.questionMarks || {};
+                                          const currentQuestions = studentMarks[student.id] || {};
+
+                                          // Compare all question marks
+                                          const qKeys = new Set([...Object.keys(currentQuestions), ...Object.keys(savedQuestions)]);
+                                          for (const key of qKeys) {
+                                            if ((currentQuestions[key] || "") !== (savedQuestions[key] || "")) {
+                                              return false;
+                                            }
+                                          }
+                                          // Compare total and override flag
+                                          if ((displayTotal || "") !== (localData.total || "")) return false;
+                                          if ((student.totalEdited || false) !== (localData.totalEdited || false)) return false;
+                                          return true;
+                                        } catch {
+                                          return false;
+                                        }
+                                      })();
+
                                       return (
                                         <div className="flex items-center justify-center gap-2">
                                           <Input
@@ -1292,16 +1355,41 @@ const UploadMarks = () => {
                                               setStudents((prev) => prev.map((s) => s.id === student.id ? { ...s, total: v, totalEdited: true } : s));
                                             }} />
 
-                                          {/* Reset to auto-calc */}
-                                          <button
-                                            title="Reset to auto"
-                                            className="text-xs text-muted-foreground"
+                                          {/* Save locally button */}
+                                          <Button
+                                            title={isSaved ? "Marks are saved locally as draft" : "Save marks locally as draft"}
+                                            variant="outline"
+                                            size="sm"
+                                            className={`h-8 px-2 text-xs flex items-center gap-1 border-dashed shrink-0 ${
+                                              isSaved
+                                                ? "text-emerald-600 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 dark:border-emerald-950 dark:hover:border-emerald-900 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30"
+                                                : "text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300 dark:border-blue-950 dark:hover:border-blue-900 bg-blue-50/50 hover:bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30"
+                                            }`}
+                                            disabled={isSaved}
                                             onClick={() => {
-                                              setStudents((prev) => prev.map((s) => s.id === student.id ? { ...s, totalEdited: false, total: calculateTotal(studentMarks[student.id] || {}) } : s));
-                                            }}>
+                                              const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${student.id}`;
+                                              const marksData = {
+                                                questionMarks: studentMarks[student.id] || {},
+                                                total: displayTotal,
+                                                totalEdited: student.totalEdited || false,
+                                              };
+                                              localStorage.setItem(localKey, JSON.stringify(marksData));
+                                              
+                                              // Force a re-render of this student's row
+                                              setStudents((prev) => prev.map((s) => s.id === student.id ? { ...s } : s));
 
-                                            Reset
-                                          </button>
+                                              MySwal.fire({
+                                                title: "Draft Saved Locally!",
+                                                text: `Marks for ${student.name} have been saved locally.`,
+                                                icon: "success",
+                                                timer: 2000,
+                                                showConfirmButton: false,
+                                              });
+                                            }}
+                                          >
+                                            {isSaved ? <Check className="h-3 w-3" /> : <Save className="h-3 w-3" />}
+                                            {isSaved ? "Saved" : "Save"}
+                                          </Button>
                                         </div>);
 
                                     })()}
