@@ -173,6 +173,22 @@ const StudentAssignments = () => {
     const now = new Date();
     const dueDate = new Date(assignment.due_date);
 
+    if (assignment.auto_zero) {
+      return (
+        <Badge className={theme === 'dark' ? "bg-red-500/20 text-red-400" : "bg-red-100 text-red-700 border-red-200"}>
+          <AlertCircle size={12} className="mr-1" />
+          Not Submitted
+        </Badge>);
+    }
+
+    if (assignment.marks_obtained !== null && assignment.marks_obtained !== undefined) {
+      return (
+        <Badge className={theme === 'dark' ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-100 text-indigo-700 border-indigo-200"}>
+          <CheckCircle size={12} className="mr-1" />
+          Graded
+        </Badge>);
+    }
+
     if (assignment.is_submitted) {
       return (
         <Badge className={theme === 'dark' ? "bg-green-500/20 text-green-400" : "bg-green-100 text-green-700 border-green-200"}>
@@ -186,7 +202,7 @@ const StudentAssignments = () => {
       return (
         <Badge className={theme === 'dark' ? "bg-red-500/20 text-red-400" : "bg-red-100 text-red-700 border-red-200"}>
           <AlertCircle size={12} className="mr-1" />
-          Overdue
+          Submission Closed
         </Badge>);
 
     }
@@ -194,7 +210,7 @@ const StudentAssignments = () => {
     return (
       <Badge className={theme === 'dark' ? "bg-blue-500/20 text-blue-400" : "bg-blue-100 text-blue-700 border-blue-200"}>
         <Clock size={12} className="mr-1" />
-        Pending
+        Active
       </Badge>);
 
   };
@@ -319,15 +335,17 @@ const StudentAssignments = () => {
                         }
 
                             {!assignment.is_submitted ? (
-                              /* Not yet submitted → Submit button */
-                              <Button
-                                size="sm"
-                                className="bg-primary text-white gap-2 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30"
-                                onClick={() => openSubmitModal(assignment, false)}>
-                                
-                                  <Upload size={14} />
-                                  Submit
-                                </Button>
+                              /* Not yet submitted → Submit button (only if within deadline) */
+                              withinDeadline ? (
+                                <Button
+                                  size="sm"
+                                  className="bg-primary text-white gap-2 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30"
+                                  onClick={() => openSubmitModal(assignment, false)}>
+                                  
+                                    <Upload size={14} />
+                                    Submit
+                                  </Button>
+                              ) : null
                             ) : (
                               /* Already submitted → View + Details + Re-submit (if within deadline) */
                               <>
@@ -359,8 +377,8 @@ const StudentAssignments = () => {
                                     Details
                                   </Button>
 
-                                {/* Re-submit button — only within deadline */}
-                                {withinDeadline && (
+                                {/* Re-submit button — only within deadline, not graded, and under limit */}
+                                {withinDeadline && assignment.marks_obtained === null && (assignment.resubmission_count || 0) < 3 && (
                                   <Button
                                     size="sm"
                                     variant="outline"
@@ -372,8 +390,11 @@ const StudentAssignments = () => {
                                     onClick={() => openSubmitModal(assignment, true)}>
                                     
                                       <RefreshCw size={14} />
-                                      Re-submit
+                                      Re-submit ({(assignment.resubmission_count || 0)}/3)
                                     </Button>
+                                )}
+                                {withinDeadline && assignment.marks_obtained === null && (assignment.resubmission_count || 0) >= 3 && (
+                                  <span className="text-xs text-red-500 font-semibold px-2">Limit reached</span>
                                 )}
                               </>
                             )}
@@ -381,17 +402,23 @@ const StudentAssignments = () => {
                         </div>
                       </div>
 
-                      {/* Inline submission summary for submitted assignments */}
-                      {assignment.is_submitted &&
+                      {/* Inline submission summary for submitted or auto_zero assignments */}
+                      {(assignment.is_submitted || assignment.auto_zero) &&
                   <div className={`mt-5 p-5 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/80 border-gray-200'}`}>
                           <div className="flex flex-col md:flex-row justify-between gap-6">
                             <div className="space-y-1.5">
-                              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Submission Date</p>
-                              <p className="text-sm font-medium">{new Date(assignment.submission_date).toLocaleString()}</p>
+                              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{assignment.auto_zero ? 'Deadline Passed' : 'Submission Date'}</p>
+                              <p className="text-sm font-medium">{assignment.auto_zero ? new Date(assignment.due_date).toLocaleString() : new Date(assignment.submission_date).toLocaleString()}</p>
+                            </div>
+                            <div className="space-y-1.5 md:text-center">
+                              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Resubmissions</p>
+                              <p className="text-sm font-medium">
+                                {assignment.resubmission_count || 0} / 3
+                              </p>
                             </div>
                             <div className="md:text-right">
                               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Grade Status</p>
-                              <p className={`text-xl font-semibold ${assignment.marks_obtained !== null ? 'text-indigo-500' : 'text-amber-500'}`}>
+                              <p className={`text-xl font-semibold ${assignment.marks_obtained !== null ? (assignment.auto_zero ? 'text-red-500' : 'text-indigo-500') : 'text-amber-500'}`}>
                                 {assignment.marks_obtained !== null ?
                           `${assignment.marks_obtained} / ${assignment.max_marks}` :
                           'Awaiting Grade'}
@@ -516,16 +543,41 @@ const StudentAssignments = () => {
                   </span>
                 </div>
 
-                {/* Submitted file */}
+                {/* Submissions History */}
+                {(selectedAssignment.history || []).map((h: any) => (
+                  <div key={h.attempt_number} className={`flex items-center justify-between p-4 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/50 border-gray-200'} mb-2`}>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-gray-500/10 text-gray-500">
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold truncate max-w-[200px]">Attempt {h.attempt_number}</p>
+                        <p className="text-[10px] text-muted-foreground">{new Date(h.submitted_at).toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {h.file_url && (
+                        <Button variant="outline" size="sm" asChild className="rounded-xl">
+                          <a href={h.file_url} target="_blank" rel="noreferrer">
+                            <Eye size={14} className="mr-2" />
+                            View
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Latest Submission */}
                 {selectedAssignment.submission_file_url &&
-              <div className={`flex items-center justify-between p-4 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/50 border-gray-200'}`}>
+                  <div className={`flex items-center justify-between p-4 rounded-2xl border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50/50 border-gray-200'}`}>
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
                         <FileText size={20} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold truncate max-w-[200px]">submitted_assignment.pdf</p>
-                        <p className="text-[10px] text-muted-foreground">Your Submission</p>
+                        <p className="text-sm font-semibold truncate max-w-[200px]">Attempt {(selectedAssignment.resubmission_count || 0) + 1} (Latest)</p>
+                        <p className="text-[10px] text-muted-foreground">{new Date(selectedAssignment.submission_date).toLocaleString()}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -542,7 +594,7 @@ const StudentAssignments = () => {
                       </Button>
                     </div>
                   </div>
-              }
+                }
 
                 {selectedAssignment.feedback &&
               <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-indigo-500/5' : 'bg-indigo-50'} border ${theme === 'dark' ? 'border-indigo-500/10' : 'border-indigo-100'}`}>
@@ -556,8 +608,8 @@ const StudentAssignments = () => {
             </div>
 
             <div className="p-6 pt-0 flex gap-3">
-              {/* Re-submit button inside Details modal — only if deadline not passed */}
-              {isWithinDeadline(selectedAssignment) && (
+              {/* Re-submit button inside Details modal — only if deadline not passed and not graded and under limit */}
+              {isWithinDeadline(selectedAssignment) && selectedAssignment.marks_obtained === null && (selectedAssignment.resubmission_count || 0) < 3 && (
                 <Button
                   className={`flex-1 gap-2 rounded-xl ${
                     theme === 'dark'
@@ -569,6 +621,11 @@ const StudentAssignments = () => {
                   <RefreshCw size={16} />
                   Re-submit Assignment
                 </Button>
+              )}
+              {isWithinDeadline(selectedAssignment) && selectedAssignment.marks_obtained === null && (selectedAssignment.resubmission_count || 0) >= 3 && (
+                <div className="flex-1 text-center text-xs text-red-500 font-semibold p-2">
+                  Maximum resubmission limit reached
+                </div>
               )}
               <Button className="flex-1 rounded-xl" onClick={() => setShowDetailsModal(false)}>
                 Close

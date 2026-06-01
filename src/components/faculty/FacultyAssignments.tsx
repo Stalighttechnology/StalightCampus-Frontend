@@ -1293,7 +1293,7 @@ const FacultyAssignments = () => {
                                       className="h-8 gap-2 bg-primary hover:bg-primary/90 text-white hover:text-white"
                                       onClick={() => openGradeModal(sub)}>
                                       <Eye size={14} />
-                                      View
+                                      {selectedAssignment && new Date(selectedAssignment.due_date) > new Date() ? 'View' : 'Grade / View'}
                                     </Button>
                                   ) : (
                                     <span className="text-xs text-muted-foreground">No File</span>
@@ -1333,9 +1333,14 @@ const FacultyAssignments = () => {
                               <td className="px-6 py-4 text-sm font-mono">{student.usn}</td>
                               <td className="px-6 py-4 text-sm font-semibold">{student.name}</td>
                               <td className="px-6 py-4">
-                                <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500">
-                                  Pending
-                                </span>
+                                {student.auto_zero ?
+                                  <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-red-500/10 text-red-500">
+                                    0 Marks (Missed)
+                                  </span> :
+                                  <span className="text-[12px] font-semibold uppercase px-2 py-1 rounded-full bg-amber-500/10 text-amber-500">
+                                    Pending
+                                  </span>
+                                }
                               </td>
                             </tr>
                           )}
@@ -1418,11 +1423,18 @@ const FacultyAssignments = () => {
               {/* Document Viewer removed as per request */}
 
               {/* Sticky Grade Footer */}
+              {/* Sticky Grade Footer */}
               <form
                 onSubmit={handleGradeSubmit}
                 className={`shrink-0 px-6 py-6 ${theme === 'dark' ? 'bg-[#18181b]' : 'bg-white'
                   }`}
               >
+                {selectedAssignment && new Date(selectedAssignment.due_date) > new Date() ? (
+                  <div className="text-sm text-amber-500 mb-4 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+                    <AlertCircle size={16} className="inline mr-2 -mt-0.5" />
+                    Grading opens after the due date.
+                  </div>
+                ) : null}
                 <div className="flex flex-col gap-5">
                   {/* Marks input */}
                   <div className="flex flex-col gap-1">
@@ -1439,7 +1451,8 @@ const FacultyAssignments = () => {
                         value={gradeMarks}
                         onChange={e => setGradeMarks(e.target.value)}
                         placeholder="0"
-                        className={`w-24 rounded-xl border px-3 py-2 text-lg font-bold text-center focus:outline-none focus:ring-2 focus:ring-primary ${theme === 'dark'
+                        disabled={selectedAssignment && new Date(selectedAssignment.due_date) > new Date()}
+                        className={`w-24 rounded-xl border px-3 py-2 text-lg font-bold text-center focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
                           ? 'bg-white/5 border-border text-foreground'
                           : 'bg-gray-50 border-gray-200 text-gray-900'
                           }`}
@@ -1467,7 +1480,8 @@ const FacultyAssignments = () => {
                       value={gradeFeedback}
                       onChange={e => setGradeFeedback(e.target.value)}
                       placeholder="Write comments for the student..."
-                      className={`w-full rounded-xl border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary ${theme === 'dark'
+                      disabled={selectedAssignment && new Date(selectedAssignment.due_date) > new Date()}
+                      className={`w-full rounded-xl border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark'
                         ? 'bg-white/5 border-border text-foreground placeholder:text-muted-foreground'
                         : 'bg-gray-50 border-gray-200 text-gray-900'
                         }`}
@@ -1477,8 +1491,8 @@ const FacultyAssignments = () => {
                   {/* Save button */}
                   <Button
                     type="submit"
-                    disabled={gradingSaving || gradeMarks.trim() === ''}
-                    className="w-full h-11 bg-primary text-white hover:bg-primary/90 rounded-xl gap-2 font-semibold mt-2"
+                    disabled={gradingSaving || gradeMarks.trim() === '' || (selectedAssignment && new Date(selectedAssignment.due_date) > new Date())}
+                    className="w-full h-11 bg-primary text-white hover:bg-primary/90 rounded-xl gap-2 font-semibold mt-2 disabled:opacity-50"
                   >
                     {gradingSaving ? (
                       <><Loader2 size={18} className="animate-spin" /> Saving...</>

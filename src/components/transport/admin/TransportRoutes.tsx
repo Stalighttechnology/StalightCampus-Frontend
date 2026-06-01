@@ -50,7 +50,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelCl
           <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
             <SelectValue placeholder="HH" />
           </SelectTrigger>
-          <SelectContent className="max-h-[200px] z-[10001]">
+          <SelectContent className="max-h-[200px] z-[60]">
             {hours.map(h => (
               <SelectItem key={h} value={h}>{h}</SelectItem>
             ))}
@@ -61,7 +61,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelCl
           <SelectTrigger className="flex-1 h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
             <SelectValue placeholder="MM" />
           </SelectTrigger>
-          <SelectContent className="max-h-[200px] z-[10001]">
+          <SelectContent className="max-h-[200px] z-[60]">
             {minutes.map(m => (
               <SelectItem key={m} value={m}>{m}</SelectItem>
             ))}
@@ -71,7 +71,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, labelCl
           <SelectTrigger className="w-[68px] h-10 border rounded-lg focus:ring-1 focus:ring-primary bg-background text-foreground px-2 text-xs">
             <SelectValue placeholder="Period" />
           </SelectTrigger>
-          <SelectContent className="z-[10001]">
+          <SelectContent className="z-[60]">
             {periods.map(p => (
               <SelectItem key={p} value={p}>{p}</SelectItem>
             ))}
@@ -179,6 +179,10 @@ const TransportRoutes: React.FC = () => {
 
     try {
       const payload: any = { ...routeForm };
+      if (!payload.distance) payload.distance = "0.00";
+      if (!payload.duration_minutes) payload.duration_minutes = 0;
+      if (!payload.morning_start_time) payload.morning_start_time = "07:30";
+      if (!payload.evening_start_time) payload.evening_start_time = "16:30";
       if (routeForm.bus_id) payload.bus = parseInt(routeForm.bus_id);
       else delete payload.bus;
       delete payload.bus_id;
@@ -304,6 +308,10 @@ const TransportRoutes: React.FC = () => {
     }
     try {
       const payload: any = { ...editRouteForm };
+      if (!payload.distance) payload.distance = "0.00";
+      if (!payload.duration_minutes) payload.duration_minutes = 0;
+      if (!payload.morning_start_time) payload.morning_start_time = "07:30";
+      if (!payload.evening_start_time) payload.evening_start_time = "16:30";
       if (editRouteForm.bus_id) payload.bus = parseInt(editRouteForm.bus_id);
       else payload.bus = null;
       delete payload.bus_id;
@@ -367,16 +375,16 @@ const TransportRoutes: React.FC = () => {
       <div className="grid grid-cols-1 gap-6 items-start">
         {/* Form Modal Panel */}
         {showRouteForm && createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Modal Backdrop overlay */}
             <div
-              className="modal-overlay"
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setShowRouteForm(false)}
             />
 
             {/* Modal Window Container */}
-            <div className="relative w-full max-w-md z-[10000]">
-              <Card className={`p-6 border shadow-2xl backdrop-blur-sm ${cardBg}`}>
+            <div className="relative w-full max-w-md z-50">
+              <Card className={`p-6 border shadow-2xl ${cardBg}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                     <Plus className="w-5 h-5" /> New Route
@@ -431,7 +439,7 @@ const TransportRoutes: React.FC = () => {
                       <SelectTrigger className={`w-full h-10 border rounded-lg focus:ring-1 focus:ring-primary text-sm ${input}`}>
                         <SelectValue placeholder={busesLoading ? "Loading buses…" : "Select a bus"} />
                       </SelectTrigger>
-                      <SelectContent className="z-[10001]">
+                      <SelectContent className="z-[60]">
                         <SelectItem value="__none__">— No Bus —</SelectItem>
                         {buses.map(b => (
                           <SelectItem key={b.id} value={String(b.id)}>
@@ -455,10 +463,10 @@ const TransportRoutes: React.FC = () => {
 
         {/* Edit Route Modal */}
         {editingRoute && createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <div className="modal-overlay" onClick={() => setEditingRoute(null)} />
-            <div className="relative w-full max-w-md z-[10000]">
-              <Card className={`p-6 border shadow-2xl backdrop-blur-sm ${cardBg}`}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditingRoute(null)} />
+            <div className="relative w-full max-w-md z-50">
+              <Card className={`p-6 border shadow-2xl ${cardBg}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                     <Pencil className="w-5 h-5" /> Edit Route
@@ -513,7 +521,7 @@ const TransportRoutes: React.FC = () => {
                       <SelectTrigger className={`w-full h-10 border rounded-lg focus:ring-1 focus:ring-primary text-sm ${input}`}>
                         <SelectValue placeholder={busesLoading ? "Loading buses…" : "Select a bus"} />
                       </SelectTrigger>
-                      <SelectContent className="z-[10001]">
+                      <SelectContent className="z-[60]">
                         <SelectItem value="__none__">— No Bus —</SelectItem>
                         {buses.map(b => (
                           <SelectItem key={b.id} value={String(b.id)}>
@@ -720,16 +728,16 @@ const TransportRoutes: React.FC = () => {
 
       {/* Stop Editor Drawer / Card Section */}
       {editingRouteStops && selectedRoute && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Modal Backdrop overlay */}
           <div
-            className="modal-overlay"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setEditingRouteStops(null)}
           />
 
           {/* Modal Window Container */}
-          <div className="relative w-full max-w-2xl z-[10000] max-h-[90vh] flex flex-col">
-            <Card className={`border shadow-2xl p-6 backdrop-blur-sm flex flex-col overflow-hidden ${cardBg}`}>
+          <div className="relative w-full max-w-2xl z-50 max-h-[90vh] flex flex-col">
+            <Card className={`border shadow-2xl p-6 flex flex-col overflow-hidden ${cardBg}`}>
               {/* Header */}
               <div className="flex justify-between items-start mb-4 pb-3 border-b border-inherit">
                 <div>

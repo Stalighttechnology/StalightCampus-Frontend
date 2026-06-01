@@ -72,7 +72,22 @@ const getRoleBadge = (role: string, theme: string) => {
 
 };
 
-const roles = ["Student", "Head of Department", "Teacher", "COE", "Fees Manager", "Principal", "Org Admin", "HMS", "Warden", "Dean", "Placement Officer"];
+const roles = [
+  "Student", 
+  "Head of Department", 
+  "Teacher", 
+  "COE", 
+  "Fees Manager", 
+  "Principal", 
+  "Org Admin", 
+  "HMS", 
+  "Warden", 
+  "Dean", 
+  "Placement Officer",
+  "Transport Admin",
+  "Library Admin",
+  "Admission Manager"
+];
 
 const roleMap: Record<string, string> = {
   "Student": "student",
@@ -85,7 +100,10 @@ const roleMap: Record<string, string> = {
   "HMS": "hms_admin",
   "Warden": "warden",
   "Dean": "dean",
-  "Placement Officer": "placement_officer"
+  "Placement Officer": "placement_officer",
+  "Transport Admin": "transport_admin",
+  "Library Admin": "library_admin",
+  "Admission Manager": "admission_manager"
 };
 
 const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
