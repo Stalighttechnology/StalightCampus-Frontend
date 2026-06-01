@@ -56,6 +56,8 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [finalizedPagination, setFinalizedPagination] = useState<PaginationInfo | null>(null);
   const [pendingPage, setPendingPage] = useState(1);
   const [finalizedPage, setFinalizedPage] = useState(1);
+  const [conflictQP, setConflictQP] = useState<{id: number; subject: string; test_type: string; faculty: string} | null>(null);
+  const [showConflictDialog, setShowConflictDialog] = useState(false);
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
@@ -218,11 +220,60 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         fetchPendingQPs();
         fetchFinalizedQPs();
       } else {
-        MySwal.fire('Error', data.message || 'Failed to finalize QP.', 'error');
+        if (data.conflict_qp) {
+          setConflictQP(data.conflict_qp);
+          setShowConflictDialog(true);
+        } else {
+          MySwal.fire('Error', data.message || 'Failed to finalize QP.', 'error');
+        }
       }
     } catch (error) {
 
       MySwal.fire('Network error', 'Network error while finalizing QP.', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRevokeAndApprove = async () => {
+    if (!conflictQP || !selectedQP) return;
+    setActionLoading(true);
+    try {
+      // 1. Reject old
+      const rejRes = await fetch(`${API_ENDPOINT}/admin/qps/${conflictQP.id}/coe-reject/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token")}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ comment: "Revoked in favor of a newly submitted paper." })
+      });
+      const rejData = await rejRes.json();
+      if (!rejData.success) {
+        MySwal.fire('Error', 'Failed to revoke previous QP. Cannot proceed.', 'error');
+        setActionLoading(false);
+        return;
+      }
+      
+      // 2. Approve new
+      const appRes = await fetch(`${API_ENDPOINT}/admin/qps/${selectedQP.id}/coe-finalize/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("access_token")}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ comment: comment || "Approved after revoking previous conflict." })
+      });
+      const appData = await appRes.json();
+      if (appData.success) {
+        MySwal.fire('Success', 'Previous QP revoked and new QP approved successfully.', 'success');
+        setShowConflictDialog(false);
+        setConflictQP(null);
+        setDialogOpen(false);
+        setSelectedQP(null);
+        setQpDetail(null);
+        setComment("");
+        fetchPendingQPs();
+        fetchFinalizedQPs();
+      } else {
+        MySwal.fire('Error', appData.message || 'Failed to approve new QP.', 'error');
+      }
+    } catch (err) {
+      MySwal.fire('Network error', 'Network error during resolution.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -325,7 +376,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const handleReject = async (qpId: number) => {
     const result = await MySwal.fire({
       title: 'Confirm rejection',
-      text: 'Are you sure you want to reject this question paper and send it back to Principal?',
+      text: 'Are you sure you want to reject this question paper and return it to the faculty?',
       icon: 'warning',
       showCancelButton: true,
       showCloseButton: true,
@@ -355,12 +406,12 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
       const data = await response.json();
       if (data.success) {
-        MySwal.fire('Rejected!', data.message || 'QP rejected and sent back to Admin for review.', 'success');
+        MySwal.fire('Rejected!', data.message || 'QP rejected and returned to the faculty.', 'success');
         // Remove from both lists (QP could be from pending or finalized list)
         setPendingQPs((prev) => prev.filter((qp) => qp.id !== qpId));
         if (selectedQP) {
-          const rejectedItem = { ...selectedQP, status: 'pending_admin' };
-          // Keep in finalized list with updated status (COE acted on it)
+          const rejectedItem = { ...selectedQP, status: 'rejected' };
+          // Keep in finalized list temporarily before refresh
           setFinalizedQPs((prev) => [rejectedItem, ...prev.filter((q) => q.id !== qpId)]);
         }
         setDialogOpen(false);
@@ -732,6 +783,57 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </Button>
               </div>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showConflictDialog}
+        onOpenChange={(open) => {
+          setShowConflictDialog(open);
+          if (!open) setConflictQP(null);
+        }}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} sm:max-w-[500px]`}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <XCircle className="w-5 h-5" />
+              Approval Conflict Detected
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm">A question paper for this subject and test has already been approved. You must revoke it before approving this new one.</p>
+            {conflictQP && (
+              <div className="p-3 border rounded bg-muted/50 text-sm space-y-1">
+                <p><strong>Subject:</strong> {conflictQP.subject}</p>
+                <p><strong>Test Type:</strong> {conflictQP.test_type}</p>
+                <p><strong>Approved Faculty:</strong> {conflictQP.faculty}</p>
+              </div>
+            )}
+            <p className="text-sm font-medium text-muted-foreground">What would you like to do?</p>
+          </div>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+            <Button variant="outline" onClick={() => {
+              setShowConflictDialog(false);
+              if (conflictQP) {
+                 setDialogOpen(false);
+                 setTimeout(() => {
+                   setSelectedQP({ id: conflictQP.id, subject: conflictQP.subject, test_type: conflictQP.test_type, faculty: conflictQP.faculty, submitted_at: new Date().toISOString() });
+                   setQpDetail(null);
+                   fetchQPDetail(conflictQP.id);
+                   setDialogOpen(true);
+                 }, 300);
+              }
+            }}>
+              View Approved QP
+            </Button>
+            <Button 
+              onClick={handleRevokeAndApprove}
+              disabled={actionLoading}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {actionLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Revoke Previous & Approve New
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
