@@ -492,7 +492,7 @@ const FacultyAttendance = () => {
 
       {/* Attendance History (paginated) */}
       <Card id="faculty-attendance-history" className={`hidden md:block ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-        <CardHeader>
+        <CardHeader id="faculty-attendance-history-header">
           <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
             Attendance History
           </CardTitle>

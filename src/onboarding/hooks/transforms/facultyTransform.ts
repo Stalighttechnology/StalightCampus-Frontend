@@ -51,16 +51,15 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
       {
         ...step,
         target: '#today-attendance-toggle-section',
-        title: 'Daily Self-Attendance',
-        content:
-          'Mark your own daily attendance check-in and check campus location verification.',
+        title: "Today's Attendance",
+        content: 'Mark your daily attendance check-in as Present or Absent.',
         placement: isMobile ? step.placement : 'top',
       },
       {
         ...step,
-        target: '#faculty-attendance-history',
-        title: 'Monthly Attendance History',
-        content: 'Review your paginated monthly attendance logs and history.',
+        target: '#faculty-attendance-history-header',
+        title: 'Attendance History',
+        content: 'Review your monthly attendance logs and history.',
         placement: isMobile ? step.placement : 'top',
       },
     ];
@@ -123,11 +122,17 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
     return [
       {
         ...step,
-        target: '#statistics-charts-container',
-        title: 'Attendance Overview & Average Marks',
-        content:
-          '• Attendance Overview: View real-time line charts for student attendance tracking.\n• Average Marks: View interactive bar charts for average marks analysis.',
-        placement: isMobile ? step.placement : 'top',
+        target: '#statistics-attendance-overview-card',
+        title: 'Attendance Overview',
+        content: 'View real-time line charts for student attendance tracking.',
+        placement: isMobile ? step.placement : 'right',
+      },
+      {
+        ...step,
+        target: '#statistics-average-marks-card',
+        title: 'Average Marks',
+        content: 'View interactive bar charts for average marks analysis.',
+        placement: isMobile ? step.placement : 'left',
       },
       {
         ...step,
