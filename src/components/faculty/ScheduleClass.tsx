@@ -111,12 +111,12 @@ function useAssignmentDropdowns(assignments: any[]) {
     () =>
       subjectId
         ? Array.from(
-            new Map(
-              normalized
-                .filter((a) => a.subject_id === subjectId)
-                .map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])
-            ).values()
-          )
+          new Map(
+            normalized
+              .filter((a) => a.subject_id === subjectId)
+              .map((a) => [a.branch_id, { id: a.branch_id, name: a.branch }])
+          ).values()
+        )
         : [],
     [normalized, subjectId]
   );
@@ -126,12 +126,12 @@ function useAssignmentDropdowns(assignments: any[]) {
     () =>
       subjectId && branchId
         ? Array.from(
-            new Map(
-              normalized
-                .filter((a) => a.subject_id === subjectId && a.branch_id === branchId)
-                .map((a) => [a.semester_id, { id: a.semester_id, name: String(a.semester) }])
-            ).values()
-          )
+          new Map(
+            normalized
+              .filter((a) => a.subject_id === subjectId && a.branch_id === branchId)
+              .map((a) => [a.semester_id, { id: a.semester_id, name: String(a.semester) }])
+          ).values()
+        )
         : [],
     [normalized, subjectId, branchId]
   );
@@ -141,17 +141,17 @@ function useAssignmentDropdowns(assignments: any[]) {
     () =>
       subjectId && branchId && semesterId
         ? Array.from(
-            new Map(
-              normalized
-                .filter(
-                  (a) =>
-                    a.subject_id === subjectId &&
-                    a.branch_id === branchId &&
-                    a.semester_id === semesterId
-                )
-                .map((a) => [a.section_id, { id: a.section_id, name: a.section }])
-            ).values()
-          )
+          new Map(
+            normalized
+              .filter(
+                (a) =>
+                  a.subject_id === subjectId &&
+                  a.branch_id === branchId &&
+                  a.semester_id === semesterId
+              )
+              .map((a) => [a.section_id, { id: a.section_id, name: a.section }])
+          ).values()
+        )
         : [],
     [normalized, subjectId, branchId, semesterId]
   );
@@ -201,12 +201,12 @@ function useAssignmentDropdowns(assignments: any[]) {
     () =>
       subjectId && branchId && semesterId && sectionId
         ? normalized.find(
-            (a) =>
-              a.subject_id === subjectId &&
-              a.branch_id === branchId &&
-              a.semester_id === semesterId &&
-              a.section_id === sectionId
-          ) ?? null
+          (a) =>
+            a.subject_id === subjectId &&
+            a.branch_id === branchId &&
+            a.semester_id === semesterId &&
+            a.section_id === sectionId
+        ) ?? null
         : null,
     [normalized, subjectId, branchId, semesterId, sectionId]
   );
@@ -248,16 +248,15 @@ const DropdownGroup = ({ dropdowns, theme, disabled }: DropdownGroupProps) => {
     subjects, branches, semesters, sections,
   } = dropdowns;
 
-  const selectCls = `${
-    theme === "dark"
+  const selectCls = `${theme === "dark"
       ? "bg-background border border-input text-foreground"
       : "bg-white border border-gray-300 text-gray-900"
-  } w-full`;
+    } w-full`;
 
-  const contentCls =
-    theme === "dark"
+  const contentCls = `${theme === "dark"
       ? "bg-background border border-input text-foreground"
-      : "bg-white border border-gray-300 text-gray-900";
+      : "bg-white border border-gray-300 text-gray-900"
+    } max-h-[200px]`;
 
   return (
     <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-4 w-full">
@@ -393,18 +392,16 @@ const ClassHistoryCard = ({ cls, theme }: { cls: ScheduledClassRecord; theme: st
 
   return (
     <div
-      className={`rounded-lg border p-4 flex flex-col gap-2 transition-all hover:shadow-md ${
-        theme === "dark"
+      className={`rounded-lg border p-4 flex flex-col gap-2 transition-all hover:shadow-md ${theme === "dark"
           ? "bg-card border-border"
           : "bg-white border-gray-200"
-      }`}
+        }`}
     >
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <span
-            className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full ${
-              isOnline ? "bg-blue-100 dark:bg-blue-950/50" : "bg-amber-100 dark:bg-amber-950/50"
-            }`}
+            className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full ${isOnline ? "bg-blue-100 dark:bg-blue-950/50" : "bg-amber-100 dark:bg-amber-950/50"
+              }`}
           >
             {isOnline ? (
               <Video className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -419,11 +416,10 @@ const ClassHistoryCard = ({ cls, theme }: { cls: ScheduledClassRecord; theme: st
         </div>
         <div className="flex items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
           <span
-            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-              isOnline
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isOnline
                 ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
                 : "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
-            }`}
+              }`}
           >
             {isOnline ? "Online" : "Offline"}
           </span>
@@ -645,9 +641,8 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     }
   };
 
-  const selectorCardCls = `w-full ${
-    theme === "dark" ? "bg-card text-foreground" : "bg-white text-gray-900"
-  }`;
+  const selectorCardCls = `w-full ${theme === "dark" ? "bg-card text-foreground" : "bg-white text-gray-900"
+    }`;
 
   return (
     <div className={`w-full space-y-6 ${theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"}`}>
@@ -786,11 +781,10 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
               <label className="text-xs font-semibold text-muted-foreground">Meeting Type</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label
-                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${
-                    meetingType === "online"
+                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${meetingType === "online"
                       ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-600"
                       : "border-border bg-transparent text-foreground hover:border-muted-foreground"
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
@@ -803,11 +797,10 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                   <span className="truncate">Online (Google Meet)</span>
                 </label>
                 <label
-                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${
-                    meetingType === "offline"
+                  className={`flex items-center gap-2 cursor-pointer text-sm font-medium px-4 py-2.5 rounded-lg border transition-all ${meetingType === "offline"
                       ? "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-600"
                       : "border-border bg-transparent text-foreground hover:border-muted-foreground"
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
