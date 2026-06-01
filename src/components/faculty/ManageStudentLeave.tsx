@@ -1,18 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { manageStudentLeave, getProctorStudentLeaves, ProctorStudentLeave } from "@/utils/faculty_api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { CheckCircle, XCircle, CalendarCheck2 } from "lucide-react";
+import { CheckCircle, XCircle, CalendarCheck2, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import Swal from 'sweetalert2';
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable, SkeletonCard } from "@/components/ui/skeleton";
@@ -31,6 +24,24 @@ const ManageStudentLeave = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [viewReason, setViewReason] = useState<string | null>(null);
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setShowFilter(false);
+      }
+    };
+
+    if (showFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilter]);
 
   // Format date range to "MMM DD, YYYY to MMM DD, YYYY"
   const formatPeriod = (startDate: string, endDate: string): string => {
@@ -142,21 +153,33 @@ const ManageStudentLeave = () => {
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
               />
-              <Select
-                value={filterStatus}
-                onValueChange={handleFilterChange}
-              >
-                <SelectTrigger className={`w-full sm:w-auto min-w-[140px] text-sm font-medium ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent className={theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white text-gray-900'}>
-                  {statusOptions.map(opt => (
-                    <SelectItem key={opt} value={opt}>
-                      {opt === "All" ? "All Status" : opt.charAt(0) + opt.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative w-full sm:w-auto" ref={filterRef}>
+                <Button
+                  onClick={() => setShowFilter(!showFilter)}
+                  className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-2 h-10 px-4 rounded-xl font-medium shadow-sm transition-colors w-full sm:w-auto"
+                >
+                  <Filter className="w-4 h-4" />
+                  Filter
+                </Button>
+                {showFilter && (
+                  <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-lg z-10 overflow-hidden`}>
+                    <div className="py-1">
+                      {statusOptions.map((status) => (
+                        <button
+                          key={status}
+                          className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${filterStatus === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900 font-semibold' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
+                          onClick={() => {
+                            handleFilterChange(status);
+                            setShowFilter(false);
+                          }}
+                        >
+                          {status === 'All' ? 'All Status' : status.charAt(0) + status.slice(1).toLowerCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

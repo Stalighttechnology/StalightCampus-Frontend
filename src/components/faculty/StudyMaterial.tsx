@@ -326,7 +326,7 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
   return (
     <div ref={ref} className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`} {...props}>
       <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
+        <CardHeader id="study-materials-header" className="p-3 sm:p-4 lg:p-6 border-b">
           <div className="flex flex-row justify-between items-center gap-2 sm:gap-3">
             <div>
               <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900">Study Materials</h1>

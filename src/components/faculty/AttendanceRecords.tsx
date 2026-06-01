@@ -195,7 +195,7 @@ const AttendanceRecords = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-y-auto w-full overscroll-contain min-h-0 max-h-[60vh] md:max-h-none md:overflow-visible border rounded-md" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+            <div className="overflow-y-auto custom-scrollbar w-full overscroll-contain min-h-0 max-h-[60vh] md:max-h-none md:overflow-visible border rounded-md" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
               <div>
                 <Table>
                   <TableHeader className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
