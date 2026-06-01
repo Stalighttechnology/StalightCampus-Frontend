@@ -546,7 +546,7 @@ const FacultyAssignments = () => {
   return (
     <div>
       <Card>
-        <CardHeader id="faculty-assignments-header" className="border-b border-border/50 pb-6 pt-8 px-8">
+        <CardHeader id="faculty-assignments-header" >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <CardTitle>Assignment Management</CardTitle>
@@ -589,12 +589,12 @@ const FacultyAssignments = () => {
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <h2 className="text-xl font-semibold">All Assignments</h2>
-              <div className="flex items-center gap-3 flex-nowrap">
-                <div className="relative">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto">
+                <div className="relative w-full sm:w-auto">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                   <Input
                     placeholder="Search assignments..."
-                    className="pl-10 pr-12 w-full md:w-64 rounded-xl h-10"
+                    className="pl-10 pr-12 w-full sm:w-64 rounded-xl h-10"
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
@@ -610,9 +610,11 @@ const FacultyAssignments = () => {
                   )}
                 </div>
                 <Select value={filterSubject} onValueChange={setFilterSubject}>
-                  <SelectTrigger className="bg-primary hover:bg-primary/90 text-white border-0 rounded-full h-10 px-5 flex items-center gap-2 font-semibold shadow-md shadow-primary/20 transition-all cursor-pointer [&>svg]:text-white [&>svg:last-child]:hidden">
-                    <Filter size={16} />
-                    <span>{filterSubject === 'all' ? 'Filter' : filterSubject}</span>
+                  <SelectTrigger className="bg-primary hover:bg-primary/90 text-white border-0 rounded-xl h-10 w-full sm:w-auto px-5 flex items-center justify-start gap-2 font-semibold shadow-md shadow-primary/20 transition-all cursor-pointer [&>svg]:text-white [&>svg:last-child]:hidden shrink-0">
+                    <Filter size={16} className="shrink-0" />
+                    <span>
+                      {filterSubject === 'all' ? 'Filter by Subject' : filterSubject}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Subjects</SelectItem>
@@ -1216,20 +1218,13 @@ const FacultyAssignments = () => {
 
 
       {/* View Submissions Modal */}
-      <AnimatePresence>
-        {showSubmissionsModal &&
+        {showSubmissionsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setShowSubmissionsModal(false)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            <div
               className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}>
 
               <div className="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-inherit z-10">
@@ -1259,16 +1254,15 @@ const FacultyAssignments = () => {
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-0">
+              <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
                 {loadingSubmissions ?
                   <div className="p-12 text-center">
-                    <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-muted-foreground">Loading roster...</p>
                   </div> :
                   activeTab === 'submitted' ?
                     submissionsList.length > 0 ?
                       <table className="w-full text-left">
-                        <thead className="bg-muted/50 sticky top-0">
+                        <thead className="bg-muted sticky top-0 z-10">
                           <tr className="text-xs font-semibold text-muted-foreground border-b border-border">
                             <th className="px-6 py-3">USN</th>
                             <th className="px-6 py-3">Student Name</th>
@@ -1320,7 +1314,7 @@ const FacultyAssignments = () => {
 
                     pendingList.length > 0 ?
                       <table className="w-full text-left">
-                        <thead className="bg-muted/50 sticky top-0">
+                        <thead className="bg-muted sticky top-0 z-10">
                           <tr className="text-xs font-semibold text-muted-foreground border-b border-border">
                             <th className="px-6 py-3">USN</th>
                             <th className="px-6 py-3">Student Name</th>
@@ -1358,7 +1352,7 @@ const FacultyAssignments = () => {
                 <Button
                   variant="outline"
                   onClick={handleExportPDF}
-                  disabled={exportingPDF}
+                  disabled={exportingPDF || (activeTab === 'submitted' ? submissionsList.length === 0 : pendingList.length === 0)}
                   className="bg-primary hover:bg-primary/90 text-white hover:text-white">
                   {exportingPDF ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1371,29 +1365,20 @@ const FacultyAssignments = () => {
                   Close
                 </Button>
               </div>
-            </motion.div>
+            </div>
           </div>
-        }
-      </AnimatePresence>
+        )}
 
-      {/* ── Grade & View Submission Modal ─────────────────────────────── */}
-      <AnimatePresence>
         {gradeModal.open && gradeModal.submission && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center">
             {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setGradeModal({ open: false, submission: null })}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
 
             {/* Modal panel */}
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+            <div
               className={`relative w-full max-w-md m-4 flex flex-col rounded-3xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-[#18181b] border border-white/10' : 'bg-white'
                 }`}
             >
@@ -1405,12 +1390,12 @@ const FacultyAssignments = () => {
                     {gradeModal.submission.student?.usn} &bull; Submitted {new Date(gradeModal.submission.submitted_at).toLocaleString()}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <a
                     href={gradeModal.submission.file_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs bg-primary rounded-2xl px-2 py-1 text-white  hover:bg-primary/90 transition-colors flex items-center gap-1 "
+                    className="text-xs bg-primary rounded-xl px-3 py-1.5 text-white hover:bg-primary/90 transition-colors flex items-center gap-1.5 whitespace-nowrap font-semibold shadow-sm"
                   >
                     <ExternalLink size={13} /> View Document
                   </a>
@@ -1502,10 +1487,9 @@ const FacultyAssignments = () => {
                   </Button>
                 </div>
               </form>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>

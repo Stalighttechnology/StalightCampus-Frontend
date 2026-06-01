@@ -637,7 +637,7 @@ const ProctorStudents = () => {
                   <SelectTrigger className={`text-base w-full ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                     <SelectValue placeholder={state.proctors.length === 0 ? "No proctors" : "Choose a proctor"} />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                  <SelectContent className={`max-h-[200px] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-card border border-border text-foreground' : 'bg-white border border-gray-300 text-gray-900'}`}>
                     {state.proctors.map((proctor) => (
                       <SelectItem key={proctor.id} value={proctor.id}>{proctor.name}</SelectItem>
                     ))}

@@ -383,7 +383,7 @@ const formatTo12Hour = (timeStr: string) => {
 
 // ─── Sub-component: Class History Card ─────────────────────────────────────
 
-const ClassHistoryCard = ({ cls, theme }: { cls: ScheduledClassRecord; theme: string }) => {
+const ClassHistoryCard = ({ cls, theme, currentTime = new Date() }: { cls: ScheduledClassRecord; theme: string; currentTime?: Date }) => {
   const { toast } = useToast();
   const isOnline = cls.meeting_type === "online";
   const dateStr = (() => {
@@ -445,14 +445,26 @@ const ClassHistoryCard = ({ cls, theme }: { cls: ScheduledClassRecord; theme: st
           </div>
         </div>
         <div className="flex items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
-          <span
-            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isOnline
-              ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
-              : "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
-              }`}
-          >
-            {isOnline ? "Online" : "Offline"}
-          </span>
+          {(() => {
+            const classStart = new Date(`${cls.date}T${cls.start_time}`);
+            const classEnd = new Date(`${cls.date}T${cls.end_time}`);
+            let statusText = "Upcoming";
+            let statusStyle = "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300";
+
+            if (currentTime > classEnd) {
+              statusText = "Completed";
+              statusStyle = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+            } else if (currentTime >= classStart && currentTime <= classEnd) {
+              statusText = "Ongoing";
+              statusStyle = "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 animate-pulse";
+            }
+
+            return (
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusStyle}`}>
+                {statusText}
+              </span>
+            );
+          })()}
         </div>
       </div>
 
@@ -513,6 +525,15 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const { theme } = useTheme();
   const { toast } = useToast();
   const { data: rawAssignments = [], isLoading: assignmentsLoading } = useFacultyAssignmentsQuery();
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   // ── Section 1: Schedule dropdowns ────────────────────────────────────────
   const scheduleDropdowns = useAssignmentDropdowns(rawAssignments);
@@ -771,7 +792,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
               <CalendarDays className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <CardTitle>Schedule a New Class</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl" >Schedule a New Class</CardTitle>
               <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
                 Select a subject assignment to open the scheduling form
               </CardDescription>
@@ -811,7 +832,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
               </div>
               <div className="space-y-2">
                 {immediateHistory.map((cls) => (
-                  <ClassHistoryCard key={`immediate-${cls.id}`} cls={cls} theme={theme} />
+                  <ClassHistoryCard key={`immediate-${cls.id}`} cls={cls} theme={theme} currentTime={currentTime} />
                 ))}
               </div>
             </div>
@@ -860,7 +881,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Schedule Class Dialog Modal ──────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleDialogClose(); }}>
-        <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[90%] sm:max-w-[540px] max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <CalendarDays className="w-5 h-5 text-primary" />
@@ -1025,7 +1046,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                 placeholder="Provide context, lecture notes, or pre-requisite reading..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                rows={3}
+                className="h-24 resize-none custom-scrollbar"
               />
             </div>
 
@@ -1062,7 +1083,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
               <ClipboardList className="w-5 h-5 text-muted-foreground text-primary" />
             </div>
             <div>
-              <CardTitle>Class History</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Class History</CardTitle>
               <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
                 Select a subject to view last 5 scheduled classes
               </CardDescription>
@@ -1085,7 +1106,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                     Showing {historyClasses.length} most recent scheduled class{historyClasses.length !== 1 ? "es" : ""}
                   </p>
                   {historyClasses.map((cls) => (
-                    <ClassHistoryCard key={cls.id} cls={cls} theme={theme} />
+                    <ClassHistoryCard key={cls.id} cls={cls} theme={theme} currentTime={currentTime} />
                   ))}
                 </div>
               ) : (

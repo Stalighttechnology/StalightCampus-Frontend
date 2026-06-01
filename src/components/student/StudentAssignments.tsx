@@ -30,6 +30,7 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import { getStudentAssignments, submitAssignment } from "../../utils/student_api";
 import { normalizePaginatedResponse } from "../../utils/normalizePagination";
+import Swal from 'sweetalert2';
 
 const StudentAssignments = () => {
   const { theme } = useTheme();
@@ -123,6 +124,21 @@ const StudentAssignments = () => {
   const handleSubmitAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAssignment || !submissionFile) return;
+
+    const confirmResult = await Swal.fire({
+      title: isResubmit ? 'Confirm Re-submission' : 'Confirm Submission',
+      text: isResubmit 
+        ? 'Are you sure you want to re-submit? This will overwrite your previous attempt.' 
+        : 'Are you sure you want to submit this assignment?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: 'hsl(var(--primary))',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: isResubmit ? 'Yes, Re-submit' : 'Yes, Submit',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!confirmResult.isConfirmed) return;
 
     setSubmitting(true);
     try {
@@ -722,9 +738,29 @@ const StudentAssignments = () => {
                   <p className="font-semibold text-center">
                     {submissionFile ? submissionFile.name : 'Click to select or drag and drop'}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1 text-center">
+                  {submissionFile && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 h-8 rounded-lg gap-1.5 text-xs z-10"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const fileURL = URL.createObjectURL(submissionFile);
+                        window.open(fileURL, '_blank');
+                      }}
+                    >
+                      <Eye size={12} />
+                      View Uploaded File
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1 text-center mb-4">
                     Maximum file size: 5MB (PDF, DOC, DOCX)
                   </p>
+                  <div className="px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold pointer-events-none shadow-sm transition-colors">
+                    {submissionFile ? 'Change File' : 'Choose File'}
+                  </div>
                 </label>
               </div>
 

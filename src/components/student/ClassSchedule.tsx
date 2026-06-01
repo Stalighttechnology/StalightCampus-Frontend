@@ -267,14 +267,6 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                       </div>
 
                       <div className="flex flex-wrap items-center gap-1.5 sm:shrink-0 sm:self-auto self-start pl-10 sm:pl-0">
-                        <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isOnline
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
-                              : "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
-                            }`}
-                        >
-                          {isOnline ? "Online" : "Offline"}
-                        </span>
                         {classState === "live" && (
                           <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/20 dark:border-emerald-900/40 px-2 py-0.5 rounded-full animate-pulse">
                             <PlayCircle className="w-3 h-3" /> Live
