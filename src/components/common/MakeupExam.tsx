@@ -246,7 +246,7 @@ const MakeupExam = () => {
           </div>
         )}
         <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-          <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
+          <CardHeader id="makeupexam-header" className="p-3 sm:p-4 lg:p-6 border-b">
             <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Makeup Exam Requests</CardTitle>
             <p className={`text-xs sm:text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
               Submit makeup exam requests for students — search by USN or select batch/branch and exam period.

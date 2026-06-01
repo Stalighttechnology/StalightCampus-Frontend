@@ -203,6 +203,102 @@ export function facultyTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-faculty-assignments') {
+    return [
+      {
+        ...step,
+        target: '#faculty-assignments-header',
+        title: 'Assignment Management',
+        content: 'Create, track, and grade student assignments with a unified view.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-exam-applications') {
+    return [
+      {
+        ...step,
+        target: '#exam-applications-header',
+        title: 'Exam Applications',
+        content: 'Apply or review exam applications for proctored students.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-revaluation') {
+    return [
+      {
+        ...step,
+        target: '#revaluation-header',
+        title: 'Exam Revaluation & Photocopy',
+        content: 'Apply for revaluation of exam papers or request photocopies.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-makeupexam') {
+    return [
+      {
+        ...step,
+        target: '#makeupexam-header',
+        title: 'Makeup Exam Requests',
+        content: 'Submit or review makeup exam requests for students.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-proctor-students') {
+    return [
+      {
+        ...step,
+        target: '#proctor-students-header',
+        title: 'Proctor Students',
+        content: 'View and export proctor student details.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-scan-student-info') {
+    return [
+      {
+        ...step,
+        target: '#hod-search-student-card',
+        title: 'Search Student Profile',
+        content: 'Search student information by entering USN or using scanners.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-study-materials') {
+    return [
+      {
+        ...step,
+        target: '#study-materials-header',
+        title: 'Study Materials',
+        content: 'View and upload course-related study materials for your assigned subjects.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-schedule-class') {
+    return [
+      {
+        ...step,
+        target: '#schedule-class-header',
+        title: 'Schedule a New Class',
+        content: 'Schedule online/offline classes for your assigned subjects.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-profile') {
     return [
       {

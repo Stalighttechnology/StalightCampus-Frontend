@@ -654,7 +654,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Section 1: Schedule a New Class ─────────────────────────────── */}
       <Card className={selectorCardCls}>
-        <CardHeader className="border-b border-border/50 pb-4">
+        <CardHeader id="schedule-class-header" className="border-b border-border/50 pb-4">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-primary/10">
               <CalendarDays className="w-5 h-5 text-primary" />

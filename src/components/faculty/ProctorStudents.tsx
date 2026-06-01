@@ -76,7 +76,7 @@ const ProctorStudents = () => {
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader>
+      <CardHeader id="proctor-students-header">
         <div className="flex items-center justify-between gap-4">
           <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Proctor Students</CardTitle>
           <Button

@@ -545,7 +545,7 @@ const FacultyAssignments = () => {
   return (
     <div>
       <Card>
-        <CardHeader className="border-b border-border/50 pb-6 pt-8 px-8">
+        <CardHeader id="faculty-assignments-header" className="border-b border-border/50 pb-6 pt-8 px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <CardTitle>Assignment Management</CardTitle>

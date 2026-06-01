@@ -296,7 +296,7 @@ const Revaluation = () => {
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <div className="w-full mx-auto">
         <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-          <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
+          <CardHeader id="revaluation-header" className="p-3 sm:p-4 lg:p-6 border-b">
             <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Revaluation & Photocopy</CardTitle>
             <p className={`text-xs sm:text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
               Apply for revaluation of exam papers or request photocopies. Search by student USN and select the exam period.
