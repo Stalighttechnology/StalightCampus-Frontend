@@ -357,7 +357,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                   setSelected((s) => ({ ...s, branch: v, semester: '' }));
                   fetchSemesters(v);
                   setTimeout(() => setIsSemesterOpen(true), 150);
-                }} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
+                }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!selected.batch}>
                   <SelectTrigger id="publish-results-branch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select branch" />
                   </SelectTrigger>
@@ -371,7 +371,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                 <Select value={selected.semester} onValueChange={(v) => {
                   setSelected((s) => ({ ...s, semester: v }));
                   setTimeout(() => setIsExamPeriodOpen(true), 150);
-                }} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
+                }} open={isSemesterOpen} onOpenChange={setIsSemesterOpen} disabled={!selected.branch}>
                   <SelectTrigger id="publish-results-semester" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select semester" />
                   </SelectTrigger>
@@ -384,7 +384,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
               <div>
                 <label htmlFor="publish-results-exam-period" className="block text-sm mb-1">Exam Period</label>
-                <Select value={selected.exam_period} onValueChange={(v) => setSelected((s) => ({ ...s, exam_period: v }))} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen}>
+                <Select value={selected.exam_period} onValueChange={(v) => setSelected((s) => ({ ...s, exam_period: v }))} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen} disabled={!selected.semester}>
                   <SelectTrigger id="publish-results-exam-period" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Exam period" />
                   </SelectTrigger>

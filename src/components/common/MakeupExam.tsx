@@ -15,6 +15,7 @@ import {
   SelectValue } from
 "@/components/ui/select";
 import { showSuccessAlert, showErrorAlert, showWarningAlert, showInfoAlert } from "@/utils/sweetalert";
+import { getCOEFeeSettings } from "@/utils/coe_api";
 
 
 
@@ -32,6 +33,7 @@ const MakeupExam = () => {
   const [confirmMakeup, setConfirmMakeup] = useState<{open: boolean;student_id?: number;subject_id?: number;subject_name?: string;}>({ open: false });
   const [viewModal, setViewModal] = useState<{open: boolean;request?: any;}>({ open: false });
   const [makeupApplicationsOpen, setMakeupApplicationsOpen] = useState<boolean | null>(null);
+  const [feeSettings, setFeeSettings] = useState<{revaluation_fee?: number;photocopy_fee?: number;makeup_fee?: number}>({});
 
   useEffect(() => {
     if (role === "student") {
@@ -85,6 +87,20 @@ const MakeupExam = () => {
         // Track makeup window state
         if (typeof (payload as any).makeup_applications_open === 'boolean') {
           setMakeupApplicationsOpen((payload as any).makeup_applications_open);
+        }
+        // fetch fee settings so totals reflect configured values
+        try {
+          const feeResp = await getCOEFeeSettings();
+          if (feeResp && feeResp.success) {
+            const data = feeResp.data || feeResp;
+            setFeeSettings({
+              revaluation_fee: Number(data.revaluation_fee) || Number(data.revaluation_fee_cents) / 100 || undefined,
+              photocopy_fee: Number(data.photocopy_fee) || Number(data.photocopy_fee_cents) / 100 || undefined,
+              makeup_fee: Number(data.makeup_fee) || Number(data.makeup_fee_cents) / 100 || undefined
+            });
+          }
+        } catch (e) {
+          // ignore fee fetch errors; UI will fallback to legacy values
         }
       } else {
         setStudents([]);
@@ -426,7 +442,7 @@ const MakeupExam = () => {
                 <div className="text-xs sm:text-sm">
                   <p>Selected: {Object.keys(selectionMap).filter((k) => selectionMap[Number(k)]).length}</p>
                   <p className="font-semibold">
-                    Total: ₹{Object.keys(selectionMap).reduce((acc, k) => acc + (selectionMap[Number(k)] ? 300 : 0), 0)}
+                    Total: ₹{Object.keys(selectionMap).reduce((acc, k) => acc + (selectionMap[Number(k)] ? (feeSettings.makeup_fee ?? 300) : 0), 0)}
                   </p>
                 </div>
                 <Button
