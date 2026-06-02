@@ -371,11 +371,11 @@ const PrivacyPolicy = () => {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
           className="flex items-center text-gray-400 hover:text-gray-900 mb-8 transition-colors text-sm gap-1.5"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          Back to Login
         </button>
 
         {/* Hero */}
