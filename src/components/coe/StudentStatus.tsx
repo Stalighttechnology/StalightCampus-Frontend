@@ -40,6 +40,9 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
     branches: []
   });
   const [semesters, setSemesters] = useState<any[]>([]);
+  const [isExamPeriodOpen, setIsExamPeriodOpen] = useState(false);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
 
   useEffect(() => {
     fetchFilterOptions();
@@ -172,7 +175,10 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Batch</label>
-                <Select value={filters.batch} onValueChange={(value) => setFilters({ ...filters, batch: value })}>
+                <Select value={filters.batch} onValueChange={(value) => {
+                  setFilters({ ...filters, batch: value });
+                  setTimeout(() => setIsExamPeriodOpen(true), 150);
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select batch" />
                   </SelectTrigger>
@@ -187,7 +193,10 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
               </div>
               <div>
                 <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Exam Period</label>
-                <Select value={filters.exam_period} onValueChange={(value) => setFilters({ ...filters, exam_period: value })}>
+                <Select value={filters.exam_period} onValueChange={(value) => {
+                  setFilters({ ...filters, exam_period: value });
+                  setTimeout(() => setIsBranchOpen(true), 150);
+                }} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select exam period" />
                   </SelectTrigger>
@@ -206,7 +215,8 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                 <Select value={filters.branch} onValueChange={(value) => {
                   setFilters({ ...filters, branch: value, semester: "" });
                   fetchSemesters(value);
-                }}>
+                  setTimeout(() => setIsSemesterOpen(true), 150);
+                }} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select branch" />
                   </SelectTrigger>
@@ -221,7 +231,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
               </div>
               <div>
                 <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Semester</label>
-                <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })}>
+                <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select semester" />
                   </SelectTrigger>

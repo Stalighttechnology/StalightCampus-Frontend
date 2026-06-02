@@ -55,6 +55,9 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [status, setStatus] = useState<string>('');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isExamPeriodOpen, setIsExamPeriodOpen] = useState(false);
 
   useEffect(() => {
     loadFilters();
@@ -203,12 +206,14 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <div>
               <Label htmlFor="batch">Batch</Label>
-              <Select value={batchId} onValueChange={setBatchId}>
+              <Select value={batchId} onValueChange={(value) => {
+                setBatchId(value);
+                setTimeout(() => setIsBranchOpen(true), 150);
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Batches</SelectItem>
                   {filters?.batches.map((batch) =>
                     <SelectItem key={batch.id} value={batch.id.toString()}>{batch.name}</SelectItem>
                   )}
@@ -218,12 +223,16 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             <div>
               <Label htmlFor="branch">Branch</Label>
-              <Select value={branchId} onValueChange={(value) => { setBranchId(value); setSemesterId(''); fetchSemesters(value); }}>
+              <Select value={branchId} onValueChange={(value) => {
+                setBranchId(value);
+                setSemesterId('');
+                fetchSemesters(value);
+                setTimeout(() => setIsSemesterOpen(true), 150);
+              }} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
                   {filters?.branches.map((branch) =>
                     <SelectItem key={branch.id} value={branch.id.toString()}>{branch.name}</SelectItem>
                   )}
@@ -233,12 +242,14 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             <div>
               <Label htmlFor="semester">Semester</Label>
-              <Select value={semesterId} onValueChange={setSemesterId} disabled={!branchId}>
+              <Select value={semesterId} onValueChange={(value) => {
+                setSemesterId(value);
+                setTimeout(() => setIsExamPeriodOpen(true), 150);
+              }} disabled={!branchId} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Semesters</SelectItem>
                   {getAvailableSemesters().map((semester) =>
                     <SelectItem key={semester.id} value={semester.id.toString()}>{semester.number}</SelectItem>
                   )}
@@ -248,12 +259,11 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             <div>
               <Label htmlFor="examPeriod">Exam Period</Label>
-              <Select value={examPeriod} onValueChange={setExamPeriod}>
+              <Select value={examPeriod} onValueChange={setExamPeriod} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select exam period" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Periods</SelectItem>
                   {EXAM_PERIODS.map((period) =>
                     <SelectItem key={period.value} value={period.value}>{period.label}</SelectItem>
                   )}
@@ -268,7 +278,6 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="photocopy">Photocopy Only</SelectItem>
                   <SelectItem value="revaluation">Revaluation Only</SelectItem>
                   <SelectItem value="both">Both Photocopy & Reval</SelectItem>

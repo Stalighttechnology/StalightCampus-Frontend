@@ -14,7 +14,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
   const { theme } = useTheme();
   const [filters, setFilters] = useState<any>({ batches: [], branches: [] });
   const [semesters, setSemesters] = useState<any[]>([]);
-  const [selected, setSelected] = useState<any>({ batch: '', branch: '', semester: '', exam_period: '', request_type: 'all' });
+  const [selected, setSelected] = useState<any>({ batch: '', branch: '', semester: '', exam_period: '', request_type: '' });
   const [upload, setUpload] = useState<any>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [studentsPage, setStudentsPage] = useState(1);
@@ -30,6 +30,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isExamPeriodOpen, setIsExamPeriodOpen] = useState(false);
+  const [isRequestTypeOpen, setIsRequestTypeOpen] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -301,7 +305,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4">
         <div>
           <label htmlFor="reval-batch" className="block text-sm mb-1">Batch</label>
-          <Select value={selected.batch} onValueChange={(v) => setSelected((s) => ({ ...s, batch: v }))}>
+          <Select value={selected.batch} onValueChange={(v) => {
+            setSelected((s) => ({ ...s, batch: v }));
+            setTimeout(() => setIsBranchOpen(true), 150);
+          }}>
             <SelectTrigger id="reval-batch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Select batch" />
             </SelectTrigger>
@@ -313,9 +320,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         <div>
           <label htmlFor="reval-branch" className="block text-sm mb-1">Branch</label>
           <Select value={selected.branch} onValueChange={(v) => {
-                setSelected((s) => ({ ...s, branch: v, semester: '' }));
-                fetchSemesters(v);
-              }}>
+            setSelected((s) => ({ ...s, branch: v, semester: '' }));
+            fetchSemesters(v);
+            setTimeout(() => setIsSemesterOpen(true), 150);
+          }} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
             <SelectTrigger id="reval-branch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Select branch" />
             </SelectTrigger>
@@ -326,7 +334,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
         <div>
           <label htmlFor="reval-semester" className="block text-sm mb-1">Semester</label>
-          <Select value={selected.semester} onValueChange={(v) => setSelected((s) => ({ ...s, semester: v }))}>
+          <Select value={selected.semester} onValueChange={(v) => {
+            setSelected((s) => ({ ...s, semester: v }));
+            setTimeout(() => setIsExamPeriodOpen(true), 150);
+          }} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
             <SelectTrigger id="reval-semester" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Select semester" />
             </SelectTrigger>
@@ -339,7 +350,10 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
         <div>
           <label htmlFor="reval-exam-period" className="block text-sm mb-1">Exam Period</label>
-          <Select value={selected.exam_period} onValueChange={(v) => setSelected((s) => ({ ...s, exam_period: v }))}>
+          <Select value={selected.exam_period} onValueChange={(v) => {
+            setSelected((s) => ({ ...s, exam_period: v }));
+            setTimeout(() => setIsRequestTypeOpen(true), 150);
+          }} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen}>
             <SelectTrigger id="reval-exam-period" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Exam period" />
             </SelectTrigger>
@@ -354,7 +368,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
         </div>
         <div>
           <label htmlFor="reval-request-type" className="block text-sm mb-1">Request Type</label>
-          <Select value={selected.request_type} onValueChange={(v) => setSelected((s) => ({ ...s, request_type: v }))}>
+          <Select value={selected.request_type} onValueChange={(v) => setSelected((s) => ({ ...s, request_type: v }))} open={isRequestTypeOpen} onOpenChange={setIsRequestTypeOpen}>
             <SelectTrigger id="reval-request-type" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
               <SelectValue placeholder="Request type" />
             </SelectTrigger>
@@ -362,7 +376,6 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
               <SelectItem value="revaluation">Revaluation</SelectItem>
               <SelectItem value="makeup">Makeup</SelectItem>
               <SelectItem value="supplementary">Supplementary</SelectItem>
-              <SelectItem value="all">All</SelectItem>
             </SelectContent>
           </Select>
         </div>
