@@ -117,6 +117,114 @@ export function studentTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-student-study-material') {
+    return [
+      {
+        ...step,
+        target: '#study-materials-header',
+        title: 'Study Materials',
+        content: 'Access and download study materials shared by your professors.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-student-assignment') {
+    return [
+      {
+        ...step,
+        target: '#student-assignments-header-stats',
+        title: 'Assignments',
+        content: 'Track, view, and submit your academic assignments and projects.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-revaluation') {
+    return [
+      {
+        ...step,
+        target: '#revaluation-header',
+        title: 'Exam Revaluation',
+        content: 'Apply for revaluation of exam papers or request photocopies.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-makeupexam') {
+    return [
+      {
+        ...step,
+        target: '#makeupexam-header',
+        title: 'Makeup Exams',
+        content: 'Submit makeup exam requests and check status here.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-student-hostel-details') {
+    return [
+      {
+        ...step,
+        target: '#hostel-details-header',
+        title: 'Hostel Details',
+        content: 'View your hostel room allocation, mess menu, and report issues.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-transportation') {
+    return [
+      {
+        ...step,
+        target: '#transport-header',
+        title: 'Transportation',
+        content: 'View bus details, track live location, and submit complaints.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-library') {
+    return [
+      {
+        ...step,
+        target: '#library-header',
+        title: 'Library',
+        content: 'Search book catalog, track borrows, and view unpaid fines.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-announcements') {
+    return [
+      {
+        ...step,
+        target: '#announcements-header-stats',
+        title: 'Announcements',
+        content: 'Stay updated with the latest news, notices, and alerts from campus.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-class-schedule') {
+    return [
+      {
+        ...step,
+        target: '#class-schedule-header',
+        title: 'Class Schedule',
+        content: 'View your live and upcoming sessions. Join online sessions directly.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-profile') {
     return [
       {

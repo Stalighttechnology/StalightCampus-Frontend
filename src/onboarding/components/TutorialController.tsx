@@ -28,61 +28,45 @@ const DummyBeacon = () => null;
 const scrollTargetIntoView = (selector: string) => {
   try {
     if (selector === 'body') return;
-    const el = document.querySelector(selector) as HTMLElement;
-    if (!el) return;
 
-    // Find scroll parent
-    const scrollParent = (() => {
-      let parent = el.parentElement;
-      while (parent) {
-        const style = window.getComputedStyle(parent);
-        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
-          return parent;
+    // Use a small timeout to let the page entry slide animations finish,
+    // ensuring the element is in its final position before scrolling.
+    setTimeout(() => {
+      const el = document.querySelector(selector) as HTMLElement;
+      if (!el) return;
+
+      const isNestedStatsGrid = selector === '#dean-faculty-stats-grid';
+      const isTopElement =
+        (!isNestedStatsGrid && selector.includes('stats-grid')) ||
+        selector.includes('filters-card') ||
+        selector.includes('filters-header-wrapper') ||
+        selector.includes('locations-header') ||
+        selector === '#feesmanager-invoices-header' ||
+        selector === '#feesmanager-payments-header';
+
+      if (isTopElement) {
+        // Scroll parent to top for headers and stats grids
+        let parent = el.parentElement;
+        let scrollParent = null;
+        while (parent) {
+          const style = window.getComputedStyle(parent);
+          if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            scrollParent = parent;
+            break;
+          }
+          parent = parent.parentElement;
         }
-        parent = parent.parentElement;
+        if (scrollParent) {
+          scrollParent.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        console.log('[ONBOARDING DEBUG] Scrolled to top for:', selector);
+      } else {
+        // Native scrollIntoView is highly reliable and handles scrolling parents automatically
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        console.log('[ONBOARDING DEBUG] Scrolled to center via native scrollIntoView:', selector);
       }
-      return null;
-    })();
-
-    // Scroll to top for top-level stats grids, header elements, or filters cards to avoid being cut off by the sticky topbar.
-    // Exclude selectors that contain 'stats-grid' but are nested BELOW a header (e.g. faculty stats, which are inside a profile card).
-    const isNestedStatsGrid =
-      selector === '#dean-faculty-stats-grid';
-
-    const isTopElement =
-      (!isNestedStatsGrid && selector.includes('stats-grid')) ||
-      selector.includes('filters-card') ||
-      selector.includes('filters-header-wrapper') ||
-      selector.includes('locations-header') ||
-      selector === '#feesmanager-invoices-header' ||
-      selector === '#feesmanager-payments-header';
-
-    if (isTopElement) {
-      if (scrollParent) {
-        scrollParent.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      console.log('[ONBOARDING DEBUG] Scrolled parent and window to top for element:', selector);
-      return;
-    }
-
-    // For other elements, calculate the relative position to scrollParent and center it
-    if (scrollParent) {
-      const parentRect = scrollParent.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      const relativeTop = elRect.top - parentRect.top + scrollParent.scrollTop;
-      const targetScrollTop = relativeTop - parentRect.height / 2 + elRect.height / 2;
-
-      scrollParent.scrollTo({
-        top: Math.max(0, targetScrollTop),
-        behavior: 'smooth'
-      });
-      console.log('[ONBOARDING DEBUG] Programmatically scrolled scrollParent to target:', selector, { targetScrollTop });
-    } else {
-      // Fallback
-      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      console.log('[ONBOARDING DEBUG] Programmatically scrolled target into view (fallback):', selector);
-    }
+    }, 150);
   } catch (err) {
     console.error('[ONBOARDING DEBUG] Failed to scroll target into view:', err);
   }
@@ -111,8 +95,13 @@ const shouldScrollStep = (targetStep: any): boolean => {
       target === '#feesmanager-action-cards' ||
       target === '#student-schedule-card' ||
       target === '#student-attendance-card' ||
+      target.includes('attendance') ||
+      target.includes('fees') ||
       target === '#student-timeline-card' ||
       target === '#student-performance-card' ||
+      target === '#marks-table-card' ||
+      target === '#marks-overview-card' ||
+      target === '#marks-overview-card-header' ||
       target === '#hod-leave-header' ||
       target === '#admin-search-bar' ||
       target === '#hod-search-student-card' ||

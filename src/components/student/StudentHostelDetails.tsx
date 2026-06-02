@@ -360,8 +360,8 @@ const StudentHostelDetails: React.FC = () => {
 
   return (
     <div className={`w-full space-y-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
-      <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader className="p-3 sm:p-4 lg:p-6 border-b flex flex-row items-center gap-3">
+      <Card id="hostel-details-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <CardHeader id="hostel-details-header" className="p-3 sm:p-4 lg:p-6 border-b flex flex-row items-center gap-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
             <FaHotel className="w-4 h-4" />
           </div>

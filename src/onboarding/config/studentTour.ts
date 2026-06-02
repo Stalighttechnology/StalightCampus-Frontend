@@ -45,15 +45,6 @@ export const studentTour: Step[] = [
     route: '/dashboard',
   },
   {
-    target: '#sidebar-attendance',
-    title: 'Track Attendance',
-    content:
-      'Click here to view and manage your attendance records across all subjects.',
-    placement: 'right' as const,
-    disableBeacon: false,
-    route: '/attendance',
-  },
-  {
     target: '#sidebar-timetable',
     title: 'View Your Timetable',
     content:
@@ -61,6 +52,15 @@ export const studentTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/timetable',
+  },
+  {
+    target: '#sidebar-attendance',
+    title: 'Track Attendance',
+    content:
+      'Click here to view and manage your attendance records across all subjects.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/attendance',
   },
   {
     target: '#sidebar-marks',
@@ -72,6 +72,42 @@ export const studentTour: Step[] = [
     route: '/marks',
   },
   {
+    target: '#sidebar-student-study-material',
+    title: 'Access Study Materials',
+    content:
+      'Find lecture notes, reference books, and class materials uploaded by your faculty.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/student-study-material',
+  },
+  {
+    target: '#sidebar-student-assignment',
+    title: 'Manage Assignments',
+    content:
+      'View pending assignments, submit your coursework, and check grades or feedback.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/student-assignment',
+  },
+  {
+    target: '#sidebar-revaluation',
+    title: 'Revaluation Requests',
+    content:
+      'Apply for marks revaluation or photocopy of answer scripts for your semester exams.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/revaluation',
+  },
+  {
+    target: '#sidebar-makeupexam',
+    title: 'Makeup Exam Requests',
+    content:
+      'Apply for makeup or remedial exams if you missed a regular exam due to valid reasons.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/makeupexam',
+  },
+  {
     target: '#sidebar-fees',
     title: 'Manage Fees',
     content:
@@ -81,6 +117,42 @@ export const studentTour: Step[] = [
     route: '/fees',
   },
   {
+    target: '#sidebar-student-hostel-details',
+    title: 'Hostel Details',
+    content:
+      'View your hostel room allocation, mess details, warden contact information, and rules.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/student-hostel-details',
+  },
+  {
+    target: '#sidebar-transportation',
+    title: 'Transportation Info',
+    content:
+      'Track your assigned college bus route, view stop details, schedules, and driver contacts.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/transportation',
+  },
+  {
+    target: '#sidebar-library',
+    title: 'Library Services',
+    content:
+      'Search catalog, check borrowed books list, track return dates, and view pending fines.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/library',
+  },
+  {
+    target: '#sidebar-announcements',
+    title: 'View Announcements',
+    content:
+      'Stay updated with the latest college notices, event details, and official circulars.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/announcements',
+  },
+  {
     target: '#sidebar-leave-request',
     title: 'Apply for Leave',
     content:
@@ -88,6 +160,15 @@ export const studentTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/leave-request',
+  },
+  {
+    target: '#sidebar-class-schedule',
+    title: 'Class Schedule',
+    content:
+      'View complete and detailed daily/weekly schedule and location of all lectures.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/class-schedule',
   },
   {
     target: '#sidebar-profile',

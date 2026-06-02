@@ -420,56 +420,61 @@ const StudentAnnouncements = () => {
 
   return (
     <div>
-      <Card className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                Announcements
-              </h2>
-              <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                Stay updated with the latest news, notices, and alerts from the campus.
-              </p>
+      <Card id="announcements-card" className={theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}>
+        <div id="announcements-header-stats">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  Announcements
+                </h2>
+                <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                  Stay updated with the latest news, notices, and alerts from the campus.
+                </p>
+              </div>
             </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className=" space-y-8">
-          {/* Summary Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { label: "Total", value: stats.total, color: "blue", icon: <Megaphone className="opacity-80" size={20} /> },
-              { label: "Unread", value: stats.unread, color: "yellow", icon: <Bell className="opacity-80" size={20} /> },
-              { label: "Urgent", value: stats.urgent, color: "red", icon: <AlertCircle className="opacity-80" size={20} /> },
-              { label: "Recent", value: stats.recent, color: "emerald", icon: <Clock className="opacity-80" size={20} /> },
-            ].map((stat, i) => (
-              <div
-                key={i}
-                className={`relative overflow-hidden group p-4 rounded-xl border transition-all duration-300 hover:shadow-md ${theme === 'dark'
-                  ? 'bg-muted/30 border-border hover:bg-muted/50'
-                  : 'bg-gray-50/50 border-gray-100 hover:bg-white hover:border-gray-200'
-                  }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className={`text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      {stat.label}
-                    </p>
-                    <p className={`text-2xl font-semibold mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      {stat.value}
-                    </p>
-                  </div>
-                  <div className={`p-2 rounded-lg ${stat.color === 'blue' ? 'bg-blue-500/10 text-blue-500' :
-                    stat.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-500' :
-                      stat.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500' :
-                        'bg-red-500/10 text-red-500'
-                    }`}>
-                    {stat.icon}
+          <div className="px-6 pb-0">
+            {/* Summary Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { label: "Total", value: stats.total, color: "blue", icon: <Megaphone className="opacity-80" size={20} /> },
+                { label: "Unread", value: stats.unread, color: "yellow", icon: <Bell className="opacity-80" size={20} /> },
+                { label: "Urgent", value: stats.urgent, color: "red", icon: <AlertCircle className="opacity-80" size={20} /> },
+                { label: "Recent", value: stats.recent, color: "emerald", icon: <Clock className="opacity-80" size={20} /> },
+              ].map((stat, i) => (
+                <div
+                  key={i}
+                  className={`relative overflow-hidden group p-4 rounded-xl border transition-all duration-300 hover:shadow-md ${theme === 'dark'
+                    ? 'bg-muted/30 border-border hover:bg-muted/50'
+                    : 'bg-gray-50/50 border-gray-100 hover:bg-white hover:border-gray-200'
+                    }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        {stat.label}
+                      </p>
+                      <p className={`text-2xl font-semibold mt-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className={`p-2 rounded-lg ${stat.color === 'blue' ? 'bg-blue-500/10 text-blue-500' :
+                      stat.color === 'yellow' ? 'bg-yellow-500/10 text-yellow-500' :
+                        stat.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500' :
+                          'bg-red-500/10 text-red-500'
+                      }`}>
+                      {stat.icon}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+        </div>
+
+        <CardContent className="space-y-8 pt-6">
 
           {/* Filters & Actions */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">

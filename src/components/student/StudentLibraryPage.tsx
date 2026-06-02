@@ -279,8 +279,8 @@ const StudentLibraryPage: React.FC = () => {
       `}</style>
 
       <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-        <Card className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
-          <CardHeader className="library-card-header p-3 sm:p-4 lg:p-6 border-b w-full overflow-hidden">
+        <Card id="library-card" className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
+          <CardHeader id="library-header" className="library-card-header p-3 sm:p-4 lg:p-6 border-b w-full overflow-hidden">
             <div>
               <CardTitle className={`library-card-title text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 My Library

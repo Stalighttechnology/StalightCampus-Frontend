@@ -102,8 +102,8 @@ const StudentTransportPage: React.FC = () => {
 
   return (
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      <Card className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
-        <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
+      <Card id="transport-card" className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
+        <CardHeader id="transport-header" className="p-3 sm:p-4 lg:p-6 border-b">
           <div className="flex items-center gap-3">
             <div>
               <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>My Transport</CardTitle>
