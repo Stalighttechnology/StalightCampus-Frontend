@@ -73,7 +73,13 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        // ✅ FIX: Changed overflow-hidden → overflow-clip
+        // overflow-clip still clips child content to the border-box (preserving
+        // border-radius) but does NOT create a new scroll container — so the
+        // scrollbar gutter on the child Viewport is NOT clipped away.
+        // overflow-hidden creates a BFC that clips absolutely everything incl.
+        // the scrollbar track painted by the child; overflow-clip does not.
+        "relative z-50 max-h-96 min-w-[8rem] overflow-clip rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         className
@@ -83,11 +89,18 @@ const SelectContent = React.forwardRef<
     >
       <SelectPrimitive.Viewport
         className={cn(
+          // select-scrollbar class in index.css applies:
+          //   overflow-y: scroll !important
+          //   scrollbar-gutter: stable !important
+          //   ::-webkit-scrollbar { width: 6px; display: block }
+          // custom-scrollbar applies theme-aware thumb/track colors
           "p-1 select-scrollbar custom-scrollbar",
           position === "popper" &&
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
         )}
         style={{
+          // Keep inline style as a fallback for browsers where the CSS class
+          // may be overridden by a higher-specificity rule at runtime.
           overflowY: 'scroll',
           maxHeight: '240px',
           scrollbarWidth: 'thin',
