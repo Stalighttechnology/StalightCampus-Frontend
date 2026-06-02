@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { getCOEFeeSettings, saveCOEFeeSettings } from '@/utils/coe_api';
 import { useTheme } from '../../context/ThemeContext';
 import { Edit3, Save, X, Coins, FileText, Layers, IndianRupee, AlertCircle } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const COEFeeSettings = () => {
   const { theme } = useTheme();
@@ -60,9 +61,22 @@ const COEFeeSettings = () => {
     setIsEditing(true);
   };
 
-  const handleCancelClick = () => {
-    setIsEditing(false);
-    setErrors({ reval: '', photocopy: '', makeup: '' });
+  const handleCancelClick = async () => {
+    const result = await Swal.fire({
+      title: 'Discard Changes?',
+      text: 'Any unsaved fee setting modifications will be lost.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, discard',
+      background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+      color: theme === 'dark' ? '#ffffff' : '#000000'
+    });
+    if (result.isConfirmed) {
+      setIsEditing(false);
+      setErrors({ reval: '', photocopy: '', makeup: '' });
+    }
   };
 
   const validate = () => {
@@ -114,6 +128,19 @@ const COEFeeSettings = () => {
       toast.error('Please correct the validation errors first');
       return;
     }
+    const result = await Swal.fire({
+      title: 'Save Fee Settings?',
+      text: 'This will update the fee amounts charged to students.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#22c55e',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, save',
+      background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+      color: theme === 'dark' ? '#ffffff' : '#000000'
+    });
+    if (!result.isConfirmed) return;
+
     setLoading(true);
     try {
       const payload = {
