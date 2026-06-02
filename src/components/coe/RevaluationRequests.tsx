@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import Swal from 'sweetalert2';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, Clock, Download, Eye, XCircle, Search } from 'lucide-react';
@@ -74,13 +75,13 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   }, [search]);
 
   useEffect(() => {
-    // Only load requests when all required filters are selected
-    if (batchId && batchId !== 'all' && branchId && branchId !== 'all' && semesterId && semesterId !== 'all' && examPeriod && examPeriod !== 'all') {
+    // Load requests if search term is entered OR if all dropdown filters are selected
+    if (debouncedSearch || (batchId && batchId !== 'all' && branchId && branchId !== 'all' && semesterId && semesterId !== 'all' && examPeriod && examPeriod !== 'all')) {
       // Reset to page 1 when filters change
       setCurrentPage(1);
       loadRequests(1);
     } else {
-      // Clear requests if filters are not complete
+      // Clear requests if filters are not complete and no search is entered
       setRequests([]);
       setTotalCount(0);
       setTotalPages(0);
@@ -90,8 +91,8 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   }, [batchId, branchId, semesterId, examPeriod, status, debouncedSearch]);
 
   useEffect(() => {
-    // Reload requests when page or page size changes (but only if filters are complete)
-    if (batchId && batchId !== 'all' && branchId && branchId !== 'all' && semesterId && semesterId !== 'all' && examPeriod && examPeriod !== 'all') {
+    // Reload requests when page or page size changes
+    if (debouncedSearch || (batchId && batchId !== 'all' && branchId && branchId !== 'all' && semesterId && semesterId !== 'all' && examPeriod && examPeriod !== 'all')) {
       loadRequests(currentPage);
     }
   }, [currentPage, pageSize]);
@@ -208,6 +209,12 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Label htmlFor="batch">Batch</Label>
               <Select value={batchId} onValueChange={(value) => {
                 setBatchId(value);
+                setBranchId('');
+                setSemesterId('');
+                setExamPeriod('');
+                setStatus('');
+                setSearch('');
+                setDebouncedSearch('');
                 setTimeout(() => setIsBranchOpen(true), 150);
               }}>
                 <SelectTrigger>
@@ -226,9 +233,11 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Select value={branchId} onValueChange={(value) => {
                 setBranchId(value);
                 setSemesterId('');
+                setSearch('');
+                setDebouncedSearch('');
                 fetchSemesters(value);
                 setTimeout(() => setIsSemesterOpen(true), 150);
-              }} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
+              }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!batchId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
@@ -244,6 +253,8 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Label htmlFor="semester">Semester</Label>
               <Select value={semesterId} onValueChange={(value) => {
                 setSemesterId(value);
+                setSearch('');
+                setDebouncedSearch('');
                 setTimeout(() => setIsExamPeriodOpen(true), 150);
               }} disabled={!branchId} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                 <SelectTrigger>
@@ -259,7 +270,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             <div>
               <Label htmlFor="examPeriod">Exam Period</Label>
-              <Select value={examPeriod} onValueChange={setExamPeriod} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen}>
+              <Select value={examPeriod} onValueChange={setExamPeriod} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen} disabled={!semesterId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select exam period" />
                 </SelectTrigger>
@@ -273,7 +284,7 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={setStatus}>
+              <Select value={status} onValueChange={setStatus} disabled={!examPeriod}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -290,19 +301,30 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="flex gap-4 mb-0">
             <div className="flex-1">
               <Label htmlFor="search">Search</Label>
-              <Input
-                id="search"
-                placeholder="Search by name, USN, subject..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)} />
-
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
+                <Input
+                  id="search"
+                  placeholder="Search by name, USN, subject..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10 pr-16" />
+                {search && (
+                  <button
+                    onClick={() => { setSearch(''); setDebouncedSearch(''); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Requests Table */}
-      {!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ? (
+      {!debouncedSearch && (!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all') ? (
         <Card className="border-dashed border-2 shadow-none bg-transparent">
           <CardContent className="flex flex-col items-center justify-center py-24 text-center">
             <div className="bg-primary/5 p-6 rounded-full mb-4">
@@ -340,7 +362,21 @@ const RevaluationRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </div>
                 {uploadId ? (
                   <Button
-                    onClick={handleToggleRevalWindow}
+                    onClick={async () => {
+                      const result = await Swal.fire({
+                        title: revalApplicationsOpen ? 'Close Revaluation Applications?' : 'Open Revaluation Applications?',
+                        text: revalApplicationsOpen
+                          ? 'Students will no longer be able to submit revaluation requests.'
+                          : 'Students will be able to submit revaluation requests.',
+                        icon: revalApplicationsOpen ? 'warning' : 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: revalApplicationsOpen ? '#ef4444' : '#22c55e',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: revalApplicationsOpen ? 'Yes, Close' : 'Yes, Open',
+                        cancelButtonText: 'Cancel',
+                      });
+                      if (result.isConfirmed) handleToggleRevalWindow();
+                    }}
                     disabled={togglingReval}
                     variant={revalApplicationsOpen ? "destructive" : "default"}
                     size="sm"

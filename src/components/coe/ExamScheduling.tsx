@@ -70,6 +70,22 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [filterSemesters, setFilterSemesters] = useState<Semester[]>([]);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isFormBranchOpen, setIsFormBranchOpen] = useState(false);
+  const [isFormSemesterOpen, setIsFormSemesterOpen] = useState(false);
+  const [isFormExamTypeOpen, setIsFormExamTypeOpen] = useState(false);
+  const [isFormExamPeriodOpen, setIsFormExamPeriodOpen] = useState(false);
+  const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+  const [isEndDateOpen, setIsEndDateOpen] = useState(false);
+  const [subjectDateOpens, setSubjectDateOpens] = useState<Record<number, boolean>>({});
+
+  const displayDate = (dateStr: string) => {
+    if (!dateStr) return "Pick a date";
+    try {
+      return format(parse(dateStr, 'yyyy-MM-dd', new Date()), 'PPP');
+    } catch (e) {
+      return dateStr;
+    }
+  };
 
   // Form State
   const [showForm, setShowForm] = useState(false);
@@ -282,6 +298,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
         });
         setRoomsList(['']);
         setRoomsSaved(false);
+        setSubjectDateOpens({});
       } else {
         toast.error(res.message || "Failed to schedule exam");
       }
@@ -385,7 +402,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Batch</label>
-                <Select value={formData.batch_id} onValueChange={(v) => setFormData({ ...formData, batch_id: v, branch_id: '', semester_id: '', exam_type: '', exam_period: '', subjects: [] })}>
+                <Select value={formData.batch_id} onValueChange={(v) => {
+                  setFormData({ ...formData, batch_id: v, branch_id: '', semester_id: '', exam_type: '', exam_period: '', subjects: [] });
+                  setTimeout(() => setIsFormBranchOpen(true), 150);
+                }}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder="Select Batch" /></SelectTrigger>
                   <SelectContent>
                     {batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
@@ -395,7 +415,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Branch</label>
-                <Select value={formData.branch_id} onValueChange={(v) => setFormData({ ...formData, branch_id: v, semester_id: '', exam_type: '', exam_period: '', subjects: [] })} disabled={!formData.batch_id}>
+                <Select value={formData.branch_id} onValueChange={(v) => {
+                  setFormData({ ...formData, branch_id: v, semester_id: '', exam_type: '', exam_period: '', subjects: [] });
+                  setTimeout(() => setIsFormSemesterOpen(true), 150);
+                }} open={isFormBranchOpen} onOpenChange={setIsFormBranchOpen} disabled={!formData.batch_id}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.batch_id ? "Select Branch" : "Select Batch First"} /></SelectTrigger>
                   <SelectContent>
                     {branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
@@ -405,7 +428,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Semester</label>
-                <Select value={formData.semester_id} onValueChange={(v) => setFormData({ ...formData, semester_id: v, exam_type: '', exam_period: '', subjects: [] })} disabled={!formData.branch_id}>
+                <Select value={formData.semester_id} onValueChange={(v) => {
+                  setFormData({ ...formData, semester_id: v, exam_type: '', exam_period: '', subjects: [] });
+                  setTimeout(() => setIsFormExamTypeOpen(true), 150);
+                }} open={isFormSemesterOpen} onOpenChange={setIsFormSemesterOpen} disabled={!formData.branch_id}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.branch_id ? "Select Semester" : "Select Branch First"} /></SelectTrigger>
                   <SelectContent>
                     {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Sem {s.number}</SelectItem>)}
@@ -415,7 +441,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Exam Type</label>
-                <Select value={formData.exam_type} onValueChange={(v) => setFormData({ ...formData, exam_type: v, exam_period: '', subjects: [] })} disabled={!formData.semester_id}>
+                <Select value={formData.exam_type} onValueChange={(v) => {
+                  setFormData({ ...formData, exam_type: v, exam_period: '', subjects: [] });
+                  setTimeout(() => setIsFormExamPeriodOpen(true), 150);
+                }} open={isFormExamTypeOpen} onOpenChange={setIsFormExamTypeOpen} disabled={!formData.semester_id}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm"><SelectValue placeholder={formData.semester_id ? "Select Type" : "Select Semester First"} /></SelectTrigger>
                   <SelectContent>
                     {EXAM_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
@@ -425,7 +454,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-2">
                 <label className="text-[18px] sm:text-sm font-medium">Exam Period</label>
-                <Select value={formData.exam_period} onValueChange={(v) => setFormData({ ...formData, exam_period: v === 'none' ? '' : v, subjects: [] })} disabled={!formData.exam_type}>
+                <Select value={formData.exam_period} onValueChange={(v) => setFormData({ ...formData, exam_period: v === 'none' ? '' : v, subjects: [] })} open={isFormExamPeriodOpen} onOpenChange={setIsFormExamPeriodOpen} disabled={!formData.exam_type}>
                   <SelectTrigger className="h-12 sm:h-10 text-[18px] sm:text-sm">
                     <SelectValue placeholder={formData.exam_type ? "Select Period (Optional)" : "Select Exam Type First"} />
                   </SelectTrigger>
@@ -436,14 +465,81 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 flex flex-col">
                 <label className="text-[18px] sm:text-sm font-semibold">Start Date</label>
-                <Input type="date" disabled={!formData.exam_type} min={tomorrowStr} value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+                <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!formData.exam_type}
+                      className={`h-12 text-[18px] sm:text-sm rounded-xl justify-start text-left font-normal ${!formData.start_date && "text-muted-foreground"}`}
+                    >
+                      <Calendar className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                      {formData.start_date ? displayDate(formData.start_date) : <span>Pick a start date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={formData.start_date ? parse(formData.start_date, 'yyyy-MM-dd', new Date()) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setFormData({ ...formData, start_date: format(date, "yyyy-MM-dd"), end_date: '' });
+                          setIsStartDateOpen(false);
+                        }
+                      }}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
+                      initialFocus
+                      className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 flex flex-col">
                 <label className="text-[18px] sm:text-sm font-semibold">End Date</label>
-                <Input type="date" disabled={!formData.start_date} min={formData.start_date || tomorrowStr} value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} className="h-12 text-[18px] sm:text-sm rounded-xl" />
+                <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!formData.start_date}
+                      className={`h-12 text-[18px] sm:text-sm rounded-xl justify-start text-left font-normal ${!formData.end_date && "text-muted-foreground"}`}
+                    >
+                      <Calendar className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                      {formData.end_date ? displayDate(formData.end_date) : <span>Pick an end date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={formData.end_date ? parse(formData.end_date, 'yyyy-MM-dd', new Date()) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setFormData({ ...formData, end_date: format(date, "yyyy-MM-dd") });
+                          setIsEndDateOpen(false);
+                        }
+                      }}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        if (formData.start_date) {
+                          const startDate = parse(formData.start_date, 'yyyy-MM-dd', new Date());
+                          startDate.setHours(0, 0, 0, 0);
+                          return date < startDate;
+                        }
+                        return date < today;
+                      }}
+                      initialFocus
+                      className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2 sm:col-span-2">
@@ -537,11 +633,11 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                   </Button>
                 </div>
                 {formData.subjects.map((sub, index) => (
-                  <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 border rounded-xl relative bg-secondary/10">
+                  <div key={index} className="grid grid-cols-1 sm:grid-cols-6 gap-4 p-4 border rounded-xl relative bg-secondary/10">
                     <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-destructive" onClick={() => { const newSubs = [...formData.subjects]; newSubs.splice(index, 1); setFormData({ ...formData, subjects: newSubs }); }}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                    <div className="space-y-2 sm:col-span-4 pr-8">
+                    <div className="space-y-2 sm:col-span-6 pr-8">
                       <label className="text-sm font-medium">Subject</label>
                       <Select value={sub.subject_id} onValueChange={(v) => { const newSubs = [...formData.subjects]; newSubs[index].subject_id = v; setFormData({ ...formData, subjects: newSubs }); }}>
                         <SelectTrigger className="w-full bg-background"><SelectValue placeholder="Select Subject" /></SelectTrigger>
@@ -552,17 +648,156 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
+                    <div className="space-y-2 sm:col-span-2 flex flex-col">
                       <label className="text-sm font-medium">Date</label>
-                      <Input type="date" min={formData.start_date || tomorrowStr} max={formData.end_date || undefined} value={sub.date} onChange={(e) => { const newSubs = [...formData.subjects]; newSubs[index].date = e.target.value; setFormData({ ...formData, subjects: newSubs }); }} className="bg-background" />
+                      <Popover
+                        open={!!subjectDateOpens[index]}
+                        onOpenChange={(open) => setSubjectDateOpens(prev => ({ ...prev, [index]: open }))}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={!formData.start_date || !formData.end_date}
+                            className={`w-full justify-start text-left font-normal bg-background ${!sub.date && "text-muted-foreground"}`}
+                          >
+                            <Calendar className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                            {sub.date ? displayDate(sub.date) : <span>Pick subject date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={sub.date ? parse(sub.date, 'yyyy-MM-dd', new Date()) : undefined}
+                            onSelect={(date) => {
+                              if (date) {
+                                const newSubs = [...formData.subjects];
+                                newSubs[index].date = format(date, "yyyy-MM-dd");
+                                setFormData({ ...formData, subjects: newSubs });
+                                setSubjectDateOpens(prev => ({ ...prev, [index]: false }));
+                              }
+                            }}
+                            disabled={(date) => {
+                              if (formData.start_date && formData.end_date) {
+                                const start = parse(formData.start_date, 'yyyy-MM-dd', new Date());
+                                const end = parse(formData.end_date, 'yyyy-MM-dd', new Date());
+                                start.setHours(0, 0, 0, 0);
+                                end.setHours(0, 0, 0, 0);
+                                return date < start || date > end;
+                              }
+                              return false;
+                            }}
+                            initialFocus
+                            className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <label className="text-sm font-medium">Start Time</label>
-                      <Input type="time" value={sub.start_time} onChange={(e) => { const newSubs = [...formData.subjects]; newSubs[index].start_time = e.target.value; setFormData({ ...formData, subjects: newSubs }); }} className="bg-background" />
+                      <div className="flex gap-1 items-center">
+                        <Select
+                          value={from24h(sub.start_time).h}
+                          onValueChange={(hVal) => {
+                            const current = from24h(sub.start_time);
+                            const newSubs = [...formData.subjects];
+                            newSubs[index].start_time = to24h(hVal, current.m, current.p);
+                            setFormData({ ...formData, subjects: newSubs });
+                          }}
+                        >
+                          <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                              <SelectItem key={h} value={h}>{h}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-muted-foreground font-bold">:</span>
+                        <Select
+                          value={from24h(sub.start_time).m}
+                          onValueChange={(mVal) => {
+                            const current = from24h(sub.start_time);
+                            const newSubs = [...formData.subjects];
+                            newSubs[index].start_time = to24h(current.h, mVal, current.p);
+                            setFormData({ ...formData, subjects: newSubs });
+                          }}
+                        >
+                          <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
+                              <SelectItem key={m} value={m}>{m}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={from24h(sub.start_time).p}
+                          onValueChange={(pVal) => {
+                            const current = from24h(sub.start_time);
+                            const newSubs = [...formData.subjects];
+                            newSubs[index].start_time = to24h(current.h, current.m, pVal);
+                            setFormData({ ...formData, subjects: newSubs });
+                          }}
+                        >
+                          <SelectTrigger className="w-[75px] bg-background px-2"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AM">AM</SelectItem>
+                            <SelectItem value="PM">PM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <label className="text-sm font-medium">End Time</label>
-                      <Input type="time" value={sub.end_time} onChange={(e) => { const newSubs = [...formData.subjects]; newSubs[index].end_time = e.target.value; setFormData({ ...formData, subjects: newSubs }); }} className="bg-background" />
+                      <div className="flex gap-1 items-center">
+                        <Select
+                          value={from24h(sub.end_time).h}
+                          onValueChange={(hVal) => {
+                            const current = from24h(sub.end_time);
+                            const newSubs = [...formData.subjects];
+                            newSubs[index].end_time = to24h(hVal, current.m, current.p);
+                            setFormData({ ...formData, subjects: newSubs });
+                          }}
+                        >
+                          <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(h => (
+                              <SelectItem key={h} value={h}>{h}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-muted-foreground font-bold">:</span>
+                        <Select
+                          value={from24h(sub.end_time).m}
+                          onValueChange={(mVal) => {
+                            const current = from24h(sub.end_time);
+                            const newSubs = [...formData.subjects];
+                            newSubs[index].end_time = to24h(current.h, mVal, current.p);
+                            setFormData({ ...formData, subjects: newSubs });
+                          }}
+                        >
+                          <SelectTrigger className="w-[70px] bg-background px-2"><SelectValue /></SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
+                              <SelectItem key={m} value={m}>{m}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={from24h(sub.end_time).p}
+                          onValueChange={(pVal) => {
+                            const current = from24h(sub.end_time);
+                            const newSubs = [...formData.subjects];
+                            newSubs[index].end_time = to24h(current.h, current.m, pVal);
+                            setFormData({ ...formData, subjects: newSubs });
+                          }}
+                        >
+                          <SelectTrigger className="w-[75px] bg-background px-2"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AM">AM</SelectItem>
+                            <SelectItem value="PM">PM</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import Swal from 'sweetalert2';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -50,6 +51,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [examPeriod, setExamPeriod] = useState<string>('');
   const [status, setStatus] = useState<string>('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [isSemesterOpen, setIsSemesterOpen] = useState(false);
   const [isExamPeriodOpen, setIsExamPeriodOpen] = useState(false);
@@ -61,26 +63,32 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
   useEffect(() => {
     loadFilters();
-    // Don't load requests on initial mount - wait for filters to be selected
   }, []);
 
+  // Debounce search
   useEffect(() => {
-    // Only load requests when all required filters are selected
-    if (batchId && batchId !== 'all' && branchId && branchId !== 'all' && semesterId && semesterId !== 'all' && examPeriod && examPeriod !== 'all') {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+  useEffect(() => {
+    // Load requests if search term is entered OR if all dropdown filters are selected
+    if (debouncedSearch || (batchId && batchId !== 'all' && branchId && branchId !== 'all' && semesterId && semesterId !== 'all' && examPeriod && examPeriod !== 'all')) {
       // Reset to page 1 when filters change
       setCurrentPage(1);
       loadRequests(1);
     } else {
-      // Clear requests if filters are not complete
+      // Clear requests if filters are not complete and no search is entered
       setRequests([]);
       setTotalCount(0);
       setTotalPages(0);
     }
-  }, [batchId, branchId, semesterId, examPeriod, status, search]);
+  }, [batchId, branchId, semesterId, examPeriod, status, debouncedSearch]);
 
   useEffect(() => {
-    // Reload requests when page or page size changes (but only if filters are complete)
-    if (batchId && batchId !== 'all' && branchId && branchId !== 'all' && semesterId && semesterId !== 'all' && examPeriod && examPeriod !== 'all') {
+    // Reload requests when page or page size changes
+    if (debouncedSearch || (batchId && batchId !== 'all' && branchId && branchId !== 'all' && semesterId && semesterId !== 'all' && examPeriod && examPeriod !== 'all')) {
       loadRequests(currentPage);
     }
   }, [currentPage, pageSize]);
@@ -109,7 +117,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       if (semesterId && semesterId !== 'all') params.semester_id = parseInt(semesterId);
       if (examPeriod && examPeriod !== 'all') params.exam_period = examPeriod;
       if (status && status !== 'all') params.status = status;
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
 
       const result = await getMakeupRequests(params);
       if (result.success && result.data) {
@@ -245,28 +253,6 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
             <CardTitle>
               Makeup Exam Requests
             </CardTitle>
-            {/* Makeup Application Window Toggle */}
-            <div className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${
-              makeupApplicationsOpen
-                ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-800'
-                : 'border-border bg-muted/30'
-            }`}>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Makeup Window</span>
-                <span className={`text-sm font-bold ${
-                  makeupApplicationsOpen ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'
-                }`}>
-                  {makeupApplicationsOpen ? 'Open — accepting applications' : 'Closed — not accepting'}
-                </span>
-              </div>
-              <Switch
-                id="makeup-toggle"
-                checked={makeupApplicationsOpen}
-                onCheckedChange={handleToggleMakeup}
-                disabled={togglingMakeup || !uploadId}
-                className={makeupApplicationsOpen ? 'data-[state=checked]:bg-emerald-500' : ''}
-              />
-            </div>
           </div>
         </CardHeader>
         <CardContent className="p-6 pt-2">
@@ -276,6 +262,12 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Label htmlFor="batch">Batch</Label>
               <Select value={batchId} onValueChange={(value) => {
                 setBatchId(value);
+                setBranchId('');
+                setSemesterId('');
+                setExamPeriod('');
+                setStatus('');
+                setSearch('');
+                setDebouncedSearch('');
                 setTimeout(() => setIsBranchOpen(true), 150);
               }}>
                 <SelectTrigger>
@@ -294,9 +286,11 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Select value={branchId} onValueChange={(value) => {
                 setBranchId(value);
                 setSemesterId('');
+                setSearch('');
+                setDebouncedSearch('');
                 fetchSemesters(value);
                 setTimeout(() => setIsSemesterOpen(true), 150);
-              }} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
+              }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!batchId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
@@ -312,6 +306,8 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
               <Label htmlFor="semester">Semester</Label>
               <Select value={semesterId} onValueChange={(value) => {
                 setSemesterId(value);
+                setSearch('');
+                setDebouncedSearch('');
                 setTimeout(() => setIsExamPeriodOpen(true), 150);
               }} disabled={!branchId} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                 <SelectTrigger>
@@ -327,7 +323,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             <div>
               <Label htmlFor="exam-period">Exam Period</Label>
-              <Select value={examPeriod} onValueChange={setExamPeriod} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen}>
+              <Select value={examPeriod} onValueChange={setExamPeriod} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen} disabled={!semesterId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select exam period" />
                 </SelectTrigger>
@@ -341,7 +337,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
 
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={setStatus}>
+              <Select value={status} onValueChange={setStatus} disabled={!examPeriod}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -358,19 +354,30 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="flex gap-4 mb-0">
             <div className="flex-1">
               <Label htmlFor="search">Search</Label>
-              <Input
-                id="search"
-                placeholder="Search by name, USN, subject..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)} />
-              
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-40" />
+                <Input
+                  id="search"
+                  placeholder="Search by name, USN, subject..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10 pr-16" />
+                {search && (
+                  <button
+                    onClick={() => { setSearch(''); setDebouncedSearch(''); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Requests Table */}
-      {!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all' ? (
+      {!debouncedSearch && (!batchId || batchId === 'all' || !branchId || branchId === 'all' || !semesterId || semesterId === 'all' || !examPeriod || examPeriod === 'all') ? (
         <Card className="border-dashed border-2 shadow-none bg-transparent">
           <CardContent className="flex flex-col items-center justify-center py-24 text-center">
             <div className="bg-primary/5 p-6 rounded-full mb-4">
@@ -385,6 +392,59 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
       ) : (
         <Card>
           <CardContent className="p-6">
+            {/* Makeup Application Window Toggle (Placed Above Table) */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-border">
+              <div>
+                <h3 className="text-lg font-semibold">Makeup Application Window</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Control student submissions for the selected batch, branch, semester, and exam period.
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Status:</span>
+                  {makeupApplicationsOpen ? (
+                    <Badge className="border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+                      Active / Open
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="border-red-200 bg-red-100 text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+                      Inactive / Closed
+                    </Badge>
+                  )}
+                </div>
+                {uploadId ? (
+                  <Button
+                    onClick={async () => {
+                      const result = await Swal.fire({
+                        title: makeupApplicationsOpen ? 'Close Makeup Applications?' : 'Open Makeup Applications?',
+                        text: makeupApplicationsOpen
+                          ? 'Students will no longer be able to submit makeup exam requests.'
+                          : 'Students will be able to submit makeup exam requests.',
+                        icon: makeupApplicationsOpen ? 'warning' : 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: makeupApplicationsOpen ? '#ef4444' : '#22c55e',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: makeupApplicationsOpen ? 'Yes, Close' : 'Yes, Open',
+                        cancelButtonText: 'Cancel',
+                      });
+                      if (result.isConfirmed) handleToggleMakeup();
+                    }}
+                    disabled={togglingMakeup}
+                    variant={makeupApplicationsOpen ? "destructive" : "default"}
+                    size="sm"
+                    className="font-medium shadow-sm transition-all"
+                  >
+                    {togglingMakeup ? 'Updating...' : makeupApplicationsOpen ? 'Close Applications' : 'Open Applications'}
+                  </Button>
+                ) : (
+                  <div className="text-xs text-muted-foreground italic max-w-xs text-right">
+                    No result batch found. Create the result upload batch first to manage applications.
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="border rounded-lg">
               <Table>
                 <TableHeader>
@@ -653,6 +713,7 @@ const MakeupRequests = React.forwardRef<HTMLDivElement>((_, ref) => {
           </div>
         </DialogContent>
       </Dialog>
+
     </div>);
 
 });

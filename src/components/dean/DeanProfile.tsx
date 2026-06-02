@@ -443,7 +443,7 @@ const DeanProfile = () => {
             </div>
           </div>
 
-          <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full custom-scrollbar">
             <div className="flex items-center gap-1 sm:gap-2 mb-4 sm:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('personal')}

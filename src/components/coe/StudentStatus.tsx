@@ -196,7 +196,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                 <Select value={filters.exam_period} onValueChange={(value) => {
                   setFilters({ ...filters, exam_period: value });
                   setTimeout(() => setIsBranchOpen(true), 150);
-                }} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen}>
+                }} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen} disabled={!filters.batch}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select exam period" />
                   </SelectTrigger>
@@ -216,7 +216,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
                   setFilters({ ...filters, branch: value, semester: "" });
                   fetchSemesters(value);
                   setTimeout(() => setIsSemesterOpen(true), 150);
-                }} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
+                }} open={isBranchOpen} onOpenChange={setIsBranchOpen} disabled={!filters.exam_period}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select branch" />
                   </SelectTrigger>
@@ -231,7 +231,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
               </div>
               <div>
                 <label className="text-[18px] sm:text-sm font-semibold sm:font-medium mb-3 sm:mb-2 block">Semester</label>
-                <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
+                <Select value={filters.semester} onValueChange={(value) => setFilters({ ...filters, semester: value })} open={isSemesterOpen} onOpenChange={setIsSemesterOpen} disabled={!filters.branch}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select semester" />
                   </SelectTrigger>
@@ -442,20 +442,24 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
       </div>
 
       <Dialog open={subjectsModalOpen} onOpenChange={setSubjectsModalOpen}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border shadow-lg' : 'bg-white text-gray-900 border border-gray-200 shadow-lg'} max-w-md w-[calc(100vw-2rem)] sm:w-[90vw] rounded-lg p-6`}>
-          <DialogHeader>
-            <DialogTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-lg font-semibold`}>
-              Applied Subjects
-            </DialogTitle>
-            <DialogDescription className={`${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} text-sm`}>
-              For {selectedStudent?.student_name} ({selectedStudent?.roll_number})
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4 space-y-2 max-h-[60vh] overflow-y-auto">
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border shadow-lg' : 'bg-white text-gray-900 border border-gray-200 shadow-lg'} max-w-md w-[calc(100vw-2rem)] sm:w-[90vw] rounded-lg flex flex-col max-h-[80vh] p-0 overflow-hidden`}>
+          {/* Fixed header */}
+          <div className="px-6 pt-6 pb-4 border-b border-border shrink-0">
+            <DialogHeader>
+              <DialogTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-lg font-semibold`}>
+                Applied Subjects
+              </DialogTitle>
+              <DialogDescription className={`${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} text-sm mt-1`}>
+                For {selectedStudent?.student_name} ({selectedStudent?.roll_number})
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             {selectedStudent?.applied_subjects && selectedStudent.applied_subjects.length > 0 ? (
               <ul className="divide-y divide-border">
                 {selectedStudent.applied_subjects.map((sub: string, index: number) => (
-                  <li key={index} className="py-2 text-sm">
+                  <li key={index} className="py-2.5 text-sm leading-snug">
                     {sub}
                   </li>
                 ))}
@@ -464,7 +468,8 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
               <p className="text-sm text-muted-foreground">No subjects applied.</p>
             )}
           </div>
-          <div className="mt-6 flex justify-end">
+          {/* Fixed footer */}
+          <div className="px-6 py-4 border-t border-border shrink-0 flex justify-end">
             <Button
               onClick={() => setSubjectsModalOpen(false)}
               className="bg-primary text-white hover:bg-primary/90 px-4 py-2 text-sm font-medium"

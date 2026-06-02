@@ -106,6 +106,24 @@ const ManageAdminLeavesDean = () => {
   }, [recentPage]);
 
   const handleAction = async (leaveId: number, action: 'APPROVED' | 'REJECTED') => {
+    const isApprove = action === 'APPROVED';
+    const actionText = isApprove ? 'Approve' : 'Reject';
+    const confirmColor = isApprove ? '#10B981' : '#EF4444';
+
+    const confirmResult = await MySwal.fire({
+      title: `${actionText} Leave Request?`,
+      text: `Are you sure you want to ${actionText.toLowerCase()} this leave request?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: `Yes, ${actionText}`,
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: confirmColor,
+      background: theme === 'dark' ? '#1e293b' : '#ffffff',
+      color: theme === 'dark' ? '#f8fafc' : '#0f172a',
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
     setActionLoading(leaveId);
     try {
       const response = await manageAllLeaves(
@@ -126,13 +144,32 @@ const ManageAdminLeavesDean = () => {
           ].slice(0, 20)); // Keep recent list manageable
         }
 
-        setSuccessMessage(`Leave ${action.toLowerCase()} successfully`);
-        setTimeout(() => setSuccessMessage(""), 3000);
+        MySwal.fire({
+          title: 'Success!',
+          text: `Leave request has been ${action.toLowerCase()} successfully.`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false,
+          background: theme === 'dark' ? '#1e293b' : '#ffffff',
+          color: theme === 'dark' ? '#f8fafc' : '#0f172a',
+        });
       } else {
-        setError(response.message || "Failed to update leave");
+        MySwal.fire({
+          title: 'Error',
+          text: response.message || "Failed to update leave request.",
+          icon: 'error',
+          background: theme === 'dark' ? '#1e293b' : '#ffffff',
+          color: theme === 'dark' ? '#f8fafc' : '#0f172a',
+        });
       }
     } catch (err) {
-      setError("Failed to update leave");
+      MySwal.fire({
+        title: 'Error',
+        text: "Failed to update leave request due to a network or server error.",
+        icon: 'error',
+        background: theme === 'dark' ? '#1e293b' : '#ffffff',
+        color: theme === 'dark' ? '#f8fafc' : '#0f172a',
+      });
     } finally {
       setActionLoading(null);
     }
@@ -156,20 +193,6 @@ const ManageAdminLeavesDean = () => {
 
   return (
     <div id="dean-admin-leaves-container" className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Error Message */}
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Success Message */}
-      {successMessage && (
-        <Alert className={`mb-4 border-green-500 bg-green-500/10 text-green-600`}>
-          <CheckCircle className="w-4 h-4" />
-          <AlertDescription>{successMessage}</AlertDescription>
-        </Alert>
-      )}
 
       <div>
         <div className="mb-6">
@@ -380,12 +403,12 @@ const ManageAdminLeavesDean = () => {
               </CardTitle>
               <div className="relative" ref={filterRef}>
                 <Button
-                  variant="ghost"
-                  size="icon"
                   onClick={() => setShowFilter(v => !v)}
+                  className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2 px-4 h-9 shadow-sm"
                   aria-label="Filter recent leaves"
                 >
-                  <FilterIcon className="w-5 h-5" />
+                  <FilterIcon className="w-4 h-4" />
+                  <span>Filter</span>
                 </Button>
                 {showFilter && (
                   <div className={`absolute right-0 mt-2 w-36 rounded shadow-lg z-10 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
@@ -421,8 +444,10 @@ const ManageAdminLeavesDean = () => {
                 </p>
               </div>
             ) : (
-              <>
-                <div className="h-[420px] overflow-auto space-y-4 custom-scrollbar pr-2">
+            <div className="overflow-x-auto max-w-full custom-scrollbar">
+              {/* Mobile: stacked cards */}
+              <div className="md:hidden space-y-3 pl-4">
+                <div className="h-[420px] overflow-auto space-y-3 custom-scrollbar pr-2">
                   {filteredRecentLeaves.map((leave) => (
                     <div
                       key={`${leave.faculty_type}-${leave.id}`}
@@ -433,7 +458,7 @@ const ManageAdminLeavesDean = () => {
                           <div className="flex items-start gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <h3 className={`font-medium ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title || 'Leave Request'}</h3>
+                                <h3 className={`font-medium ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>{leave.title || `Leave on ${leave.start_date}`}</h3>
                                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${leave.faculty_type === 'coe'
                                   ? (theme === 'dark' ? 'bg-green-400 text-green-900' : 'bg-green-600 text-white')
                                   : leave.faculty_type === 'principal'
@@ -478,7 +503,52 @@ const ManageAdminLeavesDean = () => {
                     </div>
                   ))}
                 </div>
-              </>
+              </div>
+
+              {/* Tablet/Laptop: table */}
+              <div className="hidden md:block">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead className={`border-b ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-gray-50'}`}>
+                    <tr>
+                      <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
+                      <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Department</th>
+                      <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                      <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                      <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                      <th className={`py-2 px-2 md:px-4 text-left ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reviewed Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRecentLeaves.map((leave) => (
+                      <tr key={leave.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <td className="py-3 px-2 md:px-4 font-medium">{leave.faculty_name}</td>
+                        <td className="py-3 px-2 md:px-4">{leave.faculty_type === 'principal' ? 'Administration' : leave.department}</td>
+                        <td className="py-3 px-2 md:px-4">{leave.start_date} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.end_date}</td>
+                        <td className="py-3 px-2 md:px-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`text-xs ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-300 hover:bg-gray-50'}`}
+                            onClick={() => { setSelectedLeave(leave); setShowReasonDialog(true); }}
+                          >
+                            View Reason
+                          </Button>
+                        </td>
+                        <td className="py-3 px-2 md:px-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${leave.status === 'APPROVED' ? (theme === 'dark' ? 'bg-green-700 text-green-50' : 'bg-green-100 text-green-700') :
+                            leave.status === 'REJECTED' ? (theme === 'dark' ? 'bg-red-700 text-red-50' : 'bg-red-100 text-red-700') :
+                              (theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-700')
+                            }`}>{leave.status.charAt(0) + leave.status.slice(1).toLowerCase()}</span>
+                        </td>
+                        <td className="py-3 px-2 md:px-4 text-sm text-muted-foreground">
+                          {new Date(leave.start_date).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
             )}
           </CardContent>
           {recentPagination.totalPages > 1 && (
@@ -522,13 +592,21 @@ const ManageAdminLeavesDean = () => {
               Leave Reason
             </DialogTitle>
             <DialogDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
-              {selectedLeave && `Reason for: ${selectedLeave.title}`}
+              {selectedLeave && `Reason for: Leave on ${selectedLeave.start_date}`}
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
-            <p className={`text-sm ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-700'}`}>
+          <div className="mt-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+            <p className={`text-sm ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-700'} whitespace-pre-wrap`}>
               {selectedLeave?.reason}
             </p>
+          </div>
+          <div className="mt-6 flex justify-end">
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white hover:text-white" 
+              onClick={() => setShowReasonDialog(false)}
+            >
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

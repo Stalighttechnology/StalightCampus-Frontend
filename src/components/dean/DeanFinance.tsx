@@ -156,17 +156,23 @@ const DeanFinance = () => {
               : 'bg-blue-50 border-blue-100 text-blue-900'
           }`}>
             <div className={`absolute -right-4 -bottom-4 opacity-10 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-200'}`}>
-              <IndianRupee className="w-32 h-32" />
+              <TrendingUp className="w-32 h-32" />
             </div>
             <div className="relative z-10">
-              <h4 className="text-lg font-bold mb-2">Need Financial Assistance?</h4>
-              <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-blue-200/70' : 'text-blue-700/80'}`}>Generate automated recovery notices for students with overdue balances exceeding ₹10,000.</p>
-              <Button 
-                className="w-full font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
-                onClick={() => {}}
-              >
-                Run Recovery Notice
-              </Button>
+              <h4 className="text-lg font-bold mb-2">Collection Target Progress</h4>
+              <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-blue-200/70' : 'text-blue-700/80'}`}>
+                Our current fee collection rate is <strong>{dashboardData?.stats?.collection_rate || 0}%</strong>. A collection rate of <strong>95%</strong> is required to meet this semester's targets.
+              </p>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
+                <div 
+                  className="bg-primary h-2.5 rounded-full transition-all" 
+                  style={{ width: `${Math.min(100, dashboardData?.stats?.collection_rate || 0)}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs font-semibold">
+                <span>Current: {dashboardData?.stats?.collection_rate || 0}%</span>
+                <span>Target: 95%</span>
+              </div>
             </div>
           </div>
 

@@ -37,13 +37,15 @@ const DeanAttendanceFilters = () => {
   const [data, setData] = useState<any>(null);
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<string>("hod");
+  const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [selectedPersonSummary, setSelectedPersonSummary] = useState<any>(null);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [startDatePopoverOpen, setStartDatePopoverOpen] = useState(false);
   const [endDatePopoverOpen, setEndDatePopoverOpen] = useState(false);
   const [leavesPage, setLeavesPage] = useState(1);
+  const [isPersonSelectOpen, setIsPersonSelectOpen] = useState(false);
+
 
   const fetchData = async () => {
     setLoading(true);
@@ -71,10 +73,18 @@ const DeanAttendanceFilters = () => {
   }, []);
 
   const summary = data?.summary;
-  const isMonthly = summary?.period;
+  const isMonthly = useMemo(() => Boolean(startDate && endDate), [startDate, endDate]);
   const hodList = useMemo(() => summary?.hods || [], [summary]);
   const adminList = useMemo(() => summary?.admins || data?.data?.admins || summary?.admin_present_list || [], [summary, data?.data?.admins]);
-  const totalRangeDays = isMonthly ? (data?.summary?.period?.total_days || 0) : 1;
+  const totalRangeDays = useMemo(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+    return 1;
+  }, [startDate, endDate]);
 
   const handleFilter = () => {
     // The loadPerson useEffect will automatically trigger when startDate/endDate changes
@@ -125,13 +135,15 @@ const DeanAttendanceFilters = () => {
               mobile_number: selectedAdmin.mobile || "",
               address: "",
               bio: "",
-              weekly_hours: 0,
-              present_days: presentDays,
-              absent_days: Math.max(0, totalRangeDays - presentDays),
-              leave_days: 0,
-              unmarked_days: Math.max(0, totalRangeDays - presentDays),
-              total_days: totalRangeDays,
-              percent_present: totalRangeDays ? Number(((presentDays / totalRangeDays) * 100).toFixed(2)) : 0,
+              total_weekly_hours: 0,
+              attendance_summary: {
+                present_days: presentDays,
+                absent_days: Math.max(0, totalRangeDays - presentDays),
+                leave_days: 0,
+                unmarked_days: Math.max(0, totalRangeDays - presentDays),
+                total_days: totalRangeDays,
+                percent_present: totalRangeDays ? Number(((presentDays / totalRangeDays) * 100).toFixed(2)) : 0,
+              }
             });
           }
         }
@@ -193,9 +205,10 @@ const DeanAttendanceFilters = () => {
                     <Select value={selectedRole} onValueChange={(value) => {
                       setSelectedRole(value);
                       setSelectedPersonId(null);
+                      setIsPersonSelectOpen(true);
                     }}>
                       <SelectTrigger className={`w-full lg:w-[120px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
-                        <SelectValue />
+                        <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="hod">HOD</SelectItem>
@@ -208,9 +221,9 @@ const DeanAttendanceFilters = () => {
                     <label htmlFor="dean-filter-person" className={`block text-sm font-semibold mb-2 ${theme === "dark" ? "text-foreground" : "text-gray-700"}`}>
                       Select
                     </label>
-                    <Select value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value || null)}>
+                    <Select disabled={!selectedRole} open={isPersonSelectOpen} onOpenChange={setIsPersonSelectOpen} value={selectedPersonId || ""} onValueChange={(value) => setSelectedPersonId(value || null)}>
                       <SelectTrigger className={`w-full lg:w-[180px] ${theme === "dark" ? "bg-background border-border" : "bg-white border-gray-300"}`}>
-                        <SelectValue placeholder={selectedRole === "hod" ? "Select hod" : "Select admin"} />
+                        <SelectValue placeholder={!selectedRole ? "Select role first" : (selectedRole === "hod" ? "Select HOD" : "Select Admin")} />
                       </SelectTrigger>
                       <SelectContent>
                         {selectedRole === "hod" && hodList.map((h: any) => (
@@ -267,7 +280,7 @@ const DeanAttendanceFilters = () => {
 
           {isMonthly && (
             <div className={`mt-2 text-sm ${theme === "dark" ? "text-muted-foreground" : "text-gray-600"}`}>
-              Showing data from {data.summary.period.start_date} to {data.summary.period.end_date} ({data.summary.period.total_days} days)
+              Showing data from {startDate} to {endDate} ({totalRangeDays} {totalRangeDays === 1 ? "day" : "days"})
             </div>
           )}
 
