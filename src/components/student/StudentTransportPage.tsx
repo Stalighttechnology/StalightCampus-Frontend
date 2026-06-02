@@ -1,14 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
+import { Button } from "../ui/button";
 import {
   fetchMyBusDetails, fetchMyTripHistory, submitStudentComplaint
 } from "../../utils/transport_api";
 import {
   Bus, MapPin, Clock, Calendar, CheckCircle, XCircle,
-  AlertTriangle, Navigation, Send, ChevronRight, Activity, Radio
+  AlertTriangle, Navigation, Send, ChevronRight, ChevronLeft, Activity, Radio, Sunrise, Sunset
 } from "lucide-react";
+
+const formatTimeTo12Hour = (timeStr: string) => {
+  if (!timeStr || timeStr === 'N/A' || timeStr === '—') return timeStr;
+  try {
+    const parts = timeStr.split(':');
+    if (parts.length < 2) return timeStr;
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1], 10);
+    if (isNaN(hours) || isNaN(minutes)) return timeStr;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    return `${formattedHours.toString().padStart(2, '0')}:${formattedMinutes} ${ampm}`;
+  } catch (e) {
+    return timeStr;
+  }
+};
 
 const StudentTransportPage: React.FC = () => {
   const { theme } = useTheme();
@@ -27,6 +45,8 @@ const StudentTransportPage: React.FC = () => {
   const input = theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400';
 
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     (async () => {
@@ -46,6 +66,7 @@ const StudentTransportPage: React.FC = () => {
         setHistoryLoading(false);
       })();
     }
+    setCurrentPage(1);
   }, [tab]);
 
   const handleComplaint = async () => {
@@ -73,10 +94,16 @@ const StudentTransportPage: React.FC = () => {
 
   const statusIcon = (s: string) => s === 'boarded' ? <CheckCircle size={14} className="text-emerald-500" /> : s === 'absent' ? <XCircle size={14} className="text-red-500" /> : <Clock size={14} className="text-amber-500" />;
 
+  const totalPages = Math.ceil(history.length / itemsPerPage);
+  const paginatedHistory = history.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      <Card className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
-        <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
+      <Card id="transport-card" className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
+        <CardHeader id="transport-header" className="p-3 sm:p-4 lg:p-6 border-b">
           <div className="flex items-center gap-3">
             <div>
               <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>My Transport</CardTitle>
@@ -128,8 +155,12 @@ const StudentTransportPage: React.FC = () => {
                       <Radio size={16} className="text-emerald-500 animate-pulse" />
                       <p className="font-semibold text-emerald-700 dark:text-emerald-400">Your bus is currently running!</p>
                     </div>
-                    <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      {busData.active_trip.trip_type === 'morning' ? '🌅 Morning' : '🌇 Evening'} trip started at {new Date(busData.active_trip.start_time).toLocaleTimeString()}
+                    <p className={`text-xs mt-1 flex items-center gap-1.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      {busData.active_trip.trip_type === 'morning' ? (
+                        <><Sunrise size={12} className="text-amber-500" /> Morning</>
+                      ) : (
+                        <><Sunset size={12} className="text-amber-500" /> Evening</>
+                      )} trip started at {new Date(busData.active_trip.start_time).toLocaleTimeString()}
                     </p>
                   </div>
                   {busData.active_trip.current_latitude && (
@@ -157,12 +188,16 @@ const StudentTransportPage: React.FC = () => {
                     </p>
                     <div className="grid grid-cols-2 gap-3 mt-3">
                       <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-                        <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>🌅 Morning</p>
-                        <p className="font-semibold text-sm">{busData.allocation?.route_details?.morning_start_time || 'N/A'}</p>
+                        <p className={`text-xs mb-1 flex items-center gap-1.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          <Sunrise size={12} className="text-amber-500" /> Morning
+                        </p>
+                        <p className="font-semibold text-sm">{formatTimeTo12Hour(busData.allocation?.route_details?.morning_start_time) || 'N/A'}</p>
                       </div>
                       <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
-                        <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>🌇 Evening</p>
-                        <p className="font-semibold text-sm">{busData.allocation?.route_details?.evening_start_time || 'N/A'}</p>
+                        <p className={`text-xs mb-1 flex items-center gap-1.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          <Sunset size={12} className="text-amber-500" /> Evening
+                        </p>
+                        <p className="font-semibold text-sm">{formatTimeTo12Hour(busData.allocation?.route_details?.evening_start_time) || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
@@ -176,8 +211,10 @@ const StudentTransportPage: React.FC = () => {
                   <div>
                     <p className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Your Boarding Stop</p>
                     <p className="font-semibold text-base">{busData.allocation?.stop_details?.stop_name}</p>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
-                      🌅 {busData.allocation?.stop_details?.arrival_time_morning || 'N/A'} · 🌇 {busData.allocation?.stop_details?.arrival_time_evening || 'N/A'}
+                    <p className={`text-xs flex items-center gap-3 mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+                      <span className="flex items-center gap-1"><Sunrise size={12} className="text-amber-500" /> {formatTimeTo12Hour(busData.allocation?.stop_details?.arrival_time_morning) || 'N/A'}</span>
+                      <span className="opacity-40">·</span>
+                      <span className="flex items-center gap-1"><Sunset size={12} className="text-amber-500" /> {formatTimeTo12Hour(busData.allocation?.stop_details?.arrival_time_evening) || 'N/A'}</span>
                     </p>
                   </div>
                 </div>
@@ -191,7 +228,10 @@ const StudentTransportPage: React.FC = () => {
                     <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
                       <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Bus Number</p>
                       <p className="font-semibold text-sm">{busData.bus_assignment?.bus_details?.bus_number}</p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{busData.bus_assignment?.bus_details?.model_name}</p>
+                      <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+                        {busData.bus_assignment?.bus_details?.model_name}
+                        {busData.bus_assignment?.bus_details?.registration_number && ` (${busData.bus_assignment.bus_details.registration_number})`}
+                      </p>
                     </div>
                     <div className={`rounded-xl p-3 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
                       <p className={`text-xs mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Driver</p>
@@ -213,8 +253,19 @@ const StudentTransportPage: React.FC = () => {
                         <div key={s.id} className="flex items-start gap-3 relative">
                           <div className={`absolute -left-[1.35rem] w-3.5 h-3.5 rounded-full border-2 border-white mt-0.5 ${isMyStop ? 'bg-primary' : 'bg-gray-300'}`} />
                           <div className={`flex-1 rounded-xl p-2.5 ${isMyStop ? theme === 'dark' ? 'bg-primary/20 border border-primary/40' : 'bg-primary/5 border border-primary/20' : ''}`}>
-                            <p className={`text-sm font-semibold ${isMyStop ? 'text-primary' : ''}`}>{s.stop_name} {isMyStop ? '← You' : ''}</p>
-                            <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>🌅 {s.arrival_time_morning || '—'} · 🌇 {s.arrival_time_evening || '—'}</p>
+                            <div className="flex items-center gap-2">
+                              <p className={`text-sm font-semibold ${isMyStop ? 'text-primary' : ''}`}>{s.stop_name}</p>
+                              {isMyStop && (
+                                <span className={`px-1.5 py-0.5 text-[10px] rounded-md font-bold uppercase tracking-wider ${theme === 'dark' ? 'bg-primary/30 text-primary-foreground' : 'bg-primary/10 text-primary'}`}>
+                                  You
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-xs mt-1 flex items-center gap-3 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              <span className="flex items-center gap-1"><Sunrise size={11} className="text-amber-500" /> {formatTimeTo12Hour(s.arrival_time_morning) || '—'}</span>
+                              <span className="opacity-40">·</span>
+                              <span className="flex items-center gap-1"><Sunset size={11} className="text-amber-500" /> {formatTimeTo12Hour(s.arrival_time_evening) || '—'}</span>
+                            </p>
                           </div>
                         </div>
                       );
@@ -239,15 +290,23 @@ const StudentTransportPage: React.FC = () => {
             </div>
           ) : (
             <div className="divide-y divide-inherit">
-              {history.map((h: any) => (
+              {paginatedHistory.map((h: any) => (
                 <div key={h.id} className="flex items-center justify-between px-5 py-4 hover:bg-primary/5 transition-all">
                   <div className="flex items-center gap-3">
                     {statusIcon(h.status)}
                     <div>
                       <p className="font-semibold text-sm">{h.trip_log_details?.route_details?.route_name}</p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                        {new Date(h.trip_log_details?.start_time).toLocaleDateString()} · {h.trip_log_details?.trip_type === 'morning' ? '🌅 Morning' : '🌇 Evening'} · 📍 {h.stop_details?.stop_name}
-                      </p>
+                      <div className={`flex flex-wrap items-center gap-2 mt-0.5 text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        <span>{new Date(h.trip_log_details?.start_time).toLocaleDateString()}</span>
+                        <span className="opacity-40">·</span>
+                        {h.trip_log_details?.trip_type === 'morning' ? (
+                          <span className="flex items-center gap-1"><Sunrise size={12} className="text-amber-500" /> Morning</span>
+                        ) : (
+                          <span className="flex items-center gap-1"><Sunset size={12} className="text-amber-500" /> Evening</span>
+                        )}
+                        <span className="opacity-40">·</span>
+                        <span className="flex items-center gap-1"><MapPin size={12} className="text-primary" /> {h.stop_details?.stop_name}</span>
+                      </div>
                     </div>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${h.status === 'boarded' ? 'bg-emerald-100 text-emerald-700' : h.status === 'absent' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}`}>{h.status}</span>
@@ -309,6 +368,41 @@ const StudentTransportPage: React.FC = () => {
         </div>
       )}
         </CardContent>
+
+        {tab === 'history' && history.length > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * itemsPerPage + 1, history.length)} to {Math.min(currentPage * itemsPerPage, history.length)} of {history.length} trips
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

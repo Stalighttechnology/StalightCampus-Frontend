@@ -170,9 +170,9 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
       className={`w-full space-y-6 ${theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"
         }`}
     >
-      <Card className={cardCls}>
+      <Card id="class-schedule-card" className={cardCls}>
         {/* ── Card Header ──────────────────────────────────────────────── */}
-        <CardHeader className="border-b border-border/50 pb-4">
+        <CardHeader id="class-schedule-header" className="border-b border-border/50 pb-4">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-primary/10">
               <CalendarDays className="w-5 h-5 text-primary" />

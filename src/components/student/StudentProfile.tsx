@@ -20,6 +20,12 @@ import { showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/swe
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, parseISO } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type StudentForm = Record<string, any>;
 
@@ -168,6 +174,22 @@ const getBrowserLogo = (browser: string, size: number): React.ReactNode => {
 const StudentProfile: React.FC = () => {
   const { theme } = useTheme();
   const updateProfileMutation = useStudentProfileUpdateMutation();
+
+  const getInputClassName = (isEditable: boolean = true, additionalClasses: string = '') => {
+    const isReadOnly = !isEditable || !editing;
+    return cn(
+      "transition-all focus-visible:outline-none",
+      theme === 'dark'
+        ? isReadOnly
+          ? 'bg-muted/60 text-muted-foreground border-border/60 cursor-default focus-visible:ring-0 focus-visible:ring-offset-0 hover:border-border/60'
+          : 'bg-background text-foreground border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+        : isReadOnly
+          ? 'bg-gray-100/80 text-gray-500 border-gray-200 cursor-default focus-visible:ring-0 focus-visible:ring-offset-0 hover:border-gray-200'
+          : 'bg-white text-gray-900 border-gray-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+      additionalClasses.includes('text-') ? '' : 'text-[16px] sm:text-sm',
+      additionalClasses
+    );
+  };
 
   const [form, setForm] = useState<StudentForm>({
     // Basic User Fields
@@ -786,7 +808,7 @@ const StudentProfile: React.FC = () => {
               </div>
             </div>
 
-            <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
+            <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full custom-scrollbar">
               <div className="flex items-center gap-1 sm:gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0">
                 <button onClick={() => setActiveTab('profile')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'profile' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Profile</button>
                 <button onClick={() => setActiveTab('personal')} className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[14px] sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'personal' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Personal</button>
@@ -803,34 +825,34 @@ const StudentProfile: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>First Name</Label>
-                        <Input name="first_name" value={form.first_name} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-gray-100 text-gray-500 border-gray-300'}`} />
+                        <Input name="first_name" value={form.first_name} readOnly className={getInputClassName(false)} />
                       </div>
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Last Name</Label>
-                        <Input name="last_name" value={form.last_name} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-gray-100 text-gray-500 border-gray-300'}`} />
+                        <Input name="last_name" value={form.last_name} readOnly className={getInputClassName(false)} />
                       </div>
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>USN</Label>
-                        <Input name="usn" value={form.usn} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-gray-100 text-gray-500 border-gray-300'}`} />
+                        <Input name="usn" value={form.usn} readOnly className={getInputClassName(false)} />
                       </div>
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Email</Label>
-                        <Input name="email" value={form.email} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="email" value={form.email} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                       <div>
                         <Label className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Phone</Label>
-                        <Input name="phone" value={form.phone} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="phone" value={form.phone} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Address</Label>
-                      <Input name="address" value={form.address} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="address" value={form.address} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>About</Label>
-                      <Textarea name="about" value={form.about} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Textarea name="about" value={form.about} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                   </div>
                 }
@@ -841,60 +863,144 @@ const StudentProfile: React.FC = () => {
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Birth</Label>
-                      <Input name="date_of_birth" type="date" value={form.date_of_birth || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      {editing ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal h-10 text-[16px] sm:text-sm flex items-center justify-between",
+                                !form.date_of_birth && "text-muted-foreground",
+                                theme === 'dark' ? 'bg-background text-foreground border-input' : 'bg-white text-gray-900 border-gray-300'
+                              )}
+                            >
+                              {form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? (
+                                format(parseISO(form.date_of_birth), "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="h-4 w-4 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              captionLayout="dropdown"
+                              fromYear={1930}
+                              toYear={new Date().getFullYear()}
+                              selected={form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? parseISO(form.date_of_birth) : undefined}
+                              onSelect={(date) => {
+                                if (date) {
+                                  const formatted = format(date, "yyyy-MM-dd");
+                                  setForm((prev) => ({ ...prev, date_of_birth: formatted }));
+                                } else {
+                                  setForm((prev) => ({ ...prev, date_of_birth: "" }));
+                                }
+                              }}
+                              disabled={(date) =>
+                                date > new Date() || date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                              classNames={{
+                                caption_dropdowns: "flex justify-center gap-1.5 items-center mx-8",
+                                caption_label: "hidden",
+                              }}
+                              components={{
+                                Dropdown: ({ value, onChange, children }: any) => {
+                                  const options = React.Children.toArray(children) as React.ReactElement[];
+                                  const selectedOption = options.find((opt) => opt.props.value === value);
+                                  const selectedLabel = selectedOption ? selectedOption.props.children : "";
+
+                                  return (
+                                    <Select
+                                      value={value?.toString()}
+                                      onValueChange={(val) => {
+                                        if (onChange) {
+                                          const dummyEvent = {
+                                            target: { value: val },
+                                          } as unknown as React.ChangeEvent<HTMLSelectElement>;
+                                          onChange(dummyEvent);
+                                        }
+                                      }}
+                                    >
+                                      <SelectTrigger className="h-8 py-0.5 px-2 text-xs font-semibold bg-background border border-input rounded-md min-w-[75px] max-w-[95px] flex items-center justify-between">
+                                        <SelectValue>{selectedLabel}</SelectValue>
+                                      </SelectTrigger>
+                                      <SelectContent className="max-h-[220px] overflow-y-auto">
+                                        {options.map((opt) => (
+                                          <SelectItem key={opt.props.value} value={opt.props.value.toString()} className="text-xs">
+                                            {opt.props.children}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  );
+                                }
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <Input
+                          name="date_of_birth"
+                          value={form.date_of_birth && !isNaN(new Date(form.date_of_birth).getTime()) ? format(parseISO(form.date_of_birth), "dd/MM/yyyy") : "—"}
+                          readOnly
+                          className={getInputClassName(false)}
+                        />
+                      )}
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
-                      <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Primary Language</Label>
-                      <Input name="primary_language" value={form.primary_language || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="primary_language" value={form.primary_language || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Aadhaar Number</Label>
-                      <Input name="aadhaar_number" value={form.aadhaar_number || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="aadhaar_number" value={form.aadhaar_number || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>PAN / Passport</Label>
-                      <Input name="pan_number" value={form.pan_number || ''} onChange={handleChange} placeholder="PAN" readOnly={!editing} className={`text-[16px] sm:text-sm mb-2 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
-                      <Input name="passport_number" value={form.passport_number || ''} onChange={handleChange} placeholder="Passport" readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="pan_number" value={form.pan_number || ''} onChange={handleChange} placeholder="PAN" readOnly={!editing} className={getInputClassName(true, 'mb-2')} />
+                      <Input name="passport_number" value={form.passport_number || ''} onChange={handleChange} placeholder="Passport" readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Nationality</Label>
-                      <Input name="nationality" value={form.nationality || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="nationality" value={form.nationality || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Religion / Caste</Label>
-                      <Input name="religion" value={form.religion || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm mb-2 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
-                      <Input name="caste" value={form.caste || ''} onChange={handleChange} placeholder="Caste (optional)" readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="religion" value={form.religion || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'mb-2')} />
+                      <Input name="caste" value={form.caste || ''} onChange={handleChange} placeholder="Caste (optional)" readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Alternate Mobile</Label>
-                      <Input name="alternate_mobile" value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="alternate_mobile" value={form.alternate_mobile || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Personal Email</Label>
-                      <Input name="personal_email" value={form.personal_email || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="personal_email" value={form.personal_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Institutional Email</Label>
-                      <Input name="institutional_email" value={form.institutional_email || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input name="institutional_email" value={form.institutional_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>City / State / PIN</Label>
                       <div className="grid grid-cols-3 gap-2">
-                        <Input name="city" value={form.city || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
-                        <Input name="state" value={form.state || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
-                        <Input name="pin_code" value={form.pin_code || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="city" value={form.city || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                        <Input name="state" value={form.state || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
+                        <Input name="pin_code" value={form.pin_code || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                       </div>
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Permanent Address</Label>
-                      <Textarea name="address_permanent" value={form.address_permanent || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Textarea name="address_permanent" value={form.address_permanent || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -916,7 +1022,7 @@ const StudentProfile: React.FC = () => {
                           </label>
                         )}
                       </div>
-                      <Textarea name="address_current" value={form.address_current || ''} onChange={handleChange} readOnly={!editing || sameAsPermament} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Textarea name="address_current" value={form.address_current || ''} onChange={handleChange} readOnly={!editing || sameAsPermament} className={getInputClassName(!sameAsPermament, 'text-[14px]')} />
                     </div>
                   </div>
 
@@ -924,7 +1030,7 @@ const StudentProfile: React.FC = () => {
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>LinkedIn</Label>
                       <div className="flex gap-2">
-                        <Input name="linkedin" value={form.linkedin || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm flex-1 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="linkedin" value={form.linkedin || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'flex-1')} />
                         {form.linkedin && (
                           <Button
                             size="sm"
@@ -940,7 +1046,7 @@ const StudentProfile: React.FC = () => {
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>GitHub / Portfolio</Label>
                       <div className="flex gap-2 mb-2">
-                        <Input name="github" value={form.github || ''} onChange={handleChange} placeholder="GitHub" readOnly={!editing} className={`text-[16px] sm:text-sm flex-1 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="github" value={form.github || ''} onChange={handleChange} placeholder="GitHub" readOnly={!editing} className={getInputClassName(true, 'flex-1')} />
                         {form.github && (
                           <Button
                             size="sm"
@@ -953,7 +1059,7 @@ const StudentProfile: React.FC = () => {
                         )}
                       </div>
                       <div className="flex gap-2">
-                        <Input name="portfolio" value={form.portfolio || ''} onChange={handleChange} placeholder="Portfolio URL" readOnly={!editing} className={`text-[14px] sm:text-sm flex-1 ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="portfolio" value={form.portfolio || ''} onChange={handleChange} placeholder="Portfolio URL" readOnly={!editing} className={getInputClassName(true, 'text-[14px] flex-1')} />
                         {form.portfolio && (
                           <Button
                             size="sm"
@@ -974,15 +1080,15 @@ const StudentProfile: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Father's Name</Label>
-                          <Input name="father_name" value={form.father_name || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                          <Input name="father_name" value={form.father_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                           <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Father's Contact</Label>
-                          <Input name="father_contact" value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                          <Input name="father_contact" value={form.father_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                         </div>
                         <div>
                           <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mother's Name</Label>
-                          <Input name="mother_name" value={form.mother_name || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                          <Input name="mother_name" value={form.mother_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                           <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Mother's Contact</Label>
-                          <Input name="mother_contact" value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                          <Input name="mother_contact" value={form.mother_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                         </div>
                       </div>
                     </div>
@@ -1017,15 +1123,15 @@ const StudentProfile: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Name</Label>
-                            <Input name="guardian_name" value={form.guardian_name || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                            <Input name="guardian_name" value={form.guardian_name || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                             <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Relationship</Label>
-                            <Input name="guardian_relationship" value={form.guardian_relationship || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                            <Input name="guardian_relationship" value={form.guardian_relationship || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                           </div>
                           <div>
                             <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Guardian Contact</Label>
-                            <Input name="guardian_phone" value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                            <Input name="guardian_phone" value={form.guardian_phone || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                             <Label className={`mt-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Guardian Email</Label>
-                            <Input name="guardian_email" value={form.guardian_email || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                            <Input name="guardian_email" value={form.guardian_email || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                           </div>
                         </div>
                       )}
@@ -1039,23 +1145,23 @@ const StudentProfile: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Blood Group</Label>
-                        <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="blood_group" value={form.blood_group || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Emergency Contact</Label>
-                        <Input name="emergency_contact" value={form.emergency_contact || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="emergency_contact" value={form.emergency_contact || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Allergies</Label>
-                        <Input name="allergies" value={form.allergies || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="allergies" value={form.allergies || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                       <div>
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Disabilities</Label>
-                        <Input name="disabilities" value={form.disabilities || ''} onChange={handleChange} readOnly={!editing} className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Input name="disabilities" value={form.disabilities || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true)} />
                       </div>
                       <div className="md:col-span-2">
                         <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Medical History / Notes</Label>
-                        <Textarea name="medical_history" value={form.medical_history || ''} onChange={handleChange} readOnly={!editing} className={`text-[14px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                        <Textarea name="medical_history" value={form.medical_history || ''} onChange={handleChange} readOnly={!editing} className={getInputClassName(true, 'text-[14px]')} />
                       </div>
                     </div>
                   </div>
@@ -1066,47 +1172,45 @@ const StudentProfile: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Current Semester</Label>
-                      <Input value={form.current_semester} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.current_semester} readOnly className={getInputClassName(false)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Section</Label>
-                      <Input value={form.section} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.section} readOnly className={getInputClassName(false)} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Enrollment Year</Label>
-                      <Input value={form.enrollment_year || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.enrollment_year || ''} readOnly className={getInputClassName(false)} />
                     </div>
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Expected Graduation</Label>
-                      <Input value={form.expected_graduation || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.expected_graduation || ''} readOnly className={getInputClassName(false)} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Proctor</Label>
-                      <Input value={form.proctor ? form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '' : ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.proctor ? form.proctor.first_name || form.proctor.username ? `${form.proctor.first_name || ''} ${form.proctor.last_name || ''}`.trim() : form.proctor.username || '' : ''} readOnly className={getInputClassName(false)} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Student Status</Label>
-                      <Input value={form.student_status || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.student_status || ''} readOnly className={getInputClassName(false)} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Mode of Admission</Label>
-                      <Input value={form.mode_of_admission || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.mode_of_admission || ''} readOnly className={getInputClassName(false)} />
                     </div>
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Batch</Label>
-                      <Input value={form.batch || ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.batch || ''} readOnly className={getInputClassName(false)} />
                     </div>
-
-
 
                     <div>
                       <Label className={theme === 'dark' ? 'text-foreground' : 'text-gray-700'}>Date of Admission</Label>
-                      <Input value={form.date_of_admission ? form.date_of_admission.length > 10 ? form.date_of_admission.slice(0, 10) : form.date_of_admission : ''} readOnly className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`} />
+                      <Input value={form.date_of_admission ? form.date_of_admission.length > 10 ? form.date_of_admission.slice(0, 10) : form.date_of_admission : ''} readOnly className={getInputClassName(false)} />
                     </div>
                   </div>
                 }

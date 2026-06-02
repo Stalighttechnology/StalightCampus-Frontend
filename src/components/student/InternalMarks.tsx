@@ -312,8 +312,8 @@ const InternalMarks = () => {
     return (
       <div className={`min-h-screen w-full overflow-x-hidden space-y-4 px-4 sm:px-0 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         {/* Chart Section */}
-        <Card className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-          <CardHeader className={theme === 'dark' ? 'bg-card text-card-foreground border-b border-border' : 'bg-white text-gray-900 border-b border-gray-200'}>
+        <Card id="marks-overview-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+          <CardHeader id="marks-overview-card-header" className={theme === 'dark' ? 'bg-card text-card-foreground border-b border-border' : 'bg-white text-gray-900 border-b border-gray-200'}>
             <CardTitle className={theme === 'dark' ? 'text-sm sm:text-base text-card-foreground' : 'text-sm sm:text-base text-gray-900'}> Performance Overview</CardTitle>
           </CardHeader>
           <CardContent className={theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}>
@@ -332,7 +332,7 @@ const InternalMarks = () => {
         </div>
 
         {/* Table */}
-        <div className={`rounded-md overflow-hidden ${theme === 'dark' ? 'border-border bg-card text-card-foreground' : 'border-gray-200 bg-white text-gray-900'}`}>
+        <div id="marks-table-card" className={`rounded-md overflow-hidden ${theme === 'dark' ? 'border-border bg-card text-card-foreground' : 'border-gray-200 bg-white text-gray-900'}`}>
           <SkeletonTable rows={8} cols={5} />
         </div>
       </div>

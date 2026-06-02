@@ -71,9 +71,19 @@ const StudentAssignments = () => {
     }
   };
 
+  const isFirstMount = React.useRef(true);
+
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
-      fetchAssignments(1);
+      if (currentPage === 1) {
+        fetchAssignments(1);
+      } else {
+        setCurrentPage(1);
+      }
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm, filterStatus]);
@@ -258,33 +268,37 @@ const StudentAssignments = () => {
 
   return (
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignments</h1>
-          <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-            Track, view, and submit your academic assignments and projects.
-          </p>
-        </CardHeader>
-        <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
-          {/* Stats row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
-            {[
-            { label: 'Total', value: stats.total, icon: FileText, color: 'text-gray-400', bg: 'bg-gray-400/10' },
-            { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-            { label: 'Submitted', value: stats.submitted, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
-            { label: 'Overdue', value: stats.overdue, icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-500/10' }].
-            map((stat, i) =>
-            <div key={i} className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} flex items-center gap-4 border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
-                <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shrink-0`}>
-                  <stat.icon size={20} />
+      <Card id="student-assignments-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <div id="student-assignments-header-stats">
+          <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
+            <h1 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignments</h1>
+            <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+              Track, view, and submit your academic assignments and projects.
+            </p>
+          </CardHeader>
+          <div className="p-3 sm:p-4 lg:p-6 pb-0">
+            {/* Stats row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+              {[
+              { label: 'Total', value: stats.total, icon: FileText, color: 'text-gray-400', bg: 'bg-gray-400/10' },
+              { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+              { label: 'Submitted', value: stats.submitted, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
+              { label: 'Overdue', value: stats.overdue, icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-500/10' }].
+              map((stat, i) =>
+              <div key={i} className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} flex items-center gap-4 border ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                  <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shrink-0`}>
+                    <stat.icon size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-muted-foreground">{stat.label}</p>
+                    <p className="text-xl sm:text-2xl font-semibold mt-0.5">{stat.value}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-muted-foreground">{stat.label}</p>
-                  <p className="text-xl sm:text-2xl font-semibold mt-0.5">{stat.value}</p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
+        </div>
+        <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6 pt-0 sm:pt-0 lg:pt-0">
 
           {/* Search & Filter Toolbar */}
           <div className={`p-4 rounded-xl border border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/50'}`}>
