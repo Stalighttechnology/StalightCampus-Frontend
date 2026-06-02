@@ -3,6 +3,7 @@ import { useLoginLogic } from "../../hooks/useLoginLogic";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { LockKeyhole, User, Shield, Eye, EyeOff } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface LoginProps {
   setRole: (role: string) => void;
@@ -216,11 +217,10 @@ const Login = ({ setRole, setPage, setUser }: LoginProps) => {
               )}
             </Button>
 
-            <div className="text-center text-gray-400 text-sm">
-              {" "}
-              <span className="text-primary hover:text-primary/80 cursor-pointer transition-colors duration-300">
-                
-              </span>
+            <div className="mt-8 text-center text-xs text-gray-500">
+              <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+              <span className="mx-2">•</span>
+              <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
             </div>
           </motion.div>
         </div>
