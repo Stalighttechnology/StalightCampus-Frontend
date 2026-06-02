@@ -7,6 +7,7 @@ import Index from "./components/common/Index";
 import { PwaInstaller } from "./components/pwa/PwaInstaller";
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
@@ -88,7 +89,12 @@ const AppContent = () => {
   useEffect(() => {
     initErrorLogger();
     if (Capacitor.isNativePlatform()) {
-      CapacitorUpdater.notifyAppReady();
+      CapacitorUpdater.notifyAppReady()
+        .then(() => SplashScreen.hide())
+        .catch((e) => {
+          console.error(e);
+          SplashScreen.hide();
+        });
     }
   }, []);
 
