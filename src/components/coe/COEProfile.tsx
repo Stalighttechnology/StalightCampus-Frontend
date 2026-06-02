@@ -8,13 +8,16 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Calendar, Eye, EyeOff } from "lucide-react";
+import { Calendar, Eye, EyeOff, Camera } from "lucide-react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonCard } from '../ui/skeleton';
 import Swal from "sweetalert2";
 import LoginActivity from '../common/LoginActivity';
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Progress } from "../ui/progress";
 
 interface COEProfile {
   user_id: number;
@@ -60,6 +63,8 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
     confirm: false
   });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     fetchProfile();
@@ -120,6 +125,66 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
       });
     }
     setEditing(false);
+  };
+
+  const handleProfilePictureSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Profile picture must be less than 50KB',
+        target: passwordDialogContentRef.current ?? document.body
+      });
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(10);
+    try {
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
+      setUploadProgress(90);
+      if (fileUrl) {
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/update/`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_picture_url: fileUrl })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          setProfile(prev => prev ? { ...prev, profile_picture: fileUrl } : null);
+          const user = JSON.parse(sessionStorage.getItem("user") || '{}');
+          user.profile_picture = fileUrl;
+          sessionStorage.setItem("user", JSON.stringify(user));
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Profile picture updated!',
+            target: passwordDialogContentRef.current ?? document.body
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message || "Failed to update profile picture",
+            target: passwordDialogContentRef.current ?? document.body
+          });
+        }
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: "Upload failed",
+        target: passwordDialogContentRef.current ?? document.body
+      });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   const handleChangePassword = async () => {
@@ -323,9 +388,38 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
       <CardContent className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-stretch">
           <div className="col-span-1 flex flex-col items-center h-full">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 flex-shrink-0">
-              {profile.first_name?.[0]}{profile.last_name?.[0]}
+            <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0">
+              <Avatar className="w-20 h-20 sm:w-24 sm:h-24 shadow-sm border border-gray-100 dark:border-gray-800">
+                {profile.profile_picture ? (
+                  <AvatarImage src={profile.profile_picture} alt={`${profile.first_name} ${profile.last_name}`} className="object-cover" />
+                ) : (
+                  <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+                    {(profile.first_name?.[0] || "") + (profile.last_name?.[0] || "")}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <label 
+                htmlFor="profile-picture-upload" 
+                className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+              >
+                <Camera className="h-4 w-4" />
+              </label>
+              <input 
+                id="profile-picture-upload" 
+                type="file" 
+                accept="image/*" 
+                onChange={handleProfilePictureSelect} 
+                className="hidden" 
+              />
             </div>
+
+            {isUploading && (
+              <div className="w-full max-w-[150px] mb-2">
+                <Progress value={uploadProgress} className="h-1" />
+                <p className="text-[10px] text-center mt-1 text-muted-foreground">Uploading...</p>
+              </div>
+            )}
+
             <div className="text-md sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
             <div className={`text-md sm:text-md mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Controller of Examinations</div>
 
