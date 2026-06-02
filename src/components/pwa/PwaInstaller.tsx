@@ -18,7 +18,7 @@ export const PwaInstaller: React.FC = () => {
 
   const [permissions, setPermissions] = useState({
     installed: false,
-    notifications: Notification.permission === 'granted',
+    notifications: typeof Notification !== 'undefined' && Notification.permission === 'granted',
   });
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export const PwaInstaller: React.FC = () => {
   const requestNotification = async () => {
     try {
       const token = await requestForToken();
-      if (token || Notification.permission === 'granted') {
+      if (token || (typeof Notification !== 'undefined' && Notification.permission === 'granted')) {
         setPermissions(p => ({ ...p, notifications: true }));
         toast.success("Notifications enabled!");
         handleClose();

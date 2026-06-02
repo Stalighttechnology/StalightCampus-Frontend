@@ -15,10 +15,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Cloud Messaging and get a reference to the service
-export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
+export let messaging: any = null;
+try {
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    messaging = getMessaging(app);
+  }
+} catch (e) {
+  console.warn("Firebase Messaging is not supported in this environment:", e);
+}
 
 export const requestForToken = async () => {
     if (!messaging) return null;
+    if (!('Notification' in window)) {
+        console.warn('This browser does not support desktop notification');
+        return null;
+    }
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
