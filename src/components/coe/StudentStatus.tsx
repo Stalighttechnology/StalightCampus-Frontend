@@ -166,7 +166,7 @@ const StudentStatus = React.forwardRef<HTMLDivElement>((props, ref) => {
         {/* Filters */}
         <Card id="coe-student-status-filters">
           <CardHeader className="pb-2">
-            <CardTitle>Student Application Status</CardTitle>
+            <CardTitle>Student Exam Application Status</CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
