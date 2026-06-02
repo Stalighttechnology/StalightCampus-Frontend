@@ -36,6 +36,7 @@ const OnboardingSuccess = lazy(() => import("./components/common/OnboardingSucce
 const SuperAdminIndex = lazy(() => import("./superadmin/index"));
 const PrivacyPolicy = lazy(() => import("./components/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./components/legal/TermsOfService"));
+const Home = lazy(() => import("./components/public/Home"));
 
 import { WardenProvider } from "./context/WardenContext";
 import { shouldShowFloatingAssistant } from "./utils/config";
@@ -101,6 +102,11 @@ const AppContent = () => {
           <Route path="/" element={
             <>
               <Index />
+            </>
+          } />
+          <Route path="/home" element={
+            <>
+              <Home />
             </>
           } />
 

@@ -296,14 +296,14 @@ const useInitialDates = (initialStartDate?: string, initialEndDate?: string) => 
   const [startDate, setStartDate] = useState<string>(() => {
     if (initialStartDate) return initialStartDate;
     const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    return firstDay.toLocaleDateString("sv-SE");
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(today.getMonth() - 1);
+    return oneMonthAgo.toLocaleDateString("sv-SE");
   });
   const [endDate, setEndDate] = useState<string>(() => {
     if (initialEndDate) return initialEndDate;
     const today = new Date();
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    return lastDay.toLocaleDateString("sv-SE");
+    return today.toLocaleDateString("sv-SE");
   });
 
   // Sync with parent props if they change after mount
@@ -496,6 +496,11 @@ const DeanFacultyProfile = ({
           .dean-profile .filters-row .flex-1 { flex: 1 1 0% !important; min-width: 0 !important; }
           .dean-profile .filters-row .flex-shrink-0 { align-self: flex-end !important; margin-top: 0 !important; }
         }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 20px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(107, 114, 128, 0.8); }
+
         @media (max-width: 480px) {
           .dean-profile .filters-row { gap: 12px !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; }
           .dean-profile .filters-row .flex-1 { width: 100% !important; min-width: 0 !important; }
@@ -777,14 +782,23 @@ const DeanFacultyProfile = ({
                   <div className="p-0">
                     <div
                       id="dean-faculty-stats-grid"
-                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8"
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8"
                     >
                       <StatsCard label="Weekly Hours" value={profile.total_weekly_hours ?? 0} color="blue" theme={theme} />
                       <StatsCard label="Present Days" value={profile.attendance_summary?.present_days ?? 0} color="green" theme={theme} />
                       <StatsCard label="Absent Days" value={profile.attendance_summary?.absent_days ?? 0} color="red" theme={theme} />
                       <StatsCard label="Attendance %" value={profile.attendance_summary?.percent_present ?? "N/A"} color="purple" theme={theme} />
-                      <StatsCard label="Leave Days" value={profile.attendance_summary?.leave_days ?? 0} color="yellow" theme={theme} />
-                      <StatsCard label="Unmarked Days" value={profile.attendance_summary?.unmarked_days ?? 0} color="amber" theme={theme} />
+                      <StatsCard 
+                        label="Leave Days" 
+                        value={
+                          <div className="flex flex-col">
+                            <span>{profile.attendance_summary?.leave_days ?? 0}</span>
+                            <span className="text-sm font-medium opacity-70">Total: {profile.attendance_summary?.total_leave_days_all_time ?? 0}</span>
+                          </div>
+                        } 
+                        color="yellow" 
+                        theme={theme} 
+                      />
                     </div>
 
                     {/* Assignments */}
@@ -889,7 +903,7 @@ const DeanFacultyProfile = ({
 
 interface StatsCardProps {
   readonly label: string;
-  readonly value: string | number;
+  readonly value: string | number | React.ReactNode;
   readonly color: "blue" | "green" | "red" | "purple" | "yellow" | "amber";
   readonly theme: string;
 }
@@ -926,9 +940,9 @@ function StatsCard({ label, value, color, theme }: StatsCardProps) {
           >
             {label}
           </p>
-          <p className={`text-4xl sm:text-3xl font-black ${theme === "dark" ? cfg.darkValue : cfg.value}`}>
+          <div className={`text-4xl sm:text-3xl font-black ${theme === "dark" ? cfg.darkValue : cfg.value}`}>
             {value}
-          </p>
+          </div>
         </div>
       </div>
     </div>
@@ -1365,7 +1379,7 @@ function FacultySearchDropdown({
               autoFocus
             />
           </div>
-          <div className="max-h-[300px] overflow-y-auto p-1 custom-scrollbar">
+          <div className="max-h-[200px] overflow-y-auto p-1 custom-scrollbar">
             {facultiesLoading && faculties.length === 0 ? (
               <div className="p-8 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
                 <div className="w-4 h-4 border-2 border-primary border-t-transparent animate-spin rounded-full" />
