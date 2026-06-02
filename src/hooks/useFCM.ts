@@ -48,15 +48,15 @@ export const useFCM = (userToken: string | null) => {
                 // Create a high-importance Android channel for WhatsApp-like heads-up alerts
                 if (Capacitor.getPlatform() === 'android') {
                     await PushNotifications.createChannel({
-                        id: 'custom_sound_alerts_v2',
-                        name: 'Stalight Alerts',
+                        id: 'custom_sound_alerts_v3',
+                        name: 'Stalight Alerts V3',
                         description: 'Heads-up notifications for important alerts',
                         importance: 5, // 5 = MAX (heads up + sound)
                         visibility: 1, // 1 = PUBLIC
                         vibration: true,
                         lights: true,
                         lightColor: '#2563eb',
-                        sound: 'notification.mp3'
+                        sound: 'notification'
                     });
                 }
 
