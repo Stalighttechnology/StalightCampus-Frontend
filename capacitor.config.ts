@@ -8,6 +8,11 @@ const config: CapacitorConfig = {
     hostname: 'campus.stalight.in',
     androidScheme: 'https',
     iosScheme: 'https'
+  },
+  plugins: {
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
+    }
   }
 };
 
