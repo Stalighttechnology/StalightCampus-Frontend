@@ -71,9 +71,19 @@ const StudentAssignments = () => {
     }
   };
 
+  const isFirstMount = React.useRef(true);
+
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
-      fetchAssignments(1);
+      if (currentPage === 1) {
+        fetchAssignments(1);
+      } else {
+        setCurrentPage(1);
+      }
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm, filterStatus]);

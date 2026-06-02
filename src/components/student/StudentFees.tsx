@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { fetchWithTokenRefresh } from '@/utils/authService';
 import { API_ENDPOINT } from '@/utils/config';
 import { SkeletonPageHeader, SkeletonStatsGrid, SkeletonTable } from "@/components/ui/skeleton";
+import { showErrorAlert, showSuccessAlert } from '@/utils/sweetalert';
 
 interface InvoiceComponent {
   id: number;
@@ -132,7 +133,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      alert("Failed to download PDF report.");
+      showErrorAlert("Download Failed", "Failed to download PDF report.");
     } finally {
       setExportingPDF(false);
     }
@@ -310,7 +311,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
 
       const keyId = razorpay_key_id || import.meta.env.VITE_RAZORPAY_KEY_ID;
       if (!order_id || !keyId) {
-        alert('Payment configuration error. Please contact support.');
+        showErrorAlert('Configuration Error', 'Payment configuration error. Please contact support.');
         return;
       }
 
@@ -342,7 +343,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
             // verification endpoint is optional; webhook will handle final state
           }
 
-          alert('Payment initiated/completed. It may take a few moments to reflect in your account.');
+          showSuccessAlert('Payment Processed', 'Payment initiated/completed. It may take a few moments to reflect in your account.');
         },
         prefill: {
           name: user?.first_name || '',
@@ -355,7 +356,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       rzp.open();
     } catch (error) {
 
-      alert('Error initiating payment. Please try again.');
+      showErrorAlert('Payment Error', 'Error initiating payment. Please try again.');
     } finally {
       setIsProcessingPayment(false);
     }
@@ -378,7 +379,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
 
-      alert('Failed to download receipt.');
+      showErrorAlert('Download Failed', 'Failed to download receipt.');
     }
   };
 
