@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Index from "./components/common/Index";
 import { PwaInstaller } from "./components/pwa/PwaInstaller";
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
+import { Capacitor } from '@capacitor/core';
 
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
@@ -85,6 +87,9 @@ const AppContent = () => {
 
   useEffect(() => {
     initErrorLogger();
+    if (Capacitor.isNativePlatform()) {
+      CapacitorUpdater.notifyAppReady();
+    }
   }, []);
 
   return (

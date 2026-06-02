@@ -39,11 +39,38 @@ if ('serviceWorker' in navigator) {
 
     navigator.serviceWorker.register(swUrl)
       .then((registration) => {
-        // Clean registration
-        registration.update();
+        // Check for updates
+        registration.onupdatefound = () => {
+          const installingWorker = registration.installing;
+          if (installingWorker == null) {
+            return;
+          }
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                // New content is available; please refresh.
+                console.log('New content is available; please refresh.');
+                // Send skip waiting message
+                registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+              } else {
+                // Content is cached for offline use.
+                console.log('Content is cached for offline use.');
+              }
+            }
+          };
+        };
       })
       .catch((error) => {
         console.error('Service worker registration failed:', error);
       });
+
+    // Listen for the controlling service worker changing to reload the page
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        window.location.reload();
+        refreshing = true;
+      }
+    });
   });
 }
