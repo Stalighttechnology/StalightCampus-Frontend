@@ -752,7 +752,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         setImmediateHistory((prev) => [newRecord, ...prev].slice(0, 5));
 
         Swal.fire({
-          title: "Class Scheduled! 🎉",
+          title: "Class Scheduled!",
           text: "Google Meet link generated. Students notified!",
           icon: "success",
           confirmButtonText: "Awesome",

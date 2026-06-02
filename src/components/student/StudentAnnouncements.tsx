@@ -31,7 +31,8 @@ import {
   Megaphone,
   BookOpen,
   Layers,
-  MapPin
+  MapPin,
+  Filter
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { fetchAnnouncements, markAnnouncementRead, Announcement } from "@/utils/announcements_api";
@@ -484,10 +485,11 @@ const StudentAnnouncements = () => {
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                <SelectTrigger className={`w-full sm:w-[160px] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200 shadow-sm'}`}>
-                  <SelectValue placeholder="Status" />
+                <SelectTrigger className="w-full sm:w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
+                  <Filter className="h-4 w-4" />
+                  <span>Filter</span>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                   <SelectItem value="all">All Items</SelectItem>
                   <SelectItem value="unread">Unread Only</SelectItem>
                   <SelectItem value="priority">By Priority</SelectItem>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../ui/card";
+import { Button } from "../ui/button";
 import {
   fetchStudentLibraryDashboard,
   fetchStudentBorrows,
@@ -10,9 +11,16 @@ import {
 import {
   BookOpen, Clock, CheckCircle, AlertTriangle,
   Search, Calendar, Tag, CreditCard, BookMarked,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, MapPin
 } from "lucide-react";
 import Swal from "sweetalert2";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "../ui/select";
 
 type TabType = 'taken' | 'overdue' | 'returned' | 'catalog';
 
@@ -38,6 +46,7 @@ const StudentLibraryPage: React.FC = () => {
   const [borrowsLoading, setBorrowsLoading] = useState(false);
   const [borrowsPage, setBorrowsPage] = useState(1);
   const [borrowsTotalPages, setBorrowsTotalPages] = useState(1);
+  const [borrowsCount, setBorrowsCount] = useState(0);
 
   // --- Catalog state ---
   const [catalogSearch, setCatalogSearch] = useState("");
@@ -45,6 +54,21 @@ const StudentLibraryPage: React.FC = () => {
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogPage, setCatalogPage] = useState(1);
   const [catalogTotalPages, setCatalogTotalPages] = useState(1);
+  const [catalogCount, setCatalogCount] = useState(0);
+
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedAvailability, setSelectedAvailability] = useState<string>("all");
+  const [categoriesList, setCategoriesList] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (catalogResults.length > 0) {
+      const cats = Array.from(new Set(catalogResults.map((b: any) => b.category).filter(Boolean))) as string[];
+      setCategoriesList(prev => {
+        const combined = [...prev, ...cats];
+        return Array.from(new Set(combined));
+      });
+    }
+  }, [catalogResults]);
 
   const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
   const card = theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100';
@@ -66,10 +90,12 @@ const StudentLibraryPage: React.FC = () => {
       const res = await fetchStudentBorrows(status, page);
       if (res && res.results) {
         setBorrows(res.results);
+        setBorrowsCount(res.count || 0);
         setBorrowsTotalPages(Math.ceil(res.count / PAGE_SIZE) || 1);
         setBorrowsPage(page);
       } else if (Array.isArray(res)) {
         setBorrows(res);
+        setBorrowsCount(res.length);
         setBorrowsTotalPages(1);
         setBorrowsPage(1);
       }
@@ -86,10 +112,12 @@ const StudentLibraryPage: React.FC = () => {
       const res = await searchCatalog(query, page);
       if (res && res.results) {
         setCatalogResults(res.results);
+        setCatalogCount(res.count || 0);
         setCatalogTotalPages(Math.ceil(res.count / PAGE_SIZE) || 1);
         setCatalogPage(page);
       } else if (Array.isArray(res)) {
         setCatalogResults(res);
+        setCatalogCount(res.length);
         setCatalogTotalPages(1);
         setCatalogPage(1);
       }
@@ -189,128 +217,150 @@ const StudentLibraryPage: React.FC = () => {
   // ─── Shared Pagination UI ─────────────────────────────────────────────────
 
   const PaginationBar = ({
-    page, totalPages, onPageChange
-  }: { page: number; totalPages: number; onPageChange: (p: number) => void }) => {
-    if (totalPages <= 1) return null;
+    page, totalPages, count, itemsPerPage, typeLabel, onPageChange
+  }: { page: number; totalPages: number; count: number; itemsPerPage: number; typeLabel: string; onPageChange: (p: number) => void }) => {
+    if (count === 0) return null;
+    const startItem = count > 0 ? (page - 1) * itemsPerPage + 1 : 0;
+    const endItem = Math.min(page * itemsPerPage, count);
     return (
-      <div className={`flex items-center justify-between px-5 py-3 border-t text-sm ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`}>
-        <span className={`${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-          Page {page} of {totalPages}
-        </span>
-        <div className="flex gap-2">
-          <button
-            disabled={page === 1}
-            onClick={() => onPageChange(page - 1)}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 ${
-              theme === 'dark'
-                ? 'bg-accent hover:bg-accent/80 text-foreground'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-            }`}
-          >
-            <ChevronLeft size={14} /> Previous
-          </button>
-          <button
-            disabled={page === totalPages}
-            onClick={() => onPageChange(page + 1)}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30 ${
-              theme === 'dark'
-                ? 'bg-accent hover:bg-accent/80 text-foreground'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-            }`}
-          >
-            Next <ChevronRight size={14} />
-          </button>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto w-full">
+        <div>
+          Showing {startItem} to {endItem} of {count} {typeLabel}
         </div>
-      </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 1}
+            className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+          >
+            Previous
+          </Button>
+
+          <div className="flex items-center justify-center min-w-[2rem]">
+            <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              {page}
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page === totalPages || totalPages === 0}
+            className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+          >
+            Next
+          </Button>
+        </div>
+      </CardFooter>
     );
   };
+
+  const filteredCatalog = catalogResults.filter(book => {
+    const matchCategory = !selectedCategory || selectedCategory === 'all' || book.category === selectedCategory;
+    const matchAvailability = selectedAvailability === 'all' || 
+      (selectedAvailability === 'available' && book.available_copies > 0) ||
+      (selectedAvailability === 'unavailable' && book.available_copies === 0);
+    return matchCategory && matchAvailability;
+  });
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-      <Card className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
-        <CardHeader className="p-3 sm:p-4 lg:p-6 border-b">
-          <div>
-            <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-              My Library
-            </CardTitle>
-            <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>
-              Track your borrowed books, returns, and search the catalog
-            </CardDescription>
-          </div>
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .library-card-header { padding: 16px !important; }
+          .library-card-title { font-size: 1.25rem !important; }
+          .library-card-desc { font-size: 0.8125rem !important; margin-top: 4px !important; }
+        }
+      `}</style>
 
-          {/* Tabs */}
-          <div className={`flex gap-2 p-2 rounded-2xl mt-6 border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-100'} shadow-sm overflow-x-auto`}>
-            {([
-              { id: 'taken',   label: 'Borrowed',       count: summary.taken_count },
-              { id: 'overdue', label: 'Overdue',         count: summary.overdue_count },
-              { id: 'returned',label: 'Returned',        count: summary.returned_count },
-              { id: 'catalog', label: 'Search Catalog' }
-            ] as const).map(t => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap px-3 ${
-                  tab === t.id
-                    ? 'bg-primary text-white shadow-md'
-                    : theme === 'dark'
-                    ? 'text-muted-foreground hover:bg-accent'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                {t.label}
-                {'count' in t && t.count > 0 && (
-                  <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    tab === t.id ? 'bg-white/20' : 'bg-primary/10 text-primary'
-                  }`}>
-                    {t.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </CardHeader>
+      <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        <Card className={`${theme === 'dark' ? 'bg-card border-border shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
+          <CardHeader className="library-card-header p-3 sm:p-4 lg:p-6 border-b w-full overflow-hidden">
+            <div>
+              <CardTitle className={`library-card-title text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                My Library
+              </CardTitle>
+              <CardDescription className={`library-card-desc whitespace-normal break-words ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Track your borrowed books, returns, and search the catalog
+              </CardDescription>
+            </div>
+
+            {/* Tabs */}
+            <div className={`library-tabs flex flex-col sm:flex-row gap-2 p-2 rounded-2xl mt-6 border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-100'} shadow-sm`}>
+              {([
+                { id: 'taken',   label: 'Borrowed',       count: summary.taken_count },
+                { id: 'overdue', label: 'Overdue',         count: summary.overdue_count },
+                { id: 'returned',label: 'Returned',        count: summary.returned_count },
+                { id: 'catalog', label: 'Search Catalog' }
+              ] as const).map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={`library-tab-btn w-full sm:flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap px-3 flex items-center justify-center gap-1.5 ${
+                    tab === t.id
+                      ? 'bg-primary text-white shadow-md'
+                      : theme === 'dark'
+                      ? 'text-muted-foreground hover:bg-accent'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {t.label}
+                  {'count' in t && t.count > 0 && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      tab === t.id ? 'bg-white/20' : 'bg-primary/10 text-primary'
+                    }`}>
+                      {t.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </CardHeader>
 
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className={`rounded-2xl border shadow-sm p-4 ${card}`}>
+            <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card}`}>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <BookMarked size={16} className="text-blue-500" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                  <BookMarked size={16} className="text-blue-500 sm:w-4 sm:h-4" />
                 </div>
-                <p className={`text-md font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Borrowed</p>
+                <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Borrowed</p>
               </div>
               <p className="text-2xl font-bold">{summary.taken_count}</p>
             </div>
 
-            <div className={`rounded-2xl border shadow-sm p-4 ${card} ${summary.overdue_count > 0 ? 'ring-2 ring-red-500/40' : ''}`}>
+            <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card} ${summary.overdue_count > 0 ? 'ring-2 ring-red-500/40' : ''}`}>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
-                  <AlertTriangle size={16} className="text-red-500" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+                  <AlertTriangle size={16} className="text-red-500 sm:w-4 sm:h-4" />
                 </div>
-                <p className={`text-md font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Overdue</p>
+                <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Overdue</p>
               </div>
               <p className={`text-2xl font-bold ${summary.overdue_count > 0 ? 'text-red-500' : ''}`}>{summary.overdue_count}</p>
             </div>
 
-            <div className={`rounded-2xl border shadow-sm p-4 ${card}`}>
+            <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card}`}>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <CheckCircle size={16} className="text-emerald-500" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <CheckCircle size={16} className="text-emerald-500 sm:w-4 sm:h-4" />
                 </div>
-                <p className={`text-md font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Returned</p>
+                <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Returned</p>
               </div>
               <p className="text-2xl font-bold">{summary.returned_count}</p>
             </div>
 
-            <div className={`rounded-2xl border shadow-sm p-4 ${card}`}>
+            <div className={`rounded-2xl border shadow-sm p-3 sm:p-4 ${card}`}>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <CreditCard size={16} className="text-amber-500" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                  <CreditCard size={16} className="text-amber-500 sm:w-4 sm:h-4" />
                 </div>
-                <p className={`text-md font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Unpaid Fines</p>
+                <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Unpaid Fines</p>
               </div>
               <p className={`text-2xl font-bold ${summary.total_unpaid_fine > 0 ? 'text-amber-500' : ''}`}>
                 ₹{summary.total_unpaid_fine.toFixed(2)}
@@ -321,37 +371,79 @@ const StudentLibraryPage: React.FC = () => {
           {/* ── Catalog Tab ── */}
           {tab === 'catalog' && (
             <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-4 top-3 w-4 h-4 opacity-50" />
-                <input
-                  type="text"
-                  placeholder="Search books by title, author, ISBN, or category..."
-                  value={catalogSearch}
-                  onChange={(e) => setCatalogSearch(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 text-sm rounded-2xl border focus:outline-none focus:ring-2 focus:ring-primary/30 ${
-                    theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200'
-                  }`}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="relative w-full">
+                  <label className="text-xs font-semibold mb-1.5 block">Search Book</label>
+                  <div className="relative">
+                    <Search className="absolute left-4 top-3 w-4 h-4 opacity-50" />
+                    <input
+                      type="text"
+                      placeholder="Search title, author, ISBN..."
+                      value={catalogSearch}
+                      onChange={(e) => setCatalogSearch(e.target.value)}
+                      className={`w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-primary/30 h-10 ${
+                        theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <label className="text-xs font-semibold mb-1.5 block">Category</label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-full h-10">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categoriesList.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="w-full">
+                  <label className="text-xs font-semibold mb-1.5 block">Availability</label>
+                  <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
+                    <SelectTrigger className="w-full h-10">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="unavailable">Unavailable</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {catalogLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
-              ) : catalogResults.length === 0 ? (
+              ) : (!selectedCategory && !catalogSearch.trim()) ? (
+                <div className={`rounded-2xl border shadow-sm p-12 text-center ${card}`}>
+                  <BookOpen size={48} className="mx-auto mb-4 opacity-20" />
+                  <p className="font-semibold mb-1">Select Category or Search</p>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    Please select a category from the dropdown or type in the search bar above to view the book catalog.
+                  </p>
+                </div>
+              ) : filteredCatalog.length === 0 ? (
                 <div className={`rounded-2xl border shadow-sm p-12 text-center ${card}`}>
                   <BookOpen size={48} className="mx-auto mb-4 opacity-20" />
                   <p className="font-semibold mb-1">No Books Found</p>
                   <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     {catalogSearch
-                      ? `No results for "${catalogSearch}". Try a different keyword.`
-                      : "Type in the search bar to discover books."}
+                      ? `No results for "${catalogSearch}". Try a different keyword or filters.`
+                      : "Type in the search bar or adjust filters to discover books."}
                   </p>
                 </div>
               ) : (
                 <div className={`rounded-2xl border shadow-sm overflow-hidden ${card}`}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                    {catalogResults.map((book) => (
+                    {filteredCatalog.map((book) => (
                       <div
                         key={book.id}
                         className={`rounded-xl border shadow-sm p-5 transition-all hover:shadow-md ${card}`}
@@ -389,9 +481,9 @@ const StudentLibraryPage: React.FC = () => {
                           )}
                           {book.physical_location && (
                             <div className="flex items-center gap-1.5">
-                              <Search size={12} className="opacity-50" />
+                              <MapPin size={12} className="opacity-50 text-primary" />
                               <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                                📍 {book.physical_location}
+                                {book.physical_location}
                               </span>
                             </div>
                           )}
@@ -417,7 +509,7 @@ const StudentLibraryPage: React.FC = () => {
           {tab !== 'catalog' && (
             <div className={`rounded-2xl border shadow-sm ${card}`}>
               <div className="p-5 border-b border-inherit">
-                <h2 className="font-bold text-base flex items-center gap-2">
+                <h2 className="font-semibold text-base flex items-center gap-2">
                   {tab === 'taken'    && <><BookMarked size={16} className="text-primary" /> Currently Borrowed</>}
                   {tab === 'overdue'  && <><AlertTriangle size={16} className="text-red-500" /> Overdue Books</>}
                   {tab === 'returned' && <><CheckCircle size={16} className="text-emerald-500" /> Return History</>}
@@ -435,7 +527,7 @@ const StudentLibraryPage: React.FC = () => {
                   {tab === 'returned' && <Calendar size={40} className="mx-auto mb-3 opacity-20" />}
                   <p className="font-semibold mb-1">
                     {tab === 'taken'    && "No books currently borrowed"}
-                    {tab === 'overdue'  && "No overdue books — you're all clear! 🎉"}
+                    {tab === 'overdue'  && "No overdue books — you're all clear!"}
                     {tab === 'returned' && "No return history yet"}
                   </p>
                   <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
@@ -452,26 +544,26 @@ const StudentLibraryPage: React.FC = () => {
 
                     return (
                       <div key={borrow.id} className="px-5 py-4 hover:bg-primary/5 transition-all">
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm truncate">
+                            <p className="font-semibold text-base sm:text-sm truncate">
                               {borrow.book_copy_details?.book_details?.title}
                             </p>
-                            <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            <p className={`text-sm sm:text-xs mt-0.5 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                               by {borrow.book_copy_details?.book_details?.author}
                             </p>
 
-                            <div className="flex flex-wrap items-center gap-3 mt-2.5">
-                              <span className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2.5">
+                              <span className={`text-sm sm:text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                                 <Calendar size={12} />
                                 Issued: {new Date(borrow.issue_date).toLocaleDateString()}
                               </span>
-                              <span className={`text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              <span className={`text-sm sm:text-xs flex items-center gap-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                                 <Clock size={12} />
                                 Due: {new Date(borrow.due_date).toLocaleDateString()}
                               </span>
                               {borrow.returned_date && (
-                                <span className="text-xs flex items-center gap-1 text-emerald-600">
+                                <span className="text-sm sm:text-xs flex items-center gap-1 text-emerald-600">
                                   <CheckCircle size={12} />
                                   Returned: {new Date(borrow.returned_date).toLocaleDateString()}
                                 </span>
@@ -479,36 +571,38 @@ const StudentLibraryPage: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="flex flex-col items-end gap-1.5 shrink-0">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold capitalize ${
-                              borrow.status === 'returned'
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
-                                : isOverdue
-                                ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 animate-pulse'
-                                : 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
-                            }`}>
-                              {borrow.status}
-                            </span>
-
-                            {borrow.status !== 'returned' && (
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                                isOverdue
-                                  ? 'text-red-500'
-                                  : daysLeft <= 3
-                                  ? 'text-amber-500'
-                                  : 'text-emerald-500'
+                          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-border/20">
+                            <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+                              <span className={`px-2.5 py-1 rounded-full text-xs sm:text-[10px] font-bold capitalize ${
+                                borrow.status === 'returned'
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
+                                  : isOverdue
+                                  ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 animate-pulse'
+                                  : 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
                               }`}>
-                                {isOverdue
-                                  ? `${Math.abs(daysLeft)} days late`
-                                  : daysLeft === 0
-                                  ? 'Due today!'
-                                  : `${daysLeft} days left`
-                                }
+                                {borrow.status}
                               </span>
-                            )}
+
+                              {borrow.status !== 'returned' && (
+                                <span className={`text-xs sm:text-[10px] font-bold px-2 py-0.5 rounded ${
+                                  isOverdue
+                                    ? 'text-red-500 bg-red-50 dark:bg-red-500/10'
+                                    : daysLeft <= 3
+                                    ? 'text-amber-500 bg-amber-50 dark:bg-amber-500/10'
+                                    : 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
+                                }`}>
+                                  {isOverdue
+                                    ? `${Math.abs(daysLeft)} days late`
+                                    : daysLeft === 0
+                                    ? 'Due today!'
+                                    : `${daysLeft} days left`
+                                  }
+                                </span>
+                              )}
+                            </div>
 
                             {borrow.fine_amount > 0 && (
-                              <span className="text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded">
+                              <span className="text-xs sm:text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded">
                                 Fine: ₹{borrow.fine_amount}
                               </span>
                             )}
@@ -524,32 +618,31 @@ const StudentLibraryPage: React.FC = () => {
         </CardContent>
 
         {/* CardFooter for Pagination */}
-        {tab === 'catalog' && catalogTotalPages > 1 && (
-          <CardFooter className="p-0">
-            <div className="w-full">
-              <PaginationBar
-                page={catalogPage}
-                totalPages={catalogTotalPages}
-                onPageChange={handleCatalogPageChange}
-              />
-            </div>
-          </CardFooter>
+        {tab === 'catalog' && (selectedCategory || catalogSearch.trim()) && (
+          <PaginationBar
+            page={catalogPage}
+            totalPages={catalogTotalPages}
+            count={catalogCount}
+            itemsPerPage={PAGE_SIZE}
+            typeLabel="books"
+            onPageChange={handleCatalogPageChange}
+          />
         )}
 
-        {tab !== 'catalog' && borrowsTotalPages > 1 && (
-          <CardFooter className="p-0">
-            <div className="w-full">
-              <PaginationBar
-                page={borrowsPage}
-                totalPages={borrowsTotalPages}
-                onPageChange={handleBorrowsPageChange}
-              />
-            </div>
-          </CardFooter>
+        {tab !== 'catalog' && (
+          <PaginationBar
+            page={borrowsPage}
+            totalPages={borrowsTotalPages}
+            count={borrowsCount}
+            itemsPerPage={PAGE_SIZE}
+            typeLabel="records"
+            onPageChange={handleBorrowsPageChange}
+          />
         )}
       </Card>
     </div>
-  );
+  </>
+);
 };
 
 export default StudentLibraryPage;

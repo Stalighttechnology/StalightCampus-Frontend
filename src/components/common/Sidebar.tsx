@@ -424,9 +424,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // Library
       { name: "Library", page: "library" },
 
-      // Interview
-      { name: "AI Interview", page: "ai-interview" },
-
       // Communication
       { name: "Announcements", page: "announcements" },
 
