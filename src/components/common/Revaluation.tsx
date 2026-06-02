@@ -23,15 +23,39 @@ type Filters = {usn: string;exam_period: string;};
 
 
 const Revaluation = () => {
+  const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.sessionStorage.getItem("role") : null;
   const [filters, setFilters] = useState<Filters>({ usn: "", exam_period: "" });
   const [students, setStudents] = useState<Array<{usn: string;name: string;student_id: number;subjects: Array<{subject_id: number;subject_name: string;cie_marks?: number;see_marks?: number;total_marks?: number;status: string;applied: boolean;subject_mark_id: number;request_details?: {status: string;types: string[];requested_at: string;processed_by?: string;processed_at?: string;response_note?: string;attachment?: string | null;};}>;}>>([]);
-  const role = typeof globalThis !== 'undefined' && globalThis.window ? globalThis.window.sessionStorage.getItem("role") : null;
   const [selectionMap, setSelectionMap] = useState<Record<number, {revaluation: boolean;photocopy: boolean;}>>({});
   const [viewModal, setViewModal] = useState<{open: boolean;request?: any;}>({ open: false });
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
   const [revalApplicationsOpen, setRevalApplicationsOpen] = useState<boolean | null>(null);
   const [feeSettings, setFeeSettings] = useState<{revaluation_fee?: number;photocopy_fee?: number;makeup_fee?: number}>({});
+
+  useEffect(() => {
+    if (role === "student") {
+      const user = typeof globalThis !== 'undefined' && globalThis.window ? JSON.parse(globalThis.window.sessionStorage.getItem("user") || '{}') : {};
+      const studentUsn = user.usn || user.username || "";
+      if (studentUsn) {
+        setFilters((prev) => ({ ...prev, usn: studentUsn }));
+      }
+    }
+  }, [role]);
+
+  if (role !== "student") {
+    return (
+      <div className={`min-h-[400px] flex flex-col items-center justify-center text-center px-4 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+        <div className="bg-red-500/10 p-4 rounded-full mb-4">
+          <svg className="w-12 h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
+        <p className="text-muted-foreground max-w-md">This page is only accessible to students.</p>
+      </div>
+    );
+  }
 
   const sanitizeMessage = (msg: string | object | null | undefined): string | null => {
     if (!msg) return null;
@@ -311,8 +335,9 @@ const Revaluation = () => {
                   id="usn-input"
                   value={filters.usn}
                   onChange={(e) => setFilters({ ...filters, usn: e.target.value })}
+                  readOnly={role === 'student'}
                   placeholder="Enter student USN"
-                  className={`w-full px-2 sm:px-3 py-2 text-xs sm:text-sm rounded border ${theme === 'dark' ?
+                  className={`w-full px-2 sm:px-3 py-2 text-xs sm:text-sm rounded border ${role === 'student' ? 'bg-muted opacity-80 cursor-not-allowed' : ''} ${theme === 'dark' ?
                   'bg-input border-border text-foreground' :
                   'bg-white border-gray-300 text-gray-900'}`
                   } />

@@ -33,6 +33,30 @@ const MakeupExam = () => {
   const [viewModal, setViewModal] = useState<{open: boolean;request?: any;}>({ open: false });
   const [makeupApplicationsOpen, setMakeupApplicationsOpen] = useState<boolean | null>(null);
 
+  useEffect(() => {
+    if (role === "student") {
+      const user = typeof globalThis !== 'undefined' && globalThis.window ? JSON.parse(globalThis.window.sessionStorage.getItem("user") || '{}') : {};
+      const studentUsn = user.usn || user.username || "";
+      if (studentUsn) {
+        setUsn(studentUsn);
+      }
+    }
+  }, [role]);
+
+  if (role !== "student") {
+    return (
+      <div className={`min-h-[400px] flex flex-col items-center justify-center text-center px-4 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+        <div className="bg-red-500/10 p-4 rounded-full mb-4">
+          <svg className="w-12 h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
+        <p className="text-muted-foreground max-w-md">This page is only accessible to students.</p>
+      </div>
+    );
+  }
+
   const loadStudents = async () => {
     if (!usn.trim()) {
       showWarningAlert("Validation Error", "Please enter the USN");
@@ -261,8 +285,9 @@ const MakeupExam = () => {
                   id="usn-input"
                   value={usn}
                   onChange={(e) => setUsn(e.target.value)}
+                  readOnly={role === 'student'}
                   placeholder="Enter student USN"
-                  className={`w-full px-2 sm:px-3 py-2 text-xs sm:text-sm rounded border ${theme === 'dark' ?
+                  className={`w-full px-2 sm:px-3 py-2 text-xs sm:text-sm rounded border ${role === 'student' ? 'bg-muted opacity-80 cursor-not-allowed' : ''} ${theme === 'dark' ?
                   'bg-input border-border text-foreground' :
                   'bg-white border-gray-300 text-gray-900'}`
                   } />

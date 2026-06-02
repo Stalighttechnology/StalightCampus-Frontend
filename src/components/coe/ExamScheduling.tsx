@@ -66,8 +66,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
-  const [listFilters, setListFilters] = useState({ batch_id: 'all', branch_id: 'all', semester_id: 'all' });
+  const [listFilters, setListFilters] = useState({ batch_id: '', branch_id: '', semester_id: '' });
   const [filterSemesters, setFilterSemesters] = useState<Semester[]>([]);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
 
   // Form State
   const [showForm, setShowForm] = useState(false);
@@ -115,7 +117,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const loadData = async (page = 1, currentFilters = listFilters) => {
-    if (currentFilters.batch_id === 'all') {
+    if (!currentFilters.batch_id || currentFilters.batch_id === 'all') {
       setExams([]);
       setPagination({ currentPage: 1, totalPages: 1, totalItems: 0 });
       setLoading(false);
@@ -162,7 +164,7 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   useEffect(() => {
-    if (listFilters.branch_id !== 'all') {
+    if (listFilters.branch_id && listFilters.branch_id !== 'all') {
       const fetchSemesters = async () => {
         try {
           const sems = await getSemesters(Number(listFilters.branch_id));
@@ -223,10 +225,10 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
   const handleFilterChange = (key: string, value: string) => {
     const newFilters = { ...listFilters, [key]: value };
     if (key === 'batch_id') {
-      newFilters.branch_id = 'all';
-      newFilters.semester_id = 'all';
+      newFilters.branch_id = '';
+      newFilters.semester_id = '';
     } else if (key === 'branch_id') {
-      newFilters.semester_id = 'all';
+      newFilters.semester_id = '';
     }
     setListFilters(newFilters);
     loadData(1, newFilters);
@@ -585,7 +587,12 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="p-4 sm:p-6 border-b flex flex-col sm:flex-row gap-4 sm:items-center bg-muted/20">
             <div className="flex-1 min-w-[200px]">
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">Filter by Batch</label>
-              <Select value={listFilters.batch_id} onValueChange={(v) => handleFilterChange('batch_id', v)}>
+              <Select value={listFilters.batch_id} onValueChange={(v) => {
+                handleFilterChange('batch_id', v);
+                if (v && v !== 'all') {
+                  setTimeout(() => setIsBranchOpen(true), 150);
+                }
+              }}>
                 <SelectTrigger className="h-10 bg-background"><SelectValue placeholder="Select Batch" /></SelectTrigger>
                 <SelectContent>
                   {batches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
@@ -594,20 +601,23 @@ const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {
             </div>
             <div className="flex-1 min-w-[200px]">
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">Filter by Branch</label>
-              <Select value={listFilters.branch_id} onValueChange={(v) => handleFilterChange('branch_id', v)} disabled={listFilters.batch_id === 'all'}>
-                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={listFilters.batch_id === 'all' ? "Select Batch First" : "All Branches"} /></SelectTrigger>
+              <Select value={listFilters.branch_id} onValueChange={(v) => {
+                handleFilterChange('branch_id', v);
+                if (v && v !== 'all') {
+                  setTimeout(() => setIsSemesterOpen(true), 150);
+                }
+              }} disabled={!listFilters.batch_id || listFilters.batch_id === 'all'} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
+                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={!listFilters.batch_id || listFilters.batch_id === 'all' ? "Select Batch First" : "Select Branch"} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
                   {branches.map(b => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex-1 min-w-[200px]">
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">Filter by Semester</label>
-              <Select value={listFilters.semester_id} onValueChange={(v) => handleFilterChange('semester_id', v)} disabled={listFilters.branch_id === 'all'}>
-                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={listFilters.branch_id === 'all' ? "Select Branch First" : "All Semesters"} /></SelectTrigger>
+              <Select value={listFilters.semester_id} onValueChange={(v) => handleFilterChange('semester_id', v)} disabled={!listFilters.branch_id || listFilters.branch_id === 'all'} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
+                <SelectTrigger className="h-10 bg-background"><SelectValue placeholder={!listFilters.branch_id || listFilters.branch_id === 'all' ? "Select Branch First" : "Select Semester"} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Semesters</SelectItem>
                   {filterSemesters.map(s => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
                 </SelectContent>
               </Select>

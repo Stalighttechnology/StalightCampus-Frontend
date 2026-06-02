@@ -36,6 +36,9 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isExamPeriodOpen, setIsExamPeriodOpen] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -336,7 +339,10 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4">
               <div>
                 <label htmlFor="publish-results-batch" className="block text-sm mb-1">Batch</label>
-                <Select value={selected.batch} onValueChange={(v) => setSelected((s) => ({ ...s, batch: v }))}>
+                <Select value={selected.batch} onValueChange={(v) => {
+                  setSelected((s) => ({ ...s, batch: v }));
+                  setTimeout(() => setIsBranchOpen(true), 150);
+                }}>
                   <SelectTrigger id="publish-results-batch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select batch" />
                   </SelectTrigger>
@@ -348,9 +354,10 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               <div>
                 <label htmlFor="publish-results-branch" className="block text-sm mb-1">Branch</label>
                 <Select value={selected.branch} onValueChange={(v) => {
-                setSelected((s) => ({ ...s, branch: v, semester: '' }));
-                fetchSemesters(v);
-              }}>
+                  setSelected((s) => ({ ...s, branch: v, semester: '' }));
+                  fetchSemesters(v);
+                  setTimeout(() => setIsSemesterOpen(true), 150);
+                }} open={isBranchOpen} onOpenChange={setIsBranchOpen}>
                   <SelectTrigger id="publish-results-branch" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select branch" />
                   </SelectTrigger>
@@ -361,7 +368,10 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
               <div>
                 <label htmlFor="publish-results-semester" className="block text-sm mb-1">Semester</label>
-                <Select value={selected.semester} onValueChange={(v) => setSelected((s) => ({ ...s, semester: v }))}>
+                <Select value={selected.semester} onValueChange={(v) => {
+                  setSelected((s) => ({ ...s, semester: v }));
+                  setTimeout(() => setIsExamPeriodOpen(true), 150);
+                }} open={isSemesterOpen} onOpenChange={setIsSemesterOpen}>
                   <SelectTrigger id="publish-results-semester" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Select semester" />
                   </SelectTrigger>
@@ -374,7 +384,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
               </div>
               <div>
                 <label htmlFor="publish-results-exam-period" className="block text-sm mb-1">Exam Period</label>
-                <Select value={selected.exam_period} onValueChange={(v) => setSelected((s) => ({ ...s, exam_period: v }))}>
+                <Select value={selected.exam_period} onValueChange={(v) => setSelected((s) => ({ ...s, exam_period: v }))} open={isExamPeriodOpen} onOpenChange={setIsExamPeriodOpen}>
                   <SelectTrigger id="publish-results-exam-period" className={theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'}>
                     <SelectValue placeholder="Exam period" />
                   </SelectTrigger>
