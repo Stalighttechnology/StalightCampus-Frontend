@@ -167,8 +167,8 @@ const COEFeeSettings = () => {
 
   return (
     <div className="space-y-6 w-full">
-      <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} shadow-md`}>
-        <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+      <Card id="coe-fee-settings-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} shadow-md`}>
+        <CardHeader id="coe-fee-settings-header" className="flex flex-row items-center justify-between border-b pb-4">
           <div>
             <CardTitle className="text-xl font-semibold tracking-tight">COE Fee Configuration</CardTitle>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">

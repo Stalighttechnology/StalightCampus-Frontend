@@ -127,6 +127,24 @@ export const coeTour: Step[] = [
     route: '/coe/exam-scheduling',
   },
   {
+    target: '#hod-search-student-card',
+    title: 'Scan for Student Info',
+    content:
+      'Quickly search for student details or use barcode and face scanner to retrieve their academic profile.',
+    placement: 'bottom' as const,
+    disableBeacon: false,
+    route: '/coe/scan-student-info',
+  },
+  {
+    target: '#coe-fee-settings-header',
+    title: 'Fee Settings',
+    content:
+      'Configure and manage student fees for revaluation, photocopy, and makeup exams.',
+    placement: 'bottom' as const,
+    disableBeacon: false,
+    route: '/coe/fee-settings',
+  },
+  {
     target: '#sidebar-profile',
     title: 'COE Profile',
     content:

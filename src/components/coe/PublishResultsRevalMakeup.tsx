@@ -537,7 +537,7 @@ const PublishResultsRevalMakeup = React.forwardRef<HTMLDivElement>((_, ref) => {
                     </div>
                   </div>
 
-                  <div className="w-full overflow-x-auto xl:overflow-x-visible">
+                  <div className="w-full overflow-x-auto xl:overflow-x-visible custom-scrollbar">
                   <table className="min-w-[980px] md:min-w-[1100px] xl:min-w-0 xl:w-full border-collapse table-fixed text-xs sm:text-sm">
                     <colgroup>
                       <col className="w-[8%]" />
