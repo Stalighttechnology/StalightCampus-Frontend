@@ -367,19 +367,21 @@ const RoomManagement: React.FC = () => {
               </div>
 
               <div className="flex flex-row items-center gap-3 w-full md:w-auto">
-                {isLoadingHostels || skeletonMode ?
-                <div className="h-9 w-full sm:w-[120px] rounded-md bg-muted animate-pulse border" /> :
-
-                <Button
-                  variant={isEditMode ? "secondary" : "outline"}
-                  onClick={() => setIsEditMode(!isEditMode)}
-                  disabled={!selectedHostel || !selectedFloorFilter}
-                  className={`h-9 px-4 font-semibold transition-all ${isEditMode ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20' : ''} w-full sm:w-auto`}>
-                  
-                    <Edit2 className={`w-4 h-4 mr-2 ${isEditMode ? 'animate-pulse' : ''}`} />
-                    {isEditMode ? "Done Editing" : "Edit Rooms"}
-                  </Button>
-                }
+                {isLoadingHostels || skeletonMode ? (
+                  <div className="h-9 w-full sm:w-[120px] rounded-md bg-muted animate-pulse border" />
+                ) : (
+                  rooms.length > 0 && (
+                    <Button
+                      variant={isEditMode ? "secondary" : "outline"}
+                      onClick={() => setIsEditMode(!isEditMode)}
+                      disabled={!selectedHostel || !selectedFloorFilter}
+                      className={`h-9 px-4 font-semibold transition-all ${isEditMode ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20' : ''} w-full sm:w-auto`}
+                    >
+                      <Edit2 className={`w-4 h-4 mr-2 ${isEditMode ? 'animate-pulse' : ''}`} />
+                      {isEditMode ? "Done Editing" : "Edit Rooms"}
+                    </Button>
+                  )
+                )}
 
                 {isLoadingHostels || skeletonMode ?
                 <div className="h-9 w-full sm:w-[120px] rounded-md bg-muted animate-pulse border" /> :
