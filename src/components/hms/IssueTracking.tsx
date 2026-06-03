@@ -117,7 +117,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number; }) => {
   const fetchStats = async () => {
     setStatsLoading(true);
     try {
-      const response = await getIssueStats();
+      const response = await getIssueStats(selectedHostelId ? Number(selectedHostelId) : undefined);
       if (response.success && response.data?.stats) {
         setStats(response.data.stats);
       }
@@ -204,7 +204,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number; }) => {
   }, [hostelId, hostels]);
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [selectedHostelId]);
 
   useEffect(() => {
     if (selectedHostelId) {
@@ -396,10 +396,14 @@ const IssueTracking = ({ hostelId }: { hostelId: number; }) => {
                       <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
                       <Select value={selectedHostelId} onValueChange={setSelectedHostelId}>
-                        <SelectTrigger className="bg-background border-primary/10 hover:border-primary/30 transition-colors h-10">
-                          <div className="flex items-center gap-2">
-                            <Home className="w-3.5 h-3.5 text-primary/70" />
-                            <SelectValue placeholder="Select Hostel" />
+                        <SelectTrigger className="bg-background border-primary/10 hover:border-primary/30 transition-colors h-10 max-w-full overflow-hidden">
+                          <div className="flex items-center gap-2 min-w-0 w-full">
+                            <Home className="w-3.5 h-3.5 text-primary/70 shrink-0" />
+                            <span className="truncate text-sm text-left block w-full">
+                              {selectedHostelId 
+                                ? (hostels.find(h => h.id.toString() === selectedHostelId)?.name || 'Select Hostel').replace(/\s*\(.*?\)\s*/g, '')
+                                : 'Select Hostel'}
+                            </span>
                           </div>
                         </SelectTrigger>
                         <SelectContent>
