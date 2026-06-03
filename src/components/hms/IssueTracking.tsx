@@ -61,25 +61,25 @@ const STATUS_CONFIG = {
   pending: {
     label: 'Pending',
     order: 0,
-    color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200/50',
+    color: 'bg-yellow-500/10 text-yellow-600 border-yellow-200/50 hover:bg-yellow-500/10',
     icon: AlertTriangle
   },
   in_progress: {
     label: 'In Progress',
     order: 1,
-    color: 'bg-blue-500/10 text-blue-600 border-blue-200/50',
+    color: 'bg-blue-500/10 text-blue-600 border-blue-200/50 hover:bg-blue-500/10',
     icon: Clock
   },
   waiting_for_workers: {
     label: 'Waiting for Workers',
     order: 2,
-    color: 'bg-orange-500/10 text-orange-600 border-orange-200/50',
+    color: 'bg-orange-500/10 text-orange-600 border-orange-200/50 hover:bg-orange-500/10',
     icon: Loader2
   },
   completed: {
     label: 'Completed',
     order: 3,
-    color: 'bg-green-500/10 text-green-600 border-green-200/50',
+    color: 'bg-green-500/10 text-green-600 border-green-200/50 hover:bg-green-500/10',
     icon: CheckCircle2
   }
 };

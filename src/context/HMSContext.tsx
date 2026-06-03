@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { getHostelManagementInit } from '../utils/hms_api';
+import { getHostelManagementInit, getFloorsByHostel, getRoomsByHostelId } from '../utils/hms_api';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from './AuthContext';
 
 interface Hostel {
   id: number;
@@ -55,6 +56,7 @@ const HMSContext = createContext<HMSContextType | undefined>(undefined);
 let cachedInitData: any = null;
 
 export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }) => {
+  const { role } = useAuth();
   const [hostels, setHostels] = useState<Hostel[]>(cachedInitData?.hostels || []);
   const [wardens, setWardens] = useState<Warden[]>(cachedInitData?.wardens || []);
   const [caretakers, setCaretakers] = useState<Caretaker[]>(cachedInitData?.caretakers || []);
@@ -70,35 +72,50 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
   const [skeletonMode, setSkeletonMode] = useState(false);
   const floorCache = useRef<Record<number, number[]>>({});
   const roomCache = useRef<Record<string, any[]>>({});
+  const pendingFloorRequests = useRef<Record<number, Promise<number[]>>>({});
+  const pendingRoomRequests = useRef<Record<string, Promise<any[]>>>({});
   const { toast } = useToast();
-  const fetchRef = useRef(false);
 
   const getCachedFloors = async (hostelId: number) => {
     if (floorCache.current[hostelId]) return floorCache.current[hostelId];
+    if (pendingFloorRequests.current[hostelId]) return pendingFloorRequests.current[hostelId];
 
-    const { getFloorsByHostel } = await import('../utils/hms_api');
-    const response = await getFloorsByHostel(hostelId);
-    if (response.success && response.results) {
-      floorCache.current[hostelId] = response.results;
-      return response.results;
-    }
-    return [];
+    const promise = (async () => {
+      const response = await getFloorsByHostel(hostelId);
+      if (response.success && response.results) {
+        floorCache.current[hostelId] = response.results;
+        return response.results;
+      }
+      return [];
+    })();
+
+    pendingFloorRequests.current[hostelId] = promise;
+    const result = await promise;
+    delete pendingFloorRequests.current[hostelId];
+    return result;
   };
 
   const getCachedRooms = async (hostelId: number, floor?: string) => {
     const cacheKey = `${hostelId}-${floor || 'all'}`;
     if (roomCache.current[cacheKey]) return roomCache.current[cacheKey];
+    if (pendingRoomRequests.current[cacheKey]) return pendingRoomRequests.current[cacheKey];
 
-    const { getRoomsByHostelId } = await import('../utils/hms_api');
-    const response = await getRoomsByHostelId(hostelId, floor);
-    if (response.success && response.data?.rooms) {
-      roomCache.current[cacheKey] = response.data.rooms;
-      return response.data.rooms;
-    } else if (response.success && response.results) {
-      roomCache.current[cacheKey] = response.results;
-      return response.results;
-    }
-    return [];
+    const promise = (async () => {
+      const response = await getRoomsByHostelId(hostelId, floor);
+      if (response.success && response.data?.rooms) {
+        roomCache.current[cacheKey] = response.data.rooms;
+        return response.data.rooms;
+      } else if (response.success && response.results) {
+        roomCache.current[cacheKey] = response.results;
+        return response.results;
+      }
+      return [];
+    })();
+
+    pendingRoomRequests.current[cacheKey] = promise;
+    const result = await promise;
+    delete pendingRoomRequests.current[cacheKey];
+    return result;
   };
 
   const updateRoomStudentCount = (hostelId: number, roomId: number, delta: number) => {
@@ -113,6 +130,9 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
   };
 
   const refreshData = async (force = false) => {
+    if (force) {
+      cachedInitData = null;
+    }
     if (!force && cachedInitData) {
       return;
     }
@@ -145,23 +165,39 @@ export const HMSProvider: React.FC<{children: React.ReactNode;}> = ({ children }
   };
 
   useEffect(() => {
-    const role = sessionStorage.getItem("role");
     const isWardenPath = window.location.pathname.includes('/warden');
 
-    if (!fetchRef.current && role !== 'warden' && !isWardenPath) {
+    if (role && role !== 'warden' && !isWardenPath) {
       refreshData();
-      fetchRef.current = true;
+    } else if (!role) {
+      // Clear data on logout
+      setHostels([]);
+      setWardens([]);
+      setCaretakers([]);
+      setStatistics({
+        total_hostels: 0,
+        total_rooms: 0,
+        total_students: 0,
+        total_wardens: 0,
+        total_caretakers: 0,
+        occupancy_rate: 0
+      });
+      cachedInitData = null;
+      floorCache.current = {};
+      roomCache.current = {};
     }
-  }, []);
+  }, [role]);
 
   useEffect(() => {
-    cachedInitData = {
-      hostels,
-      wardens,
-      caretakers,
-      statistics
-    };
-  }, [hostels, wardens, caretakers, statistics]);
+    if (!loading && (hostels.length > 0 || wardens.length > 0 || caretakers.length > 0)) {
+      cachedInitData = {
+        hostels,
+        wardens,
+        caretakers,
+        statistics
+      };
+    }
+  }, [hostels, wardens, caretakers, statistics, loading]);
 
   return (
     <HMSContext.Provider value={{

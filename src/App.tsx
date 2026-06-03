@@ -42,6 +42,7 @@ const TermsOfService = lazy(() => import("./components/legal/TermsOfService"));
 const Home = lazy(() => import("./components/public/Home"));
 
 import { WardenProvider } from "./context/WardenContext";
+import { HMSProvider } from "./context/HMSContext";
 import { shouldShowFloatingAssistant } from "./utils/config";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { initErrorLogger } from "./utils/errorLogger";
@@ -534,9 +535,11 @@ const App = () => {
     // ✅ NO TooltipProvider here - it's in main.tsx
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
-        <WardenProvider>
-          <AppContent />
-        </WardenProvider>
+        <HMSProvider>
+          <WardenProvider>
+            <AppContent />
+          </WardenProvider>
+        </HMSProvider>
       </AuthProvider>
     </BrowserRouter>
   );

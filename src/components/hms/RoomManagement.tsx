@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { manageRooms, manageHostels, manageHostelStudents, getFloorsByHostel } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
-import { Edit2, Trash2, Plus, LayoutGrid, Users as UsersIcon, Info } from 'lucide-react';
+import { Edit2, Trash2, Plus, LayoutGrid, Users as UsersIcon, Info, Eye } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { SkeletonCard } from '../ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,6 +29,12 @@ interface Room {
   hostel_name?: string;
   student_count?: number;
   floor?: number;
+  residents?: {
+    id: number;
+    name: string;
+    usn: string;
+    branch_name: string;
+  }[];
 }
 
 import { useHMSContext } from "../../context/HMSContext";
@@ -55,6 +61,8 @@ const RoomManagement: React.FC = () => {
   const [availableFloors, setAvailableFloors] = useState<number[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isFloorOpen, setIsFloorOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [viewingRoom, setViewingRoom] = useState<Room | null>(null);
   const { toast } = useToast();
   const { theme } = useTheme();
   const lastFetchRef = React.useRef<{hostel: number | null;floor: string;}>({ hostel: null, floor: "" });
@@ -63,13 +71,14 @@ const RoomManagement: React.FC = () => {
     if (selectedHostel) {
       fetchHostelFloors(selectedHostel);
     }
-  }, [selectedHostel]);
+  }, [selectedHostel, hostels]);
 
   useEffect(() => {
     if (selectedHostel && selectedFloorFilter) {
       fetchRoomsByHostel(selectedHostel, selectedFloorFilter);
     } else {
       setRooms([]);
+      setIsEditMode(false);
     }
   }, [selectedHostel, selectedFloorFilter]);
 
@@ -100,7 +109,7 @@ const RoomManagement: React.FC = () => {
       setFormData((prev) => ({
         ...prev,
         no: nextNo.toString(),
-        name: `${hostelName}-${nextNo}`
+        name: `Room ${nextNo}`
       }));
     }
   }, [selectedFloor, formData.hostel, editingRoom, rooms, hostels]);
@@ -123,8 +132,11 @@ const RoomManagement: React.FC = () => {
 
   const fetchHostelFloors = async (hostelId: number) => {
     const floors = await getCachedFloors(hostelId);
-    setAvailableFloors(floors);
-    setIsFloorOpen(true);
+    const hostel = hostels.find(h => h.id === hostelId);
+    const floorCount = hostel ? hostel.floor_count || 1 : 1;
+    const generatedFloors = Array.from({ length: floorCount }, (_, i) => i);
+    const allFloors = Array.from(new Set([...floors, ...generatedFloors]));
+    setAvailableFloors(allFloors);
   };
 
   const fetchRoomsByHostel = async (hostelId: number, floor?: string) => {
@@ -166,19 +178,17 @@ const RoomManagement: React.FC = () => {
     const response = await manageRooms(payload, editingRoom?.id, method);
 
     if (response.success) {
-      const updatedRoom = response.data as Room | undefined;
-      if (updatedRoom) {
-        if (editingRoom) {
-          setRooms((prev) => prev.map((r) => r.id === editingRoom.id ? updatedRoom : r));
-        } else {
-          setRooms((prev) => [...prev, updatedRoom]);
-          // Increment total rooms in statistics
-          setStatistics((prev) => ({
-            ...prev,
-            total_rooms: prev.total_rooms + 1
-          }));
+      // Invalidate context cache to ensure other pages fetch fresh data
+      await refreshData(true);
+      
+      // Refresh local room and floor data
+      if (selectedHostel) {
+        await fetchHostelFloors(selectedHostel);
+        if (selectedFloorFilter) {
+          await fetchRoomsByHostel(selectedHostel, selectedFloorFilter);
         }
       }
+      
       setIsDialogOpen(false);
       setEditingRoom(null);
       toast({
@@ -222,12 +232,17 @@ const RoomManagement: React.FC = () => {
     if (result.isConfirmed) {
       const response = await manageRooms(undefined, id, 'DELETE');
       if (response.success) {
-        setRooms((prev) => prev.filter((r) => r.id !== id));
-        // Decrement total rooms in statistics
-        setStatistics((prev) => ({
-          ...prev,
-          total_rooms: prev.total_rooms - 1
-        }));
+        // Invalidate context cache to ensure other pages fetch fresh data
+        await refreshData(true);
+        
+        // Refresh local room and floor data
+        if (selectedHostel) {
+          await fetchHostelFloors(selectedHostel);
+          if (selectedFloorFilter) {
+            await fetchRoomsByHostel(selectedHostel, selectedFloorFilter);
+          }
+        }
+        
         toast({
           title: "Success",
           description: "Room deleted successfully"
@@ -237,12 +252,12 @@ const RoomManagement: React.FC = () => {
   };
 
   const getRoomTypeLabel = (type: string) => {
-    const labels = { 'S': 'Single', 'D': 'Double', 'P': 'Scholar', 'B': 'Both' };
+    const labels = { 'S': 'Single', 'D': 'Double', 'P': 'Triple', 'B': 'Four Bed' };
     return labels[type as keyof typeof labels] || type;
   };
 
   const getRoomCapacity = (roomType: 'S' | 'D' | 'P' | 'B'): number => {
-    const capacities = { 'S': 1, 'D': 2, 'P': 1, 'B': 2 };
+    const capacities = { 'S': 1, 'D': 2, 'P': 3, 'B': 4 };
     return capacities[roomType] || 1;
   };
 
@@ -281,9 +296,10 @@ const RoomManagement: React.FC = () => {
                     {isLoadingHostels || skeletonMode ?
                     <div className="w-full md:w-[200px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                    <Select value={selectedHostel?.toString() || ''} onValueChange={(v) => {
+                     <Select value={selectedHostel?.toString() || ''} onValueChange={(v) => {
                       setSelectedHostel(parseInt(v));
                       setSelectedFloorFilter("");
+                      setIsFloorOpen(true);
                     }}>
                         <SelectTrigger className="w-full md:w-[200px] h-9 border bg-transparent p-2 focus:ring-1 font-normal text-md">
                           <SelectValue placeholder="Select Hostel" />
@@ -309,10 +325,10 @@ const RoomManagement: React.FC = () => {
 
                     <Select
                       disabled={!selectedHostel}
-                      open={isFloorOpen}
-                      onOpenChange={setIsFloorOpen}
                       value={selectedFloorFilter}
-                      onValueChange={setSelectedFloorFilter}>
+                      onValueChange={setSelectedFloorFilter}
+                      open={isFloorOpen}
+                      onOpenChange={setIsFloorOpen}>
                         <SelectTrigger className="w-full md:w-[160px] h-9 border bg-transparent p-2 focus:ring-1 font-normal text-md">
                           <SelectValue placeholder="Choose Floor" />
                         </SelectTrigger>
@@ -320,7 +336,7 @@ const RoomManagement: React.FC = () => {
                           <SelectItem value="all">All Floors</SelectItem>
                           {availableFloors.sort((a, b) => a - b).map((f) =>
                         <SelectItem key={f} value={f.toString()}>
-                              {f === 0 ? 'Ground Floor' : `Floor ${f}`}
+                              {f === 0 ? 'Ground Floor' : `${f}${f === 1 ? 'st' : f === 2 ? 'nd' : f === 3 ? 'rd' : 'th'} Floor`}
                             </SelectItem>
                         )}
                         </SelectContent>
@@ -337,6 +353,7 @@ const RoomManagement: React.FC = () => {
                 <Button
                   variant={isEditMode ? "secondary" : "outline"}
                   onClick={() => setIsEditMode(!isEditMode)}
+                  disabled={!selectedHostel || !selectedFloorFilter}
                   className={`h-9 px-4 font-semibold transition-all ${isEditMode ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20' : ''} w-full sm:w-auto`}>
                   
                     <Edit2 className={`w-4 h-4 mr-2 ${isEditMode ? 'animate-pulse' : ''}`} />
@@ -353,11 +370,13 @@ const RoomManagement: React.FC = () => {
                       setEditingRoom(null);
                       setSelectedFloor(null);
                       setFormData({ no: '', name: '', room_type: 'S', vacant: true, hostel: selectedHostel || 0 });
-                    }} className="bg-primary hover:bg-primary/90 h-9 px-4 font-semibold shadow-sm whitespace-nowrap w-full sm:w-auto">
+                    }} 
+                    disabled={!selectedHostel || !selectedFloorFilter}
+                    className="bg-primary hover:bg-primary/90 h-9 px-4 font-semibold shadow-sm whitespace-nowrap w-full sm:w-auto">
                         <Plus className="w-4 h-4 mr-2" /> Add Room
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-[90vw] sm:max-w-md rounded-xl">
+                    <DialogContent className="max-w-[90vw] sm:max-w-md rounded-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                       <DialogHeader>
                         <DialogTitle>{editingRoom ? 'Edit Room' : 'Add Room'}</DialogTitle>
                       </DialogHeader>
@@ -521,6 +540,14 @@ const RoomManagement: React.FC = () => {
                         return (
                           <div
                             key={room.id}
+                            onClick={() => {
+                              if (isEditMode) {
+                                handleEdit(room);
+                              } else {
+                                setViewingRoom(room);
+                                setIsViewDialogOpen(true);
+                              }
+                            }}
                             className={`group relative p-4 rounded-xl border-2 transition-all hover:shadow-md cursor-pointer overflow-hidden ${getRoomColorClasses(status.color)}`}>
                             
                                 <div className="space-y-1">
@@ -529,6 +556,10 @@ const RoomManagement: React.FC = () => {
                                   <div className="flex items-center justify-center gap-1.5 mt-2">
                                     <UsersIcon size={12} className="opacity-70" />
                                     <span className="text-xs font-bold">{studentCount} / {getRoomCapacity(room.room_type)}</span>
+                                  </div>
+                                  <div className="mt-2 pt-2 border-t border-current/10 flex items-center justify-center gap-1 text-[12px] uppercase tracking-wider font-bold opacity-60 group-hover:opacity-100 transition-all">
+                                    <Eye size={15} />
+                                    <span>View</span>
                                   </div>
                                 </div>
 
@@ -583,6 +614,58 @@ const RoomManagement: React.FC = () => {
           </AnimatePresence>
         </CardContent>
       </Card>
+      {/* Room Details/Residents Dialog (Read-only) */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="w-[92vw] max-w-[400px] sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${
+                viewingRoom ? (
+                  getRoomStatus(viewingRoom, roomStudentCounts[viewingRoom.id] || 0).color === 'green' ? 'bg-green-500' :
+                  getRoomStatus(viewingRoom, roomStudentCounts[viewingRoom.id] || 0).color === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                ) : 'bg-muted'
+              }`} />
+              Room {viewingRoom?.name} Residents
+            </DialogTitle>
+            <span className="text-sm text-muted-foreground mt-1 block">
+              {viewingRoom ? roomStudentCounts[viewingRoom.id] || 0 : 0} of {viewingRoom ? getRoomCapacity(viewingRoom.room_type) : 0} beds occupied.
+            </span>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            {viewingRoom?.residents && viewingRoom.residents.length > 0 ? (
+              <div className="grid gap-3">
+                {viewingRoom.residents.map((resident) => (
+                  <div
+                    key={resident.id}
+                    className="flex items-center justify-between p-3 rounded-xl border bg-muted/30">
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                        {resident.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold">{resident.name}</div>
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-tight">
+                          {resident.branch_name}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-mono bg-muted px-2 py-1 rounded border">
+                      {resident.usn}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <UsersIcon size={32} className="mx-auto mb-2 opacity-20" />
+                <p>No residents assigned to this room.</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>);
 
 };

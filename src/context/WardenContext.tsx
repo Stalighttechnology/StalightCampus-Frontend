@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getWardenDashboard, WardenStats } from '../utils/warden_api';
+import { useAuth } from './AuthContext';
 
 interface Hostel {
   id: number;
@@ -21,12 +22,12 @@ interface WardenContextType {
 const WardenContext = createContext<WardenContextType | undefined>(undefined);
 
 export const WardenProvider: React.FC<{children: React.ReactNode;}> = ({ children }) => {
+  const { role } = useAuth();
   const [managedHostels, setManagedHostels] = useState<Hostel[]>([]);
   const [wardenFloorsMap, setWardenFloorsMap] = useState<Record<number, number[]>>({});
   const [wardenName, setWardenName] = useState("");
   const [stats, setStats] = useState<WardenStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const fetchRef = useRef(false);
 
   const refreshWardenData = async () => {
     // If we're already loading or already have data from a previous successful fetch, 
@@ -48,16 +49,19 @@ export const WardenProvider: React.FC<{children: React.ReactNode;}> = ({ childre
 
   useEffect(() => {
     // Only fetch if the user is actually a warden
-    const role = sessionStorage.getItem("role");
     const isWardenPath = window.location.pathname.includes('/warden');
 
-    if (!fetchRef.current && (role === 'warden' || isWardenPath)) {
-      fetchRef.current = true;
+    if (role === 'warden' || isWardenPath) {
       refreshWardenData();
     } else {
+      // Clear data if not warden/warden path or logged out
+      setManagedHostels([]);
+      setWardenFloorsMap({});
+      setWardenName("");
+      setStats(null);
       setLoading(false);
     }
-  }, []);
+  }, [role]);
 
   return (
     <WardenContext.Provider value={{ managedHostels, wardenFloorsMap, wardenName, stats, loading, refreshWardenData }}>

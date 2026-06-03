@@ -133,11 +133,9 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
 };
 
 const HMSDashboard = (props: HMSDashboardProps) => (
-  <HMSProvider>
-    <AcademicProvider>
-      <HMSDashboardContent {...props} />
-    </AcademicProvider>
-  </HMSProvider>
+  <AcademicProvider>
+    <HMSDashboardContent {...props} />
+  </AcademicProvider>
 );
 
 export default HMSDashboard;

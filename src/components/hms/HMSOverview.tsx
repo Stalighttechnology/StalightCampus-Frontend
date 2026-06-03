@@ -70,7 +70,7 @@ const HMSOverview = () => {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
-  const [selectedFloor, setSelectedFloor] = useState<string>("");
+  const [selectedFloor, setSelectedFloor] = useState<string>("all");
   const [availableFloors, setAvailableFloors] = useState<number[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -95,7 +95,7 @@ const HMSOverview = () => {
       setAvailableFloors([]);
       setRooms([]);
     }
-  }, [selectedHostel]);
+  }, [selectedHostel, hostels]);
 
   // Fetch rooms when both hostel and floor are selected
   useEffect(() => {
@@ -108,8 +108,11 @@ const HMSOverview = () => {
 
   const fetchHostelFloors = async (hostelId: number) => {
     const floors = await getCachedFloors(hostelId);
-    setAvailableFloors(floors);
-    setIsFloorOpen(true);
+    const hostel = hostels.find(h => h.id === hostelId);
+    const floorCount = hostel ? hostel.floor_count || 1 : 1;
+    const generatedFloors = Array.from({ length: floorCount }, (_, i) => i);
+    const allFloors = Array.from(new Set([...floors, ...generatedFloors]));
+    setAvailableFloors(allFloors);
   };
 
   const fetchHostelRooms = async (hostelId: number, floor?: string) => {
@@ -255,7 +258,8 @@ const HMSOverview = () => {
                     value={selectedHostel?.toString() || ''}
                     onValueChange={(v) => {
                       setSelectedHostel(Number(v));
-                      setSelectedFloor("");
+                      setSelectedFloor("all");
+                      setIsFloorOpen(true);
                     }}>
 
                     <SelectTrigger>
@@ -279,10 +283,10 @@ const HMSOverview = () => {
 
                   <Select
                     disabled={!selectedHostel}
-                    open={isFloorOpen}
-                    onOpenChange={setIsFloorOpen}
                     value={selectedFloor}
-                    onValueChange={setSelectedFloor}>
+                    onValueChange={setSelectedFloor}
+                    open={isFloorOpen}
+                    onOpenChange={setIsFloorOpen}>
 
                     <SelectTrigger>
                       <SelectValue placeholder="Choose Floor" />
@@ -293,7 +297,7 @@ const HMSOverview = () => {
                         sort((a, b) => a - b).
                         map((floor) =>
                           <SelectItem key={floor} value={floor.toString()}>
-                            Floor {floor === 0 ? 'Ground' : floor}
+                            {floor === 0 ? 'Ground Floor' : `${floor}${floor === 1 ? 'st' : floor === 2 ? 'nd' : floor === 3 ? 'rd' : 'th'} Floor`}
                           </SelectItem>
                         )}
                     </SelectContent>
