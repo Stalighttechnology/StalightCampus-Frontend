@@ -174,18 +174,25 @@ const RoomManagement: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Fetch all rooms for this hostel to check duplication
+    const allRoomsInHostel = await getCachedRooms(formData.hostel, "all");
+
     // Check for duplicate room entry in the same hostel
-    const duplicate = rooms.find((r) =>
-    r.hostel === formData.hostel &&
-    r.no === formData.no && (
-    !editingRoom || r.id !== editingRoom.id)
+    const duplicate = allRoomsInHostel.find((r) =>
+      r.hostel === formData.hostel &&
+      r.no === formData.no && (
+      !editingRoom || r.id !== editingRoom.id)
     );
 
     if (duplicate) {
-      toast({
-        variant: "destructive",
-        title: "Duplicate Room",
-        description: `Room number ${formData.no} already exists in this hostel.`
+      const currentTheme = theme === 'dark' ? 'dark' : 'light';
+      Swal.fire({
+        title: 'Duplicate Room',
+        text: `Room number ${formData.no} already exists in this hostel.`,
+        icon: 'error',
+        confirmButtonColor: '#ef4444',
+        background: currentTheme === 'dark' ? '#1f2937' : '#fff',
+        color: currentTheme === 'dark' ? '#fff' : '#000'
       });
       return;
     }
@@ -464,11 +471,28 @@ const RoomManagement: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Room Number</Label>
-                            <Input value={formData.no} onChange={(e) => setFormData({ ...formData, no: e.target.value })} required className="h-10" />
+                            <Input
+                              value={formData.no}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  no: val,
+                                  name: val ? `Room ${val}` : ""
+                                }));
+                              }}
+                              required
+                              className="h-10"
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Room Name</Label>
-                            <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Optional" className="h-10" />
+                            <Input
+                              value={formData.name}
+                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                              placeholder="Optional"
+                              className="h-10"
+                            />
                           </div>
                         </div>
                         <div className="space-y-2">
