@@ -24,6 +24,7 @@ interface QPPending {
   id: number;
   subject: string;
   test_type: string;
+  set_number?: string;
   faculty: string;
   submitted_at: string;
   branch?: {id: number | null;name: string | null;};
@@ -56,7 +57,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [finalizedPagination, setFinalizedPagination] = useState<PaginationInfo | null>(null);
   const [pendingPage, setPendingPage] = useState(1);
   const [finalizedPage, setFinalizedPage] = useState(1);
-  const [conflictQP, setConflictQP] = useState<{id: number; subject: string; test_type: string; faculty: string} | null>(null);
+  const [conflictQP, setConflictQP] = useState<{id: number; subject: string; test_type: string; set_number?: string; faculty: string} | null>(null);
   const [showConflictDialog, setShowConflictDialog] = useState(false);
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const { theme } = useTheme();
@@ -74,7 +75,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        const fileName = `qp-${(qpDetail.subject || 'qp').replace(/\s+/g, '_')}-${(qpDetail.test_type || 'test').replace(/\s+/g, '_')}.pdf`;
+        const fileName = `qp-${(qpDetail.subject || 'qp').replace(/\s+/g, '_')}-${(qpDetail.test_type || 'test').replace(/\s+/g, '_')}_${(qpDetail.set_number || '').replace(/\s+/g, '_')}.pdf`;
         a.download = fileName;
         document.body.appendChild(a);
         a.click();
@@ -338,7 +339,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
     if (!qp) return;
     const win = window.open('', '_blank', 'noopener,noreferrer');
     if (!win) return;
-    const title = `Question Paper - ${qp.subject} - ${qp.test_type}`;
+    const title = `Question Paper - ${qp.subject} - ${qp.test_type} ${qp.set_number || ''}`.trim();
     const styles = `
       body { font-family: Arial, Helvetica, sans-serif; padding: 20px; color: #111; }
       h1 { font-size: 20px; margin-bottom: 8px; }
@@ -349,7 +350,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
 
     let html = `<!doctype html><html><head><title>${title}</title><style>${styles}</style></head><body>`;
     html += `<h1>Question Paper</h1>`;
-    html += `<div class="qp-meta"><strong>Subject:</strong> ${qp.subject} &nbsp; <strong>Test:</strong> ${qp.test_type} &nbsp; <strong>Faculty:</strong> ${qp.faculty}</div>`;
+    html += `<div class="qp-meta"><strong>Subject:</strong> ${qp.subject} &nbsp; <strong>Test:</strong> ${qp.test_type} ${qp.set_number || ''} &nbsp; <strong>Faculty:</strong> ${qp.faculty}</div>`;
     qp.questions.forEach((q: any) => {
       html += `<div class="question">`;
       q.subparts.forEach((s: any) => {
@@ -473,7 +474,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="w-full">
                       <div className="flex items-center flex-wrap gap-2 mb-2">
-                        <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type}</h3>
+                        <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number}</h3>
                         {qp.status &&
                     (() => {
                       const s = qp.status;
@@ -492,9 +493,9 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                     }
                         {qp.last_action ?
                     <div className="mt-1">
-                            <p className="text-[16px] sm:text-sm text-muted-foreground">Last: {qp.last_action.action} by {qp.last_action.actor} ({qp.last_action.role})</p>
+                            <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
                             {qp.last_action.comment ?
-                      <p className="text-[16px] sm:text-sm text-muted-foreground">Comment: {qp.last_action.comment}</p> :
+                      <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
                       null}
                           </div> :
                     null}
@@ -576,7 +577,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="w-full">
                       <div className="flex items-center flex-wrap gap-2 mb-2">
-                        <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type}</h3>
+                        <h3 className="font-semibold text-[18px] sm:text-base">{qp.subject} - {qp.test_type} {qp.set_number}</h3>
                         {qp.status &&
                     (() => {
                       const s = qp.status;
@@ -593,6 +594,14 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
                         {qp.branch &&
                     <p className="text-[16px] sm:text-sm text-muted-foreground">Branch: {qp.branch.name}</p>
                     }
+                        {qp.last_action ?
+                    <div className="mt-1">
+                            <p className="text-[16px] sm:text-sm text-muted-foreground capitalize">Last: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
+                            {qp.last_action.comment ?
+                      <p className="text-[16px] sm:text-sm text-muted-foreground italic">"{qp.last_action.comment}"</p> :
+                      null}
+                          </div> :
+                    null}
                       </div>
                     </div>
                     <div className="flex w-full sm:w-auto gap-2">
@@ -667,7 +676,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
           
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-              Review QP: {selectedQP?.subject} - {selectedQP?.test_type}
+              Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}
             </DialogTitle>
           </DialogHeader>
 
@@ -806,6 +815,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               <div className="p-3 border rounded bg-muted/50 text-sm space-y-1">
                 <p><strong>Subject:</strong> {conflictQP.subject}</p>
                 <p><strong>Test Type:</strong> {conflictQP.test_type}</p>
+                {conflictQP.set_number && <p><strong>Set Number:</strong> {conflictQP.set_number}</p>}
                 <p><strong>Approved Faculty:</strong> {conflictQP.faculty}</p>
               </div>
             )}
@@ -817,7 +827,7 @@ const COEQPApprovals = React.forwardRef<HTMLDivElement>((_, ref) => {
               if (conflictQP) {
                  setDialogOpen(false);
                  setTimeout(() => {
-                   setSelectedQP({ id: conflictQP.id, subject: conflictQP.subject, test_type: conflictQP.test_type, faculty: conflictQP.faculty, submitted_at: new Date().toISOString() });
+                   setSelectedQP({ id: conflictQP.id, subject: conflictQP.subject, test_type: conflictQP.test_type, set_number: conflictQP.set_number, faculty: conflictQP.faculty, submitted_at: new Date().toISOString() });
                    setQpDetail(null);
                    fetchQPDetail(conflictQP.id);
                    setDialogOpen(true);

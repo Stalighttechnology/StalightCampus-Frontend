@@ -154,10 +154,7 @@ const Pricing = () => {
       {/* --- HERO SECTION --- */}
       <section className="relative pt-32 pb-16 z-10 w-full text-center px-4">
         <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="max-w-4xl mx-auto flex flex-col items-center">
-          <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-bold text-slate-700 mb-8">
-            <Sparkles size={16} className="text-purple-500" />
-            <span>Transparent, Scalable Pricing</span>
-          </motion.div>
+
 
           <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-light tracking-tighter mb-6 leading-[1.1]">
             Scale seamlessly with <br />
