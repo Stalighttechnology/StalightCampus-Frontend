@@ -117,7 +117,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number; }) => {
   const fetchStats = async () => {
     setStatsLoading(true);
     try {
-      const response = await getIssueStats(selectedHostelId ? Number(selectedHostelId) : undefined);
+      const response = await getIssueStats();
       if (response.success && response.data?.stats) {
         setStats(response.data.stats);
       }
@@ -204,7 +204,7 @@ const IssueTracking = ({ hostelId }: { hostelId: number; }) => {
   }, [hostelId, hostels]);
   useEffect(() => {
     fetchStats();
-  }, [selectedHostelId]);
+  }, []);
 
   useEffect(() => {
     if (selectedHostelId) {
