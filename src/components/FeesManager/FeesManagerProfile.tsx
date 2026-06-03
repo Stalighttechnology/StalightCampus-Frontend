@@ -35,7 +35,7 @@ const FeesManagerProfile: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({ first_name: "", last_name: "", email: "", phone: "", address: "", bio: "" });
   const [activeTab, setActiveTab] = useState<'details' | 'activity' | 'settings' | 'help'>('details');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   // Change password state
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);

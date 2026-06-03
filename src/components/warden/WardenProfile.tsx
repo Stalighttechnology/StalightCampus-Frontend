@@ -62,7 +62,7 @@ const WardenProfile = ({ user: propUser, setError }: {user?: User;setError?: (er
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'about' | 'activity' | 'help' | 'settings'>('personal');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   useEffect(() => {
     const fetchProfile = async () => {

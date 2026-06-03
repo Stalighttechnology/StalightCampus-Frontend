@@ -62,10 +62,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
-      setIsNotificationsEnabled(Notification.permission === 'granted');
+      setIsNotificationsEnabled((typeof Notification !== 'undefined' && Notification.permission === 'granted'));
       
       const interval = setInterval(() => {
-        setIsNotificationsEnabled(Notification.permission === 'granted');
+        setIsNotificationsEnabled((typeof Notification !== 'undefined' && Notification.permission === 'granted'));
       }, 1000);
       return () => clearInterval(interval);
     }

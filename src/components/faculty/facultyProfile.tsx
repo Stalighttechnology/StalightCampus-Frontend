@@ -85,7 +85,7 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
     }
   }, [activeTab]);
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
   const { theme } = useTheme();
   // Change password states
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);

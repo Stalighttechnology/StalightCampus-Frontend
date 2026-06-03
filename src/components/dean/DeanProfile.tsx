@@ -63,7 +63,7 @@ const DeanProfile = () => {
   });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'activity' | 'help' | 'settings'>('personal');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 

@@ -71,7 +71,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
 
   // Tabs: details (Personal + Contact), other (Address + Bio), subscription (Plan Details)
   const [activeTab, setActiveTab] = useState<'details' | 'other' | 'subscription' | 'support' | 'activity' | 'help' | 'settings'>('details');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);

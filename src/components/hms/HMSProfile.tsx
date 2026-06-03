@@ -63,7 +63,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help' | 'settings' | 'activity'>('personal');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
 
   useEffect(() => {
     const fetchProfile = async () => {

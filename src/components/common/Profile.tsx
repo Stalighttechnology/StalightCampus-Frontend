@@ -60,7 +60,7 @@ const Profile = ({ role, user }: ProfileProps) => {
         .finally(() => setGoogleConnectLoading(false));
     }
   }, [activeTab]);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({ current_password: "", new_password: "", confirm_password: "" });
   const [showPasswords, setShowPasswords] = useState({ current: false, next: false, confirm: false });

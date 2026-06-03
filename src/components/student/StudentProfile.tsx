@@ -281,7 +281,7 @@ const StudentProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile'|'personal'|'academic'|'face'|'activity' | 'help' | 'settings'>('profile');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
   
   // Toggle states for Guardian Details and Address
   const [showGuardianDetails, setShowGuardianDetails] = useState(false);
