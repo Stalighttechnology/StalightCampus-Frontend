@@ -374,7 +374,7 @@ const StudentManagement: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Semesters</SelectItem>
-                      {Array.isArray(semesters) && semesters.map((s) => <SelectItem key={s.id} value={s.id}>Semester {s.number}</SelectItem>)}
+                      {Array.isArray(semesters) && semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>Semester {s.number}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 }

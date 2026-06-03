@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,6 +81,7 @@ const HostelManagement: React.FC = () => {
   });
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (location.state?.openAddHostel) {
@@ -373,7 +374,19 @@ const HostelManagement: React.FC = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="warden" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Warden</Label>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="warden" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Warden</Label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsDialogOpen(false);
+                                navigate('/hms/staff');
+                              }}
+                              className="text-[11px] text-primary hover:underline font-semibold"
+                            >
+                              Manage Staff
+                            </button>
+                          </div>
                           <Select value={formData.warden?.toString() || 'unset'} onValueChange={(value) => setFormData({ ...formData, warden: value === 'unset' ? null : parseInt(value) })}>
                             <SelectTrigger className="h-10">
                               <SelectValue placeholder="Select warden" />
@@ -389,7 +402,19 @@ const HostelManagement: React.FC = () => {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="caretaker" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Caretaker</Label>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="caretaker" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Caretaker</Label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsDialogOpen(false);
+                                navigate('/hms/staff');
+                              }}
+                              className="text-[11px] text-primary hover:underline font-semibold"
+                            >
+                              Manage Staff
+                            </button>
+                          </div>
                           <Select value={formData.caretaker?.toString() || 'unset'} onValueChange={(value) => setFormData({ ...formData, caretaker: value === 'unset' ? null : parseInt(value) })}>
                             <SelectTrigger className="h-10">
                               <SelectValue placeholder="Select caretaker" />
