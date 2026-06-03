@@ -1,5 +1,6 @@
+import { API_ENDPOINT } from "./config";
 import { fetchWithTokenRefresh } from "./authService";
-const API_BASE = "/api/library";
+const API_BASE = `${API_ENDPOINT}/library`;
 
 const authHeaders = () => ({
   Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,

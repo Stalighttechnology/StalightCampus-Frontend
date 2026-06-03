@@ -1747,7 +1747,7 @@ export const getFacultyAttendanceRecords = async (params?: {
     if (params?.page) queryParams.append("page", String(params.page));
     if (params?.page_size) queryParams.append("page_size", String(params.page_size));
 
-    const url = `/api/faculty/my-attendance-records/${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+    const url = `${API_ENDPOINT}/faculty/my-attendance-records/${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
 
     const response = await fetchWithTokenRefresh(url, {
       method: "GET",
