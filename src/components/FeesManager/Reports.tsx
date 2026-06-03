@@ -52,7 +52,7 @@ interface AttendanceSummary {
   attendance_percentage: number;
 }
 
-const Reports: React.FC = () => {
+const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
   const [attendanceData, setAttendanceData] = useState<AttendanceSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -25,7 +25,7 @@ import { motion } from "framer-motion";
 import { SkeletonStatsGrid, SkeletonCard } from "../ui/skeleton";
 import { Alert, AlertDescription } from "../ui/alert";
 
-const DeanFinance = () => {
+const DeanFinance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -158,7 +158,7 @@ const formatDate = (dstr?: string) => {
   }
 };
 
-const DeanExams: React.FC = () => {
+const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [exams, setExams] = useState<ExamEntry[]>([]);

@@ -1055,7 +1055,12 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               )}
 
               <div className="text-base sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
-              <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Principal </div>
+              <div className={`text-sm text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                {(() => {
+                  const role = fetchedUser?.role || propUser?.role || (JSON.parse(sessionStorage.getItem('user') || '{}')?.role) || 'principal';
+                  return role === 'org_admin' ? 'Organization Admin' : role === 'dean' ? 'Dean' : 'Principal';
+                })()}
+              </div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
                 <h4 className={`text-xs sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>

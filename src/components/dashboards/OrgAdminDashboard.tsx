@@ -12,6 +12,19 @@ import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
 
+import BranchesManagement from "../admin/BranchesManagement";
+import BatchManagement from "../admin/BatchManagement";
+import AnnouncementManagement from "../admin/AnnouncementManagement";
+
+import DeanAttendance from "../dean/DeanAttendance";
+import DeanExams from "../dean/DeanExams";
+import DeanFacultyProfile from "../dean/DeanFacultyProfile";
+import DeanFinance from "../dean/DeanFinance";
+
+import InvoiceManagement from "../FeesManager/InvoiceManagement";
+import PaymentMonitoring from "../FeesManager/PaymentMonitoring";
+import Reports from "../FeesManager/Reports";
+
 interface OrgAdminDashboardProps {
   user: any;
   setPage: (page: string) => void;
@@ -61,6 +74,29 @@ const OrgAdminDashboard = ({ user, setPage }: OrgAdminDashboardProps) => {
 
       case "scan-student-info":
         return <StudentInfoScanner />
+
+      case "branches":
+        return <BranchesManagement setError={setError} toast={toast} isReadOnly={true} />;
+      case "batches":
+        return <BatchManagement setError={setError} toast={toast} isReadOnly={true} />;
+      case "announcement-management":
+        return <AnnouncementManagement />;
+
+      case "attendance":
+        return <DeanAttendance isReadOnly={true} />;
+      case "exams":
+        return <DeanExams isReadOnly={true} />;
+      case "faculty":
+        return <DeanFacultyProfile isReadOnly={true} />;
+      case "finance":
+        return <DeanFinance isReadOnly={true} />;
+
+      case "invoices":
+        return <InvoiceManagement isReadOnly={true} />;
+      case "payments":
+        return <PaymentMonitoring isReadOnly={true} />;
+      case "reports":
+        return <Reports isReadOnly={true} />;
 
       default:
         return <AdminStats setError={setError} onNavigate={handlePageChange} />;
