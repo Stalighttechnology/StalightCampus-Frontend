@@ -86,6 +86,20 @@ const getMealTypeLabel = (code: string) => {
   return MEAL_TYPE_DISPLAY[code as keyof typeof MEAL_TYPE_DISPLAY]?.label || code;
 };
 
+const formatTimeToAmPm = (timeStr: string) => {
+  if (!timeStr) return "";
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return timeStr;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1];
+  if (isNaN(hours)) return timeStr;
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const hoursStr = hours < 10 ? `0${hours}` : hours.toString();
+  return `${hoursStr}:${minutes} ${ampm}`;
+};
+
 // ── Small reusable info row ──────────────────────────────────────────────────
 const InfoRow: React.FC<{
   icon: React.ReactNode;
@@ -675,7 +689,7 @@ const StudentHostelDetails: React.FC = () => {
                                 <div className="flex items-center gap-2">
                                   <FaClock className={`h-3.5 w-3.5 flex-shrink-0 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
                                   <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                                    {m.time_from && m.time_to ? `${m.time_from.substring(0, 5)} - ${m.time_to.substring(0, 5)}` : 'N/A'}
+                                    {m.time_from && m.time_to ? `${formatTimeToAmPm(m.time_from)} - ${formatTimeToAmPm(m.time_to)}` : 'N/A'}
                                   </span>
                                 </div>
                               </div>
