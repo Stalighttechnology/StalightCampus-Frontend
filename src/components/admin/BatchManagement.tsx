@@ -27,9 +27,10 @@ interface Batch {
 interface BatchManagementProps {
   setError?: (error: string | null) => void;
   toast?: any;
+  isReadOnly?: boolean;
 }
 
-const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) => {
+const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isReadOnly = false }) => {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(false);
   const [newBatch, setNewBatch] = useState({ name: "", start_year: "", end_year: "" });
@@ -290,7 +291,8 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
 
       <div id="batch-management-card" className={` max-w-full mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       {/* Add New Batch Card */}
-      <Card id="add-new-batch-card" className={theme === 'dark' ? 'bg-card border border-border shadow-sm mb-6' : 'bg-white border border-gray-200 shadow-sm mb-6'}>
+      {!isReadOnly && (
+        <Card id="add-new-batch-card" className={theme === 'dark' ? 'bg-card border border-border shadow-sm mb-6' : 'bg-white border border-gray-200 shadow-sm mb-6'}>
         <CardHeader className="batch-card-header pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="w-full">
             <CardTitle className="batch-title">
@@ -329,6 +331,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Existing Batches */}
       <Card className={theme === 'dark' ? 'bg-card border border-border shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]' : 'bg-white border border-gray-200 shadow-sm flex flex-col h-[calc(100vh-320px)] min-h-[500px]'}>
@@ -389,7 +392,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
                         <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Duration</th>
                         <th className={`batch-header-cell py-3 px-3 w-20 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Students</th>
                         <th className={`batch-header-cell py-3 px-3 w-28 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Created At</th>
-                        <th className={`batch-header-cell py-3 px-3 w-28 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
+                        {!isReadOnly && <th className={`batch-header-cell py-3 px-3 w-28 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -414,14 +417,16 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast }) =>
                           <td className="batch-body-cell py-3 px-3 w-28 text-center align-middle text-[13px] sm:text-xs opacity-70">
                             {new Date(batch.created_at).toLocaleDateString()}
                           </td>
-                          <td className="batch-body-cell py-3 px-3 w-28 text-right space-x-1 whitespace-nowrap align-middle">
-                            <Button size="icon" variant="ghost" onClick={() => handleEditBatch(batch)} disabled={loading} className="h-8 w-8">
-                              <Edit className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
-                            </Button>
-                            <Button size="icon" variant="ghost" onClick={() => handleDeleteBatch(batch)} disabled={loading} className="h-8 w-8">
-                              <Trash2 className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
-                            </Button>
-                          </td>
+                          {!isReadOnly && (
+                            <td className="batch-body-cell py-3 px-3 w-28 text-right space-x-1 whitespace-nowrap align-middle">
+                              <Button size="icon" variant="ghost" onClick={() => handleEditBatch(batch)} disabled={loading} className="h-8 w-8">
+                                <Edit className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={() => handleDeleteBatch(batch)} disabled={loading} className="h-8 w-8">
+                                <Trash2 className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
+                              </Button>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>

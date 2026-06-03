@@ -50,7 +50,7 @@ interface User {
   mobile_number: string | null;
 }
 
-const BranchesManagement = ({ setError, toast }: { setError: (error: string | null) => void; toast: (options: any) => void; }) => {
+const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError: (error: string | null) => void; toast: (options: any) => void; isReadOnly?: boolean; }) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -490,23 +490,27 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
               </div>
 
               <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                <Button
-                  size="sm"
-                  className="flex items-center justify-center gap-1 w-full md:w-auto"
-                  onClick={() => setIsAddDialogOpen(true)}
-                  disabled={loading}>
+                {!isReadOnly && (
+                  <>
+                    <Button
+                      size="sm"
+                      className="flex items-center justify-center gap-1 w-full md:w-auto"
+                      onClick={() => setIsAddDialogOpen(true)}
+                      disabled={loading}>
 
-                  <PlusIcon className="w-4 h-4" /> Add Branch
-                </Button>
+                      <PlusIcon className="w-4 h-4" /> Add Branch
+                    </Button>
 
-                <Button
-                  size="sm"
-                  className="flex items-center justify-center gap-1 w-full md:w-auto"
-                  onClick={() => setIsAssignDialogOpen(true)}
-                  disabled={loading}>
+                    <Button
+                      size="sm"
+                      className="flex items-center justify-center gap-1 w-full md:w-auto"
+                      onClick={() => setIsAssignDialogOpen(true)}
+                      disabled={loading}>
 
-                  <UserPlus2Icon className="w-4 h-4" /> Assign HOD
-                </Button>
+                      <UserPlus2Icon className="w-4 h-4" /> Assign HOD
+                    </Button>
+                  </>
+                )}
 
                 <Button
                   size="sm"
@@ -553,7 +557,7 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                         <th className="py-3 px-3 hidden sm:table-cell font-bold">Branch Code</th>
                         <th className="hod-col py-3 px-3 font-bold">Assigned HOD</th>
                         <th className="py-3 px-3 hidden sm:table-cell font-bold">HOD Contact</th>
-                        <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>
+                        {!isReadOnly && <th className="actions-col py-3 px-3 text-right w-24 font-bold">Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -588,16 +592,18 @@ const BranchesManagement = ({ setError, toast }: { setError: (error: string | nu
                               {branch.hod_contact || "--"}
                             </td>
 
-                            <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
-                                <div className="flex items-center justify-end gap-1">
-                                  <Button variant="ghost" size="icon" onClick={() => handleEdit(branch)} className="h-8 w-8">
-                                    <PencilIcon className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" onClick={() => confirmDelete(branch.id)} className="h-8 w-8">
-                                    <TrashIcon className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
-                                  </Button>
-                                </div>
-                            </td>
+                            {!isReadOnly && (
+                              <td className="py-3 px-3 text-right space-x-1 whitespace-nowrap align-middle actions-cell">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(branch)} className="h-8 w-8">
+                                      <PencilIcon className={theme === 'dark' ? 'w-4 h-4 text-primary' : 'w-4 h-4 text-blue-600'} />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => confirmDelete(branch.id)} className="h-8 w-8">
+                                      <TrashIcon className={theme === 'dark' ? 'w-4 h-4 text-destructive' : 'w-4 h-4 text-red-600'} />
+                                    </Button>
+                                  </div>
+                              </td>
+                            )}
                           </tr>
                         )
                       }

@@ -162,6 +162,17 @@ const AdminAnnouncementManagement = () => {
       return;
     }
 
+    if (formData.target_roles.includes("student") && formData.is_global) {
+      MySwal.fire({
+        title: "Validation Error",
+        text: "Please select a specific department when targeting students.",
+        icon: "warning",
+        confirmButtonColor: "#9147e0",
+        target: document.body
+      });
+      return;
+    }
+
     try {
       if (editingId) {
         const response = await updateAnnouncement(editingId, formData);

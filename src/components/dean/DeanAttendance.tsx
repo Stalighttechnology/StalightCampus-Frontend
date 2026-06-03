@@ -10,7 +10,7 @@ import DashboardCard from "../common/DashboardCard";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 
-const DeanAttendance = () => {
+const DeanAttendance = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
