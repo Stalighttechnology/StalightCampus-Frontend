@@ -62,7 +62,10 @@ method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
 data?: any)
 : Promise<HMSResponse<T>> => {
   try {
-    const url = `${API_ENDPOINT}/hms/${endpoint}`;
+    let url = `${API_ENDPOINT}/hms/${endpoint}`;
+    if (method === "GET") {
+      url = `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+    }
 
     const response = await fetchWithTokenRefresh(url, {
       method,
