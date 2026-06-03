@@ -578,10 +578,11 @@ const StudentManagement: React.FC = () => {
                             <p className="text-xs text-muted-foreground">No hostels found</p>
                             <Button 
                               type="button" 
-                              variant="outline" 
                               size="sm" 
-                              className="w-full text-xs" 
-                              onClick={() => {
+                              className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                              onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 setIsDialogOpen(false);
                                 navigate('/hms/hostels', { state: { openAddHostel: true } });
                               }}
