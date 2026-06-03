@@ -58,6 +58,7 @@ interface QuestionPaper {
   subject: number;
   subject_name?: string;
   test_type: string;
+  set_number?: string;
   branch?: {id: number;name: string;} | number;
   semester?: number;
   section?: number;
@@ -69,6 +70,7 @@ interface QuestionPaper {
 interface CreateQPPayload {
   subject: number;
   test_type: string;
+  set_number: string;
   questions_data: Array<{
     question_number: string;
     co: string;
@@ -89,7 +91,8 @@ const UploadQP = () => {
     semester: [] as {id: number;number: number;}[],
     section: [] as {id: number;name: string;}[],
     subject: [] as {id: number;name: string;}[],
-    testType: ["IA1", "IA2", "IA3", "SEE"]
+    testType: ["IA1", "IA2", "IA3", "SEE"],
+    setNumber: ["Set 1", "Set 2"]
   });
 
   const [selected, setSelected] = useState({
@@ -97,7 +100,8 @@ const UploadQP = () => {
     semester_id: location.state?.semester_id || undefined as number | undefined,
     section_id: location.state?.section_id || undefined as number | undefined,
     subject_id: location.state?.subject_id || undefined as number | undefined,
-    testType: location.state?.testType || "IA1"
+    testType: location.state?.testType || undefined as string | undefined,
+    setNumber: location.state?.setNumber || undefined as string | undefined
   });
 
   // start empty; populate only after Branch+Subject+TestType selection
@@ -113,6 +117,7 @@ const UploadQP = () => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [isTestTypeOpen, setIsTestTypeOpen] = useState(false);
+  const [isSetNumberOpen, setIsSetNumberOpen] = useState(false);
   const { theme } = useTheme();
 
   const toggleExpanded = (key: string) => {
@@ -154,7 +159,7 @@ const UploadQP = () => {
   // Load existing QP when Branch + Subject + Test Type are selected
   useEffect(() => {
     const loadIfReady = async () => {
-      if (!selected.branch_id || !selected.subject_id || !selected.testType) return;
+      if (!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) return;
       // default template to show when no saved QP exists
       const defaultTemplate: QuestionRow[] = [
       { id: '1a', number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
@@ -163,10 +168,10 @@ const UploadQP = () => {
 
       try {
         setLoading(true);
-        const res = await getQuestionPapers({ branch_id: selected.branch_id?.toString(), semester_id: selected.semester_id?.toString(), section_id: selected.section_id?.toString(), subject_id: selected.subject_id?.toString(), test_type: selected.testType, detail: true });
+        const res = await getQuestionPapers({ branch_id: selected.branch_id?.toString(), semester_id: selected.semester_id?.toString(), section_id: selected.section_id?.toString(), subject_id: selected.subject_id?.toString(), test_type: selected.testType, set_number: selected.setNumber, detail: true });
         if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
-          // prefer exact match on subject+test_type; do NOT fallback to first result
-          const qp = res.data.find((q: QuestionPaper) => q.subject === selected.subject_id && q.test_type === selected.testType);
+          // prefer exact match on subject+test_type+set_number
+          const qp = res.data.find((q: QuestionPaper) => q.subject === selected.subject_id && q.test_type === selected.testType && q.set_number === selected.setNumber);
           if (qp) {
             // build flat question rows from nested questions/subparts
             const rows = buildQuestionRowsFromQP(qp);
@@ -197,7 +202,7 @@ const UploadQP = () => {
       }
     };
     loadIfReady();
-  }, [selected.branch_id, selected.subject_id, selected.testType, selected.semester_id, selected.section_id]);
+  }, [selected.branch_id, selected.subject_id, selected.testType, selected.setNumber, selected.semester_id, selected.section_id]);
 
   // Load rejected QPs for this faculty to show editable items on the page
   useEffect(() => {
@@ -257,9 +262,9 @@ const UploadQP = () => {
   const totalMarks = questions.reduce((s, q) => s + (Number.parseInt(q.maxMarks || '0', 10) || 0), 0);
 
   const validateSelection = () => {
-    if (!selected.branch_id || !selected.subject_id || !selected.testType) {
+    if (!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) {
       const MySwal = withReactContent(Swal);
-      MySwal.fire('Validation Error', 'Please select branch, subject and test type', 'error');
+      MySwal.fire('Validation Error', 'Please select branch, subject, test type and set number', 'error');
       return false;
     }
     return true;
@@ -280,6 +285,7 @@ const UploadQP = () => {
     return {
       subject: selected.subject_id,
       test_type: selected.testType,
+      set_number: selected.setNumber as string,
       questions_data: Object.keys(grouped).map((k) => ({ question_number: k, co: grouped[k].co, blooms_level: grouped[k].blooms_level, subparts_data: grouped[k].subparts })),
       branch,
       semester,
@@ -299,14 +305,16 @@ const UploadQP = () => {
         section_id: selected.section_id?.toString(),
         subject_id: selected.subject_id?.toString(),
         test_type: selected.testType,
+        set_number: selected.setNumber,
         detail: false,
         mine_only: true
       });
       if (res?.success && Array.isArray(res.data)) {
-        // Find exact match on Subject and Test Type for this section/semester
+        // Find exact match on Subject, Test Type, Set Number
         return res.data.find((q: QuestionPaper) =>
         q.subject === selected.subject_id &&
         q.test_type === selected.testType &&
+        q.set_number === selected.setNumber &&
         q.semester === selected.semester_id &&
         q.section === selected.section_id
         ) || null;
@@ -493,7 +501,7 @@ const UploadQP = () => {
               <CardTitle>Upload QP Pattern</CardTitle>
             </CardHeader>
             <CardContent className="pb-0">
-              <div id="upload-qp-selectors" className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div id="upload-qp-selectors" className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div>
                   <label htmlFor="branch-select" className="text-sm">Branch</label>
                   <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {
@@ -553,6 +561,17 @@ const UploadQP = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <label htmlFor="set-number-select" className="text-sm">Set Number</label>
+                  <Select value={selected.setNumber} onValueChange={(v) => setSelected((s) => ({ ...s, setNumber: String(v) }))} disabled={!selected.testType} open={isSetNumberOpen} onOpenChange={setIsSetNumberOpen}>
+                    <SelectTrigger className="w-full" disabled={!selected.testType}>
+                      <SelectValue placeholder="Select Set Number" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {dropdownData.setNumber.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <TabsList>
                 <TabsTrigger value="questionFormat">Question Format</TabsTrigger>
@@ -569,7 +588,7 @@ const UploadQP = () => {
                   {rejectedQPs.map((qp) =>
                     <div key={qp.id} className="p-3 border rounded flex justify-between items-start">
                       <div>
-                        <div className="font-medium">{qp.subject_name || qp.subject} - {qp.test_type}</div>
+                        <div className="font-medium">{qp.subject_name || qp.subject} - {qp.test_type} {qp.set_number}</div>
                         <div className="text-sm text-muted-foreground">
                           Branch: {typeof qp.branch === 'object' ? qp.branch?.name || 'N/A' : 'N/A'}
                         </div>
@@ -583,7 +602,8 @@ const UploadQP = () => {
                             ...s,
                             branch_id: typeof qp.branch === 'object' ? qp.branch?.id : qp.branch,
                             subject_id: qp.subject,
-                            testType: qp.test_type
+                            testType: qp.test_type,
+                            setNumber: qp.set_number
                           }));
                           setTabValue('questionFormat');
                           // ensure QP id is set so save/update operates on this qp
@@ -608,14 +628,14 @@ const UploadQP = () => {
                   <div className="py-4">
                     <SkeletonList items={3} />
                   </div> :
-                  !selected.branch_id || !selected.subject_id || !selected.testType ?
+                  !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ?
                     <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                       <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                         <Layers className="w-12 h-12 opacity-80" />
                       </div>
                       <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
                       <p className="max-w-xs text-base leading-relaxed">
-                        Please select Branch, Subject and Test Type to load or create a question paper.
+                        Please select Branch, Subject, Test Type, and Set Number to load or create a question paper.
                       </p>
                     </div> :
 
@@ -680,13 +700,13 @@ const UploadQP = () => {
                               <div className="flex flex-col sm:flex-row gap-3 mt-6">
                                 <Button
                                   onClick={addQuestion}
-                                  disabled={!selected.branch_id || !selected.subject_id || !selected.testType}
+                                  disabled={!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber}
                                   className="bg-primary text-white hover:bg-primary/90 transition-all duration-200">
                                   <Plus size={14} className="mr-2" /> Add Question
                                 </Button>
                                 <Button
                                   onClick={saveFormat}
-                                  disabled={!selected.branch_id || !selected.subject_id || !selected.testType}
+                                  disabled={!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber}
                                   className="bg-primary text-white hover:bg-primary/90 transition-all duration-200">
                                   Save Format
                                 </Button>
@@ -700,14 +720,14 @@ const UploadQP = () => {
               </div>
             </TabsContent>
             <TabsContent value="questionPaper">
-              {!selected.branch_id || !selected.subject_id || !selected.testType ?
+              {!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ?
                 <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                   <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <Layers className="w-12 h-12 opacity-80" />
                   </div>
                   <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Selection Required</h3>
                   <p className="max-w-xs text-base leading-relaxed">
-                    Please select Branch, Subject and Test Type to preview the question paper.
+                    Please select Branch, Subject, Test Type, and Set Number to preview the question paper.
                   </p>
                 </div> :
 

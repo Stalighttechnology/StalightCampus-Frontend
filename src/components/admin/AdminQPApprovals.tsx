@@ -23,6 +23,7 @@ interface QPPending {
   id: number;
   subject: string;
   test_type: string;
+  set_number?: string;
   faculty: string;
   submitted_at: string;
   branch?: {id: number | null;name: string | null;};
@@ -121,7 +122,7 @@ const AdminQPApprovals = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        const fileName = `qp-${(qpDetail.subject || 'qp').replace(/\s+/g, '_')}-${(qpDetail.test_type || 'test').replace(/\s+/g, '_')}.pdf`;
+        const fileName = `qp-${(qpDetail.subject || 'qp').replace(/\s+/g, '_')}-${(qpDetail.test_type || 'test').replace(/\s+/g, '_')}_${(qpDetail.set_number || '').replace(/\s+/g, '_')}.pdf`;
         a.download = fileName;
         document.body.appendChild(a);
         a.click();
@@ -343,7 +344,7 @@ const AdminQPApprovals = () => {
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-base line-clamp-2">{qp.subject}</h3>
                 <Badge variant="outline" className={theme === 'dark' ? 'border-primary/50 text-primary' : 'border-blue-200 text-blue-700'}>
-                  {qp.test_type}
+                  {qp.test_type} {qp.set_number}
                 </Badge>
               </div>
               
@@ -366,15 +367,20 @@ const AdminQPApprovals = () => {
 
               {qp.last_action &&
                 <div className={`mt-3 p-2 rounded text-xs ${theme === 'dark' ? 'bg-primary/30' : 'bg-primary/5 border'}`}>
-                  <p className="font-medium mb-1">Action: {qp.last_action.action}</p>
+                  <p className="font-medium mb-1 capitalize">Action: {qp.last_action.action} by {qp.last_action.actor || 'Unknown'} ({qp.last_action.role || 'N/A'})</p>
                   <p className="text-muted-foreground italic line-clamp-2">
                     "{qp.last_action.comment || 'No comment provided'}"
                   </p>
                 </div>
               }
               {isHistory && qp.status && (
-                <div className="mt-2">
-                  <Badge variant="secondary" className="w-full justify-center">Current Status: {qp.status.replace('_', ' ').toUpperCase()}</Badge>
+                <div className="mt-2 space-y-1">
+                  <Badge variant="secondary" className="w-full justify-center">Status: {qp.status.replace('_', ' ').toUpperCase()}</Badge>
+                  {qp.current_holder && (
+                    <div className="text-center text-xs text-muted-foreground">
+                      Waiting on: {qp.current_holder}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -559,7 +565,7 @@ const AdminQPApprovals = () => {
         }}>
         <DialogContent className={`qp-dialog-content ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90vw] mx-4 rounded-lg flex flex-col max-h-[92vh]`}> 
           <DialogHeader>
-            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type}</DialogTitle>
+            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}</DialogTitle>
           </DialogHeader>
           <div className="overflow-auto custom-scrollbar px-4 py-2 space-y-4 flex-1">
             {detailLoading ?
