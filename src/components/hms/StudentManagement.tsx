@@ -278,8 +278,7 @@ const StudentManagement: React.FC = () => {
 
       // Invalidate context cache to ensure other pages fetch fresh data and statistics (like occupancy rate)
       await refreshData(true);
-
-      setStudents((prev) => prev.map((s) => s.id === editingStudent.id ? updatedStudent : s));
+      await fetchStudents();
 
       setIsDialogOpen(false);
       showSuccessAlert("Success", "Student details updated successfully");
@@ -448,7 +447,6 @@ const StudentManagement: React.FC = () => {
                       <TableHead className="font-bold">Student Name</TableHead>
                       <TableHead className="font-bold">Room Allocation</TableHead>
                       <TableHead className="text-center font-bold">Status</TableHead>
-                      <TableHead className="text-center font-bold">Dues</TableHead>
                       <TableHead className="text-right font-bold px-6">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -478,12 +476,6 @@ const StudentManagement: React.FC = () => {
                       <Badge variant="outline" className="text-muted-foreground border-dashed">Pending</Badge>
                       }
                           </TableCell>
-                          <TableCell className="text-center">
-                            {student.no_dues ?
-                      <CheckCircle2 size={18} className="text-green-500 mx-auto" /> :
-                      <XCircle size={18} className="text-red-500 mx-auto" />
-                      }
-                          </TableCell>
                           <TableCell className="text-right px-6">
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(student)} className="h-8 w-8 text-primary hover:bg-primary/10">
                               <Edit2 size={14} />
@@ -493,7 +485,7 @@ const StudentManagement: React.FC = () => {
                   ) :
 
                   <TableRow>
-                        <TableCell colSpan={6} className="text-center py-20 text-muted-foreground">
+                        <TableCell colSpan={5} className="text-center py-20 text-muted-foreground">
                           {!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester) ?
                             "Select filters or type a search query to view student records." :
                             "No student records found."
@@ -656,16 +648,6 @@ const StudentManagement: React.FC = () => {
                     onChange={(e) => setFormData((prev) => ({ ...prev, room_allotted: e.target.checked }))} />
                   
                     <Label htmlFor="room_allotted" className="cursor-pointer">Room Allotted</Label>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                    type="checkbox"
-                    id="no_dues"
-                    className="w-4 h-4 accent-primary"
-                    checked={formData.no_dues}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, no_dues: e.target.checked }))} />
-                  
-                    <Label htmlFor="no_dues" className="cursor-pointer">Clear Dues (No Dues)</Label>
                   </div>
                 </div>
 
