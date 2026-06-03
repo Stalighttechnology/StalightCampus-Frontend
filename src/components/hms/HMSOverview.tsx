@@ -4,6 +4,7 @@ import { Building2, Users, Grid3X3, Shield, AlertCircle, Eye } from "lucide-reac
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { useHMSContext } from "../../context/HMSContext";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ import {
 } from
   "@/components/ui/dialog";
 import { getRoomDetail } from "../../utils/hms_api";
+import { Button } from "@/components/ui/button";
 import DashboardCard from "../common/DashboardCard";
 import {
   SkeletonStatsGrid,
@@ -65,7 +67,6 @@ interface Stats {
 
 const HMSOverview = () => {
   const { theme } = useTheme();
-  const { toast } = useToast();
   const { hostels, statistics, loading, getCachedFloors, getCachedRooms, skeletonMode } = useHMSContext();
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -76,6 +77,7 @@ const HMSOverview = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
   const [isFloorOpen, setIsFloorOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Map backend stats to component stats
   const stats = {
@@ -266,10 +268,28 @@ const HMSOverview = () => {
                       <SelectValue placeholder="Choose Hostel" />
                     </SelectTrigger>
                     <SelectContent>
-                      {hostels.map((hostel) =>
-                        <SelectItem key={hostel.id} value={hostel.id.toString()}>
-                          {hostel.name}
-                        </SelectItem>
+                      {hostels.length > 0 ? (
+                        hostels.map((hostel) =>
+                          <SelectItem key={hostel.id} value={hostel.id.toString()}>
+                            {hostel.name}
+                          </SelectItem>
+                        )
+                      ) : (
+                        <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                          <p className="text-xs text-muted-foreground">No hostels found</p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                            onPointerDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              navigate('/hms/hostels', { state: { openAddHostel: true } });
+                            }}
+                          >
+                            Add Hostel
+                          </Button>
+                        </div>
                       )}
                     </SelectContent>
                   </Select>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,6 +66,7 @@ const RoomManagement: React.FC = () => {
   const [viewingRoom, setViewingRoom] = useState<Room | null>(null);
   const { toast } = useToast();
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const lastFetchRef = React.useRef<{hostel: number | null;floor: string;}>({ hostel: null, floor: "" });
 
   useEffect(() => {
@@ -305,11 +307,29 @@ const RoomManagement: React.FC = () => {
                           <SelectValue placeholder="Select Hostel" />
                         </SelectTrigger>
                         <SelectContent>
-                          {hostels.map((hostel) =>
-                        <SelectItem key={hostel.id} value={hostel.id.toString()} className="font-normal">
-                              {hostel.name}
-                            </SelectItem>
-                        )}
+                          {hostels.length > 0 ? (
+                            hostels.map((hostel) =>
+                              <SelectItem key={hostel.id} value={hostel.id.toString()} className="font-normal">
+                                {hostel.name}
+                              </SelectItem>
+                            )
+                          ) : (
+                            <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                              <p className="text-xs text-muted-foreground">No hostels found</p>
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                                onPointerDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigate('/hms/hostels', { state: { openAddHostel: true } });
+                                }}
+                              >
+                                Add Hostel
+                              </Button>
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
                     }

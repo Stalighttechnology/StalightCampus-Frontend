@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,6 +80,27 @@ const HostelManagement: React.FC = () => {
     radius: '500'
   });
   const { toast } = useToast();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.openAddHostel) {
+      setEditingHostel(null);
+      setFormData({
+        name: '',
+        gender: 'M',
+        floor_count: 1,
+        warden: null,
+        caretaker: null,
+        address: '',
+        latitude: '12.9716',
+        longitude: '77.5946',
+        radius: '500'
+      });
+      setIsDialogOpen(true);
+      // Clear the router state to avoid reopening on reload/navigating back
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
 
 
