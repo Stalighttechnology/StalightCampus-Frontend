@@ -4,6 +4,7 @@ import HelpLearningCard from "../common/HelpLearningCard";
 import LoginActivity from "../common/LoginActivity";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -11,11 +12,12 @@ import { Textarea } from "../ui/textarea";
 import { useTheme } from "../../context/ThemeContext";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Camera } from "lucide-react";
 import { SkeletonCard } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { useHMSContext } from "../../context/HMSContext";
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
 
 interface User {
   user_id?: string;
@@ -38,6 +40,7 @@ interface Profile {
   address: string;
   bio: string;
   designation: string;
+  profile_picture: string;
 }
 
 const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error: string | null) => void;}) => {
@@ -50,7 +53,8 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
     mobile_number: "",
     address: "",
     bio: "",
-    designation: ""
+    designation: "",
+    profile_picture: ""
   });
   const { theme } = useTheme();
   const { skeletonMode } = useHMSContext();
@@ -64,6 +68,10 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help' | 'settings' | 'activity'>('personal');
   const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  
+  // Profile picture upload states
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const resetUpload = () => { setIsUploadingPicture(false); };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -87,7 +95,8 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             mobile_number: payload.mobile_number || "",
             address: payload.address || "",
             bio: payload.bio || "",
-            designation: payload.designation || "HMS Manager"
+            designation: payload.designation || "HMS Manager",
+            profile_picture: payload.profile_picture ? (payload.profile_picture.startsWith('http') ? payload.profile_picture : `${API_ENDPOINT.replace('/api', '')}${payload.profile_picture}`) : ""
           });
         } else {
           showErrorAlert("Error", result.message || "Failed to fetch profile");
@@ -133,6 +142,52 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
       showErrorAlert("Error", err.message || "Network error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleProfilePictureSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024) {
+      showErrorAlert('Error', 'Profile picture must be less than 50KB');
+      e.target.value = '';
+      return;
+    }
+    uploadProfilePictureDirectly(file);
+  };
+
+  const uploadProfilePictureDirectly = async (file: File) => {
+    try {
+      setIsUploadingPicture(true);
+      // Upload to R2 via backend proxy
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
+      
+      if (fileUrl) {
+        // Finalize update with backend
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/upload-picture/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_picture_url: fileUrl })
+        });
+        const result = await response.json();
+
+        if (result?.success) {
+          setProfile((p) => ({ ...p, profile_picture: fileUrl }));
+          const currentUserData = JSON.parse(sessionStorage.getItem("user") || '{}');
+          currentUserData.profile_picture = fileUrl;
+          sessionStorage.setItem("user", JSON.stringify(currentUserData));
+          showSuccessAlert('Success', 'Profile picture updated successfully!');
+        } else {
+          showErrorAlert('Error', result.message || 'Failed to update backend with new photo');
+        }
+      } else {
+        showErrorAlert('Error', 'Failed to upload image to R2');
+      }
+    } catch (err) {
+      console.error("Profile picture upload error:", err);
+      showErrorAlert('Error', 'Failed to upload profile picture');
+    } finally {
+      resetUpload();
     }
   };
 
@@ -393,9 +448,26 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
-              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4`}>
-                {profile.first_name[0]}{profile.last_name[0]}
+              <div className="relative mb-3 mt-3 sm:mb-4 flex-shrink-0">
+                <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
+                  {profile.profile_picture ? (
+                    <AvatarImage src={profile.profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
+                  ) : (
+                    <AvatarFallback>{(profile.first_name?.[0] || '') + (profile.last_name?.[0] || '')}</AvatarFallback>
+                  )}
+                </Avatar>
+                <label htmlFor="profile-picture-upload" className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-2 rounded-full cursor-pointer transition-colors shadow-lg">
+                  <Camera className="h-4 w-4" />
+                </label>
+                <input id="profile-picture-upload" type="file" accept="image/*" onChange={handleProfilePictureSelect} className="hidden" />
               </div>
+
+              {isUploadingPicture && (
+                <div className="mb-2 text-center w-full px-4">
+                  <p className="text-xs text-gray-500 animate-pulse">Uploading...</p>
+                </div>
+              )}
+
               <div className="text-xl sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
               <div className={`text-base sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>HMS Manager</div>
 
