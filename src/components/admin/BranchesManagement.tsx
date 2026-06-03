@@ -57,7 +57,9 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
   const [filter, setFilter] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Branch | null>(null);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
+  const [confirmName, setConfirmName] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newBranch, setNewBranch] = useState({ name: "", branch_code: "" });
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
@@ -241,22 +243,11 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
   };
 
   const confirmDelete = (id: number) => {
-    const currentTheme = theme === 'dark' ? 'dark' : 'light';
-    MySwal.fire({
-      title: 'Confirm Deletion',
-      text: "Are you sure you want to delete this branch? This action cannot be undone.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#3b82f6',
-      confirmButtonText: 'Delete Branch',
-      background: currentTheme === 'dark' ? '#1f2937' : '#fff',
-      color: currentTheme === 'dark' ? '#fff' : '#000'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        deleteBranch(id);
-      }
-    });
+    const branch = branches.find((b) => b.id === id);
+    if (!branch) return;
+    setBranchToDelete(branch);
+    setConfirmName("");
+    setIsDeleteDialogOpen(true);
   };
 
   const deleteBranch = async (id: number) => {
@@ -272,6 +263,8 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
         } else {
           fetchData(currentPage);
         }
+        setIsDeleteDialogOpen(false);
+        setBranchToDelete(null);
         toast({ title: "Success", description: "Branch deleted successfully" });
       } else {
         toast({ variant: "destructive", title: "Error", description: dataSource?.message || "Failed to delete branch" });
@@ -784,6 +777,58 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                 className="flex-1 bg-primary text-white">
 
                 {loading ? "Assigning..." : "Assign HOD"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => {
+          setIsDeleteDialogOpen(open);
+          if (!open) setConfirmName("");
+        }}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground max-w-[90vw] sm:max-w-md rounded-xl' : 'bg-white text-gray-900 max-w-[90vw] sm:max-w-md rounded-xl'}>
+            <DialogHeader>
+              <DialogTitle className="text-destructive">Delete Branch</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              <div>
+                <p className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
+                  Are you sure you want to delete <span className="font-semibold text-foreground">"{branchToDelete?.name}"</span>?
+                </p>
+                <p className="text-sm text-destructive font-medium mt-2">
+                  This action cannot be undone and will permanently delete the branch and all associated data.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <label className={`block text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                  Please type <span className="font-bold">{branchToDelete?.name}</span> to confirm:
+                </label>
+                <Input
+                  value={confirmName}
+                  onChange={(e) => setConfirmName(e.target.value)}
+                  placeholder={branchToDelete?.name}
+                  className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}
+                />
+              </div>
+            </div>
+            <DialogFooter className="flex gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  setConfirmName("");
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => branchToDelete && deleteBranch(branchToDelete.id)}
+                disabled={loading || confirmName !== branchToDelete?.name}
+                className="flex-1"
+              >
+                {loading ? "Deleting..." : "Delete Branch"}
               </Button>
             </DialogFooter>
           </DialogContent>

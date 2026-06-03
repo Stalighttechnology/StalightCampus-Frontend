@@ -38,6 +38,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
   const [editForm, setEditForm] = useState({ start_year: "", end_year: "" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [batchToDelete, setBatchToDelete] = useState<Batch | null>(null);
+  const [confirmName, setConfirmName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const { theme } = useTheme();
 
@@ -184,7 +185,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
         // Update local state for immediate feedback
         if (dataSource.batch) {
           setBatches(prevBatches =>
-            prevBatches.map(batch =>
+             prevBatches.map(batch =>
               batch.id === dataSource.batch.id ? {
                 ...batch,
                 name: dataSource.batch.name,
@@ -226,6 +227,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
 
   const handleDeleteBatch = (batch: Batch) => {
     setBatchToDelete(batch);
+    setConfirmName("");
     setDeleteDialogOpen(true);
   };
 
@@ -526,23 +528,42 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <Dialog open={deleteDialogOpen} onOpenChange={(open) => {
+        setDeleteDialogOpen(open);
+        if (!open) setConfirmName("");
+      }}>
         <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-full rounded-xl shadow-xl`}>
           <DialogHeader>
             <DialogTitle className="text-destructive">Delete Batch</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
-              Are you sure you want to delete <span className="font-semibold text-foreground">"{batchToDelete?.name}"</span>?
-            </p>
-            <p className="text-sm text-destructive font-medium mt-2">
-              This action cannot be undone and will remove all associations.
-            </p>
+          <div className="py-4 space-y-4">
+            <div>
+              <p className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}>
+                Are you sure you want to delete <span className="font-semibold text-foreground">"{batchToDelete?.name}"</span>?
+              </p>
+              <p className="text-sm text-destructive font-medium mt-2">
+                This action cannot be undone and will remove all associations.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className={`block text-xs font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>
+                Please type <span className="font-bold">{batchToDelete?.name}</span> to confirm:
+              </label>
+              <Input
+                value={confirmName}
+                onChange={(e) => setConfirmName(e.target.value)}
+                placeholder={batchToDelete?.name}
+                className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}
+              />
+            </div>
           </div>
           <DialogFooter className="flex gap-3">
             <Button
               variant="ghost"
-              onClick={() => setDeleteDialogOpen(false)}
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setConfirmName("");
+              }}
               className="flex-1"
             >
               Cancel
@@ -550,7 +571,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
             <Button
               variant="destructive"
               onClick={confirmDelete}
-              disabled={loading}
+              disabled={loading || confirmName !== batchToDelete?.name}
               className="flex-1"
             >
               {loading ? "Deleting..." : "Delete Batch"}
