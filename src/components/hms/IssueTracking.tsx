@@ -16,8 +16,9 @@ import {
   History,
   CheckCircle,
   AlertTriangle,
-  Download } from
-'lucide-react';
+  Download
+} from
+  'lucide-react';
 import { useHMSContext } from '../../context/HMSContext';
 import { useToast } from '../../hooks/use-toast';
 import {
@@ -25,8 +26,10 @@ import {
   updateIssueStatus,
   getIssueDetail,
   exportHostelIssuesPdf,
-  exportSingleIssuePdf } from
-'../../utils/hms_api';
+  exportSingleIssuePdf,
+  getIssueStats
+} from
+  '../../utils/hms_api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,12 +88,20 @@ const STATUS_CONFIG = {
   }
 };
 
-const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
+const IssueTracking = ({ hostelId }: { hostelId: number; }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hostels, skeletonMode } = useHMSContext();
 
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [stats, setStats] = useState<{
+    total: number;
+    pending: number;
+    in_progress: number;
+    waiting_for_workers: number;
+    completed: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [selectedHostelId, setSelectedHostelId] = useState<string>(hostelId?.toString() || '');
   const [loading, setLoading] = useState(true);
   const [selectedIssue, setSelectedIssue] = useState<DetailedIssue | null>(null);
@@ -102,6 +113,20 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [exporting, setExporting] = useState(false);
+
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    try {
+      const response = await getIssueStats(selectedHostelId ? Number(selectedHostelId) : undefined);
+      if (response.success && response.data?.stats) {
+        setStats(response.data.stats);
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const handleExportPDF = async () => {
     if (!selectedHostelId) return;
@@ -117,7 +142,7 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: 'Success',
         description: 'PDF report downloaded successfully',
@@ -148,7 +173,7 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: 'Success',
         description: 'Issue report PDF downloaded successfully',
@@ -178,8 +203,16 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
     }
   }, [hostelId, hostels]);
   useEffect(() => {
+    fetchStats();
+  }, [selectedHostelId]);
+
+  useEffect(() => {
     if (selectedHostelId) {
       fetchIssues();
+    } else {
+      setIssues([]);
+      setTotalCount(0);
+      setTotalPages(1);
     }
   }, [selectedHostelId, statusFilter, currentPage]);
 
@@ -254,6 +287,8 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
           title: 'Success',
           description: 'Issue status updated'
         });
+        
+        fetchStats();
 
         setIssues((prev) => prev.map((i) => i.id === issueId ? { ...i, status: newStatus, status_display: STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label || newStatus, updated_at: new Date().toISOString(), update_count: (i.update_count || 0) + 1 } : i));
 
@@ -306,28 +341,28 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
       <div id="hms-issues-stats-grid" className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
           title="Total Issues"
-          value={loading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : totalCount}
+          value={statsLoading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats?.total ?? 0}
           description="Total raised this month"
           icon={<MessageSquare className="w-5 h-5" />} />
         
         <DashboardCard
           title="Pending"
-          value={loading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : issues.filter((i) => i.status === 'pending').length}
+          value={statsLoading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats?.pending ?? 0}
           description="Awaiting warden review"
           icon={<AlertTriangle className="w-5 h-5" />} />
         
         <DashboardCard
           title="In Progress"
-          value={loading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : issues.filter((i) => i.status === 'in_progress').length}
+          value={statsLoading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : (stats?.in_progress ?? 0) + (stats?.waiting_for_workers ?? 0)}
           description="Being handled"
           icon={<Clock className="w-5 h-5" />} />
         
         <DashboardCard
           title="Resolved"
-          value={loading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : issues.filter((i) => i.status === 'completed').length}
+          value={statsLoading || skeletonMode ? <div className="h-8 w-12 bg-muted animate-pulse rounded" /> : stats?.completed ?? 0}
           description="Marked as completed"
           icon={<CheckCircle className="w-5 h-5" />} />
-        
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -358,9 +393,9 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                   <div className="space-y-1">
                     <p className="text-[18px] sm:text-[14px] uppercase font-semibold text-muted-foreground px-1 mb-2 block">Hostel</p>
                     {loading || skeletonMode ?
-                    <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+                      <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                    <Select value={selectedHostelId} onValueChange={setSelectedHostelId}>
+                      <Select value={selectedHostelId} onValueChange={setSelectedHostelId}>
                         <SelectTrigger className="bg-background border-primary/10 hover:border-primary/30 transition-colors h-10">
                           <div className="flex items-center gap-2">
                             <Home className="w-3.5 h-3.5 text-primary/70" />
@@ -373,9 +408,9 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                           ) : (
                             <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
                               <p className="text-xs text-muted-foreground">No hostels found</p>
-                              <Button 
-                                type="button" 
-                                size="sm" 
+                              <Button
+                                type="button"
+                                size="sm"
                                 className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
                                 onPointerDown={(e) => {
                                   e.preventDefault();
@@ -395,9 +430,9 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                   <div className="space-y-1">
                     <p className="text-[18px] sm:text-[14px] uppercase font-semibold text-muted-foreground px-1 mb-2 block">Filter Status</p>
                     {loading || skeletonMode ?
-                    <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+                      <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="bg-background border-primary/10 hover:border-primary/30 transition-colors h-10">
                           <div className="flex items-center gap-2">
                             <Filter className="w-3.5 h-3.5 text-primary/70" />
@@ -419,9 +454,9 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
             <CardContent className="p-0">
               <ScrollArea className="h-[calc(100vh-23.5rem)] min-h-[50px] custom-scrollbar">
                 {(loading || skeletonMode) && issues.length === 0 ?
-                <div className="divide-y">
+                  <div className="divide-y">
                     {[1, 2, 3, 4].map((i) =>
-                  <div key={i} className="p-4 space-y-4 animate-pulse">
+                      <div key={i} className="p-4 space-y-4 animate-pulse">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
                             <div className="h-4 w-8 bg-muted rounded" />
@@ -440,60 +475,60 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                           </div>
                         </div>
                       </div>
-                  )}
+                    )}
                   </div> :
-                issues.length === 0 ?
-                <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-                    <CheckCircle className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                    <p className="font-semibold text-muted-foreground">All clear!</p>
-                    <p className="text-sm text-muted-foreground">No issues found with this filter.</p>
-                  </div> :
+                  issues.length === 0 ?
+                    <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+                      <CheckCircle className="w-12 h-12 text-muted-foreground/30 mb-4" />
+                      <p className="font-semibold text-muted-foreground">All clear!</p>
+                      <p className="text-sm text-muted-foreground">No issues found with this filter.</p>
+                    </div> :
 
-                <div className="divide-y">
-                    {issues.map((issue) => {
-                    const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
-                    const Icon = config.icon;
-                    const isSelected = selectedIssue?.id === issue.id;
+                    <div className="divide-y">
+                      {issues.map((issue) => {
+                        const config = STATUS_CONFIG[issue.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+                        const Icon = config.icon;
+                        const isSelected = selectedIssue?.id === issue.id;
 
-                    return (
-                      <div
-                        key={issue.id}
-                        onClick={() => handleIssueClick(issue)}
-                        className={`p-4 transition-all cursor-pointer hover:bg-muted/50 relative ${isSelected ? "bg-primary/5 ring-1 ring-primary/20 ring-inset" : ""}`
-                        }>
-                        
-                          {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 " />}
-                          <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2 mb-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">#{issue.id}</span>
-                              <h4 className="font-semibold text-sm sm:text-base truncate">{issue.title}</h4>
-                            </div>
-                            <Badge variant="outline" className={`text-[10px] sm:text-xs h-5 whitespace-nowrap flex-shrink-0 ${config.color}`}>
-                              {issue.status_display}
-                            </Badge>
-                          </div>
-                          <div className="flex flex-wrap items-center justify-between gap-y-1 gap-x-2 text-xs sm:text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1 min-w-0">
-                              <User className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{issue.student_name}</span>
-                            </div>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              <Home className="w-3 h-3 mt-0.5" /> Room {issue.room_name}
-                            </div>
-                          </div>
-                          <div className="mt-2 flex items-center justify-between text-[10px] sm:text-xs">
-                            <span className="flex items-center gap-1 text-muted-foreground/70">
-                              <Calendar className="w-3.5 h-3.5" /> {formatDate(issue.created_at)}
-                            </span>
-                            {issue.update_count > 0 &&
-                          <Badge variant="secondary" className="h-4 px-1.5 text-[10px] sm:text-xs font-normal">
-                                {issue.update_count} updates
+                        return (
+                          <div
+                            key={issue.id}
+                            onClick={() => handleIssueClick(issue)}
+                            className={`p-4 transition-all cursor-pointer hover:bg-muted/50 relative ${isSelected ? "bg-primary/5 ring-1 ring-primary/20 ring-inset" : ""}`
+                            }>
+
+                            {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 " />}
+                            <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">#{issue.id}</span>
+                                <h4 className="font-semibold text-sm sm:text-base truncate">{issue.title}</h4>
+                              </div>
+                              <Badge variant="outline" className={`text-[10px] sm:text-xs h-5 whitespace-nowrap flex-shrink-0 ${config.color}`}>
+                                {issue.status_display}
                               </Badge>
-                          }
-                          </div>
-                        </div>);
+                            </div>
+                            <div className="flex flex-wrap items-center justify-between gap-y-1 gap-x-2 text-xs sm:text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1 min-w-0">
+                                <User className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{issue.student_name}</span>
+                              </div>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <Home className="w-3 h-3 mt-0.5" /> Room {issue.room_name}
+                              </div>
+                            </div>
+                            <div className="mt-2 flex items-center justify-between text-[10px] sm:text-xs">
+                              <span className="flex items-center gap-1 text-muted-foreground/70">
+                                <Calendar className="w-3.5 h-3.5" /> {formatDate(issue.created_at)}
+                              </span>
+                              {issue.update_count > 0 &&
+                                <Badge variant="secondary" className="h-4 px-1.5 text-[10px] sm:text-xs font-normal">
+                                  {issue.update_count} updates
+                                </Badge>
+                              }
+                            </div>
+                          </div>);
 
-                  })}
-                  </div>
+                      })}
+                    </div>
                 }
               </ScrollArea>
             </CardContent>
@@ -532,13 +567,13 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
         <div className="lg:col-span-7" ref={detailsRef}>
           <AnimatePresence mode="wait">
             {selectedIssue ?
-            <motion.div
-              key={selectedIssue.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6">
-              
+              <motion.div
+                key={selectedIssue.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6">
+
                 <Card className="border-primary/10 shadow-md h-[calc(100vh-23.5rem)] min-h-[500px] flex flex-col overflow-hidden">
                   <CardHeader className="pb-4 border-b bg-muted/10 shrink-0">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -568,9 +603,9 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                             </DialogHeader>
                             <ScrollArea className="flex-1 p-6">
                               {selectedIssue.updates && selectedIssue.updates.length > 0 ?
-                            <div className="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-muted">
+                                <div className="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-muted">
                                   {selectedIssue.updates.map((update: any, idx: number) =>
-                              <div key={idx} className="relative pl-8">
+                                    <div key={idx} className="relative pl-8">
                                       <div className="absolute left-0 top-1.5 w-5 h-5 rounded-full border-2 border-background bg-muted flex items-center justify-center">
                                         <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                       </div>
@@ -587,14 +622,14 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                                         </p>
                                       </div>
                                     </div>
-                              )}
+                                  )}
                                 </div> :
-  
-                            <div className="py-20 text-center opacity-50">
+
+                                <div className="py-20 text-center opacity-50">
                                   <History className="w-12 h-12 mx-auto mb-4" />
                                   <p className="text-sm">No history available for this issue.</p>
                                 </div>
-                            }
+                              }
                             </ScrollArea>
                           </DialogContent>
                         </Dialog>
@@ -645,29 +680,29 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                         <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground/80">Update Status</h4>
                         <div className="flex flex-wrap gap-2">
                           {Object.keys(STATUS_CONFIG).map((status) => {
-                          const currentOrder = STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.order ?? 0;
-                          const targetOrder = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.order ?? 0;
-                          const isCurrent = selectedIssue.status === status;
-                          const isPast = targetOrder < currentOrder;
+                            const currentOrder = STATUS_CONFIG[selectedIssue.status as keyof typeof STATUS_CONFIG]?.order ?? 0;
+                            const targetOrder = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.order ?? 0;
+                            const isCurrent = selectedIssue.status === status;
+                            const isPast = targetOrder < currentOrder;
 
-                          return (
-                            <Button
-                              key={status}
-                              size="sm"
-                              variant={isCurrent ? "default" : "outline"}
-                              onClick={() => handleStatusChange(selectedIssue.id, status, '')}
-                              disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
-                              className={`h-10 px-4 text-sm font-semibold transition-all ${isCurrent ?
-                              "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105" :
-                              isPast ?
-                              "opacity-50 grayscale-[0.5] cursor-not-allowed bg-muted/20" :
-                              "hover:border-primary/60 opacity-100"}`
-                              }>
-                              
+                            return (
+                              <Button
+                                key={status}
+                                size="sm"
+                                variant={isCurrent ? "default" : "outline"}
+                                onClick={() => handleStatusChange(selectedIssue.id, status, '')}
+                                disabled={updatingIssueId === selectedIssue.id || isPast || isCurrent}
+                                className={`h-10 px-4 text-sm font-semibold transition-all ${isCurrent ?
+                                  "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20 scale-105" :
+                                  isPast ?
+                                    "opacity-50 grayscale-[0.5] cursor-not-allowed bg-muted/20" :
+                                    "hover:border-primary/60 opacity-100"}`
+                                }>
+
                                 {STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.label}
                               </Button>);
 
-                        })}
+                          })}
                         </div>
                       </div>
                     </CardContent>
@@ -675,7 +710,7 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                 </Card>
               </motion.div> :
 
-            <div className="flex flex-col items-center justify-center h-[calc(100vh-23.5rem)] min-h-[500px] border-2 border-dashed rounded-3xl bg-muted/5 opacity-50">
+              <div className="flex flex-col items-center justify-center h-[calc(100vh-23.5rem)] min-h-[500px] border-2 border-dashed rounded-3xl bg-muted/5 opacity-50">
                 <div className="bg-muted/50 p-8 rounded-full mb-6 ring-8 ring-muted/20">
                   <ChevronRight className="w-12 h-12 text-muted-foreground animate-pulse" />
                 </div>

@@ -548,6 +548,14 @@ page: number = 1)
   return hmsApiCall<any>(endpoint, "GET");
 };
 
+export const getIssueStats = async (hostelId?: number): Promise<HMSResponse<any>> => {
+  let endpoint = `issues/stats/`;
+  if (hostelId) {
+    endpoint += `?hostel_id=${hostelId}`;
+  }
+  return hmsApiCall<any>(endpoint, "GET");
+};
+
 export const exportHostelIssuesPdf = async (
   hostelId: number,
   status?: string
