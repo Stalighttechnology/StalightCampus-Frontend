@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,7 +67,22 @@ const RoomManagement: React.FC = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const lastFetchRef = React.useRef<{hostel: number | null;floor: string;}>({ hostel: null, floor: "" });
+
+  useEffect(() => {
+    if (location.state?.openAddRoom) {
+      if (location.state.hostelId) {
+        setSelectedHostel(location.state.hostelId);
+        setFormData(prev => ({ ...prev, hostel: location.state.hostelId }));
+      }
+      if (location.state.floor !== null && location.state.floor !== undefined) {
+        setSelectedFloor(location.state.floor);
+        setSelectedFloorFilter(location.state.floor.toString());
+      }
+      setIsDialogOpen(true);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (selectedHostel) {
@@ -283,6 +298,29 @@ const RoomManagement: React.FC = () => {
   const hostelRooms = selectedHostel ? rooms.filter((r) => r.hostel === selectedHostel) : [];
   const floors = [...new Set(hostelRooms.map((r) => r.floor !== undefined ? r.floor : getFloorFromRoomNo(r.no)))].sort((a, b) => a - b);
 
+  // Calculate dynamic room counts for the legend based on selection
+  const filteredRooms = selectedHostel
+    ? rooms.filter((r) => 
+        r.hostel === selectedHostel &&
+        (selectedFloorFilter === "all" || selectedFloorFilter === "" || (r.floor !== undefined ? r.floor : getFloorFromRoomNo(r.no)).toString() === selectedFloorFilter)
+      )
+    : [];
+
+  const emptyCount = filteredRooms.filter(r => {
+    const studentCount = roomStudentCounts[r.id] || 0;
+    return getRoomStatus(r, studentCount).status === 'empty';
+  }).length;
+
+  const partialCount = filteredRooms.filter(r => {
+    const studentCount = roomStudentCounts[r.id] || 0;
+    return getRoomStatus(r, studentCount).status === 'partial';
+  }).length;
+
+  const fullCount = filteredRooms.filter(r => {
+    const studentCount = roomStudentCounts[r.id] || 0;
+    return getRoomStatus(r, studentCount).status === 'full';
+  }).length;
+
   // No early return, handle loading in CardContent for better UX
 
   return (
@@ -491,21 +529,27 @@ const RoomManagement: React.FC = () => {
               <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">Room Occupancy Legend</h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/10 border-2 border-green-500/20" />
+                  <div className={`w-10 h-10 rounded-lg border flex items-center justify-center font-bold text-sm ${getRoomColorClasses('green')}`}>
+                    {emptyCount}
+                  </div>
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-green-600 dark:text-green-400">Empty</span>
-                    <p className="text-[10px] text-muted-foreground">0 students assigned</p>
+                    <p className="text-[10px] text-muted-foreground">No students assigned</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-yellow-500/10 border-2 border-yellow-500/20" />
+                  <div className={`w-10 h-10 rounded-lg border flex items-center justify-center font-bold text-sm ${getRoomColorClasses('yellow')}`}>
+                    {partialCount}
+                  </div>
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-yellow-600 dark:text-yellow-400">Partial</span>
                     <p className="text-[10px] text-muted-foreground">Under maximum capacity</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-red-500/10 border-2 border-red-500/20" />
+                  <div className={`w-10 h-10 rounded-lg border flex items-center justify-center font-bold text-sm ${getRoomColorClasses('red')}`}>
+                    {fullCount}
+                  </div>
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-red-600 dark:text-red-400">Full</span>
                     <p className="text-[10px] text-muted-foreground">At maximum capacity</p>

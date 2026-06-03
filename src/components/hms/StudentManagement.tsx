@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { manageHostelStudents, manageRooms, exportHostelStudentsPdf } from '../../utils/hms_api';
 import { useToast } from '../../hooks/use-toast';
-import { Search, Filter, Edit2, CheckCircle2, XCircle, UserCircle2, Building2, Download, Loader2 } from 'lucide-react';
+import { Search, Filter, Edit2, CheckCircle2, XCircle, UserCircle2, Building2, Download, Loader2, Plus } from 'lucide-react';
 import { AdminPagination } from '../common/AdminPagination';
 import { SkeletonTable, SkeletonPageHeader } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -660,15 +660,35 @@ const StudentManagement: React.FC = () => {
 
                     <div className="space-y-2">
                       <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Room</Label>
-                      <Select value={formData.room?.toString() || 'none'} onValueChange={(v) => {
-                        const newRoom = v === 'none' ? null : parseInt(v);
+                      <Select value={formData.room?.toString() || ''} onValueChange={(v) => {
+                        const newRoom = v === '' ? null : parseInt(v);
                         setFormData((prev) => ({ ...prev, room: newRoom, room_allotted: !!newRoom }));
                       }} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || hostels.length === 0 || isLoadingRooms}>
                         <SelectTrigger>
-                          {isLoadingRooms ? <span className="animate-pulse">Loading Rooms...</span> : <SelectValue placeholder="Select room" />}
+                          {isLoadingRooms ? <span className="animate-pulse">Loading Rooms...</span> : <SelectValue placeholder="Choose Room" />}
                         </SelectTrigger>
                         <SelectContent className="max-h-[250px]">
-                          <SelectItem value="none">Unassigned</SelectItem>
+                          <div className="p-2 border-b border-muted/50" onPointerDown={(e) => e.stopPropagation()}>
+                            <Button 
+                              type="button" 
+                              size="sm" 
+                              className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white flex items-center justify-center gap-1"
+                              onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setIsDialogOpen(false);
+                                navigate('/hms/rooms', { 
+                                  state: { 
+                                    openAddRoom: true, 
+                                    hostelId: selectedHostelInDialog, 
+                                    floor: selectedFloorInDialog 
+                                  } 
+                                });
+                              }}
+                            >
+                              <Plus className="w-3.5 h-3.5 mr-1" /> Add Room
+                            </Button>
+                          </div>
                           {roomsForHostel.map((r) =>
                         <SelectItem key={r.id} value={r.id.toString()} disabled={r.student_count >= r.capacity && editingStudent.room !== r.id}>
                               {r.name} ({r.student_count}/{r.capacity})
