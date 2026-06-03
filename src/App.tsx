@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import NetworkStatus from "./components/common/NetworkStatus";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Index from "./components/common/Index";
 import { PwaInstaller } from "./components/pwa/PwaInstaller";
@@ -37,6 +37,7 @@ const SuperAdminIndex = lazy(() => import("./superadmin/index"));
 const PrivacyPolicy = lazy(() => import("./components/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./components/legal/TermsOfService"));
 const Home = lazy(() => import("./components/public/Home"));
+const SyncAccessRestricted = lazy(() => import("./components/common/SyncAccessRestricted"));
 
 import { WardenProvider } from "./context/WardenContext";
 import { shouldShowFloatingAssistant } from "./utils/config";
@@ -74,6 +75,9 @@ const ProtectedRoute = ({
   }
 
   if (!isAuthenticated || !role || !allowedRoles.includes(role)) {
+    if (isAuthenticated && role === "placement_officer") {
+      return <Navigate to="/sync-access-restricted" replace />;
+    }
     return <Index />;
   }
 
@@ -131,6 +135,16 @@ const AppContent = () => {
           <Route path="/stalightcampus/:plan" element={<Onboarding />} />
           <Route path="/onboarding/success" element={<OnboardingSuccess />} />
           <Route path="/trial-expired" element={<TrialExpired />} />
+
+          {/* Sync Restricted Route */}
+          <Route path="/sync-access-restricted" element={
+            <ProtectedRoute allowedRoles={["placement_officer"]}>
+              <>
+                <SyncAccessRestricted />
+                {shouldShowFloatingAssistant() && <FloatingAssistant />}
+              </>
+            </ProtectedRoute>
+          } />
 
           {/* Public Admission routes */}
           <Route path="/admissions/:org_slug" element={<AdmissionLanding />} />

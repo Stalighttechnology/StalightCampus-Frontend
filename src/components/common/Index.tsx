@@ -88,6 +88,9 @@ const Index = () => {
           case "student":
             navigate("/dashboard", { replace: true });
             break;
+          case "placement_officer":
+            navigate("/sync-access-restricted", { replace: true });
+            break;
           default:
             setPage("login");
         }

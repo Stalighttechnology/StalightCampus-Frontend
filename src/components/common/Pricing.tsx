@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   Check,
   ArrowRight,
@@ -8,30 +8,29 @@ import {
   Shield,
   Crown,
   ChevronDown,
-  ChevronUp,
   Star,
-  Globe,
-  Lock,
-  Cpu,
-  BarChart3,
-  Users,
-  GraduationCap,
   Sparkles,
-  Search,
-  MessageSquare,
-  HelpCircle,
-  Clock,
-  Layout,
-  Terminal,
-  Activity,
-  Server,
-  Fingerprint
+  Info
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
+// --- Premium Animation Variants ---
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+};
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
+};
 
 const Pricing = () => {
   const navigate = useNavigate();
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const plans = [
     {
@@ -50,13 +49,15 @@ const Pricing = () => {
         "User Administration"
       ],
       icon: <Zap className="text-blue-500" size={24} />,
-      color: "blue",
-      link: "/stalightcampus/basic"
+      iconBg: "bg-blue-50",
+      accent: "blue",
+      link: "/stalightcampus/basic",
+      popular: false
     },
     {
       name: "Pro",
       price: "₹1,000",
-      duration: "/year (Testing)",
+      duration: "per year",
       description: "For scaling institutions with enhanced workflows and deep analytics.",
       tagline: "Elevate your campus",
       features: [
@@ -69,21 +70,21 @@ const Pricing = () => {
         "Academic Progression",
         "Everything in Basic +"
       ],
-      icon: <Shield className="text-primary" size={24} />,
-      color: "purple",
+      icon: <Shield className="text-purple-600" size={24} />,
+      iconBg: "bg-purple-100",
+      accent: "purple",
       link: "/stalightcampus/pro",
       popular: true
     },
     {
       name: "Advance",
       price: "₹5,000",
-      duration: "/year (Testing)",
+      duration: "per year",
       description: "Enterprise-grade capabilities with state-of-the-art intelligence and security.",
       tagline: "The future of education",
       features: [
         "AI-Powered Assistance",
         "Career Intelligence",
-        "Biometric & Location Security",
         "Automated Grading Engine",
         "Enterprise Access Control",
         "High-Level Security",
@@ -92,8 +93,10 @@ const Pricing = () => {
         "Everything in Pro +"
       ],
       icon: <Crown className="text-amber-500" size={24} />,
-      color: "gold",
-      link: "/stalightcampus/advance"
+      iconBg: "bg-amber-50",
+      accent: "amber",
+      link: "/stalightcampus/advance",
+      popular: false
     }
   ];
 
@@ -103,7 +106,6 @@ const Pricing = () => {
     { name: "Fees & Finance Management", basic: false, pro: true, advance: true },
     { name: "Advanced Analytics Dashboard", basic: false, pro: true, advance: true },
     { name: "Leave & Workflow Automation", basic: false, pro: true, advance: true },
-    { name: "Biometric & Location Security", basic: false, pro: false, advance: true },
     { name: "AI-Powered Assistance (Study Mode)", basic: false, pro: false, advance: true },
     { name: "AI Mock Interviews", basic: false, pro: false, advance: true },
     { name: "Outcome Based Education (COE)", basic: false, pro: false, advance: true },
@@ -140,179 +142,151 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="h-screen bg-[#fafafa] overflow-y-auto thin-scrollbar selection:bg-primary/10 relative scroll-smooth">
-      {/* Background Decorations */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
-        <div className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px]" />
+    <div className="h-screen bg-[#FAFAFA] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 overflow-y-auto overflow-x-hidden relative scroll-smooth thin-scrollbar">
+
+      {/* --- AMBIENT BACKGROUND GLOWS --- */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px]"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px]"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] opacity-50"></div>
       </div>
 
-      {/* Hero Section */}
-      <section className="relative z-10 pt-24 pb-16 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6"
-          >
-            <Star size={16} />
-            <span>Stalight Campus Access Plans</span>
+      {/* --- HERO SECTION --- */}
+      <section className="relative pt-32 pb-16 z-10 w-full text-center px-4">
+        <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="max-w-4xl mx-auto flex flex-col items-center">
+          <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-bold text-slate-700 mb-8">
+            <Sparkles size={16} className="text-purple-500" />
+            <span>Transparent, Scalable Pricing</span>
           </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 tracking-tight"
-          >
-            Scale seamlessly with <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">
-              Enterprise Intelligence
-            </span>
+
+          <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-light tracking-tighter mb-6 leading-[1.1]">
+            Scale seamlessly with <br />
+            <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">Enterprise Intelligence.</span>
           </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-600 text-xl max-w-3xl mx-auto leading-relaxed"
-          >
-            Choose the perfect plan for your institution's needs. Scale from essential daily operations to state-of-the-art intelligence.
+
+          <motion.p variants={fadeUp} className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light">
+            Choose the perfect plan for your institution's needs. Scale from essential daily operations to state-of-the-art AI capabilities.
           </motion.p>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-4 text-sm text-gray-400 flex items-center justify-center gap-2"
-          >
-            <Check size={14} className="text-green-500" />
-            All plans include 24/7 support and regular updates
-          </motion.p>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Pricing Cards */}
-      <section className="relative z-10 py-12 px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan, index) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -8 }}
-              className={`relative flex flex-col p-8 rounded-[2.5rem] border transition-all duration-500 ${plan.popular
-                  ? 'border-primary/20 bg-white shadow-2xl shadow-primary/5'
-                  : 'border-gray-100 bg-white shadow-xl shadow-gray-200/50'
-                }`}
-            >
-              {plan.popular && (
-                <div className="absolute top-0 right-10 -translate-y-1/2 bg-gradient-to-r from-primary to-blue-600 text-white px-6 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/20">
-                  Most Popular
-                </div>
-              )}
-
-              <div className="mb-8">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${plan.color === 'blue' ? 'bg-blue-50' :
-                    plan.color === 'purple' ? 'bg-primary/5' :
-                      'bg-amber-50'
-                  }`}>
-                  {plan.icon}
-                </div>
-                <div className="space-y-1 mb-4">
-                  <h3 className="text-3xl font-bold text-gray-900 tracking-tight">{plan.name}</h3>
-                  <p className="text-primary font-medium text-sm">{plan.tagline}</p>
-                </div>
-                <p className="text-gray-500 text-sm leading-relaxed mb-6 h-12">{plan.description}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-gray-900">{plan.price}</span>
-                  <span className="text-gray-400 font-medium">{plan.duration}</span>
-                </div>
-              </div>
-
-              <div className="space-y-4 mb-10 flex-grow">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">What's Included</p>
-                {plan.features.map((feature) => (
-                  <div key={feature} className="flex items-start gap-3 group">
-                    <div className="mt-1 w-5 h-5 rounded-full bg-green-50 flex items-center justify-center text-green-600 transition-colors group-hover:bg-green-100">
-                      <Check size={10} strokeWidth={4} />
-                    </div>
-                    <span className={`text-sm font-medium ${feature.includes('Everything in') ? 'text-primary' : 'text-gray-600'
-                      }`}>
-                      {feature}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                onClick={() => navigate(plan.link)}
-                className={`w-full h-14 rounded-2xl text-base font-bold transition-all group ${plan.popular
-                    ? 'bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25'
-                    : 'bg-gray-900 hover:bg-gray-800 text-white'
+      {/* --- PRICING CARDS --- */}
+      <section className="relative z-10 pb-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={staggerContainer}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center"
+          >
+            {plans.map((plan) => (
+              <motion.div
+                key={plan.name}
+                variants={fadeUp}
+                className={`relative flex flex-col p-8 md:p-10 rounded-[2.5rem] bg-white border transition-all duration-500 hover:-translate-y-2 h-full ${plan.popular
+                  ? 'border-purple-200 shadow-[0_20px_60px_-15px_rgba(168,85,247,0.2)] md:scale-105 z-10'
+                  : 'border-slate-200 shadow-xl shadow-slate-200/50 hover:shadow-2xl'
                   }`}
               >
-                Get Started
-                <ArrowRight size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </motion.div>
-          ))}
+                {/* Popular Badge */}
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white px-6 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg">
+                    Most Popular
+                  </div>
+                )}
+
+                {/* Header */}
+                <div className="mb-8 border-b border-slate-100 pb-8">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-sm ${plan.iconBg}`}>
+                    {plan.icon}
+                  </div>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-2">{plan.name}</h3>
+                  <p className="text-slate-500 text-sm font-medium mb-6">{plan.tagline}</p>
+
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl font-black text-slate-900 tracking-tighter">{plan.price}</span>
+                    <span className="text-slate-400 font-medium text-sm">{plan.duration}</span>
+                  </div>
+                </div>
+
+                {/* Description & Features */}
+                <div className="flex-grow flex flex-col">
+                  <p className="text-slate-600 text-sm leading-relaxed mb-8">{plan.description}</p>
+
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">What's Included</p>
+                  <ul className="space-y-4 mb-10 flex-grow">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${plan.popular ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-600'
+                          }`}>
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                        <span className={`text-sm leading-tight ${feature.includes('Everything in') ? 'font-bold text-slate-900' : 'text-slate-600 font-medium'}`}>
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Action Button */}
+                <button
+                  onClick={() => navigate(plan.link)}
+                  className={`w-full py-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 group ${plan.popular
+                    ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:opacity-95'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white shadow-md'
+                    }`}
+                >
+                  Get Started
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </button>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* Comparison Section */}
-      <section className="relative z-10 py-24 px-4 bg-white/50 backdrop-blur-sm border-y border-gray-100">
-        <div className="max-w-7xl mx-auto">
+      {/* --- COMPARISON TABLE --- */}
+      <section className="relative z-10 py-24 px-4 bg-white border-y border-slate-100">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Detailed Feature Comparison</h2>
-            <p className="text-gray-500 text-lg">See exactly what each plan includes and find the perfect fit.</p>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">Feature Comparison</h2>
+            <p className="text-slate-500 text-lg font-light">See exactly what each plan includes and find the perfect fit.</p>
           </div>
 
-          <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-xl shadow-slate-200/40">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
-                  <tr className="bg-gray-50/50">
-                    <th className="py-8 px-8 text-sm font-bold text-gray-400 uppercase tracking-widest w-1/2">Features & Capabilities</th>
-                    <th className="py-8 px-4 text-center">
-                      <div className="text-blue-500 font-black text-lg">Basic</div>
+                  <tr className="bg-slate-50/80 border-b border-slate-200">
+                    <th className="py-8 px-8 text-xs font-bold text-slate-500 uppercase tracking-widest w-[40%]">Core Capabilities</th>
+                    <th className="py-8 px-4 text-center w-[20%]">
+                      <div className="text-slate-900 font-black text-xl">Basic</div>
                     </th>
-                    <th className="py-8 px-4 text-center">
-                      <div className="text-primary font-black text-lg">Pro</div>
+                    <th className="py-8 px-4 text-center w-[20%] relative">
+                      {/* Highlight column indicator */}
+                      <div className="absolute inset-0 bg-purple-50/50 border-x border-purple-100/50 -z-10"></div>
+                      <div className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 font-black text-xl">Pro</div>
                     </th>
-                    <th className="py-8 px-4 text-center">
-                      <div className="text-amber-500 font-black text-lg">Advance</div>
+                    <th className="py-8 px-4 text-center w-[20%]">
+                      <div className="text-slate-900 font-black text-xl">Advance</div>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-slate-100">
                   {comparisonFeatures.map((row, i) => (
-                    <tr key={i} className="group hover:bg-gray-50/30 transition-colors">
-                      <td className="py-6 px-8 text-gray-700 font-semibold text-base">{row.name}</td>
-                      <td className="py-6 px-4 text-center">
-                        {row.basic ? (
-                          <div className="w-8 h-8 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto transition-transform group-hover:scale-110">
-                            <Check size={18} strokeWidth={3} />
-                          </div>
-                        ) : (
-                          <span className="text-gray-200">—</span>
-                        )}
+                    <tr key={i} className="group hover:bg-slate-50/50 transition-colors">
+                      <td className="py-5 px-8 text-slate-700 font-medium text-sm flex items-center gap-2">
+                        {row.name}
+                        {i > 5 && <Info size={14} className="text-slate-400 cursor-help" />}
                       </td>
-                      <td className="py-6 px-4 text-center">
-                        {row.pro ? (
-                          <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto transition-transform group-hover:scale-110">
-                            <Check size={18} strokeWidth={3} />
-                          </div>
-                        ) : (
-                          <span className="text-gray-200">—</span>
-                        )}
+                      <td className="py-5 px-4 text-center">
+                        {row.basic ? <Check size={20} className="text-blue-500 mx-auto" /> : <span className="text-slate-300">—</span>}
                       </td>
-                      <td className="py-6 px-4 text-center">
-                        {row.advance ? (
-                          <div className="w-8 h-8 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto transition-transform group-hover:scale-110">
-                            <Check size={18} strokeWidth={3} />
-                          </div>
-                        ) : (
-                          <span className="text-gray-200">—</span>
-                        )}
+                      <td className="py-5 px-4 text-center relative">
+                        <div className="absolute inset-0 bg-purple-50/30 border-x border-purple-100/30 -z-10 group-hover:bg-purple-50/50 transition-colors"></div>
+                        {row.pro ? <Check size={20} className="text-purple-600 mx-auto" /> : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="py-5 px-4 text-center">
+                        {row.advance ? <Check size={20} className="text-amber-500 mx-auto" /> : <span className="text-slate-300">—</span>}
                       </td>
                     </tr>
                   ))}
@@ -323,68 +297,34 @@ const Pricing = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative z-10 py-24 px-4 overflow-hidden">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            whileHover={{ scale: 1.01 }}
-            className="bg-gray-900 rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden"
-          >
-            {/* CTA Background Pattern */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/20 blur-[100px] -ml-32 -mb-32" />
-
-            <h2 className="text-4xl md:text-5xl font-semibold text-white mb-6 relative z-10">
-              Ready to Transform Your Campus?
-            </h2>
-            <p className="text-gray-400 text-lg mb-10 max-w-2xl mx-auto relative z-10">
-              Start with any plan and upgrade anytime. All plans include a 14-day free trial and full onboarding support from our expert team.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-              <Button size="lg" className="h-16 px-10 rounded-2xl bg-primary text-white font-semibold text-lg hover:scale-105 transition-transform">
-                Schedule a Demo Today
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-16 px-10 rounded-2xl border border-white/20 text-white hover:bg-white/10 font-semibold text-lg bg-transparent"
-              >
-                Talk to Sales
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="relative z-10 py-24 px-4 pb-32">
+      {/* --- FAQ SECTION --- */}
+      <section className="relative z-10 py-24 px-4 bg-[#FAFAFA]">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-semibold text-gray-900 mb-4 tracking-tight">Frequently Asked Questions</h2>
-            <p className="text-gray-500 text-lg">Everything you need to know about the product and billing.</p>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">Frequently Asked Questions</h2>
+            <p className="text-slate-500 text-lg font-light">Everything you need to know about the product and billing.</p>
           </div>
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <motion.div
                 key={index}
-                className={`rounded-2xl border transition-all ${activeFAQ === index ? 'border-primary bg-white shadow-lg' : 'border-gray-100 bg-white/50 hover:border-gray-200'
+                className={`rounded-[1.5rem] border transition-all duration-300 overflow-hidden ${activeFAQ === index ? 'border-purple-200 bg-white shadow-lg shadow-purple-500/5' : 'border-slate-200 bg-white hover:border-purple-200/50'
                   }`}
               >
                 <button
                   onClick={() => setActiveFAQ(activeFAQ === index ? null : index)}
-                  className="w-full flex items-center justify-between p-6 text-left"
+                  className="w-full flex items-center justify-between p-6 sm:p-8 text-left"
                 >
-                  <span className="font-semibold text-gray-900 text-lg pr-8">{faq.question}</span>
-                  {activeFAQ === index ? (
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                      <ChevronUp size={20} />
-                    </div>
-                  ) : (
-                    <div className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400">
-                      <ChevronDown size={20} />
-                    </div>
-                  )}
+                  <span className="font-bold text-slate-900 text-base sm:text-lg pr-8">{faq.question}</span>
+                  <motion.div
+                    animate={{ rotate: activeFAQ === index ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${activeFAQ === index ? 'bg-purple-100 text-purple-600' : 'bg-slate-50 text-slate-400'
+                      }`}
+                  >
+                    <ChevronDown size={18} strokeWidth={3} />
+                  </motion.div>
                 </button>
                 <AnimatePresence>
                   {activeFAQ === index && (
@@ -392,10 +332,9 @@ const Pricing = () => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="overflow-hidden"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
                     >
-                      <div className="p-6 pt-0 text-gray-600 leading-relaxed">
+                      <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-0 text-slate-600 font-light leading-relaxed">
                         {faq.answer}
                       </div>
                     </motion.div>
@@ -407,14 +346,46 @@ const Pricing = () => {
         </div>
       </section>
 
-      {/* Footer Decoration */}
-      <div className="relative z-10 py-12 text-center text-gray-400 text-sm border-t border-gray-100">
-        <div className="flex items-center justify-center gap-6">
-          <span className="flex items-center gap-2 italic"><Lock size={14} /> ISO 27001 Certified</span>
-          <span className="flex items-center gap-2 italic"><Shield size={14} /> GDPR Compliant</span>
-          <span className="flex items-center gap-2 italic"><Globe size={14} /> Global Infrastructure</span>
+      {/* --- CTA SECTION --- */}
+      <section className="py-24 px-4 bg-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-100 rounded-full blur-[80px] opacity-60 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-100 rounded-full blur-[80px] opacity-60 pointer-events-none"></div>
+
+        <div className="container mx-auto">
+          <motion.div whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 40 }} viewport={{ once: true }} className="max-w-5xl mx-auto bg-slate-950 rounded-[3rem] p-10 sm:p-16 text-center relative shadow-2xl overflow-hidden z-10">
+            {/* Inner Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-600/20 blur-3xl mix-blend-overlay"></div>
+
+            <h2 className="text-3xl sm:text-5xl font-light text-white mb-6 tracking-tight relative z-10">
+              Ready to <span className="font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-blue-400">Transform Your Campus?</span>
+            </h2>
+            <p className="text-slate-400 font-light text-base sm:text-lg mb-10 max-w-2xl mx-auto relative z-10">
+              Start with any plan and upgrade anytime. All plans include a 14-day free trial and full onboarding support from our expert team.
+            </p>
+
+            <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
+              <button onClick={() => window.location.href = "https://campus.stalight.in/stalightcampus"} className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white rounded-xl font-bold uppercase text-sm tracking-widest shadow-lg hover:shadow-purple-500/25 hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto">
+                Start Free Trial <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button onClick={() => window.location.href = "mailto:sales@stalight.in"} className="inline-flex items-center justify-center px-8 py-4 bg-white/10 border border-white/20 text-white rounded-xl font-bold uppercase text-sm tracking-widest hover:bg-white/20 transition-all duration-300 w-full sm:w-auto backdrop-blur-sm">
+                Contact Sales
+              </button>
+            </div>
+          </motion.div>
         </div>
-      </div>
+      </section>
+
+      <footer className="relative z-10 py-12 px-4 border-t border-slate-200 bg-white">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <img src="/logo.jpeg" alt="Stalight Campus Logo" className="w-10 h-10 rounded-lg object-cover shadow-sm" />
+            <span className="font-bold text-xl text-slate-900">Stalight Campus</span>
+          </div>
+          <div className="text-sm text-slate-500 font-medium">
+            &copy; {new Date().getFullYear()} Stalight Campus. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
