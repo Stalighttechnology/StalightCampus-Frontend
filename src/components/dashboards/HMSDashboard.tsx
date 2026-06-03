@@ -21,6 +21,7 @@ import { HMSProvider, useHMSContext } from "../../context/HMSContext";
 import { AcademicProvider } from "../../context/AcademicContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Building2 } from "lucide-react";
 
 interface HMSDashboardProps {
   user: any;
@@ -89,8 +90,20 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         }
         if (!loading) {
           return (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No hostels found to track issues.</p>
+            <div className="flex flex-col items-center justify-center py-20 px-4 border-2 border-dashed border-muted-foreground/20 rounded-2xl bg-muted/5 max-w-xl mx-auto text-center mt-8">
+              <div className="bg-muted p-4 rounded-full mb-4">
+                <Building2 className="w-10 h-10 text-muted-foreground/70" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">No Hostels Found</h3>
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto mt-2">
+                No hostels are registered in your organization yet. Register a hostel to start tracking issues.
+              </p>
+              <Button 
+                onClick={() => handlePageChange('hostels')}
+                className="mt-6 bg-primary text-white hover:bg-primary/90"
+              >
+                Go to Hostel Management
+              </Button>
             </div>
           );
         }
