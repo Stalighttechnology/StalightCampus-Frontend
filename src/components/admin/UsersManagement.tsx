@@ -209,6 +209,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           trigger.click();
         }
       }, 150);
+    } else {
+      setDepartmentFilter("");
     }
   };
 
@@ -460,7 +462,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     value,
     onChange,
     options,
-    triggerId
+    triggerId,
+    disabled
   }: {
     label: string;
     placeholder?: string;
@@ -468,11 +471,15 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     onChange: (val: string) => void;
     options: string[];
     triggerId?: string;
+    disabled?: boolean;
   }) => (
     <div className="flex flex-col">
       {label && <label className={`text-sm mb-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{label}</label>}
-      <Select value={value || undefined} onValueChange={onChange}>
-        <SelectTrigger id={triggerId} className={theme === 'dark' ? 'w-full bg-card text-foreground border border-border' : 'w-full bg-white text-gray-900 border border-gray-300'}>
+      <Select value={value || undefined} onValueChange={onChange} disabled={disabled}>
+        <SelectTrigger id={triggerId} className={cn(
+          theme === 'dark' ? 'w-full bg-card text-foreground border border-border' : 'w-full bg-white text-gray-900 border border-gray-300',
+          disabled && "opacity-50 cursor-not-allowed"
+        )}>
           <SelectValue placeholder={placeholder || label} />
         </SelectTrigger>
         <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
@@ -574,7 +581,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                         value={departmentFilter}
                         onChange={setDepartmentFilter}
                         options={departments}
-                        triggerId="dept-select-trigger" />
+                        triggerId="dept-select-trigger"
+                        disabled={roleFilter !== "" && !rolesNeedingDept.includes(roleFilter)} />
                       
                     </div>
                   </div>
