@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ interface HostelStudent {
 
 
 const StudentManagement: React.FC = () => {
+  const navigate = useNavigate();
   const { hostels, getCachedFloors, getCachedRooms, refreshData, skeletonMode } = useHMSContext();
   const { batches, branches, getSemestersForBranch, loading: academicLoading } = useAcademicContext();
   const [students, setStudents] = useState<HostelStudent[]>([]);
@@ -81,9 +83,10 @@ const StudentManagement: React.FC = () => {
   const [filters, setFilters] = useState({
     batch: '',
     branch: '',
-    semester: '',
-    search: ''
+    semester: ''
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
 
   const { toast } = useToast();
   const [exporting, setExporting] = useState(false);
@@ -95,7 +98,7 @@ const StudentManagement: React.FC = () => {
         batch: filters.batch,
         branch: filters.branch,
         semester: filters.semester,
-        search: filters.search
+        search: appliedSearch
       });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -121,12 +124,28 @@ const StudentManagement: React.FC = () => {
     }
   };
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchQuery.trim());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Clear search query when dropdown filters change
+  useEffect(() => {
+    if (filters.batch || filters.branch || filters.semester) {
+      setSearchQuery("");
+      setAppliedSearch("");
+    }
+  }, [filters.batch, filters.branch, filters.semester]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchStudents();
     }, 300);
     return () => clearTimeout(timer);
-  }, [currentPage, filters.batch, filters.branch, filters.semester, filters.search]);
+  }, [currentPage, filters.batch, filters.branch, filters.semester, appliedSearch]);
 
 
 
@@ -165,7 +184,7 @@ const StudentManagement: React.FC = () => {
   };
 
   const fetchStudents = async () => {
-    if (!filters.batch || !filters.branch || !filters.semester) {
+    if (!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester)) {
       setStudents([]);
       setTotalCount(0);
       return;
@@ -175,11 +194,14 @@ const StudentManagement: React.FC = () => {
     const params: Record<string, any> = {
       page: currentPage,
       page_size: pageSize,
-      batch: filters.batch,
-      branch: filters.branch,
-      semester: filters.semester,
-      search: filters.search
+      search: appliedSearch
     };
+
+    if (!appliedSearch.trim()) {
+      params.batch = filters.batch;
+      params.branch = filters.branch;
+      params.semester = filters.semester;
+    }
 
     const response = await manageHostelStudents(undefined, undefined, 'GET', params);
     if (response.success && response.results) {
@@ -311,7 +333,7 @@ const StudentManagement: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleExportPDF}
-                disabled={exporting || !filters.batch || !filters.branch || !filters.semester}
+                disabled={exporting || (!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester))}
                 className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap shadow-sm"
               >
                 {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -323,7 +345,7 @@ const StudentManagement: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Batch</Label>
-                {loading || skeletonMode ?
+                {skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
                 <Select value={filters.batch || "all"} onValueChange={(v) => handleFilterChange('batch', v === "all" ? '' : v)}>
@@ -339,7 +361,7 @@ const StudentManagement: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Branch</Label>
-                {loading || skeletonMode ?
+                {skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
                 <Select
@@ -360,7 +382,7 @@ const StudentManagement: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Semester</Label>
-                {loading || skeletonMode ?
+                {skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
                 <Select
@@ -387,14 +409,25 @@ const StudentManagement: React.FC = () => {
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Search Students</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  {loading || skeletonMode ?
+                  {skeletonMode ?
                   <div className="h-9 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                  <Input
-                    placeholder="USN, Name, Email..."
-                    className="h-9 pl-10 bg-background border-muted-foreground/20 focus:border-primary/50 transition-colors"
-                    value={filters.search}
-                    onChange={(e) => handleFilterChange('search', e.target.value)} />
+                  <>
+                    <Input
+                      placeholder="USN, Name, Email..."
+                      className="h-9 pl-10 pr-12 bg-background border-muted-foreground/20 focus:border-primary/50 transition-colors"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)} />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </>
 
                   }
                 </div>
@@ -461,10 +494,10 @@ const StudentManagement: React.FC = () => {
 
                   <TableRow>
                         <TableCell colSpan={6} className="text-center py-20 text-muted-foreground">
-                          {!filters.batch || !filters.branch || !filters.semester ?
-                      "Select filters to view student records." :
-                      "No student records found."
-                      }
+                          {!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester) ?
+                            "Select filters or type a search query to view student records." :
+                            "No student records found."
+                          }
                         </TableCell>
                       </TableRow>
                   }
@@ -538,7 +571,25 @@ const StudentManagement: React.FC = () => {
                   }}>
                       <SelectTrigger><SelectValue placeholder="Select hostel" /></SelectTrigger>
                       <SelectContent>
-                        {hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)}
+                        {hostels.length > 0 ? (
+                          hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                        ) : (
+                          <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                            <p className="text-xs text-muted-foreground">No hostels found</p>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full text-xs" 
+                              onClick={() => {
+                                setIsDialogOpen(false);
+                                navigate('/hms/hostels', { state: { openAddHostel: true } });
+                              }}
+                            >
+                              Add Hostel
+                            </Button>
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -556,7 +607,7 @@ const StudentManagement: React.FC = () => {
                         }
                         setFormData((prev) => ({ ...prev, room: null }));
                       }}
-                      disabled={!selectedHostelInDialog || isLoadingFloors}>
+                       disabled={!selectedHostelInDialog || hostels.length === 0 || isLoadingFloors}>
                       
                         <SelectTrigger>
                           {isLoadingFloors ? <span className="animate-pulse">Loading Floors...</span> : <SelectValue placeholder="Select Floor" />}
@@ -577,7 +628,7 @@ const StudentManagement: React.FC = () => {
 
                     <div className="space-y-2">
                       <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Room</Label>
-                      <Select value={formData.room?.toString() || 'none'} onValueChange={(v) => setFormData((prev) => ({ ...prev, room: v === 'none' ? null : parseInt(v) }))} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || isLoadingRooms}>
+                      <Select value={formData.room?.toString() || 'none'} onValueChange={(v) => setFormData((prev) => ({ ...prev, room: v === 'none' ? null : parseInt(v) }))} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || hostels.length === 0 || isLoadingRooms}>
                         <SelectTrigger>
                           {isLoadingRooms ? <span className="animate-pulse">Loading Rooms...</span> : <SelectValue placeholder="Select room" />}
                         </SelectTrigger>
