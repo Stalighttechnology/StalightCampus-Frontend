@@ -64,13 +64,13 @@ export const deanTour: Step[] = [
     route: '/dean/attendance-filters',
   },
   {
-    target: '#sidebar-performance',
+    target: '#hod-search-student-card',
     title: 'Scan for Student Info',
     content:
       'Quickly search for student details or use barcode and face scanner to retrieve their academic profile.',
-    placement: 'right' as const,
+    placement: 'bottom' as const,
     disableBeacon: false,
-    route: '/dean/performance',
+    route: '/dean/scan-student-info',
   },
   {
     target: '#sidebar-exams',

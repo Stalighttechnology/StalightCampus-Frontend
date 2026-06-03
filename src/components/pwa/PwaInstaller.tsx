@@ -6,6 +6,8 @@ import { requestForToken } from '../../lib/firebase';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 
+import { Capacitor } from '@capacitor/core';
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -16,9 +18,14 @@ export const PwaInstaller: React.FC = () => {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const { isAuthenticated } = useAuth();
 
+  // If we are already running natively as a Capacitor mobile app, this wizard is entirely irrelevant
+  if (Capacitor.isNativePlatform()) {
+    return null;
+  }
+
   const [permissions, setPermissions] = useState({
     installed: false,
-    notifications: Notification.permission === 'granted',
+    notifications: typeof Notification !== 'undefined' && Notification.permission === 'granted',
   });
 
   useEffect(() => {
@@ -75,7 +82,7 @@ export const PwaInstaller: React.FC = () => {
   const requestNotification = async () => {
     try {
       const token = await requestForToken();
-      if (token || Notification.permission === 'granted') {
+      if (token || (typeof Notification !== 'undefined' && Notification.permission === 'granted')) {
         setPermissions(p => ({ ...p, notifications: true }));
         toast.success("Notifications enabled!");
         handleClose();

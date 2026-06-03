@@ -389,89 +389,105 @@ const StaffManagementOverview: React.FC = () => {
 
       {/* Warden Edit Modal */}
       <Dialog open={isWardenModalOpen} onOpenChange={setIsWardenModalOpen}>
-        <DialogContent className="w-[92vw] max-w-[400px] sm:max-w-[500px] rounded-2xl">
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="text-xl sm:text-lg flex items-center gap-2">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-primary" />
               Edit Warden Details
             </DialogTitle>
           </DialogHeader>
           {editingWarden && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">Name</Label>
-                <Input id="name" value={editingWarden.name} onChange={e => setEditingWarden({...editingWarden, name: e.target.value})} className="col-span-3" />
+            <div className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Name</Label>
+                <Input id="name" value={editingWarden.name} onChange={e => setEditingWarden({...editingWarden, name: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">Email</Label>
-                <Input id="email" value={editingWarden.email} onChange={e => setEditingWarden({...editingWarden, email: e.target.value})} className="col-span-3" />
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</Label>
+                <Input id="email" type="email" value={editingWarden.email} onChange={e => setEditingWarden({...editingWarden, email: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">Phone</Label>
-                <Input id="phone" value={editingWarden.phone} onChange={e => setEditingWarden({...editingWarden, phone: e.target.value})} className="col-span-3" />
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone</Label>
+                <Input id="phone" value={editingWarden.phone} onChange={e => setEditingWarden({...editingWarden, phone: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="designation" className="text-right">Designation</Label>
-                <Input id="designation" value={editingWarden.designation} onChange={e => setEditingWarden({...editingWarden, designation: e.target.value})} className="col-span-3" />
+              <div className="space-y-2">
+                <Label htmlFor="designation" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Designation</Label>
+                <Input id="designation" value={editingWarden.designation} onChange={e => setEditingWarden({...editingWarden, designation: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="experience" className="text-right">Experience</Label>
-                <Input id="experience" type="number" value={editingWarden.experience} onChange={e => setEditingWarden({...editingWarden, experience: e.target.value})} className="col-span-3" />
+              <div className="space-y-2">
+                <Label htmlFor="experience" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Experience (Years)</Label>
+                <Input id="experience" type="number" value={editingWarden.experience} onChange={e => setEditingWarden({...editingWarden, experience: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="address" className="text-right mt-2">Address</Label>
-                <Textarea id="address" value={editingWarden.address} onChange={e => setEditingWarden({...editingWarden, address: e.target.value})} className="col-span-3 min-h-[100px]" />
+              <div className="space-y-2">
+                <Label htmlFor="address" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Address</Label>
+                <div
+                  id="address"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={e => setEditingWarden({...editingWarden, address: e.currentTarget.innerText})}
+                  className="min-h-[100px] max-h-[150px] overflow-y-auto border border-input rounded-md p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-background custom-scrollbar whitespace-pre-wrap"
+                >
+                  {editingWarden.address}
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setIsWardenModalOpen(false)} className="flex-1 h-10 font-bold">Cancel</Button>
+                <Button type="button" onClick={saveWarden} disabled={actionLoading} className="flex-1 bg-primary hover:bg-primary/90 h-10 font-bold">
+                  {actionLoading ? "Saving..." : "Save Changes"}
+                </Button>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsWardenModalOpen(false)}>Cancel</Button>
-            <Button onClick={saveWarden} disabled={actionLoading}>
-              {actionLoading ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Caretaker Edit Modal */}
       <Dialog open={isCaretakerModalOpen} onOpenChange={setIsCaretakerModalOpen}>
-        <DialogContent className="w-[92vw] max-w-[400px] sm:max-w-[500px] rounded-2xl">
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="text-xl sm:text-lg flex items-center gap-2">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
               <Users className="w-5 h-5 text-blue-500" />
               Edit Caretaker Details
             </DialogTitle>
           </DialogHeader>
           {editingCaretaker && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="c_name" className="text-right">Name</Label>
-                <Input id="c_name" value={editingCaretaker.name} onChange={e => setEditingCaretaker({...editingCaretaker, name: e.target.value})} className="col-span-3" />
+            <div className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="c_name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Name</Label>
+                <Input id="c_name" value={editingCaretaker.name} onChange={e => setEditingCaretaker({...editingCaretaker, name: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="c_email" className="text-right">Email</Label>
-                <Input id="c_email" value={editingCaretaker.email} onChange={e => setEditingCaretaker({...editingCaretaker, email: e.target.value})} className="col-span-3" />
+              <div className="space-y-2">
+                <Label htmlFor="c_email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</Label>
+                <Input id="c_email" type="email" value={editingCaretaker.email} onChange={e => setEditingCaretaker({...editingCaretaker, email: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="c_phone" className="text-right">Phone</Label>
-                <Input id="c_phone" value={editingCaretaker.phone} onChange={e => setEditingCaretaker({...editingCaretaker, phone: e.target.value})} className="col-span-3" />
+              <div className="space-y-2">
+                <Label htmlFor="c_phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone</Label>
+                <Input id="c_phone" value={editingCaretaker.phone} onChange={e => setEditingCaretaker({...editingCaretaker, phone: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="c_experience" className="text-right">Experience</Label>
-                <Input id="c_experience" type="number" value={editingCaretaker.experience} onChange={e => setEditingCaretaker({...editingCaretaker, experience: e.target.value})} className="col-span-3" />
+              <div className="space-y-2">
+                <Label htmlFor="c_experience" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Experience (Years)</Label>
+                <Input id="c_experience" type="number" value={editingCaretaker.experience} onChange={e => setEditingCaretaker({...editingCaretaker, experience: e.target.value})} className="h-10" />
               </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="c_address" className="text-right mt-2">Address</Label>
-                <Textarea id="c_address" value={editingCaretaker.address} onChange={e => setEditingCaretaker({...editingCaretaker, address: e.target.value})} className="col-span-3 min-h-[100px]" />
+              <div className="space-y-2">
+                <Label htmlFor="c_address" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Address</Label>
+                <div
+                  id="c_address"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={e => setEditingCaretaker({...editingCaretaker, address: e.currentTarget.innerText})}
+                  className="min-h-[100px] max-h-[150px] overflow-y-auto border border-input rounded-md p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-background custom-scrollbar whitespace-pre-wrap"
+                >
+                  {editingCaretaker.address}
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setIsCaretakerModalOpen(false)} className="flex-1 h-10 font-bold">Cancel</Button>
+                <Button type="button" onClick={saveCaretaker} disabled={actionLoading} className="flex-1 bg-primary hover:bg-primary/90 h-10 font-bold">
+                  {actionLoading ? "Saving..." : "Save Changes"}
+                </Button>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCaretakerModalOpen(false)}>Cancel</Button>
-            <Button onClick={saveCaretaker} disabled={actionLoading}>
-              {actionLoading ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

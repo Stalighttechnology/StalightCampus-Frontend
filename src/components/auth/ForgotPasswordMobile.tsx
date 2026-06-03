@@ -159,7 +159,7 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
             </React.Fragment>
           ))}
         </div>
-                
+
         {/* Step Forms */}
         {step === "email" && (
           <form className="bg-white/95 backdrop-blur-2xl border border-white/40 rounded-3xl p-6 flex flex-col gap-6 shadow-2xl" onSubmit={handleEmailSubmit}>
@@ -297,7 +297,7 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
         {/* Footer */}
         <div className="mt-auto text-center text-white flex flex-col gap-1 pt-4">
           <p className="text-xs font-semibold opacity-90">AI-powered campus management system</p>
-          <p className="text-xs font-medium opacity-70">Developed under Starlight Technology</p>
+          <p className="text-xs font-medium opacity-70">Developed under Stalight Technology</p>
         </div>
       </div>
     </div>

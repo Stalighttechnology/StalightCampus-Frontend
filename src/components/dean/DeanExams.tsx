@@ -158,7 +158,7 @@ const formatDate = (dstr?: string) => {
   }
 };
 
-const DeanExams: React.FC = () => {
+const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [exams, setExams] = useState<ExamEntry[]>([]);
@@ -166,25 +166,21 @@ const DeanExams: React.FC = () => {
   const [counts, setCounts] = useState({ ongoing: 0, upcoming: 0, past: 0 });
   const [error, setError] = useState<string | null>(null);
   const [upcomingOnly, setUpcomingOnly] = useState<boolean>(false);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [firstLoad, setFirstLoad] = useState(true);
   const [viewGroupId, setViewGroupId] = useState<string | null>(null);
 
-  const load = async (page = 1) => {
+  const load = async () => {
     setLoading(true);setError(null);
     try {
       // build query params
       const qs: string[] = [];
-      qs.push(`page=${page}`);
-      qs.push(`page_size=10`);
+      qs.push(`page_size=200`);
       if (upcomingOnly) {
         qs.push(`upcoming=1`);
       } else {
-        // If we're showing everything, the main paginated list should be 'past' 
+        // If we're showing everything, the main list should be 'past' 
         // since ongoing/upcoming are pinned separately
         qs.push(`past=1`);
       }
@@ -202,18 +198,9 @@ const DeanExams: React.FC = () => {
           setCounts(json.counts);
         }
 
-        const totalItems = normalized.meta.totalItems ?? json.count ?? 0;
-        const totalPages = normalized.meta.totalPages ?? json.pagination?.total_pages ?? Math.max(1, Math.ceil((totalItems || 0) / 10));
-        setPagination({
-          currentPage: normalized.meta.currentPage ?? json.pagination?.current_page ?? page,
-          totalPages,
-          totalItems
-        });
-
-        // If it's the first page and we're not in upcomingOnly mode, 
-        // also fetch all active (upcoming/ongoing) exams to pin them
-        if (page === 1 && !upcomingOnly) {
-          const activeUrl = `${API_ENDPOINT}/dean/reports/exams/?upcoming=1&page_size=100`;
+        // Fetch active (upcoming/ongoing) exams to pin them
+        if (!upcomingOnly) {
+          const activeUrl = `${API_ENDPOINT}/dean/reports/exams/?upcoming=1&page_size=200`;
           const activeRes = await fetchWithTokenRefresh(activeUrl);
           const activeJson = await activeRes.json();
           if (activeJson.success) {
@@ -233,7 +220,11 @@ const DeanExams: React.FC = () => {
     }
   };
 
-  useEffect(() => {load();}, [upcomingOnly]);
+  useEffect(() => {
+    setCurrentPage(1);
+    load();
+  }, [upcomingOnly]);
+
 
 
 
@@ -290,12 +281,12 @@ const DeanExams: React.FC = () => {
     else grouped.other.push(g as any);
   });
 
-  // Use main exams list for past section (and avoid duplicates if some are on Page 1)
+  // Use main exams list for past section (and avoid duplicates)
   const groupedMainExams = groupExams(exams);
   groupedMainExams.forEach((g) => {
     if (g.status === 'past') {
       if (!grouped.past.find(x => x.id === g.id)) grouped.past.push(g as any);
-    } else if (pagination.currentPage > 1) {
+    } else {
       if (g.status === 'ongoing' && !grouped.ongoing.find(x => x.id === g.id)) grouped.ongoing.push(g as any);
       else if (g.status === 'upcoming' && !grouped.upcoming.find(x => x.id === g.id)) grouped.upcoming.push(g as any);
       else if (g.status === 'past' && !grouped.past.find(x => x.id === g.id)) grouped.past.push(g as any);
@@ -304,11 +295,17 @@ const DeanExams: React.FC = () => {
   });
 
   const allGroups = [...grouped.ongoing, ...grouped.upcoming, ...grouped.past, ...grouped.other] as any as ExamGroup[];
+
+  const totalGroups = grouped.past.length;
+  const totalPages = Math.max(1, Math.ceil(totalGroups / pageSize));
+  const paginatedPastGroups = grouped.past.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   const currentGroup = allGroups.find(g => g.id === viewGroupId);
   const countCards = [
-  { key: 'ongoing', title: 'Ongoing', count: counts.ongoing, color: 'green' },
-  { key: 'upcoming', title: 'Upcoming', count: counts.upcoming, color: 'blue' },
-  { key: 'past', title: 'Past', count: counts.past, color: 'gray' }];
+    { key: 'ongoing', title: 'Ongoing', count: grouped.ongoing.length, color: 'green' },
+    { key: 'upcoming', title: 'Upcoming', count: grouped.upcoming.length, color: 'blue' },
+    { key: 'past', title: 'Past', count: grouped.past.length, color: 'gray' }
+  ];
 
 
   return (
@@ -420,7 +417,7 @@ const DeanExams: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-200'}`}>
-                                {list.map((g: any) =>
+                                {(sectionKey === 'past' ? paginatedPastGroups : list).map((g: any) =>
                             <tr key={g.id} className={`text-sm hover:${theme === 'dark' ? 'bg-muted/30' : 'bg-gray-50'} transition-colors`}>
                                     <td className="px-6 py-4">
                                       <div className="font-semibold text-foreground">
@@ -486,29 +483,29 @@ const DeanExams: React.FC = () => {
             </div>
           }
         </CardContent>
-        {pagination.totalPages > 1 && (
+        {totalGroups > 0 && (
           <CardFooter className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-border mt-auto gap-4">
             <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-              Showing {(pagination.currentPage - 1) * 10 + 1} to {Math.min(pagination.currentPage * 10, pagination.totalItems)} of {pagination.totalItems} exams
+              Showing {totalGroups === 0 ? 0 : (currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalGroups)} of {totalGroups} {totalGroups === 1 ? 'exam schedule' : 'exam schedules'}
             </div>
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"
-                disabled={pagination.currentPage === 1 || loading}
-                onClick={() => load(pagination.currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+                onClick={() => setCurrentPage(currentPage - 1)}
                 className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
               >
                 Previous
               </Button>
               <div className={`flex items-center justify-center min-w-[40px] h-9 px-3 text-sm font-bold rounded-lg border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                {pagination.currentPage}
+                {currentPage}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={pagination.currentPage === pagination.totalPages || loading}
-                onClick={() => load(pagination.currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+                onClick={() => setCurrentPage(currentPage + 1)}
                 className="h-9 px-4 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all rounded-lg"
               >
                 Next
@@ -519,7 +516,7 @@ const DeanExams: React.FC = () => {
       </Card>
       
       <Dialog open={!!viewGroupId} onOpenChange={(open) => !open && setViewGroupId(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>{currentGroup?.title} - Detailed Schedule</DialogTitle>
             <DialogDescription>
@@ -554,7 +551,7 @@ const DeanExams: React.FC = () => {
                 Publish All Schedule
               </Button>
             )}
-            <Button variant="outline" onClick={() => setViewGroupId(null)}>Close</Button>
+            <Button variant="outline" className="bg-primary hover:bg-primary/90 text-white hover:text-white" onClick={() => setViewGroupId(null)}>Close</Button>
           </div>
         </DialogContent>
       </Dialog>

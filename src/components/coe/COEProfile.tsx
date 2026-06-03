@@ -43,7 +43,7 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<"personal" | "contact" | "activity" | "help" | "settings">("personal");
-  const [notificationsEnabled, setNotificationsEnabled] = useState(Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(typeof Notification !== 'undefined' && Notification.permission === 'granted' && localStorage.getItem('hasSeenPwaWizard') !== null);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",

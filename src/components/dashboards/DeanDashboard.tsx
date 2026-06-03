@@ -14,6 +14,8 @@ import DeanAlerts from "../dean/DeanAlerts";
 import DeanAttendanceRecords from "../dean/DeanAttendanceRecords";
 import DeanProfile from "../dean/DeanProfile";
 import ManageAdminLeavesDean from "../dean/ManageAdminLeavesDean";
+import EnrollUser from "../admin/EnrollUser";
+import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
@@ -43,6 +45,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'alerts': 'alerts',
     'attendance-records': 'attendance-records',
     'admin-leaves': 'admin-leaves',
+    'enroll-user': 'enroll-user',
   };
   return pathMap[lastPart] || 'dashboard';
 };
@@ -53,6 +56,7 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
   const [activePage, setActivePage] = useState<string>(getActivePageFromPath(location.pathname));
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
+  const { toast } = useToast();
 
   useEffect(() => {
     setActivePage(getActivePageFromPath(location.pathname));
@@ -98,6 +102,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <div><DeanProfile /></div>;
       case 'admin-leaves':
         return <ManageAdminLeavesDean />;
+      case 'enroll-user':
+        return <div><EnrollUser setError={setError} toast={toast} /></div>;
       default:
         return <div>Welcome, Dean.</div>;
     }

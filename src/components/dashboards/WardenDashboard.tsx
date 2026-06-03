@@ -77,11 +77,9 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
 };
 
 const WardenDashboard = (props: WardenDashboardProps) => (
-  <HMSProvider>
-    <AcademicProvider>
-      <WardenDashboardContent {...props} />
-    </AcademicProvider>
-  </HMSProvider>
+  <AcademicProvider>
+    <WardenDashboardContent {...props} />
+  </AcademicProvider>
 );
 
 export default WardenDashboard;

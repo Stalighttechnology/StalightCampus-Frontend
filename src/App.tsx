@@ -5,6 +5,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Index from "./components/common/Index";
 import { PwaInstaller } from "./components/pwa/PwaInstaller";
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
@@ -40,6 +43,7 @@ const Home = lazy(() => import("./components/public/Home"));
 const SyncAccessRestricted = lazy(() => import("./components/common/SyncAccessRestricted"));
 
 import { WardenProvider } from "./context/WardenContext";
+import { HMSProvider } from "./context/HMSContext";
 import { shouldShowFloatingAssistant } from "./utils/config";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { initErrorLogger } from "./utils/errorLogger";
@@ -89,6 +93,14 @@ const AppContent = () => {
 
   useEffect(() => {
     initErrorLogger();
+    if (Capacitor.isNativePlatform()) {
+      CapacitorUpdater.notifyAppReady()
+        .then(() => SplashScreen.hide())
+        .catch((e) => {
+          console.error(e);
+          SplashScreen.hide();
+        });
+    }
   }, []);
 
   return (
@@ -537,9 +549,11 @@ const App = () => {
     // ✅ NO TooltipProvider here - it's in main.tsx
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
-        <WardenProvider>
-          <AppContent />
-        </WardenProvider>
+        <HMSProvider>
+          <WardenProvider>
+            <AppContent />
+          </WardenProvider>
+        </HMSProvider>
       </AuthProvider>
     </BrowserRouter>
   );

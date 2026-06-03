@@ -35,7 +35,7 @@ interface HostelStudent {
 
 
 const StudentManagement: React.FC = () => {
-  const { hostels, getCachedFloors, getCachedRooms, skeletonMode } = useHMSContext();
+  const { hostels, getCachedFloors, getCachedRooms, refreshData, skeletonMode } = useHMSContext();
   const { batches, branches, getSemestersForBranch, loading: academicLoading } = useAcademicContext();
   const [students, setStudents] = useState<HostelStudent[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -53,6 +53,8 @@ const StudentManagement: React.FC = () => {
     no_dues: true
   });
   const [selectedFloorInDialog, setSelectedFloorInDialog] = useState<number | null>(null);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
 
   const getFloorFromRoomNumber = (roomNo: string): number => {
     if (!roomNo) return 0;
@@ -159,6 +161,7 @@ const StudentManagement: React.FC = () => {
     const results = await getSemestersForBranch(parseInt(branchId));
 
     setSemesters(results);
+    setIsSemesterOpen(true);
   };
 
   const fetchStudents = async () => {
@@ -197,6 +200,11 @@ const StudentManagement: React.FC = () => {
     if (key === 'branch') {
       fetchSemesters(value);
       setFilters((prev) => ({ ...prev, semester: '' }));
+    } else if (key === 'batch') {
+      setFilters((prev) => ({ ...prev, branch: '', semester: '' }));
+      if (value) {
+        setIsBranchOpen(true);
+      }
     }
   };
 
@@ -245,6 +253,9 @@ const StudentManagement: React.FC = () => {
         updatedStudent.room_name = undefined;
         updatedStudent.room_hostel_name = undefined;
       }
+
+      // Invalidate context cache to ensure other pages fetch fresh data and statistics (like occupancy rate)
+      await refreshData(true);
 
       setStudents((prev) => prev.map((s) => s.id === editingStudent.id ? updatedStudent : s));
 
@@ -331,7 +342,12 @@ const StudentManagement: React.FC = () => {
                 {loading || skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select value={filters.branch || "all"} onValueChange={(v) => handleFilterChange('branch', v === "all" ? '' : v)}>
+                <Select
+                  disabled={!filters.batch}
+                  open={isBranchOpen}
+                  onOpenChange={setIsBranchOpen}
+                  value={filters.branch || "all"}
+                  onValueChange={(v) => handleFilterChange('branch', v === "all" ? '' : v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder="All Branches" />
                     </SelectTrigger>
@@ -347,7 +363,12 @@ const StudentManagement: React.FC = () => {
                 {loading || skeletonMode ?
                 <div className="w-full h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select value={filters.semester || "all"} onValueChange={(v) => handleFilterChange('semester', v === "all" ? '' : v)} disabled={!filters.branch}>
+                <Select
+                  disabled={!filters.branch}
+                  open={isSemesterOpen}
+                  onOpenChange={setIsSemesterOpen}
+                  value={filters.semester || "all"}
+                  onValueChange={(v) => handleFilterChange('semester', v === "all" ? '' : v)}>
                     <SelectTrigger className="h-9 bg-background border-muted-foreground/20">
                       <SelectValue placeholder="All Semesters" />
                     </SelectTrigger>
@@ -487,7 +508,7 @@ const StudentManagement: React.FC = () => {
 
       {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[90vw] sm:max-w-xl rounded-xl">
+        <DialogContent className="max-w-[90vw] sm:max-w-xl rounded-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>Update Student HMS Details</DialogTitle>
           </DialogHeader>

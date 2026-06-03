@@ -109,10 +109,88 @@
 }
 
 .thin-scrollbar {
-  -ms-overflow-style: none;
+  -ms-overflow-style: none !important;
   /* IE and Edge */
-  scrollbar-width: none;
+  scrollbar-width: none !important;
   /* Firefox */
+}
+
+/* ── Custom Branded Scrollbar — always visible on macOS & Windows ────────────
+   Defining ::-webkit-scrollbar forces WebKit (Chrome / Edge / Safari on macOS)
+   out of "overlay" mode into "classic" mode: scrollbars are always shown.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* ── Scrollbar track (the rail) ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Light theme track */
+::-webkit-scrollbar-track {
+  background: rgba(139, 92, 246, 0.06);
+  border-radius: 100px;
+}
+
+/* ── Scrollbar thumb (the draggable handle) ──────────────────────────────── */
+::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+  min-height: 32px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 0 6px rgba(139, 92, 246, 0.45);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+/* Corner where horizontal and vertical scrollbars meet */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────── */
+.dark ::-webkit-scrollbar-track {
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.55);
+}
+
+.dark ::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #6d28d9 0%, #5b21b6 100%);
+}
+
+/* ── Firefox — branded thin scrollbars ───────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #8b5cf6 rgba(139, 92, 246, 0.06);
+}
+
+.dark * {
+  scrollbar-color: #7c3aed rgba(139, 92, 246, 0.08);
+}
+
+/* ── Preserve hidden scrollbar for .thin-scrollbar elements ──────────────── */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+.thin-scrollbar {
+  scrollbar-width: none !important;
 }
 
 
@@ -297,6 +375,14 @@ body,
 }
 
 /* ── Always-visible scrollbar for Select dropdowns ────────────────────────── */
+/*
+  ROOT CAUSE FIX NOTES:
+  1. overflow-clip (not overflow-hidden) on SelectContent parent prevents
+     the parent from clipping the scrollbar gutter of the child Viewport.
+  2. -webkit-appearance: none on ::-webkit-scrollbar forces WebKit/Safari
+     (macOS) out of "overlay" mode into persistent "classic" mode.
+  Without BOTH, macOS still renders overlay-only scrollbars.
+*/
 .select-scrollbar,
 [data-radix-select-viewport] {
   overflow-y: scroll !important;
@@ -306,11 +392,15 @@ body,
   scrollbar-color: #c4c8cf #f3f4f6 !important;
 }
 
-/* Webkit (Chrome, Edge, Safari) — defining any ::-webkit-scrollbar forces
-   classic (non-overlay) scrollbars that are always visible */
+/* Webkit (Chrome, Edge, Safari on macOS) —
+   Defining ::-webkit-scrollbar with a non-zero width AND
+   -webkit-appearance: none together force WebKit out of "overlay" mode.
+   Without appearance: none, Safari on macOS may still render the
+   overlay-style scrollbar even with a custom width set. */
 .select-scrollbar::-webkit-scrollbar,
 [data-radix-select-viewport]::-webkit-scrollbar {
   width: 6px !important;
+  height: 6px !important;
   display: block !important;
   -webkit-appearance: none !important;
   appearance: none !important;
@@ -356,57 +446,44 @@ body,
 }
 
 /* Theme-aware Scrollbar */
+/* Default (light) colors always present — not wrapped in .light so they
+   work when the root element has no class prefix */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
-  /* scrollbar width */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: block !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
   border-radius: 8px;
+  background: #f3f4f6;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 8px;
+  background-color: #d1d5db;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  /* hover color */
-}
-
-/* Light theme scrollbar */
-.light .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f3f4f6;
-  /* light track color */
-}
-
-.light .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #d1d5db;
-  /* light thumb color */
-}
-
-.light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #9ca3af;
-  /* light hover color */
 }
 
 /* Dark theme scrollbar */
 .dark .custom-scrollbar::-webkit-scrollbar-track {
   background: #1c1c1e;
-  /* dark track color */
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #555;
-  /* dark thumb color */
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #777;
-  /* dark hover color */
 }
 
-/* Firefox support */
-.light .custom-scrollbar {
+/* Firefox support — default (light) */
+.custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #d1d5db #f3f4f6;
 }

@@ -93,7 +93,7 @@ interface FilterData {
   admission_modes: string[];
 }
 
-const InvoiceManagement: React.FC = () => {
+const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
   const { theme } = useTheme();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesMeta, setInvoicesMeta] = useState<any | null>(null);
@@ -635,7 +635,7 @@ const InvoiceManagement: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-right pr-6 align-middle">
                         <div className="flex justify-end gap-1">
-                          {inv.pending_amount > 0 &&
+                          {!isReadOnly && inv.pending_amount > 0 &&
                       <Button
                         variant="ghost"
                         size="icon"

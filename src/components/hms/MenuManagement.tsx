@@ -86,17 +86,17 @@ const DAY_OPTIONS = [
 
 
 const MEAL_TYPE_DISPLAY = {
-  'BR': { label: 'Breakfast', time_from: '07:30', time_to: '09:00', color: 'bg-orange-500/10 text-orange-600 border-orange-200' },
-  'LN': { label: 'Lunch', time_from: '12:00', time_to: '14:00', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
-  'SN': { label: 'Snacks', time_from: '16:00', time_to: '17:30', color: 'bg-purple-500/10 text-purple-600 border-purple-200' },
-  'DN': { label: 'Dinner', time_from: '19:00', time_to: '21:00', color: 'bg-indigo-500/10 text-indigo-600 border-indigo-200' }
+  'BR': { label: 'Breakfast', time_from: '07:30 AM', time_to: '09:00 AM', color: 'bg-orange-500/10 text-orange-600 border-orange-200' },
+  'LN': { label: 'Lunch', time_from: '12:00 PM', time_to: '02:00 PM', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
+  'SN': { label: 'Snacks', time_from: '04:00 PM', time_to: '05:30 PM', color: 'bg-purple-500/10 text-purple-600 border-purple-200' },
+  'DN': { label: 'Dinner', time_from: '07:00 PM', time_to: '09:00 PM', color: 'bg-indigo-500/10 text-indigo-600 border-indigo-200' }
 };
 
 const DEFAULT_MEAL_TYPES = [
-{ name: 'BR', time_from: '07:30', time_to: '09:00' },
-{ name: 'LN', time_from: '12:00', time_to: '14:00' },
-{ name: 'SN', time_from: '16:00', time_to: '17:30' },
-{ name: 'DN', time_from: '19:00', time_to: '21:00' }];
+{ name: 'BR', time_from: '07:30 AM', time_to: '09:00 AM' },
+{ name: 'LN', time_from: '12:00 PM', time_to: '02:00 PM' },
+{ name: 'SN', time_from: '04:00 PM', time_to: '05:30 PM' },
+{ name: 'DN', time_from: '07:00 PM', time_to: '09:00 PM' }];
 
 
 const getMealTypeLabel = (code: string) => {
@@ -118,6 +118,8 @@ const MenuManagement: React.FC = () => {
   const [dayFilter, setDayFilter] = useState<string>('all');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [isDialogDayOpen, setIsDialogDayOpen] = useState(false);
+  const [isDialogMealOpen, setIsDialogMealOpen] = useState(false);
 
   const handleExportPDF = async () => {
     if (!selectedHostel) return;
@@ -159,7 +161,7 @@ const MenuManagement: React.FC = () => {
 
   const [formData, setFormData] = useState({
     hostel: '',
-    day_of_week: '0',
+    day_of_week: '',
     meal_type: '',
     date: '',
     items: [] as number[],
@@ -299,7 +301,7 @@ const MenuManagement: React.FC = () => {
         setEditingMenu(null);
         setFormData({
           hostel: '',
-          day_of_week: '0',
+          day_of_week: '',
           meal_type: '',
           date: '',
           items: [],
@@ -542,7 +544,10 @@ const MenuManagement: React.FC = () => {
                 {initialLoading || skeletonMode ?
                 <div className="w-[180px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select value={selectedHostel} onValueChange={setSelectedHostel}>
+                <Select value={selectedHostel} onValueChange={(val) => {
+                  setSelectedHostel(val);
+                  setDayFilter("all");
+                }}>
                     <SelectTrigger className="w-[180px] bg-background">
                       <SelectValue placeholder="Select Hostel" />
                     </SelectTrigger>
@@ -557,7 +562,10 @@ const MenuManagement: React.FC = () => {
                 {initialLoading || skeletonMode ?
                 <div className="w-[150px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                <Select value={dayFilter} onValueChange={setDayFilter}>
+                <Select
+                  disabled={!selectedHostel}
+                  value={dayFilter}
+                  onValueChange={setDayFilter}>
                     <SelectTrigger className="w-[150px] bg-background">
                       <SelectValue placeholder="All Days" />
                     </SelectTrigger>
@@ -594,7 +602,7 @@ const MenuManagement: React.FC = () => {
                     <Button onClick={() => {
                     setShowForm(true);
                     setEditingMenu(null);
-                    setFormData({ hostel: selectedHostel, day_of_week: '0', meal_type: '', date: '', items: [], is_recurring: true });
+                    setFormData({ hostel: selectedHostel, day_of_week: '', meal_type: '', date: '', items: [], is_recurring: true });
                     loadMenuItems();
                   }} className="bg-primary hover:bg-primary/90">
                       <Plus className="w-4 h-4 mr-2" /> Add Menu
@@ -654,7 +662,7 @@ const MenuManagement: React.FC = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <ScrollArea className="h-40 pr-4">
+                      <div className="h-40 pr-4 overflow-y-auto custom-scrollbar">
                         <div className="space-y-2">
                           {menu.items.map((item, idx) =>
                     <div key={idx} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/30 group/item hover:bg-muted/50 transition-colors">
@@ -665,7 +673,7 @@ const MenuManagement: React.FC = () => {
                             </div>
                     )}
                         </div>
-                      </ScrollArea>
+                      </div>
                       <Separator className="my-4" />
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <div className="flex items-center gap-1.5">
@@ -725,7 +733,12 @@ const MenuManagement: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Hostel</Label>
-                <Select value={formData.hostel} onValueChange={(val) => setFormData({ ...formData, hostel: val })}>
+                <Select value={formData.hostel} onValueChange={(val) => {
+                  setFormData({ ...formData, hostel: val, day_of_week: '', meal_type: '' });
+                  if (val) {
+                    setIsDialogDayOpen(true);
+                  }
+                }}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Select Hostel" />
                   </SelectTrigger>
@@ -738,7 +751,17 @@ const MenuManagement: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Day of Week</Label>
-                <Select value={formData.day_of_week} onValueChange={(val) => setFormData({ ...formData, day_of_week: val })}>
+                <Select
+                  disabled={!formData.hostel}
+                  open={isDialogDayOpen}
+                  onOpenChange={setIsDialogDayOpen}
+                  value={formData.day_of_week}
+                  onValueChange={(val) => {
+                    setFormData({ ...formData, day_of_week: val, meal_type: '' });
+                    if (val) {
+                      setIsDialogMealOpen(true);
+                    }
+                  }}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Select Day" />
                   </SelectTrigger>
@@ -751,7 +774,12 @@ const MenuManagement: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Meal Type</Label>
-                <Select value={formData.meal_type} onValueChange={(val) => setFormData({ ...formData, meal_type: val })}>
+                <Select
+                  disabled={!formData.day_of_week}
+                  open={isDialogMealOpen}
+                  onOpenChange={setIsDialogMealOpen}
+                  value={formData.meal_type}
+                  onValueChange={(val) => setFormData({ ...formData, meal_type: val })}>
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>

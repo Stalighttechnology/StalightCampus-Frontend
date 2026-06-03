@@ -92,7 +92,7 @@ interface PaymentStats {
   pending_invoice_count: number;
 }
 
-const PaymentMonitoring: React.FC = () => {
+const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
@@ -589,17 +589,18 @@ const PaymentMonitoring: React.FC = () => {
                               <Download className="h-4.5 w-4.5" />
                             </Button>
                       }
-                          {p.status === 'completed' && p.payment_method === 'stripe' &&
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-red-600 hover:bg-red-50 rounded-full transition-all active:scale-95"
-                        onClick={() => processRefund(p.id)}
-                        title="Process Refund">
-                        
-                              <RefreshCw className="h-4.5 w-4.5" />
+                          {!isReadOnly && p.status === 'successful' && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => confirmRefund(p.id)}
+                              className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                              title="Process Refund"
+                              disabled={refundLoading === p.id}
+                            >
+                              <RotateCcw className="h-4 w-4" />
                             </Button>
-                      }
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

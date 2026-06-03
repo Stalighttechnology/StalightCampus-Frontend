@@ -8,6 +8,13 @@ import {
   ArrowRight, Loader2, Shield, Globe, ChevronLeft,
   Camera, CreditCard, Tool, Info
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { API_ENDPOINT } from "@/utils/config";
 import { toast } from "@/components/ui/use-toast";
 
@@ -39,6 +46,7 @@ const Onboarding = () => {
     tech_poc_name: "",
     tech_poc_email: "",
     tech_poc_mobile: "",
+    role: "Org Admin",
   });
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -336,6 +344,23 @@ const Onboarding = () => {
                   </div>
 
                   <div className="space-y-5">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role *</label>
+                      <Select
+                        value={formData.role}
+                        onValueChange={(value) => setFormData({ ...formData, role: value })}
+                      >
+                        <SelectTrigger className="bg-gray-50 border-gray-100 h-12 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all">
+                          <SelectValue placeholder="Select Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Org Admin">Org Admin</SelectItem>
+                          <SelectItem value="Dean">Dean</SelectItem>
+                          <SelectItem value="Principal">Principal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Full Name *</label>
                       <Input

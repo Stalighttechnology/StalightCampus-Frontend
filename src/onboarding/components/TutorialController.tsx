@@ -42,7 +42,8 @@ const scrollTargetIntoView = (selector: string) => {
         selector.includes('filters-header-wrapper') ||
         selector.includes('locations-header') ||
         selector === '#feesmanager-invoices-header' ||
-        selector === '#feesmanager-payments-header';
+        selector === '#feesmanager-payments-header' ||
+        selector === '#coe-stats-grid';
 
       if (isTopElement) {
         // Scroll parent to top for headers and stats grids
@@ -87,7 +88,11 @@ const shouldScrollStep = (targetStep: any): boolean => {
       target === '#statistics-charts-container' ||
       target === '#admin-charts' ||
       target === '#hod-attendance-trends' ||
-      target === '#hod-member-distribution';
+      target === '#hod-member-distribution' ||
+      // COE dashboard charts
+      target === '#coe-charts-container' ||
+      target === '#coe-application-trends-chart' ||
+      target === '#coe-application-status-chart';
 
     // 2. Dashboard Card/Content components
     const isDashboardCard =
@@ -111,7 +116,12 @@ const shouldScrollStep = (targetStep: any): boolean => {
       target === '#dean-campus-locations-header' ||
       target === '#dean-profile-card' ||
       target === '#dean-branch-summary-card' ||
-      target === '#dean-recent-leaves';
+      target === '#dean-recent-leaves' ||
+      // COE dashboard tables & cards
+      target === '#coe-recent-results-table' ||
+      target === '#hod-search-student-card' ||
+      target === '#coe-fee-settings-header' ||
+      target === '#coe-fee-settings-card';
 
     // 3. Stats grids & headers (which are at top of pages or dashboard)
     const isStats =

@@ -290,7 +290,7 @@ const Monitoring = () => {
       if (response.ok) {
         const res = await response.json();
         showToast(res.message || `Log marked as ${setResolved ? 'resolved' : 'unresolved'}`);
-        
+
         // Refresh details drawer if open
         if (selectedLog && selectedLog.id === logId) {
           setSelectedLog({
@@ -301,7 +301,7 @@ const Monitoring = () => {
             resolved_by: setResolved ? "admin" : null
           });
         }
-        
+
         // Refresh error list & stats
         fetchLogs(logPage);
         fetchStats();
@@ -477,7 +477,7 @@ const Monitoring = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-gray-200 dark:border-gray-800">
         <div>
           <h1 className={`text-3xl font-extrabold tracking-tight ${theme === "dark" ? "text-white" : "text-gray-900"}`}>
-            Starlight HQ Monitor
+            Stalight HQ Monitor
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Centralized health dashboard, error logger, and audit log viewer.
@@ -488,33 +488,30 @@ const Monitoring = () => {
         <div className="flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg p-1.5 mt-4 md:mt-0 shadow-inner">
           <button
             onClick={() => setActiveTab("health")}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${
-              activeTab === "health"
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "health"
                 ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
+              }`}
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Live Health</span>
           </button>
           <button
             onClick={() => setActiveTab("errors")}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${
-              activeTab === "errors"
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "errors"
                 ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
+              }`}
           >
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>Error Logs</span>
           </button>
           <button
             onClick={() => setActiveTab("audit")}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${
-              activeTab === "audit"
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all ${activeTab === "audit"
                 ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
+              }`}
           >
             <FileText className="w-3.5 h-3.5" />
             <span>Audit Logs</span>
@@ -1129,11 +1126,10 @@ const Monitoring = () => {
                           <button
                             key={pageNum}
                             onClick={() => setLogPage(pageNum)}
-                            className={`px-3 py-1 text-xs font-bold rounded ${
-                              logPage === pageNum
+                            className={`px-3 py-1 text-xs font-bold rounded ${logPage === pageNum
                                 ? "bg-blue-600 text-white"
                                 : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50"
-                            }`}
+                              }`}
                           >
                             {pageNum}
                           </button>
@@ -1250,9 +1246,9 @@ const Monitoring = () => {
                     Refresh
                   </button>
                 </div>
-                  {loadingLoginHistory ? (
+                {loadingLoginHistory ? (
                   <div className="animate-pulse space-y-2">
-                    {[1,2,3].map(i => (
+                    {[1, 2, 3].map(i => (
                       <div key={i} className="h-8 bg-gray-100 dark:bg-slate-800 rounded" />
                     ))}
                   </div>
@@ -1326,15 +1322,14 @@ const Monitoring = () => {
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap font-bold">
                             <span
-                              className={`px-2 py-0.5 rounded text-[10px] tracking-wide uppercase ${
-                                log.action === "DELETE"
+                              className={`px-2 py-0.5 rounded text-[10px] tracking-wide uppercase ${log.action === "DELETE"
                                   ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400"
                                   : log.action === "CREATE"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-400"
-                                  : log.action === "UPDATE"
-                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400"
-                                  : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-350"
-                              }`}
+                                    ? "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-400"
+                                    : log.action === "UPDATE"
+                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400"
+                                      : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-350"
+                                }`}
                             >
                               {log.action}
                             </span>
@@ -1395,11 +1390,10 @@ const Monitoring = () => {
                           <button
                             key={pageNum}
                             onClick={() => setAuditPage(pageNum)}
-                            className={`px-3 py-1 text-xs font-bold rounded ${
-                              auditPage === pageNum
+                            className={`px-3 py-1 text-xs font-bold rounded ${auditPage === pageNum
                                 ? "bg-blue-600 text-white"
                                 : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50"
-                            }`}
+                              }`}
                           >
                             {pageNum}
                           </button>
@@ -1475,33 +1469,30 @@ const Monitoring = () => {
             <div className="flex border-b border-gray-100 dark:border-slate-800 px-6 bg-white dark:bg-slate-900">
               <button
                 onClick={() => setSelectedLogTab("details")}
-                className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-                  selectedLogTab === "details"
+                className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "details"
                     ? "border-blue-500 text-blue-600 dark:text-blue-400"
                     : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
-                }`}
+                  }`}
               >
                 Incident Overview
               </button>
               {selectedLog.stack_trace && (
                 <button
                   onClick={() => setSelectedLogTab("trace")}
-                  className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-                    selectedLogTab === "trace"
+                  className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "trace"
                       ? "border-blue-500 text-blue-600 dark:text-blue-400"
                       : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
-                  }`}
+                    }`}
                 >
                   Stack Trace
                 </button>
               )}
               <button
                 onClick={() => setSelectedLogTab("payloads")}
-                className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${
-                  selectedLogTab === "payloads"
+                className={`py-3 px-4 text-xs font-semibold tracking-wide border-b-2 transition-all ${selectedLogTab === "payloads"
                     ? "border-blue-500 text-blue-600 dark:text-blue-400"
                     : "border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
-                }`}
+                  }`}
               >
                 Request & Response
               </button>

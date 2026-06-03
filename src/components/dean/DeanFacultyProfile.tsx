@@ -599,7 +599,14 @@ const DeanFacultyProfile = ({
                     </Label>
                     <Select
                       value={selectedBranch || ""}
-                      onValueChange={(val) => setSelectedBranch(val || null)}
+                      onValueChange={(val) => {
+                        setSelectedBranch(val || null);
+                        // Use a slightly longer timeout of 350ms to ensure the Select completes 
+                        // its close animation and focus restoration before triggering the Popover
+                        setTimeout(() => {
+                          setFacultyPopoverOpen(true);
+                        }, 350);
+                      }}
                     >
                       <SelectTrigger
                         className={`w-full font-normal ${
@@ -631,10 +638,6 @@ const DeanFacultyProfile = ({
                       }`}
                     >
                       Faculty
-                      {/* FIX: Show inline spinner for faculty loading INSTEAD of full skeleton */}
-                      {facultiesLoading && (
-                        <span className="ml-2 inline-block w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin align-middle" />
-                      )}
                     </Label>
                     <FacultySearchDropdown
                       selectedBranch={selectedBranch}

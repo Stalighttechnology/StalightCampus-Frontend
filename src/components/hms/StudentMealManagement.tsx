@@ -39,6 +39,31 @@ interface StudentMealManagementProps {
   hostelId?: number | null;
 }
 
+const MEAL_NAME_MAP: Record<string, string> = {
+  'BR': 'Breakfast',
+  'LN': 'Lunch',
+  'SN': 'Snacks',
+  'DN': 'Dinner'
+};
+
+const getMealTypeFullName = (name: string) => {
+  return MEAL_NAME_MAP[name] || name;
+};
+
+const formatTimeToAmPm = (timeStr: string) => {
+  if (!timeStr) return "";
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return timeStr;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1];
+  if (isNaN(hours)) return timeStr;
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const hoursStr = hours < 10 ? `0${hours}` : hours.toString();
+  return `${hoursStr}:${minutes} ${ampm}`;
+};
+
 const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId }) => {
   const { toast } = useToast();
   const { skeletonMode } = useHMSContext();
@@ -97,9 +122,9 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
   return (
     <Card className="border-primary/10 shadow-sm overflow-hidden">
       <CardHeader id="hms-meals-card" className="pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="bg-orange-500/10 p-2 rounded-lg">
+            <div className="bg-orange-500/10 p-2 rounded-lg flex-shrink-0">
               <ChefHat className="w-6 h-6 text-orange-600" />
             </div>
             <div>
@@ -107,7 +132,7 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
               <CardDescription>Scheduled meals and nutrition info</CardDescription>
             </div>
           </div>
-          <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none">
+          <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none self-start sm:self-auto text-xs whitespace-nowrap">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </Badge>
         </div>
@@ -145,44 +170,47 @@ const StudentMealManagement: React.FC<StudentMealManagementProps> = ({ hostelId 
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {todayMenu.map((meal) => (
-              <motion.div
-                key={meal.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`group relative rounded-2xl border p-5 ${getMealGradient(meal.meal_type_detail.name)} transition-all hover:shadow-md`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl bg-background/80 shadow-sm ${getMealAccentColor(meal.meal_type_detail.name)}`}>
-                      {getMealIcon(meal.meal_type_detail.name)}
+            {todayMenu.map((meal) => {
+              const fullName = getMealTypeFullName(meal.meal_type_detail.name);
+              return (
+                <motion.div
+                  key={meal.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`group relative rounded-2xl border p-5 ${getMealGradient(fullName)} transition-all hover:shadow-md`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl bg-background/80 shadow-sm ${getMealAccentColor(fullName)} flex-shrink-0`}>
+                        {getMealIcon(fullName)}
+                      </div>
+                      <h3 className="font-semibold text-lg">{fullName}</h3>
                     </div>
-                    <h3 className="font-semibold text-lg">{meal.meal_type_detail.name}</h3>
+                    <div className="flex items-center gap-1.5 text-[12px] sm:text-[14px] font-semibold uppercase tracking-wider bg-background/50 px-2 py-1 rounded-md border self-start sm:self-auto whitespace-nowrap">
+                      <Clock className="w-3 h-3" />
+                      {formatTimeToAmPm(meal.meal_type_detail.time_from)} - {formatTimeToAmPm(meal.meal_type_detail.time_to)}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[14px] font-semibold uppercase tracking-wider bg-background/50 px-2 py-1 rounded-md border">
-                    <Clock className="w-3 h-3" />
-                    {meal.meal_type_detail.time_from} - {meal.meal_type_detail.time_to}
-                  </div>
-                </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {meal.items.map((item) => (
-                    <Badge
-                      key={item.id}
-                      variant="outline"
-                      className={`h-7 px-3 flex items-center gap-1.5 bg-background/90 shadow-sm transition-all hover:scale-105 ${
-                        item.vegetarian 
-                        ? "border-green-500/20 text-green-700" 
-                        : "border-red-500/20 text-red-700"
-                      }`}
-                    >
-                      {item.vegetarian && <Leaf className="w-3 h-3" />}
-                      <span className="font-medium text-[14px]">{item.name}</span>
-                    </Badge>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+                  <div className="flex flex-wrap gap-2">
+                    {meal.items.map((item) => (
+                      <Badge
+                        key={item.id}
+                        variant="outline"
+                        className={`h-7 px-3 flex items-center gap-1.5 bg-background/90 shadow-sm transition-all hover:scale-105 ${
+                          item.vegetarian 
+                          ? "border-green-500/20 text-green-700" 
+                          : "border-red-500/20 text-red-700"
+                        }`}
+                      >
+                        {item.vegetarian && <Leaf className="w-3 h-3" />}
+                        <span className="font-medium text-[14px]">{item.name}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </CardContent>

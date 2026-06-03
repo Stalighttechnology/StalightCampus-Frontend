@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "914862508260",
+    "project_id": "stalight-notify",
+    "storage_bucket": "stalight-notify.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:914862508260:android:0235146f5beedabedb04f1",
+        "android_client_info": {
+          "package_name": "com.stalight.campus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQ-E_Ce16Kw-zGYiVvMcVoakd3e1pt6mY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

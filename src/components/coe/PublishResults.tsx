@@ -535,7 +535,7 @@ const PublishResults = React.forwardRef<HTMLDivElement>((_, ref) => {
                         </div>
                       </div>
 
-                      <div className="w-full overflow-x-auto">
+                      <div className="w-full overflow-x-auto custom-scrollbar">
                       <table className="table-auto w-full min-w-[980px] border-collapse">
                         <thead>
                           <tr>
