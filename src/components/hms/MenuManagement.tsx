@@ -552,9 +552,25 @@ const MenuManagement: React.FC = () => {
                       <SelectValue placeholder="Select Hostel" />
                     </SelectTrigger>
                     <SelectContent>
-                      {hostels.map((h) =>
-                    <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>
-                    )}
+                      {hostels.length > 0 ? (
+                        hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                      ) : (
+                        <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                          <p className="text-xs text-muted-foreground">No hostels found</p>
+                          <Button 
+                            type="button" 
+                            size="sm" 
+                            className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                            onPointerDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              navigate('/hms/hostels', { state: { openAddHostel: true } });
+                            }}
+                          >
+                            Add Hostel
+                          </Button>
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 }
@@ -589,6 +605,7 @@ const MenuManagement: React.FC = () => {
                 <>
                     <Button
                     variant="outline"
+                    disabled={!selectedHostel}
                     onClick={() => {
                       setShowFoodForm(true);
                       setEditingFoodItem(null);
@@ -599,12 +616,16 @@ const MenuManagement: React.FC = () => {
                     
                       <UtensilsCrossed className="w-4 h-4 mr-2" /> Food Items
                     </Button>
-                    <Button onClick={() => {
-                    setShowForm(true);
-                    setEditingMenu(null);
-                    setFormData({ hostel: selectedHostel, day_of_week: '', meal_type: '', date: '', items: [], is_recurring: true });
-                    loadMenuItems();
-                  }} className="bg-primary hover:bg-primary/90">
+                    <Button 
+                      disabled={!selectedHostel} 
+                      onClick={() => {
+                        setShowForm(true);
+                        setEditingMenu(null);
+                        setFormData({ hostel: selectedHostel, day_of_week: '', meal_type: '', date: '', items: [], is_recurring: true });
+                        loadMenuItems();
+                      }} 
+                      className="bg-primary hover:bg-primary/90"
+                    >
                       <Plus className="w-4 h-4 mr-2" /> Add Menu
                     </Button>
                     <Button

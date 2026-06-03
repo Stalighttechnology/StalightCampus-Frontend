@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertCircle,
@@ -85,6 +86,7 @@ const STATUS_CONFIG = {
 };
 
 const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { hostels, skeletonMode } = useHMSContext();
 
@@ -162,11 +164,19 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
     }
   };
 
-  // No longer auto-selecting first hostel
+  // Sync selectedHostelId when hostelId prop changes or becomes invalid
   useEffect(() => {
-
-    // Keep empty until user selects
-  }, [hostels]);
+    if (hostelId) {
+      const isValid = hostels.some(h => h.id === hostelId);
+      if (isValid) {
+        setSelectedHostelId(hostelId.toString());
+      } else {
+        setSelectedHostelId('');
+      }
+    } else {
+      setSelectedHostelId('');
+    }
+  }, [hostelId, hostels]);
   useEffect(() => {
     if (selectedHostelId) {
       fetchIssues();
@@ -358,9 +368,25 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                           </div>
                         </SelectTrigger>
                         <SelectContent>
-                          {hostels.map((h) =>
-                        <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>
-                        )}
+                          {hostels.length > 0 ? (
+                            hostels.map((h) => <SelectItem key={h.id} value={h.id.toString()}>{h.name}</SelectItem>)
+                          ) : (
+                            <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                              <p className="text-xs text-muted-foreground">No hostels found</p>
+                              <Button 
+                                type="button" 
+                                size="sm" 
+                                className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                                onPointerDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigate('/hms/hostels', { state: { openAddHostel: true } });
+                                }}
+                              >
+                                Add Hostel
+                              </Button>
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
                     }

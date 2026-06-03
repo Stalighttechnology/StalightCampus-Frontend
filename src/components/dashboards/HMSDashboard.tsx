@@ -21,6 +21,7 @@ import { HMSProvider, useHMSContext } from "../../context/HMSContext";
 import { AcademicProvider } from "../../context/AcademicContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Building2 } from "lucide-react";
 
 interface HMSDashboardProps {
   user: any;
@@ -35,10 +36,15 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
   const { theme } = useTheme();
   const [selectedHostelId, setSelectedHostelId] = useState<number | null>(null);
 
-  // Set initial selected hostel if not set
+  // Set initial selected hostel if not set or if current selection is invalid
   useEffect(() => {
-    if (hostels.length > 0 && !selectedHostelId) {
-      setSelectedHostelId(hostels[0].id);
+    if (hostels.length > 0) {
+      const isValid = hostels.some(h => h.id === selectedHostelId);
+      if (!isValid) {
+        setSelectedHostelId(hostels[0].id);
+      }
+    } else {
+      setSelectedHostelId(null);
     }
   }, [hostels, selectedHostelId]);
 
@@ -84,8 +90,20 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         }
         if (!loading) {
           return (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No hostels found to track issues.</p>
+            <div className="flex flex-col items-center justify-center py-28 px-6 border-2 border-dashed border-muted-foreground/20 rounded-2xl bg-muted/5 w-full text-center mt-4 min-h-[480px]">
+              <div className="bg-muted p-5 rounded-full mb-5">
+                <Building2 className="w-12 h-12 text-muted-foreground/70" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground">No Hostels Found</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-3">
+                No hostels are registered in your organization yet. Register a hostel to start tracking issues.
+              </p>
+              <Button 
+                onClick={() => handlePageChange('hostels')}
+                className="mt-8 bg-primary text-white hover:bg-primary/90 h-11 px-8 text-sm font-semibold rounded-lg shadow-sm"
+              >
+                Go to Hostel Management
+              </Button>
             </div>
           );
         }

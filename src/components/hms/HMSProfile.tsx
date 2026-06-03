@@ -4,6 +4,7 @@ import HelpLearningCard from "../common/HelpLearningCard";
 import LoginActivity from "../common/LoginActivity";
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -11,11 +12,12 @@ import { Textarea } from "../ui/textarea";
 import { useTheme } from "../../context/ThemeContext";
 import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Camera } from "lucide-react";
 import { SkeletonCard } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
 import { useHMSContext } from "../../context/HMSContext";
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
 
 interface User {
   user_id?: string;
@@ -38,9 +40,10 @@ interface Profile {
   address: string;
   bio: string;
   designation: string;
+  profile_picture: string;
 }
 
-const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error: string | null) => void;}) => {
+const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (error: string | null) => void; }) => {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile>({
@@ -50,7 +53,8 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
     mobile_number: "",
     address: "",
     bio: "",
-    designation: ""
+    designation: "",
+    profile_picture: ""
   });
   const { theme } = useTheme();
   const { skeletonMode } = useHMSContext();
@@ -64,6 +68,10 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
   const passwordDialogContentRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'help' | 'settings' | 'activity'>('personal');
   const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
+
+  // Profile picture upload states
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const resetUpload = () => { setIsUploadingPicture(false); };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -87,7 +95,8 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             mobile_number: payload.mobile_number || "",
             address: payload.address || "",
             bio: payload.bio || "",
-            designation: payload.designation || "HMS Manager"
+            designation: payload.designation || "HMS Manager",
+            profile_picture: payload.profile_picture ? (payload.profile_picture.startsWith('http') ? payload.profile_picture : `${API_ENDPOINT.replace('/api', '')}${payload.profile_picture}`) : ""
           });
         } else {
           showErrorAlert("Error", result.message || "Failed to fetch profile");
@@ -136,6 +145,52 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
     }
   };
 
+  const handleProfilePictureSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024) {
+      showErrorAlert('Error', 'Profile picture must be less than 50KB');
+      e.target.value = '';
+      return;
+    }
+    uploadProfilePictureDirectly(file);
+  };
+
+  const uploadProfilePictureDirectly = async (file: File) => {
+    try {
+      setIsUploadingPicture(true);
+      // Upload to R2 via backend proxy
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
+
+      if (fileUrl) {
+        // Finalize update with backend
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/upload-picture/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_picture_url: fileUrl })
+        });
+        const result = await response.json();
+
+        if (result?.success) {
+          setProfile((p) => ({ ...p, profile_picture: fileUrl }));
+          const currentUserData = JSON.parse(sessionStorage.getItem("user") || '{}');
+          currentUserData.profile_picture = fileUrl;
+          sessionStorage.setItem("user", JSON.stringify(currentUserData));
+          showSuccessAlert('Success', 'Profile picture updated successfully!');
+        } else {
+          showErrorAlert('Error', result.message || 'Failed to update backend with new photo');
+        }
+      } else {
+        showErrorAlert('Error', 'Failed to upload image to R2');
+      }
+    } catch (err) {
+      console.error("Profile picture upload error:", err);
+      showErrorAlert('Error', 'Failed to upload profile picture');
+    } finally {
+      resetUpload();
+    }
+  };
+
   const handleChangePassword = async () => {
     if (!passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password) {
       showErrorAlert("Missing fields", "Please fill in current, new and confirm password fields.");
@@ -176,52 +231,52 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
               <div className="w-full">
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
                 {isSkeleton ?
-                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                <Input name="first_name" value={profile.first_name} onChange={handleChange} disabled={true} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
+                  <Input name="first_name" value={profile.first_name} onChange={handleChange} disabled={true} placeholder="First name" className="text-sm h-9 sm:h-10 w-full" />
                 }
               </div>
               <div className="w-full">
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
                 {isSkeleton ?
-                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                <Input name="last_name" value={profile.last_name} onChange={handleChange} disabled={true} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
+                  <Input name="last_name" value={profile.last_name} onChange={handleChange} disabled={true} placeholder="Last name" className="text-sm h-9 sm:h-10 w-full" />
                 }
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
                 {isSkeleton ?
-                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                <Input name="email" value={profile.email} onChange={handleChange} disabled={true} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
+                  <Input name="email" value={profile.email} onChange={handleChange} disabled={true} placeholder="Email address" className="text-sm h-9 sm:h-10 w-full" />
                 }
               </div>
               <div>
                 <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
                 {isSkeleton ?
-                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+                  <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-                <Input name="mobile_number" value={profile.mobile_number} onChange={handleChange} disabled={!editing} maxLength={10} placeholder="10-digit mobile" className="text-sm h-9 sm:h-10 w-full" />
+                  <Input name="mobile_number" value={profile.mobile_number} onChange={handleChange} disabled={!editing} maxLength={10} placeholder="10-digit mobile" className="text-sm h-9 sm:h-10 w-full" />
                 }
               </div>
             </div>
 
             <div className="w-full">
-                <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</label>
-                {isSkeleton ?
-              <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
+              <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Designation</label>
+              {isSkeleton ?
+                <div className="h-9 sm:h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
-              <Input name="designation" value={profile.designation} onChange={handleChange} disabled={!editing} placeholder="Designation" className="text-sm h-9 sm:h-10 w-full" />
+                <Input name="designation" value={profile.designation} onChange={handleChange} disabled={!editing} placeholder="Designation" className="text-sm h-9 sm:h-10 w-full" />
               }
             </div>
           </div>);
 
-      
-      
+
+
       case 'settings':
         return (
           <div className="animate-in fade-in duration-300">
@@ -282,23 +337,23 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             </div>
           </div>
         );
-      case 'contact': 
+      case 'contact':
         return (
           <div className="space-y-4 sm:space-y-5">
             <div>
               <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</label>
               {isSkeleton ?
-              <div className="h-20 w-full rounded-md bg-muted animate-pulse border" /> :
+                <div className="h-20 w-full rounded-md bg-muted animate-pulse border" /> :
 
-              <Textarea name="address" value={profile.address} onChange={handleChange} disabled={!editing} rows={3} className="text-sm w-full" />
+                <Textarea name="address" value={profile.address} onChange={handleChange} disabled={!editing} rows={3} className="text-sm w-full" />
               }
             </div>
             <div>
               <label className={`block text-[18px] sm:text-[16px] mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bio</label>
               {isSkeleton ?
-              <div className="h-24 w-full rounded-md bg-muted animate-pulse border" /> :
+                <div className="h-24 w-full rounded-md bg-muted animate-pulse border" /> :
 
-              <Textarea name="bio" value={profile.bio} onChange={handleChange} disabled={!editing} rows={4} className="text-sm w-full" />
+                <Textarea name="bio" value={profile.bio} onChange={handleChange} disabled={!editing} rows={4} className="text-sm w-full" />
               }
             </div>
           </div>);
@@ -319,14 +374,14 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
             {editing &&
-            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
             }
             <Button
               size="sm"
               onClick={() => editing ? handleSaveProfile() : setEditing(true)}
               variant="outline"
               className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white">
-              
+
               {editing ? "Save" : "Edit Profile"}
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
@@ -346,7 +401,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                         value={passwordData.current_password}
                         onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button type="button" onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))} className="absolute inset-y-0 right-0 px-3 text-muted-foreground">
                         {showPasswords.current ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
@@ -360,7 +415,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                         value={passwordData.new_password}
                         onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button type="button" onClick={() => setShowPasswords((prev) => ({ ...prev, next: !prev.next }))} className="absolute inset-y-0 right-0 px-3 text-muted-foreground">
                         {showPasswords.next ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
@@ -374,7 +429,7 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                         value={passwordData.confirm_password}
                         onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
                         className="pr-10" />
-                      
+
                       <button type="button" onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))} className="absolute inset-y-0 right-0 px-3 text-muted-foreground">
                         {showPasswords.confirm ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </button>
@@ -393,9 +448,26 @@ const HMSProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
-              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4`}>
-                {profile.first_name[0]}{profile.last_name[0]}
+              <div className="relative mb-3 mt-3 sm:mb-4 flex-shrink-0">
+                <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
+                  {profile.profile_picture ? (
+                    <AvatarImage src={profile.profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
+                  ) : (
+                    <AvatarFallback>{(profile.first_name?.[0] || '') + (profile.last_name?.[0] || '')}</AvatarFallback>
+                  )}
+                </Avatar>
+                <label htmlFor="profile-picture-upload" className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-2 rounded-full cursor-pointer transition-colors shadow-lg">
+                  <Camera className="h-4 w-4" />
+                </label>
+                <input id="profile-picture-upload" type="file" accept="image/*" onChange={handleProfilePictureSelect} className="hidden" />
               </div>
+
+              {isUploadingPicture && (
+                <div className="mb-2 text-center w-full px-4">
+                  <p className="text-xs text-gray-500 animate-pulse">Uploading...</p>
+                </div>
+              )}
+
               <div className="text-xl sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
               <div className={`text-base sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>HMS Manager</div>
 

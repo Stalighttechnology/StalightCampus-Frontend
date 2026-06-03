@@ -71,7 +71,7 @@ const HMSOverview = () => {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<number | null>(null);
-  const [selectedFloor, setSelectedFloor] = useState<string>("all");
+  const [selectedFloor, setSelectedFloor] = useState<string>("");
   const [availableFloors, setAvailableFloors] = useState<number[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -260,7 +260,7 @@ const HMSOverview = () => {
                     value={selectedHostel?.toString() || ''}
                     onValueChange={(v) => {
                       setSelectedHostel(Number(v));
-                      setSelectedFloor("all");
+                      setSelectedFloor("");
                       setIsFloorOpen(true);
                     }}>
 
