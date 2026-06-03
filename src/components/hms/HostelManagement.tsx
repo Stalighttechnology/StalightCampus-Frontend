@@ -229,12 +229,23 @@ const HostelManagement: React.FC = () => {
                 {loading || skeletonMode ? (
                   <div className="h-10 w-full rounded-md bg-muted animate-pulse border" />
                 ) : (
-                  <Input
-                    placeholder="Search hostels..."
-                    className="pl-10 h-10 bg-background"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+                  <>
+                    <Input
+                      placeholder="Search hostels..."
+                      className="pl-10 pr-12 h-10 bg-background"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
 
