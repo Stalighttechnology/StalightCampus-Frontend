@@ -54,6 +54,7 @@ const RoomManagement: React.FC = () => {
   const [selectedFloorFilter, setSelectedFloorFilter] = useState<string>("");
   const [availableFloors, setAvailableFloors] = useState<number[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isFloorOpen, setIsFloorOpen] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
   const lastFetchRef = React.useRef<{hostel: number | null;floor: string;}>({ hostel: null, floor: "" });
@@ -120,10 +121,10 @@ const RoomManagement: React.FC = () => {
     }
   };
 
-  const fetchHostelFloors = (hostelId: number) => {
-    const hostel = hostels.find((h) => h.id === hostelId);
-    const floors = hostel ? Array.from({ length: hostel.floor_count || 1 }, (_, i) => i) : [];
+  const fetchHostelFloors = async (hostelId: number) => {
+    const floors = await getCachedFloors(hostelId);
     setAvailableFloors(floors);
+    setIsFloorOpen(true);
   };
 
   const fetchRoomsByHostel = async (hostelId: number, floor?: string) => {
@@ -306,7 +307,12 @@ const RoomManagement: React.FC = () => {
                     {isLoadingHostels || skeletonMode ?
                     <div className="w-full md:w-[160px] h-9 rounded-md bg-muted animate-pulse border" /> :
 
-                    <Select value={selectedFloorFilter} onValueChange={setSelectedFloorFilter}>
+                    <Select
+                      disabled={!selectedHostel}
+                      open={isFloorOpen}
+                      onOpenChange={setIsFloorOpen}
+                      value={selectedFloorFilter}
+                      onValueChange={setSelectedFloorFilter}>
                         <SelectTrigger className="w-full md:w-[160px] h-9 border bg-transparent p-2 focus:ring-1 font-normal text-md">
                           <SelectValue placeholder="Choose Floor" />
                         </SelectTrigger>

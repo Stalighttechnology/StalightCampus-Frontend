@@ -248,7 +248,7 @@ const HostelManagement: React.FC = () => {
                       <Plus className="w-4 h-4 mr-2" /> Add Hostel
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-[95%] sm:max-w-[600px] rounded-xl max-h-[90vh] overflow-y-auto thin-scrollbar">
+                  <DialogContent className="max-w-[95%] sm:max-w-[600px] rounded-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                     <DialogHeader>
                       <DialogTitle>{editingHostel ? 'Edit Hostel' : 'Add Hostel'}</DialogTitle>
                     </DialogHeader>

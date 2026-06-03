@@ -75,6 +75,7 @@ const HMSOverview = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+  const [isFloorOpen, setIsFloorOpen] = useState(false);
 
   // Map backend stats to component stats
   const stats = {
@@ -90,7 +91,6 @@ const HMSOverview = () => {
   useEffect(() => {
     if (selectedHostel) {
       fetchHostelFloors(selectedHostel);
-      setRooms([]); // Clear rooms when hostel changes
     } else {
       setAvailableFloors([]);
       setRooms([]);
@@ -106,10 +106,10 @@ const HMSOverview = () => {
     }
   }, [selectedHostel, selectedFloor]);
 
-  const fetchHostelFloors = (hostelId: number) => {
-    const hostel = hostels.find((h) => h.id === hostelId);
-    const floors = hostel ? Array.from({ length: hostel.floor_count || 1 }, (_, i) => i) : [];
+  const fetchHostelFloors = async (hostelId: number) => {
+    const floors = await getCachedFloors(hostelId);
     setAvailableFloors(floors);
+    setIsFloorOpen(true);
   };
 
   const fetchHostelRooms = async (hostelId: number, floor?: string) => {
@@ -278,6 +278,9 @@ const HMSOverview = () => {
                   <div className="h-10 w-full rounded-md bg-muted animate-pulse border" /> :
 
                   <Select
+                    disabled={!selectedHostel}
+                    open={isFloorOpen}
+                    onOpenChange={setIsFloorOpen}
                     value={selectedFloor}
                     onValueChange={setSelectedFloor}>
 

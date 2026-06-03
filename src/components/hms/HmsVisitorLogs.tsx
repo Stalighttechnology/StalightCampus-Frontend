@@ -114,19 +114,15 @@ const HmsVisitorLogs = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <DashboardCard
-          title="Total Visitors"
-          value={totalCount}
-          description="Recorded visits"
-          icon={<Users className="w-5 h-5 text-blue-500" />} 
-        />
-      </div>
-
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm">
         <CardHeader id="hms-visitor-logs-header" className="pb-4 border-b bg-muted/30">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle className="text-xl">Visitor Logs</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-xl">Visitor Logs</CardTitle>
+              <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-none font-semibold px-2 py-0.5 rounded-md text-xs">
+                Total: {totalCount}
+              </Badge>
+            </div>
             <div className="flex items-center gap-2 w-full md:w-auto">
               <div className="relative w-full md:w-72">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

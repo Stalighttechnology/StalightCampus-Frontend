@@ -437,29 +437,29 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                         }>
                         
                           {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 " />}
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs sm:text-[14px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">#{issue.id}</span>
-                              <h4 className="font-semibold text-base sm:text-sm truncate max-w-[150px]">{issue.title}</h4>
+                          <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">#{issue.id}</span>
+                              <h4 className="font-semibold text-sm sm:text-base truncate">{issue.title}</h4>
                             </div>
-                            <Badge variant="outline" className={`text-xs sm:text-[14px] h-5 ${config.color}`}>
+                            <Badge variant="outline" className={`text-[10px] sm:text-xs h-5 whitespace-nowrap flex-shrink-0 ${config.color}`}>
                               {issue.status_display}
                             </Badge>
                           </div>
-                          <div className="flex items-center justify-between text-sm sm:text-[14px] text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <User className="w-3.5 h-3.5 sm:w-3 sm:h-3" /> {issue.student_name}
+                          <div className="flex flex-wrap items-center justify-between gap-y-1 gap-x-2 text-xs sm:text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1 min-w-0">
+                              <User className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{issue.student_name}</span>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Home className="w-3.5 h-3.5 sm:w-3 sm:h-3 mt-0.5" /> Room {issue.room_name}
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <Home className="w-3 h-3 mt-0.5" /> Room {issue.room_name}
                             </div>
                           </div>
-                          <div className="mt-2 flex items-center justify-between text-xs sm:text-[14px]">
+                          <div className="mt-2 flex items-center justify-between text-[10px] sm:text-xs">
                             <span className="flex items-center gap-1 text-muted-foreground/70">
-                              <Calendar className="w-4 h-4 sm:w-4 sm:h-4" /> {formatDate(issue.created_at)}
+                              <Calendar className="w-3.5 h-3.5" /> {formatDate(issue.created_at)}
                             </span>
                             {issue.update_count > 0 &&
-                          <Badge variant="secondary" className="h-4 sm:h-4 px-1.5 text-xs sm:text-[12px] font-normal">
+                          <Badge variant="secondary" className="h-4 px-1.5 text-[10px] sm:text-xs font-normal">
                                 {issue.update_count} updates
                               </Badge>
                           }
@@ -549,15 +549,15 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
                                         <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                       </div>
                                       <div className="p-3 rounded-lg bg-muted/30 border border-muted/50">
-                                        <div className="flex items-center justify-between mb-1">
-                                          <p className="text-base sm:text-sm font-semibold">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                                          <p className="text-sm font-semibold leading-tight">
                                             {update.old_status_display} → {update.new_status_display}
                                           </p>
-                                          <span className="text-xs sm:text-[10px] font-mono text-muted-foreground">{formatDate(update.created_at)}</span>
+                                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">{formatDate(update.created_at)}</span>
                                         </div>
-                                        {update.note && <p className="text-sm sm:text-xs text-muted-foreground mt-1 bg-background/50 p-2 rounded">{update.note}</p>}
-                                        <p className="text-xs sm:text-[10px] mt-2 text-primary/70 flex items-center gap-1 font-medium">
-                                          <User className="w-3.5 h-3.5 sm:w-3 sm:h-3" /> {update.updated_by_name || 'System'}
+                                        {update.note && <p className="text-xs text-muted-foreground mt-1 bg-background/50 p-2 rounded">{update.note}</p>}
+                                        <p className="text-[10px] mt-2 text-primary/70 flex items-center gap-1 font-medium">
+                                          <User className="w-3 h-3" /> {update.updated_by_name || 'System'}
                                         </p>
                                       </div>
                                     </div>
