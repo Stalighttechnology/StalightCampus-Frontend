@@ -142,7 +142,7 @@ const TransportBuses: React.FC = () => {
             <div
               className="relative w-full max-w-md z-10"
             >
-              <Card className={`p-6 border shadow-2xl backdrop-blur-sm ${cardBg}`}>
+              <Card className={`p-6 border shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                     <Tag className="w-5 h-5" /> {editBusId ? 'Edit Bus Copy' : 'Add Fleet Bus'}
@@ -280,7 +280,7 @@ const TransportBuses: React.FC = () => {
                             <p className="text-xs opacity-60">{b.model_name || "Standard Model"}</p>
                           </td>
                           <td className="p-4 font-mono font-semibold">{b.registration_number}</td>
-                          <td className="p-4 text-center font-bold">{b.capacity} seats</td>
+                          <td className="p-4 text-center font-semibold">{b.capacity} seats</td>
                           <td className="p-4">
                             <Badge label={b.status} color={b.status} />
                           </td>

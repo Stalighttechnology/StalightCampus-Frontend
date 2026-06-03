@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
@@ -8,7 +9,7 @@ import {
 } from "../../utils/transport_api";
 import {
   Bus, MapPin, Clock, Calendar, CheckCircle, XCircle,
-  AlertTriangle, Navigation, Send, ChevronRight, ChevronLeft, Activity, Radio, Sunrise, Sunset
+  AlertTriangle, Navigation, Send, ChevronRight, ChevronLeft, Activity, Radio, Sunrise, Sunset, PenTool, X
 } from "lucide-react";
 
 const formatTimeTo12Hour = (timeStr: string) => {
@@ -39,6 +40,9 @@ const StudentTransportPage: React.FC = () => {
   const [complaintTitle, setComplaintTitle] = useState('');
   const [complaintDesc, setComplaintDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // View resolution modal state
+  const [viewComplaint, setViewComplaint] = useState<any>(null);
 
   const bg = theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900';
   const card = theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100';
@@ -359,11 +363,72 @@ const StudentTransportPage: React.FC = () => {
                       <span className={`px-2 py-0.5 rounded text-xs font-semibold capitalize ${c.status === 'resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{c.status}</span>
                     </div>
                     <p className={`text-xs mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>{c.description}</p>
-                    <p className={`text-[10px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{new Date(c.created_at).toLocaleString()}</p>
+                    
+                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-dashed border-inherit">
+                      <p className={`text-[10px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>{new Date(c.created_at).toLocaleString()}</p>
+                      {c.status === 'resolved' && c.action_taken && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`flex items-center gap-1 border text-xs h-7 px-2 ${
+                            theme === 'dark'
+                              ? 'bg-green-900/20 text-green-400 border-green-500/30 hover:bg-green-900/40'
+                              : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200/80'
+                          }`}
+                          onClick={() => setViewComplaint(c)}
+                        >
+                          View Log
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
+          )}
+
+          {/* View Complaint Resolution Modal */}
+          {viewComplaint && createPortal(
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={() => setViewComplaint(null)}
+              />
+              <div className="relative w-full max-w-md z-50">
+                <Card className={`p-6 border shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ${card}`}>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                      <PenTool className="w-5 h-5" /> Resolution Log
+                    </h3>
+                    <Button variant="ghost" size="icon" onClick={() => setViewComplaint(null)}>
+                      <X size={16} />
+                    </Button>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Actions Taken</label>
+                      <div className={`w-full border rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${input} min-h-[100px]`}>
+                        {viewComplaint.action_taken || "No action details logged."}
+                      </div>
+                    </div>
+                    {viewComplaint.resolved_at && (
+                      <p className="text-xs opacity-60">
+                        Resolved on {new Date(viewComplaint.resolved_at).toLocaleDateString()} {new Date(viewComplaint.resolved_at).toLocaleTimeString()}
+                      </p>
+                    )}
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => setViewComplaint(null)}
+                        className="w-full bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg h-10"
+                      >
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>,
+            document.body
           )}
         </div>
       )}

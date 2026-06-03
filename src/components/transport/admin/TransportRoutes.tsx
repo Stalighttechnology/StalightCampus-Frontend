@@ -384,7 +384,7 @@ const TransportRoutes: React.FC = () => {
 
             {/* Modal Window Container */}
             <div className="relative w-full max-w-md z-50">
-              <Card className={`p-6 border shadow-2xl ${cardBg}`}>
+              <Card className={`p-6 border shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                     <Plus className="w-5 h-5" /> New Route
@@ -466,7 +466,7 @@ const TransportRoutes: React.FC = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setEditingRoute(null)} />
             <div className="relative w-full max-w-md z-50">
-              <Card className={`p-6 border shadow-2xl ${cardBg}`}>
+              <Card className={`p-6 border shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                     <Pencil className="w-5 h-5" /> Edit Route

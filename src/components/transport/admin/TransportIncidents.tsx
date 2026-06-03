@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
@@ -19,6 +20,9 @@ const TransportIncidents: React.FC = () => {
   // Resolution state
   const [resolveId, setResolveId] = useState<number | null>(null);
   const [resolveText, setResolveText] = useState('');
+  
+  // View resolution log modal state
+  const [viewIncident, setViewIncident] = useState<IncidentT | null>(null);
 
   const loadIncidents = useCallback(async () => {
     setLoading(true);
@@ -42,10 +46,31 @@ const TransportIncidents: React.FC = () => {
       return;
     }
 
+    const result = await Swal.fire({
+      title: 'Close Ticket?',
+      text: "Are you sure you want to close this incident ticket?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#22c55e',
+      cancelButtonColor: theme === 'dark' ? '#3f3f46' : '#d1d5db',
+      confirmButtonText: 'Yes, Close Ticket',
+      background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+      color: theme === 'dark' ? '#E4E4E7' : '#000000'
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const res = await resolveIncident(resolveId, resolveText);
       if (res.success) { 
-        Swal.fire("Resolved", "Incident ticket has been closed.", "success");
+        Swal.fire({
+          icon: 'success',
+          title: 'Resolved',
+          text: 'Incident ticket has been closed.',
+          background: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+          color: theme === 'dark' ? '#E4E4E7' : '#000000',
+          confirmButtonColor: '#22c55e'
+        });
         setIncidents(incidents.map(inc => inc.id === resolveId ? { ...inc, status: 'resolved' } : inc));
         setResolveId(null); 
         setResolveText(''); 
@@ -64,16 +89,15 @@ const TransportIncidents: React.FC = () => {
   return (
     <div id="transport-incidents-header" className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Resolve Panel */}
-        <AnimatePresence>
-          {resolveId && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="lg:col-span-1"
-            >
-              <Card className={`p-6 border shadow-sm backdrop-blur-sm ${cardBg}`}>
+        {/* Resolve Panel (Modal Popup via Portal) */}
+        {resolveId && createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setResolveId(null)}
+            />
+            <div className="relative w-full max-w-md z-50">
+              <Card className={`p-6 border shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                     <PenTool className="w-5 h-5" /> Resolution Log
@@ -93,19 +117,72 @@ const TransportIncidents: React.FC = () => {
                       onChange={e => setResolveText(e.target.value)} 
                     />
                   </div>
-                  <div className="pt-2">
-                    <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 h-10">
-                      <CheckCircle size={16} /> Close Ticket
-                    </Button>
-                  </div>
+                    <div className="pt-2">
+                      <Button
+                        type="submit"
+                        variant="outline"
+                        className={`w-full font-semibold rounded-lg flex items-center justify-center gap-1.5 h-10 border ${
+                          theme === 'dark'
+                            ? 'bg-green-900/20 text-green-400 border-green-500/30 hover:bg-green-900/40'
+                            : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200/80'
+                        }`}
+                      >
+                        <CheckCircle size={16} /> Close Ticket
+                      </Button>
+                    </div>
                 </form>
               </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* View Resolution Log Modal */}
+        {viewIncident && createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setViewIncident(null)}
+            />
+            <div className="relative w-full max-w-md z-50">
+              <Card className={`p-6 border shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                    <PenTool className="w-5 h-5" /> Resolution Log
+                  </h3>
+                  <Button variant="ghost" size="icon" onClick={() => setViewIncident(null)}>
+                    <X size={16} />
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Actions Taken</label>
+                    <div className={`w-full border rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${input} min-h-[100px]`}>
+                      {viewIncident.action_taken || "No action details logged."}
+                    </div>
+                  </div>
+                  {viewIncident.resolved_at && (
+                    <p className="text-xs opacity-60">
+                      Resolved on {new Date(viewIncident.resolved_at).toLocaleDateString()} {new Date(viewIncident.resolved_at).toLocaleTimeString()}
+                    </p>
+                  )}
+                  <div className="pt-2">
+                    <Button
+                      onClick={() => setViewIncident(null)}
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg h-10"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>,
+          document.body
+        )}
 
         {/* Incidents List */}
-        <div className={resolveId ? "lg:col-span-2" : "lg:col-span-3"}>
+        <div className="lg:col-span-3">
           <Card className={`border overflow-hidden shadow-sm backdrop-blur-sm ${cardBg}`}>
             <CardHeader className="pb-3 border-b border-inherit">
               <CardTitle id="transport-incidents-title-row" className="sm:text-xl text-lg font-semibold flex items-center gap-2">
@@ -145,8 +222,26 @@ const TransportIncidents: React.FC = () => {
                         <p className={`text-sm mt-1 opacity-80 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{i.description}</p>
                         <p className={`text-xs mt-2 opacity-60`}>Reported by <b>{i.reported_by_details?.first_name || "Driver"}</b> · {new Date(i.created_at).toLocaleDateString()} {new Date(i.created_at).toLocaleTimeString()}</p>
                       </div>
-                      {i.status !== 'resolved' && !resolveId && (
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1" onClick={() => setResolveId(i.id)}>
+                      {i.status === 'resolved' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1 border h-9 px-3 text-xs font-semibold"
+                          onClick={() => setViewIncident(i)}
+                        >
+                          View Log
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`flex items-center gap-1 border ${
+                            theme === 'dark'
+                              ? 'bg-green-900/20 text-green-400 border-green-500/30 hover:bg-green-900/40'
+                              : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200/80'
+                          }`}
+                          onClick={() => setResolveId(i.id)}
+                        >
                           <CheckCircle size={14} /> Resolve
                         </Button>
                       )}

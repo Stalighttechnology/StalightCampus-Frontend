@@ -424,7 +424,7 @@ const TransportDrivers: React.FC = () => {
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
           <div className="modal-overlay" onClick={() => setShowDriverForm(false)} />
           <div className="relative w-full max-w-md z-[1000000]">
-            <Card className={`p-6 border shadow-2xl backdrop-blur-sm ${cardBg}`}>
+            <Card className={`p-6 border shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                   <Plus className="w-5 h-5" /> Enroll Driver
@@ -472,7 +472,7 @@ const TransportDrivers: React.FC = () => {
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
           <div className="modal-overlay" onClick={() => setShowAssignForm(false)} />
           <div className="relative w-full max-w-md z-[1000000]">
-            <Card className={`p-6 border shadow-2xl backdrop-blur-sm ${cardBg}`}>
+            <Card className={`p-6 border shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                   <Award className="w-5 h-5" /> Route Assignment
@@ -546,7 +546,7 @@ const TransportDrivers: React.FC = () => {
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
           <div className="modal-overlay" onClick={() => setEditingAssignment(null)} />
           <div className="relative w-full max-w-md z-[1000000]">
-            <Card className={`p-6 border shadow-2xl backdrop-blur-sm ${cardBg}`}>
+            <Card className={`p-6 border shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-y-auto custom-scrollbar ${cardBg}`}>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                   <Award className="w-5 h-5" /> Edit Assignment
