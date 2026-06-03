@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { manageBatches } from "../../utils/admin_api";
+import Swal from "sweetalert2";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card, CardHeader, CardContent, CardTitle, CardFooter } from "@/components/ui/card";
@@ -233,6 +234,23 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
 
   const confirmDelete = async () => {
     if (!batchToDelete) return;
+
+    const currentTheme = theme === 'dark' ? 'dark' : 'light';
+    const result = await Swal.fire({
+      title: 'Final Confirmation',
+      text: `Are you absolutely sure you want to delete the batch "${batchToDelete.name}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#3b82f6',
+      confirmButtonText: 'Yes, delete it!',
+      background: currentTheme === 'dark' ? '#1f2937' : '#fff',
+      color: currentTheme === 'dark' ? '#fff' : '#000'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
 
     setLoading(true);
     if (setError) setError(null);

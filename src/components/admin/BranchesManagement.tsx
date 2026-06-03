@@ -251,6 +251,22 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
   };
 
   const deleteBranch = async (id: number) => {
+    const currentTheme = theme === 'dark' ? 'dark' : 'light';
+    const result = await Swal.fire({
+      title: 'Final Confirmation',
+      text: `Are you absolutely sure you want to delete the branch "${branchToDelete?.name}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#3b82f6',
+      confirmButtonText: 'Yes, delete it!',
+      background: currentTheme === 'dark' ? '#1f2937' : '#fff',
+      color: currentTheme === 'dark' ? '#fff' : '#000'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
     setLoading(true);
     try {
       const response = await manageBranches(undefined, id, "DELETE");
