@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../hooks/use-toast';
 import { useTheme } from '../../context/ThemeContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, Search, ChevronLeft, ChevronRight, Users, Plus, Download } from 'lucide-react';
@@ -225,178 +225,184 @@ const WardenVisitorLogs = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <DashboardCard
-          title="Total Visitors"
-          value={totalCount}
-          description="Recorded visits"
-          icon={<Users className="w-5 h-5 text-blue-500" />} 
-        />
-      </div>
-
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm">
         <CardHeader id="warden-visitor-logs-header" className="pb-4 border-b bg-muted/30">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle className="text-xl">Visitor Logs</CardTitle>
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative w-full md:w-72">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search visitors or students..."
-                  className="pl-9 bg-background"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl">Visitor Logs</CardTitle>
+                <Badge className="bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 font-semibold text-xs py-1 px-2.5 rounded-lg border-none shadow-none hover:bg-blue-50">
+                  Total: {totalCount}
+                </Badge>
               </div>
-              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogTrigger asChild>
-                  <Button className="shrink-0 gap-2">
-                    <Plus className="w-4 h-4" /> Add Visitor
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Visitor</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleAddSubmit} className="space-y-4 pt-4">
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-xs">Batch</Label>
-                        <Select
-                          value={selectedBatch || "all"}
-                          onValueChange={(val) => {
-                            setSelectedBatch(val === "all" ? "" : val);
-                            setFormData({...formData, student: ''});
-                          }}
-                        >
-                          <SelectTrigger className="w-full h-8 text-xs">
-                            <SelectValue placeholder="All Batches" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Batches</SelectItem>
-                            {batches.map((b) => (
-                              <SelectItem key={b.id} value={b.id.toString()}>
-                                {b.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+              <div className="flex items-center gap-3">
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white transition-all px-3 whitespace-nowrap">
+                      <Plus className="w-3.5 h-3.5" /> Add Visitor
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Visitor</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleAddSubmit} className="space-y-4 pt-4">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Batch</Label>
+                          <Select
+                            value={selectedBatch || "all"}
+                            onValueChange={(val) => {
+                              setSelectedBatch(val === "all" ? "" : val);
+                              setFormData({...formData, student: ''});
+                            }}
+                          >
+                            <SelectTrigger className="w-full h-8 text-xs">
+                              <SelectValue placeholder="All Batches" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Batches</SelectItem>
+                              {batches.map((b) => (
+                                <SelectItem key={b.id} value={b.id.toString()}>
+                                  {b.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Branch</Label>
+                          <Select
+                            value={selectedBranch || "all"}
+                            onValueChange={(val) => {
+                              setSelectedBranch(val === "all" ? "" : val);
+                              setSelectedSemester('');
+                              setFormData({...formData, student: ''});
+                            }}
+                          >
+                            <SelectTrigger className="w-full h-8 text-xs">
+                              <SelectValue placeholder="All Branches" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Branches</SelectItem>
+                              {branches.map((b) => (
+                                <SelectItem key={b.id} value={b.id.toString()}>
+                                  {b.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Semester</Label>
+                          <Select
+                            value={selectedSemester || "all"}
+                            onValueChange={(val) => {
+                              setSelectedSemester(val === "all" ? "" : val);
+                              setFormData({...formData, student: ''});
+                            }}
+                            disabled={!selectedBranch}
+                          >
+                            <SelectTrigger className="w-full h-8 text-xs">
+                              <SelectValue placeholder="All Semesters" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Semesters</SelectItem>
+                              {selectedBranch && semestersByBranch[selectedBranch]?.map((s: any) => (
+                                <SelectItem key={s.id} value={s.id.toString()}>
+                                  Sem {s.number}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Branch</Label>
-                        <Select
-                          value={selectedBranch || "all"}
-                          onValueChange={(val) => {
-                            setSelectedBranch(val === "all" ? "" : val);
-                            setSelectedSemester('');
-                            setFormData({...formData, student: ''});
-                          }}
-                        >
-                          <SelectTrigger className="w-full h-8 text-xs">
-                            <SelectValue placeholder="All Branches" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Branches</SelectItem>
-                            {branches.map((b) => (
-                              <SelectItem key={b.id} value={b.id.toString()}>
-                                {b.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Semester</Label>
-                        <Select
-                          value={selectedSemester || "all"}
-                          onValueChange={(val) => {
-                            setSelectedSemester(val === "all" ? "" : val);
-                            setFormData({...formData, student: ''});
-                          }}
-                          disabled={!selectedBranch}
-                        >
-                          <SelectTrigger className="w-full h-8 text-xs">
-                            <SelectValue placeholder="All Semesters" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Semesters</SelectItem>
-                            {selectedBranch && semestersByBranch[selectedBranch]?.map((s: any) => (
-                              <SelectItem key={s.id} value={s.id.toString()}>
-                                Sem {s.number}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
 
-                    <div className="space-y-2 pt-2 border-t border-border">
-                      <Label>Student</Label>
-                      <Select
-                        value={formData.student}
-                        onValueChange={(val) => setFormData({ ...formData, student: val })}
-                      >
-                        <SelectTrigger className="w-full h-10 text-sm">
-                          <SelectValue placeholder="Select a student..." />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-56">
-                          {students.map((s: any) => (
-                            <SelectItem key={s.id} value={s.id.toString()}>
-                              {s.name} ({s.usn}) - Room {s.room_number || s.room}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Visitor Name</Label>
-                      <Input
-                        value={formData.visitor_name}
-                        onChange={(e) => setFormData({ ...formData, visitor_name: e.target.value })}
-                        placeholder="E.g., John Doe"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Contact Details</Label>
-                      <Input
-                        value={formData.contact_details}
-                        onChange={(e) => setFormData({ ...formData, contact_details: e.target.value })}
-                        placeholder="Phone number or email"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Purpose</Label>
-                      <Input
-                        value={formData.purpose}
-                        onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                        placeholder="E.g., Meeting, Delivery, etc."
-                      />
-                    </div>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                        Save
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportPDF}
-                disabled={exporting || totalCount === 0}
-                className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap shadow-sm rounded-xl"
-              >
-                {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export PDF
-              </Button>
+                      <div className="space-y-2 pt-2 border-t border-border">
+                        <Label>Student</Label>
+                        <Select
+                          value={formData.student}
+                          onValueChange={(val) => setFormData({ ...formData, student: val })}
+                        >
+                          <SelectTrigger className="w-full h-10 text-sm">
+                            <SelectValue placeholder="Select a student..." />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-56">
+                            {students.map((s: any) => (
+                              <SelectItem key={s.id} value={s.id.toString()}>
+                                {s.name} ({s.usn}) - Room {s.room_number || s.room}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Visitor Name</Label>
+                        <Input
+                          value={formData.visitor_name}
+                          onChange={(e) => setFormData({ ...formData, visitor_name: e.target.value })}
+                          placeholder="E.g., John Doe"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Contact Details</Label>
+                        <Input
+                          value={formData.contact_details}
+                          onChange={(e) => setFormData({ ...formData, contact_details: e.target.value })}
+                          placeholder="Phone number or email"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Purpose</Label>
+                        <Input
+                          value={formData.purpose}
+                          onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                          placeholder="E.g., Meeting, Delivery, etc."
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2 mt-4">
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                          Save
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPDF}
+                  disabled={exporting || totalCount === 0}
+                  className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap"
+                >
+                  {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  Export PDF
+                </Button>
+              </div>
+            </div>
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-40" />
+              <Input
+                type="text"
+                placeholder="Search visitors or students..."
+                className="pl-10 pr-12 h-10 bg-background border-primary/10 hover:border-primary/30 transition-colors"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         </CardHeader>

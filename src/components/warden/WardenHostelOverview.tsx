@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../ui/card";
 
 const WardenHostelOverview = () => {
   const { toast } = useToast();
@@ -107,154 +108,169 @@ const WardenHostelOverview = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div id="warden-residents-container" className="space-y-4">
-        <div className="flex flex-col gap-1.5">
-          <h2 className="text-2xl font-semibold leading-none tracking-tight">Resident Management</h2>
-          <p className="text-sm text-muted-foreground">Manage and track student occupancy, profiles, and contact details by floor.</p>
-        </div>
+    <>
+      <Card className={`border-primary/10 shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+        <CardHeader id="warden-residents-container" className="pb-4 border-b bg-muted/30">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle className="text-2xl font-semibold">Resident Management</CardTitle>
+              <CardDescription>Manage and track student occupancy, profiles, and contact details by floor.</CardDescription>
+            </div>
 
-        <div className="flex flex-col md:flex-row items-center gap-4">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search residents..."
-              className="pl-10 h-10 rounded-xl"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <Select value={selectedFloor} onValueChange={(val) => { setSelectedFloor(val); setPage(1); }}>
-            <SelectTrigger className="w-full md:w-[220px] h-10 rounded-xl">
-              <SelectValue placeholder="Select Floor to View" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Floors</SelectItem>
-              {hostelFloors.map(floor => (
-                <SelectItem key={floor} value={floor.toString()}>
-                  Floor {floor}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredStudents.map((student) => (
-          <motion.div
-            key={student.id}
-            layout
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.02 }}
-            onClick={() => {
-              setSelectedStudent(student);
-              setIsDialogOpen(true);
-            }}
-            className="group p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all border-border/40 flex flex-col justify-between cursor-pointer"
-          >
-            <div>
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-base">
-                    {student.name.charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-                      {student.name}
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">
-                      {student.usn}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1.5">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-[12px] gap-1 rounded-full text-muted-foreground group-hover:text-primary group-hover:bg-primary/5 border border-transparent group-hover:border-primary/10 transition-all"
+            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search residents..."
+                  className="pl-10 pr-12 h-10 rounded-xl"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
                   >
-                    <Eye size={12} />
-                    View
-                  </Button>
-                </div>
+                    Clear
+                  </button>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border/30">
-                <div className="flex flex-col">
-                  <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Room</span>
-                  <span className="text-md font-semibold text-primary">{student.room_name}</span>
-                </div>
-                <div className="flex flex-col text-right">
-                  <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Floor</span>
-                  <span className="text-md font-semibold">{student.room_floor ?? 'N/A'}</span>
-                </div>
+              <Select value={selectedFloor} onValueChange={(val) => { setSelectedFloor(val); setPage(1); }}>
+                <SelectTrigger className="w-full md:w-[220px] h-10 rounded-xl">
+                  <SelectValue placeholder="Select Floor to View" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Floors</SelectItem>
+                  {hostelFloors.map(floor => (
+                    <SelectItem key={floor} value={floor.toString()}>
+                      Floor {floor}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          {selectedFloor && filteredStudents.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredStudents.map((student) => (
+                <motion.div
+                  key={student.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => {
+                    setSelectedStudent(student);
+                    setIsDialogOpen(true);
+                  }}
+                  className="group p-4 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all border-border/40 flex flex-col justify-between cursor-pointer"
+                >
+                  <div>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-base">
+                          {student.name.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                            {student.name}
+                          </h3>
+                          <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">
+                            {student.usn}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[12px] gap-1 rounded-full text-muted-foreground group-hover:text-primary group-hover:bg-primary/5 border border-transparent group-hover:border-primary/10 transition-all"
+                        >
+                          <Eye size={12} />
+                          View
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border/30">
+                      <div className="flex flex-col">
+                        <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Room</span>
+                        <span className="text-md font-semibold text-primary">{student.room_name}</span>
+                      </div>
+                      <div className="flex flex-col text-right">
+                        <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-tight">Floor</span>
+                        <span className="text-md font-semibold">{student.room_floor ?? 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground bg-muted/30 p-2 rounded-lg">
+                    <Building2 size={12} className="shrink-0" />
+                    <span className="truncate">{student.branch_name}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {!selectedFloor && (
+            <div className="text-center py-24 bg-card/30 rounded-3xl border-2 border-dashed border-border">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <MapPin className="w-10 h-10 text-primary animate-bounce" />
               </div>
+              <h3 className="text-xl font-semibold mb-2">Select a Floor</h3>
+              <p className="text-muted-foreground max-w-xs mx-auto text-sm">
+                Please choose a floor from the dropdown above to view the resident list.
+              </p>
             </div>
+          )}
 
-            <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground bg-muted/30 p-2 rounded-lg">
-              <Building2 size={12} className="shrink-0" />
-              <span className="truncate">{student.branch_name}</span>
+          {selectedFloor && filteredStudents.length === 0 && (
+            <div className="text-center py-20 opacity-40">
+              <Users className="w-16 h-16 mx-auto mb-4" />
+              <p className="text-lg font-medium">No residents found matching your criteria.</p>
             </div>
-          </motion.div>
-        ))}
-      </div>
+          )}
+        </CardContent>
 
-      {selectedFloor && filteredStudents.length > 0 && totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border rounded-2xl bg-card border-border mt-4">
-          <div>
-            Showing {Math.min((page - 1) * 50 + 1, totalCount)} to {Math.min(page * 50, totalCount)} of {totalCount} residents
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1 || loading}
-              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
-            >
-              Previous
-            </Button>
-
-            <div className="flex items-center justify-center min-w-[2rem]">
-              <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                {page}
-              </span>
+        {selectedFloor && filteredStudents.length > 0 && totalPages > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((page - 1) * 50 + 1, totalCount)} to {Math.min(page * 50, totalCount)} of {totalCount} residents
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1 || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
+              >
+                Previous
+              </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages || loading}
-              className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {page}
+                </span>
+              </div>
 
-      {!selectedFloor && (
-        <div className="text-center py-24 bg-card/30 rounded-3xl border-2 border-dashed border-border">
-          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <MapPin className="w-10 h-10 text-primary animate-bounce" />
-          </div>
-          <h3 className="text-xl font-semibold mb-2">Select a Floor</h3>
-          <p className="text-muted-foreground max-w-xs mx-auto text-sm">
-            Please choose a floor from the dropdown above to view the resident list.
-          </p>
-        </div>
-      )}
-
-      {selectedFloor && filteredStudents.length === 0 && (
-        <div className="text-center py-20 opacity-40">
-          <Users className="w-16 h-16 mx-auto mb-4" />
-          <p className="text-lg font-medium">No residents found matching your criteria.</p>
-        </div>
-      )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages || loading}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all rounded-xl"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
+      </Card>
 
       {/* Resident Detail Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -339,7 +355,7 @@ const WardenHostelOverview = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
 
