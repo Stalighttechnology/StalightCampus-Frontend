@@ -35,10 +35,15 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
   const { theme } = useTheme();
   const [selectedHostelId, setSelectedHostelId] = useState<number | null>(null);
 
-  // Set initial selected hostel if not set
+  // Set initial selected hostel if not set or if current selection is invalid
   useEffect(() => {
-    if (hostels.length > 0 && !selectedHostelId) {
-      setSelectedHostelId(hostels[0].id);
+    if (hostels.length > 0) {
+      const isValid = hostels.some(h => h.id === selectedHostelId);
+      if (!isValid) {
+        setSelectedHostelId(hostels[0].id);
+      }
+    } else {
+      setSelectedHostelId(null);
     }
   }, [hostels, selectedHostelId]);
 

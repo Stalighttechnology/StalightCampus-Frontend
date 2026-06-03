@@ -164,11 +164,19 @@ const IssueTracking = ({ hostelId }: {hostelId: number;}) => {
     }
   };
 
-  // No longer auto-selecting first hostel
+  // Sync selectedHostelId when hostelId prop changes or becomes invalid
   useEffect(() => {
-
-    // Keep empty until user selects
-  }, [hostels]);
+    if (hostelId) {
+      const isValid = hostels.some(h => h.id === hostelId);
+      if (isValid) {
+        setSelectedHostelId(hostelId.toString());
+      } else {
+        setSelectedHostelId('');
+      }
+    } else {
+      setSelectedHostelId('');
+    }
+  }, [hostelId, hostels]);
   useEffect(() => {
     if (selectedHostelId) {
       fetchIssues();
