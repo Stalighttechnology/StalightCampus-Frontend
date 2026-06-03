@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/sweetalert';
 import { useHMSContext } from "../../context/HMSContext";
 import { useAcademicContext, Batch, Branch, Semester } from "../../context/AcademicContext";
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { API_BASE_URL } from '../../utils/config';
 
 interface HostelStudent {
   id: number;
@@ -29,15 +31,33 @@ interface HostelStudent {
   room_hostel_name?: string;
   room_allotted: boolean;
   no_dues: boolean;
+  profile_picture?: string;
 }
 
 
 
 
 
+const getProfilePicUrl = (url?: string) => {
+  if (!url) return "";
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `${API_BASE_URL}${url}`;
+};
+
+const getInitials = (name: string) => {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
 const StudentManagement: React.FC = () => {
   const navigate = useNavigate();
-  const { hostels, getCachedFloors, getCachedRooms, refreshData, skeletonMode } = useHMSContext();
+  const { hostels, getCachedFloors, getCachedRooms, refreshData, updateRoomStudentCount, skeletonMode } = useHMSContext();
   const { batches, branches, getSemestersForBranch, loading: academicLoading } = useAcademicContext();
   const [students, setStudents] = useState<HostelStudent[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -183,14 +203,14 @@ const StudentManagement: React.FC = () => {
     setIsSemesterOpen(true);
   };
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (silent = false) => {
     if (!appliedSearch.trim() && (!filters.batch || !filters.branch || !filters.semester)) {
       setStudents([]);
       setTotalCount(0);
       return;
     }
 
-    setLoading(true);
+    if (!silent) setLoading(true);
     const params: Record<string, any> = {
       page: currentPage,
       page_size: pageSize,
@@ -210,7 +230,7 @@ const StudentManagement: React.FC = () => {
       setNextPage(response.next);
       setPreviousPage(response.previous);
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   };
 
   // Remove the automatic floor setting from room change
@@ -244,11 +264,14 @@ const StudentManagement: React.FC = () => {
 
     const response = await manageHostelStudents(formData, editingStudent.id, 'PUT');
     if (response.success) {
-      // Find the selected hostel and room names for the manual update
+      // Find the selected hostel and room names for manual update fallback if needed
       const selectedHostel = hostels.find((h) => h.id === selectedHostelInDialog);
       const selectedRoom = roomsForHostel.find((r) => r.id === formData.room);
 
-      const updatedStudent: HostelStudent = {
+      const updatedStudent: HostelStudent = response.data ? {
+        ...editingStudent,
+        ...response.data
+      } : {
         ...editingStudent,
         ...formData,
         room_name: selectedRoom?.name || (formData.room ? editingStudent.room_name : undefined),
@@ -278,7 +301,12 @@ const StudentManagement: React.FC = () => {
 
       // Invalidate context cache to ensure other pages fetch fresh data and statistics (like occupancy rate)
       await refreshData(true);
-      await fetchStudents();
+      
+      // Update local state optimistically/instantly for real-time response
+      setStudents((prev) => prev.map((s) => s.id === editingStudent.id ? updatedStudent : s));
+      
+      // Fetch fresh data silently in the background
+      fetchStudents(true);
 
       setIsDialogOpen(false);
       showSuccessAlert("Success", "Student details updated successfully");
@@ -540,7 +568,18 @@ const StudentManagement: React.FC = () => {
           {editingStudent &&
           <div className="space-y-6 pt-4">
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex gap-4 items-center">
-                <UserCircle2 className="w-12 h-12 text-primary opacity-80" />
+                <Avatar className="w-12 h-12 border border-primary/10">
+                  {editingStudent.profile_picture ? (
+                    <AvatarImage 
+                      src={getProfilePicUrl(editingStudent.profile_picture)} 
+                      alt={editingStudent.name} 
+                      className="object-cover"
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
+                    {getInitials(editingStudent.name)}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="grid grid-cols-2 gap-x-8 gap-y-1 flex-1">
                   <div className="text-xs font-bold uppercase opacity-60">Name</div>
                   <div className="text-xs font-bold uppercase opacity-60">USN</div>
@@ -559,7 +598,7 @@ const StudentManagement: React.FC = () => {
                     setSelectedFloorInDialog(null);
                     setRoomsForHostel([]);
                     getFloorsForHostel(id);
-                    setFormData((prev) => ({ ...prev, room: null }));
+                    setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
                   }}>
                       <SelectTrigger><SelectValue placeholder="Select hostel" /></SelectTrigger>
                       <SelectContent>
@@ -598,7 +637,7 @@ const StudentManagement: React.FC = () => {
                         if (selectedHostelInDialog) {
                           getRoomsForHostel(selectedHostelInDialog, floor);
                         }
-                        setFormData((prev) => ({ ...prev, room: null }));
+                        setFormData((prev) => ({ ...prev, room: null, room_allotted: false }));
                       }}
                        disabled={!selectedHostelInDialog || hostels.length === 0 || isLoadingFloors}>
                       
@@ -621,7 +660,10 @@ const StudentManagement: React.FC = () => {
 
                     <div className="space-y-2">
                       <Label className="text-[18px] sm:text-[16px] font-semibold mb-2 block">Assign Room</Label>
-                      <Select value={formData.room?.toString() || 'none'} onValueChange={(v) => setFormData((prev) => ({ ...prev, room: v === 'none' ? null : parseInt(v) }))} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || hostels.length === 0 || isLoadingRooms}>
+                      <Select value={formData.room?.toString() || 'none'} onValueChange={(v) => {
+                        const newRoom = v === 'none' ? null : parseInt(v);
+                        setFormData((prev) => ({ ...prev, room: newRoom, room_allotted: !!newRoom }));
+                      }} disabled={!selectedHostelInDialog || selectedFloorInDialog === null || hostels.length === 0 || isLoadingRooms}>
                         <SelectTrigger>
                           {isLoadingRooms ? <span className="animate-pulse">Loading Rooms...</span> : <SelectValue placeholder="Select room" />}
                         </SelectTrigger>
@@ -635,19 +677,6 @@ const StudentManagement: React.FC = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-6 p-4 rounded-lg bg-muted/30">
-                  <div className="flex items-center gap-3">
-                    <input
-                    type="checkbox"
-                    id="room_allotted"
-                    className="w-4 h-4 accent-primary"
-                    checked={formData.room_allotted}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, room_allotted: e.target.checked }))} />
-                  
-                    <Label htmlFor="room_allotted" className="cursor-pointer">Room Allotted</Label>
                   </div>
                 </div>
 
