@@ -383,19 +383,7 @@ const HostelManagement: React.FC = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="warden" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Warden</Label>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDialogOpen(false);
-                                navigate('/hms/staff');
-                              }}
-                              className="text-[11px] text-primary hover:underline font-semibold"
-                            >
-                              Manage Staff
-                            </button>
-                          </div>
+                          <Label htmlFor="warden" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Warden</Label>
                           <Select value={formData.warden?.toString() || 'unset'} onValueChange={(value) => setFormData({ ...formData, warden: value === 'unset' ? null : parseInt(value) })}>
                             <SelectTrigger className="h-10">
                               <SelectValue placeholder="Select warden" />
@@ -407,23 +395,29 @@ const HostelManagement: React.FC = () => {
                                   {warden.name}
                                 </SelectItem>
                               ))}
+                              {wardens.length === 0 && (
+                                <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                                  <p className="text-xs text-muted-foreground">No wardens found</p>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                                    onPointerDown={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setIsDialogOpen(false);
+                                      navigate('/hms/enrollment', { state: { enrollmentType: 'warden' } });
+                                    }}
+                                  >
+                                    Add Warden
+                                  </Button>
+                                </div>
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="caretaker" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Caretaker</Label>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsDialogOpen(false);
-                                navigate('/hms/staff');
-                              }}
-                              className="text-[11px] text-primary hover:underline font-semibold"
-                            >
-                              Manage Staff
-                            </button>
-                          </div>
+                          <Label htmlFor="caretaker" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Caretaker</Label>
                           <Select value={formData.caretaker?.toString() || 'unset'} onValueChange={(value) => setFormData({ ...formData, caretaker: value === 'unset' ? null : parseInt(value) })}>
                             <SelectTrigger className="h-10">
                               <SelectValue placeholder="Select caretaker" />
@@ -435,6 +429,24 @@ const HostelManagement: React.FC = () => {
                                   {caretaker.name}
                                 </SelectItem>
                               ))}
+                              {caretakers.length === 0 && (
+                                <div className="p-3 text-center space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+                                  <p className="text-xs text-muted-foreground">No caretakers found</p>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    className="w-full text-[11px] font-semibold h-8 bg-primary hover:bg-primary/90 text-white"
+                                    onPointerDown={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setIsDialogOpen(false);
+                                      navigate('/hms/enrollment', { state: { enrollmentType: 'caretaker' } });
+                                    }}
+                                  >
+                                    Add Caretaker
+                                  </Button>
+                                </div>
+                              )}
                             </SelectContent>
                           </Select>
                         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,8 @@ import { useHMSContext } from "../../context/HMSContext";
 import { SkeletonForm, SkeletonPageHeader } from "../ui/skeleton";
 
 const Enrollment: React.FC = () => {
-  const [enrollmentType, setEnrollmentType] = useState<'warden' | 'caretaker'>('warden');
+  const location = useLocation();
+  const [enrollmentType, setEnrollmentType] = useState<'warden' | 'caretaker'>(location.state?.enrollmentType || 'warden');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
