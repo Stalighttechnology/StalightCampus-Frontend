@@ -71,7 +71,7 @@ const HostelManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     gender: 'M' as 'M' | 'F',
-    floor_count: 1,
+    floor_count: 1 as number | string,
     warden: null as number | null,
     caretaker: null as number | null,
     address: '',
@@ -89,7 +89,7 @@ const HostelManagement: React.FC = () => {
       setFormData({
         name: '',
         gender: 'M',
-        floor_count: 1,
+        floor_count: 1 as number | string,
         warden: null,
         caretaker: null,
         address: '',
@@ -181,6 +181,7 @@ const HostelManagement: React.FC = () => {
       const serializedAddress = `${formData.latitude},${formData.longitude},${formData.radius}`;
       const payload = {
         ...formData,
+        floor_count: parseInt(formData.floor_count.toString()) || 1,
         address: serializedAddress
       };
       const response = await manageHostels(payload, editingHostel?.id, method);
@@ -194,7 +195,7 @@ const HostelManagement: React.FC = () => {
         await refreshData(true);
 
         setEditingHostel(null);
-        setFormData({ name: '', gender: 'M', floor_count: 1, warden: null, caretaker: null, address: '', latitude: '12.9716', longitude: '77.5946', radius: '500' });
+        setFormData({ name: '', gender: 'M', floor_count: 1 as number | string, warden: null, caretaker: null, address: '', latitude: '12.9716', longitude: '77.5946', radius: '500' });
       } else {
         toast({
           variant: "destructive",
@@ -285,7 +286,12 @@ const HostelManagement: React.FC = () => {
                           min="1"
                           max="20"
                           value={formData.floor_count}
-                          onChange={(e) => setFormData({ ...formData, floor_count: parseInt(e.target.value) || 1 })}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData({ ...formData, floor_count: val === '' ? '' : (parseInt(val) || 0) });
+                          }}
+                          onWheel={(e) => e.currentTarget.blur()}
+                          placeholder="e.g. 3"
                           required
                           className="h-10"
                         />
@@ -308,6 +314,7 @@ const HostelManagement: React.FC = () => {
                             step="any"
                             value={formData.latitude}
                             onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                            onWheel={(e) => e.currentTarget.blur()}
                             required
                             className="h-10"
                           />
@@ -320,6 +327,7 @@ const HostelManagement: React.FC = () => {
                             step="any"
                             value={formData.longitude}
                             onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                            onWheel={(e) => e.currentTarget.blur()}
                             required
                             className="h-10"
                           />
@@ -333,6 +341,7 @@ const HostelManagement: React.FC = () => {
                             max="5000"
                             value={formData.radius}
                             onChange={(e) => setFormData({ ...formData, radius: e.target.value })}
+                            onWheel={(e) => e.currentTarget.blur()}
                             required
                             className="h-10"
                           />
