@@ -14,12 +14,12 @@ interface LoginMobileProps {
 const LoginMobile = ({ setRole, setPage, setUser }: LoginMobileProps) => {
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
-      StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+      StatusBar.setOverlaysWebView({ overlay: true }).catch(() => { });
+      StatusBar.setStyle({ style: Style.Dark }).catch(() => { });
       NavigationBar.setNavigationBarColor({
         color: '#1e1b4b',
         darkButtons: false
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, []);
 
@@ -47,7 +47,7 @@ const LoginMobile = ({ setRole, setPage, setUser }: LoginMobileProps) => {
       {/* HEADER */}
       <div className="text-center space-y-1 pt-7 pb-4 shrink-0 px-4">
         <p className="text-white text-sm font-medium opacity-90">Welcome to</p>
-        <h1 className="text-white text-xl font-extrabold">STALIGHT CAMPUS</h1>
+        <h1 className="text-white text-xl font-extrabold">STALIGHT CAMPUSsssss</h1>
         <p className="text-white text-xs opacity-80">Login to access your Campus portal</p>
       </div>
 
