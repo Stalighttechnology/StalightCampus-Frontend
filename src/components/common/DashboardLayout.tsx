@@ -276,7 +276,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content Area */}
       <div
-        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] ${sidebarCollapsed ? 'ml-0' : 'lg:ml-64'}`
+        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 pb-[env(safe-area-inset-bottom,0px)] ${sidebarCollapsed ? 'ml-0' : 'lg:ml-64'}`
         }>
 
         {/* Navbar */}
