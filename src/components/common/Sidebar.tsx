@@ -575,7 +575,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     >
       {/* Header */}
       <motion.div
-        className={`px-4 pb-4 pt-4 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+        className={`px-4 h-20 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
