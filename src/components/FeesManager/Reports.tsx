@@ -185,24 +185,24 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 <CardTitle className="text-2xl sm:text-2xl font-semibold flex items-center gap-2 tracking-tight">
                   Staff Attendance Audit
                 </CardTitle>
-                <p className="text-muted-foreground mt-1.5 text-sm sm:text-md font-medium">Monitor attendance across all institutional roles</p>
+                <p className="text-muted-foreground mt-1.5 text-sm sm:text-md">Monitor attendance across all institutional roles</p>
               </div>
-              <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => downloadReport('pdf')}
-                  className="h-10 sm:h-9 px-3 sm:px-4 font-semibold uppercase text-[16px] sm:text-[13px] tracking-widest rounded-xl sm:rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-sm">
-                  <Download className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="truncate">PDF</span>
+                  disabled={loading || selectedRole === '' || startDate === '' || endDate === ''}
+                  className="bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 h-9 disabled:opacity-50">
+                  <Download className="h-4 w-4 flex-shrink-0" />
+                  <span>Export PDF</span>
                 </Button>
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => downloadReport('excel')}
-                  className="h-10 sm:h-9 px-3 sm:px-4 font-semibold uppercase text-[16px] sm:text-[13px] tracking-widest rounded-xl sm:rounded-full bg-background border-primary/20 text-primary hover:bg-primary/5 transition-all shadow-sm">
-                  <FileText className="h-4 w-4 mr-1.5 sm:mr-2 flex-shrink-0" />
-                  <span className="truncate">Excel</span>
+                  disabled={loading || selectedRole === '' || startDate === '' || endDate === ''}
+                  className="bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 h-9 disabled:opacity-50">
+                  <FileText className="h-4 w-4 flex-shrink-0" />
+                  <span>Export Excel</span>
                 </Button>
               </div>
             </div>

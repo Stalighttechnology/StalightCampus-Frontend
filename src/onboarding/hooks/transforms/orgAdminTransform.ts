@@ -89,5 +89,125 @@ export function orgAdminTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-scan-student-info') {
+    return [
+      {
+        ...step,
+        target: '#hod-search-student-card',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-branches') {
+    return [
+      {
+        ...step,
+        target: '#branches-management-header-section',
+        title: 'Branch Management',
+        content: 'View and manage all institutional branches, assign department heads, and export records.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-batches') {
+    return [
+      {
+        ...step,
+        target: '#existing-batches-header',
+        title: 'Batches Management',
+        content: 'Configure academic batches, cohort details, and sections.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-announcement-management') {
+    return [
+      {
+        ...step,
+        target: '#announcement-header-section',
+        title: 'Announcement Management',
+        content: 'Broadcast campus news and updates to students and staff.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-attendance') {
+    return [
+      {
+        ...step,
+        target: '#dean-attendance-stats-grid',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-exams') {
+    return [
+      {
+        ...step,
+        target: '#dean-exams-stats-grid',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-faculty') {
+    return [
+      {
+        ...step,
+        target: '#dean-faculty-filters-header-wrapper',
+        title: 'Filter Faculty Profiles',
+        content: 'Select a branch and faculty member to load their detailed academic dashboard.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-finance') {
+    return [
+      {
+        ...step,
+        target: '#dean-finance-stats-grid',
+        title: 'Financial Overview',
+        content: 'Monitor key financial analytics and metrics at a glance.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-invoices') {
+    return [
+      {
+        ...step,
+        target: '#feesmanager-invoices-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-payments') {
+    return [
+      {
+        ...step,
+        target: '#feesmanager-payments-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-reports') {
+    return [
+      {
+        ...step,
+        target: '#feesmanager-reports-header',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
   return null;
 }
