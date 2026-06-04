@@ -43,11 +43,11 @@ const LoginMobile = ({ setRole, setPage, setUser }: LoginMobileProps) => {
   };
 
   return (
-    <div className="min-h-[100dvh] pb-[env(safe-area-inset-bottom)] overflow-x-hidden overflow-y-hidden flex flex-col w-full bg-gradient-to-b from-violet-600 via-violet-800 to-violet-950 relative">
+    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-x-hidden overflow-y-hidden flex flex-col w-full bg-gradient-to-b from-violet-600 via-violet-800 to-violet-950 relative">
       {/* HEADER */}
       <div className="text-center space-y-1 pt-7 pb-4 shrink-0 px-4">
         <p className="text-white text-sm font-medium opacity-90">Welcome to</p>
-        <h1 className="text-white text-xl font-extrabold">STALIGHT CAMPUSsssss</h1>
+        <h1 className="text-white text-xl font-extrabold">STALIGHT CAMPUS</h1>
         <p className="text-white text-xs opacity-80">Login to access your Campus portal</p>
       </div>
 

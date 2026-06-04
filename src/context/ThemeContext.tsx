@@ -49,24 +49,8 @@ export const ThemeProvider: React.FC<{children: ReactNode;}> = ({ children }) =>
     }
 
     // Apply Capacitor native Status Bar & Navigation Bar styling if running in a native mobile environment
-    if (Capacitor.isNativePlatform()) {
-      // Prevent overlay to keep solid colors on older Android versions, or let Android handle overlay automatically
-      StatusBar.setOverlaysWebView({ overlay: false }).catch((err) => console.warn(err));
-
-      StatusBar.setStyle({
-        style: theme === 'dark' ? Style.Dark : Style.Light
-      }).catch((err) => console.warn('Failed to set native status bar style:', err));
-
-      StatusBar.setBackgroundColor({
-        color: theme === 'dark' ? '#0a0a0c' : '#ffffff'
-      }).catch((err) => console.warn('Failed to set native status bar background color:', err));
-
-      // Style bottom navigation bar (Android)
-      NavigationBar.setNavigationBarColor({
-        color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
-        darkButtons: theme === 'light'
-      }).catch((err) => console.warn('Failed to set native navigation bar color:', err));
-    }
+    // Note: StatusBar and NavigationBar logic is handled individually by LoginMobile and DashboardLayout
+    // to ensure proper transitioning between overlay screens and standard screens.
 
     // Save theme preference (persists across login sessions)
     localStorage.setItem('user-theme-preference', theme);
