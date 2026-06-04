@@ -9,13 +9,13 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { manageProfile } from "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
-import { showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
+import { showConfirmAlert, showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff , Trash} from 'lucide-react';
 import { SkeletonCard } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Upload } from 'lucide-react';
 import LoginActivity from '../common/LoginActivity';
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -171,6 +171,36 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
     fetchProfile();
   }, [propUser, setError]);
 
+  
+  const handleDeleteProfilePicture = async () => {
+    const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/delete-picture/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      
+      if (res.success) {
+        setProfile((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
+        const userStr = sessionStorage.getItem("user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          delete user.profile_picture;
+          delete user.profile_image;
+          sessionStorage.setItem("user", JSON.stringify(user));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+        showSuccessAlert("Success", "Profile picture removed!");
+      } else {
+        showErrorAlert("Error", res.message || "Failed to remove profile picture");
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Network error while removing picture");
+    }
+  };
+
   const handleProfilePictureSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -194,6 +224,7 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
           const user = JSON.parse(sessionStorage.getItem("user") || '{}');
           user.profile_picture = fileUrl;
           sessionStorage.setItem("user", JSON.stringify(user));
+          window.dispatchEvent(new Event("userProfileUpdated"));
           showSuccessAlert("Success", "Profile picture updated!");
         } else {
           showErrorAlert("Error", res.message || "Failed to update profile picture");
@@ -279,7 +310,7 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
           mobile_number: response.data.mobile_number || "",
           address: response.data.address || "",
           bio: response.data.bio || "",
-          profile_picture: response.data.profile_picture || profile.profile_picture || ""
+          profile_picture: response.data.profile_picture || profile?.profile_picture || ""
         };
         setProfile(updatedProfile);
         showSuccessAlert("Success", "Profile saved successfully");
@@ -574,20 +605,19 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             <div className="col-span-1 flex flex-col items-center">
               <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0">
                 <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                  {(profile as any).profile_picture ? (
-                    <AvatarImage src={(profile as any).profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
-                  ) : (
-                    <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+                  <AvatarImage src={(profile as any).profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
+<AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
                       {(profile.first_name?.[0] || "") + (profile.last_name?.[0] || "")}
                     </AvatarFallback>
-                  )}
                 </Avatar>
-                <label 
+                {(editing || !profile?.profile_picture) && (
+<label 
                   htmlFor="profile-picture-upload" 
                   className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
                 >
                   <Camera className="h-4 w-4" />
                 </label>
+)}
                 <input 
                   id="profile-picture-upload" 
                   type="file" 
@@ -595,6 +625,16 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
                   onChange={handleProfilePictureSelect} 
                   className="hidden" 
                 />
+                {editing && profile?.profile_picture && (
+                  <button
+                    onClick={handleDeleteProfilePicture}
+                    className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                    title="Remove Photo"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
+
               </div>
 
               {isUploading && (

@@ -80,7 +80,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
     avatarSrc = String(rawAvatar);
     // If backend returned a relative media path like `/media/...`, prefix with base URL
     if (avatarSrc.startsWith('/media/')) {
-      avatarSrc = `${API_BASE_URL.replace('/api','')}${avatarSrc}`;
+      avatarSrc = `${API_BASE_URL.replace('/api', '')}${avatarSrc}`;
     }
   }
 
@@ -166,7 +166,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           >
             {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
           </Button>
-          
+
           {['student', 'faculty', 'hod', 'admin'].includes(role || '') && (
             <Button
               variant="ghost"

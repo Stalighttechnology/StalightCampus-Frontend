@@ -8,9 +8,9 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff , Trash} from 'lucide-react';
 import { useTheme } from "../../context/ThemeContext";
-import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
+import { showConfirmAlert, showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import {
   getFeesManagerProfile,
   updateFeesManagerProfile,
@@ -26,6 +26,14 @@ import {
   SkeletonForm } from
 "@/components/ui/skeleton";
 import LoginActivity from '../common/LoginActivity';
+
+import { Camera } from 'lucide-react';
+import { uploadFileViaBackendProxy } from "../../utils/common_api";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Progress } from "../ui/progress";
+import { fetchWithTokenRefresh } from "../../utils/authService";
+import { API_ENDPOINT } from "../../utils/config";
+
 
 
 const FeesManagerProfile: React.FC = () => {
@@ -70,6 +78,90 @@ const FeesManagerProfile: React.FC = () => {
       showErrorAlert("Error", "Network error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleProfilePictureSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showErrorAlert("Error", "Please select an image file.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showErrorAlert("Error", "File size must be less than 5MB");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(10);
+    try {
+      const fileUrl = await uploadFileViaBackendProxy(file, 'profiles');
+      setUploadProgress(90);
+      if (fileUrl) {
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/update/`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_picture_url: fileUrl })
+        });
+        const res = await response.json();
+        
+        if (res.success) {
+          setProfile((prev: any) => ({ ...prev, profile_picture: fileUrl }));
+          setFormData((prev: any) => ({ ...prev, profile_picture: fileUrl }));
+          const userStr = sessionStorage.getItem("user");
+          if (userStr) {
+            const user = JSON.parse(userStr);
+            user.profile_picture = fileUrl;
+            sessionStorage.setItem("user", JSON.stringify(user));
+            window.dispatchEvent(new Event("userProfileUpdated"));
+          }
+          showSuccessAlert("Success", "Profile picture updated!");
+        } else {
+          showErrorAlert("Error", res.message || "Failed to update profile picture");
+        }
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Upload failed");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleDeleteProfilePicture = async () => {
+    const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/delete-picture/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      
+      if (res.success) {
+        setProfile((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
+        setFormData((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
+        const userStr = sessionStorage.getItem("user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          delete user.profile_picture;
+          delete user.profile_image;
+          sessionStorage.setItem("user", JSON.stringify(user));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+        showSuccessAlert("Success", "Profile picture removed!");
+      } else {
+        showErrorAlert("Error", res.message || "Failed to remove profile picture");
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Network error while removing picture");
     }
   };
 
@@ -220,7 +312,31 @@ const FeesManagerProfile: React.FC = () => {
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
-              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary text-white flex items-center justify-center text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 mt-4 flex-shrink-0`}>{(formData.first_name?.[0] || '') + (formData.last_name?.[0] || '')}</div>
+              <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0">
+                <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
+                  <AvatarImage src={(profile as any)?.profile_picture || (profile as any)?.profile_image || undefined} alt={`${formData.first_name} ${formData.last_name}`} className="object-cover" />
+                  <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+                    {(formData.first_name?.[0] || '') + (formData.last_name?.[0] || '')}
+                  </AvatarFallback>
+                </Avatar>
+                {(editing || !(profile as any)?.profile_picture) && (
+                  <label htmlFor="feesmanager-profile-picture-upload" className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg">
+                    <Camera className="h-4 w-4" />
+                  </label>
+                )}
+                {editing && (profile as any)?.profile_picture && (
+                  <button onClick={handleDeleteProfilePicture} className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg" title="Remove Photo">
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <input id="feesmanager-profile-picture-upload" type="file" accept="image/*" onChange={handleProfilePictureSelect} className="hidden" />
+              {isUploading && (
+                <div className="w-full max-w-[150px] mb-3">
+                  <Progress value={uploadProgress} className="h-1" />
+                  <p className="text-[10px] text-center mt-1 text-muted-foreground">Uploading...</p>
+                </div>
+              )}
               <div className="text-xl sm:text-xl font-semibold text-center mb-1">{formData.first_name} {formData.last_name}</div>
               <div className={`text-md sm:text-md mb-4 sm:mb-6 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Fees Manager</div>
 
