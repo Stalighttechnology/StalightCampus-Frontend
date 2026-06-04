@@ -132,11 +132,7 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
   const stepIndex = step === "email" ? 0 : step === "otp" ? 1 : step === "password" ? 2 : 3;
 
   return (
-    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-x-hidden overflow-y-hidden flex flex-col w-full bg-gradient-to-b from-violet-600 via-violet-800 to-violet-950 relative">
-      {/* Glows */}
-      <div className="absolute w-[320px] h-[320px] bg-white/15 blur-3xl rounded-full top-[-100px] left-[-100px] z-0 pointer-events-none" />
-      <div className="absolute w-[360px] h-[360px] bg-violet-400/30 blur-[72px] rounded-full bottom-[-80px] right-[-80px] z-0 pointer-events-none" />
-
+    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-x-hidden overflow-y-hidden flex flex-col w-full bg-transparent relative">
       {/* HEADER */}
       <div className="relative z-10 text-center pt-12 pb-4 shrink-0 px-4 text-white flex flex-col gap-8">
         <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Forgot Password</p>
