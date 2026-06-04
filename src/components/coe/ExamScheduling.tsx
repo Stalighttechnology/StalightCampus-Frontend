@@ -54,7 +54,9 @@ const EXAM_PERIODS = [
 { value: 'june_july', label: 'June/July' },
 { value: 'nov_dec', label: 'November/December' },
 { value: 'jan_feb', label: 'January/February' },
-{ value: 'apr_may', label: 'April/May' }];
+{ value: 'apr_may', label: 'April/May' },
+    { value: 'sept_oct', label: 'September/October' },
+    { value: 'feb_mar', label: 'February/March' }];
 
 
 const ExamScheduling = React.forwardRef<HTMLDivElement>((_, ref) => {

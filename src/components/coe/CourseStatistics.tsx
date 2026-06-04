@@ -202,6 +202,8 @@ const CourseStatistics = React.forwardRef<HTMLDivElement>((_, ref) => {
                   <SelectItem value="nov_dec">November/December</SelectItem>
                   <SelectItem value="jan_feb">January/February</SelectItem>
                   <SelectItem value="apr_may">April/May</SelectItem>
+                <SelectItem value="sept_oct">September/October</SelectItem>
+                <SelectItem value="feb_mar">February/March</SelectItem>
                   <SelectItem value="supplementary">Supplementary</SelectItem>
                   <SelectItem value="revaluation">Revaluation</SelectItem>
                 </SelectContent>
