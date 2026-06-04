@@ -91,7 +91,7 @@ const UploadQP = () => {
     semester: [] as {id: number;number: number;}[],
     section: [] as {id: number;name: string;}[],
     subject: [] as {id: number;name: string;}[],
-    testType: ["IA1", "IA2", "IA3", "SEE"],
+    testType: ["IA1", "IA2", "IA3", "IA4", "IA5", "SEE"],
     setNumber: ["Set 1", "Set 2"]
   });
 
