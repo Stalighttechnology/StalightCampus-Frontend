@@ -11,7 +11,14 @@ const config: CapacitorConfig = {
   },
   plugins: {
     PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"]
+      presentationOptions: [
+        'badge',
+        'sound',
+        'alert'
+      ]
+    },
+    CapacitorUpdater: {
+      appId: 'com.stalight.campus'
     }
   }
 };

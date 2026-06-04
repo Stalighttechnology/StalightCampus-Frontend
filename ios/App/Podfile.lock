@@ -4,6 +4,10 @@ PODS:
   - Capacitor (8.3.4):
     - CapacitorCordova
   - CapacitorCordova (8.3.4)
+  - CapacitorPushNotifications (8.1.1):
+    - Capacitor
+  - CapacitorSplashScreen (8.0.1):
+    - Capacitor
   - CapgoCapacitorUpdater (8.47.5):
     - Alamofire (= 5.10.2)
     - BigInt (= 5.2.0)
@@ -16,6 +20,8 @@ PODS:
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
+  - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapgoCapacitorUpdater (from `../../node_modules/@capgo/capacitor-updater`)"
 
 SPEC REPOS:
@@ -30,6 +36,10 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorPushNotifications:
+    :path: "../../node_modules/@capacitor/push-notifications"
+  CapacitorSplashScreen:
+    :path: "../../node_modules/@capacitor/splash-screen"
   CapgoCapacitorUpdater:
     :path: "../../node_modules/@capgo/capacitor-updater"
 
@@ -38,10 +48,12 @@ SPEC CHECKSUMS:
   BigInt: f668a80089607f521586bbe29513d708491ef2f7
   Capacitor: d13cad5fa09155679672808cc4ca9fbc2997e1b4
   CapacitorCordova: c07921bdcfec6f691bae22274446b4d606ebf6a4
+  CapacitorPushNotifications: ec08d589c226a2c0db7c032ec1bf5b044ec85f8e
+  CapacitorSplashScreen: 4b46c72298db552b3c57ce021ef028b6dc7f1fa7
   CapgoCapacitorUpdater: 6d1588303b3f8d35eb70b1c418a2348b112e864a
   Version: de5907f2c5d0f3cf21708db7801d1d5401139486
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 7af8a26fa9a3b77adcbc963f6968890fd1172d45
+PODFILE CHECKSUM: 52359bf88e1bd9b7c4acdced02ebcef7261aea1a
 
 COCOAPODS: 1.16.2
