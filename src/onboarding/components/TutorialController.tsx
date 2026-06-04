@@ -535,12 +535,12 @@ export const TutorialController = () => {
       setIsNavigating(true);
       console.log('[ONBOARDING DEBUG] pausing Joyride — polling for visibility...');
 
-      // Start the 200ms deferred loader timer to avoid flashing for fast loads
+      // Start the 1000ms deferred loader timer to avoid flashing for fast loads
       if (loaderTimerRef.current) clearTimeout(loaderTimerRef.current);
       loaderTimerRef.current = setTimeout(() => {
         console.log('[ONBOARDING DEBUG] Deferred loader timeout fired, showing loader');
         setShowLoader(true);
-      }, 200);
+      }, 1000);
 
       waitForElementVisible(
         targetStep,

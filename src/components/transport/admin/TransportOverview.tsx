@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
 import { useTheme } from "../../../context/ThemeContext";
 import { fetchTransportDashboardStats, fetchLiveTracking } from "../../../utils/transport_api";
 import { Badge, Stats } from "./TransportCommon";

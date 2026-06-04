@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
 import {
   fetchAllocations, fetchRoutes, fetchTransportFilters, fetchRouteOptions,
-  createAllocation, deleteAllocation, fetchBranchSemesters, fetchRouteStops, fetchEligibleStudents, updateAllocation
+  createAllocation, deleteAllocation, fetchBranchSemesters, fetchRouteStops, fetchEligibleStudents, updateAllocation,
+  fetchSemesterSections
 } from "../../../utils/transport_api";
 import { Badge, AllocationT, RouteT } from "./TransportCommon";
 import { Card, CardHeader, CardTitle, CardFooter, CardContent } from "../../ui/card";
@@ -39,12 +39,14 @@ const TransportAllocations: React.FC = () => {
   const [eligibleStudents, setEligibleStudents] = useState<any[]>([]);
   const [eligiblePage, setEligiblePage] = useState(1);
   const [eligibleTotalPages, setEligibleTotalPages] = useState(1);
-  const [eligibleFilters, setEligibleFilters] = useState({ search: "", branch: "", batch: "", semester: "" });
+  const [eligibleFilters, setEligibleFilters] = useState({ search: "", branch: "", batch: "", semester: "", section: "" });
 
   // Form states
   const [allocationForm, setAllocationForm] = useState({ student: '', route: '', stop: '' });
   const [allocOptions, setAllocOptions] = useState({ routes: [] as any[], stops: [] as any[] });
   const [branchSemesters, setBranchSemesters] = useState<any[]>([]);
+  const [semesterSections, setSemesterSections] = useState<any[]>([]);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Edit states
   const [editingAllocation, setEditingAllocation] = useState<any | null>(null);
@@ -102,12 +104,12 @@ const TransportAllocations: React.FC = () => {
   };
   
   const loadEligibleStudents = async () => {
-    if (!eligibleFilters.branch || !eligibleFilters.batch || !eligibleFilters.semester) {
+    if (!eligibleFilters.branch || !eligibleFilters.batch || !eligibleFilters.semester || !eligibleFilters.section) {
       setEligibleStudents([]);
       setEligibleTotalPages(1);
       return;
     }
-    const r = await fetchEligibleStudents(eligiblePage, eligibleFilters.branch, eligibleFilters.batch, eligibleFilters.semester, eligibleFilters.search);
+    const r = await fetchEligibleStudents(eligiblePage, eligibleFilters.branch, eligibleFilters.batch, eligibleFilters.semester, eligibleFilters.search, eligibleFilters.section);
     if (r.results) {
       setEligibleStudents(r.results);
       setEligibleTotalPages(Math.ceil((r.count || 1) / 25));
@@ -133,9 +135,20 @@ const TransportAllocations: React.FC = () => {
       });
     } else {
       setBranchSemesters([]);
-      setEligibleFilters(f => ({ ...f, semester: "" }));
+      setEligibleFilters(f => ({ ...f, semester: "", section: "" }));
     }
   }, [eligibleFilters.branch]);
+
+  useEffect(() => {
+    if (eligibleFilters.semester) {
+      fetchSemesterSections(parseInt(eligibleFilters.semester)).then(res => {
+        if (res.success) setSemesterSections(res.sections);
+      });
+    } else {
+      setSemesterSections([]);
+      setEligibleFilters(f => ({ ...f, section: "" }));
+    }
+  }, [eligibleFilters.semester]);
 
   useEffect(() => {
     if (allocationForm.route) {
@@ -145,6 +158,42 @@ const TransportAllocations: React.FC = () => {
     } else {
       setAllocOptions(prev => ({ ...prev, stops: [] }));
       setAllocationForm(f => ({ ...f, stop: "" }));
+    }
+  }, [allocationForm.route]);
+
+  useEffect(() => {
+    if (eligibleFilters.branch) {
+      setOpenDropdown('batch');
+    }
+  }, [eligibleFilters.branch]);
+
+  useEffect(() => {
+    if (eligibleFilters.batch) {
+      setOpenDropdown('semester');
+    }
+  }, [eligibleFilters.batch]);
+
+  useEffect(() => {
+    if (eligibleFilters.semester) {
+      setOpenDropdown('section');
+    }
+  }, [eligibleFilters.semester]);
+
+  useEffect(() => {
+    if (eligibleFilters.section) {
+      setOpenDropdown('student');
+    }
+  }, [eligibleFilters.section]);
+
+  useEffect(() => {
+    if (allocationForm.student) {
+      setOpenDropdown('route');
+    }
+  }, [allocationForm.student]);
+
+  useEffect(() => {
+    if (allocationForm.route) {
+      setOpenDropdown('stop');
     }
   }, [allocationForm.route]);
 
@@ -255,7 +304,7 @@ const TransportAllocations: React.FC = () => {
       {/* Allocation Setup form */}
       <Card id="transport-allocation-form-card" className={`p-6 border shadow-sm backdrop-blur-sm ${cardBg}`}>
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-inherit">
-          <h3 className="text-xl font-semibold flex items-center gap-2 ">
+          <h3 className="text-xl font-semibold flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" /> Allocate Student to Stop
           </h3>
         </div>
@@ -266,7 +315,7 @@ const TransportAllocations: React.FC = () => {
               <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Branch</label>
               <Select
                 value={eligibleFilters.branch}
-                onValueChange={(val) => setEligibleFilters(f => ({ ...f, branch: val, semester: "" }))}
+                onValueChange={(val) => setEligibleFilters(f => ({ ...f, branch: val, semester: "", section: "" }))}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Branch" />
@@ -280,6 +329,9 @@ const TransportAllocations: React.FC = () => {
               <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Batch</label>
               <Select
                 value={eligibleFilters.batch}
+                disabled={!eligibleFilters.branch}
+                open={openDropdown === 'batch'}
+                onOpenChange={(open) => setOpenDropdown(open ? 'batch' : null)}
                 onValueChange={(val) => setEligibleFilters(f => ({ ...f, batch: val }))}
               >
                 <SelectTrigger className="w-full">
@@ -295,7 +347,9 @@ const TransportAllocations: React.FC = () => {
               <Select
                 value={eligibleFilters.semester}
                 disabled={!eligibleFilters.branch || !eligibleFilters.batch || branchSemesters.length === 0}
-                onValueChange={(val) => setEligibleFilters(f => ({ ...f, semester: val }))}
+                open={openDropdown === 'semester'}
+                onOpenChange={(open) => setOpenDropdown(open ? 'semester' : null)}
+                onValueChange={(val) => setEligibleFilters(f => ({ ...f, semester: val, section: "" }))}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Semester" />
@@ -305,10 +359,22 @@ const TransportAllocations: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-9 text-gray-400" />
-              <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Search Student</label>
-              <input type="text" placeholder="USN or Name..." className={`w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:outline-none ${input}`} value={eligibleFilters.search} onChange={e => setEligibleFilters(f => ({ ...f, search: e.target.value }))} />
+            <div>
+              <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Section</label>
+              <Select
+                value={eligibleFilters.section}
+                disabled={!eligibleFilters.branch || !eligibleFilters.batch || !eligibleFilters.semester || semesterSections.length === 0}
+                open={openDropdown === 'section'}
+                onOpenChange={(open) => setOpenDropdown(open ? 'section' : null)}
+                onValueChange={(val) => setEligibleFilters(f => ({ ...f, section: val }))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Section" />
+                </SelectTrigger>
+                <SelectContent>
+                  {semesterSections.map((sec: any) => <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -319,14 +385,49 @@ const TransportAllocations: React.FC = () => {
               </label>
               <Select
                 value={allocationForm.student}
-                disabled={eligibleStudents.length === 0}
+                disabled={!eligibleFilters.branch || !eligibleFilters.batch || !eligibleFilters.semester || !eligibleFilters.section}
+                open={openDropdown === 'student'}
+                onOpenChange={(open) => setOpenDropdown(open ? 'student' : null)}
                 onValueChange={(val) => setAllocationForm(f => ({ ...f, student: val }))}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={eligibleStudents.length === 0 ? "Filter options first..." : "Select student..."} />
+                  <SelectValue placeholder={
+                    (!eligibleFilters.branch || !eligibleFilters.batch || !eligibleFilters.semester || !eligibleFilters.section)
+                      ? "Filter options first..."
+                      : (eligibleStudents.length === 0 ? "No eligible students found" : "Select student...")
+                  } />
                 </SelectTrigger>
                 <SelectContent className="max-h-56 overflow-y-auto">
-                  {eligibleStudents.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.name} ({s.usn})</SelectItem>)}
+                  <div 
+                    className="px-2 py-1.5 sticky top-0 bg-popover z-10 border-b border-border/40" 
+                    onClick={(e) => e.stopPropagation()} 
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <div className="relative">
+                      <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input 
+                        type="text" 
+                        placeholder="Search student..." 
+                        className={`w-full pl-8 pr-2.5 py-1 text-xs rounded-md border focus:outline-none focus:ring-1 ${input}`} 
+                        value={eligibleFilters.search} 
+                        onChange={e => {
+                          setEligiblePage(1);
+                          setEligibleFilters(f => ({ ...f, search: e.target.value }));
+                        }}
+                      />
+                    </div>
+                  </div>
+                  {eligibleStudents.length === 0 ? (
+                    <div className="py-4 text-center text-xs text-muted-foreground select-none">
+                      No matching students found
+                    </div>
+                  ) : (
+                    eligibleStudents.map(s => (
+                      <SelectItem key={s.id} value={s.id.toString()} disabled={s.is_allocated}>
+                        {s.name} ({s.usn}){s.is_allocated ? " (Allocated)" : ""}
+                      </SelectItem>
+                    ))
+                  )}
                   {eligibleTotalPages > 1 && (
                     <div 
                       className={`relative mt-2 border-t border-inherit flex items-center justify-between px-3 py-1.5 text-xs ${theme === 'dark' ? 'bg-[#1c1c1e] text-gray-300' : 'bg-white text-gray-600'}`}
@@ -366,10 +467,13 @@ const TransportAllocations: React.FC = () => {
               <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Route</label>
               <Select
                 value={allocationForm.route}
+                disabled={!allocationForm.student}
+                open={openDropdown === 'route'}
+                onOpenChange={(open) => setOpenDropdown(open ? 'route' : null)}
                 onValueChange={(val) => setAllocationForm(f => ({ ...f, route: val, stop: '' }))}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose Route" />
+                  <SelectValue placeholder={!allocationForm.student ? "Select student first" : "Choose Route"} />
                 </SelectTrigger>
                 <SelectContent>
                   {allocOptions.routes.map((r: any) => <SelectItem key={r.id} value={r.id.toString()}>{r.route_name}</SelectItem>)}
@@ -381,6 +485,8 @@ const TransportAllocations: React.FC = () => {
               <Select
                 value={allocationForm.stop}
                 disabled={!allocationForm.route || allocOptions.stops.length === 0}
+                open={openDropdown === 'stop'}
+                onOpenChange={(open) => setOpenDropdown(open ? 'stop' : null)}
                 onValueChange={(val) => setAllocationForm(f => ({ ...f, stop: val }))}
               >
                 <SelectTrigger className="w-full">

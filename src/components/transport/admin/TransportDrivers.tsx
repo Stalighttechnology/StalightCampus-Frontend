@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { useTheme } from "../../../context/ThemeContext";
 import { useToast } from "../../../hooks/use-toast";

@@ -94,11 +94,12 @@ export const enrollDriver = (data: any) =>
 export const deleteDriver = (id: number) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/drivers/${id}/delete/`, { method: "DELETE", headers: authHeaders() }).then((r) => r.json());
 
-export const fetchEligibleStudents = (page = 1, branch = "", batch = "", semester = "", search = "") => {
+export const fetchEligibleStudents = (page = 1, branch = "", batch = "", semester = "", search = "", section = "") => {
   const query = new URLSearchParams({ page: String(page) });
   if (branch) query.append("branch", branch);
   if (batch) query.append("batch", batch);
   if (semester) query.append("semester", semester);
+  if (section) query.append("section", section);
   if (search) query.append("search", search);
   return fetchWithTokenRefresh(`${API_BASE}/admin/eligible-students/?${query.toString()}`, { headers: authHeaders() }).then((r) => r.json());
 };
@@ -108,6 +109,9 @@ export const fetchTransportFilters = () =>
 
 export const fetchBranchSemesters = (branchId: number) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/semesters/?branch_id=${branchId}`, { headers: authHeaders() }).then((r) => r.json());
+
+export const fetchSemesterSections = (semesterId: number) =>
+  fetchWithTokenRefresh(`${API_BASE}/admin/sections/?semester_id=${semesterId}`, { headers: authHeaders() }).then((r) => r.json());
 
 export const fetchRouteOptions = () =>
   fetchWithTokenRefresh(`${API_BASE}/admin/route-options/`, { headers: authHeaders() }).then((r) => r.json());
