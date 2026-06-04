@@ -18,7 +18,7 @@ const getApiBaseUrl = (): string => {
   return envUrl || "http://localhost:8000";
 };
 
-const API_BASE_URL = getApiBaseUrl();
+const API_BASE_URL = getApiBaseUrl().replace(/\/+$/, '');
 const API_ENDPOINT = `${API_BASE_URL}/api`; // Add /api suffix for all API calls
 
 const TOKEN_REFRESH_TIMEOUT = 10000; // 10 seconds timeout for token refresh requests
