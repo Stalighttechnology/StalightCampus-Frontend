@@ -149,13 +149,11 @@ const InternalMarks = () => {
 
     filteredSubjects.forEach(subject => {
       const tests = marksData[subject] || [];
-      const ia1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
-      const ia2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
-      const ia3 = tests.find((t) => t.test_number === 3)?.mark ?? null;
+      const iaMarks = [1, 2, 3, 4, 5].map(num => tests.find((t) => t.test_number === num)?.mark ?? null);
 
-      const availableMarks = [ia1, ia2, ia3].filter(mark => mark !== null && mark !== undefined);
+      const availableMarks = iaMarks.filter(mark => mark !== null && mark !== undefined);
       averages[subject] = availableMarks.length > 0
-        ? availableMarks.reduce((sum, mark) => sum + mark, 0) / availableMarks.length
+        ? availableMarks.reduce((sum, mark) => sum + (mark as number), 0) / availableMarks.length
         : 0;
     });
 
@@ -163,7 +161,7 @@ const InternalMarks = () => {
   }, [filteredSubjects, marksData]);
 
   const chartData = useMemo(() => {
-    const testNums = selectedIA === "all" ? [1, 2, 3] : [parseInt(selectedIA)];
+    const testNums = selectedIA === "all" ? [1, 2, 3, 4, 5] : [parseInt(selectedIA)];
 
     return {
       labels: filteredSubjects,
@@ -171,7 +169,9 @@ const InternalMarks = () => {
         const colors = {
           1: { start: "rgba(99, 102, 241, 0.9)", end: "rgba(99, 102, 241, 0.3)", border: "#6366f1" },
           2: { start: "rgba(6, 182, 212, 0.9)", end: "rgba(6, 182, 212, 0.3)", border: "#06b6d4" },
-          3: { start: "rgba(16, 185, 129, 0.9)", end: "rgba(16, 185, 129, 0.3)", border: "#10b981" }
+          3: { start: "rgba(16, 185, 129, 0.9)", end: "rgba(16, 185, 129, 0.3)", border: "#10b981" },
+          4: { start: "rgba(245, 158, 11, 0.9)", end: "rgba(245, 158, 11, 0.3)", border: "#f59e0b" },
+          5: { start: "rgba(236, 72, 153, 0.9)", end: "rgba(236, 72, 153, 0.3)", border: "#ec4899" }
         };
         const color = colors[testNum as keyof typeof colors] || colors[1];
 
@@ -437,9 +437,9 @@ const InternalMarks = () => {
                 <th className="px-4 py-3.5 font-semibold ">Subject</th>
                 {selectedIA === 'all' ? (
                   <>
-                    <th className="px-4 py-3.5 font-semibold text-center">IA 1</th>
-                    <th className="px-4 py-3.5 font-semibold text-center">IA 2</th>
-                    <th className="px-4 py-3.5 font-semibold text-center">IA 3</th>
+                    {[1, 2, 3, 4, 5].map(num => (
+                      <th key={num} className="px-4 py-3.5 font-semibold text-center">IA {num}</th>
+                    ))}
                   </>
                 ) : (
                   <th className="px-4 py-3.5 font-semibold text-center">IA {selectedIA}</th>
@@ -465,9 +465,7 @@ const InternalMarks = () => {
               ) : (
                 filteredSubjects.map((subject) => {
                   const tests = marksData[subject] || [];
-                  const ia1 = tests.find((t) => t.test_number === 1)?.mark ?? null;
-                  const ia2 = tests.find((t) => t.test_number === 2)?.mark ?? null;
-                  const ia3 = tests.find((t) => t.test_number === 3)?.mark ?? null;
+                  const iaMarks = [1, 2, 3, 4, 5].map(num => tests.find((t) => t.test_number === num)?.mark ?? null);
                   const avg = subjectAverages[subject] || 0;
 
                   const selectedIAValue = selectedIA === 'all' ? null : parseInt(selectedIA);
@@ -482,9 +480,9 @@ const InternalMarks = () => {
                       </td>
                       {selectedIA === 'all' ? (
                         <>
-                          <td className="px-4 py-4 text-center tabular-nums">{ia1 !== null ? ia1 : "-"}</td>
-                          <td className="px-4 py-4 text-center tabular-nums">{ia2 !== null ? ia2 : "-"}</td>
-                          <td className="px-4 py-4 text-center tabular-nums">{ia3 !== null ? ia3 : "-"}</td>
+                          {iaMarks.map((mark, i) => (
+                            <td key={i} className="px-4 py-4 text-center tabular-nums">{mark !== null ? mark : "-"}</td>
+                          ))}
                         </>
                       ) : (
                         <td className="px-4 py-4 text-center tabular-nums">{selectedIAMark !== null ? selectedIAMark : "-"}</td>
@@ -572,6 +570,12 @@ const InternalMarks = () => {
                   </SelectItem>
                   <SelectItem value="3" className={theme === 'dark' ? 'hover:bg-[#2c2c2e] cursor-pointer text-xs sm:text-sm' : 'hover:bg-gray-100 cursor-pointer text-xs sm:text-sm'}>
                     IA 3
+                  </SelectItem>
+                  <SelectItem value="4" className={theme === 'dark' ? 'hover:bg-[#2c2c2e] cursor-pointer text-xs sm:text-sm' : 'hover:bg-gray-100 cursor-pointer text-xs sm:text-sm'}>
+                    IA 4
+                  </SelectItem>
+                  <SelectItem value="5" className={theme === 'dark' ? 'hover:bg-[#2c2c2e] cursor-pointer text-xs sm:text-sm' : 'hover:bg-gray-100 cursor-pointer text-xs sm:text-sm'}>
+                    IA 5
                   </SelectItem>
                 </SelectContent>
               </Select>
