@@ -1,4 +1,4 @@
-# NeuroCampus – Unified AI Campus Operating System
+# StalightCampus – Unified AI Campus Operating System
 
 <div align="center">
   <img src="https://img.shields.io/badge/Status-Production%20Ready-green?style=for-the-badge" alt="Production Ready"/>
@@ -15,7 +15,7 @@
 
 ##  Overview
 
-**NeuroCampus** is a next-generation, AI-powered, unified campus operating system designed to automate, optimize, and intelligently manage academic, administrative, and placement-oriented workflows in educational institutions. Built with an AI-first architecture, NeuroCampus integrates face recognition attendance, BLE-based presence detection, complete college management, CO/PO attainment automation, AI interviews, coding analytics, proctoring, payments, surveillance, and predictive insights into a single scalable platform.
+**StalightCampus** is a next-generation, AI-powered, unified campus operating system designed to automate, optimize, and intelligently manage academic, administrative, and placement-oriented workflows in educational institutions. Built with an AI-first architecture, StalightCampus integrates face recognition attendance, BLE-based presence detection, complete college management, CO/PO attainment automation, AI interviews, coding analytics, proctoring, payments, surveillance, and predictive insights into a single scalable platform.
 
 This project is designed and developed as an industry-level, production-ready system, suitable for real-world deployment in colleges, universities, and training institutions.
 
@@ -39,13 +39,13 @@ This project is designed and developed as an industry-level, production-ready sy
 
 ##  Problem Statement
 
-Traditional campus systems rely heavily on manual processes and fragmented software, leading to inefficiency, inaccuracies, poor analytics, and limited insight into student performance and placement readiness. There is a lack of a unified, intelligent platform that automates attendance, academics, assessments, interviews, coding evaluations, payments, and analytics. NeuroCampus addresses this gap by providing a single AI-driven campus operating system that automates end-to-end campus operations with high accuracy, scalability, and intelligence.
+Traditional campus systems rely heavily on manual processes and fragmented software, leading to inefficiency, inaccuracies, poor analytics, and limited insight into student performance and placement readiness. There is a lack of a unified, intelligent platform that automates attendance, academics, assessments, interviews, coding evaluations, payments, and analytics. StalightCampus addresses this gap by providing a single AI-driven campus operating system that automates end-to-end campus operations with high accuracy, scalability, and intelligence.
 
 ---
 
 ##  System Architecture Overview
 
-NeuroCampus follows a modern cloud-native, modular architecture:
+StalightCampus follows a modern cloud-native, modular architecture:
 
 | Component | Technology | Deployment |
 |-----------|------------|------------|
@@ -226,7 +226,7 @@ NeuroCampus follows a modern cloud-native, modular architecture:
 
 ##  Conclusion
 
-NeuroCampus is not just a project—it is a complete AI-driven digital transformation platform for educational institutions. By combining intelligent automation, analytics, assessments, and placement readiness into one unified system, NeuroCampus significantly reduces manual workload, improves accuracy, enhances student outcomes, and prepares campuses for the future of AI-powered education.
+StalightCampus is not just a project—it is a complete AI-driven digital transformation platform for educational institutions. By combining intelligent automation, analytics, assessments, and placement readiness into one unified system, StalightCampus significantly reduces manual workload, improves accuracy, enhances student outcomes, and prepares campuses for the future of AI-powered education.
 
 ---
 
@@ -247,7 +247,7 @@ NeuroCampus is not just a project—it is a complete AI-driven digital transform
 ---
 
 **Department of Computer Science & Engineering (AI & ML)**  
-*NeuroCampus Project Team*
+*StalightCampus Project Team*
 
 </div>
 

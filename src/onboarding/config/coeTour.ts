@@ -3,7 +3,7 @@ import { Step } from 'react-joyride';
 export const coeTour: Step[] = [
   {
     target: 'body',
-    title: 'Welcome to NeuroCampus!',
+    title: 'Welcome to StalightCampus!',
     content:
       'Let\'s show you around your COE dashboard to help you manage academic quality assurance.',
     placement: 'center' as const,

@@ -3,7 +3,7 @@ import { Step } from 'react-joyride';
 export const feesManagerTour: Step[] = [
   {
     target: 'body',
-    title: 'Welcome to NeuroCampus!',
+    title: 'Welcome to StalightCampus!',
     content:
       'Let\'s show you around your Fees Manager dashboard to help you manage financial operations.',
     placement: 'center' as const,

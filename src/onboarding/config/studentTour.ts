@@ -3,7 +3,7 @@ import { Step } from 'react-joyride';
 export const studentTour: Step[] = [
   {
     target: 'body',
-    title: 'Welcome to NeuroCampus!',
+    title: 'Welcome to StalightCampus!',
     content: 'Let\'s show you around your student portal and help you get started.',
     placement: 'center' as const,
     disableBeacon: true,

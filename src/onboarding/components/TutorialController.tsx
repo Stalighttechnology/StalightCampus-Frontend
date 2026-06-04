@@ -316,7 +316,7 @@ export const TutorialController = () => {
         // If the target step requires a tab switch, dispatch it on every poll iteration
         // to handle cases where a route transition unmounts and remounts the component.
         if (targetStep && (targetStep as any).switchTab) {
-          window.dispatchEvent(new CustomEvent('neurocampus_switch_tab', { detail: { tab: (targetStep as any).switchTab } }));
+          window.dispatchEvent(new CustomEvent('stalightcampus_switch_tab', { detail: { tab: (targetStep as any).switchTab } }));
         }
 
         const el = document.querySelector(selector);
@@ -493,8 +493,8 @@ export const TutorialController = () => {
 
       if (isSidebarStep) {
         // Dispatch sidebar open and immediately start polling
-        console.log('[ONBOARDING DEBUG] dispatching neurocampus_open_sidebar');
-        window.dispatchEvent(new Event('neurocampus_open_sidebar'));
+        console.log('[ONBOARDING DEBUG] dispatching stalightcampus_open_sidebar');
+        window.dispatchEvent(new Event('stalightcampus_open_sidebar'));
         
         // scroll sidebarItem into view and freeze sidebar scroll after
         setTimeout(() => {
@@ -513,7 +513,7 @@ export const TutorialController = () => {
         }, 100);
       } else {
         // Close sidebar for non-sidebar steps
-        window.dispatchEvent(new Event('neurocampus_close_sidebar'));
+        window.dispatchEvent(new Event('stalightcampus_close_sidebar'));
         const sidebarEl = document.querySelector('[data-sidebar], .sidebar, aside, #sidebar') as HTMLElement;
         if (sidebarEl) {
           sidebarEl.style.overflow = '';
@@ -523,8 +523,8 @@ export const TutorialController = () => {
       // If the step requires switching an in-page tab, dispatch the event now
       // so the target element is rendered before the visibility poll starts.
       if ((targetStep as any).switchTab) {
-        console.log('[ONBOARDING DEBUG] dispatching neurocampus_switch_tab:', (targetStep as any).switchTab);
-        window.dispatchEvent(new CustomEvent('neurocampus_switch_tab', { detail: { tab: (targetStep as any).switchTab } }));
+        console.log('[ONBOARDING DEBUG] dispatching stalightcampus_switch_tab:', (targetStep as any).switchTab);
+        window.dispatchEvent(new CustomEvent('stalightcampus_switch_tab', { detail: { tab: (targetStep as any).switchTab } }));
       }
 
       // Navigate if needed
@@ -629,7 +629,7 @@ export const TutorialController = () => {
 
       if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
         console.log('[ONBOARDING DEBUG] Tour finished/skipped with status:', status);
-        window.dispatchEvent(new Event('neurocampus_close_sidebar'));
+        window.dispatchEvent(new Event('stalightcampus_close_sidebar'));
         const sidebarEl = document.querySelector('[data-sidebar], .sidebar, aside, #sidebar') as HTMLElement;
         if (sidebarEl) {
           sidebarEl.style.overflow = '';
@@ -696,7 +696,7 @@ export const TutorialController = () => {
   }, []);
 
   /**
-   * neurocampus_restart_tour — Custom event listener for Profile page "Take Tour Again" button.
+   * stalightcampus_restart_tour — Custom event listener for Profile page "Take Tour Again" button.
    *
    * Restart flow (must work from ANY route):
    *  1. Close sidebar if open
@@ -709,10 +709,10 @@ export const TutorialController = () => {
   useEffect(() => {
     const handleRestartTourEvent = (e: Event) => {
       const source = (e as CustomEvent).detail?.source || 'unknown';
-      console.log(`[ONBOARDING DEBUG] neurocampus_restart_tour received from source: ${source}`);
+      console.log(`[ONBOARDING DEBUG] stalightcampus_restart_tour received from source: ${source}`);
 
       // Step 1: Close sidebar if open
-      window.dispatchEvent(new Event('neurocampus_close_sidebar'));
+      window.dispatchEvent(new Event('stalightcampus_close_sidebar'));
       const sidebarEl = document.querySelector('[data-sidebar], .sidebar, aside, #sidebar') as HTMLElement | null;
       if (sidebarEl) sidebarEl.style.overflow = '';
 
@@ -735,9 +735,9 @@ export const TutorialController = () => {
       }, 300);
     };
 
-    window.addEventListener('neurocampus_restart_tour', handleRestartTourEvent);
+    window.addEventListener('stalightcampus_restart_tour', handleRestartTourEvent);
     return () => {
-      window.removeEventListener('neurocampus_restart_tour', handleRestartTourEvent);
+      window.removeEventListener('stalightcampus_restart_tour', handleRestartTourEvent);
     };
   }, [role, navigate, startTourAgain]);
 

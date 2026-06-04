@@ -184,11 +184,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         setSidebarCollapsed(true);
       }
     };
-    window.addEventListener('neurocampus_open_sidebar', handleOpen);
-    window.addEventListener('neurocampus_close_sidebar', handleClose);
+    window.addEventListener('stalightcampus_open_sidebar', handleOpen);
+    window.addEventListener('stalightcampus_close_sidebar', handleClose);
     return () => {
-      window.removeEventListener('neurocampus_open_sidebar', handleOpen);
-      window.removeEventListener('neurocampus_close_sidebar', handleClose);
+      window.removeEventListener('stalightcampus_open_sidebar', handleOpen);
+      window.removeEventListener('stalightcampus_close_sidebar', handleClose);
     };
   }, []);
 

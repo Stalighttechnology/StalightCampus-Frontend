@@ -90,11 +90,11 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     const closeHandler = () => {
       // Could implement close logic if needed
     };
-    window.addEventListener('neurocampus_open_sidebar', openHandler);
-    window.addEventListener('neurocampus_close_sidebar', closeHandler);
+    window.addEventListener('stalightcampus_open_sidebar', openHandler);
+    window.addEventListener('stalightcampus_close_sidebar', closeHandler);
     return () => {
-      window.removeEventListener('neurocampus_open_sidebar', openHandler);
-      window.removeEventListener('neurocampus_close_sidebar', closeHandler);
+      window.removeEventListener('stalightcampus_open_sidebar', openHandler);
+      window.removeEventListener('stalightcampus_close_sidebar', closeHandler);
     };
   }, [setPage]);
 

@@ -2,7 +2,7 @@
  * HelpLearningCard.tsx
  *
  * Shared "Help & Learning" section rendered inside Profile pages.
- * Dispatches the neurocampus_restart_tour CustomEvent, which TutorialController
+ * Dispatches the stalightcampus_restart_tour CustomEvent, which TutorialController
  * intercepts to perform a full route-safe tour restart from ANY page.
  *
  * Usage:
@@ -20,7 +20,7 @@ const HelpLearningCard: React.FC = () => {
 
   const handleRestartTour = () => {
     window.dispatchEvent(
-      new CustomEvent('neurocampus_restart_tour', {
+      new CustomEvent('stalightcampus_restart_tour', {
         detail: { source: 'profile' },
       })
     );
@@ -67,7 +67,7 @@ const HelpLearningCard: React.FC = () => {
               ${isDark ? 'text-muted-foreground' : 'text-gray-500'}
             `}
           >
-            Revisit the NeuroCampus product tour to understand platform features again.
+            Revisit the StalightCampus product tour to understand platform features again.
           </p>
         </div>
       </div>
@@ -102,7 +102,7 @@ const HelpLearningCard: React.FC = () => {
         id="profile-retake-tour-btn"
         type="button"
         onClick={handleRestartTour}
-        aria-label="Take the NeuroCampus product tour again"
+        aria-label="Take the StalightCampus product tour again"
         className={`
           inline-flex items-center gap-2
           px-4 py-2.5 sm:px-5 sm:py-3

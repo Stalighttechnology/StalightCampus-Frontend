@@ -3,7 +3,7 @@ import { Step } from 'react-joyride';
 export const deanTour: Step[] = [
   {
     target: 'body',
-    title: 'Welcome to NeuroCampus!',
+    title: 'Welcome to StalightCampus!',
     content:
       'Let\'s show you around your Dean dashboard to help you oversee academic and institutional operations.',
     placement: 'center' as const,

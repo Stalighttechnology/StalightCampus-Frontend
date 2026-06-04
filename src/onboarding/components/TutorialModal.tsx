@@ -70,7 +70,7 @@ export const TutorialModal = ({
               <Compass size={32} className="text-white" />
             </div>
             <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
-              Welcome to NeuroCampus
+              Welcome to StalightCampus
             </h2>
             <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
               {roleMessage}

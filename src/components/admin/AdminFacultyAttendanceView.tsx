@@ -446,8 +446,8 @@ const AdminFacultyAttendanceView: React.FC = () => {
         setActiveTab(tab as 'today' | 'records');
       }
     };
-    window.addEventListener('neurocampus_switch_tab', handleTourTabSwitch);
-    return () => window.removeEventListener('neurocampus_switch_tab', handleTourTabSwitch);
+    window.addEventListener('stalightcampus_switch_tab', handleTourTabSwitch);
+    return () => window.removeEventListener('stalightcampus_switch_tab', handleTourTabSwitch);
   }, []);
 
   const getStatusIcon = (status: string) => {

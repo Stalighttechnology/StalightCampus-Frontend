@@ -90,7 +90,7 @@ const UpgradeRequired = ({ featureName, role, onBack }: UpgradeRequiredProps) =>
             "mt-12 p-5 rounded-2xl border border-dashed text-sm italic",
             theme === 'dark' ? 'bg-zinc-800/50 border-zinc-700 text-zinc-400' : 'bg-slate-50 border-slate-200 text-slate-500'
           )}>
-             "Neuro-Campus: Empowering institutions with next-gen AI governance."
+             "Stalight-Campus: Empowering institutions with next-gen AI governance."
           </div>
         </div>
       </motion.div>

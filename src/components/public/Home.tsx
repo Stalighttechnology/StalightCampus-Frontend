@@ -15,7 +15,7 @@ const campusImg = "https://placehold.co/600x400";
 const loginpageImg = "https://placehold.co/600x400";
 const leavereqImg = "https://placehold.co/600x400";
 const timetableImg = "https://placehold.co/600x400";
-const neurocampus11Img = "https://placehold.co/600x400";
+const stalightcampus11Img = "https://placehold.co/600x400";
 const nebulaaiImg = "https://placehold.co/600x400";
 const facerecognImg = "https://placehold.co/600x400";
 const resultsImg = "https://placehold.co/600x400";
@@ -84,7 +84,7 @@ const tourFeatures = [
     title: "Institutional Analytics",
     icon: LayoutDashboard,
     desc: "High-level administrative reporting for executive decision making.",
-    img: neurocampus11Img,
+    img: stalightcampus11Img,
     caption: "Stalight Campus Master Command Center Admin Dashboard"
   },
   {
@@ -198,7 +198,7 @@ const MaskedText = ({ children, className }: { children: React.ReactNode; classN
   </div>
 );
 
-const NeuroCampus = () => {
+const StalightCampus = () => {
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
 
@@ -600,7 +600,7 @@ const NeuroCampus = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="stalight_campus">Stalight   Campus</SelectItem>
-                      <SelectItem value="neurosync">NeuroSync</SelectItem>
+                      <SelectItem value="StalightSync">StalightSync</SelectItem>
                       <SelectItem value="both">Both / Integration</SelectItem>
                       <SelectItem value="custom">Custom / Other</SelectItem>
                     </SelectContent>
@@ -642,4 +642,4 @@ const NeuroCampus = () => {
   );
 };
 
-export default NeuroCampus;
+export default StalightCampus;

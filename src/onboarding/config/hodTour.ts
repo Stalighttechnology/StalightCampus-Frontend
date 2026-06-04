@@ -3,7 +3,7 @@ import { Step } from 'react-joyride';
 export const hodTour: Step[] = [
   {
     target: 'body',
-    title: 'Welcome to NeuroCampus!',
+    title: 'Welcome to StalightCampus!',
     content:
       'Let\'s show you around your HOD dashboard to help you manage your department efficiently.',
     placement: 'center' as const,

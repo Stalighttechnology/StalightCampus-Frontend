@@ -3,7 +3,7 @@ import { Step } from 'react-joyride';
 export const wardenTour: Step[] = [
   {
     target: 'body',
-    title: 'Welcome to NeuroCampus!',
+    title: 'Welcome to StalightCampus!',
     content:
       'Let\'s show you around your Warden dashboard to help you manage hostel operations.',
     placement: 'center' as const,
