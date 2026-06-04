@@ -4,6 +4,15 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import App from './App.tsx';
 import './index.css';
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
+
+if (Capacitor.isNativePlatform()) {
+  CapacitorUpdater.notifyAppReady().then(() => {
+    // Optionally hide splash screen here or keep it in App.tsx
+  }).catch(console.error);
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
