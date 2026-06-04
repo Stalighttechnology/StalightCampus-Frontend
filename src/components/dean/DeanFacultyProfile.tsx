@@ -16,8 +16,6 @@ import { SkeletonStatsGrid, SkeletonTable, SkeletonPageHeader, SkeletonCard, Ske
 import { Alert, AlertDescription } from "../ui/alert";
 import { normalizePaginatedResponse } from "../../utils/normalizePagination";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface Branch {
   readonly id?: number;
   readonly branch_id?: number;
@@ -93,7 +91,6 @@ interface DeanFacultyProfileProps {
   readonly initialEndDate?: string;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const safeErrorMessage = (error: unknown): string => {
   if (error instanceof Error) return error.message;
@@ -101,14 +98,9 @@ const safeErrorMessage = (error: unknown): string => {
   try { return JSON.stringify(error); } catch { return "Unknown error occurred"; }
 };
 
-// ─── Custom hook: Load branches ───────────────────────────────────────────────
-// FIX: Removed setError from dep array. Uses a stable onError callback ref.
-// FIX: Returns firstBranchId so the parent can auto-select without a cascade effect.
-
 const useBranches = (onError: (err: string | null) => void) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true); // Start true so initial skeleton holds
-  // Stable ref so the effect never re-fires because the callback identity changed
   const onErrorRef = useRef(onError);
   useEffect(() => { onErrorRef.current = onError; });
 
@@ -139,9 +131,6 @@ const useBranches = (onError: (err: string | null) => void) => {
   return { branches, loading };
 };
 
-// ─── Custom hook: Load faculties by branch ────────────────────────────────────
-// FIX: Removed setError from dep array.
-// FIX: isFetching separate from isFirstLoad so the parent can distinguish.
 
 const useFacultiesByBranch = (
   selectedBranch: string | null,
@@ -208,12 +197,6 @@ const useFacultiesByBranch = (
   return { faculties, loading, pagination };
 };
 
-// ─── Custom hook: Load faculty profile ────────────────────────────────────────
-// FIX: Removed setError from dep array.
-// FIX: Stale profile is preserved while new data loads (no null flash).
-//      `isFetching` indicates a background refresh; `profile` never becomes null
-//      between fetches for the same faculty — only when facultyId changes AND new
-//      data has arrived does the profile get replaced.
 
 const useFacultyProfile = (
   facultyId: string | null,
@@ -390,16 +373,7 @@ const DeanFacultyProfile = ({
     }
   };
 
-  /**
-   * FIX (BUG 1 + BUG 5): Replace the volatile isInitialLoading expression with a
-   * sticky ref that latches true once the very first full load completes.
-   *
-   * BEFORE: isInitialLoading = branchesLoading || (selectedBranch && facultiesLoading) || ...
-   *   → Retriggers to true on every auto-select cascade.
-   *
-   * AFTER: hasCompletedInitialLoad latches permanently after the first successful
-   *   branches + faculties + profile load. All subsequent operations use inline spinners.
-   */
+  // Latches true once the very first full load completes
   const hasCompletedInitialLoad = useRef(false);
 
   // Latch the ref once all three initial loads are done
@@ -444,15 +418,7 @@ const DeanFacultyProfile = ({
     if (initialFacultyId) setSelectedFaculty(initialFacultyId);
   }, [initialFacultyId]);
 
-  /**
-   * FIX (BUG 3): Auto-select first branch.
-   * Previously this fired AFTER branches loaded, causing:
-   *   branches load → branchesLoading=false → isInitialLoading=false (one frame) →
-   *   setSelectedBranch fires → facultiesLoading=true → isInitialLoading=true again → skeleton re-appears
-   *
-   * FIX: Guard with hasCompletedInitialLoad. After initial load is done, do not
-   * auto-select again (user may have changed branch intentionally).
-   */
+  // Auto-select first branch on initial load
   useEffect(() => {
     if (hasCompletedInitialLoad.current) return; // Don't auto-select after first load
     if (!selectedBranch && branches.length > 0) {
@@ -462,10 +428,7 @@ const DeanFacultyProfile = ({
     }
   }, [branches, selectedBranch]);
 
-  /**
-   * FIX (BUG 3): Auto-select first faculty.
-   * Same pattern — only fires during initial load sequence, not after.
-   */
+  // Auto-select first faculty on initial load
   useEffect(() => {
     if (hasCompletedInitialLoad.current) return;
     if (selectedBranch && !selectedFaculty && faculties.length > 0) {
@@ -579,8 +542,8 @@ const DeanFacultyProfile = ({
             <Card
               className={
                 theme === "dark"
-                  ? "w-full bg-card border border-border shadow-md mb-4"
-                  : "w-full bg-white border border-gray-200 shadow-md mb-4"
+                  ? "w-full bg-card border border-border mb-4"
+                  : "w-full bg-white border border-gray-200 mb-4"
               }
             >
               <CardContent className="p-4">
@@ -766,15 +729,12 @@ const DeanFacultyProfile = ({
               id="dean-faculty-container"
               className={
                 theme === "dark"
-                  ? "w-full bg-card border border-border shadow-md"
-                  : "w-full bg-white border border-gray-200 shadow-md"
+                  ? "w-full bg-card border border-border"
+                  : "w-full bg-white border border-gray-200"
               }
             >
               <CardContent className="px-6 pb-6 pt-6 space-y-6">
-                {/*
-                  FIX (BUG 4): Profile content stays visible during background refetch.
-                  Show a non-intrusive top bar spinner instead of destroying the layout.
-                */}
+                {/* Profile content stays visible during background refetch */}
                 {profileFetching && (
                   <div className="h-0.5 w-full rounded overflow-hidden bg-primary/10">
                     <div className="h-full bg-primary animate-pulse rounded" style={{ width: "60%" }} />
@@ -1295,7 +1255,7 @@ function LeaveRequestsTable({
         </CardFooter>
       )}
       <Dialog open={showReasonDialog} onOpenChange={setShowReasonDialog}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <DialogContent className={`w-[90%] sm:max-w-md mx-auto rounded-xl ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}>
               Leave Reason

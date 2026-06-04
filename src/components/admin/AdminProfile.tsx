@@ -461,13 +461,13 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           <div className="space-y-4 sm:space-y-5 md:space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
-                <label className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
-                <Input value={profile.first_name} name="first_name" onChange={handleChange} disabled={true} placeholder="First name" className="text-xs sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+                <label className={`block text-sm sm:text-xs mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
+                <Input value={profile.first_name} name="first_name" onChange={handleChange} disabled={true} placeholder="First name" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
                 {localErrors.first_name && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.first_name}</p>}
               </div>
               <div className="w-full">
-                <label className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
-                <Input value={profile.last_name} name="last_name" onChange={handleChange} disabled={true} placeholder="Last name" className="text-xs sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+                <label className={`block text-sm sm:text-xs mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
+                <Input value={profile.last_name} name="last_name" onChange={handleChange} disabled={true} placeholder="Last name" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
                 {localErrors.last_name && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.last_name}</p>}
               </div>
             </div>
@@ -476,14 +476,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           {/* Contact */}
           <div className="space-y-4 sm:space-y-5">
             <div>
-              <label className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
-              <Input value={profile.email} name="email" onChange={handleChange} disabled={!editing} placeholder="Email address" className="text-xs sm:text-sm h-8 sm:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+              <label className={`block text-sm sm:text-xs mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</label>
+              <Input value={profile.email} name="email" onChange={handleChange} disabled={!editing} placeholder="Email address" className="text-base sm:text-sm h-8 sm:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
               {localErrors.email && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.email}</p>}
             </div>
 
             <div>
-              <label className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
-              <Input value={profile.mobile_number} name="mobile_number" onChange={handleChange} disabled={!editing} maxLength={10} placeholder="10-digit mobile" className="text-xs sm:text-sm h-8 sm:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+              <label className={`block text-sm sm:text-xs mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</label>
+              <Input value={profile.mobile_number} name="mobile_number" onChange={handleChange} disabled={!editing} maxLength={10} placeholder="10-digit mobile" className="text-base sm:text-sm h-8 sm:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
               {localErrors.mobile_number && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.mobile_number}</p>}
             </div>
           </div>
@@ -515,7 +515,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                     <ShieldCheck size={24} />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground font-medium">Current Plan</p>
+                    <p className="text-sm sm:text-xs text-muted-foreground font-medium">Current Plan</p>
                     <p className="text-lg font-bold text-primary uppercase tracking-tight">{subscriptionData.plan_name}</p>
                   </div>
                 </div>
@@ -538,7 +538,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   <Activity size={24} />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Status</p>
+                  <p className="text-sm sm:text-xs text-muted-foreground font-medium">Status</p>
                   <Badge variant={subscriptionData.is_active ? "default" : "destructive"} className="mt-0.5">
                     {subscriptionData.is_active ? "Active" : "Inactive"}
                   </Badge>
@@ -552,8 +552,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   <Calendar size={24} />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Expiry Date</p>
-                  <p className="text-sm font-semibold">
+                  <p className="text-sm sm:text-xs text-muted-foreground font-medium">Expiry Date</p>
+                  <p className="text-base sm:text-sm font-semibold">
                     {subscriptionData.subscription_expires_at ?
                       format(new Date(subscriptionData.subscription_expires_at), 'dd MMM yyyy') :
                       subscriptionData.trial_ends_at ?
@@ -576,28 +576,28 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               <Table>
                 <TableHeader className={theme === 'dark' ? 'bg-zinc-900/50' : 'bg-gray-50'}>
                   <TableRow>
-                    <TableHead className="w-[180px]">Date</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Transaction ID</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="w-[180px] text-sm sm:text-xs">Date</TableHead>
+                    <TableHead className="text-sm sm:text-xs">Plan</TableHead>
+                    <TableHead className="text-sm sm:text-xs">Amount</TableHead>
+                    <TableHead className="text-sm sm:text-xs">Transaction ID</TableHead>
+                    <TableHead className="text-sm sm:text-xs">Status</TableHead>
+                    <TableHead className="text-right text-sm sm:text-xs">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {subscriptionData.payments && subscriptionData.payments.length > 0 ?
                     subscriptionData.payments.map((p: any) =>
                       <TableRow key={p.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm whitespace-nowrap">
+                        <TableCell className="font-medium text-base sm:text-sm whitespace-nowrap">
                           {format(new Date(p.date), 'dd MMM yyyy')}
                         </TableCell>
-                        <TableCell className="uppercase text-xs font-semibold text-muted-foreground">
+                        <TableCell className="uppercase text-sm sm:text-xs font-semibold text-muted-foreground">
                           {p.plan_type}
                         </TableCell>
-                        <TableCell className="font-bold">
+                        <TableCell className="font-bold text-base sm:text-sm">
                           ₹{p.amount.toLocaleString()}
                         </TableCell>
-                        <TableCell className="text-xs font-mono text-muted-foreground">
+                        <TableCell className="text-sm sm:text-xs font-mono text-muted-foreground">
                           {p.transaction_id}
                         </TableCell>
                         <TableCell>
@@ -753,12 +753,12 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableHead>Ticket ID</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="text-sm sm:text-xs">Ticket ID</TableHead>
+                  <TableHead className="text-sm sm:text-xs">Subject</TableHead>
+                  <TableHead className="text-sm sm:text-xs">Description</TableHead>
+                  <TableHead className="text-sm sm:text-xs">Priority</TableHead>
+                  <TableHead className="text-sm sm:text-xs">Status</TableHead>
+                  <TableHead className="text-sm sm:text-xs">Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -766,8 +766,8 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   tickets.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center h-24 text-muted-foreground">No support tickets found.</TableCell></TableRow> :
                     tickets.map((t) =>
                       <TableRow key={t.id}>
-                        <TableCell className="font-medium">{t.id}</TableCell>
-                        <TableCell className="font-medium">{t.subject}</TableCell>
+                        <TableCell className="font-medium text-base sm:text-sm">{t.id}</TableCell>
+                        <TableCell className="font-medium text-base sm:text-sm">{t.subject}</TableCell>
                         <TableCell>
                           <Button
                             variant="ghost"
@@ -806,7 +806,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                             {t.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>{t.date}</TableCell>
+                        <TableCell className="text-base sm:text-sm">{t.date}</TableCell>
                       </TableRow>
                     )}
               </TableBody>
@@ -882,14 +882,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     return (
       <div className="space-y-6">
         <div>
-          <label className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</label>
-          <Textarea value={profile.address} name="address" onChange={handleChange} disabled={!editing} placeholder="Address" rows={3} className="text-xs sm:text-sm w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+          <label className={`block text-sm sm:text-xs mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Address</label>
+          <Textarea value={profile.address} name="address" onChange={handleChange} disabled={!editing} placeholder="Address" rows={3} className="text-base sm:text-sm w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
           {localErrors.address && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.address}</p>}
         </div>
 
         <div>
-          <label className={`block text-xs sm:text-sm mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bio</label>
-          <Textarea value={profile.bio} name="bio" onChange={handleChange} disabled={!editing} placeholder="Tell us about yourself" rows={4} className="text-xs sm:text-sm w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+          <label className={`block text-sm sm:text-xs mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Bio</label>
+          <Textarea value={profile.bio} name="bio" onChange={handleChange} disabled={!editing} placeholder="Tell us about yourself" rows={4} className="text-base sm:text-sm w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
           {localErrors.bio && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.bio}</p>}
         </div>
       </div>);
@@ -910,7 +910,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
         <CardHeader id="admin-profile-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
           <div className="flex-1 min-w-0">
             <CardTitle className={`${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Profile Information</CardTitle>
-            <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
+            <p className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
@@ -1063,16 +1063,16 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               </div>
 
               <div className="w-full mt-4 sm:mt-6 flex flex-col">
-                <h4 className={`text-xs sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
+                <h4 className={`text-sm sm:text-xs font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
                 <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                     <div className="flex flex-col justify-start">
-                      <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</span>
-                      <span className={`text-xs sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.email || '—'}</span>
+                      <span className={`text-sm sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Email</span>
+                      <span className={`text-base sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.email || '—'}</span>
                     </div>
                     <div className="flex flex-col justify-start">
-                      <span className={`text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</span>
-                      <span className={`text-xs sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.mobile_number || '—'}</span>
+                      <span className={`text-sm sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Mobile</span>
+                      <span className={`text-base sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.mobile_number || '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -1080,14 +1080,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             </div>
 
             <div className="col-span-1 sm:col-span-2 lg:col-span-3 w-full flex flex-col h-full">
-              <div className="flex items-center gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0 thin-scrollbar">
-                <button onClick={() => setActiveTab('details')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'details' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Details</button>
-                <button onClick={() => setActiveTab('other')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'other' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Other</button>
-                <button onClick={() => setActiveTab('subscription')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'subscription' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Plan Details</button>
-                <button onClick={() => setActiveTab('support')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'support' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Support Tickets</button>
-                <button onClick={() => setActiveTab('activity')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
-                <button onClick={() => setActiveTab('settings')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
-                <button onClick={() => setActiveTab('help')} className={`px-3 py-1.5 text-xs sm:text-sm rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
+              <div className="flex items-center gap-2 mb-3 sm:mb-4 md:mb-5 lg:mb-6 border-b pb-2 sm:pb-3 overflow-x-auto flex-shrink-0 custom-scrollbar">
+                <button onClick={() => setActiveTab('details')} className={`px-3 py-1.5 text-sm sm:text-xs rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'details' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Details</button>
+                <button onClick={() => setActiveTab('other')} className={`px-3 py-1.5 text-sm sm:text-xs rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'other' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Other</button>
+                <button onClick={() => setActiveTab('subscription')} className={`px-3 py-1.5 text-sm sm:text-xs rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'subscription' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Plan Details</button>
+                <button onClick={() => setActiveTab('support')} className={`px-3 py-1.5 text-sm sm:text-xs rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'support' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Support Tickets</button>
+                <button onClick={() => setActiveTab('activity')} className={`px-3 py-1.5 text-sm sm:text-xs rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'activity' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Login Activity</button>
+                <button onClick={() => setActiveTab('settings')} className={`px-3 py-1.5 text-sm sm:text-xs rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'settings' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Settings</button>
+                <button onClick={() => setActiveTab('help')} className={`px-3 py-1.5 text-sm sm:text-xs rounded-md whitespace-nowrap transition-colors font-medium flex-shrink-0 ${activeTab === 'help' ? 'bg-primary text-white' : theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-600 hover:text-gray-900'}`}>Help & Learning</button>
               </div>
 
               <div className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-lg border flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>

@@ -297,8 +297,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
     <>
       <style>{`
         @media (max-width: 480px) {
-          .batch-table { font-size: 13px !important; }
-          .batch-header-cell { font-size: 13px !important; padding: 12px 8px !important; text-transform: uppercase; letter-spacing: 0.025em; }
+          .batch-header-cell { padding: 12px 8px !important; }
           .batch-body-cell { padding: 12px 8px !important; }
           .batch-card-header { padding: 16px !important; }
           .batch-card-content { padding: 12px 16px 16px 16px !important; }
@@ -403,16 +402,16 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
                 </div>
               ) : (
                 <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4 overflow-x-auto">
-                  <table className="batch-table w-full text-[12px] md:text-sm text-left border-collapse table-auto align-middle whitespace-nowrap">
-                    <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card border-b border-border shadow-sm' : 'bg-gray-50 border-b border-gray-200 shadow-sm'}`}>
+                  <table className="batch-table w-full text-base md:text-sm text-left border-collapse table-auto align-middle whitespace-nowrap">
+                    <thead className="sticky top-0 z-10 border-b text-sm md:text-xs uppercase bg-muted/60 text-muted-foreground border-border shadow-sm">
                       <tr>
-                        <th className={`batch-header-cell py-3 px-3 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Batch Name</th>
-                        <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Start Year</th>
-                        <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>End Year</th>
-                        <th className={`batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Duration</th>
-                        <th className={`batch-header-cell py-3 px-3 w-20 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Students</th>
-                        <th className={`batch-header-cell py-3 px-3 w-28 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'} text-center`}>Created At</th>
-                        {!isReadOnly && <th className={`batch-header-cell py-3 px-3 w-28 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>}
+                        <th className="batch-header-cell py-3 px-3 text-left font-semibold">Batch Name</th>
+                        <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">Start Year</th>
+                        <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">End Year</th>
+                        <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">Duration</th>
+                        <th className="batch-header-cell py-3 px-3 w-20 font-semibold text-center">Students</th>
+                        <th className="batch-header-cell py-3 px-3 w-28 font-semibold text-center">Created At</th>
+                        {!isReadOnly && <th className="batch-header-cell py-3 px-3 w-28 text-right font-semibold">Actions</th>}
                       </tr>
                     </thead>
                     <tbody>

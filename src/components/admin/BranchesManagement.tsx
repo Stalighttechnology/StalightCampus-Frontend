@@ -455,14 +455,11 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
           .hod-col { width: 35% !important; }
           .actions-col { width: 20% !important; }
           
-          .branches-table th, .branches-table td { 
-            padding: 10px 8px !important; 
-            font-size: 0.8125rem !important; 
-          }
+
           
           .edit-input-mobile { 
             height: 32px !important; 
-            font-size: 0.8125rem !important;
+            font-size: 0.9375rem !important;
             padding: 4px 8px !important;
           }
           
@@ -476,7 +473,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
           .edit-btn-mobile {
             width: 100% !important;
             height: 28px !important;
-            font-size: 0.75rem !important;
+            font-size: 0.875rem !important;
             padding: 0 8px !important;
           }
         }
@@ -558,9 +555,9 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
               <SkeletonTable rows={pageSize} cols={4} /> :
 
               <>
-                <div className="branches-table-container flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
-                  <table className="branches-table w-full text-xs md:text-sm text-left table-auto border-collapse">
-                    <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'bg-card border-border text-foreground shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-900 shadow-sm'}`}>
+                 <div className="branches-table-container flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
+                  <table className="branches-table w-full text-base md:text-sm text-left table-auto border-collapse">
+                    <thead className="sticky top-0 z-10 border-b text-sm md:text-xs uppercase bg-muted/60 text-muted-foreground border-border shadow-sm">
                       <tr>
                         <th className="branch-name-col py-3 px-3 text-left font-bold">Branch Name</th>
                         <th className="py-3 px-3 hidden sm:table-cell font-bold">Branch Code</th>
@@ -597,7 +594,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
                               <div className="break-words">{branch.hod || "--"}</div>
                             </td>
 
-                            <td className="py-3 px-3 hidden sm:table-cell align-middle text-xs opacity-70">
+                            <td className="py-3 px-3 hidden sm:table-cell align-middle text-sm md:text-xs opacity-70">
                               {branch.hod_contact || "--"}
                             </td>
 

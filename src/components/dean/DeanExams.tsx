@@ -310,7 +310,7 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
 
   return (
     <div className={`${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Card id="dean-exams-container" className={theme === 'dark' ? 'bg-card border border-border shadow-md' : 'bg-white border border-gray-200 shadow-md'}>
+      <Card id="dean-exams-container">
         <CardContent className="px-6 pb-6 pt-2 space-y-8">
           {firstLoad ?
           <div className="space-y-6">
