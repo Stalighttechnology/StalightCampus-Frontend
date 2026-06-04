@@ -324,6 +324,8 @@ const MakeupExam = () => {
                     <SelectItem value="nov_dec">Nov/Dec</SelectItem>
                     <SelectItem value="jan_feb">Jan/Feb</SelectItem>
                     <SelectItem value="apr_may">Apr/May</SelectItem>
+                    <SelectItem value="sept_oct">Sept/Oct</SelectItem>
+                    <SelectItem value="feb_mar">Feb/Mar</SelectItem>
                     <SelectItem value="supplementary">Supplementary</SelectItem>
                   </SelectContent>
                 </Select>
