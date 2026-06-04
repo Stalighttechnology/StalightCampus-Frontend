@@ -569,9 +569,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const sidebarContent = (
     <motion.div
       className={`h-full flex flex-col border-r ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
-      initial={{ x: -100, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      initial={isMobile ? false : { x: -100, opacity: 0 }}
+      animate={isMobile ? false : { x: 0, opacity: 1 }}
+      transition={isMobile ? undefined : { duration: 0.3 }}
     >
       {/* Header */}
       <motion.div
@@ -623,9 +623,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
             ?.map((item, index) => (
               <motion.div
                 key={item.page}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 * index }}
+                initial={isMobile ? false : { opacity: 0, x: -20 }}
+                animate={isMobile ? false : { opacity: 1, x: 0 }}
+                transition={isMobile ? undefined : { duration: 0.3, delay: 0.1 * index }}
               >
                 <Button
                   id={getSidebarId(item.page)}
@@ -646,15 +646,19 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
                   </motion.div>
                   <AnimatePresence>
                     {!collapsed && (
-                      <motion.span
-                        className="truncate"
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "auto" }}
-                        exit={{ opacity: 0, width: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {item.name}
-                      </motion.span>
+                      isMobile ? (
+                        <span className="truncate">{item.name}</span>
+                      ) : (
+                        <motion.span
+                          className="truncate"
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: "auto" }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {item.name}
+                        </motion.span>
+                      )
                     )}
                   </AnimatePresence>
                 </Button>
@@ -766,6 +770,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           initial={{ x: "-100%" }}
           animate={{ x: collapsed ? "-100%" : "0%" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
+          style={{ willChange: "transform" }}
         >
           {sidebarContent}
         </motion.div>

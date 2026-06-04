@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 interface ThemeContextType {
   theme: string;
@@ -43,6 +45,17 @@ export const ThemeProvider: React.FC<{children: ReactNode;}> = ({ children }) =>
         rootElement.classList.remove('dark');
         rootElement.classList.add('light');
       }
+    }
+
+    // Apply Capacitor native Status Bar styling if running in a native mobile environment
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setStyle({
+        style: theme === 'dark' ? Style.Dark : Style.Light
+      }).catch((err) => console.warn('Failed to set native status bar style:', err));
+
+      StatusBar.setBackgroundColor({
+        color: theme === 'dark' ? '#0a0a0c' : '#ffffff'
+      }).catch((err) => console.warn('Failed to set native status bar background color:', err));
     }
 
     // Save theme preference (persists across login sessions)

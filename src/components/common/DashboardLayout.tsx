@@ -302,7 +302,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </motion.div>
           }
 
-          {isNoAnimation ?
+          {isNoAnimation || isMobile ?
             <div className="w-full">{children}</div> :
 
             <AnimatePresence mode="popLayout">
