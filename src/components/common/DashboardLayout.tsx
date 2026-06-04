@@ -13,6 +13,9 @@ import { getHODStats } from "../../utils/hod_api";
 import { getAdminStats } from "../../utils/admin_api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFCM } from "../../hooks/useFCM";
+import { Capacitor } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
+import { NavigationBar } from "@capgo/capacitor-navigation-bar";
 
 interface User {
   username: string;
@@ -53,6 +56,23 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const navigate = useNavigate();
   const mainContentRef = useRef<HTMLElement>(null);
+
+  // Synchronize native Status Bar and Navigation Bar colors when Dashboard mounts or theme updates
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
+      StatusBar.setStyle({
+        style: theme === 'dark' ? Style.Dark : Style.Light
+      }).catch(() => {});
+      StatusBar.setBackgroundColor({
+        color: theme === 'dark' ? '#0a0a0c' : '#ffffff'
+      }).catch(() => {});
+      NavigationBar.setNavigationBarColor({
+        color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
+        darkButtons: theme === 'light'
+      }).catch(() => {});
+    }
+  }, [theme]);
 
   // Mount FCM listener for all roles — keeps bell count real-time
   const accessToken = sessionStorage.getItem('access_token');
@@ -256,7 +276,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content Area */}
       <div
-        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'lg:ml-64'}`
+        className={`flex-1 min-w-0 flex flex-col h-screen h-[100dvh] overflow-hidden transition-all duration-300 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] ${sidebarCollapsed ? 'ml-0' : 'lg:ml-64'}`
         }>
 
         {/* Navbar */}

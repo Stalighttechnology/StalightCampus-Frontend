@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { NavigationBar } from '@capgo/capacitor-navigation-bar';
 
 interface ThemeContextType {
   theme: string;
@@ -47,8 +48,11 @@ export const ThemeProvider: React.FC<{children: ReactNode;}> = ({ children }) =>
       }
     }
 
-    // Apply Capacitor native Status Bar styling if running in a native mobile environment
+    // Apply Capacitor native Status Bar & Navigation Bar styling if running in a native mobile environment
     if (Capacitor.isNativePlatform()) {
+      // Prevent overlay to keep solid colors on older Android versions, or let Android handle overlay automatically
+      StatusBar.setOverlaysWebView({ overlay: false }).catch((err) => console.warn(err));
+
       StatusBar.setStyle({
         style: theme === 'dark' ? Style.Dark : Style.Light
       }).catch((err) => console.warn('Failed to set native status bar style:', err));
@@ -56,6 +60,12 @@ export const ThemeProvider: React.FC<{children: ReactNode;}> = ({ children }) =>
       StatusBar.setBackgroundColor({
         color: theme === 'dark' ? '#0a0a0c' : '#ffffff'
       }).catch((err) => console.warn('Failed to set native status bar background color:', err));
+
+      // Style bottom navigation bar (Android)
+      NavigationBar.setNavigationBarColor({
+        color: theme === 'dark' ? '#0a0a0c' : '#ffffff',
+        darkButtons: theme === 'light'
+      }).catch((err) => console.warn('Failed to set native navigation bar color:', err));
     }
 
     // Save theme preference (persists across login sessions)

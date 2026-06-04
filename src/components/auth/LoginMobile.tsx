@@ -1,5 +1,9 @@
 import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { useLoginLogic } from "../../hooks/useLoginLogic";
+import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
+import { NavigationBar } from "@capgo/capacitor-navigation-bar";
 
 interface LoginMobileProps {
   setRole: (role: string) => void;
@@ -8,6 +12,17 @@ interface LoginMobileProps {
 }
 
 const LoginMobile = ({ setRole, setPage, setUser }: LoginMobileProps) => {
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+      StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+      NavigationBar.setNavigationBarColor({
+        color: '#1e1b4b',
+        darkButtons: false
+      }).catch(() => {});
+    }
+  }, []);
+
   const {
     username,
     setUsername,
