@@ -110,8 +110,11 @@ export const fetchTransportFilters = () =>
 export const fetchBranchSemesters = (branchId: number) =>
   fetchWithTokenRefresh(`${API_BASE}/admin/semesters/?branch_id=${branchId}`, { headers: authHeaders() }).then((r) => r.json());
 
-export const fetchSemesterSections = (semesterId: number) =>
-  fetchWithTokenRefresh(`${API_BASE}/admin/sections/?semester_id=${semesterId}`, { headers: authHeaders() }).then((r) => r.json());
+export const fetchSemesterSections = (semesterId: number, branchId?: number) => {
+  let url = `${API_BASE}/admin/sections/?semester_id=${semesterId}`;
+  if (branchId) url += `&branch_id=${branchId}`;
+  return fetchWithTokenRefresh(url, { headers: authHeaders() }).then((r) => r.json());
+};
 
 export const fetchRouteOptions = () =>
   fetchWithTokenRefresh(`${API_BASE}/admin/route-options/`, { headers: authHeaders() }).then((r) => r.json());

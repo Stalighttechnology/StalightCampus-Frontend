@@ -19,9 +19,11 @@ import {
   SelectValue
 } from "../../ui/select";
 import { Users, Navigation, Search, Filter, Plus, Trash2, X, ChevronLeft, ChevronRight, CheckCircle, RefreshCw, Pencil } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const TransportAllocations: React.FC = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [allocations, setAllocations] = useState<AllocationT[]>([]);
   const [routes, setRoutes] = useState<RouteT[]>([]);
@@ -141,14 +143,15 @@ const TransportAllocations: React.FC = () => {
 
   useEffect(() => {
     if (eligibleFilters.semester) {
-      fetchSemesterSections(parseInt(eligibleFilters.semester)).then(res => {
+      const branchId = eligibleFilters.branch ? parseInt(eligibleFilters.branch) : undefined;
+      fetchSemesterSections(parseInt(eligibleFilters.semester), branchId).then(res => {
         if (res.success) setSemesterSections(res.sections);
       });
     } else {
       setSemesterSections([]);
       setEligibleFilters(f => ({ ...f, section: "" }));
     }
-  }, [eligibleFilters.semester]);
+  }, [eligibleFilters.semester, eligibleFilters.branch]);
 
   useEffect(() => {
     if (allocationForm.route) {
@@ -372,7 +375,7 @@ const TransportAllocations: React.FC = () => {
                   <SelectValue placeholder="Section" />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesterSections.map((sec: any) => <SelectItem key={sec.id} value={sec.id.toString()}>{sec.name}</SelectItem>)}
+                  {semesterSections.map((sec: any) => <SelectItem key={sec.id} value={sec.id.toString()}>Section {sec.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -484,16 +487,28 @@ const TransportAllocations: React.FC = () => {
               <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Stop</label>
               <Select
                 value={allocationForm.stop}
-                disabled={!allocationForm.route || allocOptions.stops.length === 0}
+                disabled={!allocationForm.route}
                 open={openDropdown === 'stop'}
                 onOpenChange={(open) => setOpenDropdown(open ? 'stop' : null)}
-                onValueChange={(val) => setAllocationForm(f => ({ ...f, stop: val }))}
+                onValueChange={(val) => {
+                  if (val === "add_stop") {
+                    navigate('/transport-admin/transport-routes');
+                  } else {
+                    setAllocationForm(f => ({ ...f, stop: val }));
+                  }
+                }}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={!allocationForm.route ? "Select route first" : "Choose Stop"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {allocOptions.stops.map((s: any) => <SelectItem key={s.id} value={s.id.toString()}>{s.stop_name}</SelectItem>)}
+                  {allocOptions.stops.length === 0 ? (
+                    <SelectItem value="add_stop" className="text-primary font-semibold">
+                      + Add Stop to Route
+                    </SelectItem>
+                  ) : (
+                    allocOptions.stops.map((s: any) => <SelectItem key={s.id} value={s.id.toString()}>{s.stop_name}</SelectItem>)
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -698,16 +713,28 @@ const TransportAllocations: React.FC = () => {
                   <label className="block text-xs font-semibold uppercase opacity-70 mb-2">Select Stop</label>
                   <Select
                     value={editAllocForm.stop_id}
-                    disabled={!editAllocForm.route_id || editAllocOptions.stops.length === 0}
-                    onValueChange={(val) => setEditAllocForm(f => ({ ...f, stop_id: val }))}
+                    disabled={!editAllocForm.route_id}
+                    onValueChange={(val) => {
+                      if (val === "add_stop") {
+                        navigate('/transport-admin/transport-routes');
+                      } else {
+                        setEditAllocForm(f => ({ ...f, stop_id: val }));
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={!editAllocForm.route_id ? "Select route first" : "Choose Stop"} />
                     </SelectTrigger>
                     <SelectContent className="z-[1000001]">
-                      {editAllocOptions.stops.map((s: any) => (
-                        <SelectItem key={s.id} value={s.id.toString()}>{s.stop_name}</SelectItem>
-                      ))}
+                      {editAllocOptions.stops.length === 0 ? (
+                        <SelectItem value="add_stop" className="text-primary font-semibold">
+                          + Add Stop to Route
+                        </SelectItem>
+                      ) : (
+                        editAllocOptions.stops.map((s: any) => (
+                          <SelectItem key={s.id} value={s.id.toString()}>{s.stop_name}</SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
