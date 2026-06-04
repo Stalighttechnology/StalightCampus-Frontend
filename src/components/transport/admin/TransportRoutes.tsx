@@ -255,6 +255,13 @@ const TransportRoutes: React.FC = () => {
 
   const handleSaveStops = async () => {
     if (!editingRouteStops) return;
+    
+    const hasEmptyStopName = stopDraft.some(s => !s.stop_name || !s.stop_name.trim());
+    if (hasEmptyStopName) {
+      Swal.fire("Warning", "All stops must have a valid Stop Name.", "warning");
+      return;
+    }
+
     try {
       const res = await updateRouteStops(editingRouteStops, stopDraft);
       if (res.success) {
