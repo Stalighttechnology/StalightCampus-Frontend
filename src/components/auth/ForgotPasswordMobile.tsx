@@ -132,18 +132,25 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
   const stepIndex = step === "email" ? 0 : step === "otp" ? 1 : step === "password" ? 2 : 3;
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-gradient-to-b from-violet-600 via-violet-800 to-violet-950 overflow-x-hidden overflow-y-hidden relative">
+    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-x-hidden overflow-y-hidden flex flex-col w-full bg-gradient-to-b from-violet-600 via-violet-800 to-violet-950 relative">
       {/* Glows */}
       <div className="absolute w-[320px] h-[320px] bg-white/15 blur-3xl rounded-full top-[-100px] left-[-100px] z-0 pointer-events-none" />
       <div className="absolute w-[360px] h-[360px] bg-violet-400/30 blur-[72px] rounded-full bottom-[-80px] right-[-80px] z-0 pointer-events-none" />
-      <div className="relative z-10 flex flex-col gap-8 w-full max-w-[375px] px-4 pt-6 mx-auto flex-grow min-h-0 items-center justify-center">
-        {/* Header */}
-        <div className="text-center flex flex-col gap-2 text-white">
-          <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Forgot Password</p>
-          <h1 className="text-3xl font-extrabold leading-tight mb-2">Secure Password<br />Recovery</h1>
-          <p className="text-sm font-medium opacity-85 px-4 mb-4">Reset your password securely in just a few steps</p>
+
+      {/* HEADER */}
+      <div className="relative z-10 text-center pt-12 pb-4 shrink-0 px-4 text-white flex flex-col gap-8">
+        <p className="text-xs font-semibold uppercase tracking-wider opacity-80">Forgot Password</p>
+        <div className="space-y-3">
+          <h1 className="text-3xl font-extrabold leading-tight">Secure Password<br />Recovery</h1>
+          <p className="text-sm font-medium opacity-85 px-2">Reset your password securely in just a few steps</p>
         </div>
-        {/* Stepper */}
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="relative z-10 flex-1 flex flex-col justify-between px-4 max-w-sm w-full mx-auto py-3">
+        <div className="flex flex-col gap-6 w-full items-center pt-2">
+
+          {/* Stepper */}
         <div className="flex items-center justify-center gap-3">
           {steps.map((Icon, idx) => (
             <React.Fragment key={idx}>
@@ -294,10 +301,12 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
             </div>
           </div>
         )}
-        {/* Footer */}
-        <div className="mt-auto text-center text-white flex flex-col gap-1 pt-4">
-          <p className="text-xs font-semibold opacity-90">AI-powered campus management system</p>
-          <p className="text-xs font-medium opacity-70">Developed under Stalight Technology</p>
+        </div>
+
+        {/* FOOTER */}
+        <div className="text-center text-white text-[11px] pb-4 mt-2">
+          <p className="font-semibold opacity-90">AI-powered campus management system</p>
+          <p className="opacity-80">Developed under Stalight Technology</p>
         </div>
       </div>
     </div>
