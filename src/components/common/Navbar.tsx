@@ -99,7 +99,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
   return (
     <motion.div
-      className={`w-full h-20 flex items-center justify-between p-4 relative border-b transition-all duration-500`}
+      className={`w-full flex items-center justify-between px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
