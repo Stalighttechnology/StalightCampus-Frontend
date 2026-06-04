@@ -324,6 +324,31 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     }
   };
 
+  const handleDeleteProfilePicture = async () => {
+    const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/delete-picture/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      
+      if (res.success) {
+        setProfile(prev => ({ ...prev, profile_picture: "" }));
+        const user = JSON.parse(sessionStorage.getItem("user") || '{}');
+        delete user.profile_picture;
+        sessionStorage.setItem("user", JSON.stringify(user));
+        
+        showSuccessAlert("Success", "Profile picture removed!");
+      } else {
+        showErrorAlert("Error", res.message || "Failed to remove profile picture");
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Network error while removing picture");
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target as HTMLInputElement;
     let newValue = value;
@@ -1032,12 +1057,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                     </AvatarFallback>
                   )}
                 </Avatar>
-                <label
-                  htmlFor="profile-picture-upload"
-                  className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
-                >
-                  <Camera className="h-4 w-4" />
-                </label>
+                {(editing || !profile.profile_picture) && (
+                  <label
+                    htmlFor="profile-picture-upload"
+                    className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </label>
+                )}
                 <input
                   id="profile-picture-upload"
                   type="file"
@@ -1045,6 +1072,15 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   onChange={handleProfilePictureSelect}
                   className="hidden"
                 />
+                {editing && profile.profile_picture && (
+                  <button
+                    onClick={handleDeleteProfilePicture}
+                    className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                    title="Remove Photo"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
               </div>
 
               {isUploading && (
