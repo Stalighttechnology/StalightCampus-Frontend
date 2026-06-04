@@ -21,8 +21,16 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [token, setToken] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(30);
 
   const steps = [Mail, MessageSquareDashed, Lock, Check];
+
+  React.useEffect(() => {
+    if (step === "otp" && resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, resendCountdown]);
 
   // Handlers for each step
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -74,8 +82,30 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
           setToken(response.token);
         }
         setStep("password");
+        setSuccess(null);
       } else {
         setError(response.message || "Invalid OTP code");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email) return;
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+    try {
+      const response = await forgotPassword({ email: email.trim() });
+      if (response.success) {
+        setUserId(String(response.user_id || ""));
+        setSuccess("OTP resent successfully!");
+        setResendCountdown(30);
+      } else {
+        setError(response.message || "Failed to resend OTP");
       }
     } catch (err) {
       setError("Network error. Please try again.");
@@ -226,16 +256,27 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
                 />
               </div>
               {error && <div className="text-red-500 text-xs mt-1">{error}</div>}
+              {success && <div className="text-green-500 text-xs mt-1">{success}</div>}
             </div>
-            <Button
-              type="submit"
-              className="bg-gradient-to-r from-violet-500 to-violet-700 text-white h-14 rounded-xl font-bold text-base shadow-lg mt-1"
-              disabled={loading}
-              aria-busy={loading}
-              fullWidth
-            >
-              Verify Code
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button
+                type="submit"
+                className="bg-gradient-to-r from-violet-500 to-violet-700 text-white h-14 rounded-xl font-bold text-base shadow-lg"
+                disabled={loading}
+                aria-busy={loading}
+                fullWidth
+              >
+                Verify Code
+              </Button>
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={loading || resendCountdown > 0}
+                className="text-violet-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {resendCountdown > 0 ? `Resend code in ${resendCountdown}s` : "Resend Code"}
+              </button>
+            </div>
           </form>
         )}
         {step === "password" && (
