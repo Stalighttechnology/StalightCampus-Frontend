@@ -45,6 +45,8 @@ const EXAM_TYPES = [
 { value: 'internal_1', label: '1st Internal Assessment' },
 { value: 'internal_2', label: '2nd Internal Assessment' },
 { value: 'internal_3', label: '3rd Internal Assessment' },
+{ value: 'internal_4', label: '4th Internal Assessment' },
+{ value: 'internal_5', label: '5th Internal Assessment' },
 { value: 'semester_exam', label: 'Semester End Exam' },
 { value: 'makeup', label: 'Makeup Exam' },
 { value: 'supplementary', label: 'Supplementary Exam' }];
