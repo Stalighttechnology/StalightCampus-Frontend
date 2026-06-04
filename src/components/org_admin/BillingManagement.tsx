@@ -271,19 +271,11 @@ const BillingManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Billing & Plans</h2>
-          <p className="text-muted-foreground">Manage your organization's subscription and billing details.</p>
-        </div>
-      </div>
-
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Current Plan Card */}
-        <Card id="billing-plan-card" className="col-span-2 md:col-span-1 lg:col-span-1">
+        <Card id="billing-plan-card" className="col-span-1 md:col-span-1 lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
               Current Plan
             </CardTitle>
             <CardDescription>Your current subscription tier</CardDescription>
@@ -329,22 +321,21 @@ const BillingManagement = () => {
         </Card>
 
         {/* Organization Details Card */}
-        <Card id="billing-org-details-card" className="col-span-2 md:col-span-1 lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
+        <Card id="billing-org-details-card" className="col-span-1 md:col-span-1 lg:col-span-2">
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div className="flex-1 pr-4">
+              <CardTitle className="flex items-center gap-2 pb-2">
                 Organization Details
               </CardTitle>
               <CardDescription>Administrative and contact information</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={handleOpenEditOrg} className="flex items-center gap-1.5">
+            <Button variant="default" size="sm" onClick={handleOpenEditOrg} className="bg-primary text-white hover:bg-primary/90 flex items-center gap-1.5 shrink-0">
               <Edit size={14} />
-              Edit Details
+              Edit
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-6 mb-6">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 w-full">
               {/* Brand Logo Display */}
               <div className="flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0">
                 {org?.logo ? (
@@ -356,56 +347,56 @@ const BillingManagement = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 flex-1">
+              <div className="grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 flex-1 w-full">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Organization Name</p>
-                  <p className="font-medium text-sm">{org?.name || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Created At</p>
-                  <p className="font-medium text-sm">{formatDate(org?.created_at)}</p>
+                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Organization Name</p>
+                  <p className="font-medium text-base md:text-sm">{org?.name || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Accreditation ID</p>
-                  <p className="font-medium text-sm">{org?.accreditation_id || 'N/A'}</p>
+                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Created At</p>
+                  <p className="font-medium text-base md:text-sm">{formatDate(org?.created_at)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Tax ID / GSTIN</p>
-                  <p className="font-medium text-sm">{org?.tax_id || 'N/A'}</p>
+                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Accreditation ID</p>
+                  <p className="font-medium text-base md:text-sm">{org?.accreditation_id || 'N/A'}</p>
                 </div>
-                <div className="md:col-span-2">
-                  <p className="text-xs text-muted-foreground mb-1">Institution Address</p>
-                  <p className="font-medium text-sm">{org?.address || 'N/A'}</p>
+                <div>
+                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Tax ID / GSTIN</p>
+                  <p className="font-medium text-base md:text-sm">{org?.tax_id || 'N/A'}</p>
                 </div>
-                <div className="md:col-span-2">
-                  <p className="text-xs text-muted-foreground mb-1">Billing Address</p>
-                  <p className="font-medium text-sm">{org?.billing_address || 'N/A'}</p>
+                <div className="col-span-2">
+                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Institution Address</p>
+                  <p className="font-medium text-base md:text-sm">{org?.address || 'N/A'}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Billing Address</p>
+                  <p className="font-medium text-base md:text-sm">{org?.billing_address || 'N/A'}</p>
                 </div>
               </div>
             </div>
 
             <div className="pt-3 mt-1 border-t">
-              <h4 className="text-sm font-semibold mb-3">Technical POC</h4>
+              <h4 className="text-base md:text-sm font-semibold mb-3">Technical POC</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-start gap-2">
                   <Building className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Name</p>
-                    <p className="text-sm">{org?.tech_poc_name || 'N/A'}</p>
+                    <p className="text-sm md:text-xs text-muted-foreground">Name</p>
+                    <p className="text-base md:text-sm">{org?.tech_poc_name || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm">{org?.tech_poc_email || 'N/A'}</p>
+                    <p className="text-sm md:text-xs text-muted-foreground">Email</p>
+                    <p className="text-base md:text-sm">{org?.tech_poc_email || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Mobile</p>
-                    <p className="text-sm">{org?.tech_poc_mobile || 'N/A'}</p>
+                    <p className="text-sm md:text-xs text-muted-foreground">Mobile</p>
+                    <p className="text-base md:text-sm">{org?.tech_poc_mobile || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -421,9 +412,9 @@ const BillingManagement = () => {
           <CardDescription>Recent transactions and subscription payments</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-base md:text-sm text-left whitespace-nowrap">
+              <thead className="bg-muted/50 text-muted-foreground text-sm md:text-xs uppercase">
                 <tr>
                   <th className="px-4 py-3 font-medium rounded-tl-lg">Date</th>
                   <th className="px-4 py-3 font-medium">Plan</th>
@@ -440,9 +431,9 @@ const BillingManagement = () => {
                       <td className="px-4 py-3">{formatDate(payment.timestamp)}</td>
                       <td className="px-4 py-3 capitalize">{payment.plan_type}</td>
                       <td className="px-4 py-3 font-medium">₹{payment.amount}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{payment.transaction_id}</td>
+                      <td className="px-4 py-3 font-mono text-sm md:text-xs">{payment.transaction_id}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${payment.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${payment.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                           {payment.status}
                         </span>
                       </td>
@@ -451,7 +442,7 @@ const BillingManagement = () => {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
+                            className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 text-sm md:text-xs transition-colors"
                             onClick={() => handleDownloadReceipt(payment.id)}
                             disabled={downloadingId === payment.id}
                           >
@@ -507,17 +498,17 @@ const BillingManagement = () => {
 
       {/* Support Tickets Section */}
       <Card id="billing-support-tickets">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
+        <CardHeader className="flex flex-row items-start justify-between">
+          <div className="flex-1 pr-4">
             <CardTitle className="text-lg flex items-center gap-2"><LifeBuoy className="h-5 w-5" /> Support Tickets</CardTitle>
             <CardDescription>Raise and track issues with Super Admin HQ.</CardDescription>
           </div>
-          <Button id="billing-raise-ticket-btn" size="sm" onClick={() => setShowRaiseTicket(true)}>Raise Ticket</Button>
+          <Button id="billing-raise-ticket-btn" size="sm" onClick={() => setShowRaiseTicket(true)} className="bg-primary text-white hover:bg-primary/90 shrink-0">Raise Ticket</Button>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-base md:text-sm text-left whitespace-nowrap">
+              <thead className="bg-muted/50 text-muted-foreground text-sm md:text-xs uppercase">
                 <tr>
                   <th className="px-4 py-3 font-medium rounded-tl-lg">Ticket ID</th>
                   <th className="px-4 py-3 font-medium">Subject</th>
@@ -532,13 +523,13 @@ const BillingManagement = () => {
                 {paginatedTickets.length > 0 ? (
                   paginatedTickets.map((ticket, idx) => (
                     <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 font-mono text-xs text-primary">{ticket.ticket_id}</td>
+                      <td className="px-4 py-3 font-mono text-sm md:text-xs text-primary">{ticket.ticket_id}</td>
                       <td className="px-4 py-3 font-medium">{ticket.subject}</td>
                       <td className="px-4 py-3 hidden md:table-cell truncate max-w-[200px]" title={ticket.description}>
                         {ticket.description}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${
                           ticket.priority === 'High' || ticket.priority === 'Critical' ? 'bg-red-100 text-red-700' :
                           ticket.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
                         }`}>
@@ -546,7 +537,7 @@ const BillingManagement = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${
                           ticket.status === 'Resolved' || ticket.status === 'Closed' ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'
                         }`}>
                           {ticket.status}
@@ -554,25 +545,27 @@ const BillingManagement = () => {
                       </td>
                       <td className="px-4 py-3">{formatDate(ticket.created_at)}</td>
                       <td className="px-4 py-3">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 transition-colors"
-                          onClick={() => setViewTicket(ticket)}
-                        >
-                          <Eye size={14} />
-                          View
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 text-sm md:text-xs transition-colors"
+                            onClick={() => setViewTicket(ticket)}
+                          >
+                            <Eye size={14} />
+                            View
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                            className="h-8 px-2 flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm md:text-xs transition-colors"
                             onClick={() => handleDeleteTicket(ticket.id)}
                             disabled={deletingTicketId === ticket.id}
                           >
                             {deletingTicketId === ticket.id ? <Loader2 size={14} className="animate-spin mr-2" /> : null}
                             Delete
                           </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -733,9 +726,9 @@ const BillingManagement = () => {
       <Dialog open={showEditOrg} onOpenChange={setShowEditOrg}>
         <DialogContent className="w-[95%] sm:max-w-[550px] mx-auto rounded-xl">
           <DialogHeader>
-            <div className="flex items-center justify-between border-b pb-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b pb-3">
               <DialogTitle className="text-xl font-bold">Edit Organization Details</DialogTitle>
-              <div className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full text-xs font-semibold">
+              <div className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full text-xs font-semibold shrink-0">
                 <span className={editOrgStep === 1 ? "text-primary font-bold" : "text-muted-foreground"}>Identity</span>
                 <span className="text-muted-foreground">/</span>
                 <span className={editOrgStep === 2 ? "text-primary font-bold" : "text-muted-foreground"}>Admin Details</span>
@@ -752,7 +745,7 @@ const BillingManagement = () => {
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="orgName" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Organization Name *</Label>
+                  <Label htmlFor="orgName" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Organization Name *</Label>
                   <Input
                     id="orgName"
                     required
@@ -765,7 +758,7 @@ const BillingManagement = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="accreditationId" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Accreditation ID</Label>
+                    <Label htmlFor="accreditationId" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Accreditation ID</Label>
                     <Input
                       id="accreditationId"
                       placeholder="AICTE / UGC"
@@ -775,7 +768,7 @@ const BillingManagement = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Brand Logo</span>
+                    <span className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Brand Logo</span>
                     <label className="flex items-center gap-2 px-3 bg-muted/30 border h-12 rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
                       <div className="w-8 h-8 bg-background rounded-lg flex items-center justify-center overflow-hidden border">
                         {orgLogoPreview ? (
@@ -784,7 +777,7 @@ const BillingManagement = () => {
                           <Camera size={14} className="text-muted-foreground" />
                         )}
                       </div>
-                      <span className="text-[10px] font-medium text-muted-foreground truncate flex-1">
+                      <span className="text-xs sm:text-[10px] font-medium text-muted-foreground truncate flex-1">
                         {orgLogo ? orgLogo.name : "Upload"}
                       </span>
                       <input type="file" className="hidden" accept="image/*" onChange={handleOrgLogoChange} />
@@ -793,7 +786,7 @@ const BillingManagement = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="institutionAddress" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Institution Address</Label>
+                  <Label htmlFor="institutionAddress" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Institution Address</Label>
                   <Input
                     id="institutionAddress"
                     placeholder="Full physical address"
@@ -823,7 +816,7 @@ const BillingManagement = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="pocName" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Name</Label>
+                    <Label htmlFor="pocName" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Name</Label>
                     <Input
                       id="pocName"
                       placeholder="POC Name"
@@ -833,7 +826,7 @@ const BillingManagement = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="pocMobile" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Mobile</Label>
+                    <Label htmlFor="pocMobile" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Mobile</Label>
                     <Input
                       id="pocMobile"
                       placeholder="POC Mobile"
@@ -846,7 +839,7 @@ const BillingManagement = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="pocEmail" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Email</Label>
+                    <Label htmlFor="pocEmail" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Technical POC Email</Label>
                     <Input
                       id="pocEmail"
                       type="email"
@@ -857,7 +850,7 @@ const BillingManagement = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="taxId" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tax ID / GSTIN</Label>
+                    <Label htmlFor="taxId" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tax ID / GSTIN</Label>
                     <Input
                       id="taxId"
                       placeholder="GSTIN/PAN"
@@ -869,7 +862,7 @@ const BillingManagement = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="billingAddress" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Billing Address</Label>
+                  <Label htmlFor="billingAddress" className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Billing Address</Label>
                   <Textarea
                     id="billingAddress"
                     placeholder="Address for invoice generation"

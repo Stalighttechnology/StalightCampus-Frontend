@@ -120,67 +120,7 @@
    out of "overlay" mode into "classic" mode: scrollbars are always shown.
    ──────────────────────────────────────────────────────────────────────────── */
 
-/* ── Scrollbar track (the rail) ─────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
 
-/* Light theme track */
-::-webkit-scrollbar-track {
-  background: rgba(139, 92, 246, 0.06);
-  border-radius: 100px;
-}
-
-/* ── Scrollbar thumb (the draggable handle) ──────────────────────────────── */
-::-webkit-scrollbar-thumb {
-  border-radius: 100px;
-  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
-  min-height: 32px;
-  transition: background 0.2s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 100%);
-  box-shadow: 0 0 6px rgba(139, 92, 246, 0.45);
-}
-
-::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
-}
-
-/* Corner where horizontal and vertical scrollbars meet */
-::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-/* ── Dark theme ──────────────────────────────────────────────────────────── */
-.dark ::-webkit-scrollbar-track {
-  background: rgba(139, 92, 246, 0.08);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.55);
-}
-
-.dark ::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(180deg, #6d28d9 0%, #5b21b6 100%);
-}
-
-/* ── Firefox — branded thin scrollbars ───────────────────────────────────── */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #8b5cf6 rgba(139, 92, 246, 0.06);
-}
-
-.dark * {
-  scrollbar-color: #7c3aed rgba(139, 92, 246, 0.08);
-}
 
 /* ── Preserve hidden scrollbar for .thin-scrollbar elements ──────────────── */
 .thin-scrollbar::-webkit-scrollbar {
