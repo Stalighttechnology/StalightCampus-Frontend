@@ -160,6 +160,8 @@ const shouldScrollStep = (targetStep: any): boolean => {
       (target.startsWith('#admin-') ||
        target.startsWith('#branch-') ||
        target.startsWith('#role-') ||
+       target.startsWith('#admission-') ||
+       target.startsWith('#billing-') ||
        target.includes('enroll') ||
        target.includes('bulk') ||
        target.includes('branch') ||
