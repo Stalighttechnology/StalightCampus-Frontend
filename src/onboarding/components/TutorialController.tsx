@@ -306,7 +306,7 @@ export const TutorialController = () => {
       const selector = targetStep.target;
       console.log('[ONBOARDING DEBUG] 🔄 waitForElementVisible started', { selector });
       const startTime = Date.now();
-      const timeoutMs = 6000; // Hardcoded timeout for stability
+      const timeoutMs = 15000; // Increased from 6000ms to 15000ms to handle slower production networks/cold starts
       pollCountRef.current = 0;
 
       const poll = () => {
