@@ -22,7 +22,8 @@ const config: CapacitorConfig = {
     },
     CapacitorUpdater: {
       appId: 'com.stalight.campus',
-      autoUpdate: true
+      autoUpdate: true,
+      defaultChannel: 'production'
     },
     Keyboard: {
       resize: 'body',
