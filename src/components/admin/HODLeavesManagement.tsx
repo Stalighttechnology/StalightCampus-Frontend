@@ -415,7 +415,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                 </div>
 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[100px] px-3 h-9 flex items-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
+                  <SelectTrigger className="w-[100px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
                     <Filter className="h-4 w-4" />
                     <span>Filter</span>
                   </SelectTrigger>
