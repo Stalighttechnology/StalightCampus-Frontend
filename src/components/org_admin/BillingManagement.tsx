@@ -51,6 +51,7 @@ const BillingManagement = () => {
   const [orgLogo, setOrgLogo] = useState<File | null>(null);
   const [orgLogoPreview, setOrgLogoPreview] = useState<string | null>(null);
   const [savingOrg, setSavingOrg] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const handleOpenEditOrg = () => {
     if (org) {
@@ -83,9 +84,114 @@ const BillingManagement = () => {
     }
   };
 
-  const handleRemoveOrgLogo = () => {
-    setOrgLogoPreview(null);
-    setOrgLogo(null);
+  const handleRemoveOrgLogo = async () => {
+    const confirmed = await showConfirmAlert('Remove Logo', 'Are you sure you want to remove the logo?', 'Remove');
+    if (confirmed.isConfirmed) {
+      setOrgLogoPreview(null);
+      setOrgLogo(null);
+    }
+  };
+
+  const handleDirectLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !org) return;
+
+    setUploadingLogo(true);
+    try {
+      const dataToSend = new FormData();
+      dataToSend.append('name', org.name || '');
+      dataToSend.append('accreditation_id', org.accreditation_id || '');
+      dataToSend.append('address', org.address || '');
+      dataToSend.append('tax_id', org.tax_id || '');
+      dataToSend.append('billing_address', org.billing_address || '');
+      dataToSend.append('tech_poc_name', org.tech_poc_name || '');
+      dataToSend.append('tech_poc_email', org.tech_poc_email || '');
+      dataToSend.append('tech_poc_mobile', org.tech_poc_mobile || '');
+      dataToSend.append('logo', file);
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/billing-support/`, {
+        method: 'POST',
+        body: dataToSend
+      });
+      
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Success', 'Organization logo uploaded successfully');
+        if (data) {
+          setData({
+            ...data,
+            org_details: {
+              ...data.org_details!,
+              logo: res.logo
+            }
+          });
+        }
+        const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          userObj.org_logo = res.logo;
+          sessionStorage.setItem("user", JSON.stringify(userObj));
+          localStorage.setItem("user", JSON.stringify(userObj));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+      } else {
+        showErrorAlert('Error', res.message || 'Failed to upload logo');
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'Network error uploading logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleDeleteLogoDirectly = async () => {
+    if (!org) return;
+    const confirmed = await showConfirmAlert('Remove Logo', 'Are you sure you want to remove the organization logo?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const dataToSend = new FormData();
+      dataToSend.append('name', org.name || '');
+      dataToSend.append('accreditation_id', org.accreditation_id || '');
+      dataToSend.append('address', org.address || '');
+      dataToSend.append('tax_id', org.tax_id || '');
+      dataToSend.append('billing_address', org.billing_address || '');
+      dataToSend.append('tech_poc_name', org.tech_poc_name || '');
+      dataToSend.append('tech_poc_email', org.tech_poc_email || '');
+      dataToSend.append('tech_poc_mobile', org.tech_poc_mobile || '');
+      dataToSend.append('delete_logo', 'true');
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/billing-support/`, {
+        method: 'POST',
+        body: dataToSend
+      });
+      
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Success', 'Organization logo removed successfully');
+        if (data) {
+          setData({
+            ...data,
+            org_details: {
+              ...data.org_details!,
+              logo: null
+            }
+          });
+        }
+        const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          userObj.org_logo = null;
+          sessionStorage.setItem("user", JSON.stringify(userObj));
+          localStorage.setItem("user", JSON.stringify(userObj));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+      } else {
+        showErrorAlert('Error', res.message || 'Failed to remove logo');
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'Network error removing logo');
+    }
   };
 
   const handleSaveOrgDetails = async () => {
@@ -115,15 +221,24 @@ const BillingManagement = () => {
       if (res.success) {
         showSuccessAlert('Success', 'Organization details updated successfully');
         setShowEditOrg(false);
+        const newLogo = res.logo || orgLogoPreview || null;
         if (data) {
           setData({
             ...data,
             org_details: {
               ...data.org_details!,
               ...orgForm,
-              logo: res.logo || orgLogoPreview
+              logo: newLogo
             }
           });
+        }
+        const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          userObj.org_logo = newLogo;
+          sessionStorage.setItem("user", JSON.stringify(userObj));
+          localStorage.setItem("user", JSON.stringify(userObj));
+          window.dispatchEvent(new Event("userProfileUpdated"));
         }
       } else {
         showErrorAlert('Error', res.message || 'Failed to update organization details');
@@ -344,13 +459,35 @@ const BillingManagement = () => {
           <CardContent>
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 w-full">
               {/* Brand Logo Display */}
-              <div className="flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0">
+              <div className="relative flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0 group">
                 {org?.logo ? (
-                  <img src={org.logo} alt="Brand Logo" className="w-full h-full object-contain rounded-lg" />
+                  <>
+                    <img src={org.logo} alt="Brand Logo" className="w-full h-full object-contain rounded-lg" />
+                    <button
+                      onClick={handleDeleteLogoDirectly}
+                      className="absolute top-1.5 right-1.5 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-all opacity-0 group-hover:opacity-100 shadow-md"
+                      title="Remove Logo"
+                    >
+                      <Trash className="h-3.5 w-3.5" />
+                    </button>
+                  </>
                 ) : (
-                  <div className="w-full h-full rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl">
-                    {org?.name ? org.name.charAt(0).toUpperCase() : 'O'}
-                  </div>
+                  <>
+                    {uploadingLogo ? (
+                      <div className="w-full h-full rounded-lg bg-primary/10 flex flex-col items-center justify-center text-primary gap-1">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span className="text-[10px] font-semibold text-center leading-tight">Uploading...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <label htmlFor="direct-logo-upload" className="w-full h-full rounded-lg bg-primary/10 flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/20 transition-all gap-1">
+                          <Camera className="h-6 w-6" />
+                          <span className="text-[10px] font-semibold text-center leading-tight">Upload Logo</span>
+                        </label>
+                        <input id="direct-logo-upload" type="file" accept="image/*" onChange={handleDirectLogoUpload} className="hidden" />
+                      </>
+                    )}
+                  </>
                 )}
               </div>
 
