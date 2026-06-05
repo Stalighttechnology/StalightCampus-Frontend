@@ -88,7 +88,7 @@ const STATUS_CONFIG = {
   }
 };
 
-const IssueTracking = ({ hostelId }: { hostelId: number; }) => {
+const IssueTracking = ({ hostelId }: { hostelId: number | null; }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hostels, skeletonMode } = useHMSContext();
