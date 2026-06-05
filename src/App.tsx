@@ -8,6 +8,9 @@ import { PwaInstaller } from "./components/pwa/PwaInstaller";
 import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { PushNotifications } from '@capacitor/push-notifications';
+import { Camera } from '@capacitor/camera';
+import { Geolocation } from '@capacitor/geolocation';
 
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
@@ -94,12 +97,36 @@ const AppContent = () => {
   useEffect(() => {
     initErrorLogger();
     if (Capacitor.isNativePlatform()) {
+      // Notify Capgo update is ready and hide splash screen
       CapacitorUpdater.notifyAppReady()
         .then(() => SplashScreen.hide())
         .catch((e) => {
           console.error(e);
           SplashScreen.hide();
         });
+
+      // Request all permissions sequentially on app startup
+      const requestAllPermissions = async () => {
+        try {
+          // 1. Push Notifications
+          const notifResult = await PushNotifications.requestPermissions();
+          if (notifResult.receive === 'granted') {
+            await PushNotifications.register();
+          }
+        } catch (e) { console.warn('Notification permission error:', e); }
+
+        try {
+          // 2. Camera
+          await Camera.requestPermissions({ permissions: ['camera', 'photos'] });
+        } catch (e) { console.warn('Camera permission error:', e); }
+
+        try {
+          // 3. Location
+          await Geolocation.requestPermissions();
+        } catch (e) { console.warn('Location permission error:', e); }
+      };
+
+      requestAllPermissions();
     }
   }, []);
 
