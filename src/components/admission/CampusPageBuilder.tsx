@@ -112,22 +112,55 @@ const CampusPageBuilder: React.FC = () => {
     setBlocks(newBlocks);
   };
 
-  if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading CMS...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden animate-pulse border-border">
+        <div className="flex flex-col lg:flex-row items-center justify-between p-4 lg:px-6 lg:h-16 border-b border-border bg-card gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-6 w-32 bg-muted rounded" />
+            <div className="h-4 w-40 bg-muted rounded" />
+          </div>
+          <div className="flex gap-2">
+            <div className="h-9 w-24 bg-muted rounded" />
+            <div className="h-9 w-32 bg-muted rounded" />
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-muted/5">
+          {/* Settings panel skeleton */}
+          <div className="w-full lg:w-96 border-r border-border bg-card p-6 space-y-6 flex-shrink-0">
+            <div className="space-y-2">
+              <div className="h-4 w-24 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-32 w-full bg-muted rounded" />
+            </div>
+          </div>
+          {/* Canvas workspace skeleton */}
+          <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+            <div className="h-40 w-full bg-muted rounded-xl" />
+            <div className="h-40 w-full bg-muted rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
+    <div id="campus-builder-container" className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden shadow-sm border-border">
       {/* Topbar / Navigation */}
-      <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
-        <div className="flex items-center gap-8">
-          <h1 className="font-bold text-xl flex items-center gap-2 text-primary border-r border-border pr-8">
-            <LayoutTemplate className="w-6 h-6" /> Campus CMS
+      <header id="campus-builder-header" className="flex flex-col lg:flex-row items-center justify-between p-4 lg:px-6 lg:h-16 border-b border-border bg-card gap-4 shrink-0 shadow-sm z-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-8 w-full lg:w-auto">
+          <h1 className="font-bold text-lg flex items-center gap-2 text-primary sm:border-r border-border sm:pr-6">
+            <LayoutTemplate className="w-5 h-5" /> Campus CMS
           </h1>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
             {SIDEBAR_TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
                   activeTab === tab.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
@@ -136,29 +169,31 @@ const CampusPageBuilder: React.FC = () => {
             ))}
           </nav>
         </div>
-        <div className="flex items-center gap-4">
-          <h2 className="text-sm font-semibold text-muted-foreground hidden lg:block">Editing: {orgName || 'Campus Profile'}</h2>
-          {orgId && (
-            <Button 
-              variant="outline" size="sm" 
-              onClick={() => window.open(`/admissions/${encodeURIComponent(orgName || orgId)}`, '_blank')}
-              className="gap-2"
-            >
-              <Eye size={16} /> View Public Page
+        <div className="flex items-center justify-between lg:justify-end gap-3 w-full lg:w-auto pt-2 lg:pt-0 border-t lg:border-t-0 border-border">
+          <h2 className="text-xs font-semibold text-muted-foreground truncate max-w-[180px] sm:max-w-none">Editing: {orgName || 'Campus Profile'}</h2>
+          <div className="flex items-center gap-2">
+            {orgId && (
+              <Button 
+                variant="outline" size="sm" 
+                onClick={() => window.open(`/admissions/${encodeURIComponent(orgName || orgId)}`, '_blank')}
+                className="gap-1.5 text-xs h-8 px-2.5"
+              >
+                <Eye size={14} /> <span className="hidden sm:inline">View Page</span>
+              </Button>
+            )}
+            <Button onClick={handleSave} className="gap-1.5 text-xs h-8 px-2.5 shadow-md">
+              <Save size={14} /> <span>Publish Changes</span>
             </Button>
-          )}
-          <Button onClick={handleSave} className="gap-2 shadow-md">
-            <Save size={16} /> Publish Changes
-          </Button>
+          </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-y-auto lg:overflow-hidden">
         {activeTab === 'builder' ? (
-          <div className="flex-1 flex overflow-hidden justify-center bg-muted/10">
+          <div className="flex-1 flex flex-col lg:overflow-hidden justify-center bg-muted/10">
             {/* Main Pane: Editor */}
-            <div className="w-full max-w-5xl flex flex-col bg-background shadow-xl border-x border-border">
+            <div className="w-full max-w-5xl mx-auto flex flex-col bg-background shadow-xl border-x border-border min-h-[calc(100vh-220px)] lg:h-full lg:overflow-hidden">
               <div className="p-4 border-b border-border bg-muted/30 shrink-0 flex justify-between items-center">
                 <h3 className="font-semibold flex items-center gap-2"><Layout size={18} /> Page Blocks</h3>
                 <div className="flex items-center gap-2">
@@ -170,7 +205,7 @@ const CampusPageBuilder: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
                 {blocks.map((block, index) => (
                   <Card key={block.id} className="relative group border-muted-foreground/20 hover:border-primary/40 transition-colors shadow-sm">
                     <CardHeader className="p-3 pb-0 flex flex-row items-center justify-between">

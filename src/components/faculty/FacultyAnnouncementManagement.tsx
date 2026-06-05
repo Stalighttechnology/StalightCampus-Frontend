@@ -123,7 +123,10 @@ const FacultyAnnouncementManagement = () => {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleCreateOrUpdate = async () => {
+    if (submitting) return;
     if (!formData.title.trim() || !formData.message.trim()) {
       MySwal.fire({
         title: "Validation Error",
@@ -136,6 +139,7 @@ const FacultyAnnouncementManagement = () => {
     }
 
     try {
+      setSubmitting(true);
       // Faculty announcements are always for students only and branch-specific
       const payload: CreateAnnouncementRequest = {
         ...formData,
@@ -198,6 +202,8 @@ const FacultyAnnouncementManagement = () => {
         confirmButtonColor: "#9147e0",
         target: document.body
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -476,8 +482,10 @@ const FacultyAnnouncementManagement = () => {
                           </Button>
                           <Button
                               onClick={handleCreateOrUpdate}
+                              disabled={submitting}
                               className="bg-primary text-white hover:bg-primary/90 transition-colors">
                               
+                            {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                             {editingId ? "Update" : "Create"} Announcement
                           </Button>
                         </div>

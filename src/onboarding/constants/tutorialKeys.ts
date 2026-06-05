@@ -77,6 +77,12 @@ export const TUTORIAL_KEYS = {
     STEP: 'tutorial_driver_step',
     VERSION: 'tutorial_driver_version',
   },
+  ADMISSION_MANAGER: {
+    COMPLETED: 'tutorial_admission_manager_completed',
+    ACTIVE: 'tutorial_admission_manager_active',
+    STEP: 'tutorial_admission_manager_step',
+    VERSION: 'tutorial_admission_manager_version',
+  },
 };
 
 /**

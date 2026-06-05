@@ -49,7 +49,34 @@ export default function AdmissionDocuments() {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <Card className="border-border">
+          <CardHeader>
+            <div className="h-6 w-48 bg-muted rounded" />
+            <div className="h-3.5 w-80 bg-muted rounded mt-2" />
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            {[1, 2].map((i) => (
+              <Card key={i} className="border-border shadow-sm p-4 space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border">
+                  <div className="space-y-2">
+                    <div className="h-5 w-44 bg-muted rounded" />
+                    <div className="h-3 w-56 bg-muted rounded" />
+                  </div>
+                  <div className="h-9 w-28 bg-muted rounded" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1, 2, 3].map((j) => (
+                    <div key={j} className="h-9 bg-muted rounded w-full" />
+                  ))}
+                </div>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const renderDocumentLink = (url: string | null, label: string) => {
@@ -67,64 +94,69 @@ export default function AdmissionDocuments() {
   );
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-8">Document Verification</h1>
-      
-      <div className="grid gap-6">
-        {applications.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center text-muted-foreground">
-              <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-4 opacity-50" />
-              <p>All applicant documents have been verified.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          applications.map(app => (
-            <Card key={app.id}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border mb-4">
-                <div>
-                  <CardTitle>{app.enquiry_details?.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground">App ID: #{app.id} • Course: {app.enquiry_details?.course_name}</p>
-                </div>
-                <Button 
-                  onClick={() => handleVerify(app.id)}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" /> Mark as Verified
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pt-2">
-                  <div className="p-4 bg-muted/20 border border-border rounded-lg">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">10th Marks Card</p>
-                    {renderDocumentLink(app.marks_card_10th, "10th Certificate")}
-                  </div>
-                  <div className="p-4 bg-muted/20 border border-border rounded-lg">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">12th Marks Card</p>
-                    {renderDocumentLink(app.marks_card_12th, "12th Certificate")}
-                  </div>
-                  <div className="p-4 bg-muted/20 border border-border rounded-lg">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Transfer Certificate</p>
-                    {renderDocumentLink(app.transfer_certificate, "Transfer Cert.")}
-                  </div>
-                  <div className="p-4 bg-muted/20 border border-border rounded-lg">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Aadhaar Card</p>
-                    {renderDocumentLink(app.aadhaar_card, "Aadhaar Card")}
-                  </div>
-                  <div className="p-4 bg-muted/20 border border-border rounded-lg">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Applicant Photo</p>
-                    {renderDocumentLink(app.photo, "Photo")}
-                  </div>
-                  <div className="p-4 bg-muted/20 border border-border rounded-lg">
-                    <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Applicant Signature</p>
-                    {renderDocumentLink(app.signature, "Signature")}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+    <div id="admission-documents-container" className="space-y-6">
+      <Card>
+        <CardHeader id="admission-documents-header" className="border-b pb-4">
+          <CardTitle className="text-lg font-semibold">Document Verification</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">Review and verify documents uploaded by applicants.</p>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid gap-6">
+            {applications.length === 0 ? (
+              <div className="p-12 text-center text-muted-foreground">
+                <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-4 opacity-50" />
+                <p>All applicant documents have been verified.</p>
+              </div>
+            ) : (
+              applications.map(app => (
+                <Card key={app.id} className="border-border shadow-sm">
+                  <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border mb-4">
+                    <div>
+                      <CardTitle className="text-base font-semibold">{app.enquiry_details?.name}</CardTitle>
+                      <p className="text-xs text-muted-foreground mt-1">App ID: #{app.id} • Course: {app.enquiry_details?.course_name}</p>
+                    </div>
+                    <Button 
+                      onClick={() => handleVerify(app.id)}
+                      className="bg-green-600 hover:bg-green-700 text-white shadow-sm w-full sm:w-auto"
+                      size="sm"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" /> Mark as Verified
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-2">
+                      <div className="p-4 bg-muted/20 border border-border rounded-lg">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">10th Marks Card</p>
+                        {renderDocumentLink(app.marks_card_10th, "10th Certificate")}
+                      </div>
+                      <div className="p-4 bg-muted/20 border border-border rounded-lg">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">12th Marks Card</p>
+                        {renderDocumentLink(app.marks_card_12th, "12th Certificate")}
+                      </div>
+                      <div className="p-4 bg-muted/20 border border-border rounded-lg">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Transfer Certificate</p>
+                        {renderDocumentLink(app.transfer_certificate, "Transfer Cert.")}
+                      </div>
+                      <div className="p-4 bg-muted/20 border border-border rounded-lg">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Aadhaar Card</p>
+                        {renderDocumentLink(app.aadhaar_card, "Aadhaar Card")}
+                      </div>
+                      <div className="p-4 bg-muted/20 border border-border rounded-lg">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Applicant Photo</p>
+                        {renderDocumentLink(app.photo, "Photo")}
+                      </div>
+                      <div className="p-4 bg-muted/20 border border-border rounded-lg">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Applicant Signature</p>
+                        {renderDocumentLink(app.signature, "Signature")}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

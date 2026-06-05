@@ -51,7 +51,7 @@ export const PAGE_REQUIRED_TIERS: Record<string, number> = {
 export const isPageAllowed = (page: string, orgPlan: string): boolean => {
   if (page === 'dashboard') return true;
 
-  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
+  const userTier = PLAN_TIERS[(orgPlan || 'basic').toLowerCase()] || 1;
   const requiredTier = PAGE_REQUIRED_TIERS[page] || 1;
 
   return userTier >= requiredTier;

@@ -29,7 +29,45 @@ export default function AdmissionStudents() {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <Card className="border-border">
+          <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
+            <div className="space-y-2">
+              <div className="h-6 w-40 bg-muted rounded" />
+              <div className="h-3 w-56 bg-muted rounded" />
+            </div>
+            <div className="h-9 w-36 bg-muted rounded" />
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <th key={i} className="px-6 py-4">
+                        <div className="h-4 w-20 bg-muted rounded" />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {[1, 2, 3, 4, 5].map((row) => (
+                    <tr key={row}>
+                      {[1, 2, 3, 4, 5].map((col) => (
+                        <td key={col} className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-24" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const handleExportHOD = () => {
@@ -54,57 +92,63 @@ export default function AdmissionStudents() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Enrolled Students</h1>
-        <Button onClick={handleExportHOD} className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Download className="w-4 h-4 mr-2" /> Export for HOD
-        </Button>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Enrollments</CardTitle>
+    <div id="admission-students-container" className="space-y-6 w-full max-w-full overflow-hidden">
+      <Card className="overflow-hidden w-full border-border">
+        <CardHeader id="admission-students-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+          <div>
+            <CardTitle className="text-lg font-semibold">Enrolled Students</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">View and export institution enrollments.</p>
+          </div>
+          <Button 
+            onClick={handleExportHOD} 
+            disabled={students.length === 0}
+            size="sm" 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+          >
+            <Download className="w-4 h-4 mr-2" /> Export for HOD
+          </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {students.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground border-2 border-dashed border-border rounded-xl">
+            <div className="text-center py-12 text-muted-foreground">
               <User className="w-12 h-12 mx-auto mb-4 opacity-20" />
               <p>No students have been enrolled yet.</p>
               <p className="text-sm mt-2">Enroll students from the Applications tab.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
+              <table className="w-full min-w-[800px] text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="px-4 py-3">App ID</th>
-                    <th className="px-4 py-3">Student Name</th>
-                    <th className="px-4 py-3">Course</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Date of Enrollment</th>
-                    <th className="px-4 py-3 text-right">Status</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">App ID</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Student Name</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Course</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Phone</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Date of Enrollment</th>
+                    <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border">
                   {students.map(student => (
-                    <tr key={student.id} className="border-b border-border hover:bg-muted/20">
-                      <td className="px-4 py-3 font-medium">#{student.id}</td>
-                      <td className="px-4 py-3 flex items-center gap-3 font-medium">
-                        <div className="w-8 h-8 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center flex-shrink-0">
-                          {student.photo ? (
-                            <img src={student.photo} alt="Student" className="w-full h-full object-cover" />
-                          ) : (
-                            <User className="w-4 h-4 text-muted-foreground" />
-                          )}
+                    <tr key={student.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-mono font-medium whitespace-nowrap">#{student.id}</td>
+                      <td className="px-6 py-4 font-medium whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center flex-shrink-0">
+                            {student.photo ? (
+                              <img src={student.photo} alt="Student" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          {student.enquiry_details?.name}
                         </div>
-                        {student.enquiry_details?.name}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{student.enquiry_details?.course_name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{student.enquiry_details?.phone}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{new Date(student.updated_at).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold uppercase">
+                      <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">{student.enquiry_details?.course_name}</td>
+                      <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">{student.enquiry_details?.phone}</td>
+                      <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">{new Date(student.updated_at).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <span className="bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
                           Enrolled
                         </span>
                       </td>
