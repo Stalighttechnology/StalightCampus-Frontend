@@ -59,7 +59,7 @@ export default function AdmissionDocuments() {
           <CardContent className="pt-6 space-y-6">
             {[1, 2].map((i) => (
               <Card key={i} className="border-border shadow-sm p-4 space-y-4">
-                <div className="flex flex-row items-center justify-between pb-4 border-b border-border">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border">
                   <div className="space-y-2">
                     <div className="h-5 w-44 bg-muted rounded" />
                     <div className="h-3 w-56 bg-muted rounded" />
@@ -110,14 +110,14 @@ export default function AdmissionDocuments() {
             ) : (
               applications.map(app => (
                 <Card key={app.id} className="border-border shadow-sm">
-                  <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-border mb-4">
+                  <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border mb-4">
                     <div>
                       <CardTitle className="text-base font-semibold">{app.enquiry_details?.name}</CardTitle>
                       <p className="text-xs text-muted-foreground mt-1">App ID: #{app.id} • Course: {app.enquiry_details?.course_name}</p>
                     </div>
                     <Button 
                       onClick={() => handleVerify(app.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                      className="bg-green-600 hover:bg-green-700 text-white shadow-sm w-full sm:w-auto"
                       size="sm"
                     >
                       <CheckCircle className="w-4 h-4 mr-2" /> Mark as Verified

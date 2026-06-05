@@ -92,8 +92,8 @@ export default function AdmissionStudents() {
   };
 
   return (
-    <div id="admission-students-container" className="space-y-6">
-      <Card>
+    <div id="admission-students-container" className="space-y-6 w-full max-w-full overflow-hidden">
+      <Card className="overflow-hidden w-full border-border">
         <CardHeader id="admission-students-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div>
             <CardTitle className="text-lg font-semibold">Enrolled Students</CardTitle>
@@ -117,35 +117,37 @@ export default function AdmissionStudents() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
+              <table className="w-full min-w-[800px] text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="px-6 py-4 font-semibold">App ID</th>
-                    <th className="px-6 py-4 font-semibold">Student Name</th>
-                    <th className="px-6 py-4 font-semibold">Course</th>
-                    <th className="px-6 py-4 font-semibold">Phone</th>
-                    <th className="px-6 py-4 font-semibold">Date of Enrollment</th>
-                    <th className="px-6 py-4 text-right font-semibold">Status</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">App ID</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Student Name</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Course</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Phone</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Date of Enrollment</th>
+                    <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {students.map(student => (
                     <tr key={student.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 font-mono font-medium">#{student.id}</td>
-                      <td className="px-6 py-4 flex items-center gap-3 font-medium">
-                        <div className="w-8 h-8 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center flex-shrink-0">
-                          {student.photo ? (
-                            <img src={student.photo} alt="Student" className="w-full h-full object-cover" />
-                          ) : (
-                            <User className="w-4 h-4 text-muted-foreground" />
-                          )}
+                      <td className="px-6 py-4 font-mono font-medium whitespace-nowrap">#{student.id}</td>
+                      <td className="px-6 py-4 font-medium whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center flex-shrink-0">
+                            {student.photo ? (
+                              <img src={student.photo} alt="Student" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          {student.enquiry_details?.name}
                         </div>
-                        {student.enquiry_details?.name}
                       </td>
-                      <td className="px-6 py-4 text-muted-foreground">{student.enquiry_details?.course_name}</td>
-                      <td className="px-6 py-4 text-muted-foreground font-mono">{student.enquiry_details?.phone}</td>
-                      <td className="px-6 py-4 text-muted-foreground">{new Date(student.updated_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">{student.enquiry_details?.course_name}</td>
+                      <td className="px-6 py-4 text-muted-foreground font-mono whitespace-nowrap">{student.enquiry_details?.phone}</td>
+                      <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">{new Date(student.updated_at).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
                         <span className="bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
                           Enrolled
                         </span>
