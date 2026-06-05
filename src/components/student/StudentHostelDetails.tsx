@@ -359,15 +359,35 @@ const StudentHostelDetails: React.FC = () => {
   // ── Empty state ────────────────────────────────────────────────────────────
   if (!hostel && !room) {
     return (
-      <div className={`py-24 flex flex-col items-center justify-center text-center rounded-3xl border-2 border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200 shadow-sm'}`}>
-        <div className={`p-8 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-white shadow-md'} mb-6`}>
-          <FaHotel className="h-16 w-16 text-primary/40" />
-        </div>
-        <h3 className={`text-2xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Hostel Assigned</h3>
-        <p className={`text-base mt-2 max-w-sm mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-          You haven't been assigned a hostel room yet. Please contact the hostel administration or the warden's office for your room allocation.
-        </p>
-      </div>);
+      <div className={`w-full space-y-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+        <Card id="hostel-details-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+          <CardHeader id="hostel-details-header" className="p-3 sm:p-4 lg:p-6 border-b flex flex-row items-center gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+              <FaHotel className="w-4 h-4" />
+            </div>
+            <div>
+              <h1 className={`text-base sm:text-lg md:text-xl font-semibold leading-tight ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                My Hostel Details
+              </h1>
+              <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Your hostel accommodation information
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
+            <div className={`py-12 flex flex-col items-center justify-center text-center rounded-3xl border-2 border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200 shadow-sm'}`}>
+              <div className={`p-6 rounded-full ${theme === 'dark' ? 'bg-white/5' : 'bg-white shadow-md'} mb-4`}>
+                <FaHotel className="h-12 w-12 text-primary/40" />
+              </div>
+              <h3 className={`text-xl font-semibold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>No Hostel Assigned</h3>
+              <p className={`text-sm mt-2 max-w-sm mx-auto leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                You haven't been assigned a hostel room yet. Please contact the hostel administration or the warden's office for your room allocation.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const roomTypeBadge = ROOM_TYPE_COLORS[room?.room_type ?? ''] ?? 'bg-gray-100 text-gray-600';
