@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,8 @@ declare global {
 const Onboarding = () => {
   const { plan } = useParams<{ plan: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const studentsCount = parseInt(searchParams.get("students_count") || "500", 10);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [phoneError, setPhoneError] = useState("");
@@ -47,15 +49,17 @@ const Onboarding = () => {
     tech_poc_email: "",
     tech_poc_mobile: "",
     role: "Org Admin",
+    students_count: studentsCount.toString(),
+    billing_cycle: "Yearly",
   });
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (plan) {
-      setFormData(prev => ({ ...prev, plan: plan.toLowerCase() }));
+      setFormData(prev => ({ ...prev, plan: plan.toLowerCase(), students_count: studentsCount.toString() }));
     }
-  }, [plan]);
+  }, [plan, studentsCount]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,9 +105,15 @@ const Onboarding = () => {
       document.body.appendChild(script);
     });
 
+    const baseRate = formData.plan === 'basic' ? 150 : formData.plan === 'pro' ? 200 : 250;
+    const count = parseInt(formData.students_count) || 500;
+    const factor = formData.billing_cycle === 'Monthly' ? 1/12 : formData.billing_cycle === 'Quarterly' ? 1/4 : 1;
+    const rawAmount = Math.round(baseRate * count * factor);
+    const finalAmount = Math.min(rawAmount, 49999);
+
     const options = {
       key: keyId,
-      amount: formData.plan === 'pro' ? 100000 : 500000, // Amount in paise (₹1,000 for pro, ₹5,000 for advance)
+      amount: finalAmount * 100, // Amount in paise
       currency: 'INR',
       order_id: orderId,
       name: 'Stalight Campus',
@@ -421,8 +431,46 @@ const Onboarding = () => {
                   className="space-y-6"
                 >
                   <div className="space-y-1">
-                    <h2 className="text-3xl font-bold text-gray-900">Compliance & Support</h2>
-                    <p className="text-gray-500 text-sm">Legal and technical details.</p>
+                    <h2 className="text-3xl font-bold text-gray-900">Subscription & Billing</h2>
+                    <p className="text-gray-500 text-sm">Configure your plan and technical details.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Institution Size *</label>
+                      <Select
+                        value={formData.students_count}
+                        onValueChange={(value) => setFormData({ ...formData, students_count: value })}
+                      >
+                        <SelectTrigger className="bg-gray-50 border-gray-100 h-12 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all">
+                          <SelectValue placeholder="Select Size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="500">Small (1 - 500)</SelectItem>
+                          <SelectItem value="2000">Medium (501 - 2,000)</SelectItem>
+                          <SelectItem value="5000">Large (2,001 - 5,000)</SelectItem>
+                          <SelectItem value="10000">Very Large (5,001 - 10,000)</SelectItem>
+                          <SelectItem value="25000">Enterprise (10,001 - 25,000)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Billing Cycle *</label>
+                      <Select
+                        value={formData.billing_cycle}
+                        onValueChange={(value) => setFormData({ ...formData, billing_cycle: value })}
+                      >
+                        <SelectTrigger className="bg-gray-50 border-gray-100 h-12 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all">
+                          <SelectValue placeholder="Select Cycle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Monthly">Monthly</SelectItem>
+                          <SelectItem value="Quarterly">Quarterly</SelectItem>
+                          <SelectItem value="Yearly">Yearly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   {/* Plan Summary Card */}
@@ -434,13 +482,37 @@ const Onboarding = () => {
                       <div>
                         <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Selected Plan</p>
                         <h3 className="text-lg font-bold text-gray-900 capitalize">{formData.plan} Plan</h3>
+                        {(() => {
+                          const cycleDays = formData.billing_cycle === 'Monthly' ? 30 : formData.billing_cycle === 'Quarterly' ? 90 : 365;
+                          const expiryDate = new Date();
+                          expiryDate.setDate(expiryDate.getDate() + cycleDays);
+                          return (
+                            <p className="text-[11px] font-bold text-gray-500 mt-1">
+                              Valid until {expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </p>
+                          );
+                        })()}
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Annual Billing</p>
-                      <p className="text-lg font-black text-primary">
-                        {formData.plan === 'basic' ? 'Free' : formData.plan === 'pro' ? '₹99,999' : '₹3,00,000'}
-                      </p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formData.billing_cycle} Billing (Max {formData.students_count} Students)</p>
+                      {(() => {
+                        const baseRate = formData.plan === 'basic' ? 150 : formData.plan === 'pro' ? 200 : 250;
+                        const count = parseInt(formData.students_count) || 500;
+                        const factor = formData.billing_cycle === 'Monthly' ? 1/12 : formData.billing_cycle === 'Quarterly' ? 1/4 : 1;
+                        const rawAmount = Math.round(baseRate * count * factor);
+                        const finalAmount = Math.min(rawAmount, 49999);
+                        const isCapped = rawAmount > 49999;
+                        return isCapped ? (
+                          <>
+                            <p className="text-sm text-gray-400 line-through">₹{rawAmount.toLocaleString()}</p>
+                            <p className="text-[10px] font-bold text-amber-500 uppercase mt-0.5">Test Env Limit Applied</p>
+                            <p className="text-lg font-black text-primary">₹{finalAmount.toLocaleString()}</p>
+                          </>
+                        ) : (
+                          <p className="text-lg font-black text-primary">₹{finalAmount.toLocaleString()}</p>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -508,7 +580,7 @@ const Onboarding = () => {
                         disabled={loading}
                         className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold transition-all flex items-center justify-center gap-2 active:scale-95"
                       >
-                        {loading ? <Loader2 className="animate-spin" size={16} /> : formData.plan === 'basic' ? "Launch Portal" : "Secure Payment"}
+                        {loading ? <Loader2 className="animate-spin" size={16} /> : "Secure Payment"}
                         {!loading && <ArrowRight size={16} />}
                       </Button>
                     </form>

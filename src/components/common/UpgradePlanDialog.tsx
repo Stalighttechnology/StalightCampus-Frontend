@@ -16,10 +16,20 @@ interface UpgradePlanDialogProps {
 
 const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onSuccess, currentPlan = "basic" }: UpgradePlanDialogProps) => {
   const [selectedPlan, setSelectedPlan] = useState<"pro" | "advance" | null>(null);
+  const [studentsCount, setStudentsCount] = useState<number>(500);
+  const [billingCycle, setBillingCycle] = useState<string>("Monthly");
   const [isUpgrading, setIsUpgrading] = useState(false);
 
   const isBasic = currentPlan.toLowerCase().includes('basic');
   const isPro = currentPlan.toLowerCase().includes('pro');
+
+  const getPrice = (planType: string) => {
+    const baseRate = planType === 'advance' ? 250 : 200;
+    const yearlyTotal = baseRate * studentsCount;
+    if (billingCycle === 'Monthly') return Math.round(yearlyTotal / 12);
+    if (billingCycle === 'Quarterly') return Math.round(yearlyTotal / 4);
+    return yearlyTotal;
+  };
 
   const handleUpgrade = async () => {
     if (!selectedPlan) return;
@@ -31,7 +41,11 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ plan: selectedPlan })
+        body: JSON.stringify({ 
+          plan: selectedPlan,
+          students_count: studentsCount,
+          billing_cycle: billingCycle
+        })
       });
 
       const result = await response.json();
@@ -96,6 +110,33 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
 
             {/* Selection Area */}
             <div className="p-8 bg-white overflow-y-auto max-h-[70vh]">
+              <div className="mb-6 grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-widest mb-2 block">Institution Size</label>
+                  <select
+                    value={studentsCount}
+                    onChange={(e) => setStudentsCount(Number(e.target.value))}
+                    className="w-full border-slate-200 rounded-none text-sm p-3 focus:ring-0 focus:border-primary border outline-none bg-slate-50"
+                  >
+                    <option value={500}>Small (1 - 500)</option>
+                    <option value={2000}>Medium (501 - 2000)</option>
+                    <option value={5000}>Large (2001 - 5000)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-widest mb-2 block">Billing Cycle</label>
+                  <select
+                    value={billingCycle}
+                    onChange={(e) => setBillingCycle(e.target.value)}
+                    className="w-full border-slate-200 rounded-none text-sm p-3 focus:ring-0 focus:border-primary border outline-none bg-slate-50"
+                  >
+                    <option value="Monthly">Monthly</option>
+                    <option value="Quarterly">Quarterly</option>
+                    <option value="Yearly">Yearly</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="grid gap-6 md:grid-cols-2">
                 {/* Pro Plan */}
                 <div
@@ -115,8 +156,8 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
                   </div>
                   <h3 className="text-lg font-medium text-slate-900 mb-1">Edition I</h3>
                   <div className="flex items-baseline gap-1 mb-6">
-                    <span className="text-2xl font-light text-slate-900">₹99,999</span>
-                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">/ Year</span>
+                    <span className="text-2xl font-light text-slate-900">₹{getPrice('pro').toLocaleString('en-IN')}</span>
+                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">/ {billingCycle}</span>
                   </div>
                   <ul className="space-y-3 mb-4">
                     {["Unlimited Student Records", "Academic Management", "Digital Proctoring", "Standard Support"].map((feat, i) =>
@@ -146,8 +187,8 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
                   </div>
                   <h3 className="text-lg font-medium text-slate-900 mb-1">Edition II</h3>
                   <div className="flex items-baseline gap-1 mb-6">
-                    <span className="text-2xl font-light text-slate-900">₹3,00,000</span>
-                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">/ Year</span>
+                    <span className="text-2xl font-light text-slate-900">₹{getPrice('advance').toLocaleString('en-IN')}</span>
+                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">/ {billingCycle}</span>
                   </div>
                   <ul className="space-y-3 mb-4">
                     {["Full AI Governance", "Custom Institution Branding", "Enterprise-Grade Security", "Priority Technical Support"].map((feat, i) =>

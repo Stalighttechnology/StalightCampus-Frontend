@@ -384,8 +384,9 @@ const BillingManagement = () => {
   const paginatedTickets = tickets.slice((safeTicketsPage - 1) * itemsPerPage, safeTicketsPage * itemsPerPage);
 
   const planName = org?.plan_type === 'advance' ? 'Advance' : org?.plan_type === 'pro' ? 'Pro' : 'Basic (Trial)';
-  const planPrice = org?.plan_type === 'advance' ? '₹3,00,000/year' : org?.plan_type === 'pro' ? '₹99,999/year' : '₹0';
-  
+  const baseRate = org?.plan_type === 'advance' ? 250 : org?.plan_type === 'pro' ? 200 : 150;
+  const cycleStr = org?.billing_cycle || 'Yearly';
+  const planPrice = `₹${baseRate} / student / year (Billed ${cycleStr})`;
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -574,7 +575,7 @@ const BillingManagement = () => {
                     <tr key={idx} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3">{formatDate(payment.timestamp)}</td>
                       <td className="px-4 py-3 capitalize">{payment.plan_type}</td>
-                      <td className="px-4 py-3 font-medium">₹{payment.amount}</td>
+                      <td className="px-4 py-3 font-medium">₹{(payment.amount / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 font-mono text-sm md:text-xs">{payment.transaction_id}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${payment.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>

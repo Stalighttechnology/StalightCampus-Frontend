@@ -28,6 +28,14 @@ const Pricing = () => {
   const navigate = useNavigate();
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
 
+  const basicPrice = "₹150";
+  const proPrice = "₹200";
+  const advancePrice = "₹250";
+
+  const handleGetStarted = (link: string) => {
+    navigate(link);
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -35,8 +43,8 @@ const Pricing = () => {
   const plans = [
     {
       name: "Basic",
-      price: "Trial",
-      duration: "2 Hours",
+      price: basicPrice,
+      duration: "per student / year",
       description: "Essential for daily campus operations with core administrative and academic tools.",
       tagline: "Start your journey",
       features: [
@@ -56,8 +64,8 @@ const Pricing = () => {
     },
     {
       name: "Pro",
-      price: "₹1,000",
-      duration: "per year",
+      price: proPrice,
+      duration: "per student / year",
       description: "For scaling institutions with enhanced workflows and deep analytics.",
       tagline: "Elevate your campus",
       features: [
@@ -78,8 +86,8 @@ const Pricing = () => {
     },
     {
       name: "Advance",
-      price: "₹5,000",
-      duration: "per year",
+      price: advancePrice,
+      duration: "per student / year",
       description: "Enterprise-grade capabilities with state-of-the-art intelligence and security.",
       tagline: "The future of education",
       features: [
@@ -226,7 +234,7 @@ const Pricing = () => {
 
                 {/* Action Button */}
                 <button
-                  onClick={() => navigate(plan.link)}
+                  onClick={() => handleGetStarted(plan.link)}
                   className={`w-full py-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 group ${plan.popular
                     ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:opacity-95'
                     : 'bg-slate-900 hover:bg-slate-800 text-white shadow-md'
