@@ -1124,3 +1124,4 @@ export const getDepartmentAdminApplyLeaveBootstrap = async (queryString: string)
     return { success: false, message: "Network error" };
   }
 };
+

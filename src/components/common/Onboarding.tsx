@@ -8,15 +8,10 @@ import {
   ArrowRight, Loader2, Shield, Globe, ChevronLeft,
   Camera, CreditCard, Tool, Info, Lock
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { API_ENDPOINT } from "@/utils/config";
 import { toast } from "@/components/ui/use-toast";
+import { verifyCoupon } from "@/utils/authService";
 
 // Razorpay types
 declare global {
@@ -34,6 +29,10 @@ const Onboarding = () => {
   const [success, setSuccess] = useState(false);
   const [phoneError, setPhoneError] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
+  const [hasCoupon, setHasCoupon] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isVerifyingCoupon, setIsVerifyingCoupon] = useState(false);
 
   const [formData, setFormData] = useState({
     org_name: "",
@@ -94,6 +93,26 @@ const Onboarding = () => {
 
   const prevStep = () => setCurrentStep(prev => prev - 1);
 
+  const handleVerifyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsVerifyingCoupon(true);
+    try {
+      const res = await verifyCoupon(couponCode);
+      if (res.success) {
+        setAppliedCoupon(res.coupon);
+        toast({ title: "Success", description: res.message || "Coupon applied successfully!" });
+      } else {
+        setAppliedCoupon(null);
+        toast({ variant: "destructive", title: "Error", description: res.message || "Invalid coupon code" });
+      }
+    } catch (e: any) {
+      setAppliedCoupon(null);
+      toast({ variant: "destructive", title: "Error", description: e.message || "Failed to verify coupon" });
+    } finally {
+      setIsVerifyingCoupon(false);
+    }
+  };
+
   const handleRazorpayPayment = async (orderId: string, keyId: string, orgData: any) => {
     // Load Razorpay checkout script dynamically
     await new Promise<void>((resolve, reject) => {
@@ -109,7 +128,19 @@ const Onboarding = () => {
     const count = parseInt(formData.students_count) || 500;
     const factor = formData.billing_cycle === 'Monthly' ? 1/12 : formData.billing_cycle === 'Quarterly' ? 1/4 : 1;
     const rawAmount = Math.round(baseRate * count * factor);
-    const finalAmount = Math.min(rawAmount, 49999);
+    
+    let finalAmount = rawAmount;
+    if (appliedCoupon) {
+      let discountAmount = 0;
+      if (appliedCoupon.discount_type === 'PERCENTAGE') {
+        discountAmount = Math.round(finalAmount * (parseFloat(appliedCoupon.discount_value) / 100));
+      } else {
+        discountAmount = parseInt(appliedCoupon.discount_value);
+      }
+      finalAmount = Math.max(finalAmount - discountAmount, 0);
+    }
+    
+    finalAmount = Math.min(finalAmount, 49999);
 
     const options = {
       key: keyId,
@@ -175,6 +206,9 @@ const Onboarding = () => {
       });
       if (logo) {
         dataToSend.append("logo", logo);
+      }
+      if (appliedCoupon) {
+        dataToSend.append("coupon_code", appliedCoupon.code);
       }
 
       const response = await fetch(`${API_ENDPOINT}/onboard`, {
@@ -501,16 +535,37 @@ const Onboarding = () => {
                         const count = parseInt(formData.students_count) || 500;
                         const factor = formData.billing_cycle === 'Monthly' ? 1/12 : formData.billing_cycle === 'Quarterly' ? 1/4 : 1;
                         const rawAmount = Math.round(baseRate * count * factor);
-                        const finalAmount = Math.min(rawAmount, 49999);
-                        const isCapped = rawAmount > 49999;
+                        
+                        let discountedAmount = rawAmount;
+                        let discountVal = 0;
+                        if (appliedCoupon) {
+                          if (appliedCoupon.discount_type === 'PERCENTAGE') {
+                            discountVal = Math.round(discountedAmount * (parseFloat(appliedCoupon.discount_value) / 100));
+                          } else {
+                            discountVal = parseInt(appliedCoupon.discount_value);
+                          }
+                          discountedAmount = Math.max(discountedAmount - discountVal, 0);
+                        }
+
+                        const finalAmount = Math.min(discountedAmount, 49999);
+                        const isCapped = discountedAmount > 49999;
                         return isCapped ? (
                           <>
                             <p className="text-sm text-gray-400 line-through">₹{rawAmount.toLocaleString()}</p>
+                            {appliedCoupon && <p className="text-[10px] font-bold text-primary uppercase mt-0.5">Coupon Applied (-₹{discountVal.toLocaleString()})</p>}
                             <p className="text-[10px] font-bold text-amber-500 uppercase mt-0.5">Test Env Limit Applied</p>
                             <p className="text-lg font-black text-primary">₹{finalAmount.toLocaleString()}</p>
                           </>
                         ) : (
-                          <p className="text-lg font-black text-primary">₹{finalAmount.toLocaleString()}</p>
+                          <>
+                            {appliedCoupon && (
+                              <p className="text-[10px] font-bold text-primary uppercase mt-0.5 mb-1 line-through opacity-70">
+                                ₹{rawAmount.toLocaleString()}
+                              </p>
+                            )}
+                            {appliedCoupon && <p className="text-[10px] font-bold text-primary uppercase mt-0.5 mb-1">Coupon Applied (-₹{discountVal.toLocaleString()})</p>}
+                            <p className="text-lg font-black text-primary">₹{finalAmount.toLocaleString()}</p>
+                          </>
                         );
                       })()}
                     </div>
@@ -570,6 +625,44 @@ const Onboarding = () => {
                         />
                       </div>
                     </div>
+                  </div>
+
+                  {/* Coupon Section */}
+                  <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <input
+                        type="checkbox"
+                        id="hasCouponOB"
+                        checked={hasCoupon}
+                        onChange={(e) => {
+                          setHasCoupon(e.target.checked);
+                          if (!e.target.checked) setAppliedCoupon(null);
+                        }}
+                        className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4"
+                      />
+                      <label htmlFor="hasCouponOB" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Have a coupon code?</label>
+                    </div>
+                    {hasCoupon && (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="text"
+                          placeholder="Enter code"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          className="flex-1 bg-white border-gray-200 h-10 rounded-xl focus:ring-2 focus:ring-primary/20 uppercase font-mono text-sm"
+                          disabled={appliedCoupon != null || isVerifyingCoupon}
+                        />
+                        {appliedCoupon ? (
+                          <Button type="button" variant="outline" className="h-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => { setAppliedCoupon(null); setCouponCode(""); }}>
+                            Remove
+                          </Button>
+                        ) : (
+                          <Button type="button" className="h-10 rounded-xl bg-slate-800 hover:bg-slate-900 text-white" disabled={!couponCode || isVerifyingCoupon} onClick={handleVerifyCoupon}>
+                            {isVerifyingCoupon ? "Verifying..." : "Verify"}
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex gap-3">

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { API_ENDPOINT } from "@/utils/config";
-import { fetchWithTokenRefresh } from "@/utils/authService";
+import { fetchWithTokenRefresh, verifyCoupon } from "@/utils/authService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Lock } from "lucide-react";
@@ -23,6 +23,11 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [estimate, setEstimate] = useState<any>(null);
   const [isLoadingEstimate, setIsLoadingEstimate] = useState(false);
+  
+  const [hasCoupon, setHasCoupon] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isVerifyingCoupon, setIsVerifyingCoupon] = useState(false);
 
   React.useEffect(() => {
     if (!selectedPlan) {
@@ -39,6 +44,7 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
             plan: selectedPlan,
             students_count: studentsCount,
             billing_cycle: billingCycle,
+            coupon_code: appliedCoupon?.code,
             estimate_only: true
           })
         });
@@ -59,7 +65,7 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
       fetchEstimate();
     }, 300);
     return () => clearTimeout(timer);
-  }, [selectedPlan, studentsCount, billingCycle]);
+  }, [selectedPlan, studentsCount, billingCycle, appliedCoupon]);
 
   const isBasic = currentPlan.toLowerCase().includes('basic');
   const isPro = currentPlan.toLowerCase().includes('pro');
@@ -146,6 +152,26 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
     rzp.open();
   };
 
+  const handleVerifyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsVerifyingCoupon(true);
+    try {
+      const res = await verifyCoupon(couponCode);
+      if (res.success) {
+        setAppliedCoupon(res.coupon);
+        toast.success(res.message || "Coupon applied successfully!");
+      } else {
+        setAppliedCoupon(null);
+        toast.error(res.message || "Invalid coupon code");
+      }
+    } catch (e: any) {
+      setAppliedCoupon(null);
+      toast.error(e.message || "Failed to verify coupon");
+    } finally {
+      setIsVerifyingCoupon(false);
+    }
+  };
+
   const getPrice = (planType: string) => {
     const baseRate = planType === 'advance' ? 250 : planType === 'pro' ? 200 : 150;
     const yearlyTotal = baseRate * studentsCount;
@@ -167,7 +193,8 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
         body: JSON.stringify({ 
           plan: selectedPlan,
           students_count: studentsCount,
-          billing_cycle: billingCycle
+          billing_cycle: billingCycle,
+          coupon_code: appliedCoupon?.code
         })
       });
 
@@ -179,7 +206,27 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
       } else if (result.success && result.checkout_url) {
         window.location.href = result.checkout_url;
       } else if (result.success) {
-        toast.success(`Plan upgrade initiated successfully.`);
+        toast.success(`Plan activated successfully!`);
+
+        // Refresh JWT so the next API calls get the updated org state (is_active, subscription dates)
+        try {
+          const refreshToken = localStorage.getItem("refresh_token") || sessionStorage.getItem("refresh_token");
+          if (refreshToken) {
+            const { API_ENDPOINT } = await import("@/utils/config");
+            const refreshRes = await fetch(`${API_ENDPOINT}/token/refresh/`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refresh: refreshToken }),
+            });
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              if (refreshData.access) {
+                localStorage.setItem("access_token", refreshData.access);
+                sessionStorage.setItem("access_token", refreshData.access);
+              }
+            }
+          }
+        } catch (_) {}
 
         const userStr = sessionStorage.getItem("user");
         if (userStr) {
@@ -187,9 +234,7 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
             const user = JSON.parse(userStr);
             user.org_plan = selectedPlan;
             sessionStorage.setItem("user", JSON.stringify(user));
-          } catch (e) {
-
-          }
+          } catch (e) {}
         }
 
         if (onSuccess) {
@@ -335,7 +380,7 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
                     <span className="text-slate-400 text-[10px] uppercase font-bold tracking-tighter">/ {billingCycle}</span>
                   </div>
                   <ul className="space-y-3 mb-4">
-                    {["Unlimited Student Records", "Academic Management", "Digital Proctoring", "Standard Support"].map((feat, i) =>
+                    {["Tiered Student Records", "Academic Management", "Digital Proctoring", "Standard Support"].map((feat, i) =>
                   <li key={i} className="text-slate-500 text-[11px] leading-tight flex items-start gap-2">
                         <span className="w-1 h-1 bg-primary rounded-full mt-1.5 shrink-0" />
                         {feat}
@@ -387,6 +432,44 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
 
             {/* Action Footer */}
             <div className="p-8 border-t border-slate-100 bg-slate-50/50">
+              {/* Coupon Section */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="checkbox"
+                    id="hasCoupon"
+                    checked={hasCoupon}
+                    onChange={(e) => {
+                      setHasCoupon(e.target.checked);
+                      if (!e.target.checked) setAppliedCoupon(null);
+                    }}
+                    className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                  />
+                  <label htmlFor="hasCoupon" className="text-sm font-medium text-slate-700">Have a coupon code?</label>
+                </div>
+                {hasCoupon && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="text"
+                      placeholder="Enter code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="flex-1 border-slate-200 rounded-none text-sm p-2 focus:ring-0 focus:border-primary border outline-none bg-white uppercase font-mono"
+                      disabled={appliedCoupon != null || isVerifyingCoupon}
+                    />
+                    {appliedCoupon ? (
+                      <Button type="button" variant="outline" className="rounded-none border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => { setAppliedCoupon(null); setCouponCode(""); }}>
+                        Remove
+                      </Button>
+                    ) : (
+                      <Button type="button" className="rounded-none bg-slate-800 hover:bg-slate-900" disabled={!couponCode || isVerifyingCoupon} onClick={handleVerifyCoupon}>
+                        {isVerifyingCoupon ? "Verifying..." : "Verify"}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {isLoadingEstimate ? (
                 <div className="mb-6 text-sm text-slate-500 animate-pulse text-center">Calculating estimate...</div>
               ) : estimate && !estimate.error && selectedPlan ? (
@@ -399,6 +482,12 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
                     <div className="flex justify-between items-center mb-2 text-green-600">
                       <span>Unused Credit ({estimate.days_remaining} days remaining)</span>
                       <span>-₹{estimate.unused_credit?.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  {appliedCoupon && estimate.amount_to_pay !== undefined && (
+                    <div className="flex justify-between items-center mb-2 text-primary font-medium">
+                      <span>Coupon Applied ({appliedCoupon.code})</span>
+                      <span>{appliedCoupon.discount_type === 'PERCENTAGE' ? `${appliedCoupon.discount_value}% OFF` : `₹${appliedCoupon.discount_value} OFF`}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center pt-2 mt-2 border-t border-slate-100 font-bold text-lg">

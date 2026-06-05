@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
-import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye, Camera, Edit, Trash } from 'lucide-react';
+import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye, Camera, Edit, Trash, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getBillingAndSupport, BillingAndSupportResponse } from '../../utils/admin_api';
 import { fetchWithTokenRefresh } from '../../utils/authService';
@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/sweetalert';
 import { useTheme } from '../../context/ThemeContext';
 import UpgradePlanDialog from '../common/UpgradePlanDialog';
+import { IncreaseCapacityDialog } from '../common/IncreaseCapacityDialog';
 
 const BillingManagement = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const BillingManagement = () => {
   const itemsPerPage = 5;
 
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+  const [isCapacityUpgradeOpen, setIsCapacityUpgradeOpen] = useState(false);
 
   const [showEditOrg, setShowEditOrg] = useState(false);
   const [editOrgStep, setEditOrgStep] = useState(1);
@@ -445,6 +447,10 @@ const BillingManagement = () => {
                 <span className="text-sm font-medium">{planPrice}</span>
               </div>
               <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4" /> Capacity</span>
+                <span className="text-sm font-medium">{org?.max_students} Students</span>
+              </div>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t">
                 <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Started At</span>
                 <span className="text-sm font-medium">{formatDate(org?.subscription_started_at || org?.created_at)}</span>
               </div>
@@ -460,9 +466,14 @@ const BillingManagement = () => {
                 <div>
                   <p className="font-medium text-sm">Basic Plan Active</p>
                   <p className="text-xs text-muted-foreground mt-0.5">Upgrade to Pro or Advance to unlock all features.</p>
-                  <Button variant="default" size="sm" className="mt-3 bg-amber-600 hover:bg-amber-700" onClick={() => setIsUpgradeOpen(true)}>
-                    Upgrade Plan
-                  </Button>
+                  <div className="flex gap-2 mt-3">
+                    <Button variant="default" size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setIsUpgradeOpen(true)}>
+                      Upgrade Plan
+                    </Button>
+                    <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-100" onClick={() => setIsCapacityUpgradeOpen(true)}>
+                      Increase Limit
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -472,9 +483,28 @@ const BillingManagement = () => {
                 <div>
                   <p className="font-medium text-sm">Pro Plan Active</p>
                   <p className="text-xs mt-1">Upgrade to Advance to unlock Enterprise features.</p>
-                  <Button variant="default" size="sm" className="mt-3 bg-primary hover:bg-primary/90 text-white" onClick={() => setIsUpgradeOpen(true)}>
-                    Upgrade to Advance
-                  </Button>
+                  <div className="flex gap-2 mt-3">
+                    <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 text-white" onClick={() => setIsUpgradeOpen(true)}>
+                      Upgrade to Advance
+                    </Button>
+                    <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10" onClick={() => setIsCapacityUpgradeOpen(true)}>
+                      Increase Limit
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {org?.plan_type === 'advance' && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex gap-3 text-emerald-800">
+                <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Advance Plan Active</p>
+                  <p className="text-xs mt-1">You are on the highest tier with all Enterprise features unlocked.</p>
+                  <div className="flex gap-2 mt-3">
+                    <Button variant="outline" size="sm" className="border-emerald-300 text-emerald-700 hover:bg-emerald-100" onClick={() => setIsCapacityUpgradeOpen(true)}>
+                      Increase Limit
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1089,6 +1119,14 @@ const BillingManagement = () => {
         currentPlan={org?.plan_type}
         onSuccess={() => window.location.reload()}
       />
+      {isCapacityUpgradeOpen && (
+        <IncreaseCapacityDialog
+          currentPlan={org?.plan_type || 'basic'}
+          orgName={org?.name || 'Organization'}
+          currentMaxStudents={org?.max_students || 500}
+          onClose={() => setIsCapacityUpgradeOpen(false)}
+        />
+      )}
     </div>
   );
 };

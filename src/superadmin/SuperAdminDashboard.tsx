@@ -11,6 +11,7 @@ import Support from "./pages/Support";
 import Monitoring from "./pages/Monitoring";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
+import Coupons from "./pages/Coupons";
 import { useTheme } from "../context/ThemeContext";
 
 interface Props {
@@ -92,6 +93,7 @@ const SuperAdminDashboard = ({ setIsAuthenticated }: Props) => {
                 <Route path="organizations" element={<Organizations />} />
                 <Route path="billing" element={<Billing />} />
                 <Route path="subscriptions" element={<Subscriptions />} />
+                <Route path="coupons" element={<Coupons />} />
                 <Route path="users" element={<UserAnalytics />} />
                 <Route path="support" element={<Support />} />
                 <Route path="monitoring" element={<Monitoring />} />

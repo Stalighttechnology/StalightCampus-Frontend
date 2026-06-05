@@ -12,7 +12,8 @@ import {
   LogOut,
   Menu,
   ShieldCheck,
-  UserCircle2
+  UserCircle2,
+  Tag
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useTheme } from "../context/ThemeContext";
@@ -40,6 +41,7 @@ const menuItems = [
   { id: "organizations", label: "Organizations", icon: <Building2 size={20} /> },
   { id: "billing", label: "Billing & Payments", icon: <CreditCard size={20} /> },
   { id: "subscriptions", label: "Subscriptions", icon: <Clock size={20} /> },
+  { id: "coupons", label: "Coupons", icon: <Tag size={20} /> },
   { id: "users", label: "User Analytics", icon: <Users size={20} /> },
   { id: "support", label: "Support Panel", icon: <LifeBuoy size={20} /> },
   { id: "monitoring", label: "System Monitor", icon: <Activity size={20} /> },
