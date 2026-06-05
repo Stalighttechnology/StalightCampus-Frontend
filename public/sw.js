@@ -26,7 +26,6 @@ messaging.onBackgroundMessage((payload) => {
     const notificationOptions = {
         body: notificationBody,
         icon: '/logo-192.png',
-        badge: '/logo-192.png',
         sound: '/notification.mp3',
         tag: 'stalight-notification',
         requireInteraction: false,

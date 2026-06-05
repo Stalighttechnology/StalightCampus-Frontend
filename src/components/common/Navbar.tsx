@@ -80,7 +80,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
     avatarSrc = String(rawAvatar);
     // If backend returned a relative media path like `/media/...`, prefix with base URL
     if (avatarSrc.startsWith('/media/')) {
-      avatarSrc = `${API_BASE_URL.replace('/api','')}${avatarSrc}`;
+      avatarSrc = `${API_BASE_URL.replace('/api', '')}${avatarSrc}`;
     }
   }
 
@@ -99,7 +99,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
   return (
     <motion.div
-      className={`w-full h-20 flex items-center justify-between p-4 relative border-b transition-all duration-500`}
+      className={`w-full flex items-center justify-between px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] lg:py-0 lg:h-20 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -120,14 +120,14 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
         <div className="flex flex-col">
           <motion.div
-            className={`font-semibold text-lg leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
+            className={`font-semibold text-base leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}
           >
             Welcome,{" "}
             <span className={`text-primary`}>
               {user?.first_name || user?.username || "User"}
             </span>
           </motion.div>
-          <p className={`text-[10px] uppercase tracking-wider font-semibold ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+          <p className={`text-[9px] uppercase tracking-wider font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
             {role === "admin" || role === "principal" ? "Principal" : role.replace('_', ' ')} Portal
           </p>
         </div>
@@ -166,7 +166,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
           >
             {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
           </Button>
-          
+
           {['student', 'faculty', 'hod', 'admin'].includes(role || '') && (
             <Button
               variant="ghost"

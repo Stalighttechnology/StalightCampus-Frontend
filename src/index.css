@@ -758,7 +758,8 @@ html {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    background: linear-gradient(to bottom, #7c3aed, #5b21b6, #1e1b4b);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     overflow-x: hidden;
   }
 

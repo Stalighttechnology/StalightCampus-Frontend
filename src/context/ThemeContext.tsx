@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { NavigationBar } from '@capgo/capacitor-navigation-bar';
 
 interface ThemeContextType {
   theme: string;
@@ -44,6 +47,10 @@ export const ThemeProvider: React.FC<{children: ReactNode;}> = ({ children }) =>
         rootElement.classList.add('light');
       }
     }
+
+    // Apply Capacitor native Status Bar & Navigation Bar styling if running in a native mobile environment
+    // Note: StatusBar and NavigationBar logic is handled individually by LoginMobile and DashboardLayout
+    // to ensure proper transitioning between overlay screens and standard screens.
 
     // Save theme preference (persists across login sessions)
     localStorage.setItem('user-theme-preference', theme);

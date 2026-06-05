@@ -9,14 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock } from "lucide-react";
+import { Upload, Camera, CheckCircle, AlertCircle, Eye, EyeOff, Monitor, Smartphone, Tablet, Globe, RefreshCw, ShieldCheck, Clock , Trash} from 'lucide-react';
 import { useTheme } from "@/context/ThemeContext";
 import { getFullStudentProfile } from "@/utils/student_api";
 import { useStudentProfileUpdateMutation } from "@/hooks/useApiQueries";
 import { useFileUpload } from "../../hooks/useOptimizations";
 import { Progress } from "../ui/progress";
 import { SkeletonForm } from "../ui/skeleton";
-import { showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
+import { showConfirmAlert, showSuccessAlert, showErrorAlert, showInfoAlert } from "../../utils/sweetalert";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type StudentForm = Record<string, any>;
@@ -460,6 +460,36 @@ const StudentProfile: React.FC = () => {
     }
   };
 
+  
+  const handleDeleteProfilePicture = async () => {
+    const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/delete-picture/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      
+      if (res.success) {
+        setForm((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
+        const userStr = sessionStorage.getItem("user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          delete user.profile_picture;
+          delete user.profile_image;
+          sessionStorage.setItem("user", JSON.stringify(user));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+        showSuccessAlert("Success", "Profile picture removed!");
+      } else {
+        showErrorAlert("Error", res.message || "Failed to remove profile picture");
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Network error while removing picture");
+    }
+  };
+
   const handleProfilePictureSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -490,6 +520,7 @@ const StudentProfile: React.FC = () => {
           const currentUserData = JSON.parse(sessionStorage.getItem("user") || '{}');
           currentUserData.profile_picture = fileUrl;
           sessionStorage.setItem("user", JSON.stringify(currentUserData));
+          window.dispatchEvent(new Event("userProfileUpdated"));
           showSuccessAlert('Success', 'Profile picture updated successfully!');
         } else {
           showErrorAlert('Error', result.message || 'Failed to update backend with new photo');
@@ -773,10 +804,23 @@ const StudentProfile: React.FC = () => {
             <div className="col-span-1 flex flex-col items-center">
               <div className="relative mb-3 mt-3 sm:mb-4 flex-shrink-0">
                 <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                  {form.profile_picture ? <AvatarImage src={form.profile_picture} alt={`${form.first_name} ${form.last_name}`} /> : <AvatarFallback>{(form.first_name?.[0] || '') + (form.last_name?.[0] || '')}</AvatarFallback>}
+                  <AvatarImage src={form.profile_picture || undefined} alt={`${form.first_name} ${form.last_name}`} />
+<AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">{(form.first_name?.[0] || '') + (form.last_name?.[0] || '')}</AvatarFallback>
                 </Avatar>
-                <label htmlFor="profile-picture-upload" className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-2 rounded-full cursor-pointer transition-colors shadow-lg"><Camera className="h-4 w-4" /></label>
+                {(editing || !form?.profile_picture) && (
+                  <label htmlFor="profile-picture-upload" className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-2 rounded-full cursor-pointer transition-colors shadow-lg"><Camera className="h-4 w-4" /></label>
+                )}
                 <input id="profile-picture-upload" type="file" accept="image/*" onChange={handleProfilePictureSelect} className="hidden" />
+                {(editing && form?.profile_picture) && (
+                  <button
+                    onClick={handleDeleteProfilePicture}
+                    className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                    title="Remove Photo"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
+
               </div>
 
               {isUploadingPicture &&

@@ -18,7 +18,13 @@ const config: CapacitorConfig = {
       ]
     },
     CapacitorUpdater: {
-      appId: 'com.stalight.campus'
+      appId: 'com.stalight.campus',
+      autoUpdate: true
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'dark',
+      resizeOnFullScreen: true
     }
   }
 };

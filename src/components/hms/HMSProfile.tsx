@@ -10,9 +10,9 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { useTheme } from "../../context/ThemeContext";
-import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
+import { showConfirmAlert, showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Eye, EyeOff, Camera } from "lucide-react";
+import { Eye, EyeOff, Camera , Trash} from 'lucide-react';
 import { SkeletonCard } from "../ui/skeleton";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
@@ -145,6 +145,36 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
     }
   };
 
+  
+  const handleDeleteProfilePicture = async () => {
+    const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/delete-picture/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      
+      if (res.success) {
+        setProfile((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
+        const userStr = sessionStorage.getItem("user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          delete user.profile_picture;
+          delete user.profile_image;
+          sessionStorage.setItem("user", JSON.stringify(user));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+        showSuccessAlert("Success", "Profile picture removed!");
+      } else {
+        showErrorAlert("Error", res.message || "Failed to remove profile picture");
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Network error while removing picture");
+    }
+  };
+
   const handleProfilePictureSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -176,6 +206,7 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
           const currentUserData = JSON.parse(sessionStorage.getItem("user") || '{}');
           currentUserData.profile_picture = fileUrl;
           sessionStorage.setItem("user", JSON.stringify(currentUserData));
+          window.dispatchEvent(new Event("userProfileUpdated"));
           showSuccessAlert('Success', 'Profile picture updated successfully!');
         } else {
           showErrorAlert('Error', result.message || 'Failed to update backend with new photo');
@@ -450,16 +481,25 @@ const HMSProfile = ({ user: propUser, setError }: { user?: User; setError?: (err
             <div className="col-span-1 flex flex-col items-center">
               <div className="relative mb-3 mt-3 sm:mb-4 flex-shrink-0">
                 <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                  {profile.profile_picture ? (
-                    <AvatarImage src={profile.profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
-                  ) : (
-                    <AvatarFallback>{(profile.first_name?.[0] || '') + (profile.last_name?.[0] || '')}</AvatarFallback>
-                  )}
+                  <AvatarImage src={profile.profile_picture || undefined} alt={`${profile.first_name} ${profile.last_name}`} />
+<AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">{(profile.first_name?.[0] || '') + (profile.last_name?.[0] || '')}</AvatarFallback>
                 </Avatar>
-                <label htmlFor="profile-picture-upload" className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-2 rounded-full cursor-pointer transition-colors shadow-lg">
+                {(editing || !profile?.profile_picture) && (
+<label htmlFor="profile-picture-upload" className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-2 rounded-full cursor-pointer transition-colors shadow-lg">
                   <Camera className="h-4 w-4" />
                 </label>
+)}
                 <input id="profile-picture-upload" type="file" accept="image/*" onChange={handleProfilePictureSelect} className="hidden" />
+                {editing && profile?.profile_picture && (
+                  <button
+                    onClick={handleDeleteProfilePicture}
+                    className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                    title="Remove Photo"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
+
               </div>
 
               {isUploadingPicture && (

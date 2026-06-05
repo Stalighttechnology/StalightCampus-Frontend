@@ -7,6 +7,7 @@ import ForgotPasswordFlow from "../auth/ForgotPasswordFlow";
 import ForgotPasswordMobile from "../auth/ForgotPasswordMobile";
 import ResetPassword from "../auth/ResetPassword";
 import { useAuth } from "../../context/AuthContext";
+import { AnimatePresence, motion } from "framer-motion";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -112,26 +113,55 @@ const Index = () => {
   }
 
   // Authentication pages
-  if (page === "login")
+  if (["login", "otp", "forgot-password", "reset-password"].includes(page)) {
+    const renderAuthPage = () => {
+      switch (page) {
+        case "login":
+          return <LoginWrapper setRole={setRoleState} setPage={setPage} setUser={setUserState} />;
+        case "otp":
+          return <OTPPage setRole={setRoleState} setPage={setPage} setUser={setUserState} />;
+        case "forgot-password":
+          return isMobile ? <ForgotPasswordMobile setPage={setPage} /> : <ForgotPasswordFlow setPage={setPage} />;
+        case "reset-password":
+          return <ResetPassword setPage={setPage} />;
+        default:
+          return null;
+      }
+    };
+
     return (
-      <LoginWrapper
-        setRole={setRoleState}
-        setPage={setPage}
-        setUser={setUserState}
-      />
-    );
-  if (page === "otp")
-    return (
-      <OTPPage setRole={setRoleState} setPage={setPage} setUser={setUserState} />
-    );
-  if (page === "forgot-password") {
-    return isMobile ? (
-      <ForgotPasswordMobile setPage={setPage} />
-    ) : (
-      <ForgotPasswordFlow setPage={setPage} />
+      <div className={isMobile ? "relative min-h-[100dvh] overflow-hidden bg-gradient-to-b from-violet-600 via-violet-800 to-violet-950" : "w-full"}>
+        {isMobile && (
+          <>
+            <div className="absolute w-[360px] h-[360px] bg-violet-500/30 blur-[72px] rounded-full top-[-100px] left-[-80px] z-0 pointer-events-none" />
+            <div className="absolute w-[360px] h-[360px] bg-violet-400/30 blur-[72px] rounded-full bottom-[-80px] right-[-80px] z-0 pointer-events-none" />
+          </>
+        )}
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={page}
+            initial={{ opacity: 0, x: isMobile ? 100 : 0 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: isMobile ? -100 : 0 }}
+            transition={{ 
+              duration: 0.4,
+              ease: [0.25, 1, 0.5, 1]
+            }}
+            style={{ 
+              width: "100%", 
+              willChange: "transform, opacity",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+              perspective: 1000,
+              WebkitPerspective: 1000
+            }}
+          >
+            {renderAuthPage()}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     );
   }
-  if (page === "reset-password") return <ResetPassword setPage={setPage} />;
 
   // If still loading or redirecting, show loading
   return (

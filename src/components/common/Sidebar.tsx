@@ -579,14 +579,14 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const sidebarContent = (
     <motion.div
-      className={`h-full flex flex-col border-r ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
-      initial={{ x: -100, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      className={`h-full w-64 flex flex-col border-r pb-[env(safe-area-inset-bottom,0px)] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+      initial={isMobile ? false : { x: -100, opacity: 0 }}
+      animate={isMobile ? false : { x: 0, opacity: 1 }}
+      transition={isMobile ? undefined : { duration: 0.3 }}
     >
       {/* Header */}
       <motion.div
-        className={`h-20 px-4 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+        className={`px-4 h-20 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
@@ -634,9 +634,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
             ?.map((item, index) => (
               <motion.div
                 key={item.page}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 * index }}
+                initial={isMobile ? false : { opacity: 0, x: -20 }}
+                animate={isMobile ? false : { opacity: 1, x: 0 }}
+                transition={isMobile ? undefined : { duration: 0.3, delay: 0.1 * index }}
               >
                 <Button
                   id={getSidebarId(item.page)}
@@ -657,15 +657,19 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
                   </motion.div>
                   <AnimatePresence>
                     {!collapsed && (
-                      <motion.span
-                        className="truncate"
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "auto" }}
-                        exit={{ opacity: 0, width: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {item.name}
-                      </motion.span>
+                      isMobile ? (
+                        <span className="truncate">{item.name}</span>
+                      ) : (
+                        <motion.span
+                          className="truncate"
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: "auto" }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {item.name}
+                        </motion.span>
+                      )
                     )}
                   </AnimatePresence>
                 </Button>
@@ -763,7 +767,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         <AnimatePresence>
           {!collapsed && (
             <motion.div
-              className="fixed inset-0 bg-black/50 z-30"
+              className="fixed top-[env(safe-area-inset-top,0px)] right-0 bottom-0 left-0 bg-black/50 z-30"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -773,10 +777,11 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
           )}
         </AnimatePresence>
         <motion.div
-          className={`fixed top-0 left-0 h-full z-40 shadow-2xl ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+          className={`fixed top-[env(safe-area-inset-top,0px)] bottom-0 left-0 z-40 shadow-2xl w-64 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
           initial={{ x: "-100%" }}
           animate={{ x: collapsed ? "-100%" : "0%" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
+          style={{ willChange: "transform" }}
         >
           {sidebarContent}
         </motion.div>

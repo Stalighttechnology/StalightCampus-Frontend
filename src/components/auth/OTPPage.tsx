@@ -20,8 +20,8 @@ const OTPPage = ({ setRole, setPage, setUser }: OTPPageProps) => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [resendDisabled, setResendDisabled] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+  const [resendDisabled, setResendDisabled] = useState(true);
+  const [countdown, setCountdown] = useState(30);
   const [isVerified, setIsVerified] = useState(false);
   const user_id = sessionStorage.getItem("temp_user_id") || "";
 

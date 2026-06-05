@@ -78,6 +78,7 @@ typings/
 
 # Dotenv
 .env
+.env.production
 *.local
 
 # Stores VS Code settings

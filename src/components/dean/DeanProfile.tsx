@@ -10,11 +10,11 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { User, Mail, Phone, MapPin, Calendar, Edit, Save, X, Eye, EyeOff, BookOpen, Camera } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, Edit, Save, X, Eye, EyeOff, BookOpen, Camera , Trash} from 'lucide-react';
 import { Progress } from "../ui/progress";
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import Swal from "sweetalert2";
-import { showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
+import { showConfirmAlert, showSuccessAlert, showErrorAlert } from "../../utils/sweetalert";
 import { useTheme } from "../../context/ThemeContext";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
@@ -66,6 +66,36 @@ const DeanProfile = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState((typeof Notification !== 'undefined' && Notification.permission === 'granted') && localStorage.getItem('hasSeenPwaWizard') !== null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  
+  const handleDeleteProfilePicture = async () => {
+    const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/delete-picture/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      
+      if (res.success) {
+        setProfile((prev: any) => ({ ...prev, profile_picture: "", profile_image: "" }));
+        const userStr = sessionStorage.getItem("user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          delete user.profile_picture;
+          delete user.profile_image;
+          sessionStorage.setItem("user", JSON.stringify(user));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+        showSuccessAlert("Success", "Profile picture removed!");
+      } else {
+        showErrorAlert("Error", res.message || "Failed to remove profile picture");
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Network error while removing picture");
+    }
+  };
 
   const handleProfilePictureSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -393,20 +423,19 @@ const DeanProfile = () => {
           <div className="col-span-1 flex flex-col items-center h-full">
             <div className="relative mb-3 sm:mb-4 flex-shrink-0">
               <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                {profile.profile_image || (profile as any).profile_picture ? (
-                  <AvatarImage src={profile.profile_image || (profile as any).profile_picture} alt={`${profile.first_name} ${profile.last_name}`} className="object-cover" />
-                ) : (
-                  <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
-                    {getInitials(profile)}
-                  </AvatarFallback>
-                )}
+                <AvatarImage src={profile.profile_image || (profile as any).profile_picture || undefined} alt={`${profile.first_name} ${profile.last_name}`} className="object-cover" />
+                <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+                  {getInitials(profile)}
+                </AvatarFallback>
               </Avatar>
-              <label 
+              {(editing || !profile?.profile_picture) && (
+<label 
                 htmlFor="dean-profile-picture-upload" 
                 className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
               >
                 <Camera className="h-4 w-4" />
               </label>
+)}
               <input 
                 id="dean-profile-picture-upload" 
                 type="file" 
@@ -414,6 +443,16 @@ const DeanProfile = () => {
                 onChange={handleProfilePictureSelect} 
                 className="hidden" 
               />
+                {editing && profile?.profile_picture && (
+                  <button
+                    onClick={handleDeleteProfilePicture}
+                    className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                    title="Remove Photo"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
+
             </div>
             
             {isUploading && (

@@ -26,6 +26,14 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPasswordResetFlow, setIsPasswordResetFlow] = useState(false);
   const [token, setToken] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(30);
+
+  useEffect(() => {
+    if (currentStep === 'otp' && resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, resendCountdown]);
 
   useEffect(() => {
     // Check if there's a stored temp_user_id from a previous session
@@ -109,6 +117,25 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
         setCurrentStep('password');
       } else {
         setError(response.message || "Invalid OTP code");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const response = await forgotPassword({ email: email.trim() });
+      if (response.success) {
+        setUserId(String(response.user_id || ""));
+        setResendCountdown(30);
+      } else {
+        setError(response.message || "Failed to resend OTP");
       }
     } catch (err) {
       setError("Network error. Please try again.");
@@ -241,9 +268,19 @@ const ForgotPasswordFlow = ({ setPage }: ForgotPasswordFlowProps) => {
                   maxLength={6} />
                 
               </div>
-              <p className="text-xs text-gray-600">
-                We sent a verification code to {email}
-              </p>
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-gray-600">
+                  We sent a verification code to {email}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={loading || resendCountdown > 0}
+                  className="text-xs font-semibold text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend Code"}
+                </button>
+              </div>
             </div>
           </motion.div>);
 

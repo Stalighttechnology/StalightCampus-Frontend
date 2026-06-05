@@ -311,6 +311,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
           const user = JSON.parse(sessionStorage.getItem("user") || '{}');
           user.profile_picture = fileUrl;
           sessionStorage.setItem("user", JSON.stringify(user));
+          window.dispatchEvent(new Event("userProfileUpdated"));
           showSuccessAlert("Success", "Profile picture updated!");
         } else {
           showErrorAlert("Error", res.message || "Failed to update profile picture");
@@ -321,6 +322,33 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+    }
+  };
+
+  const handleDeleteProfilePicture = async () => {
+    const confirmed = await showConfirmAlert('Remove Photo', 'Are you sure you want to remove your profile picture?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/delete-picture/`, {
+        method: 'DELETE'
+      });
+      const res = await response.json();
+      
+      if (res.success) {
+        setProfile(prev => ({ ...prev, profile_picture: "", profile_image: "" }));
+        const user = JSON.parse(sessionStorage.getItem("user") || '{}');
+        delete user.profile_picture;
+          delete user.profile_image;
+        sessionStorage.setItem("user", JSON.stringify(user));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        
+        showSuccessAlert("Success", "Profile picture removed!");
+      } else {
+        showErrorAlert("Error", res.message || "Failed to remove profile picture");
+      }
+    } catch (err) {
+      showErrorAlert("Error", "Network error while removing picture");
     }
   };
 
@@ -386,7 +414,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             mobile_number: response.profile.mobile_number || '',
             address: response.profile.address || '',
             bio: response.profile.bio || '',
-            profile_picture: response.profile.profile_picture || profile.profile_picture || ''
+            profile_picture: response.profile.profile_picture || profile?.profile_picture || ''
           };
           setProfile(profileData);
           setOriginalProfile(profileData);
@@ -1024,20 +1052,19 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             <div className="col-span-1 flex flex-col items-center">
               <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0">
                 <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                  {(profile as any).profile_picture ? (
-                    <AvatarImage src={(profile as any).profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
-                  ) : (
-                    <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+                  <AvatarImage src={(profile as any).profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
+<AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
                       {(profile.first_name?.[0] || "") + (profile.last_name?.[0] || "")}
                     </AvatarFallback>
-                  )}
                 </Avatar>
-                <label
-                  htmlFor="profile-picture-upload"
-                  className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
-                >
-                  <Camera className="h-4 w-4" />
-                </label>
+                {(editing || !profile?.profile_picture) && (
+                  <label
+                    htmlFor="profile-picture-upload"
+                    className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </label>
+                )}
                 <input
                   id="profile-picture-upload"
                   type="file"
@@ -1045,6 +1072,15 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                   onChange={handleProfilePictureSelect}
                   className="hidden"
                 />
+                {editing && profile?.profile_picture && (
+                  <button
+                    onClick={handleDeleteProfilePicture}
+                    className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                    title="Remove Photo"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
               </div>
 
               {isUploading && (
