@@ -687,47 +687,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.5 }}
       >
-        {/* App Setup Button */}
-        {!isNotificationsEnabled && (
-          <Button
-            variant="ghost"
-            className={`w-full justify-start gap-3 h-10 relative transition-all duration-200 ${collapsed ? "px-2" : "px-3"} ${theme === 'dark'
-              ? "text-blue-400 hover:text-blue-100 hover:bg-blue-900/50"
-              : "text-blue-700 hover:text-blue-800 hover:bg-blue-100"
-              }`}
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('open_pwa_installer'));
-              setShowPwaBadge(false); // Optimistically hide the badge when they click
-            }}
-          >
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              transition={{ duration: 0.1 }}
-              className="relative"
-            >
-              <Smartphone size={20} />
-              {showPwaBadge && (
-                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                </span>
-              )}
-            </motion.div>
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center gap-2"
-                >
-                  App Setup
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Button>
-        )}
+
 
         {/* Logout Button */}
         <Button
