@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { getWardenStudents } from "../../utils/warden_api";
 import { useWardenContext } from "../../context/WardenContext";
+import { API_BASE_URL } from "../../utils/config";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../ui/card";
+
+const getPhotoUrl = (photoPath?: string) => {
+  if (!photoPath) return null;
+  return photoPath.startsWith("http") ? photoPath : `${API_BASE_URL}${photoPath}`;
+};
 
 const WardenHostelOverview = () => {
   const { toast } = useToast();
@@ -171,8 +177,16 @@ const WardenHostelOverview = () => {
                   <div>
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-base">
-                          {student.name.charAt(0)}
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-base overflow-hidden shrink-0">
+                          {student.profile_picture ? (
+                            <img
+                              src={getPhotoUrl(student.profile_picture) || undefined}
+                              alt={student.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            student.name.charAt(0)
+                          )}
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
@@ -280,8 +294,16 @@ const WardenHostelOverview = () => {
               <GraduationCap size={120} />
             </div>
             <div className="flex items-center gap-4 relative z-10">
-              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl font-semibold border border-white/30">
-                {selectedStudent?.name?.charAt(0)}
+              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl font-semibold border border-white/30 overflow-hidden shrink-0">
+                {selectedStudent?.profile_picture ? (
+                  <img
+                    src={getPhotoUrl(selectedStudent.profile_picture) || undefined}
+                    alt={selectedStudent.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  selectedStudent?.name?.charAt(0)
+                )}
               </div>
               <div>
                 <h2 className="text-2xl font-semibold">{selectedStudent?.name}</h2>
