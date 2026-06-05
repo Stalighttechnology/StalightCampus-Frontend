@@ -449,214 +449,214 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                 <SkeletonTable rows={8} cols={5} />
               </div>
             ) : (
-            <div className="border rounded-xl overflow-hidden shadow-sm">
-              {/* Mobile: stacked cards */}
-              <div className="md:hidden space-y-3 p-2">
-                {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
-                  filteredLeaveRequests.map((leave) =>
-                    <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="font-semibold text-base">{leave.name}</div>
-                          <div className="text-xs text-muted-foreground font-medium flex gap-1">
-                            <span>{leave.role === 'transport_admin' ? 'Transport Admin' : leave.role === 'library_admin' ? 'Library Admin' : leave.role === 'hms_admin' ? 'Hostel Admin' : leave.role}</span>
-                            <span>•</span>
-                            <span>{leave.department}</span>
-                          </div>
-                        </div>
-                        <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
-                      </div>
-
-                      <div className="mt-3 space-y-3">
-                        <div className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
-                          <CalendarIcon className="w-4 h-4 text-primary/60" />
-                          <span className="font-medium text-foreground">{leave.from}</span>
-                          <span className="text-muted-foreground">to</span>
-                          <span className="font-medium text-foreground">{leave.to}</span>
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                          onClick={() => setViewLeave(leave)}>
-
-                          View Reason
-                        </Button>
-
-                        {leave.status === "Pending" ? (
-                          <div className="grid grid-cols-2 gap-3 mt-2">
-                            <Button
-                              variant="outline"
-                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
-                                  ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
-                                  : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
-                                }`}
-                              onClick={() => handleApprove(leave.id)}
-                              disabled={loading}
-                            >
-                              <CheckCircle size={16} /> Approve
-                            </Button>
-                            <Button
-                              variant="outline"
-                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
-                                  ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
-                                  : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
-                                }`}
-                              onClick={() => handleReject(leave.id)}
-                              disabled={loading}
-                            >
-                              <XCircle size={16} /> Reject
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between pt-2 border-t border-border/20 mt-2">
-                            <span className="text-xs text-muted-foreground italic">Processed</span>
-                            {leave.reviewed_by && (
-                              <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ) :
-
-                  <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
-                    <CalendarIcon className="w-10 h-10 text-primary opacity-30 mb-3" />
-                    <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests</h3>
-                    <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no leave requests to display for this period.</p>
-                  </div>
-                }
-              </div>
-
-              {/* Desktop / Tablet: table */}
-              <table className="hidden md:table w-full text-sm text-left border-collapse">
-                <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
-                  <tr>
-                    <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Admin</th>
-                    <th className={`py-3 px-4 md:px-12 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
-                    <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
-                    <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
-                    <th className={`py-3 px-2 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
+              <div className="border rounded-xl overflow-hidden shadow-sm">
+                {/* Mobile: stacked cards */}
+                <div className="md:hidden space-y-3 p-2">
                   {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
                     filteredLeaveRequests.map((leave) =>
-                      <tr
-                        key={leave.id}
-                        className={`transition-colors duration-200 border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
-
-                        <td className="py-4 px-2 md:px-4">
-                          <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
-                          <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            {leave.role === 'transport_admin' ? 'Transport Admin' : leave.role === 'library_admin' ? 'Library Admin' : leave.role === 'hms_admin' ? 'Hostel Admin' : leave.role} • {leave.department}
+                      <div key={leave.id} className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="font-semibold text-base">{leave.name}</div>
+                            <div className="text-xs text-muted-foreground font-medium flex gap-1">
+                              <span>{leave.role === 'transport_admin' ? 'Transport Admin' : leave.role === 'library_admin' ? 'Library Admin' : leave.role === 'hms_admin' ? 'Hostel Admin' : leave.role}</span>
+                              <span>•</span>
+                              <span>{leave.department}</span>
+                            </div>
                           </div>
-                        </td>
-                        <td className={`py-4 px-2 md:px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          {leave.from} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.to}
-                        </td>
-                        <td className="py-4 px-2 md:px-4 text-sm">
-                          <button
-                            onClick={() => setViewLeave(leave)}
-                            className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                          <div className="shrink-0">{getStatusBadge(leave.status, theme)}</div>
+                        </div>
 
-                            View
-                          </button>
-                        </td>
-                        <td className="py-4 px-2 md:px-4">{getStatusBadge(leave.status, theme)}</td>
-                        <td className="py-4 px-2 md:px-4 text-right">
+                        <div className="mt-3 space-y-3">
+                          <div className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-muted/10 border-border/40' : 'bg-gray-50/50 border-gray-100'}`}>
+                            <CalendarIcon className="w-4 h-4 text-primary/60" />
+                            <span className="font-medium text-foreground">{leave.from}</span>
+                            <span className="text-muted-foreground">to</span>
+                            <span className="font-medium text-foreground">{leave.to}</span>
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`leave-view-btn w-full h-9 font-semibold ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                            onClick={() => setViewLeave(leave)}>
+
+                            View Reason
+                          </Button>
+
                           {leave.status === "Pending" ? (
-                            <div className="flex justify-end gap-2">
+                            <div className="grid grid-cols-2 gap-3 mt-2">
                               <Button
-                                onClick={() => handleApprove(leave.id)}
-                                size="sm"
                                 variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                    ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
-                                    : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                  ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                  : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
                                   }`}
+                                onClick={() => handleApprove(leave.id)}
                                 disabled={loading}
                               >
-                                <CheckCircle size={16} />
-                                <span className="ml-1 hidden sm:inline">Approve</span>
+                                <CheckCircle size={16} /> Approve
                               </Button>
                               <Button
-                                onClick={() => handleReject(leave.id)}
-                                size="sm"
                                 variant="outline"
-                                className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                    ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
-                                    : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                  ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                  : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
                                   }`}
+                                onClick={() => handleReject(leave.id)}
                                 disabled={loading}
                               >
-                                <XCircle size={16} />
-                                <span className="ml-1 hidden sm:inline">Reject</span>
+                                <XCircle size={16} /> Reject
                               </Button>
                             </div>
                           ) : (
-                            <div className="flex flex-col items-end gap-0.5">
+                            <div className="flex items-center justify-between pt-2 border-t border-border/20 mt-2">
                               <span className="text-xs text-muted-foreground italic">Processed</span>
                               {leave.reviewed_by && (
-                                <span className="text-xs text-muted-foreground">by {leave.reviewed_by}</span>
+                                <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
                               )}
                             </div>
                           )}
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     ) :
 
-                    <tr>
-                      <td colSpan={5} className="py-20 px-4">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
-                            <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
-                          </div>
-                          <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests</h3>
-                          <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                            There are currently no leave requests available for the selected period.
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
+                    <div className={`flex flex-col items-center justify-center py-10 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-white'}`}>
+                      <CalendarIcon className="w-10 h-10 text-primary opacity-30 mb-3" />
+                      <h3 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Leave Requests</h3>
+                      <p className={`text-xs text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>There are currently no leave requests to display for this period.</p>
+                    </div>
                   }
-                </tbody>
-              </table>
-            </div>
+                </div>
+
+                {/* Desktop / Tablet: table */}
+                <table className="hidden md:table w-full text-sm text-left border-collapse">
+                  <thead className={`sticky top-0 z-10 border-b ${theme === 'dark' ? 'border-border bg-card shadow-sm' : 'border-gray-200 bg-gray-50 shadow-sm'}`}>
+                    <tr>
+                      <th className={`py-3 px-2 md:px-4 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Admin</th>
+                      <th className={`py-3 px-4 md:px-12 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
+                      <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
+                      <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                      <th className={`py-3 px-2 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {Array.isArray(filteredLeaveRequests) && filteredLeaveRequests.length > 0 ?
+                      filteredLeaveRequests.map((leave) =>
+                        <tr
+                          key={leave.id}
+                          className={`transition-colors duration-200 border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+
+                          <td className="py-4 px-2 md:px-4">
+                            <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
+                            <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              {leave.role === 'transport_admin' ? 'Transport Admin' : leave.role === 'library_admin' ? 'Library Admin' : leave.role === 'hms_admin' ? 'Hostel Admin' : leave.role} • {leave.department}
+                            </div>
+                          </td>
+                          <td className={`py-4 px-2 md:px-4 text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            {leave.from} <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>to</span> {leave.to}
+                          </td>
+                          <td className="py-4 px-2 md:px-4 text-sm">
+                            <button
+                              onClick={() => setViewLeave(leave)}
+                              className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+
+                              View
+                            </button>
+                          </td>
+                          <td className="py-4 px-2 md:px-4">{getStatusBadge(leave.status, theme)}</td>
+                          <td className="py-4 px-2 md:px-4 text-right">
+                            {leave.status === "Pending" ? (
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  onClick={() => handleApprove(leave.id)}
+                                  size="sm"
+                                  variant="outline"
+                                  className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                    ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                    : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                    }`}
+                                  disabled={loading}
+                                >
+                                  <CheckCircle size={16} />
+                                  <span className="ml-1 hidden sm:inline">Approve</span>
+                                </Button>
+                                <Button
+                                  onClick={() => handleReject(leave.id)}
+                                  size="sm"
+                                  variant="outline"
+                                  className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                    ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                    : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                    }`}
+                                  disabled={loading}
+                                >
+                                  <XCircle size={16} />
+                                  <span className="ml-1 hidden sm:inline">Reject</span>
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-end gap-0.5">
+                                <span className="text-xs text-muted-foreground italic">Processed</span>
+                                {leave.reviewed_by && (
+                                  <span className="text-xs text-muted-foreground">by {leave.reviewed_by}</span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ) :
+
+                      <tr>
+                        <td colSpan={5} className="py-20 px-4">
+                          <div className="flex flex-col items-center justify-center">
+                            <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
+                              <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
+                            </div>
+                            <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests</h3>
+                            <p className={`text-center max-w-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                              There are currently no leave requests available for the selected period.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
             )}
           </CardContent>
 
           {totalCount > 0 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-            <div>
-              Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1 || loading || totalCount === 0}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Previous
-              </Button>
-
-              <div className="flex items-center justify-center min-w-[2rem]">
-                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {currentPage}
-                </span>
+              <div>
+                Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
               </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1 || loading || totalCount === 0}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Previous
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages || loading || totalCount === 0}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                Next
-              </Button>
-            </div>
+                <div className="flex items-center justify-center min-w-[2rem]">
+                  <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    {currentPage}
+                  </span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages || loading || totalCount === 0}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                  Next
+                </Button>
+              </div>
             </CardFooter>
           )}
         </Card>

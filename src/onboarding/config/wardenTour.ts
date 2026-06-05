@@ -55,6 +55,15 @@ export const wardenTour: Step[] = [
     route: '/warden/visitor_logs',
   },
   {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Submit leave requests and track your application history.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/warden/apply-leave',
+  },
+  {
     target: '#sidebar-profile',
     title: 'Profile',
     content:

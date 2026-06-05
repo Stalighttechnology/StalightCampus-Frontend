@@ -109,6 +109,24 @@ export const hmsTour: Step[] = [
     route: '/hms/visitor_logs',
   },
   {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Submit leave requests and track your application history.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/apply-leave',
+  },
+  {
+    target: '#sidebar-manage-warden-leaves',
+    title: 'Warden Leaves',
+    content:
+      'Review and manage leave requests submitted by Wardens.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/hms/manage-warden-leaves',
+  },
+  {
     target: '#sidebar-profile',
     title: 'HMS Profile',
     content:

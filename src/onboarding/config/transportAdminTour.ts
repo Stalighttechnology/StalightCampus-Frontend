@@ -73,6 +73,24 @@ export const transportAdminTour: Step[] = [
     route: '/transport-admin/transport-incidents',
   },
   {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Submit leave requests and track your application history.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/apply-leave',
+  },
+  {
+    target: '#sidebar-manage-leaves',
+    title: 'Driver Leaves',
+    content:
+      'Review and manage leave requests submitted by drivers.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/transport-admin/manage-leaves',
+  },
+  {
     target: '#sidebar-profile',
     title: 'Profile Settings',
     content:

@@ -64,6 +64,25 @@ export function libraryAdminTransform(step: any, isMobile: boolean): any[] | nul
     ];
   }
 
+  if (target === '#sidebar-apply-leave') {
+    return [
+      {
+        ...step,
+        target: '#apply-leave-form-card',
+        title: 'Apply for Leave',
+        content: 'Fill out this form and submit your leave requests.',
+        placement: isMobile ? step.placement : 'right',
+      },
+      {
+        ...step,
+        target: '#recent-leaves-card',
+        title: 'Recent Leaves',
+        content: 'Track the status of your submitted leave requests.',
+        placement: isMobile ? step.placement : 'left',
+      },
+    ];
+  }
+
   if (target === '#sidebar-profile') {
     return [
       {

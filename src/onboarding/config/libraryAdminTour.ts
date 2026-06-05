@@ -46,6 +46,15 @@ export const libraryAdminTour: Step[] = [
     route: '/library-admin/library-fines',
   },
   {
+    target: '#sidebar-apply-leave',
+    title: 'Apply Leave',
+    content:
+      'Submit leave requests and track your application history.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/library-admin/apply-leave',
+  },
+  {
     target: '#sidebar-profile',
     title: 'Profile Settings',
     content:

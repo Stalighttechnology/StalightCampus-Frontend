@@ -96,6 +96,37 @@ export function transportAdminTransform(step: any, isMobile: boolean): any[] | n
     ];
   }
 
+  if (target === '#sidebar-apply-leave') {
+    return [
+      {
+        ...step,
+        target: '#apply-leave-form-card',
+        title: 'Apply for Leave',
+        content: 'Fill out this form and submit your leave requests.',
+        placement: isMobile ? step.placement : 'right',
+      },
+      {
+        ...step,
+        target: '#recent-leaves-card',
+        title: 'Recent Leaves',
+        content: 'Track the status of your submitted leave requests.',
+        placement: isMobile ? step.placement : 'left',
+      },
+    ];
+  }
+
+  if (target === '#sidebar-manage-leaves') {
+    return [
+      {
+        ...step,
+        target: '#hod-leaves-header-section',
+        title: 'Driver Leave Requests',
+        content: 'Review and manage leave applications submitted by drivers.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-profile') {
     return [
       {

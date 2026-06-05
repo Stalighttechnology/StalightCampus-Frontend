@@ -10,7 +10,7 @@ import TransportDrivers from "../transport/admin/TransportDrivers";
 import TransportAllocations from "../transport/admin/TransportAllocations";
 import TransportTracking from "../transport/admin/TransportTracking";
 import TransportIncidents from "../transport/admin/TransportIncidents";
-import ApplyLeaveDepartmentAdmin from "../admin/ApplyLeaveDepartmentAdmin";
+import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import DriverLeavesManagement from "../transport/admin/LeaveManagement";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 

@@ -136,15 +136,6 @@ export const adminTour: Step[] = [
     route: '/admin/department-admin-leaves',
   },
   {
-    target: '#department-admin-leaves-header-section',
-    title: 'Leave Approvals',
-    content:
-      'Filter, review, and approve or reject leave requests from Library, Hostel, and Transport admins.',
-    placement: 'bottom' as const,
-    disableBeacon: false,
-    route: '/admin/department-admin-leaves',
-  },
-  {
     target: '#sidebar-hod-attendance',
     title: 'HOD Attendance',
     content:
