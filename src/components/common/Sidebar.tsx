@@ -283,6 +283,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // User Management
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Bulk Upload Faculty", page: "bulk-upload" },
+      { name: "Billing & Plans", page: "billing" },
 
       // Academic Structure
       { name: "Branches", page: "branches" },
@@ -489,6 +490,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     dean: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Enroll Staff", page: "enroll-user" },
+      { name: "Billing & Plans", page: "billing" },
       { name: "Today's Attendance", page: "attendance" },
       { name: "Attendance Filters", page: "attendance-filters" },
       { name: "Scan for Student Info", page: "scan-student-info" },

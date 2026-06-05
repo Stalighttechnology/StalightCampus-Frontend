@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import {
   Building2, User, Mail, Phone, CheckCircle2,
   ArrowRight, Loader2, Shield, Globe, ChevronLeft,
-  Camera, CreditCard, Tool, Info
+  Camera, CreditCard, Tool, Info, Lock
 } from "lucide-react";
 import {
   Select,
@@ -584,6 +584,15 @@ const Onboarding = () => {
                         {!loading && <ArrowRight size={16} />}
                       </Button>
                     </form>
+                  </div>
+                  <div className="text-center mt-3">
+                    <p className="text-gray-400 text-[10px] mt-2 flex items-center justify-center gap-1.5 uppercase font-bold tracking-widest">
+                      <Lock size={10} className="opacity-70" />
+                      Financial transactions are processed via secure encrypted gateway. 
+                    </p>
+                    <p className="text-gray-500 text-[9px] mt-1 text-center font-medium max-w-sm mx-auto">
+                      Disclaimer: All payments are final. Money debited for subscription renewals or plan upgrades cannot be refunded under any circumstances.
+                    </p>
                   </div>
                 </motion.div>
               )}

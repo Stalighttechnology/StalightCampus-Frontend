@@ -17,12 +17,13 @@ import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/sweetalert';
 import { useTheme } from '../../context/ThemeContext';
+import UpgradePlanDialog from '../common/UpgradePlanDialog';
 
 const BillingManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme } = useTheme();
-  
+
   const [data, setData] = useState<BillingAndSupportResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
@@ -31,10 +32,12 @@ const BillingManagement = () => {
   const [ticketForm, setTicketForm] = useState({ subject: '', description: '', priority: 'Medium' });
   const [submittingTicket, setSubmittingTicket] = useState(false);
   const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
-  
+
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [ticketsPage, setTicketsPage] = useState(1);
   const itemsPerPage = 5;
+
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
 
   const [showEditOrg, setShowEditOrg] = useState(false);
   const [editOrgStep, setEditOrgStep] = useState(1);
@@ -113,7 +116,7 @@ const BillingManagement = () => {
         method: 'POST',
         body: dataToSend
       });
-      
+
       const res = await response.json();
       if (res.success) {
         showSuccessAlert('Success', 'Organization logo uploaded successfully');
@@ -165,7 +168,7 @@ const BillingManagement = () => {
         method: 'POST',
         body: dataToSend
       });
-      
+
       const res = await response.json();
       if (res.success) {
         showSuccessAlert('Success', 'Organization logo removed successfully');
@@ -216,7 +219,7 @@ const BillingManagement = () => {
         method: 'POST',
         body: dataToSend
       });
-      
+
       const res = await response.json();
       if (res.success) {
         showSuccessAlert('Success', 'Organization details updated successfully');
@@ -383,10 +386,29 @@ const BillingManagement = () => {
   const paginatedPayments = payments.slice((safePaymentsPage - 1) * itemsPerPage, safePaymentsPage * itemsPerPage);
   const paginatedTickets = tickets.slice((safeTicketsPage - 1) * itemsPerPage, safeTicketsPage * itemsPerPage);
 
-  const planName = org?.plan_type === 'advance' ? 'Advance' : org?.plan_type === 'pro' ? 'Pro' : 'Basic (Trial)';
-  const baseRate = org?.plan_type === 'advance' ? 250 : org?.plan_type === 'pro' ? 200 : 150;
+  const planName = org?.plan_type === 'advance' ? 'Advance' : org?.plan_type === 'pro' ? 'Pro' : 'Basic';
   const cycleStr = org?.billing_cycle || 'Yearly';
-  const planPrice = `₹${baseRate} / student / year (Billed ${cycleStr})`;
+  let planPrice = '';
+
+  if (org?.plan_type === 'advance') {
+    const maxStudents = org?.max_students || 500;
+    const baseRate = 250;
+    const totalYearly = maxStudents * baseRate;
+    const price = cycleStr === 'Monthly' ? Math.round(totalYearly / 12) : cycleStr === 'Quarterly' ? Math.round(totalYearly / 4) : totalYearly;
+    planPrice = `₹${price.toLocaleString('en-IN')} / ${cycleStr}`;
+  } else if (org?.plan_type === 'pro') {
+    const maxStudents = org?.max_students || 500;
+    const baseRate = 200;
+    const totalYearly = maxStudents * baseRate;
+    const price = cycleStr === 'Monthly' ? Math.round(totalYearly / 12) : cycleStr === 'Quarterly' ? Math.round(totalYearly / 4) : totalYearly;
+    planPrice = `₹${price.toLocaleString('en-IN')} / ${cycleStr}`;
+  } else {
+    const maxStudents = org?.max_students || 500;
+    const pricePerStudent = 150;
+    const totalYearly = maxStudents * pricePerStudent;
+    const price = cycleStr === 'Monthly' ? Math.round(totalYearly / 12) : cycleStr === 'Quarterly' ? Math.round(totalYearly / 4) : totalYearly;
+    planPrice = `₹${price.toLocaleString('en-IN')} / ${cycleStr} (Up to ${maxStudents} students)`;
+  }
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -416,11 +438,15 @@ const BillingManagement = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-col gap-2 p-4 border rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4" /> Price</span>
                 <span className="text-sm font-medium">{planPrice}</span>
+              </div>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Started At</span>
+                <span className="text-sm font-medium">{formatDate(org?.subscription_started_at || org?.created_at)}</span>
               </div>
               <div className="flex justify-between items-center mt-2 pt-2 border-t">
                 <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Expiry Date</span>
@@ -432,10 +458,22 @@ const BillingManagement = () => {
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3 text-amber-800">
                 <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-sm">Trial Active</p>
-                  <p className="text-xs mt-1">Upgrade to Pro or Advance to unlock all features.</p>
-                  <Button variant="default" size="sm" className="mt-3 bg-amber-600 hover:bg-amber-700" onClick={() => navigate('/trial-expired')}>
+                  <p className="font-medium text-sm">Basic Plan Active</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Upgrade to Pro or Advance to unlock all features.</p>
+                  <Button variant="default" size="sm" className="mt-3 bg-amber-600 hover:bg-amber-700" onClick={() => setIsUpgradeOpen(true)}>
                     Upgrade Plan
+                  </Button>
+                </div>
+              </div>
+            )}
+            {org?.plan_type === 'pro' && (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex gap-3 text-primary">
+                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Pro Plan Active</p>
+                  <p className="text-xs mt-1">Upgrade to Advance to unlock Enterprise features.</p>
+                  <Button variant="default" size="sm" className="mt-3 bg-primary hover:bg-primary/90 text-white" onClick={() => setIsUpgradeOpen(true)}>
+                    Upgrade to Advance
                   </Button>
                 </div>
               </div>
@@ -575,7 +613,7 @@ const BillingManagement = () => {
                     <tr key={idx} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3">{formatDate(payment.timestamp)}</td>
                       <td className="px-4 py-3 capitalize">{payment.plan_type}</td>
-                      <td className="px-4 py-3 font-medium">₹{(payment.amount / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 font-medium">₹{parseFloat(payment.amount as any).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 font-mono text-sm md:text-xs">{payment.transaction_id}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${payment.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -584,9 +622,9 @@ const BillingManagement = () => {
                       </td>
                       <td className="px-4 py-3">
                         {payment.status === 'success' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 text-sm md:text-xs transition-colors"
                             onClick={() => handleDownloadReceipt(payment.id)}
                             disabled={downloadingId === payment.id}
@@ -674,26 +712,24 @@ const BillingManagement = () => {
                         {ticket.description}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${
-                          ticket.priority === 'High' || ticket.priority === 'Critical' ? 'bg-red-100 text-red-700' :
-                          ticket.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-                        }`}>
+                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${ticket.priority === 'High' || ticket.priority === 'Critical' ? 'bg-red-100 text-red-700' :
+                            ticket.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
                           {ticket.priority}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${
-                          ticket.status === 'Resolved' || ticket.status === 'Closed' ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'
-                        }`}>
+                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${ticket.status === 'Resolved' || ticket.status === 'Closed' ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'
+                          }`}>
                           {ticket.status}
                         </span>
                       </td>
                       <td className="px-4 py-3">{formatDate(ticket.created_at)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 text-sm md:text-xs transition-colors"
                             onClick={() => setViewTicket(ticket)}
                           >
@@ -766,9 +802,9 @@ const BillingManagement = () => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="subject">Subject</Label>
-              <Input 
-                id="subject" 
-                placeholder="Brief issue title" 
+              <Input
+                id="subject"
+                placeholder="Brief issue title"
                 value={ticketForm.subject}
                 onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
                 disabled={submittingTicket}
@@ -794,9 +830,9 @@ const BillingManagement = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Textarea 
-                id="description" 
-                placeholder="Detailed explanation of the issue" 
+              <Textarea
+                id="description"
+                placeholder="Detailed explanation of the issue"
                 className="resize-none h-26 overflow-y-auto custom-scrollbar"
                 value={ticketForm.description}
                 onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
@@ -827,9 +863,9 @@ const BillingManagement = () => {
                   <div className="mt-1">
                     <Badge className={
                       viewTicket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                      viewTicket.status === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
-                      viewTicket.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                      'bg-blue-100 text-blue-800 border-blue-200'
+                        viewTicket.status === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
+                          viewTicket.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                            'bg-blue-100 text-blue-800 border-blue-200'
                     } variant="outline">{viewTicket.status}</Badge>
                   </div>
                 </div>
@@ -838,8 +874,8 @@ const BillingManagement = () => {
                   <div className="mt-1">
                     <Badge variant="outline" className={
                       viewTicket.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50' :
-                      viewTicket.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50' :
-                      'border-blue-500 text-blue-600 bg-blue-50'
+                        viewTicket.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50' :
+                          'border-blue-500 text-blue-600 bg-blue-50'
                     }>{viewTicket.priority}</Badge>
                   </div>
                 </div>
@@ -936,7 +972,7 @@ const BillingManagement = () => {
                           <Camera size={16} className="text-muted-foreground" />
                         )}
                       </div>
-                      
+
                       <label htmlFor="org-logo-upload" className="flex items-center justify-center gap-2 px-4 bg-muted/30 border h-12 rounded-xl cursor-pointer hover:bg-muted/50 transition-colors flex-1">
                         <span className="text-xs sm:text-[10px] font-medium text-muted-foreground truncate">
                           {orgLogo ? orgLogo.name : (orgLogoPreview ? "Change Logo" : "Upload")}
@@ -1045,6 +1081,14 @@ const BillingManagement = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <UpgradePlanDialog
+        isOpen={isUpgradeOpen}
+        onClose={() => setIsUpgradeOpen(false)}
+        orgName={org?.name}
+        currentPlan={org?.plan_type}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 };

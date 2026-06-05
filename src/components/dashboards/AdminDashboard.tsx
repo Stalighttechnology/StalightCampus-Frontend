@@ -24,6 +24,7 @@ import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
 import GoogleSetup from "../admin/GoogleSetup";
+import BillingManagement from "../org_admin/BillingManagement";
 
 import {
   Users,
@@ -112,6 +113,9 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
           <div>
             <BulkUpload setError={setError} toast={toast} />
           </div>);
+
+      case "billing":
+        return <BillingManagement />;
 
       case "branches":
         return (

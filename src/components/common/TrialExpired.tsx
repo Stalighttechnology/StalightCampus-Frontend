@@ -5,13 +5,15 @@ import { useNavigate } from "react-router-dom";
 import UpgradePlanDialog from "@/components/common/UpgradePlanDialog";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { fetchWithTokenRefresh } from "@/utils/authService";
+import { API_ENDPOINT } from "@/utils/config";
 
 const TrialExpired = () => {
   const navigate = useNavigate();
   const { clearAuth } = useAuth();
   const orgName = localStorage.getItem("org_name") || "Your Organization";
   const role = sessionStorage.getItem("role");
-  const isAdmin = role === "admin" || role === "principal";
+  const isAdmin = role === "org_admin" || role === "principal" || role === "dean";
   
   const [isSubscription] = useState(() => {
     try {
@@ -23,6 +25,26 @@ const TrialExpired = () => {
   });
 
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/profile/`);
+        if (response.ok) {
+          // If profile fetch succeeds, the lock is lifted! Auto-redirect them back.
+          let dashboardPath = "/";
+          if (role === "org_admin") dashboardPath = "/org-admin";
+          else if (role === "principal") dashboardPath = "/admin";
+          else if (role === "dean") dashboardPath = "/dean";
+          else if (role === "student") dashboardPath = "/dashboard";
+          window.location.href = dashboardPath;
+        }
+      } catch (error) {
+        // Still locked, ignore.
+      }
+    };
+    checkStatus();
+  }, [role]);
 
   const handleLogout = () => {
     clearAuth();
@@ -52,52 +74,6 @@ const TrialExpired = () => {
         
         {/* Plan Selection Area */}
         <div className="p-10 bg-white">
-          <div className="space-y-4 mb-10">
-            <div 
-              className={cn(
-                "p-6 border transition-all duration-300 relative",
-                isAdmin 
-                  ? "border-primary bg-primary/5 hover:bg-primary/[0.08] cursor-pointer" 
-                  : "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
-              )}
-              onClick={() => isAdmin && setIsUpgradeModalOpen(true)}
-            >
-              <div className="absolute top-0 right-0 w-2 h-2 bg-primary" />
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 mb-1 tracking-tight">Professional Edition</h3>
-                  <p className="text-xs text-slate-500">Core institutional management suite</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-slate-900">₹99,999</p>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Per Annum</p>
-                </div>
-              </div>
-            </div>
-
-            <div 
-              className={cn(
-                "p-6 border-2 transition-all duration-300 relative",
-                isAdmin 
-                  ? "border-primary bg-white hover:bg-primary/5 cursor-pointer" 
-                  : "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
-              )}
-              onClick={() => isAdmin && setIsUpgradeModalOpen(true)}
-            >
-              <div className="absolute top-0 right-0 w-2 h-2 bg-primary" />
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 mb-1 tracking-tight">Enterprise Edition</h3>
-                  <p className="text-xs text-slate-500">Full AI governance & advanced analytics</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-slate-900">₹3,00,000</p>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Per Annum</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
           <div className="space-y-6">
             {isAdmin ? (
               <Button 
@@ -143,9 +119,16 @@ const TrialExpired = () => {
         onClose={() => setIsUpgradeModalOpen(false)}
         orgName={orgName}
         currentPlan={sessionStorage.getItem("user") ? JSON.parse(sessionStorage.getItem("user")!).org_plan : "basic"}
+        isRenewal={true}
         onSuccess={() => {
           setTimeout(() => {
-            window.location.href = "/dashboard";
+            const role = sessionStorage.getItem("role");
+            let dashboardPath = "/";
+            if (role === "org_admin") dashboardPath = "/org-admin";
+            else if (role === "principal") dashboardPath = "/admin";
+            else if (role === "dean") dashboardPath = "/dean";
+            else if (role === "student") dashboardPath = "/dashboard";
+            window.location.href = dashboardPath;
           }, 1500);
         }}
       />
