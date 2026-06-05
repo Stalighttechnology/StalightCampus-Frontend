@@ -242,9 +242,10 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     return iconMap[page] || <LayoutDashboard size={20} />;
   };
 
-  const userStr = sessionStorage.getItem("user");
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const orgPlan = user?.org_plan || "basic";
+  const orgLogo = user?.org_logo || "/logo.jpeg";
 
   const menuItems: { [key: string]: { name: string; page: string }[] } = {
     fees_manager: [
@@ -597,8 +598,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
             style={{ borderRadius: 8 }}
           >
             <img
-              src="/logo.jpeg"
-              alt="Logo"
+              src={orgLogo}
+              alt="Organization Logo"
               className="w-full h-full object-contain"
               style={{ borderRadius: '0.5rem' }}
             />
@@ -613,8 +614,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
                 transition={{ duration: 0.2 }}
                 className="flex flex-col min-w-0"
               >
-                <h3 className={`font-bold text-lg whitespace-nowrap leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus ERP</h3>
-                <p className={`text-[10px] uppercase tracking-wider font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>By Stalight</p>
+                <h3 className={`font-semibold text-lg whitespace-nowrap leading-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Campus ERP</h3>
+                <p className={`text-[10px]  tracking-wider font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>By Stalight Technologies</p>
               </motion.div>
             )}
           </AnimatePresence>

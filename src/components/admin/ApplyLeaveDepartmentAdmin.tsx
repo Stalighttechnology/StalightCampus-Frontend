@@ -59,7 +59,7 @@ interface LeaveRequestDisplay {
 }
 
 const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, ref) => {
-  const [branches, setBranches] = useState<{id: number;name: string;}[]>([]);
+  const [branches, setBranches] = useState<{ id: number; name: string; }[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -86,40 +86,40 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
       qs += `&status=${filterStatus}`;
     }
     getDepartmentAdminApplyLeaveBootstrap(qs).
-    then((res) => {
-      if (res.success && res.data) {
-        const { leave_requests, branches } = res.data;
+      then((res) => {
+        if (res.success && res.data) {
+          const { leave_requests, branches } = res.data;
 
-        // Set branches only once or update if needed
-        if (branches) {
-          setBranches(branches);
-          if (branches.length > 0 && !selectedBranch) setSelectedBranch(branches[0].id.toString());
+          // Set branches only once or update if needed
+          if (branches) {
+            setBranches(branches);
+            if (branches.length > 0 && !selectedBranch) setSelectedBranch(branches[0].id.toString());
+          }
+
+          // Transform backend data to match original mock structure
+          const transformedLeaves: LeaveRequestDisplay[] = leave_requests.map((leave: any) => {
+            const mappedStatus = (leave.status === 'PENDING' ? 'Pending' :
+              leave.status === 'APPROVED' ? 'Approved' :
+                leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
+
+            return {
+              id: leave.id,
+              title: leave.title || `Leave Request ${leave.id}`,
+              from: leave.start_date,
+              to: leave.end_date,
+              reason: leave.reason,
+              status: mappedStatus,
+              appliedOn: leave.applied_on
+            };
+          });
+          setLeaveList(transformedLeaves);
+          pagination.updatePagination(res);
+        } else {
+          setError(res.message || 'Failed to load data');
         }
-
-        // Transform backend data to match original mock structure
-        const transformedLeaves: LeaveRequestDisplay[] = leave_requests.map((leave: any) => {
-          const mappedStatus = (leave.status === 'PENDING' ? 'Pending' :
-          leave.status === 'APPROVED' ? 'Approved' :
-          leave.status === 'REJECTED' ? 'Rejected' : 'Pending') as LeaveStatus;
-
-          return {
-            id: leave.id,
-            title: leave.title || `Leave Request ${leave.id}`,
-            from: leave.start_date,
-            to: leave.end_date,
-            reason: leave.reason,
-            status: mappedStatus,
-            appliedOn: leave.applied_on
-          };
-        });
-        setLeaveList(transformedLeaves);
-        pagination.updatePagination(res);
-      } else {
-        setError(res.message || 'Failed to load data');
-      }
-    }).
-    catch(() => setError('Failed to load data')).
-    finally(() => setLoading(false));
+      }).
+      catch(() => setError('Failed to load data')).
+      finally(() => setLoading(false));
   }, [pagination.page, pagination.pageSize, filterStatus]);
 
   // Derived filtered list for UI
@@ -281,7 +281,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
                 placeholder="Enter leave request title"
                 className={`w-full text-xs sm:text-sm h-8 sm:h-9 lg:h-10 px-3 rounded-md border ${theme === 'dark' ? 'bg-background text-foreground border-border focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]' : 'bg-white text-gray-900 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]'}`}
                 required />
-              
+
             </div>
 
             {/* Date Range */}
@@ -292,23 +292,23 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
                   <Button
                     variant="outline"
                     className={`w-full justify-start text-left font-normal text-xs sm:text-sm h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}`}>
-                    
+
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dateRange?.from ?
-                    dateRange.from.getTime() === dateRange.to?.getTime() ?
-                    // Single date (same from and to)
-                    format(dateRange.from, "PPP") :
-                    dateRange.to ?
-                    // Date range
-                    <>
-                          {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
-                        </> :
+                      dateRange.from.getTime() === dateRange.to?.getTime() ?
+                        // Single date (same from and to)
+                        format(dateRange.from, "PPP") :
+                        dateRange.to ?
+                          // Date range
+                          <>
+                            {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
+                          </> :
 
-                    // Only from date selected
-                    format(dateRange.from, "PPP") :
+                          // Only from date selected
+                          format(dateRange.from, "PPP") :
 
 
-                    <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
+                      <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
                     }
                   </Button>
                 </PopoverTrigger>
@@ -322,7 +322,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
                     disabled={(date) => date < today}
                     initialFocus
                     className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'} />
-                  
+
                 </PopoverContent>
               </Popover>
             </div>
@@ -337,7 +337,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
                 placeholder="Please provide a detailed reason for your leave request"
                 className={`min-h-[60px] sm:min-h-[80px] lg:min-h-[100px] text-xs sm:text-sm ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
                 required />
-              
+
             </div>
 
             {/* Submit Button */}
@@ -346,7 +346,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
               onClick={handleSubmit}
               className={`w-full text-md h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary' : 'text-white bg-primary hover:bg-primary/90 border-primary'}`}
               disabled={submitting}>
-              
+
               {submitting ? "Submitting..." : "Submit Request"}
             </Button>
           </CardContent>
@@ -357,7 +357,7 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
             {/* Title */}
             <CardTitle>
-              
+
               Leave Requests
             </CardTitle>
 
@@ -369,31 +369,31 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-7 sm:h-8 lg:h-9 px-1.5 sm:px-2 lg:px-3 whitespace-nowrap">
-                    
+
                     <Filter className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
                     <span className="hidden sm:inline">Filter</span>
                   </Button>
                 </PopoverTrigger>
 
                 <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark' ?
-                'bg-card text-foreground border-border' :
-                'bg-white text-gray-900 border-gray-200'}`
+                  'bg-card text-foreground border-border' :
+                  'bg-white text-gray-900 border-gray-200'}`
                 }>
                   <div className="space-y-1 sm:space-y-2">
                     <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter Status</p>
                     {['All', 'Pending', 'Approved', 'Rejected'].map((status) =>
-                    <Button
-                      key={status}
-                      variant={filterStatus === status ? "default" : "ghost"}
-                      className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${filterStatus === status ?
-                      'bg-primary text-white hover:bg-primary/90' :
-                      'hover:bg-primary/10 hover:text-primary'}`
-                      }
-                      onClick={() => {
-                        setFilterStatus(status as any);
-                        setFilterOpen(false);
-                      }}>
-                      
+                      <Button
+                        key={status}
+                        variant={filterStatus === status ? "default" : "ghost"}
+                        className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${filterStatus === status ?
+                          'bg-primary text-white hover:bg-primary/90' :
+                          'hover:bg-primary/10 hover:text-primary'}`
+                        }
+                        onClick={() => {
+                          setFilterStatus(status as any);
+                          setFilterOpen(false);
+                        }}>
+
                         {status}
                       </Button>
                     )}
@@ -566,8 +566,8 @@ const ApplyLeaveDepartmentAdmin = React.forwardRef<HTMLDivElement, any>((props, 
               variant="outline"
               onClick={() => setViewReason(null)}
               className={theme === 'dark' ?
-              'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white' :
-              'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}>
+                'text-white bg-primary border border-primary hover:bg-primary/70 hover:text-white' :
+                'text-white bg-primary border border-primary hover:bg-primary/90 hover:text-white'}>
               Close
             </Button>
           </div>

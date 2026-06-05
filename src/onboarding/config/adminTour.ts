@@ -127,6 +127,24 @@ export const adminTour: Step[] = [
     route: '/admin/hod-leaves',
   },
   {
+    target: '#sidebar-department-admin-leaves',
+    title: 'Department Admin Leaves',
+    content:
+      'Review and manage leave requests submitted by other administrative staff.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/department-admin-leaves',
+  },
+  {
+    target: '#department-admin-leaves-header-section',
+    title: 'Leave Approvals',
+    content:
+      'Filter, review, and approve or reject leave requests from Library, Hostel, and Transport admins.',
+    placement: 'bottom' as const,
+    disableBeacon: false,
+    route: '/admin/department-admin-leaves',
+  },
+  {
     target: '#sidebar-hod-attendance',
     title: 'HOD Attendance',
     content:

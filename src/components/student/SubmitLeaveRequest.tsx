@@ -351,7 +351,7 @@ const SubmitLeaveRequest = () => {
                     <TableBody >
                       {filteredLeaves.map((item) =>
                         <TableRow key={item.id} className={theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}>
-                           <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          <TableCell className={`font-medium text-[14px] sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                             {item.title && item.title.trim() && item.title !== 'N/A' ? item.title : 'Untitled'}
                           </TableCell>
                           <TableCell className={`text-[14px] sm:text-sm whitespace-nowrap ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
@@ -388,7 +388,7 @@ const SubmitLeaveRequest = () => {
             }
           </CardContent>
 
-          {pagination && pagination.totalPages > 0 && (
+          {pagination && pagination.totalPages > 1 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing {Math.min((pagination.page - 1) * 10 + 1, pagination.totalItems)} to {Math.min(pagination.page * 10, pagination.totalItems)} of {pagination.totalItems} results

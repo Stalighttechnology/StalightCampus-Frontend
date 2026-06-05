@@ -408,23 +408,23 @@ export const useStudentLeaveRequestMutation = () => {
       };
       return oldData ? [optimisticLeave, ...oldData] : [optimisticLeave];
     }
-    , { 
-        refetchOnSettled: false,
-        onSuccess: (response) => {
-          if (response.success && response.leave_request) {
-            queryClient.setQueryData(['studentLeaveRequests'], (oldData: any) => {
-              if (!oldData) return [response.leave_request];
-              // Replace the most recent temporary entry with the actual response
-              const newData = [...oldData];
-              const tempIndex = newData.findIndex(item => item.id.toString().startsWith('temp-'));
-              if (tempIndex !== -1) {
-                newData[tempIndex] = response.leave_request;
-              }
-              return newData;
-            });
-          }
+    , {
+      refetchOnSettled: false,
+      onSuccess: (response) => {
+        if (response.success && response.leave_request) {
+          queryClient.setQueryData(['studentLeaveRequests'], (oldData: any) => {
+            if (!oldData) return [response.leave_request];
+            // Replace the most recent temporary entry with the actual response
+            const newData = [...oldData];
+            const tempIndex = newData.findIndex(item => item.id.toString().startsWith('temp-'));
+            if (tempIndex !== -1) {
+              newData[tempIndex] = response.leave_request;
+            }
+            return newData;
+          });
         }
       }
+    }
   );
 };
 

@@ -293,14 +293,6 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
   };
 
 
-  if (loading && leaveRequests.length === 0) {
-    return (
-      <div className="space-y-6">
-        <SkeletonTable rows={8} cols={5} />
-      </div>);
-
-  }
-
   return (
     <>
       <style>{`
@@ -316,8 +308,8 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
       `}</style>
 
       <div className={`w-full min-h-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-        <Card id="Transport Admin-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
-          <CardHeader id="Transport Admin-leaves-header-section" className="leave-card-header pb-2">
+        <Card id="department-admin-leaves-card" className={theme === 'dark' ? 'bg-card border border-border flex flex-col w-full shadow-sm' : 'bg-white border border-gray-200 flex flex-col w-full shadow-sm'}>
+          <CardHeader id="department-admin-leaves-header-section" className="leave-card-header pb-2">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
               <div>
                 <div className="flex items-center gap-3 mb-1">
@@ -423,9 +415,9 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="flex-1 sm:w-[140px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
+                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[160px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 [&>span]:whitespace-nowrap shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
-                      <span>Role</span>
+                      <SelectValue placeholder="Role" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                       <SelectItem value="All">All Roles</SelectItem>
@@ -436,9 +428,9 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                   </Select>
 
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="flex-1 sm:w-[120px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 shadow-sm font-medium text-sm">
+                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[130px] px-3 h-9 flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden [&>span]:flex [&>span]:items-center [&>span]:justify-center [&>span]:gap-2 [&>span]:whitespace-nowrap shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
-                      <span>Status</span>
+                      <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-300'}>
                       <SelectItem value="All">All Statuses</SelectItem>
@@ -452,6 +444,11 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
             </div>
           </CardHeader>
           <CardContent className="flex-1 px-2 sm:px-6 pt-2">
+            {loading ? (
+              <div className="space-y-6">
+                <SkeletonTable rows={8} cols={5} />
+              </div>
+            ) : (
             <div className="border rounded-xl overflow-hidden shadow-sm">
               {/* Mobile: stacked cards */}
               <div className="md:hidden space-y-3 p-2">
@@ -627,9 +624,11 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                 </tbody>
               </table>
             </div>
+            )}
           </CardContent>
 
-          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+          {totalCount > 0 && (
+            <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
             </div>
@@ -638,7 +637,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1 || loading}
+                disabled={currentPage === 1 || loading || totalCount === 0}
                 className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                 Previous
               </Button>
@@ -653,12 +652,13 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages || loading}
+                disabled={currentPage === totalPages || loading || totalCount === 0}
                 className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                 Next
               </Button>
             </div>
-          </CardFooter>
+            </CardFooter>
+          )}
         </Card>
 
         {/* View Reason Dialog */}
