@@ -194,7 +194,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
           {/* Profile Button */}
           <div
-            className={`flex items-center gap-3 pl-3 pr-1 py-1 rounded-full border transition-all duration-200 cursor-pointer ${theme === 'dark' ? 'border-border bg-accent/50 hover:bg-accent' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+            className={`flex items-center gap-3 p-1 lg:pl-3 lg:pr-1 lg:py-1 rounded-full border transition-all duration-200 cursor-pointer ${theme === 'dark' ? 'border-border bg-accent/50 hover:bg-accent' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
               }`}
             onClick={handleProfileClick}
           >
