@@ -17,6 +17,9 @@ const config: CapacitorConfig = {
         'alert'
       ]
     },
+    LocalNotifications: {
+      iconColor: '#2563eb'
+    },
     CapacitorUpdater: {
       appId: 'com.stalight.campus',
       autoUpdate: true
