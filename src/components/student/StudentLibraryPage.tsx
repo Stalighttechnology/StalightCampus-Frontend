@@ -618,7 +618,7 @@ const StudentLibraryPage: React.FC = () => {
         </CardContent>
 
         {/* CardFooter for Pagination */}
-        {tab === 'catalog' && (selectedCategory || catalogSearch.trim()) && (
+        {tab === 'catalog' && (selectedCategory || catalogSearch.trim()) && catalogTotalPages > 1 && (
           <PaginationBar
             page={catalogPage}
             totalPages={catalogTotalPages}
@@ -629,7 +629,7 @@ const StudentLibraryPage: React.FC = () => {
           />
         )}
 
-        {tab !== 'catalog' && (
+        {tab !== 'catalog' && borrowsTotalPages > 1 && (
           <PaginationBar
             page={borrowsPage}
             totalPages={borrowsTotalPages}

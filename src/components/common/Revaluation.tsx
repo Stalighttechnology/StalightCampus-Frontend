@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue } from
 "@/components/ui/select";
-import { showSuccessAlert, showErrorAlert, showWarningAlert, showInfoAlert } from "@/utils/sweetalert";
+import { showSuccessAlert, showErrorAlert, showWarningAlert, showInfoAlert, showConfirmAlert } from "@/utils/sweetalert";
 import { getCOEFeeSettings } from "@/utils/coe_api";
 
 type Filters = {usn: string;exam_period: string;};
@@ -271,20 +271,28 @@ const Revaluation = () => {
     const isClosed = revalApplicationsOpen === false;
 
     return (
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <div className="flex gap-2 items-center">
-          <label className={`text-xs flex items-center gap-1 ${(hasReval || isClosed) ? 'text-gray-400 dark:text-muted-foreground' : ''}`}>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex flex-wrap gap-2 items-center">
+          <label className={`cursor-pointer px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-2 text-xs font-medium
+            ${hasReval ? 'bg-primary/5 border-primary/20 text-primary cursor-not-allowed' : 
+              isClosed ? 'bg-muted/50 border-border text-muted-foreground cursor-not-allowed' : 
+              selectionMap[subjectMarkId]?.revaluation ? 'bg-primary/10 border-primary text-primary' : 'bg-transparent border-border hover:border-primary/50'}`}>
             <input
               type="checkbox"
+              className="accent-primary w-4 h-4 cursor-pointer"
               disabled={hasReval || isClosed}
               checked={hasReval || !!selectionMap[subjectMarkId]?.revaluation}
               onChange={(e) => handleRevaluationCheckbox(subjectMarkId, e.target.checked)}
             />
             <span>Reval {hasReval && "(Applied)"}</span>
           </label>
-          <label className={`text-xs flex items-center gap-1 ${(hasCopy || isClosed) ? 'text-gray-400 dark:text-muted-foreground' : ''}`}>
+          <label className={`cursor-pointer px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-2 text-xs font-medium
+            ${hasCopy ? 'bg-primary/5 border-primary/20 text-primary cursor-not-allowed' : 
+              isClosed ? 'bg-muted/50 border-border text-muted-foreground cursor-not-allowed' : 
+              selectionMap[subjectMarkId]?.photocopy ? 'bg-primary/10 border-primary text-primary' : 'bg-transparent border-border hover:border-primary/50'}`}>
             <input
               type="checkbox"
+              className="accent-primary w-4 h-4 cursor-pointer"
               disabled={hasCopy || isClosed}
               checked={hasCopy || !!selectionMap[subjectMarkId]?.photocopy}
               onChange={(e) => handlePhotocopCheckbox(subjectMarkId, e.target.checked)}
@@ -296,7 +304,7 @@ const Revaluation = () => {
           <Button
             onClick={() => handleViewRequest(subjectMarkId)}
             variant="outline"
-            className="text-xs h-auto px-2 py-0.5 border-blue-500 text-blue-600 hover:bg-blue-50 mt-1 sm:mt-0 sm:ml-2">
+            className="text-xs h-auto px-3 py-1.5 border-blue-500 text-blue-600 hover:bg-blue-50 mt-1 sm:mt-0 sm:ml-auto">
             View Request
           </Button>
         )}
@@ -442,24 +450,27 @@ const Revaluation = () => {
                         {s.subjects.map((sub) =>
                     <div
                       key={sub.subject_id}
-                      className={`p-2 rounded border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-200'}`}>
+                      className={`p-3 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
                       
                             <div className="flex justify-between items-start mb-2">
                               <div className="flex-1">
-                                <p className="text-xs font-medium">{sub.subject_name}</p>
-                                <div className="flex gap-2 mt-1 text-xs">
-                                  <span>CIE: {sub.cie_marks ?? '-'}</span>
-                                  <span>SEE: {sub.see_marks ?? '-'}</span>
+                                <p className="text-sm font-semibold">{sub.subject_name}</p>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
+                                  <span>CIE: <strong className={theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}>{sub.cie_marks ?? '-'}</strong></span>
+                                  <span>SEE: <strong className={theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}>{sub.see_marks ?? '-'}</strong></span>
+                                  <span>Total: <strong className={theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}>{sub.total_marks ?? '-'}</strong></span>
                                 </div>
                               </div>
-                              <div className="text-right ml-2">
+                              <div className="text-right ml-2 font-medium">
                                 {getStatusBadge(sub.status, sub.applied, sub.request_details)}
                               </div>
                             </div>
 
-                            {sub.subject_mark_id ?
-                      renderActionCell(sub, role === 'student') :
-                      null}
+                            {sub.subject_mark_id && (
+                              <div className={`mt-3 pt-3 border-t ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
+                                {renderActionCell(sub, role === 'student')}
+                              </div>
+                            )}
                           </div>
                     )}
                       </div>
@@ -485,7 +496,7 @@ const Revaluation = () => {
 
         {/* Student Payment Section */}
         {role === 'student' && students.length > 0 &&
-        <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <Card className={`mt-6 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
             <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="text-xs sm:text-sm">
@@ -511,6 +522,22 @@ const Revaluation = () => {
                     showErrorAlert('Error', 'Select at least one item to pay');
                     return;
                   }
+
+                  const totalAmount = Object.keys(selectionMap).reduce((acc, k) => {
+                    const s = selectionMap[Number(k)];
+                    if (!s) return acc;
+                    const revalFee = typeof feeSettings.revaluation_fee === 'number' ? feeSettings.revaluation_fee : 600;
+                    const copyFee = typeof feeSettings.photocopy_fee === 'number' ? feeSettings.photocopy_fee : 400;
+                    return acc + (s.revaluation ? revalFee : 0) + (s.photocopy ? copyFee : 0);
+                  }, 0);
+
+                  const confirmResult = await showConfirmAlert(
+                    'Confirm Application',
+                    `You are about to apply for ${items.length} item(s) with a total fee of ₹${totalAmount}. Do you want to proceed to payment?`,
+                    'Pay & Apply',
+                    'question'
+                  );
+                  if (!confirmResult.isConfirmed) return;
 
                   setLoading(true);
                   try {

@@ -353,6 +353,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       };
 
       const rzp = new (window as any).Razorpay(options);
+      setPaymentModalOpen(false);
       rzp.open();
     } catch (error) {
 
@@ -384,7 +385,16 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   };
 
   const currentInvoice = selectedInvoiceId === 0 ?
-    { id: 0, balance_amount: feeData?.fee_summary?.remaining_fees || 0, invoice_number: 'ALL' } :
+    { id: 0, 
+      balance_amount: feeData?.fee_summary?.remaining_fees || 0, 
+      invoice_number: 'ALL',
+      components: feeData?.invoices?.filter(inv => inv.balance_amount > 0).flatMap(inv => 
+        (inv.components || []).filter(c => c.balance_amount > 0).map(c => ({
+          ...c,
+          invoice_number: inv.invoice_number
+        }))
+      ) || []
+    } :
     feeData?.invoices?.find((inv) => inv.id === selectedInvoiceId);
 
   // Animation variants
@@ -594,12 +604,20 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                     <Badge className={`mb-2 ${getStatusColor(feeData?.fee_summary?.remaining_fees || 0)} px-4 py-1.5 text-sm sm:text-base font-semibold shadow-sm`}>
                       {(feeData?.fee_summary?.remaining_fees || 0) === 0 ? '✓ All Paid' : '● Pending Payment'}
                     </Badge>
-                    {feeData?.fee_summary?.due_date && (
-                      <p className={`text-sm flex items-center gap-2 mt-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                        <Calendar className="h-4 w-4 text-primary" />
-                        Due Date: <span className="text-foreground">{new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                      </p>
-                    )}
+                    <div className="flex flex-col gap-1.5 mt-3">
+                      {feeData?.fee_summary?.due_date && (
+                        <p className={`text-sm flex items-center gap-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                          <Calendar className="h-4 w-4 text-primary" />
+                          Due Date: <span className="text-foreground">{new Date(feeData.fee_summary.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        </p>
+                      )}
+                      {(feeData?.fee_summary?.remaining_fees || 0) > 0 && (
+                        <p className={`text-sm flex items-center gap-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                          <IndianRupee className="h-4 w-4 text-primary" />
+                          Amount Due: <span className="text-foreground font-semibold">{formatCurrency(feeData?.fee_summary?.remaining_fees || 0)}</span>
+                        </p>
+                      )}
+                    </div>
                   </motion.div>
                   <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3">
                     {(feeData?.fee_summary?.remaining_fees || 0) > 0 && (
@@ -617,8 +635,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                             variant="outline"
                             className={`w-full sm:w-auto h-11 px-6 font-semibold ${theme === 'dark' ? 'border-border text-card-foreground hover:bg-accent' : 'border-gray-300 text-gray-700 hover:bg-gray-100 shadow-sm'}`}
                             onClick={() => {
-                              const inv = feeData?.invoices?.find((inv) => inv.balance_amount > 0);
-                              if (inv) handleComponentPaymentClick(inv.id);
+                              handleComponentPaymentClick(0);
                             }}>
                             <Receipt className="h-4 w-4 mr-2" />
                             Pay by Component
@@ -632,16 +649,17 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
             </Card>
           </motion.div>
 
-          {/* Invoices Section */}
-          <motion.div variants={cardVariants} initial="hidden" animate="visible">
-            <Card id="fees-invoices-card" className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-              <CardHeader id="fees-invoices-card-header">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+            {/* Invoices Section */}
+            <motion.div variants={cardVariants} initial="hidden" animate="visible" className="h-full">
+              <Card id="fees-invoices-card" className={`shadow-none border h-[650px] flex flex-col ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+                <CardHeader id="fees-invoices-card-header">
                 <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                   <Receipt className="h-5 w-5" />
                   Fee Invoices ({feeData?.statistics?.total_invoices || 0})
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 {feeData?.invoices?.length ?
                   <motion.div
                     className="space-y-4"
@@ -745,7 +763,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                 }
               </CardContent>
 
-              {feeData && feeData.statistics.total_invoices > 0 && (
+              {feeData && feeData.statistics.total_invoices > 10 && (
                 <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                   <div>
                     Showing {(invoicePage - 1) * 10 + 1} to {Math.min(invoicePage * 10, feeData.statistics.total_invoices)} of {feeData.statistics.total_invoices} invoices
@@ -781,15 +799,15 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           </motion.div>
 
           {/* Payment History Section */}
-          <motion.div variants={cardVariants} initial="hidden" animate="visible">
-            <Card id="fees-history-card" className={`shadow-none border ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
+          <motion.div variants={cardVariants} initial="hidden" animate="visible" className="h-full">
+            <Card id="fees-history-card" className={`shadow-none border h-[650px] flex flex-col ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
               <CardHeader id="fees-history-card-header">
                 <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                   <CreditCard className="h-5 w-5" />
                   Payment History ({feeData?.statistics?.total_payments || 0})
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 {feeData?.payments?.length ?
                   <motion.div
                     className="space-y-3"
@@ -856,7 +874,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                 }
               </CardContent>
 
-              {feeData && feeData.statistics.total_payments > 0 && (
+              {feeData && feeData.statistics.total_payments > 10 && (
                 <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
                   <div>
                     Showing {(paymentPage - 1) * 10 + 1} to {Math.min(paymentPage * 10, feeData.statistics.total_payments)} of {feeData.statistics.total_payments} payments
@@ -890,6 +908,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
               )}
             </Card>
           </motion.div>
+          </div>
         </CardContent>
       </Card>
 
@@ -898,13 +917,20 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
         {paymentModalOpen &&
           <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
             {/* ... Modal content remains same ... */}
-            <DialogContent className={`max-w-md ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+            <DialogContent className={`max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader>
-                <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                  {selectedInvoiceId === 0 ?
-                    '💳 Pay Total Remaining Balance' :
-                    paymentType === 'full' ? '💳 Pay Full Amount' : '🧩 Pay by Component'
-                  }
+                <DialogTitle className={`flex items-center gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {selectedInvoiceId === 0 || paymentType === 'full' ? (
+                    <>
+                      <CreditCard className="h-5 w-5 text-primary" />
+                      {selectedInvoiceId === 0 ? 'Pay Total Remaining Balance' : 'Pay Full Amount'}
+                    </>
+                  ) : (
+                    <>
+                      <Receipt className="h-5 w-5 text-primary" />
+                      Pay by Component
+                    </>
+                  )}
                 </DialogTitle>
               </DialogHeader>
 
@@ -953,26 +979,25 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                   <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                     Select components to pay:
                   </p>
-                  <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                  <div className="space-y-3 max-h-[50vh] sm:max-h-96 overflow-y-auto custom-scrollbar pr-2">
                     {currentInvoice?.components?.map((component, idx) =>
                       <motion.div
                         key={idx}
                         variants={itemVariants}
-                        className={`flex items-center space-x-3 p-3 border rounded-lg ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        onClick={() => handleComponentToggle(idx)}
+                        className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${theme === 'dark' ? 'border-border hover:bg-accent/50' : 'border-gray-200 hover:bg-gray-50'}`}>
 
                         <Checkbox
                           checked={selectedComponents.has(idx)}
-                          onCheckedChange={() => handleComponentToggle(idx)}
-                          className={`w-5 h-5 ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`} />
+                          className={`w-5 h-5 pointer-events-none ${theme === 'dark' ? 'border-border' : 'border-gray-300'}`} />
 
-                        <Label className={`flex-1 cursor-pointer ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          <div>
-                            <p className="font-medium text-sm">{component.component_name}</p>
-                            <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                              Balance: {formatCurrency(component.balance_amount)}
-                            </p>
-                          </div>
-                        </Label>
+                        <div className={`flex-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                          <p className="font-medium text-sm">{component.component_name}</p>
+                          <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                            {component.invoice_number && <span className="mr-2 font-semibold">Inv #{component.invoice_number}</span>}
+                            Balance: {formatCurrency(component.balance_amount)}
+                          </p>
+                        </div>
                       </motion.div>
                     )}
                   </div>

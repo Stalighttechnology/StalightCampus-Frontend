@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue } from
 "@/components/ui/select";
-import { showSuccessAlert, showErrorAlert, showWarningAlert, showInfoAlert } from "@/utils/sweetalert";
+import { showSuccessAlert, showErrorAlert, showWarningAlert, showInfoAlert, showConfirmAlert } from "@/utils/sweetalert";
 import { getCOEFeeSettings } from "@/utils/coe_api";
 
 
@@ -255,17 +255,20 @@ const MakeupExam = () => {
 
       // Otherwise allow selecting the subject for applying
       if (makeupApplicationsOpen === false) {
-        return <span className="text-xs text-muted-foreground italic">Closed</span>;
+        return <span className="text-xs text-muted-foreground italic px-2 py-1 bg-muted/50 rounded-lg">Closed</span>;
       }
+      const isSelected = !!selectionMap[sub.subject_id];
       return (
-        <label className="text-xs flex items-center gap-1">
+        <label className={`cursor-pointer px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-2 text-xs font-medium w-fit
+          ${isSelected ? 'bg-primary/10 border-primary text-primary' : 'bg-transparent border-border hover:border-primary/50'}`}>
           <input
             type="checkbox"
-            checked={!!selectionMap[sub.subject_id]}
+            className="accent-primary w-4 h-4 cursor-pointer"
+            checked={isSelected}
             onChange={(e) => handleSelectionChange(sub.subject_id, e.target.checked)} />
-          
-          <span>Select</span>
-        </label>);
+          <span>{isSelected ? "Selected" : "Select"}</span>
+        </label>
+      );
 
     }
 
@@ -397,22 +400,25 @@ const MakeupExam = () => {
                         {s.subjects.map((sub) =>
                     <div
                       key={sub.subject_id}
-                      className={`p-2 rounded border ${theme === 'dark' ? 'bg-background border-border' : 'bg-gray-50 border-gray-200'}`}>
+                      className={`p-3 rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}>
                       
                             <div className="flex justify-between items-start mb-2">
                               <div className="flex-1">
-                                <p className="text-xs font-medium">{sub.subject_name}</p>
-                                <div className="flex gap-2 mt-1 text-xs">
-                                  <span>CIE: {sub.cie_marks ?? '-'}</span>
-                                  <span>SEE: {sub.see_marks ?? '-'}</span>
+                                <p className="text-sm font-semibold">{sub.subject_name}</p>
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
+                                  <span>CIE: <strong className={theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}>{sub.cie_marks ?? '-'}</strong></span>
+                                  <span>SEE: <strong className={theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}>{sub.see_marks ?? '-'}</strong></span>
+                                  <span>Total: <strong className={theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}>{sub.total_marks ?? '-'}</strong></span>
                                 </div>
                               </div>
-                              <div className="text-right ml-2">
+                              <div className="text-right ml-2 font-medium">
                                 {getStatusBadge(sub.status, sub.applied)}
                               </div>
                             </div>
 
-                            {renderActionCell(sub, s.student_id, role === 'student')}
+                            <div className={`mt-3 pt-3 border-t ${theme === 'dark' ? 'border-border/50' : 'border-gray-100'}`}>
+                              {renderActionCell(sub, s.student_id, role === 'student')}
+                            </div>
                           </div>
                     )}
                       </div>
@@ -438,7 +444,7 @@ const MakeupExam = () => {
 
         {/* Student Payment Section */}
         {role === 'student' && students.length > 0 &&
-        <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <Card className={`mt-6 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
             <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="text-xs sm:text-sm">
@@ -458,6 +464,16 @@ const MakeupExam = () => {
                     showErrorAlert('Error', 'Select exam period');
                     return;
                   }
+
+                  const totalAmount = Object.keys(selectionMap).reduce((acc, k) => acc + (selectionMap[Number(k)] ? (feeSettings.makeup_fee ?? 300) : 0), 0);
+
+                  const confirmResult = await showConfirmAlert(
+                    'Confirm Application',
+                    `You are about to apply for ${items.length} subject(s) with a total fee of ₹${totalAmount}. Do you want to proceed to payment?`,
+                    'Pay & Apply',
+                    'question'
+                  );
+                  if (!confirmResult.isConfirmed) return;
 
                   setLoading(true);
                   try {

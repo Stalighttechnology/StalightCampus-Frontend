@@ -402,7 +402,7 @@ const StudyMaterialsStudent = () => {
 
         </CardContent>
 
-        {totalPages > 0 && (
+        {totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((currentPage - 1) * 50 + 1, totalCount)} to {Math.min(currentPage * 50, totalCount)} of {totalCount} records

@@ -301,7 +301,7 @@ const StudentAssignments = () => {
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6 pt-0 sm:pt-0 lg:pt-0">
 
           {/* Search & Filter Toolbar */}
-          <div className={`p-4 rounded-xl border border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/50'}`}>
+          <div className={`mt-4 md:mt-0 p-4 rounded-xl border border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50/50'}`}>
             <h2 className="text-base sm:text-lg font-semibold">Assignment List</h2>
             <div className="flex items-center gap-3">
               <div className="relative flex-1 md:flex-none">
@@ -515,7 +515,7 @@ const StudentAssignments = () => {
           </div>
         </CardContent>
 
-        {pagination && pagination.total_pages > 0 && (
+        {pagination && pagination.total_pages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((pagination.current_page - 1) * pagination.page_size + 1, pagination.total_items)} to {Math.min(pagination.current_page * pagination.page_size, pagination.total_items)} of {pagination.total_items} assignments
