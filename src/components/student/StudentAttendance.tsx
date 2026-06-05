@@ -93,6 +93,15 @@ const VirtualizedAttendanceTable = React.memo(({
 }) => {
   const parentRef = React.useRef<HTMLDivElement>(null);
   const attendanceEntries = Object.entries(attendanceData);
+  if (attendanceEntries.length === 0) {
+    return (
+      <div className={`py-12 flex flex-col items-center justify-center text-center rounded-xl border-2 border-dashed ${theme === 'dark' ? 'border-border bg-slate-900/30' : 'border-gray-200 bg-gray-50/50'}`}>
+        <FaCheckCircle className="w-10 h-10 text-primary opacity-50 mb-3" />
+        <h4 className={`text-base font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Attendance Records</h4>
+        <p className="text-xs max-w-xs mx-auto mt-1 opacity-80">Check back once your faculty starts marking attendance.</p>
+      </div>
+    );
+  }
 
   const virtualizer = useVirtualizer({
     count: attendanceEntries.length,
@@ -275,100 +284,79 @@ const StudentAttendance = () => {
 
   return (
     <div className={`space-y-6 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      {Object.keys(attendanceData).length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <Card id="attendance-trends-card" className={theme === 'dark' ? 'col-span-2 bg-card text-card-foreground border-border' : 'col-span-2 bg-white text-gray-900 border-gray-200'}>
-              <CardHeader>
-                <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Trends</CardTitle>
-              </CardHeader>
-              <CardContent className={`h-[300px] ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
-                <MemoizedWavyChart data={generateTrendData} theme={theme} />
-              </CardContent>
-            </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card id="attendance-trends-card" className={theme === 'dark' ? 'col-span-2 bg-card text-card-foreground border-border' : 'col-span-2 bg-white text-gray-900 border-gray-200'}>
+          <CardHeader>
+            <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance Trends</CardTitle>
+          </CardHeader>
+          <CardContent className={`h-[300px] ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+            <MemoizedWavyChart data={generateTrendData} theme={theme} />
+          </CardContent>
+        </Card>
 
-            <Card id="attendance-overview-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-              <CardHeader className="pb-2">
-                <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Overview</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className={`flex flex-col items-center justify-center p-3 mb-3 rounded-xl border ${theme === 'dark' ? 'bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20' : 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20'}`}>
-                  <span className={`text-3xl font-extrabold text-primary`}>{overallPercentage}</span>
-                  <p className="text-[10px] uppercase tracking-wider font-bold mt-1 opacity-70">Overall Attendance</p>
+        <Card id="attendance-overview-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className={`flex flex-col items-center justify-center p-3 mb-3 rounded-xl border ${theme === 'dark' ? 'bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20' : 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20'}`}>
+              <span className={`text-3xl font-extrabold text-primary`}>{overallPercentage}</span>
+              <p className="text-[10px] uppercase tracking-wider font-bold mt-1 opacity-70">Overall Attendance</p>
+            </div>
+
+            <div className="space-y-2">
+              <div className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
+                <div className="flex items-center gap-2">
+                  <div className={`w-7 h-7 rounded flex items-center justify-center ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                    <FaBookOpen className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-xs font-medium">Total Classes</span>
                 </div>
-
-                <div className="space-y-2">
-                  <div className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded flex items-center justify-center ${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-                        <FaBookOpen className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-xs font-medium">Total Classes</span>
-                    </div>
-                    <span className="text-sm font-bold">{overview.total}</span>
-                  </div>
-
-                  <div className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded flex items-center justify-center ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
-                        <FaCheckCircle className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-xs font-medium">Classes Attended</span>
-                    </div>
-                    <span className="text-sm font-bold">{overview.attended}</span>
-                  </div>
-
-                  <div className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded flex items-center justify-center ${theme === 'dark' ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-600'}`}>
-                        <FaFlag className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-xs font-medium">Min Required</span>
-                    </div>
-                    <span className="text-sm font-bold text-orange-500">75%</span>
-                  </div>
-
-                  <div className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded flex items-center justify-center ${theme === 'dark' ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
-                        <FaCalendarPlus className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-xs font-medium">Classes to Attend</span>
-                    </div>
-                    <span className="text-sm font-bold">{Math.max(0, Math.ceil((0.75 * overview.total - overview.attended) / 0.25))}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card id="attendance-subject-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-            <CardHeader id="attendance-subject-card-header">
-              <CardTitle className={theme === 'dark' ? 'text-base text-card-foreground' : 'text-base text-gray-900'}>Subject-wise Attendance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <VirtualizedAttendanceTable attendanceData={attendanceData} theme={theme} />
-            </CardContent>
-          </Card>
-        </>
-      ) : (
-        <Card className={`border-none shadow-none bg-transparent`}>
-          <CardContent className="p-0">
-            <div className={`flex flex-col items-center justify-center py-24 px-6 text-center border-2 border-dashed rounded-3xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
-              <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                <FaCheckCircle className="w-12 h-12 opacity-80" />
+                <span className="text-sm font-bold">{overview.total}</span>
               </div>
-              <h3 className={`text-2xl font-bold mb-3 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Attendance Records</h3>
-              <p className="max-w-md text-base leading-relaxed opacity-80">
-                We couldn't find any attendance data for your profile yet. This usually happens at the start of a semester or before the first classes are marked.
-              </p>
-              <div className={`mt-8 px-4 py-2 rounded-lg text-xs font-medium ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-500'}`}>
-                Check back once your faculty starts marking attendance.
+
+              <div className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
+                <div className="flex items-center gap-2">
+                  <div className={`w-7 h-7 rounded flex items-center justify-center ${theme === 'dark' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                    <FaCheckCircle className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-xs font-medium">Classes Attended</span>
+                </div>
+                <span className="text-sm font-bold">{overview.attended}</span>
+              </div>
+
+              <div className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
+                <div className="flex items-center gap-2">
+                  <div className={`w-7 h-7 rounded flex items-center justify-center ${theme === 'dark' ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-600'}`}>
+                    <FaFlag className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-xs font-medium">Min Required</span>
+                </div>
+                <span className="text-sm font-bold text-orange-500">75%</span>
+              </div>
+
+              <div className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
+                <div className="flex items-center gap-2">
+                  <div className={`w-7 h-7 rounded flex items-center justify-center ${theme === 'dark' ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}>
+                    <FaCalendarPlus className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-xs font-medium">Classes to Attend</span>
+                </div>
+                <span className="text-sm font-bold">{Math.max(0, Math.ceil((0.75 * overview.total - overview.attended) / 0.25))}</span>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
+      </div>
+
+      <Card id="attendance-subject-card" className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
+        <CardHeader id="attendance-subject-card-header">
+          <CardTitle className={theme === 'dark' ? 'text-base text-card-foreground' : 'text-base text-gray-900'}>Subject-wise Attendance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <VirtualizedAttendanceTable attendanceData={attendanceData} theme={theme} />
+        </CardContent>
+      </Card>
     </div>
   );
 };
