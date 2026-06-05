@@ -14,7 +14,7 @@ import IssueTracking from "../hms/IssueTracking";
 import HMSProfile from "../hms/HMSProfile";
 import StudentMealManagement from "../hms/StudentMealManagement";
 import HmsVisitorLogs from "../hms/HmsVisitorLogs";
-import ApplyLeaveDepartmentAdmin from "../admin/ApplyLeaveDepartmentAdmin";
+import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import WardenLeaveManagement from "../hms/WardenLeaveManagement";
 import { useToast } from "../../hooks/use-toast";
 import { logoutUser } from "../../utils/authService";

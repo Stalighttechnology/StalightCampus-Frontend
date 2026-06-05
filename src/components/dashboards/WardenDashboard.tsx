@@ -7,9 +7,8 @@ import WardenIssueManagement from "../warden/WardenIssueManagement";
 import WardenHostelOverview from "../warden/WardenHostelOverview";
 import WardenProfile from "../warden/WardenProfile";
 import WardenVisitorLogs from "../warden/WardenVisitorLogs";
-import ApplyLeaveDepartmentAdmin from "../admin/ApplyLeaveDepartmentAdmin";
+import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import { HMSProvider } from "../../context/HMSContext";
-
 import { AcademicProvider } from "../../context/AcademicContext";
 
 interface WardenDashboardProps {

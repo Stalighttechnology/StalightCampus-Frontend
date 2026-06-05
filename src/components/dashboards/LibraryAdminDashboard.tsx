@@ -4,7 +4,7 @@ import LibraryOverview from "../library/LibraryOverview";
 import LibraryBooksCatalog from "../library/LibraryBooksCatalog";
 import LibraryCirculation from "../library/LibraryCirculation";
 import LibraryFineManagement from "../library/LibraryFineManagement";
-import ApplyLeaveDepartmentAdmin from "../admin/ApplyLeaveDepartmentAdmin";
+import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import Profile from "../common/Profile";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 
