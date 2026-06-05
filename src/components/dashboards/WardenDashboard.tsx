@@ -7,6 +7,7 @@ import WardenIssueManagement from "../warden/WardenIssueManagement";
 import WardenHostelOverview from "../warden/WardenHostelOverview";
 import WardenProfile from "../warden/WardenProfile";
 import WardenVisitorLogs from "../warden/WardenVisitorLogs";
+import ApplyLeaveDepartmentAdmin from "../admin/ApplyLeaveDepartmentAdmin";
 import { HMSProvider } from "../../context/HMSContext";
 
 import { AcademicProvider } from "../../context/AcademicContext";
@@ -43,6 +44,8 @@ const WardenDashboardContent = ({ user }: WardenDashboardProps) => {
       case "rooms":
       case "residents":
         return <WardenHostelOverview />;
+      case "apply-leave":
+        return <ApplyLeaveDepartmentAdmin />;
       case "profile":
         return <WardenProfile user={user} />;
       case "visitor_logs":

@@ -550,6 +550,41 @@ method: "GET" | "POST" = "GET")
   }
 };
 
+export const manageDepartmentAdminLeaves = async (
+data?: any,
+method: "GET" | "POST" = "GET")
+: Promise<ManageHODLeavesResponse> => {
+  try {
+    let url = `${API_ENDPOINT}/admin/department-admin-leaves/`;
+
+    if (method === "GET" && data) {
+      const params = new URLSearchParams();
+      Object.keys(data).forEach((key) => {
+        if (data[key] !== undefined && data[key] !== null) {
+          params.append(key, data[key].toString());
+        }
+      });
+      if (params.toString()) url += `?${params.toString()}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: method === "POST" && data ? JSON.stringify(data) : undefined
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || `HTTP ${response.status}` };
+    }
+    return result;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
 export const manageUsers = async (
 data?: {page?: number;page_size?: number;role?: string;is_active?: boolean;search?: string;},
 method: "GET" | "POST" = "GET")
@@ -1034,6 +1069,45 @@ export const getAdminFacultyAttendanceRecords = async (
     }
 
     const response = await fetchWithTokenRefresh(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || `HTTP ${response.status}` };
+    }
+    return result;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const applyDepartmentAdminLeave = async (data: any): Promise<any> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/apply-department-admin-leave/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || `HTTP ${response.status}` };
+    }
+    return result;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
+export const getDepartmentAdminApplyLeaveBootstrap = async (queryString: string): Promise<any> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/apply-department-admin-leave/${queryString}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,

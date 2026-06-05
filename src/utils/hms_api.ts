@@ -621,3 +621,32 @@ export const exportHmsVisitorLogsPdf = async (search: string = ''): Promise<Blob
   }
   return response.blob();
 };
+export const manageWardenLeaves = async (
+  data?: any,
+  method: "GET" | "POST" = "GET"
+): Promise<any> => {
+  try {
+    let url = `${API_ENDPOINT}/hms/warden-leaves/`;
+    if (method === "GET" && data) {
+      const params = new URLSearchParams(data);
+      if (params.toString()) url += `?${params.toString()}`;
+    }
+
+    const response = await fetchWithTokenRefresh(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: method === "POST" && data ? JSON.stringify(data) : undefined
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || `HTTP ${response.status}` };
+    }
+    return result;
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
