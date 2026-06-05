@@ -79,6 +79,12 @@ const TransportDrivers: React.FC = () => {
       return;
     }
 
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(driverForm.phone.trim())) {
+      Swal.fire("Warning", "Please enter a valid 10-digit phone number.", "warning");
+      return;
+    }
+
     try {
       const res = await enrollDriver(driverForm);
       if (res.success) {
