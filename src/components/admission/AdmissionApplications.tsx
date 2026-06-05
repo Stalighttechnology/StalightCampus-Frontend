@@ -5,6 +5,7 @@ import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, UserCheck, FileText, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function AdmissionApplications() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -78,122 +79,190 @@ export default function AdmissionApplications() {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <Card className="border-border">
+          <CardHeader>
+            <div className="h-6 w-48 bg-muted rounded" />
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <th key={i} className="px-6 py-4">
+                        <div className="h-4 w-24 bg-muted rounded" />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {[1, 2, 3, 4, 5].map((row) => (
+                    <tr key={row}>
+                      {[1, 2, 3, 4, 5].map((col) => (
+                        <td key={col} className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-28" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {!selectedApp ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Submitted Applications</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {applications.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No applications found.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
-                    <tr>
-                      <th className="px-6 py-4 font-semibold">Applicant Name</th>
-                      <th className="px-6 py-4 font-semibold">Course</th>
-                      <th className="px-6 py-4 font-semibold">12th Marks</th>
-                      <th className="px-6 py-4 font-semibold">Status</th>
-                      <th className="px-6 py-4 text-right font-semibold">Actions</th>
+    <div id="admission-applications-container" className="space-y-6">
+      <Card>
+        <CardHeader id="admission-applications-header">
+          <CardTitle className="text-lg">Submitted Applications</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {applications.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No applications found.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Applicant Name</th>
+                    <th className="px-6 py-4 font-semibold">Course</th>
+                    <th className="px-6 py-4 font-semibold">12th Marks</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                    <th className="px-6 py-4 text-right font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {applications.map(app => (
+                    <tr key={app.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-medium text-foreground">{app.enquiry_details?.name}</td>
+                      <td className="px-6 py-4 text-muted-foreground">{app.enquiry_details?.course_name || 'N/A'}</td>
+                      <td className="px-6 py-4 text-muted-foreground font-mono">{app.marks_12th}%</td>
+                      <td className="px-6 py-4">
+                        <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
+                          {app.enquiry_details?.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Button variant="outline" size="sm" onClick={() => setSelectedApp(app)}>
+                          Review
+                        </Button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {applications.map(app => (
-                      <tr key={app.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-6 py-4 font-medium text-foreground">{app.enquiry_details?.name}</td>
-                        <td className="px-6 py-4 text-muted-foreground">{app.enquiry_details?.course_name || 'N/A'}</td>
-                        <td className="px-6 py-4 text-muted-foreground font-mono">{app.marks_12th}%</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
-                            {app.enquiry_details?.status.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <Button variant="outline" size="sm" onClick={() => setSelectedApp(app)}>
-                            Review
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-            <div>
-              <CardTitle className="text-lg">Application Review: {selectedApp.enquiry_details?.name}</CardTitle>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedApp(null)}>Back to List</Button>
-          </CardHeader>
-          <CardContent className="space-y-6 pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="font-semibold text-base border-b border-border pb-2">Personal Info</h3>
-                <p className="text-sm"><strong className="text-muted-foreground">Email:</strong> {selectedApp.enquiry_details?.email}</p>
-                <p className="text-sm"><strong className="text-muted-foreground">Phone:</strong> {selectedApp.enquiry_details?.phone}</p>
-                <p className="text-sm"><strong className="text-muted-foreground">City:</strong> {selectedApp.enquiry_details?.city}</p>
-                <p className="text-sm"><strong className="text-muted-foreground">Gender:</strong> {selectedApp.gender}</p>
-                <p className="text-sm"><strong className="text-muted-foreground">Address:</strong> {selectedApp.address}</p>
-                <p className="text-sm"><strong className="text-muted-foreground">Course:</strong> {selectedApp.enquiry_details?.course_name}</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!selectedApp} onOpenChange={(open) => !open && setSelectedApp(null)}>
+        <DialogContent className="w-[90vw] rounded-xl sm:max-w-2xl max-h-[85vh] overflow-y-auto thin-scrollbar">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-lg font-semibold">Application Review: {selectedApp?.enquiry_details?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedApp && (
+            <div className="space-y-6 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground border-b border-border pb-1.5">Personal Info</h3>
+                  <p className="text-sm"><strong className="text-muted-foreground">Email:</strong> {selectedApp.enquiry_details?.email}</p>
+                  <p className="text-sm"><strong className="text-muted-foreground">Phone:</strong> {selectedApp.enquiry_details?.phone}</p>
+                  <p className="text-sm"><strong className="text-muted-foreground">City:</strong> {selectedApp.enquiry_details?.city}</p>
+                  <p className="text-sm"><strong className="text-muted-foreground">Gender:</strong> {selectedApp.gender}</p>
+                  <p className="text-sm"><strong className="text-muted-foreground">Address:</strong> {selectedApp.address}</p>
+                  <p className="text-sm"><strong className="text-muted-foreground">Course:</strong> {selectedApp.enquiry_details?.course_name}</p>
+                </div>
+                
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground border-b border-border pb-1.5">Academic Info</h3>
+                  <p className="text-sm"><strong className="text-muted-foreground">10th Marks:</strong> {selectedApp.marks_10th}%</p>
+                  <p className="text-sm"><strong className="text-muted-foreground">12th Marks:</strong> {selectedApp.marks_12th}%</p>
+                  {selectedApp.previous_degree_marks && <p className="text-sm"><strong className="text-muted-foreground">Degree Marks:</strong> {selectedApp.previous_degree_marks}%</p>}
+                </div>
               </div>
               
-              <div className="space-y-4">
-                <h3 className="font-semibold text-base border-b border-border pb-2">Academic Info</h3>
-                <p className="text-sm"><strong className="text-muted-foreground">10th Marks:</strong> {selectedApp.marks_10th}%</p>
-                <p className="text-sm"><strong className="text-muted-foreground">12th Marks:</strong> {selectedApp.marks_12th}%</p>
-                {selectedApp.previous_degree_marks && <p className="text-sm"><strong className="text-muted-foreground">Degree Marks:</strong> {selectedApp.previous_degree_marks}%</p>}
+              {/* Uploaded Documents Section */}
+              <div className="space-y-4 pt-4 border-t border-border">
+                <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground pb-2">Uploaded Documents</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    { label: 'Passport Photo', key: 'photo' },
+                    { label: 'Signature', key: 'signature' },
+                    { label: '10th Marks Card', key: 'marks_card_10th' },
+                    { label: '12th Marks Card', key: 'marks_card_12th' },
+                    { label: 'Transfer Certificate', key: 'transfer_certificate' },
+                    { label: 'Aadhaar Card', key: 'aadhaar_card' },
+                  ].map((doc) => {
+                    const fileUrl = selectedApp[doc.key];
+                    if (!fileUrl) return null;
+                    return (
+                      <div key={doc.key} className="flex items-center justify-between p-2.5 border border-border rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
+                        <span className="text-xs font-medium truncate max-w-[130px]" title={doc.label}>{doc.label}</span>
+                        <a 
+                          href={fileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-xs text-primary font-semibold hover:underline shrink-0"
+                        >
+                          View File
+                        </a>
+                      </div>
+                    );
+                  })}
+                  {!['photo', 'signature', 'marks_card_10th', 'marks_card_12th', 'transfer_certificate', 'aadhaar_card'].some(k => selectedApp[k]) && (
+                    <p className="text-xs text-muted-foreground col-span-full">No documents uploaded.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-border">
+                <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground pb-2">Actions</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                  <Button 
+                    onClick={() => handleUpdateStatus(selectedApp.id, 'documents_verified')}
+                    variant="outline" size="sm" className="w-full text-blue-500 hover:text-blue-600 hover:bg-blue-50 justify-center whitespace-nowrap"
+                    disabled={selectedApp.enquiry_details?.status === 'documents_verified'}
+                  >
+                    <FileText className="w-4 h-4 mr-2 shrink-0" /> Verify Documents
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handleUpdateStatus(selectedApp.id, 'admission_confirmed')}
+                    variant="outline" size="sm" className="w-full text-green-500 hover:text-green-600 hover:bg-green-50 justify-center whitespace-nowrap"
+                    disabled={selectedApp.enquiry_details?.status === 'admission_confirmed'}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2 shrink-0" /> Confirm Admission
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handleEnroll(selectedApp.id)}
+                    size="sm"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 justify-center whitespace-nowrap"
+                    disabled={selectedApp.enquiry_details?.status === 'enrolled'}
+                  >
+                    <UserCheck className="w-4 h-4 mr-2 shrink-0" /> Enroll as Student
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
+                    variant="outline" size="sm" className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 justify-center whitespace-nowrap"
+                    disabled={selectedApp.enquiry_details?.status === 'rejected'}
+                  >
+                    <XCircle className="w-4 h-4 mr-2 shrink-0" /> Reject
+                  </Button>
+                </div>
               </div>
             </div>
-            
-            <div className="space-y-4 pt-6 border-t border-border">
-              <h3 className="font-semibold text-base pb-2">Actions</h3>
-              <div className="flex gap-4 flex-wrap">
-                <Button 
-                  onClick={() => handleUpdateStatus(selectedApp.id, 'documents_verified')}
-                  variant="outline" className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                  disabled={selectedApp.enquiry_details?.status === 'documents_verified'}
-                >
-                  <FileText className="w-4 h-4 mr-2" /> Verify Documents
-                </Button>
-                
-                <Button 
-                  onClick={() => handleUpdateStatus(selectedApp.id, 'admission_confirmed')}
-                  variant="outline" className="text-green-500 hover:text-green-600 hover:bg-green-50"
-                  disabled={selectedApp.enquiry_details?.status === 'admission_confirmed'}
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" /> Confirm Admission
-                </Button>
-                
-                <Button 
-                  onClick={() => handleEnroll(selectedApp.id)}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  disabled={selectedApp.enquiry_details?.status === 'enrolled'}
-                >
-                  <UserCheck className="w-4 h-4 mr-2" /> Enroll as Student
-                </Button>
-                
-                <Button 
-                  onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
-                  variant="outline" className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                  disabled={selectedApp.enquiry_details?.status === 'rejected'}
-                >
-                  <XCircle className="w-4 h-4 mr-2" /> Reject
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

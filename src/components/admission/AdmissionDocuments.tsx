@@ -49,7 +49,34 @@ export default function AdmissionDocuments() {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <Card className="border-border">
+          <CardHeader>
+            <div className="h-6 w-48 bg-muted rounded" />
+            <div className="h-3.5 w-80 bg-muted rounded mt-2" />
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            {[1, 2].map((i) => (
+              <Card key={i} className="border-border shadow-sm p-4 space-y-4">
+                <div className="flex flex-row items-center justify-between pb-4 border-b border-border">
+                  <div className="space-y-2">
+                    <div className="h-5 w-44 bg-muted rounded" />
+                    <div className="h-3 w-56 bg-muted rounded" />
+                  </div>
+                  <div className="h-9 w-28 bg-muted rounded" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1, 2, 3].map((j) => (
+                    <div key={j} className="h-9 bg-muted rounded w-full" />
+                  ))}
+                </div>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const renderDocumentLink = (url: string | null, label: string) => {
@@ -67,9 +94,9 @@ export default function AdmissionDocuments() {
   );
 
   return (
-    <div className="space-y-6">
+    <div id="admission-documents-container" className="space-y-6">
       <Card>
-        <CardHeader className="border-b pb-4">
+        <CardHeader id="admission-documents-header" className="border-b pb-4">
           <CardTitle className="text-lg font-semibold">Document Verification</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">Review and verify documents uploaded by applicants.</p>
         </CardHeader>

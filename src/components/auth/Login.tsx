@@ -88,9 +88,9 @@ const Login = ({ setRole, setPage, setUser }: LoginProps) => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.2 }}
           >
-            AI-powered campus management system
+            Smart campus better learning
             <br />
-            <span className="text-xs text-white/60 mt-2 block">Developed under Stalight Technology</span>
+            <span className="text-xs text-white/60 mt-2 block">Developed by Stalight Technologies Pvt. Ltd.</span>
           </motion.div>
         </div>
       </motion.div>

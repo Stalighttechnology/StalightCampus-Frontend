@@ -170,14 +170,14 @@ const AdmissionLanding: React.FC = () => {
 
       {isOpen && (
         <Dialog open={isApplyModalOpen} onOpenChange={setIsApplyModalOpen}>
-          <DialogContent className="max-w-4xl p-0 overflow-hidden border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-foreground/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:m-2 [&>button]:hover:bg-foreground/40 [&>button]:transition-all">
-            <div className="bg-background rounded-2xl md:rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh] w-full hide-scrollbar">
-              <div className="p-6 md:p-8 space-y-6">
-                <div className="text-center space-y-2">
-                  <h4 className="text-primary font-semibold tracking-wider uppercase text-sm">Admissions</h4>
-                  <h3 className="text-2xl md:text-3xl font-bold text-foreground">Start Your Journey</h3>
+          <DialogContent className="w-[90vw] sm:max-w-xl p-0 overflow-hidden border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-foreground/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:m-2 [&>button]:hover:bg-foreground/40 [&>button]:transition-all">
+            <div className="bg-background rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] w-full hide-scrollbar">
+              <div className="p-5 md:p-6 space-y-4">
+                <div className="text-center space-y-1.5">
+                  <h4 className="text-primary font-semibold tracking-wider uppercase text-xs md:text-sm">Admissions</h4>
+                  <h3 className="text-xl md:text-2xl font-bold text-foreground">Start Your Journey</h3>
                 </div>
-                <ApplicationWizard />
+                <ApplicationWizard isModal={true} />
               </div>
             </div>
           </DialogContent>

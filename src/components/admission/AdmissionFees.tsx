@@ -53,13 +53,47 @@ export default function AdmissionFees() {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <Card className="border-border">
+          <CardHeader>
+            <div className="h-6 w-56 bg-muted rounded" />
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    {[1, 2, 3, 4].map((i) => (
+                      <th key={i} className="px-6 py-4">
+                        <div className="h-4 w-20 bg-muted rounded" />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {[1, 2, 3, 4, 5].map((row) => (
+                    <tr key={row}>
+                      {[1, 2, 3, 4].map((col) => (
+                        <td key={col} className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-24" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div id="admission-fees-container" className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader id="admission-fees-header">
           <CardTitle className="text-lg">Pending & Recent Fee Payments</CardTitle>
         </CardHeader>
         <CardContent className="p-0">

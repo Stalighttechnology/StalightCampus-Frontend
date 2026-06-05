@@ -233,6 +233,8 @@ const getHomePath = (role: string): string => {
     org_admin: '/org-admin',
     orgadmin: '/org-admin',
     driver: '/driver',
+    admission_manager: '/admission-manager',
+    admissionmanager: '/admission-manager',
   };
   return roleMap[role.toLowerCase()] || '/dashboard';
 };
@@ -243,6 +245,7 @@ export const TutorialController = () => {
   const {
     role,
     steps,
+    keys,
     isActive,
     setIsActive,
     stepIndex,
@@ -257,6 +260,13 @@ export const TutorialController = () => {
   } = useTutorial();
 
   console.log('[ONBOARDING DEBUG] Current steps list in controller:', steps);
+
+  useEffect(() => {
+    console.log('[TOUR GUIDE LIFECYCLE] TutorialController mounted');
+    return () => {
+      console.log('[TOUR GUIDE LIFECYCLE] TutorialController unmounted');
+    };
+  }, []);
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
@@ -537,12 +547,13 @@ export const TutorialController = () => {
       setIsNavigating(true);
       console.log('[ONBOARDING DEBUG] pausing Joyride — polling for visibility...');
 
-      // Start the 1000ms deferred loader timer to avoid flashing for fast loads
-      if (loaderTimerRef.current) clearTimeout(loaderTimerRef.current);
+      // Defer showing the loader by 200ms to avoid flashing on instantaneous page transitions
+      if (loaderTimerRef.current) {
+        clearTimeout(loaderTimerRef.current);
+      }
       loaderTimerRef.current = setTimeout(() => {
-        console.log('[ONBOARDING DEBUG] Deferred loader timeout fired, showing loader');
         setShowLoader(true);
-      }, 1000);
+      }, 200);
 
       waitForElementVisible(
         targetStep,
@@ -607,6 +618,9 @@ export const TutorialController = () => {
         }
         if (nextIndex < steps.length) {
           console.log('[ONBOARDING DEBUG] ✅ Calling startDeferredTransition with nextIndex:', nextIndex);
+          // Persist the step immediately before starting navigation/transition
+          // to prevent unmount/remount races from forcing the user forward again
+          localStorage.setItem(keys.STEP, nextIndex.toString());
           startDeferredTransition(nextIndex);
         } else {
           console.log('[ONBOARDING DEBUG] 🏁 Reached end, calling handleCompleteTour');
@@ -715,6 +729,9 @@ export const TutorialController = () => {
       window.dispatchEvent(new Event('stalightcampus_close_sidebar'));
       const sidebarEl = document.querySelector('[data-sidebar], .sidebar, aside, #sidebar') as HTMLElement | null;
       if (sidebarEl) sidebarEl.style.overflow = '';
+
+      // Set restart pending flag in localStorage to handle unmount/remount scenarios safely
+      localStorage.setItem('tutorial_restart_pending', 'true');
 
       // Step 2: Stop any in-flight transitions
       if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);

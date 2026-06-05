@@ -6,6 +6,7 @@ import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Loader2, Mail, Send, Plus } from 'lucide-react';
 import { showSuccessAlert, showErrorAlert } from '../../utils/sweetalert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function AdmissionCommunication() {
   const [communications, setCommunications] = useState<any[]>([]);
@@ -60,13 +61,37 @@ export default function AdmissionCommunication() {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <Card className="border-border">
+          <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
+            <div className="space-y-2">
+              <div className="h-6 w-48 bg-muted rounded" />
+              <div className="h-3.5 w-80 bg-muted rounded" />
+            </div>
+            <div className="h-9 w-32 bg-muted rounded" />
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex justify-between items-start p-4 border border-border rounded-xl">
+                <div className="space-y-2 flex-1">
+                  <div className="h-5 w-44 bg-muted rounded" />
+                  <div className="h-3 w-5/6 bg-muted rounded" />
+                  <div className="h-3 w-2/3 bg-muted rounded" />
+                </div>
+                <div className="h-6 w-16 bg-muted rounded-full ml-4" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div id="admission-communication-container" className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+        <CardHeader id="admission-communication-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <div>
             <CardTitle className="text-lg font-semibold">Applicant Communication</CardTitle>
             <p className="text-xs text-muted-foreground mt-1">Send updates and announcements to your applicant pipelines.</p>
@@ -77,22 +102,26 @@ export default function AdmissionCommunication() {
                 <Plus className="w-4 h-4 mr-2" /> Compose Email
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95%] sm:max-w-[500px] max-h-[85vh] overflow-y-auto thin-scrollbar">
+            <DialogContent className="w-[90vw] sm:max-w-[500px] max-h-[85vh] overflow-y-auto thin-scrollbar">
               <DialogHeader>
                 <DialogTitle>Compose Message</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSendMessage} className="space-y-5 mt-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">To</label>
-                  <select 
+                  <Select
                     value={newMessage.target_group}
-                    onChange={e => setNewMessage({...newMessage, target_group: e.target.value})}
-                    className="w-full p-2.5 border border-input rounded-md bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
+                    onValueChange={val => setNewMessage({...newMessage, target_group: val})}
                   >
-                    <option value="all">All Pending Enquiries</option>
-                    <option value="verified">All Verified Applicants</option>
-                    <option value="enrolled">All Enrolled Students</option>
-                  </select>
+                    <SelectTrigger className="w-full bg-background border-input text-sm">
+                      <SelectValue placeholder="Select target group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Pending Enquiries</SelectItem>
+                      <SelectItem value="verified">All Verified Applicants</SelectItem>
+                      <SelectItem value="enrolled">All Enrolled Students</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Subject</label>

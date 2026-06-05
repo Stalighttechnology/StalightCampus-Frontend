@@ -112,12 +112,45 @@ const CampusPageBuilder: React.FC = () => {
     setBlocks(newBlocks);
   };
 
-  if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading CMS...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden animate-pulse border-border">
+        <div className="flex flex-col lg:flex-row items-center justify-between p-4 lg:px-6 lg:h-16 border-b border-border bg-card gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-6 w-32 bg-muted rounded" />
+            <div className="h-4 w-40 bg-muted rounded" />
+          </div>
+          <div className="flex gap-2">
+            <div className="h-9 w-24 bg-muted rounded" />
+            <div className="h-9 w-32 bg-muted rounded" />
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-muted/5">
+          {/* Settings panel skeleton */}
+          <div className="w-full lg:w-96 border-r border-border bg-card p-6 space-y-6 flex-shrink-0">
+            <div className="space-y-2">
+              <div className="h-4 w-24 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-32 w-full bg-muted rounded" />
+            </div>
+          </div>
+          {/* Canvas workspace skeleton */}
+          <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+            <div className="h-40 w-full bg-muted rounded-xl" />
+            <div className="h-40 w-full bg-muted rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden shadow-sm border-border">
+    <div id="campus-builder-container" className="flex flex-col min-h-[calc(100vh-160px)] border rounded-xl bg-background overflow-hidden shadow-sm border-border">
       {/* Topbar / Navigation */}
-      <header className="flex flex-col lg:flex-row items-center justify-between p-4 lg:px-6 lg:h-16 border-b border-border bg-card gap-4 shrink-0 shadow-sm z-10">
+      <header id="campus-builder-header" className="flex flex-col lg:flex-row items-center justify-between p-4 lg:px-6 lg:h-16 border-b border-border bg-card gap-4 shrink-0 shadow-sm z-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-8 w-full lg:w-auto">
           <h1 className="font-bold text-lg flex items-center gap-2 text-primary sm:border-r border-border sm:pr-6">
             <LayoutTemplate className="w-5 h-5" /> Campus CMS

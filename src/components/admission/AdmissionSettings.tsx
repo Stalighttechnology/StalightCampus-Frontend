@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
-import { Loader2, Save, Info, Plus } from 'lucide-react';
+import { Loader2, Save, Info, Plus, CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 
 export default function AdmissionSettings() {
@@ -76,71 +78,162 @@ export default function AdmissionSettings() {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <Card className="w-full animate-pulse border-border">
+        <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
+          <div className="space-y-2">
+            <div className="h-6 w-40 bg-muted rounded" />
+            <div className="h-3.5 w-96 bg-muted rounded" />
+          </div>
+          <div className="h-9 w-32 bg-muted rounded" />
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          <div className="space-y-4">
+            <div className="h-5 w-48 bg-muted rounded" />
+            <div className="border border-border rounded-xl p-4 space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b border-border/50">
+                <div className="space-y-1">
+                  <div className="h-5 w-40 bg-muted rounded" />
+                  <div className="h-3.5 w-64 bg-muted rounded" />
+                </div>
+                <div className="h-6 w-12 bg-muted rounded-full" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2].map((j) => (
+                  <div key={j} className="space-y-2">
+                    <div className="h-3.5 w-24 bg-muted rounded" />
+                    <div className="h-10 w-full bg-muted rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <Card id="admission-settings-container" className="w-full">
+      <CardHeader id="admission-settings-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Admission Settings</h2>
-          <p className="text-muted-foreground text-sm">Manage institutional campaigns, intake timelines, and status thresholds.</p>
+          <CardTitle className="text-lg md:text-xl font-bold">Admission Settings</CardTitle>
+          <p className="text-muted-foreground text-xs md:text-sm mt-1">Manage institutional campaigns, intake timelines, and status thresholds.</p>
         </div>
-      </div>
-
-      <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
-        <CardContent className="p-6 flex gap-4 text-sm text-blue-800 dark:text-blue-200">
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="shadow-sm">
+              <Plus className="w-4 h-4 mr-2" /> Create Campaign
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="w-[90vw] sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create Admission Campaign</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreateCampaign} className="space-y-4 mt-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Campaign Name</label>
+                <input type="text" required value={newCampaign.name} onChange={e => setNewCampaign({...newCampaign, name: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background text-sm focus:ring-1 focus:ring-primary focus:border-transparent outline-none" placeholder="e.g., Fall 2026 Admissions" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Start Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        type="button"
+                        className={`w-full justify-start text-left font-normal border-input bg-background h-10 ${!newCampaign.start_date && "text-muted-foreground"}`}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newCampaign.start_date ? (
+                          new Date(newCampaign.start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                        ) : (
+                          <span>Pick start date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={newCampaign.start_date ? new Date(newCampaign.start_date) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, '0');
+                            const d = String(date.getDate()).padStart(2, '0');
+                            setNewCampaign({...newCampaign, start_date: `${y}-${m}-${d}`});
+                          }
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                <div className="flex flex-col">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">End Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        type="button"
+                        className={`w-full justify-start text-left font-normal border-input bg-background h-10 ${!newCampaign.end_date && "text-muted-foreground"}`}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newCampaign.end_date ? (
+                          new Date(newCampaign.end_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                        ) : (
+                          <span>Pick end date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={newCampaign.end_date ? new Date(newCampaign.end_date) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, '0');
+                            const d = String(date.getDate()).padStart(2, '0');
+                            setNewCampaign({...newCampaign, end_date: `${y}-${m}-${d}`});
+                          }
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              <Button type="submit" className="w-full">
+                <Save className="w-4 h-4 mr-2" /> Save Campaign
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      
+      <CardContent className="pt-6 space-y-6">
+        {/* Info banner explaining Admission Campaigns */}
+        <div className="border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 p-4 rounded-xl flex gap-4 text-xs md:text-sm text-blue-800 dark:text-blue-200">
           <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold mb-1">What is an Admission Campaign?</p>
-            <p className="leading-relaxed">
+            <p className="font-semibold mb-1 text-blue-950 dark:text-blue-100">What is an Admission Campaign?</p>
+            <p className="leading-relaxed text-blue-800/95 dark:text-blue-200/90">
               An Admission Campaign is how you organize and track different batches of student intakes over time (e.g., <strong>"Fall 2026 Admissions"</strong> vs <strong>"Spring 2027 Admissions"</strong>). 
               When a student applies, they are automatically tagged to the currently active campaign. This allows you to generate reports and track conversion rates specifically for that one intake period, without mixing the data up with students who applied in previous years!
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card className="w-full">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-lg">Manage Campaigns</CardTitle>
-            <CardDescription className="text-xs">View and toggle active status of all your campaigns.</CardDescription>
+        <div className="space-y-4">
+          <div className="flex flex-col gap-1">
+            <h3 className="text-base font-semibold text-foreground">Manage Campaigns</h3>
+            <p className="text-xs text-muted-foreground">View and toggle active status of all your campaigns.</p>
           </div>
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="shadow-sm">
-                <Plus className="w-4 h-4 mr-2" /> Create Campaign
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Create Admission Campaign</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateCampaign} className="space-y-4 mt-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Campaign Name</label>
-                  <input type="text" required value={newCampaign.name} onChange={e => setNewCampaign({...newCampaign, name: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background text-sm focus:ring-1 focus:ring-primary focus:border-transparent outline-none" placeholder="e.g., Fall 2026 Admissions" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Start Date</label>
-                    <input type="date" required value={newCampaign.start_date} onChange={e => setNewCampaign({...newCampaign, start_date: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background text-sm focus:ring-1 focus:ring-primary focus:border-transparent outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">End Date</label>
-                    <input type="date" required value={newCampaign.end_date} onChange={e => setNewCampaign({...newCampaign, end_date: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background text-sm focus:ring-1 focus:ring-primary focus:border-transparent outline-none" />
-                  </div>
-                </div>
-                <Button type="submit" className="w-full">
-                  <Save className="w-4 h-4 mr-2" /> Save Campaign
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
+
+          <div className="overflow-x-auto border border-border rounded-xl">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                 <tr>
@@ -172,8 +265,8 @@ export default function AdmissionSettings() {
               </tbody>
             </table>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
