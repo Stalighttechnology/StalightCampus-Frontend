@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
-import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye, Camera, Edit } from 'lucide-react';
+import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye, Camera, Edit, Trash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getBillingAndSupport, BillingAndSupportResponse } from '../../utils/admin_api';
 import { fetchWithTokenRefresh } from '../../utils/authService';
@@ -83,6 +83,11 @@ const BillingManagement = () => {
     }
   };
 
+  const handleRemoveOrgLogo = () => {
+    setOrgLogoPreview(null);
+    setOrgLogo(null);
+  };
+
   const handleSaveOrgDetails = async () => {
     if (!orgForm.name.trim()) {
       showErrorAlert('Error', 'Organization Name is required');
@@ -97,6 +102,8 @@ const BillingManagement = () => {
       });
       if (orgLogo) {
         dataToSend.append('logo', orgLogo);
+      } else if (!orgLogoPreview) {
+        dataToSend.append('delete_logo', 'true');
       }
 
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/billing-support/`, {
@@ -769,19 +776,36 @@ const BillingManagement = () => {
                   </div>
                   <div className="space-y-1.5">
                     <span className="text-xs sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Brand Logo</span>
-                    <label className="flex items-center gap-2 px-3 bg-muted/30 border h-12 rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
-                      <div className="w-8 h-8 bg-background rounded-lg flex items-center justify-center overflow-hidden border">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-12 h-12 bg-background rounded-xl flex items-center justify-center overflow-hidden border flex-shrink-0">
                         {orgLogoPreview ? (
-                          <img src={orgLogoPreview} alt="Preview" className="w-full h-full object-cover" />
+                          <>
+                            <img src={orgLogoPreview} alt="Preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleRemoveOrgLogo();
+                              }}
+                              className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full cursor-pointer transition-colors shadow-lg"
+                              title="Remove Logo"
+                            >
+                              <Trash className="h-3 w-3" />
+                            </button>
+                          </>
                         ) : (
-                          <Camera size={14} className="text-muted-foreground" />
+                          <Camera size={16} className="text-muted-foreground" />
                         )}
                       </div>
-                      <span className="text-xs sm:text-[10px] font-medium text-muted-foreground truncate flex-1">
-                        {orgLogo ? orgLogo.name : "Upload"}
-                      </span>
-                      <input type="file" className="hidden" accept="image/*" onChange={handleOrgLogoChange} />
-                    </label>
+                      
+                      <label htmlFor="org-logo-upload" className="flex items-center justify-center gap-2 px-4 bg-muted/30 border h-12 rounded-xl cursor-pointer hover:bg-muted/50 transition-colors flex-1">
+                        <span className="text-xs sm:text-[10px] font-medium text-muted-foreground truncate">
+                          {orgLogo ? orgLogo.name : (orgLogoPreview ? "Change Logo" : "Upload")}
+                        </span>
+                      </label>
+                      <input id="org-logo-upload" type="file" className="hidden" accept="image/*" onChange={handleOrgLogoChange} />
+                    </div>
                   </div>
                 </div>
 
