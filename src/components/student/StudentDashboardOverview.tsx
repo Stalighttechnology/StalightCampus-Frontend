@@ -468,7 +468,7 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
           className={`overflow-hidden border border-border shadow-sm ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}
         >
           <CardHeader className="p-5 border-b border-border/50">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-3">
+            <div className="flex flex-row items-center justify-between w-full gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-6 bg-primary rounded-full"></div>
                 <CardTitle className="text-lg font-semibold">Active Timeline</CardTitle>
