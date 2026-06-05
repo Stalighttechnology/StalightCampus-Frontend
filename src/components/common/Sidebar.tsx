@@ -63,7 +63,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
       setIsNotificationsEnabled((typeof Notification !== 'undefined' && Notification.permission === 'granted'));
-      
+
       const interval = setInterval(() => {
         setIsNotificationsEnabled((typeof Notification !== 'undefined' && Notification.permission === 'granted'));
       }, 1000);
@@ -214,6 +214,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       "transport-allocations": <Users size={20} />,
       "transport-tracking": <BarChart2 size={20} />,
       "transport-incidents": <AlertCircle size={20} />,
+      "department-admin-leaves": <FileText size={20} />,
+      "manage-warden-leaves": <FileText size={20} />,
       "driver-history": <Calendar size={20} />,
       "driver-complaints": <AlertCircle size={20} />,
       "library": <BookOpen size={20} />,
@@ -279,6 +281,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
       // Leaves
       { name: "HOD Leaves", page: "hod-leaves" },
+      { name: "Department Admin Leaves", page: "department-admin-leaves" },
       { name: "HOD Attendance", page: "hod-attendance" },
       { name: "Faculty Attendance", page: "faculty-attendance" },
 
@@ -330,6 +333,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
       // Leaves
       { name: "HOD Leaves", page: "hod-leaves" },
+      { name: "Department Admin Leaves", page: "department-admin-leaves" },
       { name: "HOD Attendance", page: "hod-attendance" },
       { name: "Faculty Attendance", page: "faculty-attendance" },
 
@@ -492,6 +496,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Today's Menu", page: "student-meals" },
       { name: "Issue Tracking", page: "issues" },
       { name: "Visitor Logs", page: "visitor_logs" },
+      { name: "Apply Leave", page: "apply-leave" },
+      { name: "Warden Leaves", page: "manage-warden-leaves" },
       { name: "Profile", page: "profile" },
     ],
     warden: [
@@ -499,6 +505,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Resident Management", page: "residents" },
       { name: "Issue Tracking", page: "issues" },
       { name: "Visitor Logs", page: "visitor_logs" },
+      { name: "Apply Leave", page: "apply-leave" },
       { name: "Profile", page: "profile" },
     ],
     transport_admin: [
@@ -509,12 +516,15 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Allocations", page: "transport-allocations" },
       { name: "Live Tracking", page: "transport-tracking" },
       { name: "Complaints", page: "transport-incidents" },
+      { name: "Apply Leave", page: "apply-leave" },
+      { name: "Driver Leaves", page: "manage-leaves" },
       { name: "Profile", page: "profile" },
     ],
     driver: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Trip History", page: "driver-history" },
       { name: "Complaints", page: "driver-complaints" },
+      { name: "Apply Leave", page: "apply-leave" },
       { name: "Profile", page: "profile" },
     ],
     library_admin: [
@@ -522,6 +532,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Books Catalog", page: "library-books" },
       { name: "Circulation", page: "library-circulation" },
       { name: "Fine Management", page: "library-fines" },
+      { name: "Apply Leave", page: "apply-leave" },
       { name: "Profile", page: "profile" },
     ],
     admission_manager: [

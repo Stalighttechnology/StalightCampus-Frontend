@@ -171,3 +171,68 @@ export const fetchMyTripHistory = () =>
 
 export const submitStudentComplaint = (title: string, description: string) =>
   fetchWithTokenRefresh(`${API_BASE}/student/complaint/`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ title, description }) }).then((r) => r.json());
+
+// ─── LEAVES ─────────────────────────────────────────────────────────────
+
+export const getApplyLeaveBootstrap = async (qs: string = '') => {
+  return await fetchWithTokenRefresh(`${API_ENDPOINT}/transport/driver/apply-leave/${qs}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    }
+  }).then((r) => r.json());
+};
+
+export const applyLeave = async (data: any) => {
+  return await fetchWithTokenRefresh(`${API_ENDPOINT}/transport/driver/apply-leave/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify(data)
+  }).then((r) => r.json());
+};
+
+export const getAdminApplyLeaveBootstrap = async (qs: string = '') => {
+  return await fetchWithTokenRefresh(`${API_ENDPOINT}/transport/admin/apply-leave/${qs}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    }
+  }).then((r) => r.json());
+};
+
+export const applyAdminLeave = async (data: any) => {
+  return await fetchWithTokenRefresh(`${API_ENDPOINT}/transport/admin/apply-leave/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify(data)
+  }).then((r) => r.json());
+};
+
+export const manageDriverLeaves = async (qs: string = '') => {
+  return await fetchWithTokenRefresh(`${API_ENDPOINT}/transport/admin/manage-leaves/${qs}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    }
+  }).then((r) => r.json());
+};
+
+export const processDriverLeave = async (data: { leave_id: string, action: 'APPROVE' | 'REJECT' }) => {
+  return await fetchWithTokenRefresh(`${API_ENDPOINT}/transport/admin/manage-leaves/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders()
+    },
+    body: JSON.stringify(data)
+  }).then((r) => r.json());
+};

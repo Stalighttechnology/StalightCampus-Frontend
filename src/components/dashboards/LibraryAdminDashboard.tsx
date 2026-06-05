@@ -4,6 +4,7 @@ import LibraryOverview from "../library/LibraryOverview";
 import LibraryBooksCatalog from "../library/LibraryBooksCatalog";
 import LibraryCirculation from "../library/LibraryCirculation";
 import LibraryFineManagement from "../library/LibraryFineManagement";
+import ApplyLeaveDepartmentAdmin from "../admin/ApplyLeaveDepartmentAdmin";
 import Profile from "../common/Profile";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 
@@ -39,6 +40,8 @@ const LibraryAdminDashboard = ({ user }: DashboardProps) => {
         return <LibraryCirculation />;
       case "library-fines":
         return <LibraryFineManagement />;
+      case "apply-leave":
+        return <ApplyLeaveDepartmentAdmin />;
       case "profile":
         return <Profile role="library_admin" user={user} />;
       default:

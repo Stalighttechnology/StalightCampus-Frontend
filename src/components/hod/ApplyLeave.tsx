@@ -82,10 +82,44 @@ interface LeaveBootstrapResponse {
   }>;
 }
 
-const statusColors = {
-  APPROVED: "text-green-700 bg-green-100",
-  REJECTED: "text-red-700 bg-red-100",
-  PENDING: "text-yellow-700 bg-yellow-100"
+import { Badge } from "../ui/badge";
+import { Clock3, CheckCircle2, XCircle, Eye } from "lucide-react";
+
+const getStatusStyles = (theme: string, status: string) => {
+  const normalizedStatus = status.toUpperCase();
+
+  const styles = {
+    PENDING: {
+      icon: <Clock3 className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />,
+      color: theme === 'dark' ? "text-yellow-400" : "text-yellow-600",
+      bg: theme === 'dark' ? "bg-yellow-900/30" : "bg-yellow-100"
+    },
+    APPROVED: {
+      icon: <CheckCircle2 className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />,
+      color: theme === 'dark' ? "text-green-400" : "text-green-600",
+      bg: theme === 'dark' ? "bg-green-900/30" : "bg-green-100"
+    },
+    REJECTED: {
+      icon: <XCircle className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />,
+      color: theme === 'dark' ? "text-red-400" : "text-red-600",
+      bg: theme === 'dark' ? "bg-red-900/30" : "bg-red-100"
+    }
+  };
+
+  return styles[normalizedStatus] || styles.PENDING;
+};
+
+const renderStatus = (theme: string, status: string) => {
+  const styles = getStatusStyles(theme, status);
+  return (
+    <Badge
+      className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${styles.bg} ${styles.color}`}>
+      <div className="flex items-center gap-1">
+        {styles.icon}
+        {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+      </div>
+    </Badge>
+  );
 };
 
 const ApplyLeave = () => {
@@ -500,19 +534,17 @@ const ApplyLeave = () => {
                         <div className="text-xs text-muted-foreground">{leave.start_date} to {leave.end_date}</div>
                       </div>
                       <div className="shrink-0">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusColors[leave.status]}`}>
-                          {leave.status}
-                        </span>
+                        {renderStatus(theme, leave.status)}
                       </div>
                     </div>
                     <div className="mt-3 flex gap-2">
                       <Button
                       size="sm"
                       variant="outline"
-                      className={`flex-1 ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                      className={`flex-1 h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}
                       onClick={() => setSelectedReason(leave.reason)}>
-                      
-                        View Reason
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
                       </Button>
                     </div>
                   </div>
@@ -567,18 +599,16 @@ const ApplyLeave = () => {
                       </td>
                       <td className="py-3 px-4 text-sm">
                         <Button
-                        size="sm"
                         variant="outline"
-                        className={`${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                        onClick={() => setSelectedReason(leave.reason)}>
-                        
+                        size="sm"
+                        onClick={() => setSelectedReason(leave.reason)}
+                        className={`h-8 px-2 text-[13px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground hover:text-foreground' : 'text-gray-500 hover:text-gray-700'}`}>
+                          <Eye className="w-3 h-3 mr-1" />
                           View
                         </Button>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusColors[leave.status]}`}>
-                          {leave.status}
-                        </span>
+                        {renderStatus(theme, leave.status)}
                       </td>
                     </tr>
                   )
