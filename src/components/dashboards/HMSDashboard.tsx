@@ -14,6 +14,8 @@ import IssueTracking from "../hms/IssueTracking";
 import HMSProfile from "../hms/HMSProfile";
 import StudentMealManagement from "../hms/StudentMealManagement";
 import HmsVisitorLogs from "../hms/HmsVisitorLogs";
+import ApplyLeaveDepartmentAdmin from "../admin/ApplyLeaveDepartmentAdmin";
+import WardenLeaveManagement from "../hms/WardenLeaveManagement";
 import { useToast } from "../../hooks/use-toast";
 import { logoutUser } from "../../utils/authService";
 import { useTheme } from "../../context/ThemeContext";
@@ -110,6 +112,10 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         return null;
       case "visitor_logs":
         return <HmsVisitorLogs />;
+      case "manage-warden-leaves":
+        return <WardenLeaveManagement setError={() => {}} toast={toast} />;
+      case "apply-leave":
+        return <ApplyLeaveDepartmentAdmin />;
       case "profile":
         return <HMSProfile user={user} />;
       default:

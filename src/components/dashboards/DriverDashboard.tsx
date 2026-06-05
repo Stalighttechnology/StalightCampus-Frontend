@@ -4,6 +4,7 @@ import DashboardLayout from "../common/DashboardLayout";
 import DriverDashboardContent from "../transport/driver/DriverDashboard";
 import DriverTripHistory from "../transport/driver/DriverTripHistory";
 import DriverComplaints from "../transport/driver/DriverComplaints";
+import ApplyLeaveDriver from "../transport/driver/ApplyLeave";
 import Profile from "../common/Profile";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 
@@ -37,6 +38,8 @@ const DriverDashboard = ({ user }: DashboardProps) => {
         return <DriverTripHistory />;
       case "driver-complaints":
         return <DriverComplaints />;
+      case "apply-leave":
+        return <ApplyLeaveDriver />;
       case "profile":
         return <Profile role="driver" user={user} />;
       default:
