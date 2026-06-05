@@ -55,11 +55,11 @@ const LoginMobile = ({ setRole, setPage, setUser }: LoginMobileProps) => {
       <div className="flex-1 flex flex-col justify-between px-4 max-w-sm w-full mx-auto py-3">
         <div className="flex flex-col gap-4">
           {/* ILLUSTRATION CARD */}
-          <div className="w-full bg-[#EDE9FE] border border-white/40 rounded-2xl flex items-center justify-center h-[20vh] min-h-[120px] max-h-[180px] mb-1">
+          <div className="w-full bg-[#EDE9FE] border border-white/40 rounded-2xl flex items-center justify-center h-[20vh] min-h-[120px] max-h-[180px] mb-1 overflow-hidden">
             <img
               src="/image.png"
               alt="classroom"
-              className="max-h-full object-contain"
+              className="w-full h-full object-cover"
             />
           </div>
 
