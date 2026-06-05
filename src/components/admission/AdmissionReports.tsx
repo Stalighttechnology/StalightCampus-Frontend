@@ -74,69 +74,66 @@ export default function AdmissionReports() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Admission Reports & Analytics</h1>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-primary/5 border-primary/20">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-primary/5 border-primary/20 shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Enquiries</p>
-                <h3 className="text-4xl font-bold text-foreground">{analytics.total_enquiries}</h3>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Enquiries</p>
+                <h3 className="text-3xl font-bold text-foreground">{analytics.total_enquiries}</h3>
               </div>
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Users className="w-6 h-6 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                <Users className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium mt-4 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground mt-4 font-medium">
               Total leads captured in pipeline
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-primary/5 border-primary/20 shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Applications</p>
-                <h3 className="text-4xl font-bold text-foreground">{analytics.total_applications}</h3>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Applications</p>
+                <h3 className="text-3xl font-bold text-foreground">{analytics.total_applications}</h3>
               </div>
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <FileTextIcon className="w-6 h-6 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                <FileTextIcon className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium mt-4 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground mt-4 font-medium">
               Total submitted applications
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-primary/5 border-primary/20 shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Conversion Rate</p>
-                <h3 className="text-4xl font-bold text-foreground">{conversionRate}%</h3>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Conversion Rate</p>
+                <h3 className="text-3xl font-bold text-foreground">{conversionRate}%</h3>
               </div>
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <PieChartIcon className="w-6 h-6 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                <PieChartIcon className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium mt-4">
-              Enquiry to Application
+            <p className="text-xs text-muted-foreground mt-4 font-medium">
+              Enquiry to Application conversion
             </p>
           </CardContent>
         </Card>
       </div>
       
       <Card>
-        <CardHeader>
-          <CardTitle>Generate Custom Reports</CardTitle>
+        <CardHeader className="border-b pb-4">
+          <CardTitle className="text-lg font-semibold">Admission Reports & Analytics</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">Generate custom csv reports and view metrics visualization.</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-8">
             <div className="space-y-2">
               <label className="text-sm font-medium">Report Type</label>

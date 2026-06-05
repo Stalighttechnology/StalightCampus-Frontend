@@ -58,9 +58,7 @@ const LeadPipeline: React.FC = () => {
   if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="p-6 h-[calc(100vh-100px)] flex flex-col">
-      <h1 className="text-3xl font-bold mb-6">Lead Pipeline</h1>
-
+    <div className="space-y-6 flex flex-col min-h-[calc(100vh-160px)]">
       <div className="flex gap-4 overflow-x-auto overflow-y-hidden pb-4 flex-1 items-start min-h-0 custom-scrollbar">
         {STAGES.map((stage) => {
           const stageLeads = leads.filter(l => l.status === stage.id);

@@ -57,14 +57,12 @@ export default function AdmissionFees() {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-8">Fee Collection</h1>
-      
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Pending & Recent Fee Payments</CardTitle>
+          <CardTitle className="text-lg">Pending & Recent Fee Payments</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {applications.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-20" />
@@ -75,25 +73,25 @@ export default function AdmissionFees() {
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="px-4 py-3">Applicant Name</th>
-                    <th className="px-4 py-3">Course</th>
-                    <th className="px-4 py-3">Payment Status</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
+                    <th className="px-6 py-4 font-semibold">Applicant Name</th>
+                    <th className="px-6 py-4 font-semibold">Course</th>
+                    <th className="px-6 py-4 font-semibold">Payment Status</th>
+                    <th className="px-6 py-4 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border">
                   {applications.map(app => {
                     const isPaid = app.enquiry_details?.status === 'admission_confirmed';
                     return (
-                      <tr key={app.id} className="border-b border-border hover:bg-muted/20">
-                        <td className="px-4 py-3 font-medium">{app.enquiry_details?.name}</td>
-                        <td className="px-4 py-3">{app.enquiry_details?.course_name}</td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold uppercase ${isPaid ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      <tr key={app.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-6 py-4 font-medium text-foreground">{app.enquiry_details?.name}</td>
+                        <td className="px-6 py-4 text-muted-foreground">{app.enquiry_details?.course_name}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${isPaid ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                             {isPaid ? 'Paid' : 'Pending'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-6 py-4 text-right">
                           <Button 
                             variant="outline" 
                             size="sm" 

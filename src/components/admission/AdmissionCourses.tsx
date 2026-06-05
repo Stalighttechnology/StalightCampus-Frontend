@@ -94,43 +94,33 @@ const AdmissionCourses: React.FC = () => {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Manage Courses</h1>
-        <Button onClick={() => {
-          setIsEditing(true);
-          setCurrentCourse({ name: '', code: '', duration_years: 4, description: '' });
-        }}>
-          <Plus size={16} className="mr-2" /> Add Course
-        </Button>
-      </div>
-
+    <div className="space-y-6">
       {isEditing && (
-        <Card className="mb-8 border-primary/20">
+        <Card className="border-primary/20">
           <CardHeader>
-            <CardTitle>{currentCourse.id ? 'Edit Course' : 'Add New Course'}</CardTitle>
+            <CardTitle className="text-lg">{currentCourse.id ? 'Edit Course' : 'Add New Course'}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Course Name</label>
-                  <input type="text" required value={currentCourse.name} onChange={e => setCurrentCourse({...currentCourse, name: e.target.value})} className="w-full p-2 border border-input rounded bg-background" placeholder="e.g. Bachelor of Technology" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Course Name</label>
+                  <input type="text" required value={currentCourse.name} onChange={e => setCurrentCourse({...currentCourse, name: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="e.g. Bachelor of Technology" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Course Code</label>
-                  <input type="text" required value={currentCourse.code} onChange={e => setCurrentCourse({...currentCourse, code: e.target.value})} className="w-full p-2 border border-input rounded bg-background" placeholder="e.g. BTECH-CS" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Course Code</label>
+                  <input type="text" required value={currentCourse.code} onChange={e => setCurrentCourse({...currentCourse, code: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm font-mono" placeholder="e.g. BTECH-CS" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Duration (Years)</label>
-                  <input type="number" required min={1} max={6} value={currentCourse.duration_years} onChange={e => setCurrentCourse({...currentCourse, duration_years: parseInt(e.target.value)})} className="w-full p-2 border border-input rounded bg-background" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Duration (Years)</label>
+                  <input type="number" required min={1} max={6} value={currentCourse.duration_years} onChange={e => setCurrentCourse({...currentCourse, duration_years: parseInt(e.target.value)})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea required value={currentCourse.description} onChange={e => setCurrentCourse({...currentCourse, description: e.target.value})} className="w-full p-2 border border-input rounded bg-background" rows={3} placeholder="Briefly describe the course..."></textarea>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Description</label>
+                <textarea required value={currentCourse.description} onChange={e => setCurrentCourse({...currentCourse, description: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" rows={3} placeholder="Briefly describe the course..."></textarea>
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
                 <Button type="submit">Save Course</Button>
               </div>
@@ -140,9 +130,21 @@ const AdmissionCourses: React.FC = () => {
       )}
 
       <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+          <div>
+            <CardTitle className="text-lg font-semibold">Manage Courses</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Create and modify courses offered by your institution.</p>
+          </div>
+          <Button onClick={() => {
+            setIsEditing(true);
+            setCurrentCourse({ name: '', code: '', duration_years: 4, description: '' });
+          }} size="sm" className="shadow-sm">
+            <Plus size={16} className="mr-2" /> Add Course
+          </Button>
+        </CardHeader>
         <CardContent className="p-0">
           {courses.length === 0 && !isEditing ? (
-            <div className="text-center py-12 text-muted-foreground border-b border-border">
+            <div className="text-center py-12 text-muted-foreground">
               <p>No courses found. Add a course to display it on the admission landing page.</p>
             </div>
           ) : (

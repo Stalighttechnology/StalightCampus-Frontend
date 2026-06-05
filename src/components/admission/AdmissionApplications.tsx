@@ -82,15 +82,13 @@ export default function AdmissionApplications() {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-8">Applications</h1>
-      
+    <div className="space-y-6">
       {!selectedApp ? (
         <Card>
           <CardHeader>
-            <CardTitle>Submitted Applications</CardTitle>
+            <CardTitle className="text-lg">Submitted Applications</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {applications.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No applications found.</p>
             ) : (
@@ -98,25 +96,25 @@ export default function AdmissionApplications() {
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                     <tr>
-                      <th className="px-4 py-3">Applicant Name</th>
-                      <th className="px-4 py-3">Course</th>
-                      <th className="px-4 py-3">12th Marks</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
+                      <th className="px-6 py-4 font-semibold">Applicant Name</th>
+                      <th className="px-6 py-4 font-semibold">Course</th>
+                      <th className="px-6 py-4 font-semibold">12th Marks</th>
+                      <th className="px-6 py-4 font-semibold">Status</th>
+                      <th className="px-6 py-4 text-right font-semibold">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border">
                     {applications.map(app => (
-                      <tr key={app.id} className="border-b border-border hover:bg-muted/20">
-                        <td className="px-4 py-3 font-medium">{app.enquiry_details?.name}</td>
-                        <td className="px-4 py-3">{app.enquiry_details?.course_name || 'N/A'}</td>
-                        <td className="px-4 py-3">{app.marks_12th}%</td>
-                        <td className="px-4 py-3">
-                          <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-semibold uppercase">
+                      <tr key={app.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-6 py-4 font-medium text-foreground">{app.enquiry_details?.name}</td>
+                        <td className="px-6 py-4 text-muted-foreground">{app.enquiry_details?.course_name || 'N/A'}</td>
+                        <td className="px-6 py-4 text-muted-foreground font-mono">{app.marks_12th}%</td>
+                        <td className="px-6 py-4">
+                          <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
                             {app.enquiry_details?.status.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-6 py-4 text-right">
                           <Button variant="outline" size="sm" onClick={() => setSelectedApp(app)}>
                             Review
                           </Button>
@@ -131,32 +129,34 @@ export default function AdmissionApplications() {
         </Card>
       ) : (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Application Review: {selectedApp.enquiry_details?.name}</CardTitle>
-            <Button variant="ghost" onClick={() => setSelectedApp(null)}>Back to List</Button>
+          <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+            <div>
+              <CardTitle className="text-lg">Application Review: {selectedApp.enquiry_details?.name}</CardTitle>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedApp(null)}>Back to List</Button>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-8">
+          <CardContent className="space-y-6 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b border-border pb-2">Personal Info</h3>
-                <p><strong>Email:</strong> {selectedApp.enquiry_details?.email}</p>
-                <p><strong>Phone:</strong> {selectedApp.enquiry_details?.phone}</p>
-                <p><strong>City:</strong> {selectedApp.enquiry_details?.city}</p>
-                <p><strong>Gender:</strong> {selectedApp.gender}</p>
-                <p><strong>Address:</strong> {selectedApp.address}</p>
-                <p><strong>Course:</strong> {selectedApp.enquiry_details?.course_name}</p>
+                <h3 className="font-semibold text-base border-b border-border pb-2">Personal Info</h3>
+                <p className="text-sm"><strong className="text-muted-foreground">Email:</strong> {selectedApp.enquiry_details?.email}</p>
+                <p className="text-sm"><strong className="text-muted-foreground">Phone:</strong> {selectedApp.enquiry_details?.phone}</p>
+                <p className="text-sm"><strong className="text-muted-foreground">City:</strong> {selectedApp.enquiry_details?.city}</p>
+                <p className="text-sm"><strong className="text-muted-foreground">Gender:</strong> {selectedApp.gender}</p>
+                <p className="text-sm"><strong className="text-muted-foreground">Address:</strong> {selectedApp.address}</p>
+                <p className="text-sm"><strong className="text-muted-foreground">Course:</strong> {selectedApp.enquiry_details?.course_name}</p>
               </div>
               
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg border-b border-border pb-2">Academic Info</h3>
-                <p><strong>10th Marks:</strong> {selectedApp.marks_10th}%</p>
-                <p><strong>12th Marks:</strong> {selectedApp.marks_12th}%</p>
-                {selectedApp.previous_degree_marks && <p><strong>Degree Marks:</strong> {selectedApp.previous_degree_marks}%</p>}
+                <h3 className="font-semibold text-base border-b border-border pb-2">Academic Info</h3>
+                <p className="text-sm"><strong className="text-muted-foreground">10th Marks:</strong> {selectedApp.marks_10th}%</p>
+                <p className="text-sm"><strong className="text-muted-foreground">12th Marks:</strong> {selectedApp.marks_12th}%</p>
+                {selectedApp.previous_degree_marks && <p className="text-sm"><strong className="text-muted-foreground">Degree Marks:</strong> {selectedApp.previous_degree_marks}%</p>}
               </div>
             </div>
             
-            <div className="space-y-4 pt-4 border-t border-border">
-              <h3 className="font-semibold text-lg border-b border-border pb-2">Actions</h3>
+            <div className="space-y-4 pt-6 border-t border-border">
+              <h3 className="font-semibold text-base pb-2">Actions</h3>
               <div className="flex gap-4 flex-wrap">
                 <Button 
                   onClick={() => handleUpdateStatus(selectedApp.id, 'documents_verified')}

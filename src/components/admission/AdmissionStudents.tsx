@@ -54,21 +54,25 @@ export default function AdmissionStudents() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Enrolled Students</h1>
-        <Button onClick={handleExportHOD} className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Download className="w-4 h-4 mr-2" /> Export for HOD
-        </Button>
-      </div>
-      
+    <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Enrollments</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+          <div>
+            <CardTitle className="text-lg font-semibold">Enrolled Students</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">View and export institution enrollments.</p>
+          </div>
+          <Button 
+            onClick={handleExportHOD} 
+            disabled={students.length === 0}
+            size="sm" 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+          >
+            <Download className="w-4 h-4 mr-2" /> Export for HOD
+          </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {students.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground border-2 border-dashed border-border rounded-xl">
+            <div className="text-center py-12 text-muted-foreground">
               <User className="w-12 h-12 mx-auto mb-4 opacity-20" />
               <p>No students have been enrolled yet.</p>
               <p className="text-sm mt-2">Enroll students from the Applications tab.</p>
@@ -78,19 +82,19 @@ export default function AdmissionStudents() {
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="px-4 py-3">App ID</th>
-                    <th className="px-4 py-3">Student Name</th>
-                    <th className="px-4 py-3">Course</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Date of Enrollment</th>
-                    <th className="px-4 py-3 text-right">Status</th>
+                    <th className="px-6 py-4 font-semibold">App ID</th>
+                    <th className="px-6 py-4 font-semibold">Student Name</th>
+                    <th className="px-6 py-4 font-semibold">Course</th>
+                    <th className="px-6 py-4 font-semibold">Phone</th>
+                    <th className="px-6 py-4 font-semibold">Date of Enrollment</th>
+                    <th className="px-6 py-4 text-right font-semibold">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border">
                   {students.map(student => (
-                    <tr key={student.id} className="border-b border-border hover:bg-muted/20">
-                      <td className="px-4 py-3 font-medium">#{student.id}</td>
-                      <td className="px-4 py-3 flex items-center gap-3 font-medium">
+                    <tr key={student.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-mono font-medium">#{student.id}</td>
+                      <td className="px-6 py-4 flex items-center gap-3 font-medium">
                         <div className="w-8 h-8 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center flex-shrink-0">
                           {student.photo ? (
                             <img src={student.photo} alt="Student" className="w-full h-full object-cover" />
@@ -100,11 +104,11 @@ export default function AdmissionStudents() {
                         </div>
                         {student.enquiry_details?.name}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{student.enquiry_details?.course_name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{student.enquiry_details?.phone}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{new Date(student.updated_at).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold uppercase">
+                      <td className="px-6 py-4 text-muted-foreground">{student.enquiry_details?.course_name}</td>
+                      <td className="px-6 py-4 text-muted-foreground font-mono">{student.enquiry_details?.phone}</td>
+                      <td className="px-6 py-4 text-muted-foreground">{new Date(student.updated_at).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-right">
+                        <span className="bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
                           Enrolled
                         </span>
                       </td>

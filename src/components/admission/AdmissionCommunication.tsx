@@ -64,69 +64,68 @@ export default function AdmissionCommunication() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Applicant Communication</h1>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" /> Compose Email
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Compose Message</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSendMessage} className="space-y-5 mt-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">To</label>
-                <select 
-                  value={newMessage.target_group}
-                  onChange={e => setNewMessage({...newMessage, target_group: e.target.value})}
-                  className="w-full p-2.5 border border-input rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                >
-                  <option value="all">All Pending Enquiries</option>
-                  <option value="verified">All Verified Applicants</option>
-                  <option value="enrolled">All Enrolled Students</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">Subject</label>
-                <input 
-                  type="text" 
-                  value={newMessage.subject}
-                  onChange={e => setNewMessage({...newMessage, subject: e.target.value})}
-                  className="w-full p-2.5 border border-input rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
-                  placeholder="Important update regarding your admission" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">Message</label>
-                <textarea 
-                  value={newMessage.message}
-                  onChange={e => setNewMessage({...newMessage, message: e.target.value})}
-                  className="w-full p-3 border border-input rounded-md bg-background min-h-[200px] resize-y focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
-                  placeholder="Type your message here..."
-                ></textarea>
-              </div>
-              <div className="flex justify-end pt-2">
-                <Button type="submit" className="px-8 font-semibold shadow-sm hover:shadow">
-                  <Send className="w-4 h-4 mr-2" /> Send Email
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-      
+    <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Communications</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+          <div>
+            <CardTitle className="text-lg font-semibold">Applicant Communication</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Send updates and announcements to your applicant pipelines.</p>
+          </div>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="shadow-sm">
+                <Plus className="w-4 h-4 mr-2" /> Compose Email
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[95%] sm:max-w-[500px] max-h-[85vh] overflow-y-auto thin-scrollbar">
+              <DialogHeader>
+                <DialogTitle>Compose Message</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSendMessage} className="space-y-5 mt-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">To</label>
+                  <select 
+                    value={newMessage.target_group}
+                    onChange={e => setNewMessage({...newMessage, target_group: e.target.value})}
+                    className="w-full p-2.5 border border-input rounded-md bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
+                  >
+                    <option value="all">All Pending Enquiries</option>
+                    <option value="verified">All Verified Applicants</option>
+                    <option value="enrolled">All Enrolled Students</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Subject</label>
+                  <input 
+                    type="text" 
+                    value={newMessage.subject}
+                    onChange={e => setNewMessage({...newMessage, subject: e.target.value})}
+                    className="w-full p-2.5 border border-input rounded-md bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none transition-all text-sm" 
+                    placeholder="Important update regarding your admission" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Message</label>
+                  <textarea 
+                    value={newMessage.message}
+                    onChange={e => setNewMessage({...newMessage, message: e.target.value})}
+                    className="w-full p-3 border border-input rounded-md bg-background min-h-[200px] resize-y focus:ring-1 focus:ring-primary focus:border-transparent outline-none transition-all text-sm" 
+                    placeholder="Type your message here..."
+                  ></textarea>
+                </div>
+                <div className="flex justify-end pt-2">
+                  <Button type="submit" className="px-8 font-semibold shadow-sm hover:shadow">
+                    <Send className="w-4 h-4 mr-2" /> Send Email
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             {communications.length === 0 ? (
-              <div className="p-12 text-center text-muted-foreground border-b border-border">
+              <div className="p-12 text-center text-muted-foreground">
                 <Mail className="w-12 h-12 mx-auto mb-4 opacity-20" />
                 <p className="text-sm">No recent communications.</p>
                 <p className="text-xs mt-2">Click "Compose Email" above to send your first message.</p>
@@ -148,7 +147,7 @@ export default function AdmissionCommunication() {
                         {comm.subject}
                       </td>
                       <td className="px-6 py-4 font-medium text-foreground">
-                        <span className="bg-muted px-2 py-1 rounded-md capitalize">
+                        <span className="bg-muted px-2.5 py-0.5 rounded-md capitalize text-xs font-semibold">
                           {comm.target_group.replace(/_/g, ' ')}
                         </span>
                       </td>
