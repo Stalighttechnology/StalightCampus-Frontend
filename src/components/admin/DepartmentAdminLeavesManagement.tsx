@@ -35,6 +35,7 @@ interface LeaveRequest {
   reason: string;
   status: string;
   role?: string;
+  reviewed_by?: string | null;
 }
 
 interface DepartmentAdminLeavesManagementProps {
@@ -130,7 +131,8 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
             status: leave.status === "APPROVED" ? "Approved" :
               leave.status === "REJECTED" ? "Rejected" :
                 leave.status === "PENDING" ? "Pending" :
-                  leave.status?.charAt(0).toUpperCase() + leave.status?.slice(1).toLowerCase() || "Unknown"
+                  leave.status?.charAt(0).toUpperCase() + leave.status?.slice(1).toLowerCase() || "Unknown",
+            reviewed_by: leave.reviewed_by || null
           })) :
           [];
         setLeaveRequests(leaveData);
@@ -306,7 +308,6 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
           .leave-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
           .leave-card-title { font-size: 1.25rem !important; }
           .leave-card-desc { font-size: 0.8125rem !important; margin-top: 4px !important; }
-          .leave-month-picker { width: 100% !important; margin-top: 8px !important; }
           .leave-item-card { padding: 16px !important; border-radius: 12px !important; }
           .leave-actions-mobile { width: 100% !important; margin-top: 12px !important; gap: 8px !important; flex-direction: row !important; }
           .leave-action-btn { flex: 1 !important; height: 38px !important; font-size: 12px !important; font-weight: 600 !important; }
@@ -331,14 +332,14 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                   Review and approve leave requests from Department Admins
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                  <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} shrink-0`}>Month:</label>
                   <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className={`leave-month-picker ${theme === 'dark' ? 'w-40 justify-start text-left font-normal bg-card text-foreground border-border' : 'w-40 justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}`}>
+                        className={`flex-1 sm:w-40 justify-start text-left font-normal h-9 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}>
 
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {selectedMonth ?
@@ -420,9 +421,9 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                   </Popover>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-[140px] px-3 h-9 flex items-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
+                    <SelectTrigger className="flex-1 sm:w-[140px] px-3 h-9 flex items-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
                       <span>Role</span>
                     </SelectTrigger>
@@ -435,7 +436,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                   </Select>
 
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[120px] px-3 h-9 flex items-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
+                    <SelectTrigger className="flex-1 sm:w-[120px] px-3 h-9 flex items-center gap-2 rounded-lg border border-primary bg-primary text-white hover:bg-primary/90 [&>svg:last-child]:hidden shadow-sm font-medium text-sm">
                       <Filter className="h-4 w-4" />
                       <span>Status</span>
                     </SelectTrigger>
@@ -485,6 +486,40 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
 
                           View Reason
                         </Button>
+
+                        {leave.status === "Pending" ? (
+                          <div className="grid grid-cols-2 gap-3 mt-2">
+                            <Button
+                              variant="outline"
+                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                  ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                  : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                }`}
+                              onClick={() => handleApprove(leave.id)}
+                              disabled={loading}
+                            >
+                              <CheckCircle size={16} /> Approve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
+                                  ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                  : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                }`}
+                              onClick={() => handleReject(leave.id)}
+                              disabled={loading}
+                            >
+                              <XCircle size={16} /> Reject
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between pt-2 border-t border-border/20 mt-2">
+                            <span className="text-xs text-muted-foreground italic">Processed</span>
+                            {leave.reviewed_by && (
+                              <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) :
@@ -505,6 +540,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                     <th className={`py-3 px-4 md:px-12 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Period</th>
                     <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</th>
                     <th className={`py-3 px-2 text-left font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Status</th>
+                    <th className={`py-3 px-2 text-right font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -512,7 +548,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                     filteredLeaveRequests.map((leave) =>
                       <tr
                         key={leave.id}
-                        className={`transition-colors duration-200 ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
+                        className={`transition-colors duration-200 border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
 
                         <td className="py-4 px-2 md:px-4">
                           <div className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{leave.name}</div>
@@ -532,11 +568,50 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                           </button>
                         </td>
                         <td className="py-4 px-2 md:px-4">{getStatusBadge(leave.status, theme)}</td>
+                        <td className="py-4 px-2 md:px-4 text-right">
+                          {leave.status === "Pending" ? (
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                onClick={() => handleApprove(leave.id)}
+                                size="sm"
+                                variant="outline"
+                                className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                    ? 'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20'
+                                    : 'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'
+                                  }`}
+                                disabled={loading}
+                              >
+                                <CheckCircle size={16} />
+                                <span className="ml-1 hidden sm:inline">Approve</span>
+                              </Button>
+                              <Button
+                                onClick={() => handleReject(leave.id)}
+                                size="sm"
+                                variant="outline"
+                                className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                    ? 'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20'
+                                    : 'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'
+                                  }`}
+                                disabled={loading}
+                              >
+                                <XCircle size={16} />
+                                <span className="ml-1 hidden sm:inline">Reject</span>
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="text-xs text-muted-foreground italic">Processed</span>
+                              {leave.reviewed_by && (
+                                <span className="text-xs text-muted-foreground">by {leave.reviewed_by}</span>
+                              )}
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     ) :
 
                     <tr>
-                      <td colSpan={4} className="py-20 px-4">
+                      <td colSpan={5} className="py-20 px-4">
                         <div className="flex flex-col items-center justify-center">
                           <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                             <CalendarIcon className="w-10 h-10 text-primary opacity-50" />
@@ -600,38 +675,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
               {viewLeave?.reason}
             </div>
 
-            {viewLeave?.status === "Pending" && (
-              <div className="flex flex-row gap-2 mt-4 pt-4 border-t border-border/20">
-                <Button
-                  variant="outline"
-                  className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
-                  ${theme === 'dark' ?
-                      'text-green-400 border-green-400/50 bg-green-400/5 hover:bg-green-400/20' :
-                      'text-green-700 border-green-200 bg-green-50 hover:bg-green-100'}`
-                  }
-                  onClick={() => {
-                    handleApprove(viewLeave.id);
-                    setViewLeave(null);
-                  }}
-                  disabled={loading}>
-                  <CheckCircle size={14} /> Approve
-                </Button>
-                <Button
-                  variant="outline"
-                  className={`flex-1 h-9 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200
-                  ${theme === 'dark' ?
-                      'text-red-400 border-red-400/50 bg-red-400/5 hover:bg-red-400/20' :
-                      'text-red-700 border-red-200 bg-red-50 hover:bg-red-100'}`
-                  }
-                  onClick={() => {
-                    handleReject(viewLeave.id);
-                    setViewLeave(null);
-                  }}
-                  disabled={loading}>
-                  <XCircle size={14} /> Reject
-                </Button>
-              </div>
-            )}
+
 
             <DialogFooter className="mt-4">
               <Button
