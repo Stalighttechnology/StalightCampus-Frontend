@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
 import {
   Select,
   SelectContent,
@@ -229,25 +233,68 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
 
 
   const publishExam = async (id: string | number) => {
-    if (!confirm('Publish exam results?')) return;
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: 'Publish exam results?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#9147e0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, publish!',
+      target: document.body
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/dean/reports/exams/${id}/publish/`, { method: 'POST' });
       const json = await res.json();
       if (json.success) {
         setExams((prev) => prev.map((ex) => ex.id === id ? { ...ex, is_published: true } : ex));
         setActiveExams((prev) => prev.map((ex) => ex.id === id ? { ...ex, is_published: true } : ex));
+        MySwal.fire({
+          title: 'Published',
+          text: 'Exam results published successfully',
+          icon: 'success',
+          confirmButtonColor: '#9147e0',
+          target: document.body
+        });
       } else {
-        alert(json.message || 'Failed to publish');
+        MySwal.fire({
+          title: 'Error',
+          text: json.message || 'Failed to publish',
+          icon: 'error',
+          confirmButtonColor: '#9147e0',
+          target: document.body
+        });
       }
     } catch (e: any) {
-      alert(e?.message || 'Network error');
+      MySwal.fire({
+        title: 'Error',
+        text: e?.message || 'Network error',
+        icon: 'error',
+        confirmButtonColor: '#9147e0',
+        target: document.body
+      });
     }
   };
 
   const publishAllExams = async (group: ExamGroup) => {
     const unpublished = group.subjects.filter(ex => !ex.is_published);
     if (unpublished.length === 0) return;
-    if (!confirm(`Publish all ${unpublished.length} scheduled subjects?`)) return;
+
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: `Publish all ${unpublished.length} scheduled subjects?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#9147e0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, publish all!',
+      target: document.body
+    });
+
+    if (!result.isConfirmed) return;
     
     try {
       setLoading(true);
@@ -258,8 +305,21 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
       const publishedIds = unpublished.map(ex => ex.id);
       setExams((prev) => prev.map((ex) => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex));
       setActiveExams((prev) => prev.map((ex) => publishedIds.includes(ex.id) ? { ...ex, is_published: true } : ex));
+      MySwal.fire({
+        title: 'Published',
+        text: 'All selected subjects published successfully',
+        icon: 'success',
+        confirmButtonColor: '#9147e0',
+        target: document.body
+      });
     } catch (e: any) {
-      alert('Some subjects failed to publish.');
+      MySwal.fire({
+        title: 'Error',
+        text: 'Some subjects failed to publish.',
+        icon: 'error',
+        confirmButtonColor: '#9147e0',
+        target: document.body
+      });
     } finally {
       setLoading(false);
     }
@@ -516,7 +576,10 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
       </Card>
       
       <Dialog open={!!viewGroupId} onOpenChange={(open) => !open && setViewGroupId(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <DialogContent 
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+          className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle>{currentGroup?.title} - Detailed Schedule</DialogTitle>
             <DialogDescription>

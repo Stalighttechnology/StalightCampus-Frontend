@@ -112,6 +112,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   const [invoicePage, setInvoicePage] = useState(1);
   const [paymentPage, setPaymentPage] = useState(1);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [downloadingReceiptId, setDownloadingReceiptId] = useState<number | null>(null);
   const { theme } = useTheme();
   const queryClient = useQueryClient();
 
@@ -364,6 +365,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   };
 
   const handleDownloadReceipt = async (paymentId: number) => {
+    setDownloadingReceiptId(paymentId);
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/payments/receipt/${paymentId}/`);
 
@@ -381,6 +383,8 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
     } catch (error) {
 
       showErrorAlert('Download Failed', 'Failed to download receipt.');
+    } finally {
+      setDownloadingReceiptId(null);
     }
   };
 
@@ -849,9 +853,14 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                                   size="sm"
                                   className={theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}
                                   onClick={() => handleDownloadReceipt(payment.id)}
+                                  disabled={downloadingReceiptId === payment.id}
                                   title="Download Receipt">
 
-                                  <Download className="h-4 w-4" />
+                                  {downloadingReceiptId === payment.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Download className="h-4 w-4" />
+                                  )}
                                 </Button>
                               </motion.div>
                             </motion.div>

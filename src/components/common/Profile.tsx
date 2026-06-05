@@ -172,6 +172,15 @@ const Profile = ({ role, user }: ProfileProps) => {
         setLoading(false);
         return;
       }
+
+      if (profile.mobile_number) {
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(profile.mobile_number.trim())) {
+          showErrorAlert("Error", "Please enter a valid 10-digit mobile number");
+          setLoading(false);
+          return;
+        }
+      }
       
       const updateData: any = {
         email: profile.email,
