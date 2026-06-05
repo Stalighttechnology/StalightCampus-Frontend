@@ -119,7 +119,10 @@ const HODAnnouncementManagement = () => {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleCreateOrUpdate = async () => {
+    if (submitting) return;
     if (!formData.title.trim() || !formData.message.trim()) {
       MySwal.fire({
         title: "Validation Error",
@@ -143,6 +146,7 @@ const HODAnnouncementManagement = () => {
     }
 
     try {
+      setSubmitting(true);
       // HOD announcements are always branch-specific and not global
       const payload: CreateAnnouncementRequest = {
         ...formData,
@@ -204,6 +208,8 @@ const HODAnnouncementManagement = () => {
         confirmButtonColor: "#9147e0",
         target: document.body
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -502,8 +508,10 @@ const HODAnnouncementManagement = () => {
                           </Button>
                           <Button
                               onClick={handleCreateOrUpdate}
+                              disabled={submitting}
                               className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 transition-all duration-200">
                               
+                            {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                             {editingId ? "Update" : "Create"} Announcement
                           </Button>
                         </div>
