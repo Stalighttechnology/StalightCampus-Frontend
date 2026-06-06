@@ -19,12 +19,14 @@ import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/
 import { useTheme } from '../../context/ThemeContext';
 import UpgradePlanDialog from '../common/UpgradePlanDialog';
 import { IncreaseCapacityDialog } from '../common/IncreaseCapacityDialog';
+import { UpgradeTierDialog } from '../common/UpgradeTierDialog';
 
-const BillingManagement = () => {
+export const BillingManagement: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme } = useTheme();
 
+  const [activeTab, setActiveTab] = useState("overview");
   const [data, setData] = useState<BillingAndSupportResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
@@ -40,6 +42,7 @@ const BillingManagement = () => {
 
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
   const [isCapacityUpgradeOpen, setIsCapacityUpgradeOpen] = useState(false);
+  const [isTierUpgradeOpen, setIsTierUpgradeOpen] = useState(false);
 
   const [showEditOrg, setShowEditOrg] = useState(false);
   const [editOrgStep, setEditOrgStep] = useState(1);
@@ -416,6 +419,17 @@ const BillingManagement = () => {
     return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  const TIER_OPTIONS = [
+    { max: 750,   name: 'Small Tier' },
+    { max: 2500,  name: 'Medium Tier' },
+    { max: 6000,  name: 'Large Tier' },
+    { max: 12000, name: 'Very Large Tier' },
+    { max: 30000, name: 'Enterprise Tier' },
+  ];
+  const currentMaxStudents = org?.max_students || 500;
+  const currentTierInfo = TIER_OPTIONS.find(t => currentMaxStudents <= t.max);
+  const isMaxCapacityReached = currentTierInfo ? currentMaxStudents >= currentTierInfo.max : true;
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -448,7 +462,18 @@ const BillingManagement = () => {
               </div>
               <div className="flex justify-between items-center mt-2 pt-2 border-t">
                 <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4" /> Capacity</span>
-                <span className="text-sm font-medium">{org?.max_students} Students</span>
+                <div className="text-right">
+                  <span className="text-sm font-medium">{org?.max_students} Students</span>
+                  {org?.buffer_students > 0 && (
+                    <div className="text-xs text-muted-foreground">({org?.base_capacity} Base + {org?.buffer_students} Buffer)</div>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4" /> Active Students</span>
+                <span className={`text-sm font-medium ${org?.active_student_count > (org?.max_students || 0) ? 'text-red-500' : ''}`}>
+                  {org?.active_student_count || 0} / {org?.max_students}
+                </span>
               </div>
               <div className="flex justify-between items-center mt-2 pt-2 border-t">
                 <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Started At</span>
@@ -470,8 +495,13 @@ const BillingManagement = () => {
                     <Button variant="default" size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setIsUpgradeOpen(true)}>
                       Upgrade Plan
                     </Button>
-                    <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-100" onClick={() => setIsCapacityUpgradeOpen(true)}>
-                      Increase Limit
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={isMaxCapacityReached ? "border-amber-300 text-amber-700 hover:bg-amber-100" : "border-amber-300 text-amber-700 hover:bg-amber-100"} 
+                      onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
+                    >
+                      {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
                     </Button>
                   </div>
                 </div>
@@ -487,8 +517,13 @@ const BillingManagement = () => {
                     <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 text-white" onClick={() => setIsUpgradeOpen(true)}>
                       Upgrade to Advance
                     </Button>
-                    <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10" onClick={() => setIsCapacityUpgradeOpen(true)}>
-                      Increase Limit
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={isMaxCapacityReached ? "border-primary/30 text-primary hover:bg-primary/10" : "border-primary/30 text-primary hover:bg-primary/10"} 
+                      onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
+                    >
+                      {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
                     </Button>
                   </div>
                 </div>
@@ -501,8 +536,13 @@ const BillingManagement = () => {
                   <p className="font-medium text-sm">Advance Plan Active</p>
                   <p className="text-xs mt-1">You are on the highest tier with all Enterprise features unlocked.</p>
                   <div className="flex gap-2 mt-3">
-                    <Button variant="outline" size="sm" className="border-emerald-300 text-emerald-700 hover:bg-emerald-100" onClick={() => setIsCapacityUpgradeOpen(true)}>
-                      Increase Limit
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={isMaxCapacityReached ? "border-emerald-300 text-emerald-700 hover:bg-emerald-100" : "border-emerald-300 text-emerald-700 hover:bg-emerald-100"} 
+                      onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
+                    >
+                      {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
                     </Button>
                   </div>
                 </div>
@@ -1118,13 +1158,31 @@ const BillingManagement = () => {
         orgName={org?.name}
         currentPlan={org?.plan_type}
         onSuccess={() => window.location.reload()}
+        isRenewal={false}
+        activeStudentsCount={org?.active_student_count || 0}
+        currentMaxStudents={org?.max_students || 500}
+        baseCapacity={org?.base_capacity || 500}
+        bufferStudents={org?.buffer_students || 0}
       />
       {isCapacityUpgradeOpen && (
         <IncreaseCapacityDialog
           currentPlan={org?.plan_type || 'basic'}
           orgName={org?.name || 'Organization'}
           currentMaxStudents={org?.max_students || 500}
+          activeStudentsCount={org?.active_student_count || 0}
+          expiryDate={org?.subscription_expires_at}
           onClose={() => setIsCapacityUpgradeOpen(false)}
+        />
+      )}
+      {isTierUpgradeOpen && (
+        <UpgradeTierDialog 
+          onClose={() => setIsTierUpgradeOpen(false)} 
+          currentPlan={org?.plan_type || 'basic'}
+          orgName={org?.name || ''}
+          currentMaxStudents={org?.max_students || 500}
+          activeStudentsCount={org?.active_student_count || 0}
+          expiryDate={org?.subscription_expires_at}
+          currentBillingCycle={org?.billing_cycle || 'Yearly'}
         />
       )}
     </div>

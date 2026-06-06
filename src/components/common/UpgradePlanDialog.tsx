@@ -14,11 +14,15 @@ interface UpgradePlanDialogProps {
   onSuccess?: () => void;
   currentPlan?: string;
   isRenewal?: boolean;
+  activeStudentsCount?: number;
+  currentMaxStudents?: number;
+  baseCapacity?: number;
+  bufferStudents?: number;
 }
 
-const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onSuccess, currentPlan = "basic", isRenewal = false }: UpgradePlanDialogProps) => {
+const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onSuccess, currentPlan = "basic", isRenewal = false, activeStudentsCount = 0, currentMaxStudents = 500, baseCapacity = 500, bufferStudents = 0 }: UpgradePlanDialogProps) => {
   const [selectedPlan, setSelectedPlan] = useState<"basic" | "pro" | "advance" | null>(null);
-  const [studentsCount, setStudentsCount] = useState<number>(500);
+  const [studentsCount, setStudentsCount] = useState<number>(currentMaxStudents);
   const [billingCycle, setBillingCycle] = useState<string>("Monthly");
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [estimate, setEstimate] = useState<any>(null);
@@ -290,15 +294,39 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
               <div className="mb-6 grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-slate-700 uppercase tracking-widest mb-2 block">Institution Size</label>
-                  <select
-                    value={studentsCount}
-                    onChange={(e) => setStudentsCount(Number(e.target.value))}
-                    className="w-full border-slate-200 rounded-none text-sm p-3 focus:ring-0 focus:border-primary border outline-none bg-slate-50"
-                  >
-                    <option value={500}>Small (1 - 500)</option>
-                    <option value={2000}>Medium (501 - 2000)</option>
-                    <option value={5000}>Large (2001 - 5000)</option>
-                  </select>
+                  {!isRenewal ? (
+                    <div className="w-full border-slate-200 rounded-none text-sm p-3 border bg-slate-50 text-slate-700">
+                      <p className="font-medium">{currentMaxStudents} Students</p>
+                      {bufferStudents > 0 && (
+                        <p className="text-[10px] text-slate-500 mt-0.5">({baseCapacity} Base + {bufferStudents} Buffer)</p>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <select
+                        value={studentsCount}
+                        onChange={(e) => setStudentsCount(Number(e.target.value))}
+                        className="w-full border-slate-200 rounded-none text-sm p-3 focus:ring-0 focus:border-primary border outline-none bg-slate-50"
+                      >
+                        {[
+                          { v: 500, l: "Small (500)" },
+                          { v: 2000, l: "Medium (2000)" },
+                          { v: 5000, l: "Large (5000)" },
+                          { v: 10000, l: "Very Large (10000)" },
+                          { v: 25000, l: "Enterprise (25000)" }
+                        ].map(opt => (
+                          <option 
+                            key={opt.v} 
+                            value={opt.v} 
+                            disabled={opt.v < activeStudentsCount}
+                          >
+                            {opt.l} {opt.v < activeStudentsCount ? `(Needs ${activeStudentsCount})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] text-slate-500 mt-1 italic">Note: You can increase the capacity for your tier in the billing section later.</p>
+                    </>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-700 uppercase tracking-widest mb-2 block">Billing Cycle</label>
