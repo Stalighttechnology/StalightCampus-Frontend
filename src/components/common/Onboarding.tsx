@@ -487,6 +487,9 @@ const Onboarding = () => {
                           <SelectItem value="25000">Enterprise (10,001 - 25,000)</SelectItem>
                         </SelectContent>
                       </Select>
+                      <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">
+                        Note: You can add or maximize the limit of the institution size inside your billing & plans page later.
+                      </p>
                     </div>
 
                     <div className="space-y-1.5">
