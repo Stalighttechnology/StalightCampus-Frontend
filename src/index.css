@@ -655,6 +655,18 @@ html {
   animation: fadeIn 0.3s ease-out forwards;
 }
 
+/* Disable text selection in production */
+body.prod-env {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body.prod-env input,
+body.prod-env textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
 /* Mobile responsive styles for SubmitLeaveRequest component */
 @media (max-width: 480px) {
   .mobile-period-cell {
