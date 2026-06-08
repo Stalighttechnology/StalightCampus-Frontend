@@ -108,6 +108,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   const [statusFilter, setStatusFilter] = useState('all');
   const [methodFilter, setMethodFilter] = useState('all');
   const [dateRange, setDateRange] = useState('all');
+  const [openSelect, setOpenSelect] = useState<'status' | 'method' | 'date' | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [meta, setMeta] = useState<any>(null);
   const { theme } = useTheme();
@@ -428,7 +429,14 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground ml-1">Payment Status</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select
+                  value={statusFilter}
+                  open={openSelect === 'status'}
+                  onOpenChange={(open) => setOpenSelect(open ? 'status' : null)}
+                  onValueChange={(val) => {
+                    setStatusFilter(val);
+                    setTimeout(() => setOpenSelect('method'), 100);
+                  }}>
                   <SelectTrigger className="h-10 bg-background border-border/50">
                     <SelectValue placeholder="All Status" />
                   </SelectTrigger>
@@ -443,7 +451,14 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               </div>
               <div className="space-y-2">
                 <Label className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground ml-1">Payment Mode</Label>
-                <Select value={methodFilter} onValueChange={setMethodFilter}>
+                <Select
+                  value={methodFilter}
+                  open={openSelect === 'method'}
+                  onOpenChange={(open) => setOpenSelect(open ? 'method' : null)}
+                  onValueChange={(val) => {
+                    setMethodFilter(val);
+                    setTimeout(() => setOpenSelect('date'), 100);
+                  }}>
                   <SelectTrigger className="h-10 bg-background border-border/50">
                     <SelectValue placeholder="All Methods" />
                   </SelectTrigger>
@@ -458,7 +473,14 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               </div>
               <div className="space-y-2">
                 <Label className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground ml-1">Time Period</Label>
-                <Select value={dateRange} onValueChange={setDateRange}>
+                <Select
+                  value={dateRange}
+                  open={openSelect === 'date'}
+                  onOpenChange={(open) => setOpenSelect(open ? 'date' : null)}
+                  onValueChange={(val) => {
+                    setDateRange(val);
+                    setOpenSelect(null);
+                  }}>
                   <SelectTrigger className="h-10 bg-background border-border/50">
                     <SelectValue placeholder="All Time" />
                   </SelectTrigger>

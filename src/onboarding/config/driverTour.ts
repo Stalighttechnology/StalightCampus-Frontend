@@ -41,6 +41,22 @@ export const driverTour: Step[] = [
     route: '/driver/driver-complaints',
   },
   {
+    target: '#apply-leave-form-card',
+    title: 'Leave Application Form',
+    content: 'Fill in the title, pick the date range, add a detailed reason, and submit your leave request here.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/driver/apply-leave',
+  },
+  {
+    target: '#recent-leaves-card',
+    title: 'Recent Leave Requests',
+    content: 'Track the approval status of your submitted leave requests (Pending, Approved, or Rejected).',
+    placement: 'left' as const,
+    disableBeacon: true,
+    route: '/driver/apply-leave',
+  },
+  {
     target: '#sidebar-profile',
     title: 'Profile Settings',
     content: 'Manage your driver account details, security credentials, and preferences.',

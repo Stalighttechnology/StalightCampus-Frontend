@@ -190,3 +190,14 @@ export const exportWardenVisitorLogsPdf = async (search = ''): Promise<Blob> => 
   return response.blob();
 };
 
+export const sendWardenVisitorReminder = async (logId: number) => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/visitor-logs/${logId}/send_reminder/`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to send visitor reminder");
+  }
+  return response.json();
+};
+
+

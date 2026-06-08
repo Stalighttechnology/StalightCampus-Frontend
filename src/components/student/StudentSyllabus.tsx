@@ -1,0 +1,248 @@
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { getStudentAllSyllabusStatus } from "@/utils/student_api";
+import { useTheme } from "@/context/ThemeContext";
+import { BookOpen, CheckCircle, Clock, Calendar, AlertCircle, Eye } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "../ui/dialog";
+
+const StudentSyllabus = () => {
+  const { theme } = useTheme();
+  const { toast } = useToast();
+  
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [syllabusDataMap, setSyllabusDataMap] = useState<Record<string, any>>({});
+  const [loading, setLoading] = useState(true);
+  const [selectedSubject, setSelectedSubject] = useState<any | null>(null);
+
+  // Fetch student syllabus details in a single call
+  const initializeStudentSyllabus = async () => {
+    setLoading(true);
+    try {
+      const res = await getStudentAllSyllabusStatus();
+      if (res?.success && res.data) {
+        const fetchedSubjects = res.data.map((item: any) => ({
+          id: item.subject_id,
+          name: item.subject_name,
+          subject_code: item.subject_code,
+          subject_type: item.subject_type
+        }));
+        setSubjects(fetchedSubjects);
+
+        const progressMap: Record<string, any> = {};
+        res.data.forEach((item: any) => {
+          progressMap[item.subject_id.toString()] = item;
+        });
+        setSyllabusDataMap(progressMap);
+      } else {
+        toast({ title: "Error", description: res?.message || "Failed to load student profile details", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Error", description: "Network error while loading syllabus", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    initializeStudentSyllabus();
+  }, []);
+
+  return (
+    <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+      <Card id="student-syllabus-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
+        <CardHeader id="student-syllabus-header" className="p-3 sm:p-4 lg:p-6 border-b">
+          <h1 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            My Syllabus Tracker
+          </h1>
+          <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+            Track the week-by-week syllabus completion status of all your enrolled courses.
+          </p>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center space-y-4">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm font-medium animate-pulse">Loading Syllabus Dashboard...</p>
+            </div>
+          ) : subjects.length === 0 ? (
+            <div className="py-16 text-center space-y-4 border-2 border-dashed rounded-xl dark:border-border">
+              <AlertCircle className="w-12 h-12 text-muted-foreground opacity-50 mx-auto" />
+              <div>
+                <h3 className="text-lg font-semibold">No Enrolled Courses</h3>
+                <p className="text-sm opacity-70">No subjects found for your current semester and branch.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {subjects.map(subject => {
+                const subjectIdStr = subject.id.toString();
+                const syllabusData = syllabusDataMap[subjectIdStr];
+
+                return (
+                  <div 
+                    key={subject.id} 
+                    className={`border rounded-xl p-5 transition-all duration-200 ${
+                      theme === 'dark' 
+                        ? 'border-border bg-muted/10 hover:bg-muted/20' 
+                        : 'border-gray-200 bg-white hover:bg-gray-50'
+                    }`}
+                  >
+                    {/* Header info */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-lg font-semibold">{subject.name}</h3>
+                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                            theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'
+                          }`}>
+                            {subject.subject_code}
+                          </span>
+                          {subject.subject_type && (
+                            <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground capitalize">
+                              {subject.subject_type.replace('_', ' ')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs opacity-75 mt-1">
+                          {syllabusData 
+                            ? `${syllabusData.completed_weeks} of ${syllabusData.total_weeks} weeks marked completed by faculty`
+                            : "Syllabus progress details pending"
+                          }
+                        </p>
+                      </div>
+
+                      {/* Progress Bar & View Action */}
+                      <div className="flex items-center gap-4 min-w-[200px] md:min-w-[300px]">
+                        {syllabusData && (
+                          <div className="flex-1 space-y-1">
+                            <div className="flex justify-between text-xs font-semibold">
+                              <span>Coverage</span>
+                              <span>{syllabusData.progress_percentage}%</span>
+                            </div>
+                            <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden relative">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-500"
+                                style={{ width: `${syllabusData.progress_percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedSubject(subject)}
+                          className="gap-2"
+                        >
+                          <Eye className="w-4 h-4" /> View Timeline
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Timeline details popup Dialog */}
+          <Dialog open={!!selectedSubject} onOpenChange={(open) => !open && setSelectedSubject(null)}>
+            <DialogContent className={`max-w-2xl w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-primary" />
+                  Syllabus Status Timeline
+                </DialogTitle>
+                <DialogDescription className="text-sm opacity-75">
+                  Detailed progress for {selectedSubject?.name} ({selectedSubject?.subject_code})
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex-1 overflow-y-auto py-4 space-y-4 custom-scrollbar pr-1">
+                <div className="relative border-l border-gray-200 dark:border-gray-800 ml-3 space-y-6">
+                  {(() => {
+                    const syllabusData = syllabusDataMap[selectedSubject?.id.toString() || ""];
+                    const weeks = Array.from({ length: 16 }, (_, i) => {
+                      const weekNum = i + 1;
+                      const existingWeek = syllabusData?.weeks?.find((w: any) => w.week === weekNum);
+                      return existingWeek || {
+                        week: weekNum,
+                        is_completed: false,
+                        expected_topics: "",
+                        topics_covered: null,
+                        notes: null
+                      };
+                    });
+
+                    return weeks.map((w: any) => (
+                      <div key={w.week} className="relative pl-6">
+                        {/* Timeline Dot Icon */}
+                        <span className={`absolute -left-2.5 flex items-center justify-center w-5 h-5 rounded-full ring-4 ${
+                          w.is_completed
+                            ? "bg-emerald-500 ring-emerald-500/10 text-white"
+                            : "bg-muted ring-muted/10 text-muted-foreground"
+                        }`}>
+                          {w.is_completed ? (
+                            <CheckCircle className="w-3.5 h-3.5" />
+                          ) : (
+                            <span className="text-[10px] font-semibold">{w.week}</span>
+                          )}
+                        </span>
+
+                        {/* Week Card */}
+                        <div className={`p-4 rounded-xl border transition-all duration-200 ${
+                          w.is_completed
+                            ? "border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/5"
+                            : "border-border bg-card"
+                        }`}>
+                          <div className="flex justify-between items-start flex-wrap gap-2">
+                            <h5 className="font-semibold text-sm">Week {w.week}</h5>
+                            {w.is_completed && w.completed_date && (
+                              <div className="flex items-center gap-1.5 text-xs opacity-70">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span>Covered on {w.completed_date} by {w.faculty_name || "Faculty"}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="mt-2 space-y-1 text-xs">
+                            <p>
+                              <strong>Expected Plan:</strong> {w.expected_topics || <span className="italic opacity-50">Not planned yet</span>}
+                            </p>
+                            {w.is_completed && w.topics_covered && (
+                              <p className="text-emerald-600 dark:text-emerald-400">
+                                <strong>Actual Covered:</strong> {w.topics_covered}
+                              </p>
+                            )}
+                            {w.notes && (
+                              <p className="italic opacity-75 mt-1">
+                                <strong>Note:</strong> {w.notes}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button onClick={() => setSelectedSubject(null)}>Close</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default StudentSyllabus;

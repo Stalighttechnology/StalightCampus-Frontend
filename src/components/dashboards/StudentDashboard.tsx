@@ -22,6 +22,7 @@ const FaceRecognition = lazy(() => import("../student/FaceRecognition"));
 const StudentDashboardOverview = lazy(() => import("../student/StudentDashboardOverview"));
 const StudyMaterialsStudent = lazy(() => import("../student/StudyMaterial"));
 const StudentAssignments = lazy(() => import("../student/StudentAssignments"));
+const StudentSyllabus = lazy(() => import("../student/StudentSyllabus"));
 const AIInterview = lazy(() => import("../student/AIInterview"));
 const StudentHostelDetails = lazy(() => import("../student/StudentHostelDetails"));
 const StudentFees = lazy(() => import("../student/StudentFees"));
@@ -104,6 +105,8 @@ const StudentDashboard = ({ user, setPage }: StudentDashboardProps) => {
         return <StudentAttendance />;
       case "marks":
         return <InternalMarks />;
+      case "student-syllabus":
+        return <StudentSyllabus />;
       case "leave-request":
         return <SubmitLeaveRequest />;
       case "leave-status":

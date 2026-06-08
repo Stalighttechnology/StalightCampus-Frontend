@@ -269,7 +269,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-6 lg:gap-8">
         {/* Leave Application Form - Left Side */}
         <Card id="apply-leave-form-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
+          <CardHeader id="driver-apply-leave-header" className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
             <CardTitle>Leave Application Form</CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
@@ -359,7 +359,7 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
         {/* Leave Requests List - Right Side */}
         <Card id="recent-leaves-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
+          <CardHeader id="driver-recent-leaves-header" className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
             {/* Title */}
             <CardTitle>
               

@@ -98,6 +98,7 @@ const FeeAssignments: React.FC = () => {
   const [academicYear, setAcademicYear] = useState('2024-25');
 
   // UI States
+  const [openSelect, setOpenSelect] = useState<'batch' | 'branch' | 'semester' | 'section' | 'admission' | null>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [pagination, setPagination] = useState({
@@ -342,12 +343,18 @@ const FeeAssignments: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">
               <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Batch</Label>
-              <Select value={selectedFilters.batchId} onValueChange={(val) => setSelectedFilters((p) => ({ ...p, batchId: val }))}>
+              <Select
+                value={selectedFilters.batchId}
+                open={openSelect === 'batch'}
+                onOpenChange={(open) => setOpenSelect(open ? 'batch' : null)}
+                onValueChange={(val) => {
+                  setSelectedFilters((p) => ({ ...p, batchId: val }));
+                  setTimeout(() => setOpenSelect('branch'), 100);
+                }}>
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="All Batches" />
+                  <SelectValue placeholder="Select Batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all_batches">All Batches</SelectItem>
                   {filterData.batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -357,14 +364,18 @@ const FeeAssignments: React.FC = () => {
               <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Branch</Label>
               <Select
                 value={selectedFilters.branchId}
-                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, branchId: val }))}
+                open={openSelect === 'branch'}
+                onOpenChange={(open) => setOpenSelect(open ? 'branch' : null)}
+                onValueChange={(val) => {
+                  setSelectedFilters((p) => ({ ...p, branchId: val }));
+                  setTimeout(() => setOpenSelect('semester'), 100);
+                }}
                 disabled={!selectedFilters.batchId}>
                 
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="All Branches" />
+                  <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all_branches">All Branches</SelectItem>
                   {filterData.branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -374,11 +385,16 @@ const FeeAssignments: React.FC = () => {
               <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Semester</Label>
               <Select
                 value={selectedFilters.semesterId}
-                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, semesterId: val }))}
+                open={openSelect === 'semester'}
+                onOpenChange={(open) => setOpenSelect(open ? 'semester' : null)}
+                onValueChange={(val) => {
+                  setSelectedFilters((p) => ({ ...p, semesterId: val }));
+                  setTimeout(() => setOpenSelect('section'), 100);
+                }}
                 disabled={!selectedFilters.branchId}>
                 
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Semester" />
+                  <SelectValue placeholder="Select Semester" />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
@@ -390,11 +406,16 @@ const FeeAssignments: React.FC = () => {
               <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Section</Label>
               <Select
                 value={selectedFilters.sectionId}
-                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, sectionId: val }))}
+                open={openSelect === 'section'}
+                onOpenChange={(open) => setOpenSelect(open ? 'section' : null)}
+                onValueChange={(val) => {
+                  setSelectedFilters((p) => ({ ...p, sectionId: val }));
+                  setTimeout(() => setOpenSelect('admission'), 100);
+                }}
                 disabled={!selectedFilters.semesterId}>
                 
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Section" />
+                  <SelectValue placeholder="Select Section" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
@@ -406,14 +427,18 @@ const FeeAssignments: React.FC = () => {
               <Label className="text-sm sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admission Mode</Label>
               <Select
                 value={selectedFilters.admissionMode}
-                onValueChange={(val) => setSelectedFilters((p) => ({ ...p, admissionMode: val }))}
+                open={openSelect === 'admission'}
+                onOpenChange={(open) => setOpenSelect(open ? 'admission' : null)}
+                onValueChange={(val) => {
+                  setSelectedFilters((p) => ({ ...p, admissionMode: val }));
+                  setOpenSelect(null);
+                }}
                 disabled={!selectedFilters.sectionId}>
                 
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Admission" />
+                  <SelectValue placeholder="Select Admission Mode" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all_modes">All Modes</SelectItem>
                   {filterData.admission_modes.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>

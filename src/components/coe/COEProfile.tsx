@@ -324,12 +324,12 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
             {editing ? 'Save' : 'Edit Profile'}
           </Button>
           {editing &&
-          <button
-            onClick={handleCancelEdit}
-            className={`text-md sm:text-xl px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto border rounded-md transition-colors ${theme === 'dark' ? 'border-muted-foreground text-muted-foreground hover:border-foreground hover:text-foreground' : 'border-gray-600 text-gray-600 hover:border-gray-900 hover:text-gray-900'}`}>
-            
+            <Button
+              variant="outline"
+              onClick={handleCancelEdit}
+              className="text-[16px] sm:text-md px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto">
               Cancel
-            </button>
+            </Button>
           }
 
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>

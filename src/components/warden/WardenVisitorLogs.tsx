@@ -4,7 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Search, Users, Plus, Download, LogOut } from 'lucide-react';
+import { Loader2, Search, Users, Plus, Download, LogOut, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -27,7 +27,8 @@ import {
   getWardenStudents, 
   getWardenVisitorLogs, 
   exportWardenVisitorLogsPdf,
-  checkoutWardenVisitorLog 
+  checkoutWardenVisitorLog,
+  sendWardenVisitorReminder
 } from '../../utils/warden_api';
 import { getAcademicInit, getHostels } from '../../utils/hms_api';
 
@@ -64,6 +65,7 @@ const WardenVisitorLogs = () => {
   const [students, setStudents] = useState<any[]>([]);
   const [hostels, setHostels] = useState<any[]>([]);
   const [isCheckingOut, setIsCheckingOut] = useState<number | null>(null);
+  const [isSendingReminder, setIsSendingReminder] = useState<number | null>(null);
   
   // Academic filters for modal
   const [batches, setBatches] = useState<any[]>([]);
@@ -235,6 +237,35 @@ const WardenVisitorLogs = () => {
       });
     } finally {
       setIsCheckingOut(null);
+    }
+  };
+
+  const isOverdue = (checkInTime: string, checkOutTime: string | null) => {
+    if (checkOutTime) return false;
+    const checkIn = new Date(checkInTime).getTime();
+    const now = new Date().getTime();
+    return (now - checkIn) > 2 * 60 * 60 * 1000;
+  };
+
+  const handleSendReminder = async (logId: number) => {
+    setIsSendingReminder(logId);
+    try {
+      await sendWardenVisitorReminder(logId);
+      toast({
+        title: 'Success',
+        description: 'Reminder sent to host student successfully',
+      });
+      // Optionally re-fetch logs to make sure any backend status is updated, 
+      // but status badge is derived on the fly anyway. Re-fetching can't hurt.
+      fetchLogs();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to send visitor reminder',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSendingReminder(null);
     }
   };
 
@@ -567,6 +598,10 @@ const WardenVisitorLogs = () => {
                           <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[10px]">
                             Checked Out
                           </Badge>
+                        ) : isOverdue(log.check_in_time, log.check_out_time) ? (
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 dark:text-orange-400 border-none font-semibold text-[10px] animate-pulse">
+                            Student Reminded
+                          </Badge>
                         ) : (
                           <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none font-semibold text-[10px] animate-pulse">
                             Checked In
@@ -604,20 +639,38 @@ const WardenVisitorLogs = () => {
                           View Purpose
                         </Button>
                         {!log.check_out_time && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleCheckout(log.id)}
-                            disabled={isCheckingOut === log.id}
-                            className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
-                          >
-                            {isCheckingOut === log.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <LogOut className="w-3.5 h-3.5" />
+                          <>
+                            {isOverdue(log.check_in_time, log.check_out_time) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSendReminder(log.id)}
+                                disabled={isSendingReminder === log.id || isCheckingOut === log.id}
+                                className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 flex items-center gap-1 border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-950 dark:text-orange-400 dark:hover:bg-orange-950/20"
+                              >
+                                {isSendingReminder === log.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Bell className="w-3.5 h-3.5" />
+                                )}
+                                Remind
+                              </Button>
                             )}
-                            Check Out
-                          </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleCheckout(log.id)}
+                              disabled={isCheckingOut === log.id || isSendingReminder === log.id}
+                              className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
+                            >
+                              {isCheckingOut === log.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <LogOut className="w-3.5 h-3.5" />
+                              )}
+                              Check Out
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -670,6 +723,10 @@ const WardenVisitorLogs = () => {
                         <td className="py-3 px-4">
                           {log.check_out_time ? (
                             <span className="font-medium text-xs text-muted-foreground">{formatDate(log.check_out_time)}</span>
+                          ) : isOverdue(log.check_in_time, log.check_out_time) ? (
+                            <Badge variant="outline" className="bg-orange-500/10 text-orange-600 dark:text-orange-400 border-none font-semibold text-[10px] animate-pulse">
+                              Student Reminded
+                            </Badge>
                           ) : (
                             <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none font-semibold text-[10px] animate-pulse">
                               Checked In
@@ -678,20 +735,38 @@ const WardenVisitorLogs = () => {
                         </td>
                         <td className="py-3 px-4 text-center">
                           {!log.check_out_time ? (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleCheckout(log.id)}
-                              disabled={isCheckingOut === log.id}
-                              className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
-                            >
-                              {isCheckingOut === log.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <LogOut className="w-3.5 h-3.5" />
+                            <div className="flex items-center justify-center gap-2">
+                              {isOverdue(log.check_in_time, log.check_out_time) && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleSendReminder(log.id)}
+                                  disabled={isSendingReminder === log.id || isCheckingOut === log.id}
+                                  className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all inline-flex items-center gap-1.5 border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-950 dark:text-orange-400 dark:hover:bg-orange-950/20"
+                                >
+                                  {isSendingReminder === log.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Bell className="w-3.5 h-3.5" />
+                                  )}
+                                  Remind
+                                </Button>
                               )}
-                              Check Out
-                            </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleCheckout(log.id)}
+                                disabled={isCheckingOut === log.id || isSendingReminder === log.id}
+                                className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                {isCheckingOut === log.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <LogOut className="w-3.5 h-3.5" />
+                                )}
+                                Check Out
+                              </Button>
+                            </div>
                           ) : (
                             <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[10px] py-1 px-2.5">
                               Completed
