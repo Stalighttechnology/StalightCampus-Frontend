@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { Check, Loader2, AlertCircle } from 'lucide-react';
@@ -197,26 +198,25 @@ export const IncreaseCapacityDialog: React.FC<IncreaseCapacityDialogProps> = ({
     }
   }, [bufferSize, tierInfo, isMaxedOut, user, toast]);
 
-  return (
-    <>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
-        style={{ animation: 'fadeInDialog 0.15s ease' }}
-      >
-        <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+      style={{ animation: 'fadeInDialog 0.15s ease' }}
+    >
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white flex-shrink-0">
           <div>
             <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Increase Capacity</h2>
             <p className="text-slate-500 text-sm mt-1">Add a buffer package to expand your limit</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 transition-colors text-sm font-medium">
+          <button onClick={onClose} className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors shadow-sm">
             Close
           </button>
         </div>
 
         {/* Scrollable Body */}
-        <div className="overflow-y-auto flex-1 p-0">
+        <div className="overflow-y-auto flex-1 p-0 custom-scrollbar">
         
         {/* Body */}
         <div className="p-6 bg-slate-50/50">
@@ -367,7 +367,7 @@ export const IncreaseCapacityDialog: React.FC<IncreaseCapacityDialogProps> = ({
         )}
         </div>
       </div>
-    </div>
-    </>
+    </div>,
+    document.body
   );
 };

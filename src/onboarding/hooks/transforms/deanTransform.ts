@@ -21,6 +21,39 @@ export function deanTransform(step: any, isMobile: boolean): any[] | null {
     ];
   }
 
+  if (target === '#sidebar-billing') {
+    return [
+      {
+        ...step,
+        target: '#billing-plan-card',
+        title: 'Current Subscription',
+        content: 'View your active plan, price, and current subscription status.',
+        placement: isMobile ? step.placement : 'right',
+      },
+      {
+        ...step,
+        target: '#billing-org-details-card',
+        title: 'Organization Profile',
+        content: 'Manage tax details, technical point of contact (POC), and accreditation records.',
+        placement: isMobile ? step.placement : 'left',
+      },
+      {
+        ...step,
+        target: '#billing-payment-history',
+        title: 'Transactions Log',
+        content: 'Review past transaction receipts, download details, and track statuses.',
+        placement: isMobile ? step.placement : 'top',
+      },
+      {
+        ...step,
+        target: '#billing-support-tickets',
+        title: 'HQ Support Desk',
+        content: 'Track existing support logs, communicate with Super HQ, or raise direct support tickets.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-attendance') {
     return [
       {

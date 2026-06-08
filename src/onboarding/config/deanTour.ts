@@ -55,6 +55,15 @@ export const deanTour: Step[] = [
     route: '/dean/enroll-user',
   },
   {
+    target: '#sidebar-billing',
+    title: 'Billing & Plans',
+    content:
+      'Monitor your subscription tier, billing address, payments history, and support tickets.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/dean/billing',
+  },
+  {
     target: '#sidebar-attendance',
     title: 'Today\'s Attendance',
     content:

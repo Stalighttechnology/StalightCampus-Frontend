@@ -600,30 +600,30 @@ export const BillingManagement: React.FC = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 flex-1 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 flex-1 w-full">
                 <div>
-                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Organization Name</p>
-                  <p className="font-medium text-base md:text-sm">{org?.name || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Created At</p>
-                  <p className="font-medium text-base md:text-sm">{formatDate(org?.created_at)}</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Organization Name</p>
+                  <p className="font-medium text-sm text-foreground">{org?.name || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Accreditation ID</p>
-                  <p className="font-medium text-base md:text-sm">{org?.accreditation_id || 'N/A'}</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Created At</p>
+                  <p className="font-medium text-sm text-foreground">{formatDate(org?.created_at)}</p>
                 </div>
                 <div>
-                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Tax ID / GSTIN</p>
-                  <p className="font-medium text-base md:text-sm">{org?.tax_id || 'N/A'}</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Accreditation ID</p>
+                  <p className="font-medium text-sm text-foreground">{org?.accreditation_id || 'N/A'}</p>
                 </div>
-                <div className="col-span-2">
-                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Institution Address</p>
-                  <p className="font-medium text-base md:text-sm">{org?.address || 'N/A'}</p>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Tax ID / GSTIN</p>
+                  <p className="font-medium text-sm text-foreground">{org?.tax_id || 'N/A'}</p>
                 </div>
-                <div className="col-span-2">
-                  <p className="text-sm md:text-xs text-muted-foreground mb-1">Billing Address</p>
-                  <p className="font-medium text-base md:text-sm">{org?.billing_address || 'N/A'}</p>
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Institution Address</p>
+                  <p className="font-medium text-sm text-foreground">{org?.address || 'N/A'}</p>
+                </div>
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Billing Address</p>
+                  <p className="font-medium text-sm text-foreground">{org?.billing_address || 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -633,23 +633,23 @@ export const BillingManagement: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-start gap-2">
                   <Building className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm md:text-xs text-muted-foreground">Name</p>
-                    <p className="text-base md:text-sm">{org?.tech_poc_name || 'N/A'}</p>
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider leading-none">Name</p>
+                    <p className="font-medium text-sm text-foreground leading-normal">{org?.tech_poc_name || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm md:text-xs text-muted-foreground">Email</p>
-                    <p className="text-base md:text-sm">{org?.tech_poc_email || 'N/A'}</p>
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider leading-none">Email</p>
+                    <p className="font-medium text-sm text-foreground leading-normal">{org?.tech_poc_email || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm md:text-xs text-muted-foreground">Mobile</p>
-                    <p className="text-base md:text-sm">{org?.tech_poc_mobile || 'N/A'}</p>
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider leading-none">Mobile</p>
+                    <p className="font-medium text-sm text-foreground leading-normal">{org?.tech_poc_mobile || 'N/A'}</p>
                   </div>
                 </div>
               </div>
