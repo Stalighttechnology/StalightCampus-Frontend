@@ -71,7 +71,7 @@ const DeanStats = () => {
               // populate rows from summary.branch_distribution when available
               const branches = (s.branch_distribution || []).map((b: any, idx: number) => ({
                 branch_id: idx + 1,
-                branch: b.name,
+                branch: b.code || b.name,
                 hod: null,
                 total_students: b.students || 0,
                 faculty: b.faculty || 0,
@@ -91,7 +91,7 @@ const DeanStats = () => {
                 setSummary(s);
                 const branches = (s.branch_distribution || []).map((b: any, idx: number) => ({
                   branch_id: idx + 1,
-                  branch: b.name,
+                  branch: b.code || b.name,
                   hod: null,
                   total_students: b.students || 0,
                   faculty: b.faculty || 0,
@@ -128,7 +128,7 @@ const DeanStats = () => {
   const branchStats = (summary && Array.isArray(summary.branch_distribution))
     ? summary.branch_distribution.map((b: any, idx: number) => ({
         branch_id: idx + 1,
-        branch: b.name,
+        branch: b.code || b.name,
         total_students: b.students || 0,
         faculty: b.faculty || 0,
       }))
