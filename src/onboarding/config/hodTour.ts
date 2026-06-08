@@ -239,6 +239,22 @@ export const hodTour: Step[] = [
     disableBeacon: false,
     route: '/hod/hod-announcement-management',
   },
+  {
+    target: '#hod-syllabus-tracker-header',
+    title: 'Syllabus Status Management',
+    content: 'Configure and manage week-wise syllabus templates for subjects in your department.',
+    placement: 'bottom' as const,
+    disableBeacon: false,
+    route: '/hod/syllabus-status',
+  },
+  {
+    target: '#hod-semester-monitor-header',
+    title: 'Semester Syllabus Monitoring',
+    content: 'Track and monitor week-by-week teaching progress across all subjects in real time.',
+    placement: 'bottom' as const,
+    disableBeacon: false,
+    route: '/hod/syllabus-monitor',
+  },
   // ── Profile ───────────────────────────────────────────────────
   {
     target: '#sidebar-hod-profile',

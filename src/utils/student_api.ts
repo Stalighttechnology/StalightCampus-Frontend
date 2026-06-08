@@ -823,3 +823,33 @@ export const getSections = async (branchId: string, semesterId: string) => {
     return { success: false, message: "Network error" };
   }
 };
+
+export const getStudentSyllabusStatus = async (subjectId: string): Promise<any> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/syllabus/status/?subject_id=${subjectId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while fetching syllabus status" };
+  }
+};
+
+export const getStudentAllSyllabusStatus = async (): Promise<any> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/student/syllabus/status/all/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while fetching all syllabus status" };
+  }
+};

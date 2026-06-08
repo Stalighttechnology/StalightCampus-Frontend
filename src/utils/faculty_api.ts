@@ -2016,3 +2016,148 @@ export const getCOAttainment = async (params: {
     return { success: false, message: "Network error while fetching CO attainment" };
   }
 };
+
+export interface SyllabusStatusResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    subject_id: string;
+    subject_name: string;
+    total_weeks: number;
+    completed_weeks: number;
+    progress_percentage: number;
+    weeks: Array<{
+      week: number;
+      expected_topics: string;
+      is_completed: boolean;
+      topics_covered: string;
+      completed_date: string | null;
+      faculty_name: string;
+      notes: string;
+    }>;
+  };
+}
+
+export const getSyllabusStatus = async (params: {
+  subject_id: string;
+  branch_id: string;
+  semester_id: string;
+  section_id: string;
+}): Promise<SyllabusStatusResponse> => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/status/?${query}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while fetching syllabus status" };
+  }
+};
+
+export const updateSyllabusPlan = async (data: {
+  subject_id: string;
+  plan_data: Array<{ week: number; topics: string }>;
+}): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/plan/update/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while updating syllabus plan" };
+  }
+};
+
+export const updateSyllabusProgress = async (data: {
+  subject_id: string;
+  branch_id?: string;
+  semester_id?: string;
+  section_id?: string;
+  week_number: number;
+  is_completed: boolean;
+  topics_covered: string;
+  notes: string;
+}): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/progress/update/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while updating syllabus progress" };
+  }
+};
+
+export const getSyllabusBootstrap = async (): Promise<{
+  success: boolean;
+  is_hod?: boolean;
+  semesters?: Array<{ id: number; number: number }>;
+  subjects?: Array<{ id: number; name: string; subject_code: string; semester_id: number; subject_type: string }>;
+  sections?: Array<{ id: number; name: string; semester_id: number }>;
+  message?: string;
+}> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/bootstrap/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while fetching syllabus bootstrap" };
+  }
+};
+
+export interface SemesterSyllabusMonitorResponse {
+  success: boolean;
+  message?: string;
+  semester_number?: number;
+  subjects?: Array<{
+    subject_id: number;
+    subject_name: string;
+    subject_code: string;
+    subject_type: string;
+    total_weeks: number;
+    sections_progress: Array<{
+      section_name: string;
+      section_id: number | null;
+      faculty_name: string;
+      completed_weeks: number;
+      total_weeks: number;
+      progress_percentage: number;
+    }>;
+  }>;
+}
+
+export const getSemesterSyllabusMonitor = async (semesterId: string): Promise<SemesterSyllabusMonitorResponse> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/semester-monitor/?semester_id=${semesterId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        "Content-Type": "application/json"
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: "Network error while fetching semester syllabus monitor data" };
+  }
+};
+

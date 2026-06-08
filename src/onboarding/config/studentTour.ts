@@ -72,6 +72,14 @@ export const studentTour: Step[] = [
     route: '/marks',
   },
   {
+    target: '#student-syllabus-header',
+    title: 'Syllabus Tracker',
+    content: 'Track the week-by-week syllabus completion status of all your enrolled courses.',
+    placement: 'bottom' as const,
+    disableBeacon: false,
+    route: '/student-syllabus',
+  },
+  {
     target: '#sidebar-student-study-material',
     title: 'Access Study Materials',
     content:

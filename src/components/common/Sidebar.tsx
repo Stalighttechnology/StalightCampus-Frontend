@@ -200,6 +200,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       fees: <CreditCard size={20} />,
       "exam-schedule": <Calendar size={20} />,
       reports: <BarChart2 size={20} />,
+      "syllabus-status": <BookOpen size={20} />,
+      "syllabus-monitor": <BarChart2 size={20} />,
+      "student-syllabus": <BookOpen size={20} />,
       "study-mode": <BookOpen size={20} />,
       "ai-interview": <Mic size={20} />,
       "student-study-material": <FileText size={20} />,
@@ -396,6 +399,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Study Material", page: "study-materials" },
       { name: "Scan for Student Info", page: "scan-student-info" },
       { name: "Branch Announcements", page: "hod-announcement-management" },
+      { name: "Syllabus Status", page: "syllabus-status" },
+      { name: "Syllabus Monitor", page: "syllabus-monitor" },
 
       // Profile
       { name: "Profile", page: "hod-profile" },
@@ -429,6 +434,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Study Material", page: "study-materials" },
       { name: "Announcements for Students", page: "faculty-announcement-management" },
       { name: "Schedule Class", page: "schedule-class" },
+      { name: "Syllabus Status", page: "syllabus-status" },
 
       // Profile
       { name: "Profile", page: "faculty-profile" },
@@ -441,6 +447,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Timetable", page: "timetable" },
       { name: "Attendance", page: "attendance" },
       { name: "Internal Marks", page: "marks" },
+      { name: "Syllabus Status", page: "student-syllabus" },
       { name: "Study Materials", page: "student-study-material" },
       { name: "Assignments", page: "student-assignment" },
       { name: "Revaluation", page: "revaluation" },

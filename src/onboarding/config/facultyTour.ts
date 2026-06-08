@@ -194,6 +194,14 @@ export const facultyTour: Step[] = [
     route: '/faculty/announcements',
   },
   {
+    target: '#faculty-syllabus-tracker-header',
+    title: 'Syllabus Tracker',
+    content: 'Track weekly teaching progress based on department master templates.',
+    placement: 'bottom' as const,
+    disableBeacon: false,
+    route: '/faculty/syllabus-status',
+  },
+  {
     target: '#sidebar-faculty-profile',
     title: 'Profile Management',
     content:

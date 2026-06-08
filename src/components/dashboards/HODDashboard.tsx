@@ -30,6 +30,8 @@ import QPApprovals from "../hod/QPApprovals";
 import HODAnnouncementManagement from "../hod/HODAnnouncementManagement";
 import ExamApplication from "../hod/ExamApplication";
 import COAttainment from "../hod/COAttainment";
+import HODSyllabusTracker from "../hod/HODSyllabusTracker";
+import HODSemesterMonitor from "../hod/HODSemesterMonitor";
 import { HODBootstrapProvider } from "../../context/HODBootstrapContext";
 import { useTheme } from "../../context/ThemeContext";
 import { isPageAllowed } from "../../utils/planGating";
@@ -141,7 +143,9 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'qp-approvals': 'qp-approvals',
       'hod-announcement-management': 'hod-announcement-management',
       'co-attainment': 'co-attainment',
-      'exam-applications': 'exam-applications'
+      'exam-applications': 'exam-applications',
+      'syllabus-status': 'syllabus-status',
+      'syllabus-monitor': 'syllabus-monitor'
     };
 
     return pathMap[lastPart] || 'dashboard';
@@ -195,7 +199,9 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
       'qp-approvals': '/hod/qp-approvals',
       'hod-announcement-management': '/hod/hod-announcement-management',
       'co-attainment': '/hod/co-attainment',
-      'exam-applications': '/hod/exam-applications'
+      'exam-applications': '/hod/exam-applications',
+      'syllabus-status': '/hod/syllabus-status',
+      'syllabus-monitor': '/hod/syllabus-monitor'
     };
 
     const path = pathMap[page] || '/hod/dashboard';
@@ -283,6 +289,10 @@ const HODDashboard = ({ user, setPage }: HODDashboardProps) => {
         return <COAttainment />;
       case "exam-applications":
         return <ExamApplication />;
+      case "syllabus-status":
+        return <HODSyllabusTracker />;
+      case "syllabus-monitor":
+        return <HODSemesterMonitor />;
       default:
         return <HODStats setError={setError} setPage={handlePageChange} />;
     }
