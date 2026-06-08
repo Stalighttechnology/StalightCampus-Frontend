@@ -623,7 +623,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
                           {p.plan_type}
                         </TableCell>
                         <TableCell className="font-bold text-base sm:text-sm">
-                          ₹{(p.amount / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          ₹{(p.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </TableCell>
                         <TableCell className="text-sm sm:text-xs font-mono text-muted-foreground">
                           {p.transaction_id}
