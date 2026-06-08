@@ -89,9 +89,10 @@ const IndividualFeeAssignment: React.FC = () => {
     branchId: '',
     semesterId: '',
     sectionId: '',
-    admissionMode: '',
-    search: ''
+    admissionMode: ''
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
 
   // UI States
   const [openSelect, setOpenSelect] = useState<'batch' | 'branch' | 'semester' | 'section' | 'admission' | null>(null);
@@ -176,7 +177,7 @@ const IndividualFeeAssignment: React.FC = () => {
         ...(selectedFilters.semesterId && { semester_id: selectedFilters.semesterId }),
         ...(selectedFilters.sectionId && { section_id: selectedFilters.sectionId }),
         ...(selectedFilters.admissionMode && { admission_mode: selectedFilters.admissionMode }),
-        ...(selectedFilters.search && { search: selectedFilters.search })
+        ...(appliedSearch && { search: appliedSearch })
       };
 
       const json = await getFeesManagerAssignments(params);
@@ -195,11 +196,31 @@ const IndividualFeeAssignment: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedFilters, pagination.pageSize]);
+  }, [selectedFilters, appliedSearch, pagination.pageSize]);
 
   useEffect(() => {
     fetchInitialFilters();
   }, [fetchInitialFilters]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchQuery.trim());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Clear search query when dropdown filters change
+  useEffect(() => {
+    setSearchQuery("");
+    setAppliedSearch("");
+  }, [
+    selectedFilters.batchId,
+    selectedFilters.branchId,
+    selectedFilters.semesterId,
+    selectedFilters.sectionId,
+    selectedFilters.admissionMode
+  ]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -210,7 +231,7 @@ const IndividualFeeAssignment: React.FC = () => {
       selectedFilters.sectionId &&
       selectedFilters.admissionMode;
 
-      if (allFiltersSelected) {
+      if (allFiltersSelected || appliedSearch.trim().length > 0) {
         fetchAssignments(1);
       } else {
         setAssignments([]);
@@ -219,7 +240,15 @@ const IndividualFeeAssignment: React.FC = () => {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [selectedFilters, fetchAssignments]);
+  }, [
+    selectedFilters.batchId,
+    selectedFilters.branchId,
+    selectedFilters.semesterId,
+    selectedFilters.sectionId,
+    selectedFilters.admissionMode,
+    appliedSearch,
+    fetchAssignments
+  ]);
 
   const allFiltersSelected =
   selectedFilters.batchId &&
@@ -455,11 +484,17 @@ const IndividualFeeAssignment: React.FC = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by student or USN..."
-                className="pl-9 bg-muted/20 border-border h-10"
-                value={selectedFilters.search}
-                onChange={(e) => setSelectedFilters((p) => ({ ...p, search: e.target.value }))}
-                disabled={!selectedFilters.admissionMode} />
-              
+                className="pl-9 pr-12 bg-muted/20 border-border h-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
           </CardContent>
@@ -467,7 +502,7 @@ const IndividualFeeAssignment: React.FC = () => {
 
         <CardContent className="p-6 pt-0">
           <div className="border rounded-xl overflow-hidden shadow-sm">
-            {!allFiltersSelected ? (
+            {!allFiltersSelected && !appliedSearch ? (
               <div className="min-h-[400px] py-10 flex flex-col items-center justify-center bg-muted/5 px-4 text-center">
                 <div className="relative mb-6">
                   <div className="absolute -top-3 -right-3 bg-primary/10 p-2 rounded-full animate-bounce sm:-top-4 sm:-right-4 sm:p-3">

@@ -118,9 +118,10 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
     semesterId: '',
     sectionId: '',
     admissionMode: '',
-    status: 'all',
-    search: ''
+    status: 'all'
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [openSelect, setOpenSelect] = useState<'batch' | 'branch' | 'semester' | 'section' | 'admission' | null>(null);
 
   const [filterData, setFilterData] = useState<FilterData>({ batches: [], branches: [], admission_modes: [] });
@@ -193,14 +194,35 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
     selectedFilters.sectionId &&
     selectedFilters.admissionMode;
 
-    if (allFiltersSelected || selectedFilters.search.length > 2) {
+    if (allFiltersSelected || appliedSearch.length > 2) {
       fetchInvoices(1);
     } else {
       setInvoices([]);
       setInvoicesMeta(null);
       setLoading(false);
     }
-  }, [selectedFilters]);
+  }, [selectedFilters, appliedSearch]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchQuery.trim());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Clear search query when dropdown filters change
+  useEffect(() => {
+    setSearchQuery("");
+    setAppliedSearch("");
+  }, [
+    selectedFilters.batchId,
+    selectedFilters.branchId,
+    selectedFilters.semesterId,
+    selectedFilters.sectionId,
+    selectedFilters.admissionMode,
+    selectedFilters.status
+  ]);
 
   // Fetch stats when filters change
   useEffect(() => {
@@ -254,7 +276,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
         ...(selectedFilters.sectionId && { section_id: selectedFilters.sectionId }),
         ...(selectedFilters.admissionMode && { admission_mode: selectedFilters.admissionMode }),
         ...(selectedFilters.status !== 'all' && { status: selectedFilters.status }),
-        ...(selectedFilters.search && { search: selectedFilters.search })
+        ...(appliedSearch && { search: appliedSearch })
       };
 
       const json = await getInvoices(params);
@@ -596,10 +618,17 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
               <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
                 placeholder="Search USN, Name or Invoice #..."
-                className="pl-10 h-12 bg-background border-border/50 shadow-sm transition-all focus:ring-2 focus:ring-primary/20"
-                value={selectedFilters.search}
-                onChange={(e) => setSelectedFilters((p) => ({ ...p, search: e.target.value }))} />
-              
+                className="pl-10 pr-12 h-12 bg-background border-border/50 shadow-sm transition-all focus:ring-2 focus:ring-primary/20"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
             <div className="w-full md:w-[220px]">
               <Select value={selectedFilters.status} onValueChange={(val) => setSelectedFilters((p) => ({ ...p, status: val }))}>
@@ -642,7 +671,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
                 <TableRow>
                     <TableCell colSpan={7} className="h-80 text-center">
-                      {!(selectedFilters.batchId && selectedFilters.branchId && selectedFilters.semesterId && selectedFilters.sectionId && selectedFilters.admissionMode) && selectedFilters.search.length < 3 ?
+                      {!(selectedFilters.batchId && selectedFilters.branchId && selectedFilters.semesterId && selectedFilters.sectionId && selectedFilters.admissionMode) && appliedSearch.length < 3 ?
                     <div className="flex flex-col items-center justify-center bg-muted/5 p-8 rounded-xl border border-dashed mx-6">
                           <div className="relative mb-6">
                             <div className="absolute -top-4 -right-4 bg-primary/10 p-3 rounded-full animate-bounce">
