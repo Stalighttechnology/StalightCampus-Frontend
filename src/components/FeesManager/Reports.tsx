@@ -66,6 +66,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<AttendanceSummary | null>(null);
   const [detailedAttendance, setDetailedAttendance] = useState<any[]>([]);
+  const [selectedStaffJoinDate, setSelectedStaffJoinDate] = useState<string | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
   // Pagination
@@ -145,6 +146,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
       const response = await getStaffDetailedAttendance(staff.id, startDate, endDate);
       if (response.success) {
         setDetailedAttendance(response.results);
+        setSelectedStaffJoinDate((response as any).date_joined || null);
       }
     } catch (error) {
 
@@ -213,7 +215,10 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-muted/10 p-5 rounded-2xl border border-border/50">
             <div className="space-y-2">
               <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">Role Type <span className="text-red-500">*</span></Label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <Select value={selectedRole} onValueChange={(val) => {
+                setSelectedRole(val);
+                setTimeout(() => setIsStartPopoverOpen(true), 100);
+              }}>
                 <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
@@ -250,7 +255,15 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       if (date) {
                         setStartDate(date.toLocaleDateString('sv-SE'));
                         setIsStartPopoverOpen(false);
+                        setTimeout(() => setIsEndPopoverOpen(true), 100);
                       }
+                    }}
+                    disabled={(date) => {
+                      if (endDate) {
+                        const end = new Date(endDate + 'T00:00:00');
+                        return date > end;
+                      }
+                      return false;
                     }}
                     initialFocus
                     className="rounded-2xl" />
@@ -283,6 +296,13 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                         setEndDate(date.toLocaleDateString('sv-SE'));
                         setIsEndPopoverOpen(false);
                       }
+                    }}
+                    disabled={(date) => {
+                      if (startDate) {
+                        const start = new Date(startDate + 'T00:00:00');
+                        return date < start;
+                      }
+                      return false;
                     }}
                     initialFocus
                     className="rounded-2xl" />
@@ -446,8 +466,8 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
 
       {/* Detailed Attendance Calendar Dialog */}
       <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
-        <DialogContent className="w-[90%] sm:max-w-md bg-card rounded-3xl border-none shadow-2xl p-0 overflow-hidden mx-auto">
-          <DialogHeader className="p-6 bg-muted/20 border-b">
+        <DialogContent className="w-[90%] sm:max-w-md h-[620px] bg-card rounded-3xl border-none shadow-2xl p-0 overflow-hidden mx-auto">
+          <DialogHeader className="p-6 bg-muted/20 border-b h-[85px]">
             <DialogTitle className="text-xl font-semibold flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-primary" />
               Attendance History
@@ -457,7 +477,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
             </DialogDescription>
           </DialogHeader>
 
-          <div className="p-6 space-y-6">
+          <div className="p-6 pt-0 space-y-6 h-[520px] overflow-y-auto custom-scrollbar">
             {loadingDetails ?
             <div className="space-y-6">
                 <Skeleton className="h-[350px] w-full rounded-2xl" />
@@ -471,16 +491,20 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
             <>
                 <div className="rounded-2xl border border-border/50 p-4 bg-muted/5 max-h-[350px] overflow-y-auto custom-scrollbar">
                   <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                    {getDatesInRange(startDate, endDate).map((date, idx) => {
-                    const dateStr = format(date, "yyyy-MM-dd");
-                    const record = detailedAttendance.find((r) => {
-                      const rDate = typeof r.date === 'string' ? r.date : format(new Date(r.date), "yyyy-MM-dd");
-                      return rDate === dateStr;
-                    });
+                    {getDatesInRange(startDate, endDate)
+                      .filter((date) => {
+                        const dateStr = format(date, "yyyy-MM-dd");
+                        return selectedStaffJoinDate ? dateStr >= selectedStaffJoinDate : true;
+                      })
+                      .map((date, idx) => {
+                        const dateStr = format(date, "yyyy-MM-dd");
+                        const record = detailedAttendance.find((r) => {
+                          const rDate = typeof r.date === 'string' ? r.date : format(new Date(r.date), "yyyy-MM-dd");
+                          return rDate === dateStr;
+                        });
 
-                    const isPresent = record?.status === 'present';
-                    // If no record exists or status is explicitly 'absent', treat as absent to match summary logic
-                    const isAbsent = record?.status === 'absent' || !record && !isPresent;
+                        const isPresent = record?.status === 'present';
+                        const isAbsent = record?.status === 'absent' || !record && !isPresent;
 
                     return (
                       <div
@@ -531,7 +555,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
             }
 
             <Button
-              className="w-full h-12 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98]"
+              className="w-full h-12  rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98]"
               onClick={() => setIsCalendarDialogOpen(false)}>
               
               Close History
