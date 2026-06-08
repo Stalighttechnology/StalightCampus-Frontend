@@ -5,7 +5,7 @@ import { Label } from '../../ui/label';
 import { Textarea } from '../../ui/textarea';
 import { Calendar } from '../../ui/calendar';
 import { PopoverTrigger, Popover, PopoverContent } from '../../ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Clock3, CheckCircle2, XCircle, CalendarCheck2, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../ui/select';
@@ -16,7 +16,7 @@ import { SkeletonList } from '@/components/ui/skeleton';
 import { usePagination } from '@/hooks/useOptimizations';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
-import { Circle, CalendarCheck2, CalendarX2, Filter } from 'lucide-react';
+import { Badge } from '../../ui/badge';
 
 const MySwal = withReactContent(Swal);
 
@@ -26,6 +26,30 @@ const statusStyles = {
   Pending: 'text-yellow-700 bg-yellow-100',
   Approved: 'text-green-700 bg-green-100',
   Rejected: 'text-red-700 bg-red-100'
+};
+
+const getStatusStyles = (theme: string, status: string) => {
+  const normalizedStatus = status.toUpperCase();
+
+  const styles = {
+    PENDING: {
+      icon: <Clock3 className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'}`} />,
+      color: theme === 'dark' ? "text-yellow-400" : "text-yellow-600",
+      bg: theme === 'dark' ? "bg-yellow-900/30" : "bg-yellow-100"
+    },
+    APPROVED: {
+      icon: <CheckCircle2 className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />,
+      color: theme === 'dark' ? "text-green-400" : "text-green-600",
+      bg: theme === 'dark' ? "bg-green-900/30" : "bg-green-100"
+    },
+    REJECTED: {
+      icon: <XCircle className={`w-3.5 h-3.5 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />,
+      color: theme === 'dark' ? "text-red-400" : "text-red-600",
+      bg: theme === 'dark' ? "bg-red-900/30" : "bg-red-100"
+    }
+  };
+
+  return (styles as any)[normalizedStatus] || styles.PENDING;
 };
 
 // Interface to match the original mock data structure
@@ -227,39 +251,16 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   };
 
   const renderStatus = (status: LeaveStatus) => {
-
-    const baseClass = 'flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[8px] sm:text-xs font-semibold whitespace-nowrap uppercase tracking-tight';
-    switch (status) {
-      case 'Pending':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-yellow-900/30 text-yellow-500' : 'bg-yellow-100 text-yellow-800'}`}>
-            <Circle className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${theme === 'dark' ? 'text-yellow-500' : 'text-yellow-500'}`} fill="currentColor" />
-            <span>Pending</span>
-          </div>);
-
-      case 'Approved':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-green-900/30 text-green-500' : 'bg-green-100 text-green-700'}`}>
-            <CalendarCheck2 className={`w-3 h-3 sm:w-4 sm:h-4 ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`} />
-            <span>Approved</span>
-          </div>);
-
-      case 'Rejected':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-red-900/30 text-red-500' : 'bg-red-100 text-red-700'}`}>
-            <CalendarX2 className={`w-3 h-3 sm:w-4 sm:h-4 ${theme === 'dark' ? 'text-red-500' : 'text-red-600'}`} />
-            <span>Rejected</span>
-          </div>);
-
-      default:
-
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
-            <Circle className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`} fill="currentColor" />
-            <span>{status || 'Unknown'}</span>
-          </div>);
-
-    }
+    const styles = getStatusStyles(theme, status);
+    return (
+      <Badge
+        className={`text-[12px] sm:text-xs font-medium px-2 py-0.5 rounded-full border-none flex items-center gap-2 w-fit ${styles.bg} ${styles.color}`}>
+        <div className="flex items-center gap-1">
+          {styles.icon}
+          {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+        </div>
+      </Badge>
+    );
   };
 
   return (
