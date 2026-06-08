@@ -143,9 +143,12 @@ export const getWardenVisitorLogs = async (page = 1, search = '') => {
 
 export const createWardenVisitorLog = async (data: {
   student: number;
+  hostel: number;
   visitor_name: string;
-  contact_details: string;
+  mobile_number: string;
   purpose: string;
+  check_in_time?: string;
+  check_out_time?: string | null;
 }) => {
   const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/visitor-logs/`, {
     method: "POST",
@@ -156,6 +159,16 @@ export const createWardenVisitorLog = async (data: {
   });
   if (!response.ok) {
     throw new Error("Failed to create visitor log");
+  }
+  return response.json();
+};
+
+export const checkoutWardenVisitorLog = async (logId: number) => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/visitor-logs/${logId}/checkout/`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to check out visitor");
   }
   return response.json();
 };
@@ -176,4 +189,15 @@ export const exportWardenVisitorLogsPdf = async (search = ''): Promise<Blob> => 
   }
   return response.blob();
 };
+
+export const sendWardenVisitorReminder = async (logId: number) => {
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/warden/visitor-logs/${logId}/send_reminder/`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to send visitor reminder");
+  }
+  return response.json();
+};
+
 

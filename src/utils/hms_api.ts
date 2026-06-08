@@ -604,6 +604,10 @@ export const getHmsVisitorLogs = async (page: number = 1, search: string = ''): 
   return hmsApiCall<any>(endpoint, "GET");
 };
 
+export const checkoutHmsVisitorLog = async (logId: number): Promise<HMSResponse<any>> => {
+  return hmsApiCall<any>(`visitor-logs/${logId}/checkout/`, "POST");
+};
+
 export const exportHmsVisitorLogsPdf = async (search: string = ''): Promise<Blob> => {
   let endpoint = `visitor-logs/export_pdf/`;
   if (search) {

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../hooks/use-toast';
 import { useTheme } from '../../context/ThemeContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Search, ChevronLeft, ChevronRight, Users, Plus, Download } from 'lucide-react';
-import DashboardCard from '../common/DashboardCard';
+import { Loader2, Search, Users, Plus, Download, LogOut, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -24,8 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { createWardenVisitorLog, getWardenStudents, getWardenVisitorLogs, exportWardenVisitorLogsPdf } from '../../utils/warden_api';
-import { getAcademicInit } from '../../utils/hms_api';
+import { 
+  createWardenVisitorLog, 
+  getWardenStudents, 
+  getWardenVisitorLogs, 
+  exportWardenVisitorLogsPdf,
+  checkoutWardenVisitorLog,
+  sendWardenVisitorReminder
+} from '../../utils/warden_api';
+import { getAcademicInit, getHostels } from '../../utils/hms_api';
 
 interface VisitorLog {
   id: number;
@@ -33,9 +38,12 @@ interface VisitorLog {
   student_name: string;
   student_usn: string;
   visitor_name: string;
-  contact_details: string;
+  mobile_number: string;
   purpose: string;
-  visit_time: string;
+  check_in_time: string;
+  check_out_time: string | null;
+  hostel: number;
+  hostel_name: string;
 }
 
 const WardenVisitorLogs = () => {
@@ -55,6 +63,9 @@ const WardenVisitorLogs = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
+  const [hostels, setHostels] = useState<any[]>([]);
+  const [isCheckingOut, setIsCheckingOut] = useState<number | null>(null);
+  const [isSendingReminder, setIsSendingReminder] = useState<number | null>(null);
   
   // Academic filters for modal
   const [batches, setBatches] = useState<any[]>([]);
@@ -68,27 +79,30 @@ const WardenVisitorLogs = () => {
 
   const [formData, setFormData] = useState({
     student: '',
+    hostel: '',
     visitor_name: '',
-    contact_details: '',
+    mobile_number: '',
     purpose: '',
+    check_in_time: new Date().toISOString().slice(0, 16),
+    check_out_time: '',
   });
 
   useEffect(() => {
     fetchAcademicInit();
+    fetchHostels();
   }, []);
 
   useEffect(() => {
     if (isModalOpen) {
       setStudentPage(1);
-      fetchStudents(1, selectedBatch, selectedBranch, selectedSemester);
+      fetchStudents(1, selectedBatch, selectedBranch, selectedSemester, formData.hostel);
     }
-  }, [isModalOpen, selectedBatch, selectedBranch, selectedSemester]);
+  }, [isModalOpen, selectedBatch, selectedBranch, selectedSemester, formData.hostel]);
 
   const fetchAcademicInit = async () => {
     try {
       const response = await getAcademicInit();
       if (response.success || response.batches) {
-        // Handle both standard and raw responses just in case
         setBatches(response.batches || response.data?.batches || []);
         setBranches(response.branches || response.data?.branches || []);
         setSemestersByBranch(response.semesters_by_branch || response.data?.semesters_by_branch || {});
@@ -98,14 +112,33 @@ const WardenVisitorLogs = () => {
     }
   };
 
+  const fetchHostels = async () => {
+    try {
+      const response = await getHostels();
+      if (response.success) {
+        setHostels(response.results || response.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to load hostels", error);
+    }
+  };
+
   const fetchStudents = async (
     page: number = 1,
     batch: string = '',
     branch: string = '',
-    semester: string = ''
+    semester: string = '',
+    hostelId: string = ''
   ) => {
     try {
-      const response = await getWardenStudents(undefined, undefined, batch, branch, semester, page);
+      const response = await getWardenStudents(
+        hostelId ? parseInt(hostelId) : undefined,
+        undefined,
+        batch,
+        branch,
+        semester,
+        page
+      );
       const newStudents = response.results || response.students || response.data || [];
       if (page === 1) {
         setStudents(newStudents);
@@ -118,12 +151,12 @@ const WardenVisitorLogs = () => {
     }
   };
 
-  const loadMoreStudents = (e: React.UIEvent<HTMLSelectElement>) => {
-    const target = e.target as HTMLSelectElement;
+  const loadMoreStudents = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
     if (target.scrollTop + target.clientHeight >= target.scrollHeight - 10 && hasMoreStudents) {
       const nextPage = studentPage + 1;
       setStudentPage(nextPage);
-      fetchStudents(nextPage, selectedBatch, selectedBranch, selectedSemester);
+      fetchStudents(nextPage, selectedBatch, selectedBranch, selectedSemester, formData.hostel);
     }
   };
 
@@ -187,8 +220,57 @@ const WardenVisitorLogs = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '';
+  const handleCheckout = async (logId: number) => {
+    setIsCheckingOut(logId);
+    try {
+      await checkoutWardenVisitorLog(logId);
+      toast({
+        title: 'Success',
+        description: 'Visitor checked out successfully',
+      });
+      fetchLogs();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to check out visitor',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsCheckingOut(null);
+    }
+  };
+
+  const isOverdue = (checkInTime: string, checkOutTime: string | null) => {
+    if (checkOutTime) return false;
+    const checkIn = new Date(checkInTime).getTime();
+    const now = new Date().getTime();
+    return (now - checkIn) > 2 * 60 * 60 * 1000;
+  };
+
+  const handleSendReminder = async (logId: number) => {
+    setIsSendingReminder(logId);
+    try {
+      await sendWardenVisitorReminder(logId);
+      toast({
+        title: 'Success',
+        description: 'Reminder sent to host student successfully',
+      });
+      // Optionally re-fetch logs to make sure any backend status is updated, 
+      // but status badge is derived on the fly anyway. Re-fetching can't hurt.
+      fetchLogs();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to send visitor reminder',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSendingReminder(null);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -200,7 +282,7 @@ const WardenVisitorLogs = () => {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.student || !formData.visitor_name || !formData.contact_details) {
+    if (!formData.student || !formData.hostel || !formData.visitor_name || !formData.mobile_number) {
       toast({ title: 'Error', description: 'Please fill all required fields', variant: 'destructive' });
       return;
     }
@@ -208,13 +290,24 @@ const WardenVisitorLogs = () => {
     try {
       await createWardenVisitorLog({
         student: parseInt(formData.student),
+        hostel: parseInt(formData.hostel),
         visitor_name: formData.visitor_name,
-        contact_details: formData.contact_details,
+        mobile_number: formData.mobile_number,
         purpose: formData.purpose,
+        check_in_time: formData.check_in_time ? new Date(formData.check_in_time).toISOString() : undefined,
+        check_out_time: formData.check_out_time ? new Date(formData.check_out_time).toISOString() : null,
       });
       toast({ title: 'Success', description: 'Visitor log added successfully' });
       setIsModalOpen(false);
-      setFormData({ student: '', visitor_name: '', contact_details: '', purpose: '' });
+      setFormData({
+        student: '',
+        hostel: '',
+        visitor_name: '',
+        mobile_number: '',
+        purpose: '',
+        check_in_time: new Date().toISOString().slice(0, 16),
+        check_out_time: '',
+      });
       fetchLogs();
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to add visitor log', variant: 'destructive' });
@@ -242,131 +335,196 @@ const WardenVisitorLogs = () => {
                       <Plus className="w-3.5 h-3.5" /> Add Visitor
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                       <DialogTitle>Add New Visitor</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleAddSubmit} className="space-y-4 pt-4">
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Batch</Label>
-                          <Select
-                            value={selectedBatch || "all"}
-                            onValueChange={(val) => {
-                              setSelectedBatch(val === "all" ? "" : val);
-                              setFormData({...formData, student: ''});
-                            }}
-                          >
-                            <SelectTrigger className="w-full h-8 text-xs">
-                              <SelectValue placeholder="All Batches" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Batches</SelectItem>
-                              {batches.map((b) => (
-                                <SelectItem key={b.id} value={b.id.toString()}>
-                                  {b.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                    <form onSubmit={handleAddSubmit} className="space-y-4 pt-2">
+                      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+                        
+                        {/* Visitor Details Section */}
+                        <div className="space-y-3 p-3.5 rounded-xl border border-border/80 bg-muted/10">
+                          <div className="text-xs font-bold text-primary uppercase tracking-wider">Visitor Details</div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Visitor Name *</Label>
+                            <Input
+                              value={formData.visitor_name}
+                              onChange={(e) => setFormData({ ...formData, visitor_name: e.target.value })}
+                              placeholder="E.g., John Doe"
+                              className="h-9 text-xs bg-background"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Visitor Mobile Number *</Label>
+                            <Input
+                              value={formData.mobile_number}
+                              onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })}
+                              placeholder="E.g., +91 98765 43210"
+                              className="h-9 text-xs bg-background"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Purpose/Reason for Visit</Label>
+                            <Input
+                              value={formData.purpose}
+                              onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                              placeholder="E.g., Meeting, Delivery, etc."
+                              className="h-9 text-xs bg-background"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-2">
+                              <Label className="text-xs">Check-In Time *</Label>
+                              <Input
+                                type="datetime-local"
+                                value={formData.check_in_time}
+                                onChange={(e) => setFormData({ ...formData, check_in_time: e.target.value })}
+                                className="h-9 text-xs bg-background"
+                                required
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs">Check-Out Time</Label>
+                              <Input
+                                type="datetime-local"
+                                value={formData.check_out_time}
+                                onChange={(e) => setFormData({ ...formData, check_out_time: e.target.value })}
+                                className="h-9 text-xs bg-background"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Branch</Label>
-                          <Select
-                            value={selectedBranch || "all"}
-                            onValueChange={(val) => {
-                              setSelectedBranch(val === "all" ? "" : val);
-                              setSelectedSemester('');
-                              setFormData({...formData, student: ''});
-                            }}
-                          >
-                            <SelectTrigger className="w-full h-8 text-xs">
-                              <SelectValue placeholder="All Branches" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Branches</SelectItem>
-                              {branches.map((b) => (
-                                <SelectItem key={b.id} value={b.id.toString()}>
-                                  {b.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Semester</Label>
-                          <Select
-                            value={selectedSemester || "all"}
-                            onValueChange={(val) => {
-                              setSelectedSemester(val === "all" ? "" : val);
-                              setFormData({...formData, student: ''});
-                            }}
-                            disabled={!selectedBranch}
-                          >
-                            <SelectTrigger className="w-full h-8 text-xs">
-                              <SelectValue placeholder="All Semesters" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Semesters</SelectItem>
-                              {selectedBranch && semestersByBranch[selectedBranch]?.map((s: any) => (
-                                <SelectItem key={s.id} value={s.id.toString()}>
-                                  Sem {s.number}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
 
-                      <div className="space-y-2 pt-2 border-t border-border">
-                        <Label>Student</Label>
-                        <Select
-                          value={formData.student}
-                          onValueChange={(val) => setFormData({ ...formData, student: val })}
-                        >
-                          <SelectTrigger className="w-full h-10 text-sm">
-                            <SelectValue placeholder="Select a student..." />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-56">
-                            {students.map((s: any) => (
-                              <SelectItem key={s.id} value={s.id.toString()}>
-                                {s.name} ({s.usn}) - Room {s.room_number || s.room}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        {/* Hostel & Student Details Section */}
+                        <div className="space-y-3 p-3.5 rounded-xl border border-border/80 bg-muted/10">
+                          <div className="text-xs font-bold text-primary uppercase tracking-wider">Hostel Details</div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Hostel Name *</Label>
+                            <Select
+                              value={formData.hostel}
+                              onValueChange={(val) => {
+                                setFormData({ ...formData, hostel: val, student: '' });
+                              }}
+                            >
+                              <SelectTrigger className="w-full h-9 text-xs bg-background">
+                                <SelectValue placeholder="Select a hostel..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {hostels.map((h) => (
+                                  <SelectItem key={h.id} value={h.id.toString()}>
+                                    {h.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2 pt-2 border-t border-border/40">
+                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Filter Students (Optional)</Label>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">Batch</Label>
+                                <Select
+                                  value={selectedBatch || "all"}
+                                  onValueChange={(val) => {
+                                    setSelectedBatch(val === "all" ? "" : val);
+                                    setFormData({...formData, student: ''});
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full h-8 text-[10px] bg-background">
+                                    <SelectValue placeholder="All" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    {batches.map((b) => (
+                                      <SelectItem key={b.id} value={b.id.toString()}>
+                                        {b.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">Branch</Label>
+                                <Select
+                                  value={selectedBranch || "all"}
+                                  onValueChange={(val) => {
+                                    setSelectedBranch(val === "all" ? "" : val);
+                                    setSelectedSemester('');
+                                    setFormData({...formData, student: ''});
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full h-8 text-[10px] bg-background">
+                                    <SelectValue placeholder="All" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    {branches.map((b) => (
+                                      <SelectItem key={b.id} value={b.id.toString()}>
+                                        {b.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">Semester</Label>
+                                <Select
+                                  value={selectedSemester || "all"}
+                                  onValueChange={(val) => {
+                                    setSelectedSemester(val === "all" ? "" : val);
+                                    setFormData({...formData, student: ''});
+                                  }}
+                                  disabled={!selectedBranch}
+                                >
+                                  <SelectTrigger className="w-full h-8 text-[10px] bg-background">
+                                    <SelectValue placeholder="All" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    {selectedBranch && semestersByBranch[selectedBranch]?.map((s: any) => (
+                                      <SelectItem key={s.id} value={s.id.toString()}>
+                                        Sem {s.number}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 pt-2 border-t border-border/40">
+                            <Label className="text-xs">Student *</Label>
+                            <Select
+                              value={formData.student}
+                              onValueChange={(val) => setFormData({ ...formData, student: val })}
+                              disabled={!formData.hostel}
+                            >
+                              <SelectTrigger className="w-full h-9 text-xs bg-background">
+                                <SelectValue placeholder={formData.hostel ? "Select a student..." : "Please select a hostel first"} />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-48" onScroll={loadMoreStudents}>
+                                {students.map((s: any) => (
+                                  <SelectItem key={s.id} value={s.id.toString()}>
+                                    {s.name} ({s.usn}) - Room {s.room_number || s.room}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
                       </div>
-                      <div className="space-y-2">
-                        <Label>Visitor Name</Label>
-                        <Input
-                          value={formData.visitor_name}
-                          onChange={(e) => setFormData({ ...formData, visitor_name: e.target.value })}
-                          placeholder="E.g., John Doe"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Contact Details</Label>
-                        <Input
-                          value={formData.contact_details}
-                          onChange={(e) => setFormData({ ...formData, contact_details: e.target.value })}
-                          placeholder="Phone number or email"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Purpose</Label>
-                        <Input
-                          value={formData.purpose}
-                          onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-                          placeholder="E.g., Meeting, Delivery, etc."
-                        />
-                      </div>
-                      <div className="flex justify-end gap-2 mt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                      
+                      <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-border/40">
+                        <Button type="button" variant="outline" className="h-9 text-xs" onClick={() => setIsModalOpen(false)}>
                           Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" className="h-9 text-xs" disabled={isSubmitting}>
                           {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                           Save
                         </Button>
@@ -390,7 +548,7 @@ const WardenVisitorLogs = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-40" />
               <Input
                 type="text"
-                placeholder="Search visitors or students..."
+                placeholder="Search visitors, students, or hostels..."
                 className="pl-10 pr-12 h-10 bg-background border-primary/10 hover:border-primary/30 transition-colors"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -430,28 +588,91 @@ const WardenVisitorLogs = () => {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h4 className="font-semibold text-md leading-tight">{log.visitor_name}</h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">{log.contact_details}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{log.mobile_number}</p>
+                        <Badge variant="secondary" className="mt-1 text-[10px] font-semibold bg-primary/5 text-primary border-none">
+                          {log.hostel_name || '-'}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="bg-primary/5 whitespace-nowrap text-[10px] py-0.5 px-2">
-                        {formatDate(log.visit_time)}
-                      </Badge>
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        {log.check_out_time ? (
+                          <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[10px]">
+                            Checked Out
+                          </Badge>
+                        ) : isOverdue(log.check_in_time, log.check_out_time) ? (
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 dark:text-orange-400 border-none font-semibold text-[10px] animate-pulse">
+                            Student Reminded
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none font-semibold text-[10px] animate-pulse">
+                            Checked In
+                          </Badge>
+                        )}
+                      </div>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-border/30 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Check-In</span>
+                        <div className="font-medium mt-0.5">{formatDate(log.check_in_time)}</div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Check-Out</span>
+                        <div className="font-medium mt-0.5">{formatDate(log.check_out_time)}</div>
+                      </div>
+                    </div>
+
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30 gap-2">
                       <div className="min-w-0">
                         <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Student</div>
                         <div className="text-sm font-semibold truncate">{log.student_name}</div>
                         <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">{log.student_usn}</div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setViewPurpose(log.purpose)}
-                        className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 ${
-                          theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        View Purpose
-                      </Button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setViewPurpose(log.purpose)}
+                          className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 ${
+                            theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          View Purpose
+                        </Button>
+                        {!log.check_out_time && (
+                          <>
+                            {isOverdue(log.check_in_time, log.check_out_time) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSendReminder(log.id)}
+                                disabled={isSendingReminder === log.id || isCheckingOut === log.id}
+                                className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 flex items-center gap-1 border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-950 dark:text-orange-400 dark:hover:bg-orange-950/20"
+                              >
+                                {isSendingReminder === log.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Bell className="w-3.5 h-3.5" />
+                                )}
+                                Remind
+                              </Button>
+                            )}
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleCheckout(log.id)}
+                              disabled={isCheckingOut === log.id || isSendingReminder === log.id}
+                              className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
+                            >
+                              {isCheckingOut === log.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <LogOut className="w-3.5 h-3.5" />
+                              )}
+                              Check Out
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -464,16 +685,24 @@ const WardenVisitorLogs = () => {
                     <tr>
                       <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visitor</th>
                       <th className="py-3.5 px-4 font-semibold text-muted-foreground">Contact</th>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Hostel</th>
                       <th className="py-3.5 px-4 font-semibold text-muted-foreground">Student Info</th>
                       <th className="py-3.5 px-4 font-semibold text-muted-foreground">Purpose</th>
-                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Visit Time</th>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Check-In</th>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground">Check-Out</th>
+                      <th className="py-3.5 px-4 font-semibold text-muted-foreground text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {logs.map((log) => (
                       <tr key={log.id} className="hover:bg-muted/30 transition-colors">
                         <td className="py-3 px-4 font-semibold text-md">{log.visitor_name}</td>
-                        <td className="py-3 px-4 text-muted-foreground">{log.contact_details}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{log.mobile_number}</td>
+                        <td className="py-3 px-4">
+                          <Badge variant="outline" className="bg-primary/5 font-semibold text-xs border-none text-primary">
+                            {log.hostel_name || '-'}
+                          </Badge>
+                        </td>
                         <td className="py-3 px-4">
                           <div className="font-semibold">{log.student_name}</div>
                           <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn}</div>
@@ -489,9 +718,60 @@ const WardenVisitorLogs = () => {
                           </Button>
                         </td>
                         <td className="py-3 px-4">
-                          <Badge variant="outline" className="bg-primary/5 whitespace-nowrap">
-                            {formatDate(log.visit_time)}
-                          </Badge>
+                          <span className="font-medium text-xs text-muted-foreground">{formatDate(log.check_in_time)}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          {log.check_out_time ? (
+                            <span className="font-medium text-xs text-muted-foreground">{formatDate(log.check_out_time)}</span>
+                          ) : isOverdue(log.check_in_time, log.check_out_time) ? (
+                            <Badge variant="outline" className="bg-orange-500/10 text-orange-600 dark:text-orange-400 border-none font-semibold text-[10px] animate-pulse">
+                              Student Reminded
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none font-semibold text-[10px] animate-pulse">
+                              Checked In
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {!log.check_out_time ? (
+                            <div className="flex items-center justify-center gap-2">
+                              {isOverdue(log.check_in_time, log.check_out_time) && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleSendReminder(log.id)}
+                                  disabled={isSendingReminder === log.id || isCheckingOut === log.id}
+                                  className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all inline-flex items-center gap-1.5 border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-950 dark:text-orange-400 dark:hover:bg-orange-950/20"
+                                >
+                                  {isSendingReminder === log.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Bell className="w-3.5 h-3.5" />
+                                  )}
+                                  Remind
+                                </Button>
+                              )}
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleCheckout(log.id)}
+                                disabled={isCheckingOut === log.id || isSendingReminder === log.id}
+                                className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                {isCheckingOut === log.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <LogOut className="w-3.5 h-3.5" />
+                                )}
+                                Check Out
+                              </Button>
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[10px] py-1 px-2.5">
+                              Completed
+                            </Badge>
+                          )}
                         </td>
                       </tr>
                     ))}
