@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useHMSContext } from "../../context/HMSContext";
 import { SkeletonForm, SkeletonPageHeader } from "../ui/skeleton";
+import { API_ENDPOINT } from "../../utils/config";
 
 const Enrollment: React.FC = () => {
   const location = useLocation();
@@ -51,8 +52,8 @@ const Enrollment: React.FC = () => {
 
     try {
       const endpoint = enrollmentType === 'warden' ?
-      '/api/hms/wardens/' :
-      '/api/hms/caretakers/';
+      `${API_ENDPOINT}/hms/wardens/` :
+      `${API_ENDPOINT}/hms/caretakers/`;
 
       const payload = enrollmentType === 'warden' ?
       {
