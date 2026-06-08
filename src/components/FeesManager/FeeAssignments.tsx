@@ -84,6 +84,11 @@ const FeeAssignments: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [templates, setTemplates] = useState<FeeTemplate[]>([]);
 
+  // Loading states for cascading filters
+  const [loadingInitialFilters, setLoadingInitialFilters] = useState(false);
+  const [loadingSemesters, setLoadingSemesters] = useState(false);
+  const [loadingSections, setLoadingSections] = useState(false);
+
   // Selection States
   const [selectedFilters, setSelectedFilters] = useState({
     batchId: '',
@@ -111,6 +116,7 @@ const FeeAssignments: React.FC = () => {
   // Fetch initial filters
   const fetchInitialFilters = useCallback(async () => {
     try {
+      setLoadingInitialFilters(true);
       const [filterJson, templateJson] = await Promise.all([
       getFeesManagerFilters(),
       getFeeTemplates(1, 200)]
@@ -124,6 +130,8 @@ const FeeAssignments: React.FC = () => {
       setTemplates(templateJson.data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoadingInitialFilters(false);
     }
   }, []);
 
@@ -137,12 +145,15 @@ const FeeAssignments: React.FC = () => {
 
     const fetchSemesters = async () => {
       try {
+        setLoadingSemesters(true);
         const res = await getFeesManagerSemesters(selectedFilters.branchId);
         if (res.success) {
           setSemesters(res.data || []);
         }
       } catch (err) {
 
+      } finally {
+        setLoadingSemesters(false);
       }
     };
     fetchSemesters();
@@ -158,12 +169,15 @@ const FeeAssignments: React.FC = () => {
 
     const fetchSections = async () => {
       try {
+        setLoadingSections(true);
         const res = await getFeesManagerSections(selectedFilters.branchId, selectedFilters.semesterId);
         if (res.success) {
           setSections(res.data || []);
         }
       } catch (err) {
 
+      } finally {
+        setLoadingSections(false);
       }
     };
     fetchSections();
@@ -355,7 +369,17 @@ const FeeAssignments: React.FC = () => {
                   <SelectValue placeholder="Select Batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterData.batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  {loadingInitialFilters ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading batches...
+                    </SelectItem>
+                  ) : filterData.batches.length > 0 ? (
+                    filterData.batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No batches found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -376,7 +400,17 @@ const FeeAssignments: React.FC = () => {
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterData.branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  {loadingInitialFilters ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading branches...
+                    </SelectItem>
+                  ) : filterData.branches.length > 0 ? (
+                    filterData.branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No branches found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -397,7 +431,17 @@ const FeeAssignments: React.FC = () => {
                   <SelectValue placeholder="Select Semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                  {loadingSemesters ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading semesters...
+                    </SelectItem>
+                  ) : semesters.length > 0 ? (
+                    semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No semesters found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -417,8 +461,18 @@ const FeeAssignments: React.FC = () => {
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select Section" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                <SelectContent className="max-h-60">
+                  {loadingSections ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading sections...
+                    </SelectItem>
+                  ) : sections.length > 0 ? (
+                    sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No sections found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -439,7 +493,17 @@ const FeeAssignments: React.FC = () => {
                   <SelectValue placeholder="Select Admission Mode" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterData.admission_modes.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  {loadingInitialFilters ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading admission modes...
+                    </SelectItem>
+                  ) : filterData.admission_modes.length > 0 ? (
+                    filterData.admission_modes.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No admission modes found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

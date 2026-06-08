@@ -542,7 +542,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Select Section" />
                 </SelectTrigger>
-                <SelectContent className="h-60">
+                <SelectContent className="max-h-60">
                   {loadingSections ? (
                     <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
                       Loading sections...
