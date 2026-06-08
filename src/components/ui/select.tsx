@@ -101,10 +101,10 @@ const SelectContent = React.forwardRef<
         style={{
           // Keep inline style as a fallback for browsers where the CSS class
           // may be overridden by a higher-specificity rule at runtime.
-          overflowY: 'scroll',
+          overflowY: 'auto',
           maxHeight: '240px',
           scrollbarWidth: 'thin',
-          scrollbarGutter: 'stable',
+          scrollbarGutter: 'auto',
         }}
       >
         {children}

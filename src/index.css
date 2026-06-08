@@ -325,9 +325,9 @@ body,
 */
 .select-scrollbar,
 [data-radix-select-viewport] {
-  overflow-y: scroll !important;
-  scrollbar-gutter: stable !important;
-  -ms-overflow-style: scrollbar !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: auto !important;
+  -ms-overflow-style: auto !important;
   scrollbar-width: thin !important;
   scrollbar-color: #c4c8cf #f3f4f6 !important;
 }
