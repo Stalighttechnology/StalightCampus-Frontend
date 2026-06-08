@@ -358,7 +358,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       rzp.open();
     } catch (error) {
 
-      showErrorAlert('Payment Error', 'Error initiating payment. Please try again.');
+      showErrorAlert('Payment Error', error instanceof Error ? error.message : 'Error initiating payment. Please try again.');
     } finally {
       setIsProcessingPayment(false);
     }

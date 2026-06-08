@@ -9,7 +9,7 @@ import {
 } from "../ui/select";
 import { cn } from "../../lib/utils";
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Search, FileDownIcon, Loader2 } from "lucide-react";
+import { Search, FileDownIcon, Loader2, ArrowUpCircle } from "lucide-react";
 import { Input } from "../ui/input";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
@@ -116,6 +116,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<User | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [promoteData, setPromoteData] = useState<User | null>(null);
+  const [selectedNewRole, setSelectedNewRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -456,6 +458,44 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     }
   };
 
+  const savePromote = async () => {
+    if (promoteData && selectedNewRole) {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await manageUserAction({
+          user_id: promoteData.id.toString(),
+          action: "promote",
+          updates: { role: selectedNewRole }
+        });
+        if (response.success) {
+          if (response.user) {
+            setUsers((prevUsers) =>
+              prevUsers.map((user) =>
+                user.id === promoteData.id ? {
+                  ...user,
+                  role: response.user?.role || user.role,
+                  status: response.user?.is_active ? "Active" : "Inactive"
+                } : user
+              )
+            );
+          }
+          setPromoteData(null);
+          setSelectedNewRole("");
+          toast({ title: "Success", description: "User promoted successfully" });
+        } else {
+          setError(response.message || "Failed to promote user");
+          toast({ variant: "destructive", title: "Error", description: response.message || "Failed to promote user" });
+        }
+      } catch (err) {
+        setError("Network error");
+        toast({ variant: "destructive", title: "Error", description: "Network error" });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const SelectMenu = ({
     label,
     placeholder,
@@ -685,6 +725,17 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                                   <Button
                                     variant="ghost"
                                     size="icon"
+                                    onClick={() => { setPromoteData(user); setSelectedNewRole(""); }}
+                                    disabled={loading || (user.role !== 'teacher' && user.role !== 'hod')}
+                                    className={theme === 'dark' ?
+                                    'p-2 rounded hover:bg-accent' :
+                                    'p-2 rounded hover:bg-gray-100'}
+                                    title="Promote Role">
+                                    <ArrowUpCircle className={theme === 'dark' ? 'w-5 h-5 text-purple-400' : 'w-5 h-5 text-purple-500'} />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={() => handleEdit(user)}
                                     disabled={loading}
                                     className={theme === 'dark' ?
@@ -845,6 +896,58 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
               'bg-red-600 hover:bg-red-700 text-white'}`}>
               
               {loading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={promoteData !== null} onOpenChange={() => { setPromoteData(null); setSelectedNewRole(""); }}>
+        <DialogContent
+          className={
+          theme === 'dark' ?
+          'bg-card border border-border text-foreground w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto' :
+          'bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
+          }>
+          <DialogHeader>
+            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Promote / Change Role</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Select a new role for <strong>{promoteData?.name}</strong>. Their current role is <strong>{promoteData?.role}</strong>.
+            </p>
+            <div className="space-y-2">
+              <label className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>New Role</label>
+              <SelectMenu
+                label=""
+                placeholder="Choose New Role"
+                value={Object.keys(roleMap).find(key => roleMap[key] === selectedNewRole) || ""}
+                onChange={(val) => setSelectedNewRole(roleMap[val])}
+                options={roles.filter(r => {
+                  if (promoteData?.role === 'teacher' && roleMap[r] === 'hod') return true;
+                  if (promoteData?.role === 'hod' && roleMap[r] === 'principal') return true;
+                  return false;
+                })}
+              />
+            </div>
+            <div className={`p-3 text-xs rounded-md ${theme === 'dark' ? 'bg-primary/10 text-primary-foreground border border-primary/20' : 'bg-blue-50 text-blue-800 border border-blue-100'}`}>
+              <strong>Note:</strong> Promoting a user will automatically log them out and notify them via email. If promoting a Teacher or HOD, their current class assignments or branch leadership will be unassigned automatically.
+            </div>
+          </div>
+          <DialogFooter className="flex flex-row justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => { setPromoteData(null); setSelectedNewRole(""); }}
+              disabled={loading}
+              className={theme === 'dark' ? 'text-foreground bg-card border border-border hover:bg-accent' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={savePromote}
+              disabled={loading || !selectedNewRole}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {loading ? "Promoting..." : "Promote"}
             </Button>
           </DialogFooter>
         </DialogContent>
