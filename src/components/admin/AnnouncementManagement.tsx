@@ -139,7 +139,10 @@ const AdminAnnouncementManagement = () => {
     }
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleCreateOrUpdate = async () => {
+    if (submitting) return;
     if (!formData.title.trim() || !formData.message.trim()) {
       MySwal.fire({
         title: "Validation Error",
@@ -174,6 +177,7 @@ const AdminAnnouncementManagement = () => {
     }
 
     try {
+      setSubmitting(true);
       if (editingId) {
         const response = await updateAnnouncement(editingId, formData);
         if (response.success) {
@@ -229,6 +233,8 @@ const AdminAnnouncementManagement = () => {
         confirmButtonColor: "#9147e0",
         target: document.body
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -549,8 +555,10 @@ const AdminAnnouncementManagement = () => {
                 </Button>
                 <Button
                   onClick={handleCreateOrUpdate}
+                  disabled={submitting}
                   className={`${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
                   
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   {editingId ? "Update" : "Create"} Announcement
                 </Button>
               </div>

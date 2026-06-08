@@ -342,8 +342,8 @@ export default function ForgotPasswordMobile({ setPage }: { setPage: (page: stri
 
         {/* FOOTER */}
         <div className="text-center text-white text-[11px] pb-4 mt-2">
-          <p className="font-semibold opacity-90">AI-powered campus management system</p>
-          <p className="opacity-80">Developed under Stalight Technology</p>
+          <p className="font-semibold opacity-90">Smart campus better learning</p>
+          <p className="opacity-80">Developed by Stalight Technologies Pvt. Ltd.</p>
         </div>
       </div>
     </div>

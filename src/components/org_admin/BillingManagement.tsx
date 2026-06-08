@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
-import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye, Camera, Edit, Trash } from 'lucide-react';
+import { CreditCard, CheckCircle2, AlertCircle, Building, Calendar, Mail, Phone, Tag, Clock, Check, LifeBuoy, Download, Loader2, Eye, Camera, Edit, Trash, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getBillingAndSupport, BillingAndSupportResponse } from '../../utils/admin_api';
 import { fetchWithTokenRefresh } from '../../utils/authService';
@@ -17,12 +17,16 @@ import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../utils/sweetalert';
 import { useTheme } from '../../context/ThemeContext';
+import UpgradePlanDialog from '../common/UpgradePlanDialog';
+import { IncreaseCapacityDialog } from '../common/IncreaseCapacityDialog';
+import { UpgradeTierDialog } from '../common/UpgradeTierDialog';
 
-const BillingManagement = () => {
+export const BillingManagement: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { theme } = useTheme();
-  
+
+  const [activeTab, setActiveTab] = useState("overview");
   const [data, setData] = useState<BillingAndSupportResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
@@ -31,10 +35,14 @@ const BillingManagement = () => {
   const [ticketForm, setTicketForm] = useState({ subject: '', description: '', priority: 'Medium' });
   const [submittingTicket, setSubmittingTicket] = useState(false);
   const [deletingTicketId, setDeletingTicketId] = useState<number | null>(null);
-  
+
   const [paymentsPage, setPaymentsPage] = useState(1);
   const [ticketsPage, setTicketsPage] = useState(1);
   const itemsPerPage = 5;
+
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+  const [isCapacityUpgradeOpen, setIsCapacityUpgradeOpen] = useState(false);
+  const [isTierUpgradeOpen, setIsTierUpgradeOpen] = useState(false);
 
   const [showEditOrg, setShowEditOrg] = useState(false);
   const [editOrgStep, setEditOrgStep] = useState(1);
@@ -51,6 +59,7 @@ const BillingManagement = () => {
   const [orgLogo, setOrgLogo] = useState<File | null>(null);
   const [orgLogoPreview, setOrgLogoPreview] = useState<string | null>(null);
   const [savingOrg, setSavingOrg] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const handleOpenEditOrg = () => {
     if (org) {
@@ -83,9 +92,114 @@ const BillingManagement = () => {
     }
   };
 
-  const handleRemoveOrgLogo = () => {
-    setOrgLogoPreview(null);
-    setOrgLogo(null);
+  const handleRemoveOrgLogo = async () => {
+    const confirmed = await showConfirmAlert('Remove Logo', 'Are you sure you want to remove the logo?', 'Remove');
+    if (confirmed.isConfirmed) {
+      setOrgLogoPreview(null);
+      setOrgLogo(null);
+    }
+  };
+
+  const handleDirectLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !org) return;
+
+    setUploadingLogo(true);
+    try {
+      const dataToSend = new FormData();
+      dataToSend.append('name', org.name || '');
+      dataToSend.append('accreditation_id', org.accreditation_id || '');
+      dataToSend.append('address', org.address || '');
+      dataToSend.append('tax_id', org.tax_id || '');
+      dataToSend.append('billing_address', org.billing_address || '');
+      dataToSend.append('tech_poc_name', org.tech_poc_name || '');
+      dataToSend.append('tech_poc_email', org.tech_poc_email || '');
+      dataToSend.append('tech_poc_mobile', org.tech_poc_mobile || '');
+      dataToSend.append('logo', file);
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/billing-support/`, {
+        method: 'POST',
+        body: dataToSend
+      });
+
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Success', 'Organization logo uploaded successfully');
+        if (data) {
+          setData({
+            ...data,
+            org_details: {
+              ...data.org_details!,
+              logo: res.logo
+            }
+          });
+        }
+        const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          userObj.org_logo = res.logo;
+          sessionStorage.setItem("user", JSON.stringify(userObj));
+          localStorage.setItem("user", JSON.stringify(userObj));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+      } else {
+        showErrorAlert('Error', res.message || 'Failed to upload logo');
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'Network error uploading logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleDeleteLogoDirectly = async () => {
+    if (!org) return;
+    const confirmed = await showConfirmAlert('Remove Logo', 'Are you sure you want to remove the organization logo?', 'Remove');
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      const dataToSend = new FormData();
+      dataToSend.append('name', org.name || '');
+      dataToSend.append('accreditation_id', org.accreditation_id || '');
+      dataToSend.append('address', org.address || '');
+      dataToSend.append('tax_id', org.tax_id || '');
+      dataToSend.append('billing_address', org.billing_address || '');
+      dataToSend.append('tech_poc_name', org.tech_poc_name || '');
+      dataToSend.append('tech_poc_email', org.tech_poc_email || '');
+      dataToSend.append('tech_poc_mobile', org.tech_poc_mobile || '');
+      dataToSend.append('delete_logo', 'true');
+
+      const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/admin/billing-support/`, {
+        method: 'POST',
+        body: dataToSend
+      });
+
+      const res = await response.json();
+      if (res.success) {
+        showSuccessAlert('Success', 'Organization logo removed successfully');
+        if (data) {
+          setData({
+            ...data,
+            org_details: {
+              ...data.org_details!,
+              logo: null
+            }
+          });
+        }
+        const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          userObj.org_logo = null;
+          sessionStorage.setItem("user", JSON.stringify(userObj));
+          localStorage.setItem("user", JSON.stringify(userObj));
+          window.dispatchEvent(new Event("userProfileUpdated"));
+        }
+      } else {
+        showErrorAlert('Error', res.message || 'Failed to remove logo');
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'Network error removing logo');
+    }
   };
 
   const handleSaveOrgDetails = async () => {
@@ -110,20 +224,29 @@ const BillingManagement = () => {
         method: 'POST',
         body: dataToSend
       });
-      
+
       const res = await response.json();
       if (res.success) {
         showSuccessAlert('Success', 'Organization details updated successfully');
         setShowEditOrg(false);
+        const newLogo = res.logo || orgLogoPreview || null;
         if (data) {
           setData({
             ...data,
             org_details: {
               ...data.org_details!,
               ...orgForm,
-              logo: res.logo || orgLogoPreview
+              logo: newLogo
             }
           });
+        }
+        const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          userObj.org_logo = newLogo;
+          sessionStorage.setItem("user", JSON.stringify(userObj));
+          localStorage.setItem("user", JSON.stringify(userObj));
+          window.dispatchEvent(new Event("userProfileUpdated"));
         }
       } else {
         showErrorAlert('Error', res.message || 'Failed to update organization details');
@@ -268,13 +391,44 @@ const BillingManagement = () => {
   const paginatedPayments = payments.slice((safePaymentsPage - 1) * itemsPerPage, safePaymentsPage * itemsPerPage);
   const paginatedTickets = tickets.slice((safeTicketsPage - 1) * itemsPerPage, safeTicketsPage * itemsPerPage);
 
-  const planName = org?.plan_type === 'advance' ? 'Advance' : org?.plan_type === 'pro' ? 'Pro' : 'Basic (Trial)';
-  const planPrice = org?.plan_type === 'advance' ? '₹3,00,000/year' : org?.plan_type === 'pro' ? '₹99,999/year' : '₹0';
-  
+  const planName = org?.plan_type === 'advance' ? 'Advance' : org?.plan_type === 'pro' ? 'Pro' : 'Basic';
+  const cycleStr = org?.billing_cycle || 'Yearly';
+  let planPrice = '';
+
+  if (org?.plan_type === 'advance') {
+    const maxStudents = org?.max_students || 500;
+    const baseRate = 250;
+    const totalYearly = maxStudents * baseRate;
+    const price = cycleStr === 'Monthly' ? Math.round(totalYearly / 12) : cycleStr === 'Quarterly' ? Math.round(totalYearly / 4) : totalYearly;
+    planPrice = `₹${price.toLocaleString('en-IN')} / ${cycleStr}`;
+  } else if (org?.plan_type === 'pro') {
+    const maxStudents = org?.max_students || 500;
+    const baseRate = 200;
+    const totalYearly = maxStudents * baseRate;
+    const price = cycleStr === 'Monthly' ? Math.round(totalYearly / 12) : cycleStr === 'Quarterly' ? Math.round(totalYearly / 4) : totalYearly;
+    planPrice = `₹${price.toLocaleString('en-IN')} / ${cycleStr}`;
+  } else {
+    const maxStudents = org?.max_students || 500;
+    const pricePerStudent = 150;
+    const totalYearly = maxStudents * pricePerStudent;
+    const price = cycleStr === 'Monthly' ? Math.round(totalYearly / 12) : cycleStr === 'Quarterly' ? Math.round(totalYearly / 4) : totalYearly;
+    planPrice = `₹${price.toLocaleString('en-IN')} / ${cycleStr} (Up to ${maxStudents} students)`;
+  }
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
+
+  const TIER_OPTIONS = [
+    { max: 750,   name: 'Small Tier' },
+    { max: 2500,  name: 'Medium Tier' },
+    { max: 6000,  name: 'Large Tier' },
+    { max: 12000, name: 'Very Large Tier' },
+    { max: 30000, name: 'Enterprise Tier' },
+  ];
+  const currentMaxStudents = org?.max_students || 500;
+  const currentTierInfo = TIER_OPTIONS.find(t => currentMaxStudents <= t.max);
+  const isMaxCapacityReached = currentTierInfo ? currentMaxStudents >= currentTierInfo.max : true;
 
   return (
     <div className="space-y-6">
@@ -300,11 +454,30 @@ const BillingManagement = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-col gap-2 p-4 border rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4" /> Price</span>
                 <span className="text-sm font-medium">{planPrice}</span>
+              </div>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4" /> Capacity</span>
+                <div className="text-right">
+                  <span className="text-sm font-medium">{org?.max_students} Students</span>
+                  {org?.buffer_students > 0 && (
+                    <div className="text-xs text-muted-foreground">({org?.base_capacity} Base + {org?.buffer_students} Buffer)</div>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4" /> Active Students</span>
+                <span className={`text-sm font-medium ${org?.active_student_count > (org?.max_students || 0) ? 'text-red-500' : ''}`}>
+                  {org?.active_student_count || 0} / {org?.max_students}
+                </span>
+              </div>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Started At</span>
+                <span className="text-sm font-medium">{formatDate(org?.subscription_started_at || org?.created_at)}</span>
               </div>
               <div className="flex justify-between items-center mt-2 pt-2 border-t">
                 <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Expiry Date</span>
@@ -316,11 +489,62 @@ const BillingManagement = () => {
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3 text-amber-800">
                 <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-sm">Trial Active</p>
-                  <p className="text-xs mt-1">Upgrade to Pro or Advance to unlock all features.</p>
-                  <Button variant="default" size="sm" className="mt-3 bg-amber-600 hover:bg-amber-700" onClick={() => navigate('/trial-expired')}>
-                    Upgrade Plan
-                  </Button>
+                  <p className="font-medium text-sm">Basic Plan Active</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Upgrade to Pro or Advance to unlock all features.</p>
+                  <div className="flex gap-2 mt-3">
+                    <Button variant="default" size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setIsUpgradeOpen(true)}>
+                      Upgrade Plan
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={isMaxCapacityReached ? "border-amber-300 text-amber-700 hover:bg-amber-100" : "border-amber-300 text-amber-700 hover:bg-amber-100"} 
+                      onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
+                    >
+                      {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {org?.plan_type === 'pro' && (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex gap-3 text-primary">
+                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Pro Plan Active</p>
+                  <p className="text-xs mt-1">Upgrade to Advance to unlock Enterprise features.</p>
+                  <div className="flex gap-2 mt-3">
+                    <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 text-white" onClick={() => setIsUpgradeOpen(true)}>
+                      Upgrade to Advance
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={isMaxCapacityReached ? "border-primary/30 text-primary hover:bg-primary/10" : "border-primary/30 text-primary hover:bg-primary/10"} 
+                      onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
+                    >
+                      {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {org?.plan_type === 'advance' && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex gap-3 text-emerald-800">
+                <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Advance Plan Active</p>
+                  <p className="text-xs mt-1">You are on the highest tier with all Enterprise features unlocked.</p>
+                  <div className="flex gap-2 mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={isMaxCapacityReached ? "border-emerald-300 text-emerald-700 hover:bg-emerald-100" : "border-emerald-300 text-emerald-700 hover:bg-emerald-100"} 
+                      onClick={() => isMaxCapacityReached ? setIsTierUpgradeOpen(true) : setIsCapacityUpgradeOpen(true)}
+                    >
+                      {isMaxCapacityReached ? 'Upgrade Tier' : 'Increase Limit'}
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -344,13 +568,35 @@ const BillingManagement = () => {
           <CardContent>
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 w-full">
               {/* Brand Logo Display */}
-              <div className="flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0">
+              <div className="relative flex flex-col items-center justify-center border p-4 rounded-xl bg-muted/20 w-32 h-32 shrink-0 group">
                 {org?.logo ? (
-                  <img src={org.logo} alt="Brand Logo" className="w-full h-full object-contain rounded-lg" />
+                  <>
+                    <img src={org.logo} alt="Brand Logo" className="w-full h-full object-contain rounded-lg" />
+                    <button
+                      onClick={handleDeleteLogoDirectly}
+                      className="absolute top-1.5 right-1.5 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-all opacity-0 group-hover:opacity-100 shadow-md"
+                      title="Remove Logo"
+                    >
+                      <Trash className="h-3.5 w-3.5" />
+                    </button>
+                  </>
                 ) : (
-                  <div className="w-full h-full rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl">
-                    {org?.name ? org.name.charAt(0).toUpperCase() : 'O'}
-                  </div>
+                  <>
+                    {uploadingLogo ? (
+                      <div className="w-full h-full rounded-lg bg-primary/10 flex flex-col items-center justify-center text-primary gap-1">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span className="text-[10px] font-semibold text-center leading-tight">Uploading...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <label htmlFor="direct-logo-upload" className="w-full h-full rounded-lg bg-primary/10 flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/20 transition-all gap-1">
+                          <Camera className="h-6 w-6" />
+                          <span className="text-[10px] font-semibold text-center leading-tight">Upload Logo</span>
+                        </label>
+                        <input id="direct-logo-upload" type="file" accept="image/*" onChange={handleDirectLogoUpload} className="hidden" />
+                      </>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -437,7 +683,7 @@ const BillingManagement = () => {
                     <tr key={idx} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3">{formatDate(payment.timestamp)}</td>
                       <td className="px-4 py-3 capitalize">{payment.plan_type}</td>
-                      <td className="px-4 py-3 font-medium">₹{payment.amount}</td>
+                      <td className="px-4 py-3 font-medium">₹{parseFloat(payment.amount as any).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                       <td className="px-4 py-3 font-mono text-sm md:text-xs">{payment.transaction_id}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${payment.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -446,9 +692,9 @@ const BillingManagement = () => {
                       </td>
                       <td className="px-4 py-3">
                         {payment.status === 'success' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 text-sm md:text-xs transition-colors"
                             onClick={() => handleDownloadReceipt(payment.id)}
                             disabled={downloadingId === payment.id}
@@ -536,26 +782,24 @@ const BillingManagement = () => {
                         {ticket.description}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${
-                          ticket.priority === 'High' || ticket.priority === 'Critical' ? 'bg-red-100 text-red-700' :
-                          ticket.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-                        }`}>
+                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${ticket.priority === 'High' || ticket.priority === 'Critical' ? 'bg-red-100 text-red-700' :
+                            ticket.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
                           {ticket.priority}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${
-                          ticket.status === 'Resolved' || ticket.status === 'Closed' ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'
-                        }`}>
+                        <span className={`px-2 py-1 rounded-full text-sm md:text-xs font-medium ${ticket.status === 'Resolved' || ticket.status === 'Closed' ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'
+                          }`}>
                           {ticket.status}
                         </span>
                       </td>
                       <td className="px-4 py-3">{formatDate(ticket.created_at)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-8 px-2 flex items-center gap-1.5 text-primary hover:text-primary hover:bg-primary/10 text-sm md:text-xs transition-colors"
                             onClick={() => setViewTicket(ticket)}
                           >
@@ -628,9 +872,9 @@ const BillingManagement = () => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="subject">Subject</Label>
-              <Input 
-                id="subject" 
-                placeholder="Brief issue title" 
+              <Input
+                id="subject"
+                placeholder="Brief issue title"
                 value={ticketForm.subject}
                 onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
                 disabled={submittingTicket}
@@ -656,9 +900,9 @@ const BillingManagement = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Textarea 
-                id="description" 
-                placeholder="Detailed explanation of the issue" 
+              <Textarea
+                id="description"
+                placeholder="Detailed explanation of the issue"
                 className="resize-none h-26 overflow-y-auto custom-scrollbar"
                 value={ticketForm.description}
                 onChange={(e) => setTicketForm({ ...ticketForm, description: e.target.value })}
@@ -689,9 +933,9 @@ const BillingManagement = () => {
                   <div className="mt-1">
                     <Badge className={
                       viewTicket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                      viewTicket.status === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
-                      viewTicket.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                      'bg-blue-100 text-blue-800 border-blue-200'
+                        viewTicket.status === 'Closed' ? 'bg-gray-100 text-gray-600 border-gray-300' :
+                          viewTicket.status === 'Pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                            'bg-blue-100 text-blue-800 border-blue-200'
                     } variant="outline">{viewTicket.status}</Badge>
                   </div>
                 </div>
@@ -700,8 +944,8 @@ const BillingManagement = () => {
                   <div className="mt-1">
                     <Badge variant="outline" className={
                       viewTicket.priority === 'Critical' ? 'border-red-500 text-red-600 bg-red-50' :
-                      viewTicket.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50' :
-                      'border-blue-500 text-blue-600 bg-blue-50'
+                        viewTicket.priority === 'High' ? 'border-orange-500 text-orange-600 bg-orange-50' :
+                          'border-blue-500 text-blue-600 bg-blue-50'
                     }>{viewTicket.priority}</Badge>
                   </div>
                 </div>
@@ -798,7 +1042,7 @@ const BillingManagement = () => {
                           <Camera size={16} className="text-muted-foreground" />
                         )}
                       </div>
-                      
+
                       <label htmlFor="org-logo-upload" className="flex items-center justify-center gap-2 px-4 bg-muted/30 border h-12 rounded-xl cursor-pointer hover:bg-muted/50 transition-colors flex-1">
                         <span className="text-xs sm:text-[10px] font-medium text-muted-foreground truncate">
                           {orgLogo ? orgLogo.name : (orgLogoPreview ? "Change Logo" : "Upload")}
@@ -907,6 +1151,40 @@ const BillingManagement = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <UpgradePlanDialog
+        isOpen={isUpgradeOpen}
+        onClose={() => setIsUpgradeOpen(false)}
+        orgName={org?.name}
+        currentPlan={org?.plan_type}
+        onSuccess={() => window.location.reload()}
+        isRenewal={false}
+        activeStudentsCount={org?.active_student_count || 0}
+        currentMaxStudents={org?.max_students || 500}
+        baseCapacity={org?.base_capacity || 500}
+        bufferStudents={org?.buffer_students || 0}
+      />
+      {isCapacityUpgradeOpen && (
+        <IncreaseCapacityDialog
+          currentPlan={org?.plan_type || 'basic'}
+          orgName={org?.name || 'Organization'}
+          currentMaxStudents={org?.max_students || 500}
+          activeStudentsCount={org?.active_student_count || 0}
+          expiryDate={org?.subscription_expires_at}
+          onClose={() => setIsCapacityUpgradeOpen(false)}
+        />
+      )}
+      {isTierUpgradeOpen && (
+        <UpgradeTierDialog 
+          onClose={() => setIsTierUpgradeOpen(false)} 
+          currentPlan={org?.plan_type || 'basic'}
+          orgName={org?.name || ''}
+          currentMaxStudents={org?.max_students || 500}
+          activeStudentsCount={org?.active_student_count || 0}
+          expiryDate={org?.subscription_expires_at}
+          currentBillingCycle={org?.billing_cycle || 'Yearly'}
+        />
+      )}
     </div>
   );
 };

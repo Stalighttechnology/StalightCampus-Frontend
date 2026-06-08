@@ -186,7 +186,9 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       try {
         const result = await clone.json();
         if (result.trial_expired || result.subscription_expired || result.org_inactive) {
-          window.location.href = "/trial-expired";
+          if (window.location.pathname !== "/trial-expired") {
+            window.location.href = "/trial-expired";
+          }
           return response;
         }
       } catch (e) {
@@ -466,31 +468,92 @@ export const logoutUser = async (): Promise<GenericResponse> => {
     return { success: true, message: "Logged out successfully (error ignored)" };
   }
 };
+export const verifyCoupon = async (code: string): Promise<any> => {
+  const response = await fetch(`${API_ENDPOINT}/verify-coupon/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ code }),
+  });
+  return response.json();
+};
+
+export const refreshSuperadminToken = async (): Promise<{ success: boolean; access?: string; message?: string }> => {
+  try {
+    const refresh = localStorage.getItem("superadmin_refresh");
+    if (!refresh) {
+      return { success: false, message: "No refresh token" };
+    }
+    
+    const response = await fetch(`${API_ENDPOINT}/token/refresh/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ refresh })
+    });
+    
+    const data = await response.json();
+    if (response.ok && data.access) {
+      localStorage.setItem("superadmin_token", data.access);
+      if (data.refresh) {
+        localStorage.setItem("superadmin_refresh", data.refresh);
+      }
+      return { success: true, access: data.access };
+    } else {
+      return { success: false, message: data.detail || data.message || "Failed to refresh token" };
+    }
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
 export const fetchWithSuperadminTokenRefresh = async (url: string, options: RequestInit = {}): Promise<Response> => {
   let accessToken = localStorage.getItem("superadmin_token");
   const safeHeaders = {
-    ...(options.headers as Record<string, string | undefined>),
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...options.headers,
+    Authorization: `Bearer ${accessToken}`,
   };
-  options.headers = safeHeaders as Record<string, string>;
-  options.credentials = 'include';
-  
-  let response = await fetch(url, options);
-  
-  if (response.status === 401) {
-    const refreshResult = await refreshToken();
-    if (refreshResult.success && refreshResult.access) {
-      localStorage.setItem("superadmin_token", refreshResult.access);
-      options.headers = {
+
+  let response = await fetch(url, { ...options, headers: safeHeaders });
+
+  if (response.status === 401 || response.status === 403) {
+    const refreshData = await refreshSuperadminToken();
+    if (refreshData?.success) {
+      accessToken = refreshData.access;
+      const newHeaders = {
         ...options.headers,
-        Authorization: `Bearer ${refreshResult.access}`
-      } as any;
-      return fetch(url, options);
+        Authorization: `Bearer ${accessToken}`,
+      };
+      response = await fetch(url, { ...options, headers: newHeaders });
     } else {
       localStorage.removeItem("superadmin_token");
-      window.location.href = "/superadmin/login";
-      throw new Error("Failed to refresh token");
+      localStorage.removeItem("superadmin_refresh");
+      window.location.href = "/stalightcampus/admin";
     }
   }
+
   return response;
+};
+
+export const manageCoupons = async (method: 'GET' | 'POST' | 'PATCH' | 'DELETE', data?: any, id?: number): Promise<any> => {
+  let url = `${API_ENDPOINT}/admin/coupons/`;
+  if (id) {
+    url += `${id}/`;
+  }
+  
+  const options: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+  
+  if (data && (method === 'POST' || method === 'PATCH')) {
+    options.body = JSON.stringify(data);
+  }
+  
+  const response = await fetchWithSuperadminTokenRefresh(url, options);
+  return response.json();
 };

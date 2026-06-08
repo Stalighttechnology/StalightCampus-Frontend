@@ -87,29 +87,7 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
       case "student-meals":
         return <StudentMealManagement hostelId={selectedHostelId} />;
       case "issues":
-        if (selectedHostelId) {
-          return <IssueTracking hostelId={selectedHostelId} />;
-        }
-        if (!loading) {
-          return (
-            <div className="flex flex-col items-center justify-center py-28 px-6 border-2 border-dashed border-muted-foreground/20 rounded-2xl bg-muted/5 w-full text-center mt-4 min-h-[480px]">
-              <div className="bg-muted p-5 rounded-full mb-5">
-                <Building2 className="w-12 h-12 text-muted-foreground/70" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground">No Hostels Found</h3>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-3">
-                No hostels are registered in your organization yet. Register a hostel to start tracking issues.
-              </p>
-              <Button 
-                onClick={() => handlePageChange('hostels')}
-                className="mt-8 bg-primary text-white hover:bg-primary/90 h-11 px-8 text-sm font-semibold rounded-lg shadow-sm"
-              >
-                Go to Hostel Management
-              </Button>
-            </div>
-          );
-        }
-        return null;
+        return <IssueTracking hostelId={selectedHostelId} />;
       case "visitor_logs":
         return <HmsVisitorLogs />;
       case "manage-warden-leaves":

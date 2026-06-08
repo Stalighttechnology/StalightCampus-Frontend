@@ -60,6 +60,20 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const { theme } = useTheme();
 
+  const initialUserStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const initialUser = initialUserStr ? JSON.parse(initialUserStr) : null;
+  const [orgLogo, setOrgLogo] = useState(initialUser?.org_logo || "/logo.jpeg");
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const updatedUserStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+      const updatedUser = updatedUserStr ? JSON.parse(updatedUserStr) : null;
+      setOrgLogo(updatedUser?.org_logo || "/logo.jpeg");
+    };
+    window.addEventListener("userProfileUpdated", handleUpdate);
+    return () => window.removeEventListener("userProfileUpdated", handleUpdate);
+  }, []);
+
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
       setIsNotificationsEnabled((typeof Notification !== 'undefined' && Notification.permission === 'granted'));
@@ -245,7 +259,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const orgPlan = user?.org_plan || "basic";
-  const orgLogo = user?.org_logo || "/logo.jpeg";
 
   const menuItems: { [key: string]: { name: string; page: string }[] } = {
     fees_manager: [
@@ -270,6 +283,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       // User Management
       { name: "Enroll Staff", page: "enroll-user" },
       { name: "Bulk Upload Faculty", page: "bulk-upload" },
+      { name: "Billing & Plans", page: "billing" },
 
       // Academic Structure
       { name: "Branches", page: "branches" },
@@ -476,6 +490,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     dean: [
       { name: "Dashboard", page: "dashboard" },
       { name: "Enroll Staff", page: "enroll-user" },
+      { name: "Billing & Plans", page: "billing" },
       { name: "Today's Attendance", page: "attendance" },
       { name: "Attendance Filters", page: "attendance-filters" },
       { name: "Scan for Student Info", page: "scan-student-info" },

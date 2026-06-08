@@ -8,6 +8,19 @@
 export function deanTransform(step: any, isMobile: boolean): any[] | null {
   const target = step.target;
 
+  if (target === '#sidebar-enroll-user') {
+    return [
+      {
+        ...step,
+        target: '#enroll-user-header',
+        title: 'Enroll Staff',
+        content:
+          'Fill out this form to enroll new HODs, faculty members, Deans, COE, or Fees Managers.',
+        placement: isMobile ? step.placement : 'bottom',
+      },
+    ];
+  }
+
   if (target === '#sidebar-attendance') {
     return [
       {

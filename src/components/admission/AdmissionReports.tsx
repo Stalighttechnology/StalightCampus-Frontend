@@ -6,6 +6,7 @@ import { API_ENDPOINT } from '../../utils/config';
 import { fetchWithTokenRefresh } from '../../utils/authService';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function AdmissionReports() {
   const [analytics, setAnalytics] = useState<any>(null);
@@ -32,7 +33,45 @@ export default function AdmissionReports() {
   };
 
   if (loading || !analytics) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="border-border">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <div className="h-3 w-24 bg-muted rounded" />
+                    <div className="h-8 w-16 bg-muted rounded" />
+                  </div>
+                  <div className="w-10 h-10 bg-muted rounded-xl" />
+                </div>
+                <div className="h-3 w-40 bg-muted rounded" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card className="border-border">
+          <CardHeader className="border-b pb-4">
+            <div className="h-6 w-56 bg-muted rounded" />
+            <div className="h-3.5 w-80 bg-muted rounded mt-2" />
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="space-y-2">
+                  <div className="h-3.5 w-20 bg-muted rounded" />
+                  <div className="h-10 w-full bg-muted rounded" />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-start gap-4">
+              <div className="h-10 w-32 bg-muted rounded" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const conversionRate = analytics.total_enquiries > 0 
@@ -74,92 +113,104 @@ export default function AdmissionReports() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Admission Reports & Analytics</h1>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-primary/5 border-primary/20">
+    <div id="admission-reports-container" className="space-y-6">
+      <div id="admission-reports-cards" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-primary/5 border-primary/20 shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Enquiries</p>
-                <h3 className="text-4xl font-bold text-foreground">{analytics.total_enquiries}</h3>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Total Enquiries</p>
+                <h3 className="text-3xl font-bold text-foreground">{analytics.total_enquiries}</h3>
               </div>
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Users className="w-6 h-6 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                <Users className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium mt-4 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground mt-4 font-medium">
               Total leads captured in pipeline
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-primary/5 border-primary/20 shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Applications</p>
-                <h3 className="text-4xl font-bold text-foreground">{analytics.total_applications}</h3>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Applications</p>
+                <h3 className="text-3xl font-bold text-foreground">{analytics.total_applications}</h3>
               </div>
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <FileTextIcon className="w-6 h-6 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                <FileTextIcon className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium mt-4 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground mt-4 font-medium">
               Total submitted applications
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-primary/5 border-primary/20 shadow-sm">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Conversion Rate</p>
-                <h3 className="text-4xl font-bold text-foreground">{conversionRate}%</h3>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Conversion Rate</p>
+                <h3 className="text-3xl font-bold text-foreground">{conversionRate}%</h3>
               </div>
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <PieChartIcon className="w-6 h-6 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                <PieChartIcon className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium mt-4">
-              Enquiry to Application
+            <p className="text-xs text-muted-foreground mt-4 font-medium">
+              Enquiry to Application conversion
             </p>
           </CardContent>
         </Card>
       </div>
       
       <Card>
-        <CardHeader>
-          <CardTitle>Generate Custom Reports</CardTitle>
+        <CardHeader id="admission-reports-header" className="border-b pb-4">
+          <CardTitle className="text-lg font-semibold">Admission Reports & Analytics</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">Generate custom csv reports and view metrics visualization.</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-8">
             <div className="space-y-2">
               <label className="text-sm font-medium">Report Type</label>
-              <select value={reportType} onChange={e => setReportType(e.target.value)} className="w-full p-2 border border-input rounded bg-background">
-                <option value="course">Course Preference Report</option>
-                <option value="status">Status Breakdown Report</option>
-              </select>
+              <Select value={reportType} onValueChange={val => setReportType(val)}>
+                <SelectTrigger className="w-full bg-background border-input text-sm">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="course">Course Preference Report</SelectItem>
+                  <SelectItem value="status">Status Breakdown Report</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Date Range</label>
-              <select className="w-full p-2 border border-input rounded bg-background">
-                <option>Last 30 Days</option>
-                <option>This Quarter</option>
-                <option>Year to Date</option>
-                <option>All Time</option>
-              </select>
+              <Select defaultValue="30days">
+                <SelectTrigger className="w-full bg-background border-input text-sm">
+                  <SelectValue placeholder="Select date range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30days">Last 30 Days</SelectItem>
+                  <SelectItem value="quarter">This Quarter</SelectItem>
+                  <SelectItem value="ytd">Year to Date</SelectItem>
+                  <SelectItem value="alltime">All Time</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Format</label>
-              <select value={reportFormat} onChange={e => setReportFormat(e.target.value)} className="w-full p-2 border border-input rounded bg-background">
-                <option value="csv">CSV Data</option>
-                <option value="xlsx">Excel Spreadsheet (XLSX)</option>
-              </select>
+              <Select value={reportFormat} onValueChange={val => setReportFormat(val)}>
+                <SelectTrigger className="w-full bg-background border-input text-sm">
+                  <SelectValue placeholder="Select format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="csv">CSV Data</SelectItem>
+                  <SelectItem value="xlsx">Excel Spreadsheet (XLSX)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button className="w-full" onClick={handleGenerateReport}>
               <Download className="w-4 h-4 mr-2" /> Generate Report

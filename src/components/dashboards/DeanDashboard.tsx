@@ -19,6 +19,7 @@ import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
+import BillingManagement from "../org_admin/BillingManagement";
 
 interface DeanUser {
   username: string;
@@ -46,6 +47,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'attendance-records': 'attendance-records',
     'admin-leaves': 'admin-leaves',
     'enroll-user': 'enroll-user',
+    'billing': 'billing',
   };
   return pathMap[lastPart] || 'dashboard';
 };
@@ -104,6 +106,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <ManageAdminLeavesDean />;
       case 'enroll-user':
         return <div><EnrollUser setError={setError} toast={toast} /></div>;
+      case 'billing':
+        return <BillingManagement />;
       default:
         return <div>Welcome, Dean.</div>;
     }

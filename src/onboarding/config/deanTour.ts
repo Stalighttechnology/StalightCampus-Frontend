@@ -46,6 +46,15 @@ export const deanTour: Step[] = [
     route: '/dean/dashboard',
   },
   {
+    target: '#sidebar-enroll-user',
+    title: 'Enroll Staff',
+    content:
+      'Onboard and enroll new institutional roles such as HODs, faculty members, Deans, COE, or Fees Managers.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/dean/enroll-user',
+  },
+  {
     target: '#sidebar-attendance',
     title: 'Today\'s Attendance',
     content:

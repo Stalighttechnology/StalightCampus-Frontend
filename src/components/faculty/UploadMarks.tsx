@@ -143,66 +143,7 @@ const UploadMarks = () => {
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [isTestTypeOpen, setIsTestTypeOpen] = useState(false);
 
-  const calculateTotal = (marks: Record<string, string>) => {
-    // Group marks by main question number and SUM subpart marks per main question
-    const mainMarks: Record<string, number> = {};
-    Object.keys(marks).forEach((key) => {
-      const mainQ = key.charAt(0);
-      const mark = parseFloat(marks[key]) || 0;
-      mainMarks[mainQ] = (mainMarks[mainQ] || 0) + mark;
-    });
-
-    // Attended main questions
-    const attended = Object.keys(mainMarks).filter((q) => mainMarks[q] > 0);
-
-    // If no questions attempted, return 0
-    if (attended.length === 0) return '0';
-
-    // If only one question attempted, return its summed marks
-    if (attended.length === 1) {
-      return mainMarks[attended[0]].toString();
-    }
-
-    // If two questions attempted:
-    // - if the pair is an allowed combo (1+3,1+4,2+3,2+4) return sum
-    // - otherwise (e.g., 1 and 2 only) return the maximum of the two main marks
-    if (attended.length === 2) {
-      const a = attended[0];
-      const b = attended[1];
-      const pairAllowed =
-        a === '1' && (b === '3' || b === '4') ||
-        a === '2' && (b === '3' || b === '4') ||
-        b === '1' && (a === '3' || a === '4') ||
-        b === '2' && (a === '3' || a === '4');
-
-      if (pairAllowed) {
-        return (mainMarks[a] + mainMarks[b]).toString();
-      }
-      return Math.max(mainMarks[a], mainMarks[b]).toString();
-    }
-
-    // For three or more questions, use combination logic to find best valid combination
-    // Possible combos: 1+3, 1+4, 2+3, 2+4
-    const combos: number[] = [];
-    const has1 = attended.includes('1');
-    const has2 = attended.includes('2');
-    const has3 = attended.includes('3');
-    const has4 = attended.includes('4');
-
-    if (has1 && has3) combos.push(mainMarks['1'] + mainMarks['3']);
-    if (has1 && has4) combos.push(mainMarks['1'] + mainMarks['4']);
-    if (has2 && has3) combos.push(mainMarks['2'] + mainMarks['3']);
-    if (has2 && has4) combos.push(mainMarks['2'] + mainMarks['4']);
-
-    if (combos.length > 0) {
-      // If student attempted 1,2,3 then combos include 1+3 and 2+3; pick max
-      return Math.max(...combos).toString();
-    }
-
-    // If no valid combos but multiple questions attempted, sum all attempted main question marks
-    const total = attended.reduce((sum, q) => sum + mainMarks[q], 0);
-    return total.toString();
-  };
+  // Auto calculation logic has been removed. Total is manually entered by the teacher.
 
   const fetchStudentsPage = async (page: number) => {
     if (!selected.subject_id || !selected.testType) return;
@@ -229,8 +170,8 @@ const UploadMarks = () => {
           const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${s.id}`;
           const localDataStr = localStorage.getItem(localKey);
           let loadedMarks = initialMarks[s.id?.toString()] || {};
-          let totalValue = existingTotals[s.id] != null ? String(existingTotals[s.id]) : String(totalMarks);
-          let isEdited = existingTotals[s.id] != null ? String(existingTotals[s.id]) !== String(calculateTotal(loadedMarks) || '') : false;
+          let totalValue = existingTotals[s.id] != null ? String(existingTotals[s.id]) : "";
+          let isEdited = existingTotals[s.id] != null;
 
           if (localDataStr) {
             try {
@@ -809,13 +750,12 @@ const UploadMarks = () => {
         const marksDetail = Object.fromEntries(
           Object.entries(updatedStudentMarks[studentIdStr] || {}).map(([key, value]) => [key, parseFloat(value) || 0])
         );
-        // If instructor manually edited total for this student, prefer that value
-        const autoTotal = parseFloat(calculateTotal(updatedStudentMarks[studentIdStr] || {})) || 0;
-        const manualTotal = s.totalEdited ? parseFloat(s.total as any) || autoTotal : null;
+        // Total is now entirely manually entered by the teacher.
+        const manualTotal = parseFloat(s.total as any) || 0;
         return {
           student_id: s.id,
           marks_detail: marksDetail,
-          total_obtained: manualTotal !== null ? manualTotal : autoTotal
+          total_obtained: manualTotal
         };
       })
     };
@@ -1298,8 +1238,7 @@ const UploadMarks = () => {
                                   {/* Final columns */}
                                   <td className="px-4 py-2 text-center">
                                     {(() => {
-                                      const autoTotal = calculateTotal(studentMarks[student.id] || {});
-                                      const displayTotal = student.totalEdited ? student.total ?? '' : autoTotal || (student.total ?? '');
+                                      const displayTotal = student.total ?? '';
 
                                       // Check if current page state matches localStorage
                                       const isSaved = (() => {
@@ -1338,8 +1277,8 @@ const UploadMarks = () => {
                                               const v = e.target.value;
                                               if (!/^\d*$/.test(v)) return;
 
-                                              // Cap total to the question paper's total max marks
-                                              if (v !== "" && parseInt(v) > totalMarks) return;
+                                              // Cap total to 100
+                                              if (v !== "" && parseInt(v) > 100) return;
 
                                               const studentQuestions = studentMarks[student.id] || {};
                                               const hasAnyQuestionMark = Object.values(studentQuestions).some(val => val !== undefined && val !== "");

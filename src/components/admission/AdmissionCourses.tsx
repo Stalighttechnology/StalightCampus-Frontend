@@ -90,47 +90,75 @@ const AdmissionCourses: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="p-8 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <Card className="border-border">
+          <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
+            <div className="space-y-2">
+              <div className="h-6 w-36 bg-muted rounded" />
+              <div className="h-3.5 w-72 bg-muted rounded" />
+            </div>
+            <div className="h-9 w-28 bg-muted rounded" />
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <th key={i} className="px-6 py-4">
+                        <div className="h-4 w-20 bg-muted rounded" />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {[1, 2, 3, 4, 5].map((row) => (
+                    <tr key={row}>
+                      {[1, 2, 3, 4, 5].map((col) => (
+                        <td key={col} className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-24" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Manage Courses</h1>
-        <Button onClick={() => {
-          setIsEditing(true);
-          setCurrentCourse({ name: '', code: '', duration_years: 4, description: '' });
-        }}>
-          <Plus size={16} className="mr-2" /> Add Course
-        </Button>
-      </div>
-
+    <div id="admission-courses-container" className="space-y-6 w-full max-w-full overflow-hidden">
       {isEditing && (
-        <Card className="mb-8 border-primary/20">
+        <Card className="border-primary/20 w-full overflow-hidden">
           <CardHeader>
-            <CardTitle>{currentCourse.id ? 'Edit Course' : 'Add New Course'}</CardTitle>
+            <CardTitle className="text-lg">{currentCourse.id ? 'Edit Course' : 'Add New Course'}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Course Name</label>
-                  <input type="text" required value={currentCourse.name} onChange={e => setCurrentCourse({...currentCourse, name: e.target.value})} className="w-full p-2 border border-input rounded bg-background" placeholder="e.g. Bachelor of Technology" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Course Name</label>
+                  <input type="text" required value={currentCourse.name} onChange={e => setCurrentCourse({...currentCourse, name: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" placeholder="e.g. Bachelor of Technology" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Course Code</label>
-                  <input type="text" required value={currentCourse.code} onChange={e => setCurrentCourse({...currentCourse, code: e.target.value})} className="w-full p-2 border border-input rounded bg-background" placeholder="e.g. BTECH-CS" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Course Code</label>
+                  <input type="text" required value={currentCourse.code} onChange={e => setCurrentCourse({...currentCourse, code: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm font-mono" placeholder="e.g. BTECH-CS" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Duration (Years)</label>
-                  <input type="number" required min={1} max={6} value={currentCourse.duration_years} onChange={e => setCurrentCourse({...currentCourse, duration_years: parseInt(e.target.value)})} className="w-full p-2 border border-input rounded bg-background" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Duration (Years)</label>
+                  <input type="number" required min={1} max={6} value={currentCourse.duration_years} onChange={e => setCurrentCourse({...currentCourse, duration_years: parseInt(e.target.value)})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea required value={currentCourse.description} onChange={e => setCurrentCourse({...currentCourse, description: e.target.value})} className="w-full p-2 border border-input rounded bg-background" rows={3} placeholder="Briefly describe the course..."></textarea>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Description</label>
+                <textarea required value={currentCourse.description} onChange={e => setCurrentCourse({...currentCourse, description: e.target.value})} className="w-full p-2.5 border border-input rounded bg-background focus:ring-1 focus:ring-primary focus:border-transparent outline-none text-sm" rows={3} placeholder="Briefly describe the course..."></textarea>
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
                 <Button type="submit">Save Course</Button>
               </div>
@@ -139,22 +167,34 @@ const AdmissionCourses: React.FC = () => {
         </Card>
       )}
 
-      <Card>
+      <Card className="overflow-hidden w-full border-border">
+        <CardHeader id="admission-courses-header" className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+          <div>
+            <CardTitle className="text-lg font-semibold">Manage Courses</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Create and modify courses offered by your institution.</p>
+          </div>
+          <Button onClick={() => {
+            setIsEditing(true);
+            setCurrentCourse({ name: '', code: '', duration_years: 4, description: '' });
+          }} size="sm" className="shadow-sm">
+            <Plus size={16} className="mr-2" /> Add Course
+          </Button>
+        </CardHeader>
         <CardContent className="p-0">
           {courses.length === 0 && !isEditing ? (
-            <div className="text-center py-12 text-muted-foreground border-b border-border">
+            <div className="text-center py-12 text-muted-foreground">
               <p>No courses found. Add a course to display it on the admission landing page.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
+              <table className="w-full min-w-[800px] text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b border-border">
                   <tr>
-                    <th className="px-6 py-4 font-semibold">Course Code</th>
-                    <th className="px-6 py-4 font-semibold">Course Name</th>
-                    <th className="px-6 py-4 font-semibold">Duration</th>
-                    <th className="px-6 py-4 font-semibold">Description</th>
-                    <th className="px-6 py-4 text-right font-semibold">Actions</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Course Code</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Course Name</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Duration</th>
+                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Description</th>
+                    <th className="px-6 py-4 text-right font-semibold whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -163,13 +203,13 @@ const AdmissionCourses: React.FC = () => {
                       <td className="px-6 py-4 font-mono font-medium text-foreground whitespace-nowrap">
                         {course.code}
                       </td>
-                      <td className="px-6 py-4 font-medium text-foreground">
+                      <td className="px-6 py-4 font-medium text-foreground whitespace-nowrap">
                         {course.name}
                       </td>
                       <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
                         {course.duration_years} Year{course.duration_years > 1 ? 's' : ''}
                       </td>
-                      <td className="px-6 py-4 text-muted-foreground max-w-xs truncate">
+                      <td className="px-6 py-4 text-muted-foreground max-w-xs truncate whitespace-nowrap">
                         {course.description}
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">

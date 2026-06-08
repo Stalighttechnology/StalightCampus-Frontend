@@ -14,6 +14,7 @@ import AdmissionFees from "../admission/AdmissionFees";
 import AdmissionCommunication from "../admission/AdmissionCommunication";
 import AdmissionReports from "../admission/AdmissionReports";
 import Profile from "../common/Profile";
+import { TutorialController } from "../../onboarding/components/TutorialController";
 
 interface DashboardProps {
   user: any;
@@ -25,7 +26,7 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
   const location = useLocation();
 
   const getActivePageFromPath = (pathname: string) => {
-    const path = pathname.replace('/admission-manager', '').replace('/', '');
+    const path = pathname.replace('/admission-manager', '').split('/').filter(Boolean)[0];
     return path || 'admission-dashboard';
   };
 
@@ -71,23 +72,26 @@ const AdmissionManagerDashboard = ({ user }: DashboardProps) => {
   };
 
   return (
-    <DashboardLayout
-      role="admission_manager"
-      user={user}
-      activePage={activePage}
-      onPageChange={handlePageChange}
-      pageTitle="Admission Manager Dashboard"
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+    <>
+      <DashboardLayout
+        role="admission_manager"
+        user={user}
+        activePage={activePage}
+        onPageChange={handlePageChange}
+        pageTitle="Admission Manager Dashboard"
       >
-        <div key={activePage}>
-          {renderContent()}
-        </div>
-      </motion.div>
-    </DashboardLayout>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div key={activePage}>
+            {renderContent()}
+          </div>
+        </motion.div>
+      </DashboardLayout>
+      <TutorialController />
+    </>
   );
 };
 

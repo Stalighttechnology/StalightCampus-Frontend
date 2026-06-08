@@ -84,6 +84,7 @@ export interface BillingAndSupportResponse {
     name: string;
     created_at: string;
     plan_type: string;
+    subscription_started_at: string | null;
     subscription_expires_at: string | null;
     is_active: boolean;
     accreditation_id: string | null;
@@ -1123,3 +1124,4 @@ export const getDepartmentAdminApplyLeaveBootstrap = async (queryString: string)
     return { success: false, message: "Network error" };
   }
 };
+

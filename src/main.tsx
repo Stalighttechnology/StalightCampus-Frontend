@@ -14,6 +14,11 @@ if (Capacitor.isNativePlatform()) {
   }).catch(console.error);
 }
 
+// Disable text selection in production to prevent users from selecting content globally
+if (import.meta.env.PROD) {
+  document.body.classList.add('prod-env');
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

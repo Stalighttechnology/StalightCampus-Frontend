@@ -44,6 +44,7 @@ const PrivacyPolicy = lazy(() => import("./components/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./components/legal/TermsOfService"));
 const Home = lazy(() => import("./components/public/Home"));
 const SyncAccessRestricted = lazy(() => import("./components/common/SyncAccessRestricted"));
+const AccountDeletion = lazy(() => import("./components/legal/AccountDeletion"));
 
 import { WardenProvider } from "./context/WardenContext";
 import { HMSProvider } from "./context/HMSContext";
@@ -199,6 +200,12 @@ const AppContent = () => {
           <Route path="/terms-of-service" element={
             <>
               <TermsOfService />
+              {shouldShowFloatingAssistant() && <FloatingAssistant />}
+            </>
+          } />
+          <Route path="/account-deletion" element={
+            <>
+              <AccountDeletion />
               {shouldShowFloatingAssistant() && <FloatingAssistant />}
             </>
           } />
