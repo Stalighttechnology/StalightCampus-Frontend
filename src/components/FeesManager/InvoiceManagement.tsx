@@ -127,16 +127,24 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   const [semesters, setSemesters] = useState<{id: number;number: number;name: string;}[]>([]);
   const [sections, setSections] = useState<{id: number;name: string;}[]>([]);
 
+  // Loading states for cascading filters
+  const [loadingInitialFilters, setLoadingInitialFilters] = useState(false);
+  const [loadingSemesters, setLoadingSemesters] = useState(false);
+  const [loadingSections, setLoadingSections] = useState(false);
+
   // Initial data fetch
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
+        setLoadingInitialFilters(true);
         const filterJson = await getFeesManagerFilters();
         if (filterJson.success) {
           setFilterData(filterJson.data);
         }
       } catch (err) {
 
+      } finally {
+        setLoadingInitialFilters(false);
       }
     };
     fetchInitialData();
@@ -149,10 +157,12 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
       return;
     }
     const fetchSem = async () => {
+      setLoadingSemesters(true);
       const res = await getFeesManagerSemesters(selectedFilters.branchId);
       if (res.success) {
         setSemesters(res.data || []);
       }
+      setLoadingSemesters(false);
     };
     fetchSem();
   }, [selectedFilters.branchId]);
@@ -164,10 +174,12 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
       return;
     }
     const fetchSec = async () => {
+      setLoadingSections(true);
       const res = await getFeesManagerSections(selectedFilters.branchId, selectedFilters.semesterId);
       if (res.success) {
         setSections(res.data || []);
       }
+      setLoadingSections(false);
     };
     fetchSec();
   }, [selectedFilters.semesterId, selectedFilters.branchId]);
@@ -438,7 +450,17 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   <SelectValue placeholder="Select Batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterData.batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  {loadingInitialFilters ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading batches...
+                    </SelectItem>
+                  ) : filterData.batches.length > 0 ? (
+                    filterData.batches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No batches found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -459,7 +481,17 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   <SelectValue placeholder="Select Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterData.branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
+                  {loadingInitialFilters ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading branches...
+                    </SelectItem>
+                  ) : filterData.branches.length > 0 ? (
+                    filterData.branches.map((b) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No branches found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -480,7 +512,17 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   <SelectValue placeholder="Select Semester" />
                 </SelectTrigger>
                 <SelectContent>
-                  {semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                  {loadingSemesters ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading semesters...
+                    </SelectItem>
+                  ) : semesters.length > 0 ? (
+                    semesters.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No semesters found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -501,7 +543,17 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   <SelectValue placeholder="Select Section" />
                 </SelectTrigger>
                 <SelectContent className="h-60">
-                  {sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
+                  {loadingSections ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading sections...
+                    </SelectItem>
+                  ) : sections.length > 0 ? (
+                    sections.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No sections found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -522,7 +574,17 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   <SelectValue placeholder="Select Admission Mode" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterData.admission_modes.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  {loadingInitialFilters ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      Loading admission modes...
+                    </SelectItem>
+                  ) : filterData.admission_modes.length > 0 ? (
+                    filterData.admission_modes.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)
+                  ) : (
+                    <SelectItem value="none" disabled className="text-muted-foreground text-xs text-center">
+                      No admission modes found
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

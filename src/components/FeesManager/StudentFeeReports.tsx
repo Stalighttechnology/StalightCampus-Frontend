@@ -84,6 +84,11 @@ const StudentFeeReports: React.FC = () => {
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   const [isAdmissionModeOpen, setIsAdmissionModeOpen] = useState(false);
 
+  // State for dynamic loading of filters
+  const [loadingInitialFilters, setLoadingInitialFilters] = useState(false);
+  const [loadingSemesters, setLoadingSemesters] = useState(false);
+  const [loadingSections, setLoadingSections] = useState(false);
+
   const [bulkReports, setBulkReports] = useState<StudentFeeSummary[]>([]);
   const [cohortStats, setCohortStats] = useState<any>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -110,12 +115,14 @@ const StudentFeeReports: React.FC = () => {
   }, [activeTab, batches.length]);
 
   const loadInitialFilters = async () => {
+    setLoadingInitialFilters(true);
     const response = await getFeesManagerFilters();
     if (response.success) {
       setBatches(response.data.batches || []);
       setBranches(response.data.branches || []);
       setAdmissionModes(response.data.admission_modes || []);
     }
+    setLoadingInitialFilters(false);
   };
 
   // Load semesters when branch changes
@@ -148,17 +155,21 @@ const StudentFeeReports: React.FC = () => {
 
 
   const loadSemesters = async (branchId: string) => {
+    setLoadingSemesters(true);
     const response = await getFeesManagerSemesters(branchId);
     if (response.success) {
       setSemesters(response.data);
     }
+    setLoadingSemesters(false);
   };
 
   const loadSections = async (branchId: string, semesterId: string) => {
+    setLoadingSections(true);
     const response = await getFeesManagerSections(branchId, semesterId);
     if (response.success) {
       setSections(response.data);
     }
+    setLoadingSections(false);
   };
 
   // Automatic data loading when filters are selected
@@ -759,7 +770,11 @@ const StudentFeeReports: React.FC = () => {
                       <SelectValue placeholder="Choose Batch" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {batches.length > 0 ? (
+                      {loadingInitialFilters ? (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          Loading batches...
+                        </SelectItem>
+                      ) : batches.length > 0 ? (
                         batches.map((batch) =>
                           <SelectItem key={batch.id} value={batch.id.toString()} className="rounded-lg">
                             {batch.name}
@@ -790,7 +805,11 @@ const StudentFeeReports: React.FC = () => {
                       <SelectValue placeholder="Choose Branch" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {branches.length > 0 ? (
+                      {loadingInitialFilters ? (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          Loading branches...
+                        </SelectItem>
+                      ) : branches.length > 0 ? (
                         branches.map((branch) =>
                           <SelectItem key={branch.id} value={branch.id.toString()} className="rounded-lg">
                             {branch.name}
@@ -821,7 +840,11 @@ const StudentFeeReports: React.FC = () => {
                       <SelectValue placeholder="Choose Semester" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {semesters.length > 0 ? (
+                      {loadingSemesters ? (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          Loading semesters...
+                        </SelectItem>
+                      ) : semesters.length > 0 ? (
                         semesters.map((semester) =>
                           <SelectItem key={semester.id} value={semester.id.toString()} className="rounded-lg">
                             Semester {semester.number}
@@ -852,7 +875,11 @@ const StudentFeeReports: React.FC = () => {
                       <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {sections.length > 0 ? (
+                      {loadingSections ? (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          Loading sections...
+                        </SelectItem>
+                      ) : sections.length > 0 ? (
                         sections.map((section) =>
                           <SelectItem key={section.id} value={section.id.toString()} className="rounded-lg">
                             {section.name}
@@ -881,7 +908,11 @@ const StudentFeeReports: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       <SelectItem value="all" className="rounded-lg font-medium text-primary">All Admission Modes</SelectItem>
-                      {admissionModes.length > 0 ? (
+                      {loadingInitialFilters ? (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          Loading admission modes...
+                        </SelectItem>
+                      ) : admissionModes.length > 0 ? (
                         admissionModes.map((mode) =>
                           <SelectItem key={mode} value={mode} className="rounded-lg">
                             {mode}
