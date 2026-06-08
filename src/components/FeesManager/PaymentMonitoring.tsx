@@ -104,7 +104,8 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   const [hasNotified, setHasNotified] = useState(false);
 
   // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [methodFilter, setMethodFilter] = useState('all');
   const [dateRange, setDateRange] = useState('all');
@@ -124,22 +125,21 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   useEffect(() => {
     fetchData();
     setHasNotified(false); // Reset notified state when filters change
-  }, [currentPage, statusFilter, methodFilter, dateRange]);
+  }, [currentPage, statusFilter, methodFilter, dateRange, appliedSearch]);
 
   // Debounced search
   useEffect(() => {
-    // Skip the first render if searchTerm is empty to avoid duplicate calls on mount
     const timer = setTimeout(() => {
-      if (searchTerm) {
-        if (currentPage === 1) {
-          fetchData();
-        } else {
-          setCurrentPage(1);
-        }
-      }
+      setAppliedSearch(searchQuery.trim());
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchQuery]);
+
+  // Clear search query when dropdown filters change
+  useEffect(() => {
+    setSearchQuery("");
+    setAppliedSearch("");
+  }, [statusFilter, methodFilter, dateRange]);
 
   const fetchData = async () => {
     try {
@@ -147,7 +147,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
       const params = {
         page: currentPage.toString(),
-        ...(searchTerm && { search: searchTerm }),
+        ...(appliedSearch && { search: appliedSearch }),
         ...(statusFilter !== 'all' && { status: statusFilter }),
         ...(methodFilter !== 'all' && { mode: methodFilter }),
         ...(dateRange !== 'all' && { date_range: dateRange })
@@ -499,10 +499,17 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by student name, USN, invoice number, or transaction ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-11 bg-background border-border/50 shadow-sm transition-all focus:ring-2 focus:ring-primary/20" />
-                
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-12 h-11 bg-background border-border/50 shadow-sm transition-all focus:ring-2 focus:ring-primary/20" />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
               
               {statusFilter === 'pending' &&

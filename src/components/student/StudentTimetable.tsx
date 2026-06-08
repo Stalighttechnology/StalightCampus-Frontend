@@ -156,7 +156,7 @@ const StudentTimetable = () => {
           timetableData.length > 0 ?
             <div
               ref={tableRef}
-              className={`${styles.timetableContainer} ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
+              className={`${styles.timetableContainer} custom-scrollbar ${theme === 'dark' ? 'bg-card text-card-foreground' : 'bg-white text-gray-900'}`}>
 
               <table className={styles.timetableTable}>
                 <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-50'}>

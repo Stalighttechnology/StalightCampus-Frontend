@@ -30,6 +30,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "../ui/dialog";
+import { Skeleton } from "../ui/skeleton";
 
 const HODSemesterMonitor = () => {
   const { toast } = useToast();
@@ -125,9 +126,6 @@ const HODSemesterMonitor = () => {
         <CardHeader id="hod-semester-monitor-header">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-primary/10 text-primary rounded-lg">
-                <BarChart3 className="w-6 h-6" />
-              </div>
               <div>
                 <CardTitle className="text-2xl font-semibold">Semester Syllabus Overview</CardTitle>
                 <CardDescription>Track weekly teaching completions across all subjects in the department.</CardDescription>
@@ -157,15 +155,29 @@ const HODSemesterMonitor = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {bootstrapLoading ? (
-            <div className="py-20 flex flex-col items-center justify-center space-y-4">
-              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm font-medium animate-pulse">Loading Department Structure...</p>
-            </div>
-          ) : loadingMonitor ? (
-            <div className="py-20 flex flex-col items-center justify-center space-y-4">
-              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm font-medium animate-pulse">Aggregating Semester Syllabus Metrics...</p>
+          {bootstrapLoading || loadingMonitor ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className={`border p-6 space-y-6 ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50/50 border-gray-100'}`}>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start gap-4">
+                      <Skeleton className="h-6 w-2/3" />
+                      <Skeleton className="h-5 w-20 rounded-full shrink-0" />
+                    </div>
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-8" />
+                    </div>
+                    <Skeleton className="h-2 w-full rounded-full" />
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <Skeleton className="h-9 w-44" />
+                  </div>
+                </Card>
+              ))}
             </div>
           ) : monitorData && monitorData.subjects && monitorData.subjects.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -185,14 +197,14 @@ const HODSemesterMonitor = () => {
                   >
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-semibold text-lg">{subj.subject_name}</h4>
-                            <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-secondary text-secondary-foreground uppercase">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex justify-between items-start gap-2">
+                            <h4 className="font-semibold text-lg leading-tight">{subj.subject_name}</h4>
+                            <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-secondary text-secondary-foreground uppercase whitespace-nowrap shrink-0">
                               {subj.subject_code}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground capitalize mt-0.5">
+                          <p className="text-xs text-muted-foreground capitalize mt-1.5">
                             Type: {subj.subject_type.replace('_', ' ')}
                           </p>
                         </div>
@@ -247,7 +259,6 @@ const HODSemesterMonitor = () => {
             <DialogContent className={`max-w-2xl w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-primary" />
                   Section-wise Syllabus Coverage
                 </DialogTitle>
                 <DialogDescription className="text-sm opacity-75">

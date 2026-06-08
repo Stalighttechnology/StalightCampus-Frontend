@@ -174,10 +174,10 @@ const SyllabusTracker = () => {
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="faculty-syllabus-tracker-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="faculty-syllabus-tracker-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <h1 className={`text-2xl sm:text-2xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             Syllabus Tracing & Progress
           </h1>
-          <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          <p className={`text-md sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
             Track weekly teaching progress based on department master templates.
           </p>
         </CardHeader>
@@ -223,9 +223,30 @@ const SyllabusTracker = () => {
 
           {/* Loader or Content */}
           {loadingSyllabus ? (
-            <div className="py-20 flex flex-col items-center justify-center space-y-4">
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm font-medium animate-pulse">Loading Syllabus Data...</p>
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className={`p-4 rounded-xl border flex flex-col md:flex-row gap-4 justify-between items-start md:items-center ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50/50 border-gray-100'}`}>
+                  <div className="flex-1 space-y-4 w-full">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-3/4" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-11 pt-2">
+                      <div className="space-y-1">
+                        <Skeleton className="h-3 w-32" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                      <div className="space-y-1">
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : syllabusData ? (
             <div className="space-y-6">
@@ -330,30 +351,32 @@ const SyllabusTracker = () => {
                         </div>
 
                         {/* Completed Toggle & Save Action */}
-                        <div className="flex md:flex-col items-end gap-3 w-full md:w-auto pl-11 md:pl-0 border-t md:border-t-0 pt-3 md:pt-0 justify-between">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id={`complete-week-${w.week}`}
-                              className="w-5 h-5 rounded text-primary focus:ring-primary border-gray-300 dark:border-gray-700"
-                              checked={edit.is_completed}
-                              onChange={(e) => {
-                                setProgressEdits({
-                                  ...progressEdits,
-                                  [w.week]: { ...edit, is_completed: e.target.checked }
-                                });
-                              }}
-                            />
-                            <label htmlFor={`complete-week-${w.week}`} className="text-sm font-semibold select-none cursor-pointer">
-                              Marked Completed
-                            </label>
-                          </div>
-                          {w.completed_date && (
-                            <div className="text-xs text-right opacity-70">
-                              <p>Covered: {w.completed_date}</p>
-                              <p className="font-medium">By: {w.faculty_name}</p>
+                        <div className="flex flex-col md:flex-col items-stretch md:items-end gap-4 w-full md:w-auto pl-0 md:pl-0 border-t md:border-t-0 pt-4 md:pt-0">
+                          <div className="flex flex-row items-center justify-between gap-4 w-full">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id={`complete-week-${w.week}`}
+                                className="w-5 h-5 rounded text-primary focus:ring-primary border-gray-300 dark:border-gray-700 cursor-pointer"
+                                checked={edit.is_completed}
+                                onChange={(e) => {
+                                  setProgressEdits({
+                                    ...progressEdits,
+                                    [w.week]: { ...edit, is_completed: e.target.checked }
+                                  });
+                                }}
+                              />
+                              <label htmlFor={`complete-week-${w.week}`} className="text-sm font-semibold select-none cursor-pointer">
+                                Marked Completed
+                              </label>
                             </div>
-                          )}
+                            {w.completed_date && (
+                              <div className="text-xs text-right opacity-70 leading-tight">
+                                <p>Covered: {w.completed_date}</p>
+                                <p className="font-medium">By: {w.faculty_name}</p>
+                              </div>
+                            )}
+                          </div>
                           <Button
                             size="sm"
                             className="w-full md:w-auto"

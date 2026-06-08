@@ -14,7 +14,6 @@ import {
   FaUsers,
   FaExclamationCircle,
   FaSyncAlt,
-  FaIdBadge,
   FaHotel,
   FaLeaf,
   FaDrumstickBite,
@@ -36,6 +35,7 @@ type Warden = {
   email?: string;
   designation?: string;
   experience?: number;
+  profile_picture?: string;
 };
 
 type Caretaker = {
@@ -169,15 +169,31 @@ const StaffCard: React.FC<{
   theme: string;
 }> = ({ role, person, color, theme }) => {
   const initials = person?.name ? person.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
+  const [imgError, setImgError] = useState(false);
+  const profilePic = (person as any)?.profile_picture;
+
+  useEffect(() => {
+    setImgError(false);
+  }, [profilePic]);
+
   return (
     <div
       className={`rounded-xl border p-3.5 flex flex-col gap-3 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/30 group h-full ${
       theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}
     >
       <div className="flex items-center gap-2.5">
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold text-xs tracking-wider shadow-sm transition-transform duration-300 group-hover:scale-105 ${color}`}>
-          {initials}
-        </div>
+        {!imgError && profilePic ? (
+          <img 
+            src={profilePic} 
+            alt={person?.name} 
+            className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold text-xs tracking-wider shadow-sm transition-transform duration-300 group-hover:scale-105 ${color}`}>
+            {initials}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <p className={`text-[12px] uppercase tracking-widest font-semibold ${theme === 'dark' ? 'text-primary' : 'text-blue-600'}`}>
             {role}
@@ -214,12 +230,6 @@ const StaffCard: React.FC<{
             <a href={`tel:${person.phone}`} className="block hover:opacity-90 transition-opacity">
               <InfoRow icon={<FaPhone size={11} />} label="Contact Number" value={person.phone} theme={theme} />
             </a>
-          )}
-          {(person as Warden).designation && (
-            <InfoRow icon={<FaIdBadge size={11} />} label="Designation" value={(person as Warden).designation} theme={theme} />
-          )}
-          {(person.experience ?? 0) > 0 && (
-            <InfoRow icon={<FaCheckCircle size={11} />} label="Work Experience" value={`${person.experience} year${person.experience !== 1 ? 's' : ''}`} theme={theme} />
           )}
         </div>
       ) : (

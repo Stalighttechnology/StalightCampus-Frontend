@@ -13,6 +13,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "../ui/dialog";
+import { Skeleton } from "../ui/skeleton";
 
 const StudentSyllabus = () => {
   const { theme } = useTheme();
@@ -60,18 +61,40 @@ const StudentSyllabus = () => {
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="student-syllabus-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="student-syllabus-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <h1 className={`text-2xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
             My Syllabus Tracker
           </h1>
-          <p className={`text-xs sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          <p className={`text-md sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
             Track the week-by-week syllabus completion status of all your enrolled courses.
           </p>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
           {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center space-y-4">
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm font-medium animate-pulse">Loading Syllabus Dashboard...</p>
+            <div className="space-y-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={`border rounded-xl p-5 space-y-4 ${theme === 'dark' ? 'border-border bg-muted/10' : 'border-gray-200 bg-white'}`}>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Skeleton className="h-6 w-1/3" />
+                        <Skeleton className="h-5 w-20 rounded-full" />
+                        <Skeleton className="h-5 w-16" />
+                      </div>
+                      <Skeleton className="h-4 w-60" />
+                    </div>
+                    <div className="flex items-center gap-4 min-w-[200px] md:min-w-[300px]">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex justify-between">
+                          <Skeleton className="h-3 w-12" />
+                          <Skeleton className="h-3 w-8" />
+                        </div>
+                        <Skeleton className="h-2 w-full rounded-full" />
+                      </div>
+                      <Skeleton className="h-9 w-28" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : subjects.length === 0 ? (
             <div className="py-16 text-center space-y-4 border-2 border-dashed rounded-xl dark:border-border">

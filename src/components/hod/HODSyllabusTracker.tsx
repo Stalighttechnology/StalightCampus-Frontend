@@ -40,6 +40,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "../ui/dialog";
+import { Skeleton } from "../ui/skeleton";
 
 const HODSyllabusTracker = () => {
   const { toast } = useToast();
@@ -171,12 +172,9 @@ const HODSyllabusTracker = () => {
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <CardHeader id="hod-syllabus-tracker-header">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 text-primary rounded-lg">
-              <BookOpen className="w-6 h-6" />
-            </div>
             <div>
-              <CardTitle className="text-2xl font-semibold">Department Syllabus Management</CardTitle>
-              <CardDescription>Configure department-level week-wise syllabus templates.</CardDescription>
+              <CardTitle className="text-2xl font-semibold mb-2">Department Syllabus Management</CardTitle>
+              <CardDescription >Configure department-level week-wise syllabus templates.</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -209,15 +207,21 @@ const HODSyllabusTracker = () => {
           </div>
 
           {/* Loader or Content */}
-          {bootstrapLoading ? (
-            <div className="py-20 flex flex-col items-center justify-center space-y-4">
-              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm font-medium animate-pulse">Loading Department Structure...</p>
-            </div>
-          ) : loadingSyllabus ? (
-            <div className="py-20 flex flex-col items-center justify-center space-y-4">
-              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm font-medium animate-pulse">Loading Syllabus Layout...</p>
+          {bootstrapLoading || loadingSyllabus ? (
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className={`p-4 rounded-xl border flex flex-col md:flex-row gap-4 justify-between items-start md:items-center ${theme === 'dark' ? 'bg-muted/10 border-border' : 'bg-gray-50/50 border-gray-100'}`}>
+                  <div className="flex-1 space-y-2 w-full">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-3/4" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : syllabusData ? (
             <div className="space-y-6">
@@ -277,7 +281,6 @@ const HODSyllabusTracker = () => {
                 <DialogContent className={`max-w-3xl w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
                   <DialogHeader className="shrink-0 pb-2 border-b border-border/40">
                     <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                      <Edit3 className="w-5 h-5 text-primary" />
                       Edit Syllabus Plan Template
                     </DialogTitle>
                     <DialogDescription className="text-sm opacity-75">
