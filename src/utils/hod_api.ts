@@ -2383,6 +2383,22 @@ export const promoteStudentsToNextSemester = async (data: PromoteStudentsRequest
   }
 };
 
+export const graduateStudents = async (data: { student_ids: string[] }): Promise<any> => {
+  try {
+    if (!data.student_ids?.length) {
+      throw new Error("Student IDs are required");
+    }
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/hod/graduate-students/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    return await response.json();
+  } catch (error: unknown) {
+    return handleApiError(error, (error as any).response);
+  }
+};
+
 export const promoteSelectedStudents = async (data: PromoteSelectedStudentsRequest): Promise<PromoteSelectedStudentsResponse> => {
   try {
     if (!data.branch_id || !data.student_ids?.length || !data.to_semester_id) {
