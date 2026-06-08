@@ -61,7 +61,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   };
   const normalize = (str: string) => str.toLowerCase().trim();
   const allLabels = Array.isArray(stats?.branch_distribution) ?
-    stats.branch_distribution.map((b: any) => b.name || "N/A") :
+    stats.branch_distribution.map((b: any) => b.code || b.name || "N/A") :
     [];
 
   useEffect(() => {
@@ -100,9 +100,12 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
     stats.branch_distribution.
       filter(
         (branch: any) =>
-          branch?.name &&
+          (branch?.name &&
           typeof branch.name === "string" &&
-          normalize(branch.name).includes(normalize(search))
+          normalize(branch.name).includes(normalize(search))) ||
+          (branch?.code &&
+          typeof branch.code === "string" &&
+          normalize(branch.code).includes(normalize(search)))
       ).
       sort((a: any, b: any) => {
         const aName = normalize(a.name);
@@ -165,14 +168,14 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
     }
   };
 
-  const filteredLabels = filteredBranches.map((b: any) => b.name);
+  const filteredLabels = filteredBranches.map((b: any) => b.code || b.name);
 
   const studentMap = Object.fromEntries(
-    filteredBranches.map((b: any) => [b.name, b.students || 0])
+    filteredBranches.map((b: any) => [b.code || b.name, b.students || 0])
   );
 
   const facultyMap = Object.fromEntries(
-    filteredBranches.map((b: any) => [b.name, b.faculty || 0])
+    filteredBranches.map((b: any) => [b.code || b.name, b.faculty || 0])
   );
 
   const barData = {
@@ -360,7 +363,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
             <div className="h-80 flex items-center justify-center">
               {filteredBranches.length > 0 ? (() => {
-                const filteredLabels = filteredBranches.map((b: any) => b.name);
+                const filteredLabels = filteredBranches.map((b: any) => b.code || b.name);
 
                 const barData = {
                   labels: filteredLabels,
@@ -503,7 +506,7 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
                       key={index}
                       className={`border-b ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'} transition`}>
 
-                      <td className="py-3 px-4">{branch.name || "N/A"}</td>
+                      <td className="py-3 px-4">{branch.code || branch.name || "N/A"}</td>
                       <td className="py-3 px-4">{branch.students || 0}</td>
                       <td className="py-3 px-4">{branch.faculty || 0}</td>
                     </tr>

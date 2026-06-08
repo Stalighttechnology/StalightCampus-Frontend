@@ -222,26 +222,25 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
     }
 
     const subjects = dashboardData.performance_overview.subject_performance;
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
     return {
-      labels: subjects.map((subject) => subject.subject),
+      labels: subjects.map((subject) => isMobile ? ((subject as any).subject_code || subject.subject) : subject.subject),
       datasets: [
         {
           label: 'Attendance %',
           data: subjects.map((subject) => subject.attendance_percentage),
-          backgroundColor: theme === 'dark' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(37, 99, 235, 0.8)',
-          borderColor: theme === 'dark' ? 'rgba(59, 130, 246, 1)' : 'rgba(37, 99, 235, 1)',
-          borderWidth: 0,
-          borderRadius: 4,
+          backgroundColor: "rgba(59, 130, 246, 0.6)",
+          borderColor: "rgba(59, 130, 246, 1)",
+          borderWidth: 1,
           yAxisID: 'y'
         },
         {
           label: 'Average Marks',
           data: subjects.map((subject) => subject.average_mark),
-          backgroundColor: theme === 'dark' ? 'rgba(16, 185, 129, 0.8)' : 'rgba(5, 150, 105, 0.8)',
-          borderColor: theme === 'dark' ? 'rgba(16, 185, 129, 1)' : 'rgba(5, 150, 105, 1)',
-          borderWidth: 0,
-          borderRadius: 4,
+          backgroundColor: "rgba(168, 85, 247, 0.6)",
+          borderColor: "rgba(168, 85, 247, 1)",
+          borderWidth: 1,
           yAxisID: 'y1'
         }]
 
@@ -251,6 +250,10 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
   const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 800,
+      easing: "easeInOutQuart"
+    },
     interaction: {
       mode: 'index' as const,
       intersect: false
@@ -259,28 +262,16 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
       legend: {
         position: 'top' as const,
         labels: {
-          usePointStyle: true,
-          pointStyle: 'circle',
-          padding: 20,
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          color: theme === 'dark' ? "#fff" : "#000",
           font: { size: 11 }
         }
       },
-      tooltip: {
-        backgroundColor: theme === 'dark' ? "rgba(31, 31, 33, 0.95)" : "rgba(255, 255, 255, 0.95)",
-        titleColor: theme === 'dark' ? "#f3f4f6" : "#111827",
-        bodyColor: theme === 'dark' ? "#d1d5db" : "#4b5563",
-        borderColor: theme === 'dark' ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-        borderWidth: 1,
-        padding: 12,
-        boxPadding: 6,
-        usePointStyle: true
-      }
+      tooltip: { enabled: true }
     },
     scales: {
       x: {
         ticks: {
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          color: theme === 'dark' ? "#fff" : "#000",
           maxRotation: 45,
           font: { size: 10 }
         },
@@ -293,11 +284,11 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
         title: {
           display: true,
           text: 'Attendance (%)',
-          color: theme === 'dark' ? '#9ca3af' : '#6b7280',
+          color: theme === 'dark' ? '#fff' : '#000',
           font: { size: 10 }
         },
         ticks: {
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          color: theme === 'dark' ? "#fff" : "#000",
           font: { size: 10 }
         },
         grid: { color: theme === 'dark' ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)" }
@@ -309,12 +300,12 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
         title: {
           display: true,
           text: 'Avg Marks',
-          color: theme === 'dark' ? '#9ca3af' : '#6b7280',
+          color: theme === 'dark' ? '#fff' : '#000',
           font: { size: 10 }
         },
         grid: { drawOnChartArea: false },
         ticks: {
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          color: theme === 'dark' ? "#fff" : "#000",
           font: { size: 10 }
         }
       }

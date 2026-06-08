@@ -104,9 +104,9 @@ const GenerateStatistics: React.FC = () => {
   };
 
   // Prepare chart data
-  const attendanceData = proctorStudents.map(s => ({ name: s.name, attendance: getNumericAttendance(s.attendance) }));
+  const attendanceData = proctorStudents.map(s => ({ name: s.usn, attendance: getNumericAttendance(s.attendance) }));
   const marksData = proctorStudents.map(s => ({
-    name: s.name,
+    name: s.usn,
     // Prefer backend-provided average when available (minimal response), else compute from arrays
     avgMark: (s as any).avg_mark !== undefined ? (s as any).avg_mark : (() => {
       const internalMarks = s.marks || [];

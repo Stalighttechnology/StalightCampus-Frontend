@@ -9,12 +9,13 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Checkbox } from "../ui/checkbox";
-import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import {
   CategoryScale,
   Chart as ChartJS,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
@@ -33,7 +34,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { SkeletonChart, SkeletonTable, Skeleton } from "../ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 // Memoized Table Row Component
 const MemoizedTableRow = React.memo(({
@@ -84,9 +85,9 @@ interface SubjectMarks {
   max_mark: number;
 }
 
-// Memoized Bar Chart Component
-const MemoizedBarChart = React.memo(({ data, options }: { data: any; options: any }) => {
-  return <Bar data={data} options={options} />;
+// Memoized Line Chart Component
+const MemoizedLineChart = React.memo(({ data, options }: { data: any; options: any }) => {
+  return <Line data={data} options={options} />;
 });
 
 
@@ -100,6 +101,23 @@ const InternalMarks = () => {
 
   // Use debounced search
   const { value: searchQuery, debouncedValue: debouncedSearchQuery, setValue: setSearchQuery, isDebouncing } = useDebouncedSearch('', 500);
+
+  const [viewportTrigger, setViewportTrigger] = useState(0);
+
+  useEffect(() => {
+    let debounceTimer: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        setViewportTrigger((prev) => prev + 1);
+      }, 250);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(debounceTimer);
+    };
+  }, []);
 
   // Transform marks data from response
   const marksData = useMemo(() => {
@@ -121,6 +139,15 @@ const InternalMarks = () => {
     });
 
     return groupedData;
+  }, [marksResponse?.data]);
+
+  const subjectCodeMap = useMemo(() => {
+    if (!marksResponse?.data) return {};
+    const mapping: { [subject: string]: string } = {};
+    marksResponse.data.forEach(mark => {
+      mapping[mark.subject] = mark.subject_code || mark.subject;
+    });
+    return mapping;
   }, [marksResponse?.data]);
 
   const allSubjects = Object.keys(marksData);
@@ -164,14 +191,14 @@ const InternalMarks = () => {
     const testNums = selectedIA === "all" ? [1, 2, 3, 4, 5] : [parseInt(selectedIA)];
 
     return {
-      labels: filteredSubjects,
+      labels: filteredSubjects.map((subj) => subjectCodeMap[subj] || subj),
       datasets: testNums.map((testNum) => {
         const colors = {
-          1: { start: "rgba(99, 102, 241, 0.9)", end: "rgba(99, 102, 241, 0.3)", border: "#6366f1" },
-          2: { start: "rgba(6, 182, 212, 0.9)", end: "rgba(6, 182, 212, 0.3)", border: "#06b6d4" },
-          3: { start: "rgba(16, 185, 129, 0.9)", end: "rgba(16, 185, 129, 0.3)", border: "#10b981" },
-          4: { start: "rgba(245, 158, 11, 0.9)", end: "rgba(245, 158, 11, 0.3)", border: "#f59e0b" },
-          5: { start: "rgba(236, 72, 153, 0.9)", end: "rgba(236, 72, 153, 0.3)", border: "#ec4899" }
+          1: { bg: "rgba(99, 102, 241, 0.1)", border: "rgba(99, 102, 241, 1)" },
+          2: { bg: "rgba(236, 72, 153, 0.1)", border: "rgba(236, 72, 153, 1)" },
+          3: { bg: "rgba(20, 184, 166, 0.1)", border: "rgba(20, 184, 166, 1)" },
+          4: { bg: "rgba(245, 158, 11, 0.1)", border: "rgba(245, 158, 11, 1)" },
+          5: { bg: "rgba(59, 130, 246, 0.1)", border: "rgba(59, 130, 246, 1)" }
         };
         const color = colors[testNum as keyof typeof colors] || colors[1];
 
@@ -184,45 +211,40 @@ const InternalMarks = () => {
               return (test.mark / test.max_mark) * 100;
             }
           ),
-          backgroundColor: (context: any) => {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return color.start;
-            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-            gradient.addColorStop(0, color.end);
-            gradient.addColorStop(1, color.start);
-            return gradient;
-          },
+          backgroundColor: color.bg,
           borderColor: color.border,
           borderWidth: 2,
-          borderRadius: 8,
-          hoverBackgroundColor: theme === 'dark' ? '#fff' : color.border,
-          hoverBorderColor: theme === 'dark' ? color.border : '#000',
-          hoverBorderWidth: 2,
-          barThickness: selectedIA === "all" ? 18 : 50,
-          maxBarThickness: 60,
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: color.border,
+          pointBorderColor: "#fff",
+          pointHoverBackgroundColor: "#fff",
+          pointHoverBorderColor: color.border,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         };
       }),
     };
-  }, [filteredSubjects, marksData, selectedIA, theme]);
+  }, [filteredSubjects, marksData, subjectCodeMap, selectedIA, theme]);
 
   const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 800,
+      easing: "easeInOutQuart"
+    },
     plugins: {
       legend: {
         position: "top" as const,
         align: 'end' as const,
         labels: {
-          usePointStyle: true,
-          pointStyle: 'circle',
-          padding: 20,
+          color: theme === 'dark' ? "#fff" : "#000",
           font: {
             size: 12,
             weight: '600' as const,
             family: "'Inter', sans-serif",
-          },
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          }
         },
       },
       tooltip: {
@@ -256,13 +278,9 @@ const InternalMarks = () => {
       y: {
         beginAtZero: true,
         max: 100,
-        border: {
-          display: false,
-          dash: [4, 4],
-        },
         ticks: {
           stepSize: 20,
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          color: theme === 'dark' ? "#fff" : "#000",
           font: {
             size: 11,
             family: "'Inter', sans-serif",
@@ -271,15 +289,11 @@ const InternalMarks = () => {
         },
         grid: {
           color: theme === 'dark' ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
-          drawTicks: false,
         },
       },
       x: {
-        border: {
-          display: false,
-        },
         ticks: {
-          color: theme === 'dark' ? "#9ca3af" : "#6b7280",
+          color: theme === 'dark' ? "#fff" : "#000",
           maxRotation: 45,
           minRotation: 45,
           font: {
@@ -301,10 +315,6 @@ const InternalMarks = () => {
     hover: {
       mode: 'nearest' as const,
       intersect: true
-    },
-    animation: {
-      duration: 1500,
-      easing: 'easeOutQuart' as const,
     }
   }), [theme, filteredSubjects, marksData]);
 
@@ -374,7 +384,7 @@ const InternalMarks = () => {
               </div>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto custom-scrollbar-premium pb-4 px-4 sm:px-0">
+            <div className="w-full overflow-x-auto custom-scrollbar pb-4 px-4 sm:px-0">
               <div
                 style={{
                   minWidth: `${Math.max(100, filteredSubjects.length * (selectedIA === "all" ? 160 : 120))}px`,
@@ -383,7 +393,7 @@ const InternalMarks = () => {
                 }}
                 className="mt-4 mx-auto"
               >
-                <MemoizedBarChart data={chartData} options={chartOptions} />
+                <MemoizedLineChart key={`chart-${viewportTrigger}`} data={chartData} options={chartOptions} />
               </div>
             </div>
           )}
@@ -420,7 +430,7 @@ const InternalMarks = () => {
 
       {/* Table */}
       <div id="marks-table-card" className={`rounded-lg border overflow-hidden w-full ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'}`}>
-        <div className="w-full overflow-x-auto custom-scrollbar-premium">
+        <div className="w-full overflow-x-auto custom-scrollbar">
           <table className="w-full  text-left border-collapse">
             <thead className={`sticky top-0 z-10 text-md whitespace-nowrap ${theme === 'dark' ? 'bg-[#232326] text-gray-400' : 'bg-gray-50 text-gray-600'}`}>
               <tr>
