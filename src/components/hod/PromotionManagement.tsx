@@ -42,7 +42,8 @@ import {
   demoteStudent,
   bulkDemoteStudents,
   manageStudents,
-  getPromotionBootstrap } from
+  getPromotionBootstrap,
+  graduateStudents } from
 "../../utils/hod_api";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonTable } from "../ui/skeleton";
@@ -432,9 +433,11 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
     }
 
     const currentSemesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
-    const nextSemester = state.semesters.find((s) => s.number === (state.semesters.find((s) => s.id === currentSemesterId)?.number || 0) + 1);
+    const currentSemesterNumber = state.semesters.find((s) => s.id === currentSemesterId)?.number || 0;
+    const isGraduation = currentSemesterNumber === 8;
+    const nextSemester = state.semesters.find((s) => s.number === currentSemesterNumber + 1);
 
-    if (!currentSemesterId || !nextSemester) {
+    if (!currentSemesterId || (!nextSemester && !isGraduation)) {
       updateState({ errors: ["No next semester available"] });
       return;
     }
@@ -446,7 +449,9 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
 
     const confirmRes = await Swal.fire({
       title: 'Are you sure?',
-      html: `You are about to promote ${studentsToPromote.length} student(s) to Semester ${nextSemester.number}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
+      html: isGraduation ?
+        `You are about to graduate ${studentsToPromote.length} student(s).<br><br><b class="text-red-500">Warning:</b> Once graduated, their current semester attendance and marks will be archived, and their login access will be revoked.` :
+        `You are about to promote ${studentsToPromote.length} student(s) to Semester ${nextSemester?.number}.<br><br><b class="text-red-500">Warning:</b> Once promoted, their current semester attendance and marks will be archived, and they will be shifted to the next semester.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, proceed',
@@ -459,18 +464,19 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
       return;
     }
 
+    const keyword = isGraduation ? 'GRADUATE' : 'PROMOTE';
     const typedConfirm = await Swal.fire({
       title: 'Confirm Action',
-      text: 'To confirm, type "PROMOTE" in the box below:',
+      text: `To confirm, type "${keyword}" in the box below:`,
       input: 'text',
-      inputPlaceholder: 'PROMOTE',
+      inputPlaceholder: keyword,
       showCancelButton: true,
-      confirmButtonText: 'Confirm Promotion',
+      confirmButtonText: isGraduation ? 'Confirm Graduation' : 'Confirm Promotion',
       background: theme === 'dark' ? '#0f172a' : '#fff',
       color: theme === 'dark' ? '#fff' : '#000',
       inputValidator: (value) => {
-        if (value !== 'PROMOTE') {
-          return 'You must type "PROMOTE" to confirm!';
+        if (value !== keyword) {
+          return `You must type "${keyword}" to confirm!`;
         }
       }
     });
@@ -483,24 +489,30 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
       students: state.students.filter((student) => !state.selectedStudents.includes(student.usn)),
       selectedStudents: [],
       promotionResults: {
-        message: `${studentsToPromote.length} students promoted successfully`,
+        message: isGraduation ? `${studentsToPromote.length} students graduated successfully` : `${studentsToPromote.length} students promoted successfully`,
         promoted: studentsToPromote.map((student) => ({
           name: student.name,
           usn: student.usn,
-          to_semester: nextSemester.number
+          to_semester: isGraduation ? 'Alumni' : nextSemester?.number
         }))
       }
     });
 
     try {
       let res;
-      if (state.selectedStudents.length > 0 && state.selectedStudents.length < state.students.length) {
+      if (isGraduation) {
+        res = await graduateStudents({ student_ids: state.selectedStudents });
+        // The API returns graduated_students instead of promoted, map it for consistency
+        if (res.success) {
+          res.promoted = res.data?.graduated_students || [];
+          res.failed = res.data?.failed_students || [];
+        }
+      } else if (state.selectedStudents.length > 0 && state.selectedStudents.length < state.students.length) {
         // Promote selected students
-
         res = await promoteSelectedStudents({
           student_ids: state.selectedStudents,
-          to_semester_id: nextSemester.id, // Pass as string
-          branch_id: state.branchId // Include branch_id
+          to_semester_id: nextSemester?.id as string,
+          branch_id: state.branchId
         });
       } else {
         // Bulk promotion
@@ -510,7 +522,7 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
 
         res = await promoteStudentsToNextSemester({
           from_semester_id: currentSemesterId, // Pass as string
-          to_semester_id: nextSemester.id, // Pass as string
+          to_semester_id: nextSemester?.id as string, // Pass as string
           branch_id: state.branchId,
           ...(sectionId && { section_id: sectionId })
         });
@@ -816,11 +828,11 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
                 <Button
                 onClick={handlePromoteSelectedStudents}
                 disabled={state.isPromoting || state.selectedStudents.length === 0}
-                className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white h-9 px-4"
+                className={`flex-1 sm:flex-none ${state.selectedSemester === '8th Semester' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white h-9 px-4`}
                 size="sm">
                 
                   <UserCheck className="h-4 w-4 mr-2" />
-                  <span className="whitespace-nowrap">Promote ({state.selectedStudents.length})</span>
+                  <span className="whitespace-nowrap">{state.selectedSemester === '8th Semester' ? 'Graduate' : 'Promote'} ({state.selectedStudents.length})</span>
                 </Button>
               </div>
             </CardTitle>
