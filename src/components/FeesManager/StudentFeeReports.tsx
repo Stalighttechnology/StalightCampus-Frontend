@@ -76,6 +76,14 @@ const StudentFeeReports: React.FC = () => {
   const [selectedSemester, setSelectedSemester] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('');
   const [selectedAdmissionMode, setSelectedAdmissionMode] = useState<string>('');
+  
+  // Dropdown open states for auto-trigger sequencing
+  const [isBatchOpen, setIsBatchOpen] = useState(false);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
+  const [isSemesterOpen, setIsSemesterOpen] = useState(false);
+  const [isSectionOpen, setIsSectionOpen] = useState(false);
+  const [isAdmissionModeOpen, setIsAdmissionModeOpen] = useState(false);
+
   const [bulkReports, setBulkReports] = useState<StudentFeeSummary[]>([]);
   const [cohortStats, setCohortStats] = useState<any>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -740,15 +748,26 @@ const StudentFeeReports: React.FC = () => {
                   <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">Batch <span className="text-red-500">*</span></Label>
                   <Select
                     value={selectedBatch || undefined}
-                    onValueChange={setSelectedBatch}>
+                    onValueChange={(val) => {
+                      setSelectedBatch(val);
+                      setTimeout(() => setIsBranchOpen(true), 150);
+                    }}
+                    open={isBatchOpen}
+                    onOpenChange={setIsBatchOpen}>
 
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Batch" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {batches.map((batch) =>
-                        <SelectItem key={batch.id} value={batch.id.toString()} className="rounded-lg">
-                          {batch.name}
+                      {batches.length > 0 ? (
+                        batches.map((batch) =>
+                          <SelectItem key={batch.id} value={batch.id.toString()} className="rounded-lg">
+                            {batch.name}
+                          </SelectItem>
+                        )
+                      ) : (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          No batches found
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -759,16 +778,27 @@ const StudentFeeReports: React.FC = () => {
                   <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">Branch <span className="text-red-500">*</span></Label>
                   <Select
                     value={selectedBranch || undefined}
-                    onValueChange={setSelectedBranch}
+                    onValueChange={(val) => {
+                      setSelectedBranch(val);
+                      setTimeout(() => setIsSemesterOpen(true), 150);
+                    }}
+                    open={isBranchOpen}
+                    onOpenChange={setIsBranchOpen}
                     disabled={selectedBatch === ''}>
 
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Branch" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {branches.map((branch) =>
-                        <SelectItem key={branch.id} value={branch.id.toString()} className="rounded-lg">
-                          {branch.name}
+                      {branches.length > 0 ? (
+                        branches.map((branch) =>
+                          <SelectItem key={branch.id} value={branch.id.toString()} className="rounded-lg">
+                            {branch.name}
+                          </SelectItem>
+                        )
+                      ) : (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          No branches found
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -779,16 +809,27 @@ const StudentFeeReports: React.FC = () => {
                   <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">Semester <span className="text-red-500">*</span></Label>
                   <Select
                     value={selectedSemester || undefined}
-                    onValueChange={setSelectedSemester}
+                    onValueChange={(val) => {
+                      setSelectedSemester(val);
+                      setTimeout(() => setIsSectionOpen(true), 150);
+                    }}
+                    open={isSemesterOpen}
+                    onOpenChange={setIsSemesterOpen}
                     disabled={selectedBranch === ''}>
 
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Semester" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {semesters.map((semester) =>
-                        <SelectItem key={semester.id} value={semester.id.toString()} className="rounded-lg">
-                          Semester {semester.number}
+                      {semesters.length > 0 ? (
+                        semesters.map((semester) =>
+                          <SelectItem key={semester.id} value={semester.id.toString()} className="rounded-lg">
+                            Semester {semester.number}
+                          </SelectItem>
+                        )
+                      ) : (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          No semesters found
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -799,16 +840,27 @@ const StudentFeeReports: React.FC = () => {
                   <Label className="text-[16px] sm:text-[14px] font-semibold uppercase tracking-[0.1em] ml-1">Section <span className="text-red-500">*</span></Label>
                   <Select
                     value={selectedSection || undefined}
-                    onValueChange={setSelectedSection}
+                    onValueChange={(val) => {
+                      setSelectedSection(val);
+                      setTimeout(() => setIsAdmissionModeOpen(true), 150);
+                    }}
+                    open={isSectionOpen}
+                    onOpenChange={setIsSectionOpen}
                     disabled={selectedSemester === ''}>
 
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
                       <SelectValue placeholder="Choose Section" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
-                      {sections.map((section) =>
-                        <SelectItem key={section.id} value={section.id.toString()} className="rounded-lg">
-                          {section.name}
+                      {sections.length > 0 ? (
+                        sections.map((section) =>
+                          <SelectItem key={section.id} value={section.id.toString()} className="rounded-lg">
+                            {section.name}
+                          </SelectItem>
+                        )
+                      ) : (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          No sections found
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -820,6 +872,8 @@ const StudentFeeReports: React.FC = () => {
                   <Select
                     value={selectedAdmissionMode || undefined}
                     onValueChange={setSelectedAdmissionMode}
+                    open={isAdmissionModeOpen}
+                    onOpenChange={setIsAdmissionModeOpen}
                     disabled={selectedSection === ''}>
 
                     <SelectTrigger className="bg-background rounded-xl border-border/50 h-11">
@@ -827,9 +881,15 @@ const StudentFeeReports: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl">
                       <SelectItem value="all" className="rounded-lg font-medium text-primary">All Admission Modes</SelectItem>
-                      {admissionModes.map((mode) =>
-                        <SelectItem key={mode} value={mode} className="rounded-lg">
-                          {mode}
+                      {admissionModes.length > 0 ? (
+                        admissionModes.map((mode) =>
+                          <SelectItem key={mode} value={mode} className="rounded-lg">
+                            {mode}
+                          </SelectItem>
+                        )
+                      ) : (
+                        <SelectItem value="none" disabled className="rounded-lg text-muted-foreground text-center text-xs">
+                          No admission modes found
                         </SelectItem>
                       )}
                     </SelectContent>
