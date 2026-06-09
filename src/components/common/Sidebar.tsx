@@ -602,7 +602,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const sidebarContent = (
     <motion.div
-      className={`h-full w-64 flex flex-col border-r pb-[env(safe-area-inset-bottom,0px)] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+      className={`h-full w-64 flex flex-col border-r overflow-hidden min-h-0 pb-[env(safe-area-inset-bottom,0px)] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
       initial={isMobile ? false : { x: -100, opacity: 0 }}
       animate={isMobile ? false : { x: 0, opacity: 1 }}
       transition={isMobile ? undefined : { duration: 0.3 }}
