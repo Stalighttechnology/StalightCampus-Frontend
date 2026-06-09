@@ -96,7 +96,7 @@ const FeeTemplates: React.FC = () => {
   const [componentAmount, setComponentAmount] = useState('');
   const [componentDescription, setComponentDescription] = useState('');
   const [selectedComponents, setSelectedComponents] = useState<number[]>([]);
-  const [componentOverrides, setComponentOverrides] = useState<Record<number, number>>({});
+  const [componentOverrides, setComponentOverrides] = useState<Record<number, string>>({});
 
   // Available components from backend
   const [availableComponents, setAvailableComponents] = useState<FeeComponent[]>([]);
@@ -255,12 +255,12 @@ const FeeTemplates: React.FC = () => {
     map((c) => Number(c.id ?? c.component?.id ?? c.component)).
     filter((id) => Number.isFinite(id));
 
-    const overrides: Record<number, number> = {};
+    const overrides: Record<number, string> = {};
     templateComponents.forEach((c) => {
       const componentId = Number(c.id ?? c.component?.id ?? c.component);
       if (!Number.isFinite(componentId)) return;
       if (c.amount_override != null) {
-        overrides[componentId] = Number(c.amount_override);
+        overrides[componentId] = String(c.amount_override);
       }
     });
 
@@ -384,7 +384,7 @@ const FeeTemplates: React.FC = () => {
     }
   };
 
-  const updateComponentOverride = (componentId: number, amount: number) => {
+  const updateComponentOverride = (componentId: number, amount: string) => {
     setComponentOverrides({
       ...componentOverrides,
       [componentId]: amount
@@ -445,13 +445,13 @@ const FeeTemplates: React.FC = () => {
                 Create Template
               </Button>
             </DialogTrigger>
-            <DialogContent className={`w-[90vw] max-w-[340px] sm:w-[92vw] sm:max-w-xl lg:max-w-2xl max-h-[85vh] overflow-hidden rounded-xl sm:rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'} p-0 shadow-2xl`}>
+             <DialogContent className={`w-[95vw] sm:w-[92vw] md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-hidden rounded-xl sm:rounded-2xl ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-white text-gray-900'} p-0 shadow-2xl`}>
               <DialogHeader className="px-6 pt-6 pb-3 border-b">
                 <DialogTitle>
                   {editingTemplate ? 'Edit Fee Template' : 'Create New Fee Template'}
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-6 overflow-y-auto custom-scrollbar px-6 pb-6 pt-4" style={{ maxHeight: 'calc(85vh - 88px)' }}>
+               <div className="space-y-6 overflow-y-auto custom-scrollbar px-6 pb-4 pt-4" style={{ maxHeight: 'calc(90vh - 160px)' }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                   <div>
                     <Label htmlFor="templateName">Template Name</Label>
@@ -538,85 +538,94 @@ const FeeTemplates: React.FC = () => {
                 </div>
 
                 <div>
-                  <Label className="mb-2 block">Fee Components</Label>
-                  <div className="border rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <Table className="min-w-[640px] custom-scrollbar">
-                        <TableHeader>
-                          <TableRow className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
-                            <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Select</TableHead>
-                            <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Component</TableHead>
-                            <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Default Amount</TableHead>
-                            <TableHead className={theme === 'dark' ? 'font-semibold text-foreground' : 'font-semibold text-gray-800'}>Override Amount</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {availableComponents.map((component) =>
-                          <TableRow
+                  <Label className="mb-2 block font-medium">Fee Components</Label>
+                  <div className="max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {availableComponents.map((component) => {
+                        const isSelected = selectedComponents.includes(component.id);
+                        return (
+                          <div
                             key={component.id}
-                            className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                            
-                              <TableCell>
-                                <input
-                                type="checkbox"
-                                checked={selectedComponents.includes(component.id)}
-                                onChange={() => toggleComponentSelection(component.id)}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                              
-                              </TableCell>
-                              <TableCell>
-                                <div>
-                                  <div className="font-medium">{component.name}</div>
-                                  <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                                    {component.description || 'No description'}
-                                  </div>
+                            onClick={() => toggleComponentSelection(component.id)}
+                            className={`group relative flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 select-none ${
+                              isSelected
+                                ? theme === 'dark'
+                                  ? 'border-primary bg-primary/10 shadow-lg shadow-primary/5'
+                                  : 'border-primary bg-primary/5 shadow-md shadow-primary/5'
+                                : theme === 'dark'
+                                ? 'border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/40'
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div
+                                className={`flex items-center justify-center h-4.5 w-4.5 rounded border transition-all duration-150 shrink-0 ${
+                                  isSelected
+                                    ? 'border-primary bg-primary text-white'
+                                    : theme === 'dark'
+                                    ? 'border-muted-foreground/40'
+                                    : 'border-gray-300'
+                                }`}
+                              >
+                                {isSelected && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="3.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="h-3 w-3"
+                                  >
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="font-semibold text-sm truncate group-hover:text-primary transition-colors duration-150">
+                                  {component.name}
                                 </div>
-                              </TableCell>
-                              <TableCell>{formatCurrency(component.amount)}</TableCell>
-                              <TableCell>
-                                {selectedComponents.includes(component.id) &&
-                              <Input
-                                type="number"
-                                value={componentOverrides[component.id] || component.amount}
-                                onChange={(e) => updateComponentOverride(component.id, parseFloat(e.target.value) || 0)}
-                                placeholder="Override amount"
-                                className={`w-24 ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-300'} mt-1`} />
-
-                              }
-                              </TableCell>
-                            </TableRow>
-                          )}
-                          {availableComponents.length === 0 &&
-                          <TableRow>
-                              <TableCell colSpan={4} className="text-center py-4">
-                                No fee components available. Create components first.
-                              </TableCell>
-                            </TableRow>
-                          }
-                        </TableBody>
-                      </Table>
+                                <div className={`text-xs truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} mt-0.5`}>
+                                  {component.description || 'No description'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right pl-3 shrink-0">
+                              <span className="font-bold text-sm text-primary">
+                                {formatCurrency(component.amount)}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {availableComponents.length === 0 && (
+                        <div className={`col-span-full text-center py-6 text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                          No fee components available. Create components first.
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-2 pb-4 px-6 border-t bg-card">
                   <Button
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
-                    className="border-gray-300 text-gray-700 hover:bg-gray-100">
+                    className="border-gray-300 text-gray-700 hover:bg-gray-100 flex-1 sm:flex-none">
                     
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
                   <Button
                     onClick={editingTemplate ? handleUpdateTemplate : handleCreateTemplate}
-                    className="bg-primary hover:bg-primary/90 text-white">
+                    className="bg-primary hover:bg-primary/90 text-white flex-1 sm:flex-none">
                     
                     <Save className="h-4 w-4 mr-2" />
                     {editingTemplate ? 'Update' : 'Create'} Template
                   </Button>
                 </div>
-              </div>
             </DialogContent>
           </Dialog>
         </CardHeader>
