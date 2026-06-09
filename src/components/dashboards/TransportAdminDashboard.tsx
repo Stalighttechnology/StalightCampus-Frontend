@@ -12,6 +12,7 @@ import TransportTracking from "../transport/admin/TransportTracking";
 import TransportIncidents from "../transport/admin/TransportIncidents";
 import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import DriverLeavesManagement from "../transport/admin/LeaveManagement";
+import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 
 interface DashboardProps {
@@ -54,6 +55,8 @@ const TransportAdminDashboard = ({ user }: DashboardProps) => {
         return <TransportIncidents />;
       case "apply-leave":
         return <ApplyLeaveDepartmentAdmin />;
+      case "my-attendance":
+        return <FacultyAttendance />;
       case "manage-leaves":
         return <DriverLeavesManagement />;
       case "profile":

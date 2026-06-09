@@ -275,6 +275,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Payments", page: "payments" },
       { name: "Payment Settings", page: "payment-settings" },
       { name: "Leave", page: "leave" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Reports", page: "reports" },
       { name: "Student Fee Reports", page: "student-reports" },
       { name: "Profile", page: "profile" },
@@ -490,6 +491,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Exam Scheduling", page: "exam-scheduling" },
 
       { name: "Scan for Student Info", page: "scan-student-info" },
+      { name: "My Attendance", page: "my-attendance" },
 
       // Profile
       { name: "Fee Settings", page: "fee-settings" },
@@ -522,6 +524,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Visitor Logs", page: "visitor_logs" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Warden Leaves", page: "manage-warden-leaves" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
     ],
     warden: [
@@ -530,6 +533,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Issue Tracking", page: "issues" },
       { name: "Visitor Logs", page: "visitor_logs" },
       { name: "Apply Leave", page: "apply-leave" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
     ],
     transport_admin: [
@@ -542,6 +546,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Complaints", page: "transport-incidents" },
       { name: "Apply Leave", page: "apply-leave" },
       { name: "Driver Leaves", page: "manage-leaves" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
     ],
     driver: [
@@ -549,6 +554,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Trip History", page: "driver-history" },
       { name: "Complaints", page: "driver-complaints" },
       { name: "Apply Leave", page: "apply-leave" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
     ],
     library_admin: [
@@ -557,6 +563,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Circulation", page: "library-circulation" },
       { name: "Fine Management", page: "library-fines" },
       { name: "Apply Leave", page: "apply-leave" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
     ],
     admission_manager: [
@@ -572,6 +579,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "Communication", page: "admission-communication" },
       { name: "Reports", page: "admission-reports" },
       { name: "Settings", page: "admission-settings" },
+      { name: "My Attendance", page: "my-attendance" },
       { name: "Profile", page: "profile" },
     ],
   };

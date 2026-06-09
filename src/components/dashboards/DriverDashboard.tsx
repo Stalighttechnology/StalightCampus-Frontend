@@ -6,6 +6,7 @@ import DriverTripHistory from "../transport/driver/DriverTripHistory";
 import DriverComplaints from "../transport/driver/DriverComplaints";
 import ApplyLeaveDriver from "../transport/driver/ApplyLeave";
 import Profile from "../common/Profile";
+import FacultyAttendance from "../faculty/FacultyAttendance";
 import { TutorialController } from "../../onboarding/components/TutorialController";
 
 interface DashboardProps {
@@ -40,6 +41,8 @@ const DriverDashboard = ({ user }: DashboardProps) => {
         return <DriverComplaints />;
       case "apply-leave":
         return <ApplyLeaveDriver />;
+      case "my-attendance":
+        return <FacultyAttendance />;
       case "profile":
         return <Profile role="driver" user={user} />;
       default:

@@ -20,6 +20,7 @@ import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import { logoutUser } from "../../utils/authService";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
+import FacultyAttendance from "../faculty/FacultyAttendance";
 
 interface COEDashboardProps {
   user: {
@@ -56,6 +57,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'qp-approvals': 'qp-approvals',
       'apply-leave': 'apply-leave',
       'scan-student-info': 'scan-student-info',
+      'my-attendance': 'my-attendance',
       'profile': 'profile'
     };
 
@@ -92,6 +94,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'qp-approvals': '/coe/qp-approvals',
       'apply-leave': '/coe/apply-leave',
       'scan-student-info': '/coe/scan-student-info',
+      'my-attendance': '/coe/my-attendance',
       'profile': '/coe/profile',
       'fee-settings': '/coe/fee-settings'
     };
@@ -144,6 +147,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <COEFeeSettings />;
       case 'scan-student-info':
         return <StudentInfoScanner />;
+      case 'my-attendance':
+        return <FacultyAttendance />;
       default:
         return <COEDashboardStats />;
     }
