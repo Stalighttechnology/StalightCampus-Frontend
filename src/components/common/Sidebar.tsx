@@ -821,7 +821,7 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       <AnimatePresence>
         {!collapsed && (
           <motion.div
-            className="fixed top-0 left-0 h-screen w-64 z-30 shadow-xl overflow-hidden"
+            className="fixed top-0 bottom-0 left-0 w-64 z-30 shadow-xl overflow-hidden"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
