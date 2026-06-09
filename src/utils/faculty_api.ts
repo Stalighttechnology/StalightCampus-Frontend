@@ -995,6 +995,9 @@ export const getFacultyDashboardBootstrap = async (): Promise<GetFacultyDashboar
 export const getAttendanceRecordsWithSummary = async (params?: {
   page?: number;
   page_size?: number;
+  subject_id?: string;
+  start_date?: string;
+  end_date?: string;
 }): Promise<GetAttendanceRecordsWithSummaryResponse> => {
   try {
     const queryParams = new URLSearchParams();
@@ -1005,6 +1008,9 @@ export const getAttendanceRecordsWithSummary = async (params?: {
       const ps = Math.min(params.page_size, MAX_PAGE_SIZE);
       queryParams.append('page_size', ps.toString());
     }
+    if (params?.subject_id) queryParams.append('subject_id', params.subject_id);
+    if (params?.start_date) queryParams.append('start_date', params.start_date);
+    if (params?.end_date) queryParams.append('end_date', params.end_date);
 
     const url = queryParams.toString() ?
     `${API_ENDPOINT}/faculty/attendance-records/summary/?${queryParams.toString()}` :

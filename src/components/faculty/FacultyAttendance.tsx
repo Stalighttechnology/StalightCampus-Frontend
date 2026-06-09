@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Clock, FileText, RotateCcw, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, FileText, RotateCcw, Loader2, FileDown, CalendarIcon, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,12 @@ import { normalizePaginatedResponse } from '@/utils/normalizePagination';
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
+import { fetchWithTokenRefresh } from "@/utils/authService";
+import { API_ENDPOINT } from "@/utils/config";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const FacultyAttendance = () => {
   const [attendanceStatus, setAttendanceStatus] = useState<"present" | "absent" | null>(null);
@@ -20,7 +26,7 @@ const FacultyAttendance = () => {
   const [todayRecord, setTodayRecord] = useState<FacultyAttendanceRecord | null>(null);
   const [recentRecords, setRecentRecords] = useState<FacultyAttendanceRecord[]>([]);
   const [recentPage, setRecentPage] = useState<number>(1);
-  const recentPageSize = 5;
+  const recentPageSize = 10;
   const recentTotalPages = Math.ceil(recentRecords.length / recentPageSize);
   const paginatedRecentRecords = recentRecords.slice(
     (recentPage - 1) * recentPageSize,
@@ -36,23 +42,31 @@ const FacultyAttendance = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const { theme } = useTheme();
 
+  const [historyStartDate, setHistoryStartDate] = useState<Date | undefined>(undefined);
+  const [historyEndDate, setHistoryEndDate] = useState<Date | undefined>(undefined);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [historyFilterOpen, setHistoryFilterOpen] = useState(false);
+
   useEffect(() => {
     fetchAttendanceData();
   }, []);
 
+  useEffect(() => {
+    fetchHistoryPage(historyPage);
+  }, [historyPage, historyStartDate, historyEndDate]);
+
   const fetchAttendanceData = async () => {
     try {
       setLoading(true);
-      // Load recent records and today's record in a single paginated call (reduces duplicate requests)
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       const startDate = weekAgo.toLocaleDateString('sv-SE');
 
-      const resp = await fetchHistoryPage(1, startDate);
-      if (resp && resp.success && resp.data) {
-        setRecentRecords(resp.data.slice(0, 7));
+      const response = await getFacultyAttendanceRecords({ page: 1, page_size: 7, start_date: startDate });
+      if (response.success && response.data) {
+        setRecentRecords(response.data.slice(0, 7));
         const today = new Date().toLocaleDateString('sv-SE');
-        const todayRec = resp.data.find((r) => r.date === today) || null;
+        const todayRec = response.data.find((r) => r.date === today) || null;
         setTodayRecord(todayRec);
         if (todayRec) {
           setAttendanceStatus(todayRec.status as "present" | "absent");
@@ -60,22 +74,21 @@ const FacultyAttendance = () => {
         }
       }
     } catch (error) {
-
       toast.error("Failed to load attendance data");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchHistoryPage = async (page: number, start_date?: string) => {
+  const fetchHistoryPage = async (page: number) => {
     try {
       setHistoryLoading(true);
       const params: any = { page, page_size: historyPageSize };
-      if (start_date) params.start_date = start_date;
+      if (historyStartDate) params.start_date = format(historyStartDate, "yyyy-MM-dd");
+      if (historyEndDate) params.end_date = format(historyEndDate, "yyyy-MM-dd");
       const response = await getFacultyAttendanceRecords(params);
       if (response.success && response.data) {
         setHistoryRecords(response.data);
-        // normalize pagination shape
         const norm = normalizePaginatedResponse(response, 'data');
         if (norm.meta && Object.keys(norm.meta).length > 0) {
           const meta = norm.meta;
@@ -84,7 +97,6 @@ const FacultyAttendance = () => {
           setHistoryTotalPages(meta.totalPages || meta.total_pages || Math.ceil((meta.totalItems || meta.total_items || 0) / pgSize) || 1);
           setHistoryTotalItems(meta.totalItems || meta.total_items || 0);
         } else if (response.pagination) {
-          // normalize the legacy pagination object into our expected fields
           const p = response.pagination || {};
           setHistoryPage(p.current_page || p.page || page);
           setHistoryTotalPages(p.total_pages || p.totalPages || 1);
@@ -93,10 +105,56 @@ const FacultyAttendance = () => {
       }
       return response;
     } catch (e) {
-
       return null;
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    setHistoryStartDate(date);
+    setHistoryPage(1);
+  };
+
+  const handleEndDateChange = (date: Date | undefined) => {
+    setHistoryEndDate(date);
+    setHistoryPage(1);
+  };
+
+  const handleExportPdf = async () => {
+    setExportingPdf(true);
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append("report_type", "my_attendance");
+      if (historyStartDate) queryParams.append("start_date", format(historyStartDate, "yyyy-MM-dd"));
+      if (historyEndDate) queryParams.append("end_date", format(historyEndDate, "yyyy-MM-dd"));
+      
+      const response = await fetchWithTokenRefresh(
+        `${API_ENDPOINT}/reports/export-pdf/?${queryParams.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+          }
+        }
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `my_attendance_history_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        toast.error("Failed to download PDF report");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to download PDF report");
+    } finally {
+      setExportingPdf(false);
     }
   };
 
@@ -448,7 +506,7 @@ const FacultyAttendance = () => {
           </CardHeader>
           <CardContent className="flex-1">
             {recentRecords.length > 0 ?
-            <div className="space-y-3">
+            <div className="space-y-3 h-[440px] overflow-y-auto custom-scrollbar pr-1">
                 {paginatedRecentRecords.map((record) =>
               <motion.div
                 key={record.id}
@@ -495,7 +553,7 @@ const FacultyAttendance = () => {
               </div>
             }
           </CardContent>
-          {!loading && recentRecords.length > 0 && (
+          {!loading && recentTotalPages > 0 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing <span className="font-medium">{Math.min((recentPage - 1) * recentPageSize + 1, recentRecords.length)}</span> to <span className="font-medium">{Math.min(recentPage * recentPageSize, recentRecords.length)}</span> of <span className="font-medium">{recentRecords.length}</span> records
@@ -529,39 +587,131 @@ const FacultyAttendance = () => {
           )}
         </Card>
 
-        {/* Attendance History (paginated) */}
         <Card id="faculty-attendance-history" className={`hidden md:flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-          <CardHeader id="faculty-attendance-history-header">
+          <CardHeader id="faculty-attendance-history-header" className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
               Attendance History
             </CardTitle>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                onClick={handleExportPdf}
+                disabled={exportingPdf || !historyStartDate || !historyEndDate}
+                className="bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-3 sm:px-4 shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                {exportingPdf ? (
+                  <Loader2 className="animate-spin h-4 w-4" />
+                ) : (
+                  <FileDown className="h-4 w-4" />
+                )}
+                Export PDF
+              </Button>
+
+              <Popover open={historyFilterOpen} onOpenChange={setHistoryFilterOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-9 px-2.5 whitespace-nowrap"
+                  >
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden sm:inline">Filter</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className={`w-72 p-4 space-y-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`} 
+                  align="end"
+                  onInteractOutside={(event) => {
+                    // Prevent closing when interacting with calendar popups
+                    const target = event.target as HTMLElement;
+                    if (target.closest('[data-radix-popper-content-wrapper]')) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Start Date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal h-10 px-3 border",
+                            !historyStartDate && "text-muted-foreground",
+                            theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {historyStartDate ? format(historyStartDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 border border-border" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={historyStartDate}
+                          onSelect={handleStartDateChange}
+                          disabled={(date) => date > new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">End Date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal h-10 px-3 border",
+                            !historyEndDate && "text-muted-foreground",
+                            theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {historyEndDate ? format(historyEndDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 border border-border" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={historyEndDate}
+                          onSelect={handleEndDateChange}
+                          disabled={(date) => date > new Date() || (historyStartDate ? date <= historyStartDate : false)}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </CardHeader>
           <CardContent className="flex-1">
-            {historyLoading ?
-            <SkeletonList items={5} /> :
-            historyRecords.length > 0 ?
-            <div className="space-y-3">
-              {historyRecords.map((record) =>
-                <div key={record.id} className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {getStatusIcon(record.status)}
-                      <div>
-                        <p className="font-medium capitalize">{record.status}</p>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                          {new Date(record.date).toLocaleDateString()}
-                        </p>
+            {historyLoading ? (
+              <SkeletonList items={5} />
+            ) : historyRecords.length > 0 ? (
+              <div className="space-y-3 h-[400px] overflow-y-auto custom-scrollbar pr-1">
+                {historyRecords.map((record) => (
+                  <div key={record.id} className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {getStatusIcon(record.status)}
+                        <div>
+                          <p className="font-medium capitalize">{record.status}</p>
+                          <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                            {new Date(record.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                        {new Date(record.marked_at).toLocaleTimeString()}
                       </div>
                     </div>
-                    <div className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                      {new Date(record.marked_at).toLocaleTimeString()}
-                    </div>
                   </div>
-                </div>
-              )}
-            </div> :
-
-            <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                ))}
+              </div>
+            ) : (
+              <div className={`flex flex-col items-center justify-center py-16 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                   <RotateCcw className="w-10 h-10 text-primary opacity-50" />
                 </div>
@@ -570,7 +720,7 @@ const FacultyAttendance = () => {
                   There are no historical attendance records found for your account.
                 </p>
               </div>
-            }
+            )}
           </CardContent>
 
           {!historyLoading && historyRecords.length > 0 && (
@@ -582,7 +732,7 @@ const FacultyAttendance = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => fetchHistoryPage(Math.max(1, historyPage - 1))}
+                  onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
                   disabled={historyLoading || historyPage === 1}
                   className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                   Previous
@@ -597,7 +747,7 @@ const FacultyAttendance = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => fetchHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
+                  onClick={() => setHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
                   disabled={historyLoading || historyPage === historyTotalPages}
                   className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
                   Next

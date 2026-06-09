@@ -3,14 +3,25 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
-import { Loader2, FileDown, ClipboardList } from "lucide-react";
+import { Loader2, FileDown, ClipboardList, CalendarIcon, Filter } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "../ui/dialog";
-import { getAttendanceRecordsWithSummary, getAttendanceRecordDetails } from "@/utils/faculty_api";
+import { getAttendanceRecordsWithSummary, getAttendanceRecordDetails, getAssignedSubjects } from "@/utils/faculty_api";
 import { API_BASE_URL, API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonTable } from "@/components/ui/skeleton";
 import { usePagination } from "@/hooks/useOptimizations";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface AttendanceRecord {
   id: number;
@@ -69,6 +80,29 @@ const AttendanceRecords = () => {
   const [exporting, setExporting] = useState(false);
   const { theme } = useTheme();
 
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const res = await getAssignedSubjects();
+        if (res.success && res.data) {
+          const uniqueSubjects = Array.from(
+            new Map(res.data.map((item: any) => [item.subject_id, item])).values()
+          );
+          setSubjects(uniqueSubjects);
+        }
+      } catch (e) {
+        console.error("Failed to load subjects", e);
+      }
+    };
+    fetchSubjects();
+  }, []);
+
   useEffect(() => {
     const fetchRecords = async () => {
       setLoading(true);
@@ -77,6 +111,9 @@ const AttendanceRecords = () => {
         const res = await getAttendanceRecordsWithSummary({
           page: pagination.page,
           page_size: pagination.pageSize,
+          subject_id: selectedSubject || undefined,
+          start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
+          end_date: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
         });
         if (res.success && res.data) {
           setRecords(res.data);
@@ -92,7 +129,60 @@ const AttendanceRecords = () => {
     };
 
     fetchRecords();
-  }, [pagination.page, pagination.pageSize]);
+  }, [pagination.page, pagination.pageSize, selectedSubject, startDate, endDate]);
+
+  const handleSubjectChange = (val: string) => {
+    setSelectedSubject(val);
+    pagination.goToPage(1);
+  };
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    setStartDate(date);
+    pagination.goToPage(1);
+  };
+
+  const handleEndDateChange = (date: Date | undefined) => {
+    setEndDate(date);
+    pagination.goToPage(1);
+  };
+
+  const handleExportFilteredPdf = async () => {
+    setExporting(true);
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append("report_type", "attendance");
+      if (selectedSubject) queryParams.append("subject_id", selectedSubject);
+      if (startDate) queryParams.append("start_date", format(startDate, "yyyy-MM-dd"));
+      if (endDate) queryParams.append("end_date", format(endDate, "yyyy-MM-dd"));
+
+      const response = await fetchWithTokenRefresh(
+        `${API_ENDPOINT}/reports/export-pdf/?${queryParams.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("access_token")}`
+          }
+        }
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `attendance_records_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        setError("Failed to download PDF report");
+      }
+    } catch (e: any) {
+      setError(e.message || "Failed to download PDF report");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleViewDetails = (record: AttendanceRecord) => {
     setSelectedRecord(record);
@@ -143,7 +233,7 @@ const AttendanceRecords = () => {
           const domain = new URL(API_ENDPOINT).origin;
           downloadUrl = `${domain}${downloadUrl}`;
         }
-        
+
         const pdfRes = await fetchWithTokenRefresh(downloadUrl);
         if (pdfRes.ok) {
           const blob = await pdfRes.blob();
@@ -175,10 +265,63 @@ const AttendanceRecords = () => {
   return (
     <div className={`space-y-3 md:space-y-3 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="attendance-records-card" className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
-        <CardHeader id="attendance-records-header">
+        <CardHeader id="attendance-records-header" className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
           <CardTitle>Attendance Records</CardTitle>
+          <div className="flex-shrink-0">
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-7 sm:h-8 lg:h-9 px-1.5 sm:px-2 lg:px-3 whitespace-nowrap"
+                >
+                  <Filter className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
+                  <span className="hidden sm:inline">Filter</span>
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className={`w-56 sm:w-64 p-2 sm:p-3 lg:p-4 ${theme === 'dark' ?
+                'bg-card text-foreground border-border' :
+                'bg-white text-gray-900 border-gray-200'}`
+              }>
+                <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 px-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter Subject</p>
+                <div className="max-h-[240px] overflow-y-auto custom-scrollbar space-y-1 sm:space-y-2 p-1">
+                  <Button
+                    variant={!selectedSubject ? "default" : "ghost"}
+                    className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${!selectedSubject ?
+                      'bg-primary text-white hover:bg-primary/90' :
+                      'hover:bg-primary/10 hover:text-primary'}`
+                    }
+                    onClick={() => {
+                      handleSubjectChange("");
+                      setFilterOpen(false);
+                    }}
+                  >
+                    All Subjects
+                  </Button>
+                  {subjects.map((subj) => (
+                    <Button
+                      key={subj.subject_id}
+                      variant={selectedSubject === subj.subject_id.toString() ? "default" : "ghost"}
+                      className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${selectedSubject === subj.subject_id.toString() ?
+                        'bg-primary text-white hover:bg-primary/90' :
+                        'hover:bg-primary/10 hover:text-primary'}`
+                      }
+                      onClick={() => {
+                        handleSubjectChange(subj.subject_id.toString());
+                        setFilterOpen(false);
+                      }}
+                    >
+                      <span className="truncate">{subj.subject_name} ({subj.subject_code})</span>
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </CardHeader>
         <CardContent>
+
           {loading ? (
             <SkeletonTable rows={5} columns={8} />
           ) : error ? (
