@@ -799,8 +799,77 @@ const WardenVisitorLogs = () => {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="animate-pulse space-y-4 p-4">
+              {/* Mobile skeleton cards */}
+              <div className="md:hidden space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-4 rounded-xl border border-border/60 bg-muted/5 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="space-y-1.5 w-1/3">
+                        <div className="h-4 bg-muted-foreground/15 rounded w-full"></div>
+                        <div className="h-3 bg-muted-foreground/15 rounded w-2/3"></div>
+                      </div>
+                      <div className="space-y-1.5 w-1/4 flex flex-col items-end">
+                        <div className="h-4 bg-muted-foreground/15 rounded w-16"></div>
+                        <div className="h-4 bg-muted-foreground/15 rounded w-20"></div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/20">
+                      <div className="space-y-1">
+                        <div className="h-3 bg-muted-foreground/15 rounded w-1/2"></div>
+                        <div className="h-4 bg-muted-foreground/15 rounded w-3/4"></div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="h-3 bg-muted-foreground/15 rounded w-1/2"></div>
+                        <div className="h-4 bg-muted-foreground/15 rounded w-3/4"></div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3 pt-3 border-t border-border/20">
+                      <div className="space-y-1">
+                        <div className="h-3 bg-muted-foreground/15 rounded w-12"></div>
+                        <div className="h-4 bg-muted-foreground/15 rounded w-1/2"></div>
+                        <div className="h-3 bg-muted-foreground/15 rounded w-1/3"></div>
+                      </div>
+                      <div className="flex gap-2 w-full mt-1">
+                        <div className="h-8 bg-muted-foreground/15 rounded-xl flex-1"></div>
+                        <div className="h-8 bg-muted-foreground/15 rounded-xl flex-1"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop skeleton table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/20">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <th key={i} className="py-3.5 px-4"><div className="h-4 bg-muted-foreground/15 rounded w-16"></div></th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr key={i}>
+                        <td className="py-4 px-4"><div className="h-4 bg-muted-foreground/15 rounded w-20"></div></td>
+                        <td className="py-4 px-4"><div className="h-4 bg-muted-foreground/15 rounded w-24"></div></td>
+                        <td className="py-4 px-4"><div className="h-5 bg-muted-foreground/15 rounded w-16"></div></td>
+                        <td className="py-4 px-4">
+                          <div className="space-y-1.5">
+                            <div className="h-4 bg-muted-foreground/15 rounded w-28"></div>
+                            <div className="h-3 bg-muted-foreground/15 rounded w-20"></div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4"><div className="h-8 bg-muted-foreground/15 rounded-xl w-14"></div></td>
+                        <td className="py-4 px-4"><div className="h-4 bg-muted-foreground/15 rounded w-24"></div></td>
+                        <td className="py-4 px-4"><div className="h-4 bg-muted-foreground/15 rounded w-24"></div></td>
+                        <td className="py-4 px-4"><div className="h-8 bg-muted-foreground/15 rounded-xl w-28 mx-auto"></div></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground opacity-70">
