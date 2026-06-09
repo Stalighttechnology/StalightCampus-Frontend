@@ -559,14 +559,13 @@ const FeeTemplates: React.FC = () => {
                           >
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                               <div
-                                className={`flex items-center justify-center h-4.5 w-4.5 rounded border transition-all duration-150 shrink-0 ${
+                                className={`flex items-center justify-center h-5 w-5 rounded border-2 transition-all duration-150 shrink-0 ${
                                   isSelected
                                     ? 'border-primary bg-primary text-white'
                                     : theme === 'dark'
-                                    ? 'border-muted-foreground/40'
-                                    : 'border-gray-300'
-                                }`}
-                              >
+                                    ? 'border-gray-600 bg-muted/20'
+                                    : 'border-gray-400 bg-gray-50'
+                                }`}>
                                 {isSelected && (
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
