@@ -4,7 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Search, Users, Plus, Download, LogOut, Bell } from 'lucide-react';
+import { Loader2, Search, Users, Plus, Download, LogOut, Bell, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -22,10 +22,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { 
-  createWardenVisitorLog, 
-  getWardenStudents, 
-  getWardenVisitorLogs, 
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import {
+  createWardenVisitorLog,
+  getWardenStudents,
+  getWardenVisitorLogs,
   exportWardenVisitorLogsPdf,
   checkoutWardenVisitorLog,
   sendWardenVisitorReminder
@@ -45,6 +48,154 @@ interface VisitorLog {
   hostel: number;
   hostel_name: string;
 }
+
+// Date Time Picker Helper
+const combineDateAndTime = (date: Date | undefined, timeStr: string): string => {
+  if (!date) return "";
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const hhMm = timeStr || "00:00";
+  return `${yyyy}-${mm}-${dd}T${hhMm}`;
+};
+
+const parseDateTime = (dateTimeStr: string) => {
+  if (!dateTimeStr) return { date: undefined, time: "00:00" };
+  const [datePart, timePart] = dateTimeStr.split('T');
+  if (!datePart) return { date: undefined, time: "00:00" };
+  const [year, month, day] = datePart.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return { date, time: timePart || "00:00" };
+};
+
+const formatDisplay = (value: string) => {
+  if (!value) return "Select date & time...";
+  const { date, time } = parseDateTime(value);
+  if (!date) return "Select date & time...";
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  // Convert 24h to 12h format with AM/PM
+  const [hoursStr, minutesStr] = time.split(':');
+  let hours = parseInt(hoursStr, 10);
+  const minutes = minutesStr || "00";
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  const formattedHours = String(hours).padStart(2, '0');
+
+  return `${day}-${month}-${year} ${formattedHours}:${minutes} ${ampm}`;
+};
+
+interface DateTimePickerProps {
+  value: string;
+  onChange: (val: string) => void;
+  className?: string;
+}
+
+const DateTimePicker = ({ value, onChange, className }: DateTimePickerProps) => {
+  const { date: selectedDate, time: selectedTime } = parseDateTime(value);
+
+  // Split selectedTime into hours (12h format), minutes, and AM/PM
+  const [hoursStr, minutesStr] = selectedTime.split(':');
+  const hours24 = parseInt(hoursStr || '0', 10);
+  const currentMinutes = minutesStr || '00';
+
+  const currentAmpm = hours24 >= 12 ? 'PM' : 'AM';
+  let currentHours12 = hours24 % 12;
+  currentHours12 = currentHours12 ? currentHours12 : 12;
+  const currentHours12Str = String(currentHours12);
+
+  const handleTimeChange = (type: 'hour' | 'minute' | 'ampm', val: string) => {
+    let h12 = currentHours12;
+    let m = currentMinutes;
+    let ap = currentAmpm;
+
+    if (type === 'hour') h12 = parseInt(val, 10);
+    if (type === 'minute') m = val;
+    if (type === 'ampm') ap = val;
+
+    let h24 = h12;
+    if (ap === 'PM' && h24 < 12) h24 += 12;
+    if (ap === 'AM' && h24 === 12) h24 = 0;
+
+    const timeStr = `${String(h24).padStart(2, '0')}:${m}`;
+    onChange(combineDateAndTime(selectedDate || new Date(), timeStr));
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          type="button"
+          className={cn(
+            "w-full justify-start text-left font-normal h-9 text-xs bg-background border border-input px-3 hover:bg-accent hover:text-accent-foreground",
+            !value && "text-muted-foreground",
+            className
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4 opacity-75 shrink-0" />
+          <span className="truncate">{value ? formatDisplay(value) : "Select date & time..."}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 z-[100] bg-popover text-popover-foreground border shadow-md rounded-md" align="start">
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={(newDate) => {
+            const newTime = selectedTime || "00:00";
+            onChange(combineDateAndTime(newDate, newTime));
+          }}
+          initialFocus
+        />
+        <div className="p-3 border-t border-border flex items-center justify-between gap-2 bg-muted/20">
+          <span className="text-xs font-semibold uppercase tracking-wider opacity-75 shrink-0">Time</span>
+          <div className="flex items-center gap-1">
+            <Select value={currentHours12Str} onValueChange={(val) => handleTimeChange('hour', val)}>
+              <SelectTrigger className="h-8 text-[11px] bg-background w-[55px] px-1.5 focus:ring-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-48 z-[110]">
+                {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((h) => (
+                  <SelectItem key={h} value={h}>
+                    {h.padStart(2, '0')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <span className="text-muted-foreground text-[11px] font-bold">:</span>
+
+            <Select value={currentMinutes} onValueChange={(val) => handleTimeChange('minute', val)}>
+              <SelectTrigger className="h-8 text-[11px] bg-background w-[55px] px-1.5 focus:ring-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-48 z-[110]">
+                {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={currentAmpm} onValueChange={(val) => handleTimeChange('ampm', val)}>
+              <SelectTrigger className="h-8 text-[11px] bg-background w-[55px] px-1.5 focus:ring-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="z-[110]">
+                <SelectItem value="AM">AM</SelectItem>
+                <SelectItem value="PM">PM</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 const WardenVisitorLogs = () => {
   const { toast } = useToast();
@@ -66,7 +217,7 @@ const WardenVisitorLogs = () => {
   const [hostels, setHostels] = useState<any[]>([]);
   const [isCheckingOut, setIsCheckingOut] = useState<number | null>(null);
   const [isSendingReminder, setIsSendingReminder] = useState<number | null>(null);
-  
+
   // Academic filters for modal
   const [batches, setBatches] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
@@ -76,6 +227,17 @@ const WardenVisitorLogs = () => {
   const [selectedSemester, setSelectedSemester] = useState('');
   const [studentPage, setStudentPage] = useState(1);
   const [hasMoreStudents, setHasMoreStudents] = useState(false);
+  const [studentSearch, setStudentSearch] = useState('');
+  const [debouncedStudentSearch, setDebouncedStudentSearch] = useState('');
+  const [hasPrevStudents, setHasPrevStudents] = useState(false);
+  const [studentCount, setStudentCount] = useState(0);
+  const [selectedStudentName, setSelectedStudentName] = useState('');
+
+  // Auto trigger states for sequential dropdown selection
+  const [isBatchSelectOpen, setIsBatchSelectOpen] = useState(false);
+  const [isBranchSelectOpen, setIsBranchSelectOpen] = useState(false);
+  const [isSemesterSelectOpen, setIsSemesterSelectOpen] = useState(false);
+  const [isStudentSelectOpen, setIsStudentSelectOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     student: '',
@@ -83,7 +245,7 @@ const WardenVisitorLogs = () => {
     visitor_name: '',
     mobile_number: '',
     purpose: '',
-    check_in_time: new Date().toISOString().slice(0, 16),
+    check_in_time: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
     check_out_time: '',
   });
 
@@ -92,12 +254,24 @@ const WardenVisitorLogs = () => {
     fetchHostels();
   }, []);
 
+  // Debounce student search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedStudentSearch(studentSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [studentSearch]);
+
+  // Reset student page to 1 on filter or search changes
+  useEffect(() => {
+    setStudentPage(1);
+  }, [selectedBatch, selectedBranch, selectedSemester, formData.hostel, debouncedStudentSearch]);
+
   useEffect(() => {
     if (isModalOpen) {
-      setStudentPage(1);
-      fetchStudents(1, selectedBatch, selectedBranch, selectedSemester, formData.hostel);
+      fetchStudents(studentPage, selectedBatch, selectedBranch, selectedSemester, formData.hostel, debouncedStudentSearch);
     }
-  }, [isModalOpen, selectedBatch, selectedBranch, selectedSemester, formData.hostel]);
+  }, [isModalOpen, selectedBatch, selectedBranch, selectedSemester, formData.hostel, studentPage, debouncedStudentSearch]);
 
   const fetchAcademicInit = async () => {
     try {
@@ -128,35 +302,26 @@ const WardenVisitorLogs = () => {
     batch: string = '',
     branch: string = '',
     semester: string = '',
-    hostelId: string = ''
+    hostelId: string = '',
+    search: string = ''
   ) => {
     try {
       const response = await getWardenStudents(
         hostelId ? parseInt(hostelId) : undefined,
         undefined,
-        batch,
-        branch,
-        semester,
-        page
+        search ? '' : batch,
+        search ? '' : branch,
+        search ? '' : semester,
+        page,
+        search
       );
       const newStudents = response.results || response.students || response.data || [];
-      if (page === 1) {
-        setStudents(newStudents);
-      } else {
-        setStudents(prev => [...prev, ...newStudents]);
-      }
+      setStudents(newStudents);
+      setStudentCount(response.count || 0);
       setHasMoreStudents(!!response.next);
+      setHasPrevStudents(!!response.previous);
     } catch (error) {
       console.error("Failed to load students", error);
-    }
-  };
-
-  const loadMoreStudents = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    if (target.scrollTop + target.clientHeight >= target.scrollHeight - 10 && hasMoreStudents) {
-      const nextPage = studentPage + 1;
-      setStudentPage(nextPage);
-      fetchStudents(nextPage, selectedBatch, selectedBranch, selectedSemester, formData.hostel);
     }
   };
 
@@ -204,7 +369,7 @@ const WardenVisitorLogs = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: 'Success',
         description: 'Visitor logs PDF downloaded successfully',
@@ -305,9 +470,10 @@ const WardenVisitorLogs = () => {
         visitor_name: '',
         mobile_number: '',
         purpose: '',
-        check_in_time: new Date().toISOString().slice(0, 16),
+        check_in_time: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
         check_out_time: '',
       });
+      setSelectedStudentName('');
       fetchLogs();
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to add visitor log', variant: 'destructive' });
@@ -328,20 +494,20 @@ const WardenVisitorLogs = () => {
                   Total: {totalCount}
                 </Badge>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                   <DialogTrigger asChild>
-                    <Button className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white transition-all px-3 whitespace-nowrap">
+                    <Button className="flex items-center justify-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white transition-all px-3 whitespace-nowrap w-full sm:w-auto">
                       <Plus className="w-3.5 h-3.5" /> Add Visitor
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-lg">
+                  <DialogContent className="max-w-[90%] sm:max-w-lg mx-auto custom-scrollbar rounded-xl">
                     <DialogHeader>
                       <DialogTitle>Add New Visitor</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleAddSubmit} className="space-y-4 pt-2">
-                      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-                        
+                      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar" style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}>
+
                         {/* Visitor Details Section */}
                         <div className="space-y-3 p-3.5 rounded-xl border border-border/80 bg-muted/10">
                           <div className="text-xs font-bold text-primary uppercase tracking-wider">Visitor Details</div>
@@ -375,74 +541,51 @@ const WardenVisitorLogs = () => {
                             />
                           </div>
                           <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-2">
+                            <div className="space-y-2 flex flex-col">
                               <Label className="text-xs">Check-In Time *</Label>
-                              <Input
-                                type="datetime-local"
+                              <DateTimePicker
                                 value={formData.check_in_time}
-                                onChange={(e) => setFormData({ ...formData, check_in_time: e.target.value })}
-                                className="h-9 text-xs bg-background"
-                                required
+                                onChange={(val) => setFormData({ ...formData, check_in_time: val })}
                               />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 flex flex-col">
                               <Label className="text-xs">Check-Out Time</Label>
-                              <Input
-                                type="datetime-local"
+                              <DateTimePicker
                                 value={formData.check_out_time}
-                                onChange={(e) => setFormData({ ...formData, check_out_time: e.target.value })}
-                                className="h-9 text-xs bg-background"
+                                onChange={(val) => setFormData({ ...formData, check_out_time: val })}
                               />
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Hostel & Student Details Section */}
-                        <div className="space-y-3 p-3.5 rounded-xl border border-border/80 bg-muted/10">
-                          <div className="text-xs font-bold text-primary uppercase tracking-wider">Hostel Details</div>
-                          <div className="space-y-2">
-                            <Label className="text-xs">Hostel Name *</Label>
-                            <Select
-                              value={formData.hostel}
-                              onValueChange={(val) => {
-                                setFormData({ ...formData, hostel: val, student: '' });
-                              }}
-                            >
-                              <SelectTrigger className="w-full h-9 text-xs bg-background">
-                                <SelectValue placeholder="Select a hostel..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {hostels.map((h) => (
-                                  <SelectItem key={h.id} value={h.id.toString()}>
-                                    {h.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
                           </div>
 
                           <div className="space-y-2 pt-2 border-t border-border/40">
-                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Filter Students (Optional)</Label>
+                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Filter Students</Label>
                             <div className="grid grid-cols-3 gap-2">
                               <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Batch</Label>
                                 <Select
-                                  value={selectedBatch || "all"}
+                                  value={selectedBatch}
+                                  open={isBatchSelectOpen}
+                                  onOpenChange={setIsBatchSelectOpen}
                                   onValueChange={(val) => {
-                                    setSelectedBatch(val === "all" ? "" : val);
-                                    setFormData({...formData, student: ''});
+                                    setSelectedBatch(val);
+                                    setFormData({ ...formData, student: '' });
+                                    setSelectedStudentName('');
+                                    setTimeout(() => setIsBranchSelectOpen(true), 150);
                                   }}
                                 >
                                   <SelectTrigger className="w-full h-9 text-xs bg-background">
-                                    <SelectValue placeholder="All" />
+                                    <SelectValue placeholder="Select Batch" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="all">All</SelectItem>
-                                    {batches.map((b) => (
-                                      <SelectItem key={b.id} value={b.id.toString()}>
-                                        {b.name}
-                                      </SelectItem>
-                                    ))}
+                                    {batches.length === 0 ? (
+                                      <SelectItem value="none" disabled>No batches found</SelectItem>
+                                    ) : (
+                                      batches.map((b) => (
+                                        <SelectItem key={b.id} value={b.id.toString()}>
+                                          {b.name}
+                                        </SelectItem>
+                                      ))
+                                    )}
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -450,23 +593,30 @@ const WardenVisitorLogs = () => {
                               <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Branch</Label>
                                 <Select
-                                  value={selectedBranch || "all"}
+                                  value={selectedBranch}
+                                  open={isBranchSelectOpen}
+                                  onOpenChange={setIsBranchSelectOpen}
                                   onValueChange={(val) => {
-                                    setSelectedBranch(val === "all" ? "" : val);
+                                    setSelectedBranch(val);
                                     setSelectedSemester('');
-                                    setFormData({...formData, student: ''});
+                                    setFormData({ ...formData, student: '' });
+                                    setSelectedStudentName('');
+                                    setTimeout(() => setIsSemesterSelectOpen(true), 150);
                                   }}
                                 >
                                   <SelectTrigger className="w-full h-9 text-xs bg-background">
-                                    <SelectValue placeholder="All" />
+                                    <SelectValue placeholder="Select Branch" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="all">All</SelectItem>
-                                    {branches.map((b) => (
-                                      <SelectItem key={b.id} value={b.id.toString()}>
-                                        {b.name}
-                                      </SelectItem>
-                                    ))}
+                                    {branches.length === 0 ? (
+                                      <SelectItem value="none" disabled>No batches found</SelectItem>
+                                    ) : (
+                                      branches.map((b) => (
+                                        <SelectItem key={b.id} value={b.id.toString()}>
+                                          {b.name}
+                                        </SelectItem>
+                                      ))
+                                    )}
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -474,23 +624,31 @@ const WardenVisitorLogs = () => {
                               <div className="space-y-1.5">
                                 <Label className="text-xs text-muted-foreground">Semester</Label>
                                 <Select
-                                  value={selectedSemester || "all"}
+                                  value={selectedSemester}
+                                  open={isSemesterSelectOpen}
+                                  onOpenChange={setIsSemesterSelectOpen}
                                   onValueChange={(val) => {
-                                    setSelectedSemester(val === "all" ? "" : val);
-                                    setFormData({...formData, student: ''});
+                                    setSelectedSemester(val);
+                                    setFormData({ ...formData, student: '' });
+                                    setSelectedStudentName('');
+                                    setTimeout(() => setIsStudentSelectOpen(true), 150);
                                   }}
-                                  disabled={!selectedBranch}
                                 >
                                   <SelectTrigger className="w-full h-9 text-xs bg-background">
-                                    <SelectValue placeholder="All" />
+                                    <SelectValue placeholder="Select Semester" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="all">All</SelectItem>
-                                    {selectedBranch && semestersByBranch[selectedBranch]?.map((s: any) => (
-                                      <SelectItem key={s.id} value={s.id.toString()}>
-                                        Sem {s.number}
-                                      </SelectItem>
-                                    ))}
+                                    {!selectedBranch ? (
+                                      <SelectItem value="none" disabled>Select branch first</SelectItem>
+                                    ) : !semestersByBranch[selectedBranch] || semestersByBranch[selectedBranch].length === 0 ? (
+                                      <SelectItem value="none" disabled>No semesters found</SelectItem>
+                                    ) : (
+                                      semestersByBranch[selectedBranch].map((s: any) => (
+                                        <SelectItem key={s.id} value={s.id.toString()}>
+                                          Sem {s.number}
+                                        </SelectItem>
+                                      ))
+                                    )}
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -499,27 +657,102 @@ const WardenVisitorLogs = () => {
 
                           <div className="space-y-2 pt-2 border-t border-border/40">
                             <Label className="text-xs">Student *</Label>
-                            <Select
-                              value={formData.student}
-                              onValueChange={(val) => setFormData({ ...formData, student: val })}
-                              disabled={!formData.hostel}
-                            >
-                              <SelectTrigger className="w-full h-10 text-sm bg-background">
-                                <SelectValue placeholder={formData.hostel ? "Select a student..." : "Please select a hostel first"} />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-48" onScroll={loadMoreStudents}>
-                                {students.map((s: any) => (
-                                  <SelectItem key={s.id} value={s.id.toString()}>
-                                    {s.name} ({s.usn}) - Room {s.room_number || s.room}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <Popover open={isStudentSelectOpen} onOpenChange={setIsStudentSelectOpen}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  type="button"
+                                  className="w-full h-10 justify-between text-left font-normal text-sm bg-background border border-input px-3 hover:bg-accent hover:text-accent-foreground"
+                                >
+                                  <span className="truncate">
+                                    {formData.student
+                                      ? selectedStudentName || "Select a student..."
+                                      : "Select a student..."
+                                    }
+                                  </span>
+                                  <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[320px] p-0 z-[100] bg-popover text-popover-foreground border shadow-md rounded-md" align="start">
+                                <div className="p-2 border-b border-border bg-muted/10">
+                                  <Input
+                                    placeholder="Search student by name/USN..."
+                                    value={studentSearch}
+                                    onChange={(e) => setStudentSearch(e.target.value)}
+                                    className="h-9 text-xs"
+                                  />
+                                </div>
+                                <div className="max-h-48 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
+                                  {students.length === 0 ? (
+                                    <div className="p-2 text-xs text-muted-foreground text-center">No students found</div>
+                                  ) : (
+                                    students.map((s: any) => (
+                                      <button
+                                        key={s.id}
+                                        type="button"
+                                        onClick={() => {
+                                          const matchedHostel = hostels.find(h => h.name === s.room_hostel_name);
+                                          setFormData({ 
+                                            ...formData, 
+                                            student: s.id.toString(),
+                                            hostel: matchedHostel ? matchedHostel.id.toString() : formData.hostel
+                                          });
+                                          setSelectedStudentName(s.name);
+                                          if (s.batch) setSelectedBatch(s.batch.toString());
+                                          if (s.branch) setSelectedBranch(s.branch.toString());
+                                          if (s.semester) setSelectedSemester(s.semester.toString());
+                                          setIsStudentSelectOpen(false);
+                                        }}
+                                        className={cn(
+                                          "w-full text-left px-2 py-1.5 rounded-sm text-xs hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between",
+                                          formData.student === s.id.toString() && "bg-accent font-semibold"
+                                        )}
+                                      >
+                                        <div className="truncate">
+                                          <div className="font-medium">{s.name} ({s.usn})</div>
+                                          <div className="text-[10px] text-muted-foreground">Room {s.room_name || s.room || 'Not Allotted'}</div>
+                                        </div>
+                                        {formData.student === s.id.toString() && (
+                                          <span className="text-primary font-bold">✓</span>
+                                        )}
+                                      </button>
+                                    ))
+                                  )}
+                                </div>
+                                {(students.length > 0 || studentPage > 1) && (
+                                  <div className="p-2 border-t border-border flex items-center justify-between gap-2 bg-muted/20">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      type="button"
+                                      className="h-7 px-2 text-[10px]"
+                                      onClick={() => setStudentPage(p => Math.max(1, p - 1))}
+                                      disabled={!hasPrevStudents}
+                                    >
+                                      Previous
+                                    </Button>
+                                    <span className="text-[10px] font-semibold text-muted-foreground">
+                                      Page {studentPage} of {Math.ceil(studentCount / 50) || 1}
+                                    </span>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      type="button"
+                                      className="h-7 px-2 text-[10px]"
+                                      onClick={() => setStudentPage(p => p + 1)}
+                                      disabled={!hasMoreStudents}
+                                    >
+                                      Next
+                                    </Button>
+                                  </div>
+                                )}
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
 
                       </div>
-                      
+
                       <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-border/40">
                         <Button type="button" variant="outline" className="h-10 text-sm px-4" onClick={() => setIsModalOpen(false)}>
                           Cancel
@@ -537,7 +770,7 @@ const WardenVisitorLogs = () => {
                   size="sm"
                   onClick={handleExportPDF}
                   disabled={exporting || totalCount === 0}
-                  className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap w-full sm:w-auto"
                 >
                   {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                   Export PDF
@@ -581,25 +814,24 @@ const WardenVisitorLogs = () => {
                 {logs.map((log) => (
                   <div
                     key={log.id}
-                    className={`p-4 rounded-xl border ${
-                      theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
-                    } flex flex-col gap-2 shadow-sm`}
+                    className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
+                      } flex flex-col gap-2 shadow-sm`}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center justify-between gap-3">
                       <div>
-                        <h4 className="font-semibold text-md leading-tight">{log.visitor_name}</h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">{log.mobile_number}</p>
-                        <Badge variant="secondary" className="mt-1 text-[10px] font-semibold bg-primary/5 text-primary border-none">
-                          {log.hostel_name || '-'}
-                        </Badge>
+                        <h4 className="font-semibold text-lg leading-tight">{log.visitor_name}</h4>
+                        <p className="text-sm text-muted-foreground mt-0.5">{log.mobile_number}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <Badge variant="secondary" className="text-[11px] font-semibold bg-primary/5 text-primary border-none">
+                          {log.hostel_name || '-'}
+                        </Badge>
                         {log.check_out_time ? (
-                          <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[10px]">
+                          <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[11px]">
                             Checked Out
                           </Badge>
                         ) : isOverdue(log.check_in_time, log.check_out_time) ? (
-                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 dark:text-orange-400 border-none font-semibold text-[10px] animate-pulse">
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 dark:text-orange-400 border-none font-semibold text-[11px] animate-pulse">
                             Student Reminded
                           </Badge>
                         ) : (
@@ -612,29 +844,28 @@ const WardenVisitorLogs = () => {
 
                     <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-border/30 text-xs">
                       <div>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Check-In</span>
-                        <div className="font-medium mt-0.5">{formatDate(log.check_in_time)}</div>
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Check-In</span>
+                        <div className="font-medium mt-0.5 text-sm">{formatDate(log.check_in_time)}</div>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Check-Out</span>
-                        <div className="font-medium mt-0.5">{formatDate(log.check_out_time)}</div>
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Check-Out</span>
+                        <div className="font-medium mt-0.5 text-sm">{formatDate(log.check_out_time)}</div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30 gap-2">
+                    <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-border/30">
                       <div className="min-w-0">
-                        <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Student</div>
-                        <div className="text-sm font-semibold truncate">{log.student_name}</div>
-                        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">{log.student_usn}</div>
+                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Student</div>
+                        <div className="text-base font-semibold truncate">{log.student_name || '-'}</div>
+                        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider truncate">{log.student_usn || '-'}</div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2 w-full mt-1">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setViewPurpose(log.purpose)}
-                          className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 ${
-                            theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                          }`}
+                          className={`flex-1 text-xs font-semibold px-2 py-1 rounded-xl h-8 transition-all flex items-center justify-center gap-1 ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                            }`}
                         >
                           View Purpose
                         </Button>
@@ -646,7 +877,7 @@ const WardenVisitorLogs = () => {
                                 size="sm"
                                 onClick={() => handleSendReminder(log.id)}
                                 disabled={isSendingReminder === log.id || isCheckingOut === log.id}
-                                className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 flex items-center gap-1 border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-950 dark:text-orange-400 dark:hover:bg-orange-950/20"
+                                className="flex-1 text-xs font-semibold px-2 py-1 rounded-xl h-8 transition-all flex items-center justify-center gap-1 border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-950 dark:text-orange-400 dark:hover:bg-orange-950/20"
                               >
                                 {isSendingReminder === log.id ? (
                                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -661,7 +892,7 @@ const WardenVisitorLogs = () => {
                               size="sm"
                               onClick={() => handleCheckout(log.id)}
                               disabled={isCheckingOut === log.id || isSendingReminder === log.id}
-                              className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
+                              className="flex-1 text-xs font-semibold px-2 py-1 rounded-xl h-8 transition-all flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white"
                             >
                               {isCheckingOut === log.id ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -704,8 +935,8 @@ const WardenVisitorLogs = () => {
                           </Badge>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="font-semibold">{log.student_name}</div>
-                          <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn}</div>
+                          <div className="font-semibold">{log.student_name || '-'}</div>
+                          <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn || '-'}</div>
                         </td>
                         <td className="py-3 px-4">
                           <Button
@@ -821,7 +1052,7 @@ const WardenVisitorLogs = () => {
 
       {/* View Purpose Dialog */}
       <Dialog open={!!viewPurpose} onOpenChange={() => setViewPurpose(null)}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden'}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden'}>
           <DialogHeader>
             <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Visit Purpose</DialogTitle>
           </DialogHeader>

@@ -142,34 +142,44 @@ const HmsVisitorLogs = () => {
     <div className="space-y-6">
       <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm">
         <CardHeader id="hms-visitor-logs-header" className="pb-4 border-b bg-muted/30">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <CardTitle className="text-xl">Visitor Logs</CardTitle>
-              <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-none font-semibold px-2 py-0.5 rounded-md text-xs">
-                Total: {totalCount}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <div className="relative w-full md:w-72">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search visitors, students, or hostels..."
-                  className="pl-9 bg-background"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl">Visitor Logs</CardTitle>
+                <Badge className="bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 font-semibold text-xs py-1 px-2.5 rounded-lg border-none shadow-none hover:bg-blue-50">
+                  Total: {totalCount}
+                </Badge>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportPDF}
-                disabled={exporting || totalCount === 0}
-                className="flex items-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap shadow-sm"
-              >
-                {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export PDF
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPDF}
+                  disabled={exporting || totalCount === 0}
+                  className="flex items-center justify-center gap-1.5 h-9 text-xs bg-primary hover:bg-primary/90 text-white border-primary transition-all px-3 whitespace-nowrap w-full sm:w-auto shadow-sm"
+                >
+                  {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  Export PDF
+                </Button>
+              </div>
+            </div>
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-40" />
+              <Input
+                type="text"
+                placeholder="Search visitors, students, or hostels..."
+                className="pl-10 pr-12 h-10 bg-background border-primary/10 hover:border-primary/30 transition-colors"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -194,17 +204,17 @@ const HmsVisitorLogs = () => {
                       theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'
                     } flex flex-col gap-2 shadow-sm`}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center justify-between gap-3">
                       <div>
-                        <h4 className="font-semibold text-md leading-tight">{log.visitor_name}</h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">{log.mobile_number}</p>
-                        <Badge variant="secondary" className="mt-1 text-[10px] font-semibold bg-primary/5 text-primary border-none">
-                          {log.hostel_name || '-'}
-                        </Badge>
+                        <h4 className="font-semibold text-lg leading-tight">{log.visitor_name}</h4>
+                        <p className="text-sm text-muted-foreground mt-0.5">{log.mobile_number}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <Badge variant="secondary" className="text-[11px] font-semibold bg-primary/5 text-primary border-none">
+                          {log.hostel_name || '-'}
+                        </Badge>
                         {log.check_out_time ? (
-                          <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[10px]">
+                          <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-none font-semibold text-[11px]">
                             Checked Out
                           </Badge>
                         ) : (
@@ -217,27 +227,27 @@ const HmsVisitorLogs = () => {
 
                     <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-border/30 text-xs">
                       <div>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Check-In</span>
-                        <div className="font-medium mt-0.5">{formatDate(log.check_in_time)}</div>
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Check-In</span>
+                        <div className="font-medium mt-0.5 text-sm">{formatDate(log.check_in_time)}</div>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Check-Out</span>
-                        <div className="font-medium mt-0.5">{formatDate(log.check_out_time)}</div>
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Check-Out</span>
+                        <div className="font-medium mt-0.5 text-sm">{formatDate(log.check_out_time)}</div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30 gap-2">
+                    <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-border/30">
                       <div className="min-w-0">
-                        <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">Student</div>
-                        <div className="text-sm font-semibold truncate">{log.student_name}</div>
-                        <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider truncate">{log.student_usn}</div>
+                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Student</div>
+                        <div className="text-base font-semibold truncate">{log.student_name || '-'}</div>
+                        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider truncate">{log.student_usn || '-'}</div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2 w-full mt-1">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setViewPurpose(log.purpose)}
-                          className={`text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 ${
+                          className={`flex-1 text-xs font-semibold px-2 py-1 rounded-xl h-8 transition-all flex items-center justify-center gap-1 ${
                             theme === 'dark' ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
                           }`}
                         >
@@ -249,7 +259,7 @@ const HmsVisitorLogs = () => {
                             size="sm"
                             onClick={() => handleCheckout(log.id)}
                             disabled={isCheckingOut === log.id}
-                            className="text-xs font-semibold px-3 py-1 rounded-xl h-8 transition-all shrink-0 flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white"
+                            className="flex-1 text-xs font-semibold px-2 py-1 rounded-xl h-8 transition-all flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white"
                           >
                             {isCheckingOut === log.id ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -291,8 +301,8 @@ const HmsVisitorLogs = () => {
                           </Badge>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="font-semibold">{log.student_name}</div>
-                          <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn}</div>
+                          <div className="font-semibold">{log.student_name || '-'}</div>
+                          <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">{log.student_usn || '-'}</div>
                         </td>
                         <td className="py-3 px-4">
                           <Button
@@ -380,7 +390,7 @@ const HmsVisitorLogs = () => {
 
       {/* View Purpose Dialog */}
       <Dialog open={!!viewPurpose} onOpenChange={() => setViewPurpose(null)}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden'}>
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6 shadow-2xl [&>button]:hidden'}>
           <DialogHeader>
             <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Visit Purpose</DialogTitle>
           </DialogHeader>

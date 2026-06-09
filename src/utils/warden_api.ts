@@ -33,7 +33,8 @@ export const getWardenStudents = async (
   batch?: string,
   branch?: string,
   semester?: string,
-  page: number = 1
+  page: number = 1,
+  search?: string
 ) => {
   let url = `${API_ENDPOINT}/warden/students/`;
   const params = new URLSearchParams();
@@ -42,6 +43,7 @@ export const getWardenStudents = async (
   if (batch) params.append('batch', batch);
   if (branch) params.append('branch', branch);
   if (semester) params.append('semester', semester);
+  if (search) params.append('search', search);
   params.append('page', page.toString());
   
   if (params.toString()) {
