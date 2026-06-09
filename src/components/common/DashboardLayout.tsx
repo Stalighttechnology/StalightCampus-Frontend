@@ -232,6 +232,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     } catch (err) {
 
     } finally {
+      queryClient.clear(); // Clear React Query cache so previous user's data is wiped
       clearAuth();
       // Use client-side navigation to avoid reloading from backend server
       try {
