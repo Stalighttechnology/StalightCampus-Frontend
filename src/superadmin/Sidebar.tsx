@@ -55,7 +55,7 @@ const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollaps
 
   return (
     <motion.div
-      className={`h-screen flex flex-col border-r shadow-xl z-30 transition-all duration-300 ${
+      className={`h-screen flex flex-col border-r shadow-xl z-30 transition-all duration-300 pt-[max(2.5rem,env(safe-area-inset-top))] lg:pt-0 ${
         theme === 'dark' ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-gray-200'
       } ${collapsed ? 'w-20' : 'w-64'}`}
       initial={false}
