@@ -424,8 +424,8 @@ const WardenVisitorLogs = () => {
                           <div className="space-y-2 pt-2 border-t border-border/40">
                             <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Filter Students (Optional)</Label>
                             <div className="grid grid-cols-3 gap-2">
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground">Batch</Label>
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Batch</Label>
                                 <Select
                                   value={selectedBatch || "all"}
                                   onValueChange={(val) => {
@@ -433,7 +433,7 @@ const WardenVisitorLogs = () => {
                                     setFormData({...formData, student: ''});
                                   }}
                                 >
-                                  <SelectTrigger className="w-full h-8 text-[10px] bg-background">
+                                  <SelectTrigger className="w-full h-9 text-xs bg-background">
                                     <SelectValue placeholder="All" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -447,8 +447,8 @@ const WardenVisitorLogs = () => {
                                 </Select>
                               </div>
 
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground">Branch</Label>
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Branch</Label>
                                 <Select
                                   value={selectedBranch || "all"}
                                   onValueChange={(val) => {
@@ -457,7 +457,7 @@ const WardenVisitorLogs = () => {
                                     setFormData({...formData, student: ''});
                                   }}
                                 >
-                                  <SelectTrigger className="w-full h-8 text-[10px] bg-background">
+                                  <SelectTrigger className="w-full h-9 text-xs bg-background">
                                     <SelectValue placeholder="All" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -471,8 +471,8 @@ const WardenVisitorLogs = () => {
                                 </Select>
                               </div>
 
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground">Semester</Label>
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Semester</Label>
                                 <Select
                                   value={selectedSemester || "all"}
                                   onValueChange={(val) => {
@@ -481,7 +481,7 @@ const WardenVisitorLogs = () => {
                                   }}
                                   disabled={!selectedBranch}
                                 >
-                                  <SelectTrigger className="w-full h-8 text-[10px] bg-background">
+                                  <SelectTrigger className="w-full h-9 text-xs bg-background">
                                     <SelectValue placeholder="All" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -504,7 +504,7 @@ const WardenVisitorLogs = () => {
                               onValueChange={(val) => setFormData({ ...formData, student: val })}
                               disabled={!formData.hostel}
                             >
-                              <SelectTrigger className="w-full h-9 text-xs bg-background">
+                              <SelectTrigger className="w-full h-10 text-sm bg-background">
                                 <SelectValue placeholder={formData.hostel ? "Select a student..." : "Please select a hostel first"} />
                               </SelectTrigger>
                               <SelectContent className="max-h-48" onScroll={loadMoreStudents}>
@@ -521,10 +521,10 @@ const WardenVisitorLogs = () => {
                       </div>
                       
                       <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-border/40">
-                        <Button type="button" variant="outline" className="h-9 text-xs" onClick={() => setIsModalOpen(false)}>
+                        <Button type="button" variant="outline" className="h-10 text-sm px-4" onClick={() => setIsModalOpen(false)}>
                           Cancel
                         </Button>
-                        <Button type="submit" className="h-9 text-xs" disabled={isSubmitting}>
+                        <Button type="submit" className="h-10 text-sm px-4" disabled={isSubmitting}>
                           {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                           Save
                         </Button>
