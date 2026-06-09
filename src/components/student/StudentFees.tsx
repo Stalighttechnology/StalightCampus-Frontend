@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
@@ -115,6 +115,20 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   const [downloadingReceiptId, setDownloadingReceiptId] = useState<number | null>(null);
   const { theme } = useTheme();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const handleChanged = () => {
+      queryClient.invalidateQueries({ queryKey: ['studentCompleteFeeData'] });
+    };
+    window.addEventListener('feeComponents:changed', handleChanged);
+    window.addEventListener('feeTemplates:changed', handleChanged);
+    window.addEventListener('feeAssignments:changed', handleChanged);
+    return () => {
+      window.removeEventListener('feeComponents:changed', handleChanged);
+      window.removeEventListener('feeTemplates:changed', handleChanged);
+      window.removeEventListener('feeAssignments:changed', handleChanged);
+    };
+  }, [queryClient]);
 
   const handleExportPDF = async () => {
     setExportingPDF(true);

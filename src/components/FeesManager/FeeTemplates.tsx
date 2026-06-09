@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +75,11 @@ const FeeTemplates: React.FC = () => {
   const { theme } = useTheme(); // Using theme context
   const [templates, setTemplates] = useState<FeeTemplate[]>([]);
   const [templatesPage, setTemplatesPage] = useState(1);
+  const templatesPageRef = useRef(templatesPage);
+  useEffect(() => {
+    templatesPageRef.current = templatesPage;
+  }, [templatesPage]);
+
   const [templatesPageSize] = useState(25);
   const [templatesTotalPages, setTemplatesTotalPages] = useState(1);
   const [templatesTotalCount, setTemplatesTotalCount] = useState(0);
@@ -114,8 +119,10 @@ const FeeTemplates: React.FC = () => {
         }, ...prev]);
       } else if (action === 'update' && detail.item) {
         setAvailableComponents((prev) => prev.map((c) => c.id === detail.item.id ? { ...detail.item, amount: detail.item.amount_cents != null ? Number(detail.item.amount_cents) / 100 : detail.item.amount ? Math.round(detail.item.amount * 100) / 100 : 0 } : c));
+        fetchTemplates(templatesPageRef.current);
       } else if (action === 'delete' && detail.id) {
         setAvailableComponents((prev) => prev.filter((c) => c.id !== detail.id));
+        fetchTemplates(templatesPageRef.current);
       }
     };
     window.addEventListener('feeComponents:changed', onComponentsChanged);

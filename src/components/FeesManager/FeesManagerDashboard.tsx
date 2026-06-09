@@ -190,7 +190,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
               <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Revenue Trends</h3>
               <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Monthly collection performance</p>
             </div>
-            <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 border-none font-bold">Last 6 Months</Badge>
+            <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 border-none font-semibold">Last 6 Months</Badge>
           </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -224,10 +224,10 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
               <IndianRupee className="w-32 h-32" />
             </div>
             <div className="relative z-10">
-              <h4 className="text-lg font-bold mb-2">Need Financial Assistance?</h4>
+              <h4 className="text-lg font-semibold mb-2">Need Financial Assistance?</h4>
               <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-blue-200/70' : 'text-blue-700/80'}`}>Generate automated recovery notices for students with overdue balances exceeding ₹10,000.</p>
               <Button
-                className="w-full font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+                className="w-full font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
                 onClick={() => handlePageChange('invoices')}
               >
                 Run Recovery Notice
@@ -240,15 +240,15 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
             <div className="space-y-4 mt-4">
               <div className="flex justify-between items-center">
                 <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Pending Invoices</span>
-                <span className="font-bold">{dashboardData?.stats?.pending_invoices || 0}</span>
+                <span className="font-semibold">{dashboardData?.stats?.pending_invoices || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Overdue Count</span>
-                <span className="font-bold text-rose-500">{dashboardData?.stats?.overdue_count || 0}</span>
+                <span className="font-semibold text-rose-500">{dashboardData?.stats?.overdue_count || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Students</span>
-                <span className="font-bold">{dashboardData?.stats?.total_students || 0}</span>
+                <span className="font-semibold">{dashboardData?.stats?.total_students || 0}</span>
               </div>
             </div>
           </div>
@@ -262,7 +262,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
             <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Transactions</h3>
             <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Last 5 successful fee collections</p>
           </div>
-          <Button variant="ghost" size="sm" className="font-bold text-blue-500 hover:text-blue-600" onClick={() => handlePageChange('payments')}>
+          <Button variant="ghost" size="sm" className="font-semibold text-blue-500 hover:text-blue-600" onClick={() => handlePageChange('payments')}>
             View All <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
@@ -270,27 +270,27 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
           <table className="w-full text-sm text-left">
             <thead>
               <tr className={`border-b ${theme === 'dark' ? 'border-border text-foreground bg-slate-800/50' : 'border-gray-200 text-gray-900 bg-slate-50/50'}`}>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs">Student</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs">Transaction ID</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs">Method</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs">Date</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider text-xs text-right">Amount</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Student</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Transaction ID</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Method</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Date</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right">Amount</th>
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-slate-800">
               {dashboardData?.recent_transactions.map((txn, i) => (
                 <tr key={i} className={`transition-colors ${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`}>
                   <td className="px-6 py-4">
-                    <div className="font-bold">{txn.student_name}</div>
+                    <div className="font-semibold">{txn.student_name}</div>
                   </td>
                   <td className="px-6 py-4">
                     <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{txn.transaction_id}</code>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant="outline" className="font-bold capitalize">{txn.method}</Badge>
+                    <Badge variant="outline" className="font-semibold capitalize">{txn.method}</Badge>
                   </td>
                   <td className="px-6 py-4 text-slate-500">{txn.date}</td>
-                  <td className="px-6 py-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                  <td className="px-6 py-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">
                     {formatCurrency(txn.amount)}
                   </td>
                 </tr>
