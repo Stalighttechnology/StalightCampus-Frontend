@@ -383,7 +383,7 @@ const ManageStudentLeave = () => {
           </div>
 
         </CardContent>
-        {pagination && pagination.totalItems > 0 && (
+        {pagination && pagination.totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.totalItems)} to {Math.min(pagination.page * pagination.pageSize, pagination.totalItems)} of {pagination.totalItems} records

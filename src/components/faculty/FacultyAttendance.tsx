@@ -128,7 +128,7 @@ const FacultyAttendance = () => {
       queryParams.append("report_type", "my_attendance");
       if (historyStartDate) queryParams.append("start_date", format(historyStartDate, "yyyy-MM-dd"));
       if (historyEndDate) queryParams.append("end_date", format(historyEndDate, "yyyy-MM-dd"));
-      
+
       const response = await fetchWithTokenRefresh(
         `${API_ENDPOINT}/reports/export-pdf/?${queryParams.toString()}`,
         {
@@ -197,11 +197,11 @@ const FacultyAttendance = () => {
 
         const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
           const timer = setTimeout(() => reject(new Error('Location timeout')), 10000);
-          navigator.geolocation.getCurrentPosition((p) => {clearTimeout(timer);resolve(p);}, (err) => {clearTimeout(timer);reject(err);}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+          navigator.geolocation.getCurrentPosition((p) => { clearTimeout(timer); resolve(p); }, (err) => { clearTimeout(timer); reject(err); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
         }).catch((err) => {
 
-          if (err && err.code === 1) toast.error('Location permission denied. Enable location to mark present.');else
-          toast.error('Unable to get device location. Cannot mark present.');
+          if (err && err.code === 1) toast.error('Location permission denied. Enable location to mark present.'); else
+            toast.error('Unable to get device location. Cannot mark present.');
           return null;
         });
 
@@ -237,7 +237,8 @@ const FacultyAttendance = () => {
         } catch (e) {
 
           // ignore
-        }}
+        }
+      }
 
       setLoadingMessage("Syncing with server...");
       const requestData: MarkFacultyAttendanceRequest & any = {
@@ -329,10 +330,10 @@ const FacultyAttendance = () => {
                   onClick={() => handleToggleAttendance("present")}
                   disabled={isSubmitting || !!attendanceStatus}
                   className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'present' ?
-                  'bg-blue-500 text-white animate-pulse' :
-                  attendanceStatus === 'present' ?
-                  'bg-green-500 text-white scale-110' :
-                  theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                    'bg-blue-500 text-white animate-pulse' :
+                    attendanceStatus === 'present' ?
+                      'bg-green-500 text-white scale-110' :
+                      theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
                   }
                   whileHover={{ scale: attendanceStatus === 'present' || markingStatus === 'present' ? 1.1 : 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -342,11 +343,11 @@ const FacultyAttendance = () => {
                   transition={{
                     rotate: { duration: 0.5, ease: "easeInOut" }
                   }}>
-                  
-                  {markingStatus === 'present' ?
-                  <Loader2 className="w-8 h-8 animate-spin" /> :
 
-                  <CheckCircle className="w-8 h-8" />
+                  {markingStatus === 'present' ?
+                    <Loader2 className="w-8 h-8 animate-spin" /> :
+
+                    <CheckCircle className="w-8 h-8" />
                   }
                 </motion.button>
 
@@ -355,10 +356,10 @@ const FacultyAttendance = () => {
                   onClick={() => handleToggleAttendance("absent")}
                   disabled={isSubmitting || !!attendanceStatus}
                   className={`flex items-center justify-center w-20 h-20 rounded-full transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${markingStatus === 'absent' ?
-                  'bg-blue-500 text-white animate-pulse' :
-                  attendanceStatus === 'absent' ?
-                  'bg-red-500 text-white scale-110' :
-                  theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
+                    'bg-blue-500 text-white animate-pulse' :
+                    attendanceStatus === 'absent' ?
+                      'bg-red-500 text-white scale-110' :
+                      theme === 'dark' ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200'}`
                   }
                   whileHover={{ scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -368,11 +369,11 @@ const FacultyAttendance = () => {
                   transition={{
                     rotate: { duration: 0.5, ease: "easeInOut" }
                   }}>
-                  
-                  {markingStatus === 'absent' ?
-                  <Loader2 className="w-8 h-8 animate-spin" /> :
 
-                  <XCircle className="w-8 h-8" />
+                  {markingStatus === 'absent' ?
+                    <Loader2 className="w-8 h-8 animate-spin" /> :
+
+                    <XCircle className="w-8 h-8" />
                   }
                 </motion.button>
               </div>
@@ -385,7 +386,7 @@ const FacultyAttendance = () => {
                     scale: attendanceStatus === 'present' || markingStatus === 'present' ? 1.1 : 1
                   }}
                   transition={{ duration: 0.3 }}>
-                  
+
                   {markingStatus === 'present' ? 'Marking...' : 'Present'}
                 </motion.span>
                 <motion.span
@@ -394,7 +395,7 @@ const FacultyAttendance = () => {
                     scale: attendanceStatus === 'absent' || markingStatus === 'absent' ? 1.1 : 1
                   }}
                   transition={{ duration: 0.3 }}>
-                  
+
                   {markingStatus === 'absent' ? 'Marking...' : 'Absent'}
                 </motion.span>
               </div>
@@ -402,12 +403,12 @@ const FacultyAttendance = () => {
               {/* Progress Message */}
               <AnimatePresence>
                 {isSubmitting && loadingMessage &&
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="flex items-center gap-2 text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
-                  
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex items-center gap-2 text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
+
                     <Loader2 className="w-3 h-3 animate-spin" />
                     {loadingMessage}
                   </motion.div>
@@ -417,16 +418,16 @@ const FacultyAttendance = () => {
               {/* Status Indicator */}
               <AnimatePresence mode="wait">
                 {attendanceStatus &&
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="text-center mt-4">
-                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-center mt-4">
+
                     <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full ${attendanceStatus === 'present' ?
-                  theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800' :
-                  theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800'}`
-                  }>
+                      theme === 'dark' ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-800' :
+                      theme === 'dark' ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-800'}`
+                    }>
                       {getStatusIcon(attendanceStatus)}
                       <span className="font-medium capitalize">
                         {attendanceStatus === 'present' ? 'Present' : 'Absent'}
@@ -453,18 +454,18 @@ const FacultyAttendance = () => {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add any notes about your attendance..."
               className={`resize-none h-24 ${theme === 'dark' ? 'bg-background border-input text-foreground' : 'bg-white border-gray-300 text-gray-900'}`} />
-            
+
           </motion.div>
 
           {/* Attendance Details */}
           <AnimatePresence>
             {todayRecord &&
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className={`p-4 rounded-lg border ${getStatusColor(todayRecord.status)}`}>
-              
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className={`p-4 rounded-lg border ${getStatusColor(todayRecord.status)}`}>
+
                 <div className="flex items-center space-x-3">
                   {getStatusIcon(todayRecord.status)}
                   <div>
@@ -473,22 +474,22 @@ const FacultyAttendance = () => {
                       Marked at {todayRecord.marked_at ? new Date(todayRecord.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
                     </p>
                     {todayRecord.location ?
-                  <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         {todayRecord.location.inside ?
-                    <>On campus • {todayRecord.location.distance_meters ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</> :
+                          <>On campus • {todayRecord.location.distance_meters ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</> :
 
-                    <>Outside campus • {todayRecord.location.distance_meters ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</>
-                    }
+                          <>Outside campus • {todayRecord.location.distance_meters ? `${Math.round(todayRecord.location.distance_meters)} m` : 'distance unknown'}</>
+                        }
                         {todayRecord.location.campus_name ? ` • ${todayRecord.location.campus_name}` : ''}
                       </p> :
 
-                  <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</p>
-                  }
+                      <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</p>
+                    }
                     {todayRecord.notes &&
-                  <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Notes: {todayRecord.notes}
                       </p>
-                  }
+                    }
                   </div>
                 </div>
               </motion.div>
@@ -499,22 +500,22 @@ const FacultyAttendance = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Attendance Records */}
         <Card className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 h-[72px] sm:h-[80px]">
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-              Recent Attendance Records
+              Recent Attendance (Last 7 Days)
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1">
-            {recentRecords.length > 0 ?
-            <div className="space-y-3 h-[440px] overflow-y-auto custom-scrollbar pr-1">
+            {recentRecords.length > 1 ?
+              <div className="space-y-3 h-[500px] overflow-y-auto custom-scrollbar pr-1">
                 {paginatedRecentRecords.map((record) =>
-              <motion.div
-                key={record.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
-                
+                  <motion.div
+                    key={record.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         {getStatusIcon(record.status)}
@@ -539,10 +540,10 @@ const FacultyAttendance = () => {
                     }
                     {/* Location removed from UI */}
                   </motion.div>
-              )}
+                )}
               </div> :
 
-            <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div className={`flex flex-col items-center justify-center py-12 px-4 rounded-lg border-2 border-dashed ${theme === 'dark' ? 'border-border bg-card/30' : 'border-gray-200 bg-gray-50/50'}`}>
                 <div className={`p-3 rounded-full mb-3 ${theme === 'dark' ? 'bg-primary/10' : 'bg-primary/5'}`}>
                   <Clock className="w-8 h-8 text-primary opacity-50" />
                 </div>
@@ -588,14 +589,14 @@ const FacultyAttendance = () => {
         </Card>
 
         <Card id="faculty-attendance-history" className={`hidden md:flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-          <CardHeader id="faculty-attendance-history-header" className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
+          <CardHeader id="faculty-attendance-history-header" className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 h-[72px] sm:h-[80px]">
             <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
               Attendance History
             </CardTitle>
             <div className="flex items-center gap-2 flex-shrink-0">
               <Button
                 onClick={handleExportPdf}
-                disabled={exportingPdf || !historyStartDate || !historyEndDate}
+                disabled={exportingPdf}
                 className="bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-3 sm:px-4 shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap"
               >
                 {exportingPdf ? (
@@ -606,91 +607,110 @@ const FacultyAttendance = () => {
                 Export PDF
               </Button>
 
-              <Popover open={historyFilterOpen} onOpenChange={setHistoryFilterOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-9 px-2.5 whitespace-nowrap"
-                  >
-                    <Filter className="w-4 h-4" />
-                    <span className="hidden sm:inline">Filter</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className={`w-72 p-4 space-y-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`} 
-                  align="end"
-                  onInteractOutside={(event) => {
-                    // Prevent closing when interacting with calendar popups
-                    const target = event.target as HTMLElement;
-                    if (target.closest('[data-radix-popper-content-wrapper]')) {
-                      event.preventDefault();
-                    }
+              {historyStartDate || historyEndDate ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setHistoryStartDate(undefined);
+                    setHistoryEndDate(undefined);
+                    setHistoryPage(1);
                   }}
+                  className={`flex items-center gap-0.5 sm:gap-1 transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-9 px-2.5 whitespace-nowrap ${theme === 'dark'
+                      ? 'text-red-400 border-red-400 hover:bg-red-900/20 hover:text-red-400'
+                      : 'text-red-700 border-red-600 hover:bg-red-100 hover:text-red-700'
+                    }`}
                 >
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Start Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-10 px-3 border",
-                            !historyStartDate && "text-muted-foreground",
-                            theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {historyStartDate ? format(historyStartDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 border border-border" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={historyStartDate}
-                          onSelect={handleStartDateChange}
-                          disabled={(date) => date > new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">End Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-10 px-3 border",
-                            !historyEndDate && "text-muted-foreground",
-                            theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {historyEndDate ? format(historyEndDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 border border-border" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={historyEndDate}
-                          onSelect={handleEndDateChange}
-                          disabled={(date) => date > new Date() || (historyStartDate ? date <= historyStartDate : false)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                  <XCircle className="w-4 h-4" />
+                  <span>Clear Filter</span>
+                </Button>
+              ) : (
+                <Popover open={historyFilterOpen} onOpenChange={setHistoryFilterOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-9 px-2.5 whitespace-nowrap"
+                    >
+                      <Filter className="w-4 h-4" />
+                      <span className="hidden sm:inline">Filter</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className={`w-72 p-4 space-y-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
+                    align="end"
+                    onInteractOutside={(event) => {
+                      // Prevent closing when interacting with calendar popups
+                      const target = event.target as HTMLElement;
+                      if (target.closest('[data-radix-popper-content-wrapper]')) {
+                        event.preventDefault();
+                      }
+                    }}
+                  >
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Start Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal h-10 px-3 border",
+                              !historyStartDate && "text-muted-foreground",
+                              theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {historyStartDate ? format(historyStartDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 border border-border" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={historyStartDate}
+                            onSelect={handleStartDateChange}
+                            disabled={(date) => date > new Date()}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">End Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal h-10 px-3 border",
+                              !historyEndDate && "text-muted-foreground",
+                              theme === 'dark' ? 'bg-background border-border text-foreground hover:bg-muted' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {historyEndDate ? format(historyEndDate, "dd-MM-yyyy") : <span>DD-MM-YYYY</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 border border-border" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={historyEndDate}
+                            onSelect={handleEndDateChange}
+                            disabled={(date) => date > new Date() || (historyStartDate ? date <= historyStartDate : false)}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
           </CardHeader>
           <CardContent className="flex-1">
             {historyLoading ? (
               <SkeletonList items={5} />
-            ) : historyRecords.length > 0 ? (
-              <div className="space-y-3 h-[400px] overflow-y-auto custom-scrollbar pr-1">
+            ) : historyRecords.length > 1 ? (
+              <div className="space-y-3 h-[500px] overflow-y-auto custom-scrollbar pr-1">
                 {historyRecords.map((record) => (
                   <div key={record.id} className={`p-3 rounded-lg border ${getStatusColor(record.status)}`}>
                     <div className="flex items-center justify-between">
@@ -723,7 +743,7 @@ const FacultyAttendance = () => {
             )}
           </CardContent>
 
-          {!historyLoading && historyRecords.length > 0 && (
+          {!historyLoading && historyTotalPages > 1 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing <span className="font-medium">{Math.min((historyPage - 1) * historyPageSize + 1, historyTotalItems)}</span> to <span className="font-medium">{Math.min(historyPage * historyPageSize, historyTotalItems)}</span> of <span className="font-medium">{historyTotalItems}</span> records
