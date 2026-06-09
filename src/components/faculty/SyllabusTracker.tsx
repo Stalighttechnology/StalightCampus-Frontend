@@ -20,6 +20,7 @@ import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
 import { getSyllabusStatus, updateSyllabusProgress } from "@/utils/faculty_api";
 import { BookOpen, CheckCircle, Clock, Save } from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
 
 const SyllabusTracker = () => {
   const { toast } = useToast();
