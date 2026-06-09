@@ -55,13 +55,24 @@ const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollaps
 
   return (
     <motion.div
-      className={`h-screen flex flex-col border-r shadow-xl z-30 transition-all duration-300 pt-[max(2.5rem,env(safe-area-inset-top))] lg:pt-0 ${
+      className={`h-screen flex flex-col border-r shadow-xl z-30 transition-all duration-300 ${
         theme === 'dark' ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-gray-200'
       } ${collapsed ? 'w-20' : 'w-64'}`}
       initial={false}
     >
       {/* Header */}
-      <div className={`h-20 flex items-center justify-between px-4 border-b ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-200'}`}>
+      <div 
+        className={`px-4 pb-3 lg:pb-0 flex items-center justify-between border-b ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-200'}`}
+        style={{ 
+          // @ts-ignore
+          paddingTop: window.innerWidth < 1024 
+            // @ts-ignore
+            ? (window?.Capacitor?.getPlatform() === 'android' ? '0.75rem' : 'max(0.75rem, env(safe-area-inset-top, 0px))')
+            // @ts-ignore
+            : (window?.Capacitor?.getPlatform() === 'android' ? '0px' : 'env(safe-area-inset-top, 0px)'),
+          minHeight: window.innerWidth >= 1024 ? 'calc(5rem + env(safe-area-inset-top, 0px))' : undefined
+        }}
+      >
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="flex-shrink-0 bg-primary/10 p-2 rounded-lg text-primary">
             <ShieldCheck size={28} />

@@ -602,14 +602,23 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
 
   const sidebarContent = (
     <motion.div
-      className={`h-full w-64 flex flex-col border-r pt-[max(2.5rem,env(safe-area-inset-top))] lg:pt-0 pb-[env(safe-area-inset-bottom,0px)] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+      className={`h-full w-64 flex flex-col border-r pb-[env(safe-area-inset-bottom,0px)] ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
       initial={isMobile ? false : { x: -100, opacity: 0 }}
       animate={isMobile ? false : { x: 0, opacity: 1 }}
       transition={isMobile ? undefined : { duration: 0.3 }}
     >
       {/* Header */}
       <motion.div
-        className={`px-4 h-20 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+        className={`px-4 pb-3 lg:pb-0 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+        style={{ 
+          // @ts-ignore
+          paddingTop: window.innerWidth < 1024 
+            // @ts-ignore
+            ? (window?.Capacitor?.getPlatform() === 'android' ? '0.75rem' : 'max(0.75rem, env(safe-area-inset-top, 0px))')
+            // @ts-ignore
+            : (window?.Capacitor?.getPlatform() === 'android' ? '0px' : 'env(safe-area-inset-top, 0px)'),
+          minHeight: window.innerWidth >= 1024 ? 'calc(5rem + env(safe-area-inset-top, 0px))' : undefined
+        }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}

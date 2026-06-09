@@ -99,7 +99,7 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
   return (
     <motion.div
-      className={`w-full flex items-center justify-between px-4 pb-3 pt-[max(2.5rem,env(safe-area-inset-top))] lg:py-0 lg:h-20 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+      className={`w-full flex items-center justify-between px-4 pb-3 pt-[max(0.75rem,var(--safe-area-inset-top,env(safe-area-inset-top,0px)))] lg:pb-0 lg:pt-[var(--safe-area-inset-top,env(safe-area-inset-top,0px))] lg:h-[calc(5rem+var(--safe-area-inset-top,env(safe-area-inset-top,0px)))] relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}

@@ -8,10 +8,32 @@ import { CapacitorUpdater } from '@capgo/capacitor-updater';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
 
+import { SafeArea } from 'capacitor-plugin-safe-area';
+
 if (Capacitor.isNativePlatform()) {
   CapacitorUpdater.notifyAppReady().then(() => {
     // Optionally hide splash screen here or keep it in App.tsx
   }).catch(console.error);
+  
+  // Initialize Safe Area
+  SafeArea.getSafeAreaInsets().then(({ insets }) => {
+    for (const [key, value] of Object.entries(insets)) {
+      document.documentElement.style.setProperty(
+        `--safe-area-inset-${key}`,
+        `${value}px`,
+      );
+    }
+  }).catch(console.error);
+
+  SafeArea.addListener('safeAreaChanged', data => {
+    const { insets } = data;
+    for (const [key, value] of Object.entries(insets)) {
+      document.documentElement.style.setProperty(
+        `--safe-area-inset-${key}`,
+        `${value}px`,
+      );
+    }
+  });
 }
 
 // Disable text selection in production to prevent users from selecting content globally
