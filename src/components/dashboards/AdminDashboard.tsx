@@ -218,7 +218,7 @@ const AdminDashboard = ({ user, setPage }: AdminDashboardProps) => {
     <>
       <TutorialController />
       <DashboardLayout
-        role="admin"
+        role={user?.role || "admin"}
         user={user}
         activePage={activePage}
         onPageChange={handlePageChange}
