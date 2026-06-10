@@ -610,12 +610,12 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
                 {downloadingPDF ? "Exporting..." : "Download PDF"}
               </Button>
             </CardHeader>
-            <CardContent className="users-card-content pb-0">
+             <CardContent className="users-card-content pb-0">
               <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-2 sm:mb-10">
                 {/* Filters Section */}
                 <div className="flex-1 w-full">
-                  <div className="flex flex-row items-end gap-3 sm:gap-6 w-full max-w-4xl">
-                    <div className="flex flex-col gap-2 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 sm:gap-6 w-full max-w-4xl">
+                    <div className="flex flex-col gap-2 flex-1 min-w-0 w-full">
                       <span className={`filter-label text-[10px] sm:text-[11px] font-bold uppercase tracking-widest truncate ${theme === 'dark' ? 'text-muted-foreground/70' : 'text-gray-400'}`}>User Role</span>
                       <SelectMenu
                         label=""
