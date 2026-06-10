@@ -113,7 +113,7 @@ const Index = () => {
   }
 
   // Authentication pages
-  if (["login", "otp", "forgot-password", "reset-password"].includes(page)) {
+  if (!isAuthenticated && ["login", "otp", "forgot-password", "reset-password"].includes(page)) {
     const renderAuthPage = () => {
       switch (page) {
         case "login":
