@@ -4,9 +4,10 @@ import { Button } from "../ui/button";
 import { Skeleton, SkeletonTable } from "../ui/skeleton";
 import { DownloadIcon, EditIcon, User, Calendar, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { useToast } from "../ui/use-toast";
 import { getSemesters, manageSections, manageSubjects, manageFaculties, manageTimetable, manageProfile, manageFacultyAssignments, getBranches, getHODTimetableBootstrap, getHODTimetableSemesterData } from "../../utils/hod_api";
-import { showWarningAlert } from "../../utils/sweetalert";
+import { showWarningAlert, showConfirmAlert } from "../../utils/sweetalert";
 import { useTheme } from "../../context/ThemeContext";
 import { API_ENDPOINT } from "../../utils/config";
 import { fetchWithTokenRefresh } from "../../utils/authService";
@@ -282,7 +283,6 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
     end_time: classDetails.end_time || ""
   });
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [matchingAssignments, setMatchingAssignments] = useState<FacultyAssignmentData[]>([]);
 
   useEffect(() => {
@@ -468,7 +468,12 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
             {classDetails.timetable_id && (
               <Button
                 variant="destructive"
-                onClick={() => setShowConfirmDelete(true)}
+                onClick={async () => {
+                  const result = await showConfirmAlert("Delete class?", `This will delete the class for ${dayFull} at ${newClassDetails.start_time} - ${newClassDetails.end_time}.`, "Confirm Delete");
+                  if (result.isConfirmed) {
+                    onDelete && onDelete(classDetails.timetable_id);
+                  }
+                }}
                 className={theme === 'dark' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-600 text-white hover:bg-red-700'}>
                 Delete
               </Button>
@@ -507,33 +512,10 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
                 });
               }}
               className={theme === 'dark' ? 'text-foreground bg-card border-border hover:bg-accent bg-primary text-white hover:bg-primary/90 hover:text-white' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-100 bg-primary text-white hover:bg-primary/90 hover:text-white'}>
-              
               Save
             </Button>
           </div>
         </div>
-        {showConfirmDelete &&
-        <div className="mt-4 p-4 border rounded bg-red-50 text-red-900">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div>
-                <strong>Delete class?</strong>
-                <div className="text-sm">This will delete the class for {dayFull} at {newClassDetails.start_time} - {newClassDetails.end_time}.</div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setShowConfirmDelete(false)}>Cancel</Button>
-                <Button
-                variant="destructive"
-                onClick={() => {
-                  setShowConfirmDelete(false);
-                  onDelete && onDelete(classDetails.timetable_id);
-                }}>
-                
-                  Confirm Delete
-                </Button>
-              </div>
-            </div>
-          </div>
-        }
       </div>
     </div>);
 
@@ -843,7 +825,8 @@ const Timetable = () => {
           end_time: existingEntry.end_time,
           day: existingEntry.day,
           timetable_id: existingEntry.id,
-          assignment_id: existingEntry.faculty_assignment.id
+          assignment_id: existingEntry.faculty_assignment.id,
+          subject_type: existingEntry.subject_type || existingEntry.faculty_assignment?.subject_type
         }
       });
     } else {
@@ -996,13 +979,12 @@ const Timetable = () => {
       let end_time = '';
       
       const targetEntry = state.timetable.find(e => e.id === timetableId);
-      if (!targetEntry && timetableId.startsWith('group-')) {
+      if (timetableId.startsWith('group-')) {
          isGroup = true;
-         // find the mock group details from selectedClass if available
-         subjectType = state.selectedClass?.subject_type || '';
-         day = state.selectedClass?.day || '';
-         start_time = state.selectedClass?.start_time || '';
-         end_time = state.selectedClass?.end_time || '';
+         subjectType = targetEntry?.faculty_assignment?.subject_type || state.selectedClass?.subject_type || '';
+         day = targetEntry?.day || state.selectedClass?.day || '';
+         start_time = targetEntry?.start_time || state.selectedClass?.start_time || '';
+         end_time = targetEntry?.end_time || state.selectedClass?.end_time || '';
       }
       
       if (isGroup && state.semesterId && state.sectionId && subjectType) {
