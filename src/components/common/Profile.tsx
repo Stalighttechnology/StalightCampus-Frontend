@@ -465,17 +465,17 @@ const Profile = ({ role, user }: ProfileProps) => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            {editing &&
-              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
-            }
-
             <Button
               size="sm"
               onClick={() => {if (editing) handleSaveProfile(); else setEditing(true);}}
               variant="outline"
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
+              className={`text-white border transition-colors ${
+                editing 
+                  ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
+                  : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
+              }`}
               disabled={loading}>
-              {editing ? loading ? 'Saving...' : 'Save' : 'Edit Profile'}
+              {editing ? loading ? 'Saving Profile...' : 'Save Profile' : 'Edit Profile'}
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>

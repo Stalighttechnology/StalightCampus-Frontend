@@ -73,6 +73,15 @@ export const adminTour: Step[] = [
     route: '/admin/bulk-upload',
   },
   {
+    target: '#sidebar-billing',
+    title: 'Billing & Plans',
+    content:
+      'View your active plan details, organization administrative metadata, technical POC details, invoice receipt history, and raise support tickets.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/billing',
+  },
+  {
     target: '#sidebar-branches',
     title: 'Branch Management',
     content:
@@ -179,6 +188,14 @@ export const adminTour: Step[] = [
     placement: 'right' as const,
     disableBeacon: false,
     route: '/admin/users',
+  },
+  {
+    target: '#sidebar-scan-student-info',
+    title: 'Scan Student Info',
+    content: 'Quickly scan or search for student information across the organization.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admin/scan-student-info',
   },
   {
     target: '#sidebar-profile',

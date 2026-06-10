@@ -127,6 +127,19 @@ export function feesManagerTransform(step: any, isMobile: boolean): any[] | null
     ];
   }
 
+  if (target === '#sidebar-my-attendance') {
+    return [
+      {
+        ...step,
+        target: '#today-attendance-toggle-section',
+        title: 'My Attendance',
+        content:
+          'Mark your attendance as present or absent for today and optionally add notes.',
+        placement: isMobile ? step.placement : 'top',
+      },
+    ];
+  }
+
   if (target === '#sidebar-profile') {
     return [
       {

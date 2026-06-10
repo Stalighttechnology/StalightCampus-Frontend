@@ -549,7 +549,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
             font-size: 22px !important;
           }
           .card-title-text {
-            font-size: 20px !important;
+            font-size: 18px !important;
           }
           .export-btn {
             font-size: 17px !important;
@@ -672,7 +672,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
             /* Today's Stats Cards */
             <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex flex-row items-center justify-between gap-2">
                   <div>
                     <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
                     <p className={`text-lg sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
@@ -681,7 +681,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex flex-row items-center justify-between gap-2">
                   <div>
                     <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
                     <p className={`text-lg sm:text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
@@ -690,7 +690,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex flex-row items-center justify-between gap-2">
                   <div>
                     <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
                     <p className={`text-lg sm:text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
@@ -699,7 +699,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex flex-row items-center justify-between gap-2">
                   <div>
                     <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
                     <p className={`text-lg sm:text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
@@ -728,7 +728,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
             <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
               <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  Today's Faculty Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})
+                  Today's Faculty Attendance <span className="inline-block whitespace-nowrap">({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})</span>
                 </CardTitle>
                 <button
                   onClick={handleExportTodayPDF}

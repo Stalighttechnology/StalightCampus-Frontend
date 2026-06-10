@@ -751,7 +751,7 @@ export const BillingManagement: React.FC = () => {
 
       {/* Support Tickets Section */}
       <Card id="billing-support-tickets">
-        <CardHeader className="flex flex-row items-start justify-between">
+        <CardHeader id="billing-support-tickets-header" className="flex flex-row items-start justify-between">
           <div className="flex-1 pr-4">
             <CardTitle className="text-lg flex items-center gap-2"><LifeBuoy className="h-5 w-5" /> Support Tickets</CardTitle>
             <CardDescription>Raise and track issues with Super Admin HQ.</CardDescription>

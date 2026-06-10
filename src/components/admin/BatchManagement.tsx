@@ -403,7 +403,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
               ) : (
                 <div className="flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4 overflow-x-auto">
                   <table className="batch-table w-full text-base md:text-sm text-left border-collapse table-auto align-middle whitespace-nowrap">
-                    <thead className="sticky top-0 z-10 border-b text-sm md:text-xs uppercase bg-muted/60 text-muted-foreground border-border shadow-sm">
+                    <thead className={`sticky top-0 z-10 border-b text-sm md:text-xs uppercase ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'} text-muted-foreground border-border shadow-sm`}>
                       <tr>
                         <th className="batch-header-cell py-3 px-3 text-left font-semibold">Batch Name</th>
                         <th className="batch-header-cell py-3 px-3 hidden sm:table-cell font-semibold text-center">Start Year</th>

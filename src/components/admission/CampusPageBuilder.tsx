@@ -193,7 +193,7 @@ const CampusPageBuilder: React.FC = () => {
         {activeTab === 'builder' ? (
           <div className="flex-1 flex flex-col lg:overflow-hidden justify-center bg-muted/10">
             {/* Main Pane: Editor */}
-            <div className="w-full max-w-5xl mx-auto flex flex-col bg-background shadow-xl border-x border-border min-h-[calc(100vh-220px)] lg:h-full lg:overflow-hidden">
+            <div className="w-full max-w-none mx-auto flex flex-col bg-background shadow-xl border-x border-border min-h-[calc(100vh-220px)] lg:h-full lg:overflow-hidden">
               <div className="p-4 border-b border-border bg-muted/30 shrink-0 flex justify-between items-center">
                 <h3 className="font-semibold flex items-center gap-2"><Layout size={18} /> Page Blocks</h3>
                 <div className="flex items-center gap-2">
@@ -426,7 +426,7 @@ const CampusPageBuilder: React.FC = () => {
           </div>
         ) : activeTab === 'theme' ? (
           <div className="flex-1 flex overflow-y-auto justify-center bg-muted/10 p-8">
-            <div className="w-full max-w-2xl bg-card rounded-2xl shadow-xl border border-border p-8 h-fit space-y-8">
+            <div className="w-full max-w-none bg-card rounded-2xl shadow-xl border border-border p-8 h-fit space-y-8">
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-2"><Baseline className="text-primary" /> Theme Settings</h2>
                 <p className="text-muted-foreground mt-1">Customize the look and feel of your public campus page.</p>

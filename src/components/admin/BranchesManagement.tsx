@@ -557,7 +557,7 @@ const BranchesManagement = ({ setError, toast, isReadOnly = false }: { setError:
               <>
                  <div className="branches-table-container flex-1 overflow-y-auto custom-scrollbar border rounded-md mb-4">
                   <table className="branches-table w-full text-base md:text-sm text-left table-auto border-collapse">
-                    <thead className="sticky top-0 z-10 border-b text-sm md:text-xs uppercase bg-muted/60 text-muted-foreground border-border shadow-sm">
+                    <thead className={`sticky top-0 z-10 border-b text-sm md:text-xs uppercase ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'} text-muted-foreground border-border shadow-sm`}>
                       <tr>
                         <th className="branch-name-col py-3 px-3 text-left font-bold">Branch Name</th>
                         <th className="py-3 px-3 hidden sm:table-cell font-bold">Branch Code</th>

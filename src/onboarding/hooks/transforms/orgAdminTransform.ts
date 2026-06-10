@@ -69,7 +69,7 @@ export function orgAdminTransform(step: any, isMobile: boolean): any[] | null {
       },
       {
         ...step,
-        target: '#billing-support-tickets',
+        target: '#billing-support-tickets-header',
         title: 'HQ Support Desk',
         content: 'Track existing support logs, communicate with Super HQ, or raise direct support tickets.',
         placement: isMobile ? step.placement : 'top',

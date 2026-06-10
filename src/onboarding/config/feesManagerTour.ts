@@ -128,6 +128,14 @@ export const feesManagerTour: Step[] = [
     route: '/fees-manager/leave',
   },
   {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content: 'Check your personal attendance logs and administrative schedule tracking.',
+    placement: 'right' as const,
+    disableBeacon: true,
+    route: '/fees-manager/my-attendance',
+  },
+  {
     target: '#sidebar-reports',
     title: 'Attendance Reports',
     content:

@@ -532,7 +532,7 @@ const FacultyAttendanceView: React.FC = () => {
             /* Today's Stats Cards */
             <div id="hod-faculty-attendance-summary" className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex flex-row items-center justify-between gap-2">
                   <div>
                     <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total Faculty</p>
                     <p className={`text-lg sm:text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_faculty}</p>
@@ -541,7 +541,7 @@ const FacultyAttendanceView: React.FC = () => {
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex flex-row items-center justify-between gap-2">
                   <div>
                     <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
                     <p className={`text-lg sm:text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
@@ -550,7 +550,7 @@ const FacultyAttendanceView: React.FC = () => {
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex flex-row items-center justify-between gap-2">
                   <div>
                     <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
                     <p className={`text-lg sm:text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
@@ -559,7 +559,7 @@ const FacultyAttendanceView: React.FC = () => {
                 </div>
               </div>
               <div className={`p-3 sm:p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <div className="flex flex-row items-center justify-between gap-2">
                   <div>
                     <p className={`text-xs sm:text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
                     <p className={`text-lg sm:text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>

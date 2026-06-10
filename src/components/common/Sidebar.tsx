@@ -307,9 +307,6 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
       { name: "My Attendance", page: "my-attendance" },
       { name: "Apply Leave", page: "apply-leave" },
 
-      // Integrations
-      { name: "Google Setup", page: "google-setup" },
-
       // User & Profile
       { name: "Users", page: "users" },
       { name: "Scan for Student Info", page: "scan-student-info" },
