@@ -53,7 +53,8 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
             students_count: studentsCount,
             billing_cycle: billingCycle,
             coupon_code: appliedCoupon?.code,
-            estimate_only: true
+            estimate_only: true,
+            is_coterm: true
           })
         });
         const result = await response.json();
@@ -199,15 +200,21 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
           plan: selectedPlan,
           students_count: studentsCount,
           billing_cycle: billingCycle,
-          coupon_code: appliedCoupon?.code
+          coupon_code: appliedCoupon?.code,
+          is_coterm: true
         })
       });
 
       const result = await response.json();
-      if (result.success && result.requires_payment && result.order_id && result.razorpay_key_id) {
-        // Handle Razorpay checkout modal
-        const amount = result.amount_to_pay !== undefined ? result.amount_to_pay : getPrice(selectedPlan || 'pro');
-        await handleRazorpayPayment(result.order_id, result.razorpay_key_id, amount);
+      if (result.success && result.requires_payment) {
+        if (result.order_id && result.razorpay_key_id) {
+          // Handle Razorpay checkout modal
+          const amount = result.amount_to_pay !== undefined ? result.amount_to_pay : getPrice(selectedPlan || 'pro');
+          await handleRazorpayPayment(result.order_id, result.razorpay_key_id, amount);
+        } else {
+          toast.error("Payment initialization failed. Missing Razorpay order details.");
+          setIsUpgrading(false);
+        }
       } else if (result.success && result.checkout_url) {
         window.location.href = result.checkout_url;
       } else if (result.success) {
@@ -263,7 +270,7 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-[2px]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80">
       <div className="bg-white rounded-xl shadow-2xl w-[90vw] max-h-[85vh] md:max-w-4xl md:h-[620px] overflow-hidden flex flex-col border border-slate-200">
 
         {/* Header */}
