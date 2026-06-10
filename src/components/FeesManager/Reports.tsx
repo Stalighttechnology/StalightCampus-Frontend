@@ -259,6 +259,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       }
                     }}
                     disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(23, 59, 59, 999);
+                      if (date > today) return true;
                       if (endDate) {
                         const end = new Date(endDate + 'T00:00:00');
                         return date > end;
@@ -271,7 +274,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 </PopoverContent>
               </Popover>
             </div>
-
+ 
             <div className="space-y-2">
               <Label className="sm:text-[13px] text-[15px] font-semibold uppercase tracking-[0.1em] ml-1">End Date <span className="text-red-500">*</span></Label>
               <Popover open={isEndPopoverOpen} onOpenChange={setIsEndPopoverOpen}>
@@ -298,6 +301,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                       }
                     }}
                     disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(23, 59, 59, 999);
+                      if (date > today) return true;
                       if (startDate) {
                         const start = new Date(startDate + 'T00:00:00');
                         return date < start;
@@ -464,10 +470,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
         )}
       </Card>
 
-      {/* Detailed Attendance Calendar Dialog */}
       <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
-        <DialogContent className="w-[90%] sm:max-w-md h-[620px] bg-card rounded-3xl border-none shadow-2xl p-0 overflow-hidden mx-auto">
-          <DialogHeader className="p-6 bg-muted/20 border-b h-[85px]">
+        <DialogContent className="w-[90%] sm:max-w-md h-[580px] bg-card rounded-3xl border-none shadow-2xl p-0 overflow-hidden mx-auto flex flex-col">
+          <DialogHeader className="p-6 bg-muted/20 border-b shrink-0 h-[85px]">
             <DialogTitle className="text-xl font-semibold flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-primary" />
               Attendance History
@@ -476,20 +481,20 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
               Visual audit for <span className="text-foreground font-semibold">{selectedStaff?.name}</span>
             </DialogDescription>
           </DialogHeader>
-
-          <div className="p-6 pt-0 space-y-6 h-[520px] overflow-y-auto custom-scrollbar">
+ 
+          <div className="p-6 pt-0 space-y-4 flex-1 flex flex-col justify-between overflow-hidden">
             {loadingDetails ?
-            <div className="space-y-6">
-                <Skeleton className="h-[350px] w-full rounded-2xl" />
+            <div className="space-y-4 flex-1 justify-center flex flex-col">
+                <Skeleton className="h-[250px] w-full rounded-2xl" />
                 <div className="grid grid-cols-2 gap-3">
-                  <Skeleton className="h-20 rounded-2xl" />
-                  <Skeleton className="h-20 rounded-2xl" />
+                  <Skeleton className="h-16 rounded-xl" />
+                  <Skeleton className="h-16 rounded-xl" />
                 </div>
               </div> :
-
-
+ 
+ 
             <>
-                <div className="rounded-2xl border border-border/50 p-4 bg-muted/5 max-h-[350px] overflow-y-auto custom-scrollbar">
+                <div className="rounded-2xl border border-border/50 p-4 bg-muted/5 h-[280px] overflow-y-auto custom-scrollbar shrink-0">
                   <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                     {getDatesInRange(startDate, endDate)
                       .filter((date) => {
@@ -502,10 +507,10 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           const rDate = typeof r.date === 'string' ? r.date : format(new Date(r.date), "yyyy-MM-dd");
                           return rDate === dateStr;
                         });
-
+ 
                         const isPresent = record?.status === 'present';
                         const isAbsent = record?.status === 'absent' || !record && !isPresent;
-
+ 
                     return (
                       <div
                         key={idx}
@@ -530,12 +535,12 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                           isPresent ? "bg-green-500" : isAbsent ? "bg-red-500" : "bg-muted-foreground/30"
                         )} />
                         </div>);
-
+ 
                   })}
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-3">
+ 
+                <div className="grid grid-cols-2 gap-3 shrink-0">
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-green-500/10 border border-green-500/20">
                     <div className="w-3 h-3 rounded-full bg-green-500" />
                     <div className="flex flex-col">
@@ -553,9 +558,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 </div>
               </>
             }
-
+ 
             <Button
-              className="w-full h-12  rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98]"
+              className="w-full h-12 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] shrink-0"
               onClick={() => setIsCalendarDialogOpen(false)}>
               
               Close History
