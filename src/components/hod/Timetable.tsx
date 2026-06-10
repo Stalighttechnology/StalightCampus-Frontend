@@ -28,6 +28,7 @@ interface Subject {
   name: string;
   subject_code: string;
   semester_id: number | string; // Allow both types
+  subject_type?: string;
 }
 
 interface Faculty {
@@ -61,10 +62,12 @@ interface ClassDetails {
   day: string;
   timetable_id?: string;
   assignment_id?: string;
+  isGroup?: boolean;
+  subject_type?: string;
 }
 
 interface ManageTimetableRequest {
-  action: "GET" | "create" | "update" | "delete" | "bulk_create";
+  action: "GET" | "create" | "update" | "delete" | "bulk_create" | "create_group" | "delete_group";
   timetable_id?: string;
   assignment_id?: string;
   day?: string;
@@ -74,6 +77,7 @@ interface ManageTimetableRequest {
   semester_id: string;
   section_id: string;
   branch_id: string;
+  subject_type?: string;
 }
 
 interface ManageFacultyAssignmentsRequest {
@@ -131,6 +135,7 @@ interface TimetableData {
     id: string;
     faculty: string;
     subject: string;
+    subject_type?: string;
     semester: number;
     section: string;
   };
@@ -368,64 +373,79 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
                   No courses available
                 </SelectItem>
               ) : (
-                subjects.map((subject: Subject) =>
-                  <SelectItem key={subject.id} value={subject.name} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                    {subject.name}
-                  </SelectItem>
-                )
+                <>
+                  {subjects.filter((s: Subject) => s.subject_type !== 'elective' && s.subject_type !== 'open_elective').map((subject: Subject) =>
+                    <SelectItem key={subject.id} value={subject.name} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                      {subject.name}
+                    </SelectItem>
+                  )}
+                  {subjects.some((s: Subject) => s.subject_type === 'elective') && (
+                    <SelectItem value="Elective Subjects" className={theme === 'dark' ? 'text-foreground font-semibold' : 'text-gray-900 font-semibold'}>
+                      Elective Subjects (Group)
+                    </SelectItem>
+                  )}
+                  {subjects.some((s: Subject) => s.subject_type === 'open_elective') && (
+                    <SelectItem value="Open Elective Subjects" className={theme === 'dark' ? 'text-foreground font-semibold' : 'text-gray-900 font-semibold'}>
+                      Open Elective Subjects (Group)
+                    </SelectItem>
+                  )}
+                </>
               )}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="mb-4">
-          <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground/70' : 'text-gray-600'}`}>Professor:</label>
-          {matchingAssignments.length > 1 ? (
-            <Select value={newClassDetails.professor} onValueChange={(value) => handleSelectChange("professor", value)}>
-              <SelectTrigger className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
-                <SelectValue placeholder="Select Professor" />
-              </SelectTrigger>
-              <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
-                {matchingAssignments.map((a: any) => {
-                  const profName = a.faculty_name || a.faculty || "";
-                  return (
-                    <SelectItem key={a.id} value={profName} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
-                      {profName}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className={`w-full p-3 border rounded-lg flex items-center gap-3 transition-all duration-200 ${theme === 'dark' ? 'bg-muted/50 text-foreground border-border' : 'bg-gray-50 text-gray-900 border-gray-200'}`}>
-              <User className={`w-4 h-4 ${theme === 'dark' ? 'text-primary' : 'text-primary'}`} />
-              <span className="font-medium">
-                {isLoadingAssignments ? (
-                  <Skeleton className="h-4 w-32" />
-                ) : newClassDetails.professor ? (
-                  newClassDetails.professor
-                ) : (
-                  <span className="text-destructive/70 italic">No professor assigned</span>
-                )}
-              </span>
+        {!(newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects') && (
+          <>
+            <div className="mb-4">
+              <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground/70' : 'text-gray-600'}`}>Professor:</label>
+              {matchingAssignments.length > 1 ? (
+                <Select value={newClassDetails.professor} onValueChange={(value) => handleSelectChange("professor", value)}>
+                  <SelectTrigger className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border' : 'text-gray-900 bg-white border-gray-300'}`}>
+                    <SelectValue placeholder="Select Professor" />
+                  </SelectTrigger>
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[200px] overflow-y-auto custom-scrollbar' : 'bg-white text-gray-900 border-gray-300 max-h-[200px] overflow-y-auto custom-scrollbar'}>
+                    {matchingAssignments.map((a: any) => {
+                      const profName = a.faculty_name || a.faculty || "";
+                      return (
+                        <SelectItem key={a.id} value={profName} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+                          {profName}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className={`w-full p-3 border rounded-lg flex items-center gap-3 transition-all duration-200 ${theme === 'dark' ? 'bg-muted/50 text-foreground border-border' : 'bg-gray-50 text-gray-900 border-gray-200'}`}>
+                  <User className={`w-4 h-4 ${theme === 'dark' ? 'text-primary' : 'text-primary'}`} />
+                  <span className="font-medium">
+                    {isLoadingAssignments ? (
+                      <Skeleton className="h-4 w-32" />
+                    ) : newClassDetails.professor ? (
+                      newClassDetails.professor
+                    ) : (
+                      <span className="text-destructive/70 italic">No professor assigned</span>
+                    )}
+                  </span>
+                </div>
+              )}
+              {!isLoadingAssignments && !newClassDetails.professor && newClassDetails.subject &&
+                <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
+              }
             </div>
-          )}
-          {!isLoadingAssignments && !newClassDetails.professor && newClassDetails.subject &&
-            <p className="text-xs text-destructive mt-1">Please assign a faculty to this subject in Faculty Assignments.</p>
-          }
-        </div>
 
-        <div className="mb-4">
-          <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
-          <input
-            type="text"
-            name="room"
-            value={newClassDetails.room}
-            onChange={handleChange}
-            className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border placeholder-muted-foreground' : 'text-gray-900 bg-white border-gray-300 placeholder-gray-500'}`}
-            placeholder="e.g., R103" />
-          
-        </div>
+            <div className="mb-4">
+              <label className={`block ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Room:</label>
+              <input
+                type="text"
+                name="room"
+                value={newClassDetails.room}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded ${theme === 'dark' ? 'text-foreground bg-card border-border placeholder-muted-foreground' : 'text-gray-900 bg-white border-gray-300 placeholder-gray-500'}`}
+                placeholder="e.g., R103" />
+            </div>
+          </>
+        )}
 
         <div className="mb-4">
           <TimePicker
@@ -473,12 +493,15 @@ const EditModal = ({ classDetails, onSave, onCancel, onDelete, subjects, faculty
                   await showWarningAlert("Invalid Time", "Start time must be before end time.");
                   return;
                 }
-                if (!newClassDetails.professor) {
+                const isGroup = newClassDetails.subject === 'Elective Subjects' || newClassDetails.subject === 'Open Elective Subjects';
+                if (!isGroup && !newClassDetails.professor) {
                   await showWarningAlert("No Professor", "Please select a professor before saving.");
                   return;
                 }
                 onSave({
                   ...newClassDetails,
+                  isGroup,
+                  subject_type: newClassDetails.subject === 'Elective Subjects' ? 'elective' : (newClassDetails.subject === 'Open Elective Subjects' ? 'open_elective' : undefined),
                   day: classDetails.day || "",
                   timetable_id: classDetails.timetable_id
                 });
@@ -718,6 +741,7 @@ const Timetable = () => {
               id: entry.faculty_assignment.id,
               faculty: entry.faculty_assignment.faculty,
               subject: entry.faculty_assignment.subject,
+              subject_type: (entry.faculty_assignment as any).subject_type,
               semester: entry.faculty_assignment.semester,
               section: entry.faculty_assignment.section
             },
@@ -760,7 +784,38 @@ const Timetable = () => {
         const entries = timetable.filter(
           (e) => e.start_time.startsWith(hour.split(":")[0]) && e.day === day
         );
-        row[day.toLowerCase()] = entries;
+        const groupedEntries: any[] = [];
+        const electiveGroups: Record<string, any> = {};
+
+        entries.forEach((e) => {
+          const type = (e.faculty_assignment as any).subject_type;
+          if (type === 'elective' || type === 'open_elective') {
+            const key = `${e.start_time}-${e.end_time}-${type}`;
+            if (!electiveGroups[key]) {
+              electiveGroups[key] = {
+                id: `group-${e.id}`,
+                isGroup: true,
+                subject_type: type,
+                start_time: e.start_time,
+                end_time: e.end_time,
+                day: e.day,
+                faculty_assignment: {
+                  subject: type === 'elective' ? 'Elective Subjects' : 'Open Elective Subjects',
+                  faculty: 'Multiple Professors',
+                  subject_type: type,
+                  id: 'group_assignment_id'
+                },
+                room: 'Multiple Rooms',
+                timetable_id: e.id // keep one id just in case, though delete uses subject_type
+              };
+              groupedEntries.push(electiveGroups[key]);
+            }
+          } else {
+            groupedEntries.push(e);
+          }
+        });
+
+        row[day.toLowerCase()] = groupedEntries;
       });
       return row;
     });
@@ -816,25 +871,33 @@ const Timetable = () => {
         throw new Error("Semester and section must be selected");
       }
 
-      const subject = state.subjects.find((s) => s.name === newClassDetails.subject);
-      if (!subject) {
-        throw new Error("Invalid subject selected");
+      let assignmentId = "";
+      if (newClassDetails.isGroup) {
+         const hasAssignments = state.facultyAssignments.some((a: any) => a.subject_type === newClassDetails.subject_type && a.semester_id === state.semesterId && a.section_id === state.sectionId);
+         if (!hasAssignments) {
+            throw new Error(`No faculty assigned to any ${newClassDetails.subject_type === 'elective' ? 'Elective' : 'Open Elective'} subject for this section. Please assign a faculty first.`);
+         }
+      } else {
+        const subject = state.subjects.find((s) => s.name === newClassDetails.subject);
+        if (!subject) {
+          throw new Error("Invalid subject selected");
+        }
+        
+        const assignment = state.facultyAssignments.find(
+          (a) => a.subject_id === subject.id && a.semester_id === state.semesterId && a.section_id === state.sectionId && (a.faculty_name === newClassDetails.professor || a.faculty === newClassDetails.professor)
+        );
+
+        if (!assignment) {
+          throw new Error(`No faculty assigned to "${subject.name}" for this semester and section. Please assign a faculty first.`);
+        }
+        assignmentId = assignment.id;
       }
-
-      const assignment = state.facultyAssignments.find(
-        (a) => a.subject_id === subject.id && a.semester_id === state.semesterId && a.section_id === state.sectionId && (a.faculty_name === newClassDetails.professor || a.faculty === newClassDetails.professor)
-      );
-
-      if (!assignment) {
-        throw new Error(`No faculty assigned to "${subject.name}" for this semester and section. Please assign a faculty first.`);
-      }
-
-      const assignmentId = assignment.id;
 
       const timetableRequest: ManageTimetableRequest = {
-        action: newClassDetails.timetable_id ? "update" : "create",
+        action: newClassDetails.isGroup ? "create_group" : (newClassDetails.timetable_id ? "update" : "create"),
         timetable_id: newClassDetails.timetable_id,
         assignment_id: assignmentId,
+        subject_type: newClassDetails.subject_type,
         day: state.selectedClass!.day,
         start_time: newClassDetails.start_time,
         end_time: newClassDetails.end_time,
@@ -865,7 +928,22 @@ const Timetable = () => {
         } :
         { id: timetableRequest.assignment_id || "", faculty: "", subject: "", semester: 0, section: "" };
 
-        if (timetableRequest.action === 'create') {
+        if (timetableRequest.action === 'create_group') {
+          // Instead of fully mocking it, just fetch timetable again to let backend data group it properly
+          updateState({ selectedClass: null, loading: true });
+          const fetchRes = await manageTimetable({ action: "GET", branch_id: state.branchId, semester_id: state.semesterId, section_id: state.sectionId });
+          if (fetchRes.success && fetchRes.data) {
+             const normalized = Array.isArray(fetchRes.data) ? fetchRes.data.map((e: any) => ({
+                 id: e.id,
+                 faculty_assignment: { ...e.faculty_assignment, subject_type: e.faculty_assignment.subject_type || (e.faculty_assignment as any).subject_type },
+                 day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, room: e.room
+             })) : [];
+             updateState({ timetable: normalized, loading: false });
+          } else {
+             updateState({ loading: false });
+          }
+          toast({ title: "Success", description: "Elective group created" });
+        } else if (timetableRequest.action === 'create') {
           const newEntry = {
             id: timetableId || `temp-${Date.now()}`,
             faculty_assignment: facultyAssignment,
@@ -911,13 +989,57 @@ const Timetable = () => {
     if (!timetableId) return;
     try {
       updateState({ loading: true });
-      const response = await manageTimetable({ action: 'delete', timetable_id: timetableId, branch_id: state.branchId });
-      if (response.success) {
-        const filtered = state.timetable.filter((e) => e.id !== timetableId);
-        updateState({ timetable: filtered, selectedClass: null });
-        toast({ title: 'Deleted', description: 'Class deleted successfully' });
+      let isGroup = false;
+      let subjectType = '';
+      let day = '';
+      let start_time = '';
+      let end_time = '';
+      
+      const targetEntry = state.timetable.find(e => e.id === timetableId);
+      if (!targetEntry && timetableId.startsWith('group-')) {
+         isGroup = true;
+         // find the mock group details from selectedClass if available
+         subjectType = state.selectedClass?.subject_type || '';
+         day = state.selectedClass?.day || '';
+         start_time = state.selectedClass?.start_time || '';
+         end_time = state.selectedClass?.end_time || '';
+      }
+      
+      if (isGroup && state.semesterId && state.sectionId && subjectType) {
+         const response = await manageTimetable({ 
+            action: 'delete_group', 
+            subject_type: subjectType,
+            day,
+            start_time,
+            end_time,
+            semester_id: state.semesterId,
+            section_id: state.sectionId,
+            branch_id: state.branchId 
+         });
+         if (response.success) {
+            // refetch timetable
+            const fetchRes = await manageTimetable({ action: "GET", branch_id: state.branchId, semester_id: state.semesterId, section_id: state.sectionId });
+            if (fetchRes.success && fetchRes.data) {
+               const normalized = Array.isArray(fetchRes.data) ? fetchRes.data.map((e: any) => ({
+                   id: e.id,
+                   faculty_assignment: { ...e.faculty_assignment, subject_type: e.faculty_assignment.subject_type || (e.faculty_assignment as any).subject_type },
+                   day: e.day.toUpperCase(), start_time: e.start_time, end_time: e.end_time, room: e.room
+               })) : [];
+               updateState({ timetable: normalized, selectedClass: null });
+            }
+            toast({ title: 'Deleted', description: 'Group deleted successfully' });
+         } else {
+            throw new Error(response.message || 'Failed to delete group');
+         }
       } else {
-        throw new Error(response.message || 'Failed to delete class');
+         const response = await manageTimetable({ action: 'delete', timetable_id: timetableId, branch_id: state.branchId });
+         if (response.success) {
+           const filtered = state.timetable.filter((e) => e.id !== timetableId);
+           updateState({ timetable: filtered, selectedClass: null });
+           toast({ title: 'Deleted', description: 'Class deleted successfully' });
+         } else {
+           throw new Error(response.message || 'Failed to delete class');
+         }
       }
     } catch (err) {
 
