@@ -732,7 +732,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                       <TableCell className="align-middle">
                         <div className="font-medium text-sm leading-tight">{inv.fee_assignment?.template?.name || 'Manual Entry'}</div>
                         <div className="flex items-center gap-1.5 mt-1">
-                          <Badge variant="outline" className="text-[11px] uppercase font-semibold tracking-widest h-4 px-1.5 border-border/50">
+                          <Badge variant="outline" className="text-[14px] uppercase font-semibold tracking-widest h-4 px-1.5 border-border/50">
                             {inv.fee_assignment?.template?.fee_type || 'Custom'}
                           </Badge>
                           <span className="text-[13px] font-semibold text-muted-foreground uppercase">{inv.academic_year}</span>
@@ -791,7 +791,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
           </div>
         </CardContent>
         {/* Pagination */}
-        {invoicesMeta && invoicesMeta.total_pages > 0 && (
+        {invoicesMeta && invoicesMeta.total_pages > 1 && (
           <CardFooter className="p-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
             <p className="text-[13px] font-medium text-muted-foreground">
               Showing <span className="text-foreground font-semibold">{(invoicesMeta.page - 1) * 50 + 1}</span> to <span className="text-foreground font-semibold">{Math.min(invoicesMeta.page * 50, invoicesMeta.count)}</span> of <span className="text-foreground font-semibold">{invoicesMeta.count}</span> results
@@ -811,7 +811,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 variant="outline"
                 size="sm"
                 disabled
-                className={`h-9 w-10 font-bold rounded-lg border border-border/50 ${
+                className={`h-9 w-10 font-semibold rounded-lg border border-border/50 ${
                   theme === 'dark' ? "bg-card text-foreground" : "bg-white text-gray-900"
                 }`}
               >
@@ -832,11 +832,11 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
         )}
       </Card>
 
-      {/* Invoice Details Dialog */}      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-lg w-[90vw] border-none shadow-2xl p-0 overflow-hidden bg-card rounded-3xl">
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-lg w-[90vw] h-[80vh] md:h-auto border-none shadow-2xl p-0 gap-0 overflow-hidden bg-card rounded-xl flex flex-col">
           {/* Refined Header */}
           <div className="px-6 py-5 border-b border-border/50 bg-muted/20">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pr-8">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary opacity-80" />
@@ -845,7 +845,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 <h2 className="text-xl font-semibold tracking-tight text-foreground">{selectedInvoice?.invoice_number}</h2>
               </div>
               <div className="flex flex-col items-end gap-1.5">
-                <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">
+                <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 px-2.5 py-0.5 text-[14px] font-semibold uppercase tracking-wider">
                   {selectedInvoice?.status}
                 </Badge>
                 <span className="text-[13px] text-muted-foreground font-semibold">
@@ -855,36 +855,36 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             </div>
           </div>
 
-          <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
+          <div className="p-4 md:p-6 pt-2 md:pt-6 space-y-2.5 md:space-y-5 flex-1 overflow-y-auto custom-scrollbar">
             {/* Info Grid - Responsive */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/5">
-                <h4 className="text-[13px] font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
-                  <Users className="h-3.5 w-3.5 text-primary" /> Bill To
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-6">
+              <div className="space-y-2.5 p-3 md:p-4 rounded-xl border border-border/50 bg-muted/5">
+                <h4 className="text-[14px] font-semibold uppercase text-muted-foreground flex items-center gap-1.5 tracking-wider">
+                  <Users className="h-3.5 w-3.5 text-primary" /> BILL TO
                 </h4>
-                <div className="space-y-0.5">
-                  <p className="text-base font-semibold text-foreground leading-tight">{selectedInvoice?.student?.name}</p>
+                 <div className="space-y-1.5 pl-5">
+                  <p className="text-sm font-semibold text-foreground leading-tight">{selectedInvoice?.student?.name}</p>
                   <p className="text-xs font-medium text-muted-foreground">{selectedInvoice?.student?.usn}</p>
                   <p className="text-xs text-muted-foreground/70">{selectedInvoice?.student?.department}</p>
-                  <p className="text-xs font-semibold text-primary/80 mt-1">Semester {selectedInvoice?.student?.semester}</p>
+                  <p className="text-xs font-semibold text-primary/80">Semester {selectedInvoice?.student?.semester}</p>
                 </div>
               </div>
 
-              <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/5">
-                <h4 className="text-[13px] font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
-                  <LayoutGrid className="h-3.5 w-3.5 text-primary" /> Fee Details
+              <div className="space-y-2.5 p-3 md:p-4 rounded-xl border border-border/50 bg-muted/5">
+                <h4 className="text-[14px] font-semibold uppercase text-muted-foreground flex items-center gap-1.5 tracking-wider">
+                  <LayoutGrid className="h-3.5 w-3.5 text-primary" /> FEE DETAILS
                 </h4>
-                <div className="space-y-0.5">
-                  <p className="text-base font-semibold text-foreground leading-tight">
+                <div className="space-y-1.5 pl-5">
+                  <p className="text-sm font-semibold text-foreground leading-tight">
                     {selectedInvoice?.fee_assignment?.template?.name || 'Custom Assignment'}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="text-[11px] h-4 px-1.5 font-semibold uppercase border-none">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 font-semibold uppercase border-none">
                       {selectedInvoice?.fee_assignment?.template?.fee_type || 'Annual'}
                     </Badge>
-                    <span className="text-[13px] font-semibold text-muted-foreground">{selectedInvoice?.academic_year}</span>
+                    <span className="text-xs font-semibold text-muted-foreground">{selectedInvoice?.academic_year}</span>
                   </div>
-                  <p className="text-[13px] font-semibold text-red-500 uppercase tracking-tight mt-2">
+                  <p className="text-xs font-semibold text-red-500 uppercase tracking-tight">
                     Due: {selectedInvoice?.due_date ? new Date(selectedInvoice.due_date).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
@@ -892,23 +892,23 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
             </div>
 
             {/* Financial Summary */}
-            <div className="bg-primary/5 rounded-xl border border-primary/10 p-4 grid grid-cols-3 gap-4">
+            <div className="bg-primary/5 rounded-xl border border-primary/10 p-3 md:p-4 grid grid-cols-3 gap-3 md:gap-4">
               <div className="text-center">
-                <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Total</p>
+                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Total</p>
                 <p className="text-sm font-semibold text-foreground">{formatCurrency(selectedInvoice?.total_amount || 0)}</p>
               </div>
               <div className="text-center border-x border-primary/10">
-                <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Paid</p>
+                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Paid</p>
                 <p className="text-sm font-semibold text-green-600">{formatCurrency(selectedInvoice?.paid_amount || 0)}</p>
               </div>
               <div className="text-center">
-                <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Balance</p>
+                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Balance</p>
                 <p className="text-sm font-semibold text-red-600">{formatCurrency(selectedInvoice?.pending_amount || 0)}</p>
               </div>
             </div>
 
             {/* Transactions Section */}
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <h4 className="text-[13px] font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest px-1">
                 <CreditCard className="h-3.5 w-3.5 text-primary" /> Payment History
               </h4>

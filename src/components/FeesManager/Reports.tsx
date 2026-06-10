@@ -23,7 +23,8 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
-  FileText } from
+  FileText,
+  Loader2 } from
 'lucide-react';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ interface AttendanceSummary {
 const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => {
   const [attendanceData, setAttendanceData] = useState<AttendanceSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -113,8 +115,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
     fetchAttendanceAudit();
   };
 
-  const downloadReport = async (format: 'pdf' | 'excel') => {
+  const downloadReport = async (format: 'pdf') => {
     try {
+      setDownloading(true);
       setLoading(true);
       const response = await getStaffAttendanceAudit(selectedRole, startDate, endDate, 1, format);
 
@@ -123,17 +126,18 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Staff_Attendance_${startDate}_to_${endDate}.${format === 'excel' ? 'xlsx' : 'csv'}`;
+        a.download = `Staff_Attendance_${startDate}_to_${endDate}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        setError(`Failed to download ${format.toUpperCase()} report`);
+        setError(`Failed to download PDF report`);
       }
     } catch (err) {
-      setError(`Error downloading ${format.toUpperCase()} report`);
+      setError(`Error downloading PDF report`);
     } finally {
+      setDownloading(false);
       setLoading(false);
     }
   };
@@ -193,18 +197,14 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                 <Button
                   size="sm"
                   onClick={() => downloadReport('pdf')}
-                  disabled={loading || selectedRole === '' || startDate === '' || endDate === ''}
+                  disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
                   className="bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 h-9 disabled:opacity-50">
-                  <Download className="h-4 w-4 flex-shrink-0" />
-                  <span>Export PDF</span>
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => downloadReport('excel')}
-                  disabled={loading || selectedRole === '' || startDate === '' || endDate === ''}
-                  className="bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 h-9 disabled:opacity-50">
-                  <FileText className="h-4 w-4 flex-shrink-0" />
-                  <span>Export Excel</span>
+                  {downloading ? (
+                    <Loader2 className="h-4.5 w-4.5 animate-spin flex-shrink-0" />
+                  ) : (
+                    <Download className="h-4 w-4 flex-shrink-0" />
+                  )}
+                  <span>{downloading ? 'Exporting...' : 'Export PDF'}</span>
                 </Button>
               </div>
             </div>
@@ -428,7 +428,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
           </div>
         </CardContent>
         {/* Pagination Footer */}
-        {totalPages > 0 && (
+        {totalPages > 1 && (
           <CardFooter className={`flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto`}>
             <div className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Showing Page {currentPage} of {totalPages}
@@ -471,7 +471,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
       </Card>
 
       <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
-        <DialogContent className="w-[90%] sm:max-w-md h-[580px] bg-card rounded-3xl border-none shadow-2xl p-0 overflow-hidden mx-auto flex flex-col">
+        <DialogContent className="w-[90%] sm:max-w-md h-[580px] bg-card rounded-xl border-none shadow-2xl p-0 overflow-hidden mx-auto flex flex-col">
           <DialogHeader className="p-6 bg-muted/20 border-b shrink-0 h-[85px]">
             <DialogTitle className="text-xl font-semibold flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-primary" />

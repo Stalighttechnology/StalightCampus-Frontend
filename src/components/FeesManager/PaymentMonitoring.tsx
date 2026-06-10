@@ -640,7 +640,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
           </div>
         </CardContent>        {/* Pagination Footer */}
-        {meta && meta.total_pages > 0 && (
+        {meta && meta.total_pages > 1  && (
           <CardFooter className={`flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto`}>
             <div className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
               Showing Page {currentPage} of {meta.total_pages}
@@ -661,7 +661,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 Previous
               </Button>
               
-              <div className={`min-w-10 h-9 flex items-center justify-center rounded-md border text-sm font-bold ${theme === 'dark' ? 'bg-muted/50 border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
+              <div className={`min-w-10 h-9 flex items-center justify-center rounded-md border text-sm font-semibold ${theme === 'dark' ? 'bg-muted/50 border-border text-foreground' : 'bg-gray-50 border-gray-200 text-gray-900'}`}>
                 {currentPage}
               </div>
               
@@ -686,35 +686,35 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
       {/* Payment Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-lg h-[600px] w-[90vw] border-none shadow-2xl p-0 overflow-hidden bg-card rounded-3xl">
+        <DialogContent className="max-w-lg w-[90vw] h-[80vh] md:h-[80hv] border-none shadow-2xl p-0 gap-0 overflow-hidden bg-card rounded-xl flex flex-col">
           <DialogHeader className="sr-only">
             <DialogTitle>Payment Details</DialogTitle>
             <DialogDescription>Detailed information about the selected payment transaction</DialogDescription>
           </DialogHeader>
           {/* Refined Header */}
-          <div className="px-6 py-5 border-b border-border/50 bg-muted/20">
+          <div className="px-4 py-4 md:px-6 md:py-5 border-b border-border/50 bg-muted/20">
             <div className="flex items-center justify-between pr-10">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-primary opacity-80" />
-                  <span className="text-[13px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/80">Transaction Statement</span>
+                  <span className="text-sm md:text-sm font-semibold uppercase tracking-[0.15em] text-muted-foreground/80">Transaction Statement</span>
                 </div>
-                <h2 className="text-xl font-semibold tracking-tight text-foreground truncate max-w-[200px] sm:max-w-none">
+                <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate max-w-[200px] sm:max-w-none">
                   #{selectedPayment?.transaction_id?.substring(0, 12) || 'REF-N/A'}
                 </h2>
               </div>
               <div className="flex flex-col items-end gap-1.5 shrink-0">
-                <div className="scale-90 origin-right">
+                <div className="scale-100 origin-right">
                   {selectedPayment && getStatusBadge(selectedPayment.status)}
                 </div>
-                <span className="text-[12px] text-muted-foreground font-semibold">
+                <span className="text-sm md:text-sm text-muted-foreground font-semibold">
                   {selectedPayment && new Date(selectedPayment.payment_date).toLocaleDateString()}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
+          <div className="p-4 md:p-6 pt-2 md:pt-6 space-y-3 md:space-y-5 flex-1 overflow-y-auto custom-scrollbar">
             {isDetailLoading ?
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -736,74 +736,74 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
             <>
                 {/* Info Grid - Responsive */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/5">
-                    <h4 className="text-[12px] font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
+                  <div className="space-y-2 md:space-y-3 p-3 md:p-4 rounded-xl border border-border/50 bg-muted/5">
+                    <h4 className="text-sm md:text-sm font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
                       <Users className="h-3.5 w-3.5 text-primary" /> Payer Information
                     </h4>
-                    <div className="space-y-1">
-                      <p className="text-base font-semibold text-foreground leading-tight">{selectedPayment.invoice.student.name}</p>
+                    <div className="space-y-1 pl-[22px]">
+                      <p className="text-base md:text-lg font-semibold text-foreground leading-tight">{selectedPayment.invoice.student.name}</p>
                       <div className="space-y-0.5">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{selectedPayment.invoice.student.usn}</p>
-                        <p className="text-xs text-muted-foreground/70">{selectedPayment.invoice.student.department}</p>
-                        <p className="text-xs font-semibold text-primary/80">Semester {selectedPayment.invoice.student.semester || 'N/A'}</p>
+                        <p className="text-sm md:text-sm font-medium text-muted-foreground uppercase tracking-wider">{selectedPayment.invoice.student.usn}</p>
+                        <p className="text-sm md:text-sm text-muted-foreground/70">{selectedPayment.invoice.student.department}</p>
+                        <p className="text-sm md:text-sm font-semibold text-primary/80">Semester {selectedPayment.invoice.student.semester || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/5">
-                    <h4 className="text-[12px] font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
+                  <div className="space-y-2 md:space-y-3 p-3 md:p-4 rounded-xl border border-border/50 bg-muted/5">
+                    <h4 className="text-sm md:text-sm font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
                       <FileText className="h-3.5 w-3.5 text-primary" /> Associated Fee
                     </h4>
-                    <div className="space-y-1">
-                      <p className="text-base font-semibold text-foreground leading-tight">
+                    <div className="space-y-1 pl-[22px]">
+                      <p className="text-base md:text-lg font-semibold text-foreground leading-tight">
                         {selectedPayment.invoice?.fee_assignment?.template?.name || 'Manual Assignment'}
                       </p>
                       <div className="flex flex-col gap-1.5 mt-1">
-                        <Badge variant="secondary" className="w-fit text-[10px] h-4.5 px-2 font-semibold uppercase border-none">
+                        <Badge variant="secondary" className="w-fit text-xs md:text-xs h-4.5 px-2.5 py-0.5 font-semibold uppercase border-none">
                           {selectedPayment.invoice?.fee_assignment?.template?.fee_type || 'N/A'}
                         </Badge>
-                        <div className="text-[12px] font-semibold text-muted-foreground">Invoice: <span className="text-primary font-mono">{selectedPayment.invoice?.invoice_number}</span></div>
+                        <div className="text-sm md:text-sm font-semibold text-muted-foreground">Invoice: <span className="text-primary font-mono">{selectedPayment.invoice?.invoice_number}</span></div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Financial Summary */}
-                <div className="bg-primary/5 rounded-xl border border-primary/10 p-5 grid grid-cols-2 gap-4 text-center shadow-inner">
+                <div className="bg-primary/5 rounded-xl border border-primary/10 p-3 md:p-5 grid grid-cols-2 gap-4 text-center shadow-inner">
                   <div className="border-r border-primary/10">
-                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Payment Amount</p>
-                    <p className="text-xl font-bold text-green-600 tracking-tight">{formatCurrency(selectedPayment.amount)}</p>
+                    <p className="text-sm md:text-sm text-muted-foreground uppercase font-semibold tracking-wider mb-1">Payment Amount</p>
+                    <p className="text-xl md:text-2xl font-extrabold text-green-600 tracking-tight">{formatCurrency(selectedPayment.amount)}</p>
                   </div>
                   <div className="flex flex-col items-center justify-center">
-                    <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Method</p>
+                    <p className="text-sm md:text-sm text-muted-foreground uppercase font-semibold tracking-wider mb-1">Method</p>
                     <div className="scale-100">{getMethodBadge(selectedPayment.payment_method)}</div>
                   </div>
                 </div>
 
                 {/* Technical Details */}
-                <div className="space-y-4">
-                  <h4 className="text-[12px] font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest px-1">
+                <div className="space-y-2 md:space-y-4">
+                  <h4 className="text-sm md:text-sm font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest px-1">
                     <LayoutGrid className="h-3.5 w-3.5 text-primary" /> Technical Details
                   </h4>
-                  <div className="border border-border/50 rounded-xl p-5 space-y-4 bg-muted/5 font-mono text-[11px]">
-                    <div className="space-y-1.5 pb-3 border-b border-border/30">
-                      <span className="text-muted-foreground uppercase text-[9px] font-bold tracking-widest">Transaction ID</span>
-                      <p className="font-bold text-foreground select-all break-all leading-relaxed bg-background/50 p-2 rounded-lg border border-border/20">
+                  <div className="border border-border/50 rounded-xl p-3 md:p-5 space-y-3 md:space-y-4 bg-muted/5 font-mono text-sm md:text-sm">
+                    <div className="space-y-1.5 pb-2 md:pb-3 border-b border-border/30">
+                      <span className="text-xs md:text-xs text-muted-foreground uppercase font-semibold tracking-widest">Transaction ID</span>
+                      <p className="font-semibold text-foreground select-all break-all leading-relaxed bg-background/50 p-2 rounded-lg border border-border/20 text-sm md:text-sm">
                         {selectedPayment.transaction_id || 'N/A'}
                       </p>
                     </div>
                     {selectedPayment.stripe_payment_intent_id &&
-                  <div className="space-y-1.5 pb-3 border-b border-border/30">
-                        <span className="text-muted-foreground uppercase text-[9px] font-bold tracking-widest">Stripe Payment Intent</span>
-                        <p className="font-bold text-foreground select-all break-all leading-relaxed bg-background/50 p-2 rounded-lg border border-border/20">
+                  <div className="space-y-1.5 pb-2 md:pb-3 border-b border-border/30">
+                        <span className="text-xs md:text-xs text-muted-foreground uppercase font-semibold tracking-widest">Stripe Payment Intent</span>
+                        <p className="font-semibold text-foreground select-all break-all leading-relaxed bg-background/50 p-2 rounded-lg border border-border/20 text-sm md:text-sm">
                           {selectedPayment.stripe_payment_intent_id}
                         </p>
                       </div>
                   }
                     <div className="flex justify-between items-center pt-1">
-                      <span className="text-muted-foreground uppercase text-[9px] font-bold tracking-widest">Logged At</span>
-                      <span className="text-foreground font-bold">{new Date(selectedPayment.created_at).toLocaleString()}</span>
+                      <span className="text-xs md:text-xs text-muted-foreground uppercase font-semibold tracking-widest">Logged At</span>
+                      <span className="text-foreground font-semibold text-sm md:text-sm">{new Date(selectedPayment.created_at).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -812,7 +812,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   {(selectedPayment.status === 'completed' || selectedPayment.status === 'success') &&
                 <Button
-                  className="flex-1 h-11 text-xs font-semibold uppercase tracking-widest shadow-lg shadow-primary/20 rounded-xl"
+                  className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold uppercase tracking-widest shadow-lg shadow-primary/20 rounded-xl"
                   onClick={() => downloadReceipt(selectedPayment.id)}>
                   
                       <Download className="h-3.5 w-3.5 mr-2" /> Download Receipt
@@ -821,7 +821,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   {selectedPayment.status === 'completed' && selectedPayment.payment_method === 'stripe' &&
                 <Button
                   variant="destructive"
-                  className="flex-1 h-11 text-xs font-semibold uppercase tracking-widest rounded-xl"
+                  className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold uppercase tracking-widest rounded-xl"
                   onClick={() => processRefund(selectedPayment.id)}>
                   
                       Process Refund
@@ -829,7 +829,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                 }
                   <Button
                   variant="outline"
-                  className="h-11 px-8 text-xs font-semibold uppercase tracking-widest rounded-xl border-border/50"
+                  className="h-10 md:h-11 px-8 text-xs md:text-sm font-semibold uppercase tracking-widest rounded-xl border-border/50"
                   onClick={() => setIsDetailsDialogOpen(false)}>
                   
                     Close Window

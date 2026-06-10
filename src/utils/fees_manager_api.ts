@@ -566,7 +566,7 @@ export const getStaffAttendanceAudit = async (role: string, startDate: string, e
       start_date: startDate,
       end_date: endDate,
       page: page.toString(),
-      ...(format && { format })
+      ...(format && { export_format: format })
     });
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/reports/attendance/?${params.toString()}`, {
       method: "GET"

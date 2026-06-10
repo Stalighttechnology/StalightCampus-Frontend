@@ -717,7 +717,7 @@ export const BillingManagement: React.FC = () => {
             </table>
           </div>
         </CardContent>
-        {payments.length > 0 && (
+        {payments.length > itemsPerPage && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t">
             <div>
               Showing {Math.min((safePaymentsPage - 1) * itemsPerPage + 1, payments.length)} to {Math.min(safePaymentsPage * itemsPerPage, payments.length)} of {payments.length} payments
@@ -831,7 +831,7 @@ export const BillingManagement: React.FC = () => {
             </table>
           </div>
         </CardContent>
-        {tickets.length > 0 && (
+        {tickets.length > itemsPerPage && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t">
             <div>
               Showing {Math.min((safeTicketsPage - 1) * itemsPerPage + 1, tickets.length)} to {Math.min(safeTicketsPage * itemsPerPage, tickets.length)} of {tickets.length} tickets

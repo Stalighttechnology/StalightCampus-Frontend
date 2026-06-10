@@ -354,8 +354,8 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
                   <div
                     onClick={() => setSelectedPlan("basic")}
                     className={`p-4 border rounded-xl flex justify-between items-center transition-all cursor-pointer ${selectedPlan === "basic"
-                        ? "border-primary bg-primary/[0.02] ring-1 ring-primary shadow-sm"
-                        : "bg-white border-slate-200 hover:border-slate-300"
+                      ? "border-primary bg-primary/[0.02] ring-1 ring-primary shadow-sm"
+                      : "bg-white border-slate-200 hover:border-slate-300"
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -379,8 +379,8 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
                   <div
                     onClick={() => setSelectedPlan("pro")}
                     className={`p-4 border rounded-xl flex justify-between items-center transition-all cursor-pointer ${selectedPlan === "pro"
-                        ? "border-primary bg-primary/[0.02] ring-1 ring-primary shadow-sm"
-                        : "bg-white border-slate-200 hover:border-slate-300"
+                      ? "border-primary bg-primary/[0.02] ring-1 ring-primary shadow-sm"
+                      : "bg-white border-slate-200 hover:border-slate-300"
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -409,8 +409,8 @@ const UpgradePlanDialog = ({ isOpen, onClose, orgName = "Your Organization", onS
                   <div
                     onClick={() => setSelectedPlan("advance")}
                     className={`p-4 border rounded-xl flex justify-between items-center transition-all cursor-pointer ${selectedPlan === "advance"
-                        ? "border-primary bg-primary/[0.02] ring-1 ring-primary shadow-sm"
-                        : "bg-white border-slate-200 hover:border-slate-300"
+                      ? "border-primary bg-primary/[0.02] ring-1 ring-primary shadow-sm"
+                      : "bg-white border-slate-200 hover:border-slate-300"
                       }`}
                   >
                     <div className="flex items-center gap-3">
