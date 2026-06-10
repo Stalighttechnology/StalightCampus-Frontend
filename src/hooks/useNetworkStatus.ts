@@ -103,7 +103,15 @@ export function useNetworkStatus() {
     let mounted = true;
 
     async function runProbe() {
-      const ok = await probeInternet();
+      let ok = await probeInternet();
+      
+      // If it fails, do a quick retry (useful when app just wakes up/reopens)
+      if (!ok && mounted) {
+        await new Promise(r => setTimeout(r, 1500));
+        if (!mounted) return;
+        ok = await probeInternet();
+      }
+
       if (!mounted) return;
       if (import.meta.env?.DEV) console.debug("useNetworkStatus probe ->", ok);
 
