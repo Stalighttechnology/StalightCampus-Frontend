@@ -9,16 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectItem } from
-"@/components/ui/select";
+  SelectItem
+} from
+  "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger } from
-"@/components/ui/dialog";
+  DialogTrigger
+} from
+  "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -27,8 +29,9 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
-  AlertDialogTitle } from
-"@/components/ui/alert-dialog";
+  AlertDialogTitle
+} from
+  "@/components/ui/alert-dialog";
 import { Loader2, Plus, Calendar as CalendarIcon, Check } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -43,8 +46,9 @@ import {
   toggleAnnouncementActive,
   markAnnouncementRead,
   Announcement,
-  CreateAnnouncementRequest } from
-"@/utils/announcements_api";
+  CreateAnnouncementRequest
+} from
+  "@/utils/announcements_api";
 import { manageBranches } from "@/utils/admin_api";
 import AnnouncementSections from "@/components/common/AnnouncementSections";
 import Swal from "sweetalert2";
@@ -59,7 +63,6 @@ const AdminAnnouncementManagement = () => {
   const [error, setError] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // Pagination state
   const [myPage, setMyPage] = useState(1);
@@ -182,7 +185,7 @@ const AdminAnnouncementManagement = () => {
         const response = await updateAnnouncement(editingId, formData);
         if (response.success) {
           setMyAnnouncements((prev) =>
-          prev.map((a) => a.id === editingId ? response.data : a)
+            prev.map((a) => a.id === editingId ? response.data : a)
           );
           MySwal.fire({
             title: "Updated",
@@ -252,36 +255,51 @@ const AdminAnnouncementManagement = () => {
     setShowCreateDialog(true);
   };
 
-  const handleDelete = async () => {
-    if (!deletingId) return;
+  const handleDelete = async (announcementId: number) => {
+    const result = await MySwal.fire({
+      title: "Delete Announcement",
+      text: "Are you sure you want to delete this announcement? This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      target: document.body
+    });
 
-    try {
-      const response = await deleteAnnouncement(deletingId);
-      if (response.success) {
-        setMyAnnouncements((prev) => prev.filter((a) => a.id !== deletingId));
-        setReceivedAnnouncements((prev) => prev.filter((a) => a.id !== deletingId));
-        MySwal.fire({
-          title: "Deleted",
-          text: "Announcement deleted successfully",
-          icon: "success",
-          confirmButtonColor: "#9147e0"
-        });
-      } else {
+    if (result.isConfirmed) {
+      try {
+        const response = await deleteAnnouncement(announcementId);
+        if (response.success) {
+          setMyAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
+          setReceivedAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
+          MySwal.fire({
+            title: "Deleted",
+            text: "Announcement deleted successfully",
+            icon: "success",
+            confirmButtonColor: "#9147e0",
+            target: document.body
+          });
+        } else {
+          MySwal.fire({
+            title: "Error",
+            text: response.message || "Failed to delete announcement",
+            icon: "error",
+            confirmButtonColor: "#9147e0",
+            target: document.body
+          });
+        }
+      } catch (error: any) {
         MySwal.fire({
           title: "Error",
-          text: response.message || "Failed to delete announcement",
+          text: error.message || "An error occurred",
           icon: "error",
-          confirmButtonColor: "#9147e0"
+          confirmButtonColor: "#9147e0",
+          target: document.body
         });
       }
-      setDeletingId(null);
-    } catch (error: any) {
-      MySwal.fire({
-        title: "Error",
-        text: error.message || "An error occurred",
-        icon: "error",
-        confirmButtonColor: "#9147e0"
-      });
     }
   };
 
@@ -290,10 +308,10 @@ const AdminAnnouncementManagement = () => {
       const response = await toggleAnnouncementActive(announcementId);
       if (response.success) {
         setMyAnnouncements((prev) =>
-        prev.map((a) => a.id === announcementId ? response.data : a)
+          prev.map((a) => a.id === announcementId ? response.data : a)
         );
         setReceivedAnnouncements((prev) =>
-        prev.map((a) => a.id === announcementId ? response.data : a)
+          prev.map((a) => a.id === announcementId ? response.data : a)
         );
       } else {
         MySwal.fire({
@@ -318,7 +336,7 @@ const AdminAnnouncementManagement = () => {
       const response = await markAnnouncementRead(announcementId);
       if (response.success) {
         setReceivedAnnouncements((prev) =>
-        prev.map((a) => a.id === announcementId ? { ...a, is_read: true } : a)
+          prev.map((a) => a.id === announcementId ? { ...a, is_read: true } : a)
         );
         // Optimistically update local unread count for real-time feel
         setUnreadReceivedCount((prev) => Math.max(0, prev - 1));
@@ -357,23 +375,23 @@ const AdminAnnouncementManagement = () => {
             <Button
               onClick={() => resetForm()}
               className={`gap-2 ${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
-              
+
               <Plus className="w-4 h-4" />
               New Announcement
             </Button>
           </DialogTrigger>
           <DialogContent
             onPointerDownOutside={(e) => e.preventDefault()}
-            className="mobile-modal max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-            
+            className="mobile-modal max-w-xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "Edit Announcement" : "Create Announcement"}
               </DialogTitle>
               <DialogDescription>
                 {editingId ?
-                "Update the announcement details below" :
-                "Create a new announcement visible to selected roles"}
+                  "Update the announcement details below" :
+                  "Create a new announcement visible to selected roles"}
               </DialogDescription>
             </DialogHeader>
 
@@ -385,9 +403,9 @@ const AdminAnnouncementManagement = () => {
                   placeholder="Announcement title"
                   value={formData.title}
                   onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
+                    setFormData({ ...formData, title: e.target.value })
                   } />
-                
+
               </div>
 
               <div className="space-y-2">
@@ -397,11 +415,11 @@ const AdminAnnouncementManagement = () => {
                   placeholder="Announcement message"
                   value={formData.message}
                   onChange={(e) =>
-                  setFormData({ ...formData, message: e.target.value })
+                    setFormData({ ...formData, message: e.target.value })
                   }
                   rows={6}
                   className="resize-none max-h-24 overflow-auto custom-scrollbar" />
-                
+
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -410,9 +428,9 @@ const AdminAnnouncementManagement = () => {
                   <Select
                     value={formData.priority}
                     onValueChange={(value: any) =>
-                    setFormData({ ...formData, priority: value })
+                      setFormData({ ...formData, priority: value })
                     }>
-                    
+
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -432,18 +450,18 @@ const AdminAnnouncementManagement = () => {
                       <Button
                         variant="outline"
                         className={theme === 'dark' ? 'w-full justify-start text-left font-normal bg-card text-foreground border-border' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300'}>
-                        
+
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formData.expires_at ?
-                        (() => {
-                          try {
-                            return format(new Date(formData.expires_at), 'PPP');
-                          } catch (e) {
-                            return formData.expires_at;
-                          }
-                        })() :
+                          (() => {
+                            try {
+                              return format(new Date(formData.expires_at), 'PPP');
+                            } catch (e) {
+                              return formData.expires_at;
+                            }
+                          })() :
 
-                        <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select date</span>
+                          <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Select date</span>
                         }
                       </Button>
                     </PopoverTrigger>
@@ -463,7 +481,7 @@ const AdminAnnouncementManagement = () => {
                           }}
                           disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                           className={theme === 'dark' ? 'rounded-md bg-background text-foreground' : 'rounded-md bg-white text-gray-900'} />
-                        
+
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -526,20 +544,21 @@ const AdminAnnouncementManagement = () => {
                             });
                           }
                         }}
-                        className={`flex items-center justify-between p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${
-                          isSelected
+                        className={`flex items-center gap-3 p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${isSelected
                             ? theme === 'dark'
                               ? 'bg-primary/20 border-primary text-primary-foreground shadow-sm'
                               : 'bg-primary/10 border-primary text-primary shadow-sm'
                             : theme === 'dark'
                               ? 'bg-card border-border hover:bg-accent text-muted-foreground'
                               : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'
-                        }`}
+                          }`}
                       >
-                        <span className="capitalize">{role}</span>
-                        {isSelected && (
-                          <Check className="h-4 w-4 text-primary" />
-                        )}
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => { }}
+                          className="pointer-events-none"
+                        />
+                        <span className="capitalize">{role.replace('_', ' ')}</span>
                       </button>
                     );
                   })}
@@ -550,14 +569,14 @@ const AdminAnnouncementManagement = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowCreateDialog(false)}>
-                  
+
                   Cancel
                 </Button>
                 <Button
                   onClick={handleCreateOrUpdate}
                   disabled={submitting}
                   className={`${theme === 'dark' ? 'text-white bg-primary hover:bg-[#9147e0] border-border' : 'text-white bg-primary hover:bg-[#9147e0] border-primary'}`}>
-                  
+
                   {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   {editingId ? "Update" : "Create"} Announcement
                 </Button>
@@ -574,13 +593,13 @@ const AdminAnnouncementManagement = () => {
       <style>{`
         @media (max-width: 480px) {
           .announcements-card { border-radius: 12px !important; }
-          .announcements-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+          .announcements-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
           .announcements-card-title { font-size: 1.25rem !important; line-height: 1.2 !important; }
           .announcements-card-desc { font-size: 0.8125rem !important; margin-top: 6px !important; }
           .announcements-card-content { padding: 12px !important; }
           .announce-actions { width: 100% !important; }
           .announce-actions button { width: 100% !important; justify-content: center !important; height: 44px !important; }
-          .mobile-modal { width: 95vw !important; max-width: 95vw !important; padding: 16px !important; border-radius: 16px !important; margin: 0 auto !important; }
+          .mobile-modal { width: 90% !important; max-width: 90% !important; padding: 16px !important; border-radius: 16px !important; margin: 0 auto !important; }
           .delete-modal { width: 90vw !important; max-width: 320px !important; padding: 16px !important; border-radius: 12px !important; }
         }
       `}</style>
@@ -613,7 +632,7 @@ const AdminAnnouncementManagement = () => {
               myAnnouncements={myAnnouncements}
               receivedAnnouncements={receivedAnnouncements}
               onEdit={handleEdit}
-              onDelete={(id) => setDeletingId(id)}
+              onDelete={handleDelete}
               onToggleActive={handleToggleActive}
               onMarkRead={handleMarkRead}
               loading={loading}
@@ -637,27 +656,6 @@ const AdminAnnouncementManagement = () => {
 
 
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
-        <AlertDialogContent className="delete-modal">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Announcement</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this announcement? This action cannot
-              be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex gap-3 justify-end">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              
-              Delete
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
     </>);
 
 };

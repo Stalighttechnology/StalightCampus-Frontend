@@ -341,7 +341,7 @@ const AdminHODAttendance: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Total HODs</p>
-                    <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_hods}</p>
+                    <p className={`text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{todaySummary.total_hods}</p>
                   </div>
                   <Users className="w-8 h-8 text-blue-600" />
                 </div>
@@ -350,7 +350,7 @@ const AdminHODAttendance: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Present</p>
-                    <p className={`text-2xl font-bold text-green-600`}>{todaySummary.present}</p>
+                    <p className={`text-2xl font-semibold text-green-600`}>{todaySummary.present}</p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
@@ -359,7 +359,7 @@ const AdminHODAttendance: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Absent</p>
-                    <p className={`text-2xl font-bold text-red-600`}>{todaySummary.absent}</p>
+                    <p className={`text-2xl font-semibold text-red-600`}>{todaySummary.absent}</p>
                   </div>
                   <XCircle className="w-8 h-8 text-red-600" />
                 </div>
@@ -368,7 +368,7 @@ const AdminHODAttendance: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Not Marked</p>
-                    <p className={`text-2xl font-bold text-gray-600`}>{todaySummary.not_marked}</p>
+                    <p className={`text-2xl font-semibold text-gray-600`}>{todaySummary.not_marked}</p>
                   </div>
                   <Users className="w-8 h-8 text-gray-400" />
                 </div>
@@ -510,7 +510,7 @@ const AdminHODAttendance: React.FC = () => {
             <div id="hod-attendance-filter-section" className={`p-4 rounded-lg shadow-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
             <div className="flex flex-col sm:flex-row items-end gap-4">
               <div className="w-full sm:w-auto">
-                <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Start Date</label>
+                <label className={`block text-md sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>Start Date</label>
                 <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -541,7 +541,7 @@ const AdminHODAttendance: React.FC = () => {
                 </Popover>
               </div>
               <div className="w-full sm:w-auto">
-                <label className={`block text-xs sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>End Date</label>
+                <label className={`block text-md sm:text-sm font-medium mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}>End Date</label>
                 <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -671,12 +671,12 @@ const AdminHODAttendance: React.FC = () => {
 
       {/* Attendance Grid Dialog */}
       <Dialog open={!!selectedHOD} onOpenChange={(open) => !open && setSelectedHOD(null)}>
-        <DialogContent className="w-[90vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl sm:rounded-xl p-0 border-none shadow-2xl custom-scrollbar">
+        <DialogContent className="w-[90vw] sm:max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl sm:rounded-xl p-0 border-none shadow-2xl custom-scrollbar">
           <div className="p-4 sm:p-6 space-y-6">
             <DialogHeader className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">Attendance Grid</DialogTitle>
+                  <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground">Attendance Grid</DialogTitle>
                   <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     Reviewing records for <span className="font-semibold text-primary">{selectedHOD?.hod_name}</span>
                   </p>
@@ -687,23 +687,24 @@ const AdminHODAttendance: React.FC = () => {
                 <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-xl border border-border/50">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Present</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-widest opacity-80">Present</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Absent</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-widest opacity-80">Absent</span>
                   </div>
                 </div>
               </div>
             </DialogHeader>
 
             <div className={`p-4 sm:p-6 rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-muted/20 border border-white/5' : 'bg-gray-50 border border-gray-100'}`}>
-              {isDetailLoading ?
-                <div className="flex flex-col items-center justify-center py-20 gap-3">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                  <p className="text-sm font-semibold animate-pulse text-muted-foreground">Syncing attendance data...</p>
-                </div> :
-
+              {isDetailLoading ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
+                  {Array.from({ length: 14 }).map((_, idx) => (
+                    <div key={idx} className="h-20 rounded-2xl bg-muted/20 animate-pulse border border-border/30" />
+                  ))}
+                </div>
+              ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-3 sm:gap-4">
                   {(() => {
                     const end = new Date(dateRange.end_date);
@@ -734,13 +735,13 @@ const AdminHODAttendance: React.FC = () => {
                         <div key={dateStr} className={`relative group p-4 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md ${isPresent ? 'bg-green-500/10 border-green-500/30 text-green-600' : isAbsent ? 'bg-red-500/10 border-red-500/30 text-red-600' : theme === 'dark' ? 'bg-white/5 border-white/5 text-muted-foreground/30' : 'bg-gray-100 border-gray-200 text-gray-300'}`}>
                           <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
                           <span className="text-xl font-black leading-tight">{date.getDate()}</span>
-                          <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-widest opacity-60">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
                           {record ?
                           <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`}>{record.status[0]}</div> :
                           !isFuture && <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">A</div>}
                           
                           <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 shadow-xl border border-white/10 scale-90 group-hover:scale-100">
-                            <div className="font-bold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
+                            <div className="font-semibold">{date.toLocaleDateString('en-US', { dateStyle: 'medium' })}</div>
                             {!record && !isFuture && <div className="text-red-300 mt-1 flex items-center gap-1"><XCircle className="w-3 h-3" /> Auto-marked Absent</div>}
                             {record && <div className={`${isPresent ? 'text-green-300' : 'text-red-300'} mt-1 flex items-center gap-1`}>{isPresent ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />} {record.status}</div>}
                           </div>
@@ -749,7 +750,7 @@ const AdminHODAttendance: React.FC = () => {
                     });
                   })()}
                 </div>
-                }
+              )}
             </div>
             
             <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">

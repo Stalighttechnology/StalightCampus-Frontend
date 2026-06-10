@@ -462,7 +462,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium status-badge";
     switch (status.toLowerCase()) {
       case 'present':
         return `${baseClasses} bg-green-100 text-green-800`;
@@ -530,6 +530,83 @@ const AdminFacultyAttendanceView: React.FC = () => {
 
   return (
     <>
+      <style>{`
+        @media (max-width: 480px) {
+          #faculty-attendance-dashboard-title {
+            font-size: 22px !important;
+          }
+          #faculty-attendance-dashboard-subtitle {
+            font-size: 15px !important;
+          }
+          #hod-faculty-attendance-tabs button {
+            font-size: 15px !important;
+            padding: 10px 8px !important;
+          }
+          #hod-faculty-attendance-summary p.text-xs {
+            font-size: 15px !important;
+          }
+          #hod-faculty-attendance-summary p.text-lg {
+            font-size: 22px !important;
+          }
+          .card-title-text {
+            font-size: 20px !important;
+          }
+          .export-btn {
+            font-size: 17px !important;
+            padding: 8px 12px !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+          }
+          th {
+            font-size: 16px !important;
+            padding: 8px 12px !important;
+          }
+          td {
+            font-size: 15px !important;
+            padding: 10px 12px !important;
+          }
+          .faculty-name {
+            font-size: 14px !important;
+          }
+          .status-badge {
+            font-size: 14px !important;
+          }
+          .meta-text {
+            font-size: 14px !important;
+          }
+          .location-text {
+            font-size: 13px !important;
+          }
+          .pagination-btn {
+            font-size: 15px !important;
+            padding: 6px 12px !important;
+          }
+          .pagination-text {
+            font-size: 15px !important;
+          }
+          #hod-faculty-attendance-filters label {
+            font-size: 15px !important;
+          }
+          #hod-faculty-attendance-filters button, #hod-faculty-attendance-filters [role="combobox"], #hod-faculty-attendance-filters span {
+            font-size: 15px !important;
+          }
+          /* Detail Modal Font Adjustments */
+          .detail-day-weekday {
+            font-size: 14px !important;
+          }
+          .detail-day-num {
+            font-size: 22px !important;
+          }
+          .detail-day-month {
+            font-size: 13px !important;
+          }
+          .detail-status-badge {
+            font-size: 10px !important;
+          }
+        }
+      `}</style>
       <div id="faculty-attendance-dashboard-container" className={`space-y-6 animate-fade-in ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
         <div id="admin-faculty-attendance-header-select" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -650,13 +727,13 @@ const AdminFacultyAttendanceView: React.FC = () => {
           <>
             <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
               <CardHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <CardTitle className={`text-sm sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                <CardTitle className={`text-sm sm:text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                   Today's Faculty Attendance ({new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })})
                 </CardTitle>
                 <button
                   onClick={handleExportTodayPDF}
                   disabled={exportingToday}
-                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50`}>
+                  className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50 export-btn`}>
                   {exportingToday ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -700,15 +777,15 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         todayAttendance.map((record) =>
                           <tr key={record.faculty_id} className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'}`}>
                             <td className={`px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                              <div className="font-medium">{record.faculty_name}</div>
+                              <div className="font-medium faculty-name">{record.faculty_name}</div>
                             </td>
                             <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                               <span className={`${getStatusBadge(record.status)} text-xs sm:text-sm`}>{record.status}</span>
                             </td>
-                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} meta-text`}>
                               {record.marked_at ? new Date(record.marked_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not marked'}
                               {record.location ?
-                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>
                                   {record.location.inside ?
                                     <>On campus • {record.location.distance_meters ? `${Math.round(record.location.distance_meters)} m` : 'distance unknown'}</> :
 
@@ -717,7 +794,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                                   {record.location.campus_name ? ` • ${record.location.campus_name}` : ''}
                                 </div> :
 
-                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Location not recorded</div>
+                                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'} location-text`}>Location not recorded</div>
                               }
                             </td>
                             <td className={`px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
@@ -730,9 +807,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                   </table>
                 </div>
               </CardContent>
-              {todayAttendance.length > 0 && (
+              {todayAttendance.length > 50 && (
                 <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                  <div>
+                  <div className="pagination-text">
                     Showing {todayAttendance.length > 0 ? (todayPagination.page - 1) * todayPagination.page_size + 1 : 0} to {Math.min(todayPagination.page * todayPagination.page_size, todayPagination.total_items)} of {todayPagination.total_items} faculty
                   </div>
                   <div className="flex items-center gap-2">
@@ -742,7 +819,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         size="sm"
                         onClick={loadAllData}
                         disabled={isLoading}
-                        className="border-green-500 text-green-600 hover:bg-green-50 h-9 px-4 transition-all"
+                        className="border-green-500 text-green-600 hover:bg-green-50 h-9 px-4 transition-all pagination-btn"
                       >
                         {isLoading ? 'Loading...' : 'Load All'}
                       </Button>
@@ -752,13 +829,13 @@ const AdminFacultyAttendanceView: React.FC = () => {
                       size="sm"
                       onClick={() => handlePageChange(todayPagination.page - 1)}
                       disabled={!todayPagination.has_prev || isLoading}
-                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
                     >
                       Previous
                     </Button>
 
                     <div className="flex items-center justify-center min-w-[2rem]">
-                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      <span className={`text-sm font-semibold pagination-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                         {todayPagination.page}
                       </span>
                     </div>
@@ -768,7 +845,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                       size="sm"
                       onClick={() => handlePageChange(todayPagination.page + 1)}
                       disabled={!todayPagination.has_next || isLoading}
-                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
                     >
                       Next
                     </Button>
@@ -873,7 +950,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                   <button
                     onClick={handleExportRecordsPDF}
                     disabled={exportingRecords || facultySummary.length === 0 || !selectedFacultyId}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50">
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium disabled:opacity-50 export-btn">
                     {exportingRecords ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -904,14 +981,14 @@ const AdminFacultyAttendanceView: React.FC = () => {
             ) : facultySummary.length > 0 ? (
               <Card className={`rounded-lg border shadow-sm ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} overflow-hidden`}>
                 <CardHeader className="px-6 py-4 border-b border-border">
-                  <CardTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  <CardTitle className={`text-lg font-semibold card-title-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                     Faculty Attendance Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className={`sticky top-0 ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
+                      <thead className={`sticky top-0 whitespace-nowrap ${theme === 'dark' ? 'bg-card' : 'bg-gray-50'}`}>
                         <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Faculty</th>
                           <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Total Days</th>
@@ -927,7 +1004,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                           .map((summary) =>
                           <React.Fragment key={summary.id}>
                             <tr className={`hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} ${selectedFaculty?.id === summary.id ? theme === 'dark' ? 'bg-accent/50' : 'bg-blue-50' : ''}`}>
-                              <td className={`px-6 py-4 whitespace-nowrap font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                              <td className={`px-6 py-4 whitespace-nowrap font-medium faculty-name ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                                 {summary.name}
                               </td>
                               <td className={`px-6 py-4 whitespace-nowrap ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -947,7 +1024,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                               <td className="px-6 py-4 whitespace-nowrap text-right">
                                 <button
                                   onClick={() => fetchFacultyDetails(summary)}
-                                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${theme === 'dark' ?
+                                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors export-btn ${theme === 'dark' ?
                                     'bg-primary/20 text-primary hover:bg-primary/30' :
                                     'bg-primary text-white hover:bg-primary/90'}`
                                   }>
@@ -963,9 +1040,9 @@ const AdminFacultyAttendanceView: React.FC = () => {
                   </div>
                 </CardContent>
 
-                {facultySummary.length > 0 && (
+                {facultySummary.length > 50 && (
                   <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                    <div>
+                    <div className="pagination-text">
                       Showing {recordsPagination.total_items > 0 ? Math.min((recordsPagination.page - 1) * recordsPagination.page_size + 1, recordsPagination.total_items) : 0} to {Math.min(recordsPagination.page * recordsPagination.page_size, recordsPagination.total_items)} of {recordsPagination.total_items} records
                     </div>
                     <div className="flex items-center gap-2">
@@ -974,13 +1051,13 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         size="sm"
                         onClick={() => handleRecordsPageChange(recordsPagination.page - 1)}
                         disabled={!recordsPagination.has_prev || isLoading}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
                       >
                         Previous
                       </Button>
 
                       <div className="flex items-center justify-center min-w-[2rem]">
-                        <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        <span className={`text-sm font-semibold pagination-text ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                           {recordsPagination.page}
                         </span>
                       </div>
@@ -990,7 +1067,7 @@ const AdminFacultyAttendanceView: React.FC = () => {
                         size="sm"
                         onClick={() => handleRecordsPageChange(recordsPagination.page + 1)}
                         disabled={!recordsPagination.has_next || isLoading}
-                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                        className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all pagination-btn"
                       >
                         Next
                       </Button>
@@ -1022,21 +1099,21 @@ const AdminFacultyAttendanceView: React.FC = () => {
           <DialogHeader className="pb-4 border-b border-border/50">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <DialogTitle>
+                <DialogTitle className="card-title-text">
                   {selectedFaculty?.name}'s Attendance
                 </DialogTitle>
-                <p className={`text-sm mt-2 font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                <p className={`text-sm mt-2 font-medium meta-text ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                   {formatDate(dateRange.start_date)} — {formatDate(dateRange.end_date)}
                 </p>
               </div>
               <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-xl border border-border/50">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Present</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 detail-day-weekday">Present</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Absent</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 detail-day-weekday">Absent</span>
                 </div>
               </div>
             </div>
@@ -1088,22 +1165,22 @@ const AdminFacultyAttendanceView: React.FC = () => {
                               'bg-gray-100 border-gray-200 text-gray-300'}`
                         }>
 
-                        <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60">
+                        <span className="text-[10px] font-black uppercase tracking-wider mb-1 opacity-60 detail-day-weekday">
                           {date.toLocaleDateString('en-US', { weekday: 'short' })}
                         </span>
-                        <span className="text-xl font-black leading-tight">{date.getDate()}</span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                        <span className="text-xl font-black leading-tight detail-day-num">{date.getDate()}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 detail-day-month">
                           {date.toLocaleDateString('en-US', { month: 'short' })}
                         </span>
 
                         {record ?
-                          <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`
+                          <div className={`mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter detail-status-badge ${isPresent ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`
                           }>
                             {record.status[0]}
                           </div> :
 
                           !isFuture &&
-                          <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+                          <div className="mt-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)] detail-status-badge">
                             A
                           </div>
 
@@ -1123,10 +1200,10 @@ const AdminFacultyAttendanceView: React.FC = () => {
           </div>
 
           <DialogFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
-            <div className="text-[11px] text-muted-foreground italic font-medium">
+            <div className="text-[11px] text-muted-foreground italic font-medium meta-text">
               Note: "A" indicates auto-marked absence due to missing records.
             </div>
-            <Button onClick={() => setSelectedFaculty(null)} className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90">Close</Button>
+            <Button onClick={() => setSelectedFaculty(null)} className="rounded-xl px-8 bg-primary text-white hover:bg-primary/90 export-btn">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

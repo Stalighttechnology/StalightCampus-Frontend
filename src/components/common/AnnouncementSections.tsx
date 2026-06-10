@@ -166,24 +166,28 @@ export const AnnouncementSections = ({
     <>
       <style>{`
         @media (max-width: 480px) {
-          .ann-tabs-list { width: 100% !important; grid-template-columns: 1fr 1fr !important; }
-          .ann-archive-btn { width: 100% !important; margin-top: 10px !important; }
+          .ann-tabs-list { width: 100% !important; grid-template-columns: 1fr 1fr !important; margin-top: 8px !important; }
+          .ann-archive-btn { width: 100% !important; margin-top: 8px !important; }
           .ann-table-container { border: none !important; }
-          .ann-card-mobile { padding: 16px !important; margin-bottom: 12px !important; border-radius: 12px !important; border: 1px solid hsl(var(--border)) !important; }
+          .ann-card-mobile { padding: 12px !important; margin-bottom: 12px !important; border-radius: 12px !important; border: 1px solid hsl(var(--border)) !important; }
           .ann-card-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-          .ann-card-title { font-size: 1rem !important; font-weight: 600 !important; line-height: 1.3 !important; }
+          .ann-card-title { font-size: 1.15rem !important; font-weight: 600 !important; line-height: 1.3 !important; }
           .ann-card-meta { display: flex; flex-direction: column; gap: 4px; }
+          .ann-card-meta span { font-size: 0.8rem !important; }
           .ann-card-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+          .ann-card-badges > * { font-size: 0.75rem !important; height: auto !important; padding: 2px 8px !important; }
           .ann-card-actions { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid hsl(var(--border)); padding-top: 12px; margin-top: 12px; }
+          .ann-card-actions button { font-size: 0.8rem !important; }
           .ann-card-actions-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; }
           .ann-card-actions-row button { flex: 1; }
           .ann-pagination { flex-direction: column !important; gap: 16px !important; align-items: center !important; text-align: center !important; }
+          .announcements-card-content { padding-top: 4px !important; }
         }
       `}</style>
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
         <div id={header ? "announcement-header-section" : undefined} className={header ? "flex flex-col" : undefined}>
           {header}
-          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${header ? 'px-6 pb-4' : ''}`}>
+          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${header ? 'px-6 pb-2 sm:pb-4' : ''}`}>
         <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl mt-5">
           <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
             <span className="text-sm font-semibold">My Announcements</span>
@@ -228,7 +232,7 @@ export const AnnouncementSections = ({
         </div>
 
         <SectionContentWrapper header={header} className="announcements-card-content pt-0">
-        <TabsContent value="my" className="space-y-4 mt-6">
+        <TabsContent value="my" className="space-y-4 mt-2 sm:mt-6">
         {loading ? (
           <div className="py-4">
             <SkeletonList items={5} />
@@ -461,7 +465,7 @@ export const AnnouncementSections = ({
 
       </TabsContent>
 
-      <TabsContent value="received" className="space-y-4 mt-6">
+      <TabsContent value="received" className="space-y-4 mt-2 sm:mt-6">
         {loading ? (
           <div className="py-4">
             <SkeletonList items={5} />
@@ -622,7 +626,7 @@ export const AnnouncementSections = ({
       </TabsContent>
         </SectionContentWrapper>
 
-        {activeTab === "my" && myPagination && myPagination.count > 0 && (
+        {activeTab === "my" && myPagination && myPagination.count > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((myPagination.page - 1) * myPagination.pageSize + 1, myPagination.count)} to {Math.min(myPagination.page * myPagination.pageSize, myPagination.count)} of {myPagination.count} announcements
@@ -697,7 +701,7 @@ export const AnnouncementSections = ({
         <DialogContent className="w-[92vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl sm:rounded-2xl p-0 border-none shadow-2xl">
           <div className="p-6 sm:p-8 space-y-6">
             <DialogHeader className="space-y-4">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center justify-between gap-4 pr-6 sm:pr-0">
                 <Badge className={`${viewingAnnouncement ? getPriorityColor(viewingAnnouncement.priority) : ''} h-7 px-4 text-xs font-semibold rounded-full border-none shadow-sm`}>
                   {viewingAnnouncement?.priority.toUpperCase()}
                 </Badge>

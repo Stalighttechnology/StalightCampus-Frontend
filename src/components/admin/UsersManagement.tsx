@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import {
   Select,
@@ -115,7 +116,6 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const [appliedSearch, setAppliedSearch] = useState(""); // applied term
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<User | null>(null);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [promoteData, setPromoteData] = useState<User | null>(null);
   const [selectedNewRole, setSelectedNewRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -411,50 +411,61 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
     }
   };
 
-  const confirmDelete = (id: number) => {
-    setDeleteId(id);
+  const confirmDelete = async (id: number) => {
+    const currentTheme = theme === 'dark' ? 'dark' : 'light';
+    const result = await Swal.fire({
+      title: 'Confirm Deletion',
+      text: 'Are you sure you want to delete this user? This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#3b82f6',
+      confirmButtonText: 'Yes, delete!',
+      background: currentTheme === 'dark' ? '#1f2937' : '#fff',
+      color: currentTheme === 'dark' ? '#fff' : '#000'
+    });
+
+    if (result.isConfirmed) {
+      deleteUser(id);
+    }
   };
 
-  const deleteUser = async () => {
-    if (deleteId !== null) {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await manageUserAction({
-          user_id: deleteId.toString(),
-          action: "delete"
-        });
-        if (response.success) {
-          // Remove deleted user from local state instead of making another GET call
-          setUsers((prevUsers) => prevUsers.filter((user) => user.id !== deleteId));
-          setTotalUsers((prevTotal) => prevTotal - 1);
+  const deleteUser = async (id: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await manageUserAction({
+        user_id: id.toString(),
+        action: "delete"
+      });
+      if (response.success) {
+        // Remove deleted user from local state instead of making another GET call
+        setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+        setTotalUsers((prevTotal) => prevTotal - 1);
 
-          // If we deleted the last item on the page and it's not the first page, go to previous page
-          if (users.length === 1 && currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-          }
-
-          setDeleteId(null);
-          toast({ title: "Success", description: "User deleted successfully" });
-        } else {
-          setError(response.message || "Failed to delete user");
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: response.message || "Failed to delete user"
-          });
+        // If we deleted the last item on the page and it's not the first page, go to previous page
+        if (users.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
         }
-      } catch (err) {
 
-        setError("Network error");
+        toast({ title: "Success", description: "User deleted successfully" });
+      } else {
+        setError(response.message || "Failed to delete user");
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Network error"
+          description: response.message || "Failed to delete user"
         });
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      setError("Network error");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Network error"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -552,6 +563,8 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
           .users-card-title { font-size: 24px; font-weight: 600; line-height: 1.2; }
           .users-card-desc { font-size: 16px; margin-top: 4px; }
           .users-card-content { padding: 16px; }
+          .users-card-content.pb-0 { padding-bottom: 0 !important; }
+          .users-card-content.pt-0 { padding-top: 0 !important; }
           .filters-search { gap: 16px; }
           .filter-label { font-size: 16px; font-weight: 600; margin-bottom: 6px; text-transform: none; letter-spacing: normal; }
           .search-wrapper { gap: 10px; }
@@ -581,7 +594,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
       <div className={`users-container text-sm sm:text-base max-w-none mx-auto ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
         <Card id="users-management-card" className={`users-card ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'}`}>
           <div id="users-management-header-filters">
-            <CardHeader className="users-card-header flex flex-row items-center justify-between gap-4">
+            <CardHeader className="users-card-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle className={`users-card-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>User Management</CardTitle>
                 <p className={`users-card-desc ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Manage all users in the system</p>
@@ -589,7 +602,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
               <Button
                 onClick={handleDownloadPDF}
                 disabled={!isAnyFilterActive || downloadingPDF}
-                className={`flex items-center gap-2 px-4 py-2 font-medium transition-all duration-200 shrink-0 ${
+                className={`flex items-center gap-2 px-4 py-2 font-medium transition-all duration-200 shrink-0 w-full sm:w-auto justify-center ${
                   theme === 'dark' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'
                 }`}
               >
@@ -598,7 +611,7 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
               </Button>
             </CardHeader>
             <CardContent className="users-card-content pb-0">
-              <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-10">
+              <div className="filters-search flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-2 sm:mb-10">
                 {/* Filters Section */}
                 <div className="flex-1 w-full">
                   <div className="flex flex-row items-end gap-3 sm:gap-6 w-full max-w-4xl">
@@ -857,45 +870,6 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
               className="bg-primary text-white hover:bg-primary/90"
             >
               {loading ? "Saving..." : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent
-          className={
-          theme === 'dark' ?
-          'delete-modal bg-card border border-border text-foreground w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto' :
-          'delete-modal bg-white border border-gray-200 text-gray-900 w-[92%] max-w-[420px] sm:max-w-md rounded-lg mx-auto'
-          }>
-          
-          <DialogHeader>
-            <DialogTitle className={`delete-modal-title ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Confirm Deletion</DialogTitle>
-          </DialogHeader>
-          <p className={`delete-modal-body ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-            Are you sure you want to delete this user? This action cannot be undone.
-          </p>
-          <DialogFooter className="delete-modal-buttons">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteId(null)}
-              disabled={loading}
-              className={`delete-modal-btn ${theme === 'dark' ?
-              'text-foreground bg-card border border-border hover:bg-accent' :
-              'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}`}>
-              
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={deleteUser}
-              disabled={loading}
-              className={`delete-modal-btn ${theme === 'dark' ?
-              'bg-destructive hover:bg-destructive/90 text-destructive-foreground' :
-              'bg-red-600 hover:bg-red-700 text-white'}`}>
-              
-              {loading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

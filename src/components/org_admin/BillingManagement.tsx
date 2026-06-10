@@ -921,7 +921,7 @@ export const BillingManagement: React.FC = () => {
 
       {/* View Ticket Modal */}
       <Dialog open={!!viewTicket} onOpenChange={(open) => !open && setViewTicket(null)}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
           <DialogHeader>
             <DialogTitle>Ticket Details</DialogTitle>
           </DialogHeader>

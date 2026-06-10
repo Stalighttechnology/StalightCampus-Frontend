@@ -324,7 +324,7 @@ const FacultyAttendance = () => {
       <Card id="admin-my-attendance-form" className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}>
         <div id="today-attendance-toggle-section">
           <CardHeader>
-            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+            <CardTitle className={`text-xl sm:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Today's Attendance
             </CardTitle>
           </CardHeader>
@@ -508,7 +508,7 @@ const FacultyAttendance = () => {
         {/* Recent Attendance Records */}
         <Card className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
           <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 h-[72px] sm:h-[80px]">
-            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+            <CardTitle className={`text-xl sm:text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Recent Attendance (Last 7 Days)
             </CardTitle>
           </CardHeader>
@@ -561,7 +561,7 @@ const FacultyAttendance = () => {
               </div>
             }
           </CardContent>
-          {!loading && recentTotalPages > 0 && (
+          {!loading && recentTotalPages > 10 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing <span className="font-medium">{Math.min((recentPage - 1) * recentPageSize + 1, recentRecords.length)}</span> to <span className="font-medium">{Math.min(recentPage * recentPageSize, recentRecords.length)}</span> of <span className="font-medium">{recentRecords.length}</span> records
@@ -595,16 +595,16 @@ const FacultyAttendance = () => {
           )}
         </Card>
 
-        <Card id="faculty-attendance-history" className={`hidden md:flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-          <CardHeader id="faculty-attendance-history-header" className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 h-[72px] sm:h-[80px]">
-            <CardTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
+        <Card id="faculty-attendance-history" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
+          <CardHeader id="faculty-attendance-history-header" className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 pb-2 min-h-[72px] sm:h-[80px] gap-3">
+            <CardTitle className={`text-xl sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Attendance History
             </CardTitle>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start">
               <Button
                 onClick={handleExportPdf}
                 disabled={exportingPdf}
-                className="bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-3 sm:px-4 shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm whitespace-nowrap"
+                className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-white font-semibold h-9 px-3 sm:px-4 shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 text-md sm:text-sm whitespace-nowrap"
               >
                 {exportingPdf ? (
                   <Loader2 className="animate-spin h-4 w-4" />
@@ -623,9 +623,9 @@ const FacultyAttendance = () => {
                     setHistoryEndDate(undefined);
                     setHistoryPage(1);
                   }}
-                  className={`flex items-center gap-0.5 sm:gap-1 transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-9 px-2.5 whitespace-nowrap ${theme === 'dark'
-                      ? 'text-red-400 border-red-400 hover:bg-red-900/20 hover:text-red-400'
-                      : 'text-red-700 border-red-600 hover:bg-red-100 hover:text-red-700'
+                  className={`flex-1 sm:flex-none flex items-center gap-0.5 sm:gap-1 transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-9 px-2.5 whitespace-nowrap ${theme === 'dark'
+                    ? 'text-red-400 border-red-400 hover:bg-red-900/20 hover:text-red-400'
+                    : 'text-red-700 border-red-600 hover:bg-red-100 hover:text-red-700'
                     }`}
                 >
                   <XCircle className="w-4 h-4" />
@@ -638,10 +638,10 @@ const FacultyAttendance = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-9 px-2.5 whitespace-nowrap"
+                    className="flex-1 sm:flex-none flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-md sm:text-sm h-9 px-2.5 whitespace-nowrap"
                   >
                     <Filter className="w-4 h-4" />
-                    <span className="hidden sm:inline">Filter</span>
+                    <span>Filter</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -750,7 +750,7 @@ const FacultyAttendance = () => {
             )}
           </CardContent>
 
-          {!historyLoading && historyTotalPages > 1 && (
+          {!historyLoading && historyTotalPages > 10 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing <span className="font-medium">{Math.min((historyPage - 1) * historyPageSize + 1, historyTotalItems)}</span> to <span className="font-medium">{Math.min(historyPage * historyPageSize, historyTotalItems)}</span> of <span className="font-medium">{historyTotalItems}</span> records

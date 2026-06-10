@@ -400,6 +400,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
                           <Button
                             variant="outline"
                             size="sm"
+                            className="bg-primary text-white hover:bg-primary/90 hover:text-white "
                             onClick={() => {
                               setSelectedMonth('');
                               setMonthPickerOpen(false);
@@ -627,7 +628,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
             )}
           </CardContent>
 
-          {totalCount > 0 && (
+          {totalCount > 1 && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing {Math.min((currentPage - 1) * 10 + 1, totalCount)} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
@@ -663,7 +664,7 @@ const DepartmentAdminLeavesManagement = ({ setError, toast }: DepartmentAdminLea
 
         {/* View Reason Dialog */}
         <Dialog open={!!viewLeave} onOpenChange={() => setViewLeave(null)}>
-          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
             <DialogHeader>
               <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
             </DialogHeader>

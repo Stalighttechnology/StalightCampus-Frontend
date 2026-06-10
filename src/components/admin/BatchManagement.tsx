@@ -493,7 +493,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({ setError, toast, isRe
 
       {/* Edit Batch Dialog */}
       <Dialog open={!!editingBatch} onOpenChange={() => setEditingBatch(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-full rounded-xl shadow-xl`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[400px] w-[90%] rounded-xl shadow-xl`}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Edit Batch Details</DialogTitle>
           </DialogHeader>

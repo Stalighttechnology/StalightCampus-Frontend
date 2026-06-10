@@ -300,7 +300,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
           .leave-card-header { padding: 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
           .leave-card-title { font-size: 1.25rem !important; }
           .leave-card-desc { font-size: 0.8125rem !important; margin-top: 4px !important; }
-          .leave-month-picker { width: 100% !important; margin-top: 8px !important; }
+          .leave-month-picker { margin-top: 0px !important; }
           .leave-item-card { padding: 16px !important; border-radius: 12px !important; }
           .leave-actions-mobile { width: 100% !important; margin-top: 12px !important; gap: 8px !important; flex-direction: row !important; }
           .leave-action-btn { flex: 1 !important; height: 38px !important; font-size: 12px !important; font-weight: 600 !important; }
@@ -325,7 +325,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                   Review and approve leave requests from Heads of Departments
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
                   <label className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>Month:</label>
                   <Popover open={monthPickerOpen} onOpenChange={setMonthPickerOpen}>
@@ -400,6 +400,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
                         <div className="mt-3 flex justify-end gap-2">
                           <Button
                             variant="outline"
+                            className="bg-primary text-white hover:bg-primary/90 hover:text-white"
                             size="sm"
                             onClick={() => {
                               setSelectedMonth('');
@@ -623,7 +624,7 @@ const HODLeavesManagement = ({ setError, toast }: HODLeavesManagementProps) => {
 
         {/* View Reason Dialog */}
         <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[70%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
+          <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
             <DialogHeader>
               <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
             </DialogHeader>

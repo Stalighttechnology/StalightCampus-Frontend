@@ -513,7 +513,7 @@ const TeacherBranchAssignment = ({ setError, toast }: TeacherBranchAssignmentPro
 
       {/* Primary Branch Assignment Dialog */}
       <Dialog open={showBranchDialog} onOpenChange={setShowBranchDialog}>
-        <DialogContent className="w-full max-w-[320px] mx-4 rounded-lg sm:rounded-md sm:max-w-md">
+        <DialogContent className="w-full max-w-[90%] rounded-lg sm:rounded-md sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Assign Primary Branch</DialogTitle>
           </DialogHeader>

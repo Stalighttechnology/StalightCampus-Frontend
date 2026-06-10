@@ -548,7 +548,7 @@ const QPApprovals = () => {
           }}
           className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90vw] mx-4 rounded-lg flex flex-col max-h-[92vh] custom-scrollbar`}>
           <DialogHeader>
-            <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}</DialogTitle>
+            <DialogTitle className={`text-left pr-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}</DialogTitle>
           </DialogHeader>
           <div className="overflow-auto px-4 py-2 space-y-4 flex-1">
             {detailLoading ?
@@ -641,7 +641,7 @@ const QPApprovals = () => {
                 </>
               )}
               {isHistoryView && (
-                <div className="flex items-center text-sm font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg border border-border">
+                <div className="flex items-center justify-center text-sm font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg border border-border w-full sm:w-auto">
                   <CheckCircle className="w-4 h-4 mr-1.5 text-blue-500" />
                   <span>Archived Request (Read Only)</span>
                 </div>

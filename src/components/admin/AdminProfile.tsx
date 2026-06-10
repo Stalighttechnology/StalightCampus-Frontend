@@ -669,14 +669,14 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
     if (activeTab === 'support') {
       return (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div>
-              <h3 className="text-lg font-bold">Support Tickets</h3>
+              <h3 className="text-lg font-semibold">Support Tickets</h3>
               <p className="text-sm text-muted-foreground">Raise and track issues with Super Admin HQ.</p>
             </div>
             <Dialog open={showTicketModal} onOpenChange={setShowTicketModal}>
               <DialogTrigger asChild>
-                <Button className="bg-primary text-white">Raise Ticket</Button>
+                <Button className="bg-primary text-white w-full sm:w-auto">Raise Ticket</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
@@ -724,7 +724,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             </Dialog>
 
             <Dialog open={!!viewTicket} onOpenChange={(open) => !open && setViewTicket(null)}>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="w-[90%] sm:max-w-[500px] mx-auto rounded-xl">
                 <DialogHeader>
                   <DialogTitle>Ticket Details</DialogTitle>
                 </DialogHeader>
@@ -777,9 +777,9 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             </Dialog>
           </div>
 
-          <div className="rounded-md border bg-card shadow-sm overflow-hidden">
-            <Table>
-              <TableHeader className="bg-muted/50">
+          <div className="rounded-md border bg-card shadow-sm max-h-[350px] overflow-y-auto custom-scrollbar relative">
+            <Table className="whitespace-nowrap">
+              <TableHeader className={`sticky top-0 z-10  ${theme === 'dark' ? 'bg-zinc-900' : 'bg-gray-100'}`}>
                 <TableRow>
                   <TableHead className="text-sm sm:text-xs">Ticket ID</TableHead>
                   <TableHead className="text-sm sm:text-xs">Subject</TableHead>
@@ -805,16 +805,6 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
 
                             <Eye size={14} />
                             View
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                            onClick={() => handleDeleteTicket(t.id)}
-                            disabled={deletingTicketId === t.id}
-                          >
-                            {deletingTicketId === t.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash size={14} />}
-                            Delete
                           </Button>
                         </TableCell>
                         <TableCell>
@@ -941,11 +931,12 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             <p className={`text-sm sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 sm:ml-auto">
             {editing &&
               <Button
                 size="sm"
                 variant="ghost"
+                className="w-full sm:w-auto text-sm"
                 onClick={() => {
                   if (originalProfile) setProfile(originalProfile);
                   setEditing(false);
@@ -960,7 +951,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
               size="sm"
               onClick={() => { if (editing) handleSaveProfile(); else setEditing(true); }}
               variant="outline"
-              className="text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
+              className="w-full sm:w-auto text-sm text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
               disabled={loading}>
 
               {editing ? loading ? 'Saving...' : 'Save' : 'Edit Profile'}
@@ -968,7 +959,7 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
 
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>
-                <Button className="text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-9 bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
+                <Button className="w-full sm:w-auto text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-9 bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
               </DialogTrigger>
               <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
                 <DialogHeader>
