@@ -491,7 +491,7 @@ export const BillingManagement: React.FC = () => {
                 <div>
                   <p className="font-medium text-sm">Basic Plan Active</p>
                   <p className="text-xs text-muted-foreground mt-0.5">Upgrade to Pro or Advance to unlock all features.</p>
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     <Button variant="default" size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setIsUpgradeOpen(true)}>
                       Upgrade Plan
                     </Button>
@@ -513,7 +513,7 @@ export const BillingManagement: React.FC = () => {
                 <div>
                   <p className="font-medium text-sm">Pro Plan Active</p>
                   <p className="text-xs mt-1">Upgrade to Advance to unlock Enterprise features.</p>
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90 text-white" onClick={() => setIsUpgradeOpen(true)}>
                       Upgrade to Advance
                     </Button>
@@ -535,7 +535,7 @@ export const BillingManagement: React.FC = () => {
                 <div>
                   <p className="font-medium text-sm">Advance Plan Active</p>
                   <p className="text-xs mt-1">You are on the highest tier with all Enterprise features unlocked.</p>
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     <Button 
                       variant="outline" 
                       size="sm" 

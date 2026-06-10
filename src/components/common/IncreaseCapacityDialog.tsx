@@ -31,19 +31,7 @@ const TIER_OPTIONS = [
   { max: 30000, name: 'Enterprise Tier', base: 25000, options: [{ size: 1000, price: 50000 }, { size: 2500, price: 110000 }, { size: 5000, price: 200000 }] },
 ];
 
-const styleBlock = `
-@keyframes fadeInDialog { 
-  from { opacity: 0; transform: scale(0.97); } 
-  to { opacity: 1; transform: scale(1); } 
-}
-`;
 
-if (typeof window !== 'undefined' && !document.getElementById('fadeInDialogStyle')) {
-  const style = document.createElement('style');
-  style.id = 'fadeInDialogStyle';
-  style.innerHTML = styleBlock;
-  document.head.appendChild(style);
-}
 
 export const IncreaseCapacityDialog: React.FC<IncreaseCapacityDialogProps> = ({
   onClose,
@@ -201,9 +189,8 @@ export const IncreaseCapacityDialog: React.FC<IncreaseCapacityDialogProps> = ({
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
-      style={{ animation: 'fadeInDialog 0.15s ease' }}
     >
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
+      <div className="bg-white rounded-xl shadow-2xl w-[90vw] max-h-[80vh] md:max-w-2xl md:max-h-[90vh] overflow-hidden flex flex-col border border-slate-200">
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white flex-shrink-0">
           <div>
