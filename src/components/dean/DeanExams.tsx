@@ -459,8 +459,8 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                           </p>
                         </div> :
 
-                    <div className={`rounded-xl border shadow-sm overflow-hidden ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`
-                    }>
+                    <div className={`md:rounded-xl md:border md:shadow-sm overflow-hidden ${theme === 'dark' ? 'md:bg-card md:border-border' : 'md:bg-white md:border-gray-200'}`}
+                    >
                           {/* Desktop Table View */}
                           <div className="hidden md:block overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
@@ -533,6 +533,106 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
                               </tbody>
                             </table>
                           </div>
+
+                          {/* Mobile Card View */}
+                          <div className="md:hidden space-y-3">
+                            {(sectionKey === 'past' ? paginatedPastGroups : list).map((g: any) => (
+                              <div
+                                key={g.id}
+                                className={`rounded-xl border p-4 space-y-3 ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-white border-gray-200'}`}
+                              >
+                                {/* Header row: title left, status+published right */}
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-base text-foreground leading-snug break-words">{g.title}</p>
+                                    <div className="flex flex-wrap gap-1 mt-1.5">
+                                      {g.exam_type && (
+                                        <Badge variant="outline" className="text-[11px] px-2 py-0.5 font-medium">
+                                          {g.exam_type.replace('_', ' ')}
+                                        </Badge>
+                                      )}
+                                      {g.exam_period && (
+                                        <Badge variant="outline" className="text-[11px] px-2 py-0.5 font-medium">
+                                          {g.exam_period.replace('_', '/')}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-1.5 shrink-0 pt-0.5">
+                                    <Badge
+                                      className={`capitalize text-xs font-semibold px-2.5 py-0.5 ${
+                                        g.status === 'ongoing'
+                                          ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                                          : g.status === 'upcoming'
+                                          ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                                          : 'bg-gray-500/10 text-gray-500 border-gray-400/30'
+                                      }`}
+                                      variant="outline"
+                                    >
+                                      {g.status}
+                                    </Badge>
+                                    {g.is_published ? (
+                                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                    ) : (
+                                      <span className="text-[11px] text-muted-foreground font-medium">Draft</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Divider */}
+                                <div className={`border-t ${theme === 'dark' ? 'border-border' : 'border-gray-100'}`} />
+
+                                {/* Details: label + value rows */}
+                                <div className="space-y-2">
+                                  {[
+                                    { label: 'Batch', value: g.batch },
+                                    { label: 'Branch / Sem', value: `${g.branch} • ${g.semester}` },
+                                    { label: 'Date & Time', value: g.dateStr },
+                                  ].map(({ label, value }) => (
+                                    <div key={label} className="flex items-baseline gap-2">
+                                      <span className="w-[90px] shrink-0 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                        {label}
+                                      </span>
+                                      <span className="flex-1 text-[14px] font-medium text-foreground leading-snug break-words">
+                                        {value || '—'}
+                                      </span>
+                                    </div>
+                                  ))}
+
+                                  {/* Subjects row with icon */}
+                                  <div className="flex items-baseline gap-2">
+                                    <span className="w-[90px] shrink-0 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                      Subjects
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-[14px] font-medium text-foreground">
+                                      <BookOpen className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                                      {g.subjects.length} Subject{g.subjects.length !== 1 ? 's' : ''}
+                                    </span>
+                                  </div>
+
+                                  {/* Venue row */}
+                                  <div className="flex items-baseline gap-2">
+                                    <span className="w-[90px] shrink-0 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                      Venue
+                                    </span>
+                                    <Badge variant="secondary" className="text-[13px] font-medium px-2.5 py-0.5">
+                                      {g.subjects[0]?.room || 'TBD'}
+                                    </Badge>
+                                  </div>
+                                </div>
+
+                                {/* Action button */}
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => setViewGroupId(g.id)}
+                                  className="w-full h-10 text-sm font-semibold mt-1"
+                                >
+                                  View Details
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                     }
                     </div>);
@@ -579,14 +679,14 @@ const DeanExams: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) =
         <DialogContent 
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
-          className="max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+          className="w-[90vw] max-h-[80vh] md:max-w-2xl md:max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl">
           <DialogHeader>
             <DialogTitle>{currentGroup?.title} - Detailed Schedule</DialogTitle>
             <DialogDescription>
               {currentGroup?.batch} • {currentGroup?.branch} • {currentGroup?.semester}
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 border rounded-md overflow-hidden">
+          <div className="mt-4 border rounded-md overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-muted/50 border-b">
                 <tr>
