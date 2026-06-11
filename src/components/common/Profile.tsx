@@ -434,7 +434,7 @@ const Profile = ({ role, user }: ProfileProps) => {
                     onClick={async () => {
                       try {
                         const isNative = Capacitor.isNativePlatform();
-                        const sourceQuery = isNative ? "?source=app" : "";
+                        const sourceQuery = isNative ? `?source=app&t=${Date.now()}` : `?t=${Date.now()}`;
                         const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/${sourceQuery}`);
                         const data = await res.json();
                         if (data.authorization_url) {
