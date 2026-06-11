@@ -791,8 +791,8 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                   <SelectTrigger className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}>
                     <SelectValue placeholder={state.loadingFaculties ? "Loading..." : "Choose Faculty"} />
                   </SelectTrigger>
-                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[320px] overflow-hidden flex flex-col' : 'bg-white text-gray-900 border-gray-300 max-h-[320px] overflow-hidden flex flex-col'}>
-                    <div className="px-3 py-2 border-b border-border sticky top-0 bg-inherit z-10">
+                  <SelectContent className={theme === 'dark' ? 'bg-card text-foreground border-border max-h-[320px] overflow-hidden flex flex-col z-[9999]' : 'bg-white text-gray-900 border-gray-300 max-h-[320px] overflow-hidden flex flex-col z-[9999]'}>
+                    <div className={`px-3 py-2 border-b border-border sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
                       <div className="relative">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                         <input
@@ -826,7 +826,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                             }
                             return undefined;
                           })();
-
+ 
                         if (state.loadingFaculties) {
                           return (
                             <>
@@ -839,7 +839,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                             </>
                           );
                         }
-
+ 
                         if (state.faculties.length === 0) {
                           return (
                             <>
@@ -867,7 +867,7 @@ const FacultyAssignments = ({ setError }: FacultyAssignmentsProps) => {
                       })()}
                     </div>
                     {state.facultyTotalPages > 1 &&
-                      <div className="px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 bg-inherit z-10">
+                      <div className={`px-3 py-2 border-t border-border flex items-center justify-between sticky bottom-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
                         <Button
                           variant="outline"
                           size="sm"
