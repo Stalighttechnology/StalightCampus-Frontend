@@ -521,6 +521,73 @@ const ClassHistoryCard = ({ cls, theme, currentTime = new Date() }: { cls: Sched
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
+const getInitialScheduleState = () => {
+  const now = new Date();
+  
+  // Format Date: YYYY-MM-DD local time
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const defaultDate = `${year}-${month}-${day}`;
+
+  // Start Time
+  let currentHour = now.getHours();
+  let currentMinute = now.getMinutes();
+  
+  // Round minute to nearest 5 minutes
+  const remainder = currentMinute % 5;
+  if (remainder >= 3) {
+    currentMinute = currentMinute + (5 - remainder);
+  } else {
+    currentMinute = currentMinute - remainder;
+  }
+  if (currentMinute >= 60) {
+    currentMinute = 0;
+    currentHour = (currentHour + 1) % 24;
+  }
+
+  // AM/PM calculation
+  let startP = "AM";
+  let startHNum = currentHour;
+  if (currentHour >= 12) {
+    startP = "PM";
+    if (currentHour > 12) {
+      startHNum = currentHour - 12;
+    }
+  } else if (currentHour === 0) {
+    startHNum = 12;
+  }
+  const defaultStartHour = String(startHNum).padStart(2, "0");
+  const defaultStartMinute = String(currentMinute).padStart(2, "0");
+  const defaultStartPeriod = startP;
+
+  // End Time: Start Time + 1 hour
+  let endHourRaw = (currentHour + 1) % 24;
+  let endP = "AM";
+  let endHNum = endHourRaw;
+  if (endHourRaw >= 12) {
+    endP = "PM";
+    if (endHourRaw > 12) {
+      endHNum = endHourRaw - 12;
+    }
+  } else if (endHourRaw === 0) {
+    endHNum = 12;
+  }
+  const defaultEndHour = String(endHNum).padStart(2, "0");
+  const defaultEndMinute = defaultStartMinute; // match start minutes
+  const defaultEndPeriod = endP;
+
+  return {
+    date: defaultDate,
+    startHour: defaultStartHour,
+    startMinute: defaultStartMinute,
+    startPeriod: defaultStartPeriod,
+    endHour: defaultEndHour,
+    endMinute: defaultEndMinute,
+    endPeriod: defaultEndPeriod
+  };
+};
+
 const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const { theme } = useTheme();
   const { toast } = useToast();
@@ -542,7 +609,9 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [topic, setTopic] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
+  
+  const initVals = getInitialScheduleState();
+  const [date, setDate] = useState(initVals.date);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [meetingType, setMeetingType] = useState<"online" | "offline">("online");
@@ -551,12 +620,12 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // AM/PM time states
-  const [startHour, setStartHour] = useState("09");
-  const [startMinute, setStartMinute] = useState("00");
-  const [startPeriod, setStartPeriod] = useState("AM");
-  const [endHour, setEndHour] = useState("10");
-  const [endMinute, setEndMinute] = useState("00");
-  const [endPeriod, setEndPeriod] = useState("AM");
+  const [startHour, setStartHour] = useState(initVals.startHour);
+  const [startMinute, setStartMinute] = useState(initVals.startMinute);
+  const [startPeriod, setStartPeriod] = useState(initVals.startPeriod);
+  const [endHour, setEndHour] = useState(initVals.endHour);
+  const [endMinute, setEndMinute] = useState(initVals.endMinute);
+  const [endPeriod, setEndPeriod] = useState(initVals.endPeriod);
 
   // Sync AM/PM states to 24h format strings for backend
   useEffect(() => {
@@ -609,6 +678,15 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
         setGoogleDialogOpen(true);
         scheduleDropdowns.reset();
       } else {
+        // Refresh with latest current time when form is opened
+        const freshVals = getInitialScheduleState();
+        setDate(freshVals.date);
+        setStartHour(freshVals.startHour);
+        setStartMinute(freshVals.startMinute);
+        setStartPeriod(freshVals.startPeriod);
+        setEndHour(freshVals.endHour);
+        setEndMinute(freshVals.endMinute);
+        setEndPeriod(freshVals.endPeriod);
         setDialogOpen(true);
       }
     }
@@ -620,17 +698,19 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     scheduleDropdowns.reset();
     setTopic("");
     setDescription("");
-    setDate("");
+    
+    const freshVals = getInitialScheduleState();
+    setDate(freshVals.date);
     setStartTime("");
     setEndTime("");
     setMeetingType("online");
     setClassroomRoom("");
-    setStartHour("09");
-    setStartMinute("00");
-    setStartPeriod("AM");
-    setEndHour("10");
-    setEndMinute("00");
-    setEndPeriod("AM");
+    setStartHour(freshVals.startHour);
+    setStartMinute(freshVals.startMinute);
+    setStartPeriod(freshVals.startPeriod);
+    setEndHour(freshVals.endHour);
+    setEndMinute(freshVals.endMinute);
+    setEndPeriod(freshVals.endPeriod);
   };
 
   // Fetch history when history dropdown is fully selected
