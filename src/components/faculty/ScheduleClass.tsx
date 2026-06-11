@@ -453,7 +453,7 @@ const ClassHistoryCard = ({ cls, theme, currentTime = new Date() }: { cls: Sched
 
             if (currentTime > classEnd) {
               statusText = "Completed";
-              statusStyle = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+              statusStyle = "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300";
             } else if (currentTime >= classStart && currentTime <= classEnd) {
               statusText = "Ongoing";
               statusStyle = "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 animate-pulse";

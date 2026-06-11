@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Video,
   Home,
@@ -20,6 +20,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -73,6 +74,10 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -80,6 +85,11 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
     }, 300);
     return () => clearTimeout(handler);
   }, [searchQuery]);
+
+  // Reset page to 1 when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchQuery]);
 
   const handleCopyLink = (link: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -162,6 +172,13 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
       );
     });
 
+  const totalPages = Math.ceil(filteredClasses.length / ITEMS_PER_PAGE);
+
+  const paginatedClasses = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredClasses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredClasses, currentPage]);
+
   const cardCls = `w-full ${theme === "dark" ? "bg-card text-foreground" : "bg-white text-gray-900"
     }`;
 
@@ -218,11 +235,10 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
             /* Class Cards List */
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium mb-2">
-                {filteredClasses.length} upcoming or live class
-                {filteredClasses.length !== 1 ? "es" : ""}
+                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredClasses.length)} of {filteredClasses.length} upcoming or live class{filteredClasses.length !== 1 ? "es" : ""}
               </p>
 
-              {filteredClasses.map((item) => {
+              {paginatedClasses.map((item) => {
                 const classState = checkClassState(item);
                 const isOnline = item.meeting_type === "online";
                 const dateStr = (() => {
@@ -383,10 +399,45 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
               <p className="text-sm text-muted-foreground font-semibold">No Upcoming Classes</p>
               <p className="text-xs text-muted-foreground/70 max-w-sm mx-auto">
                 There are no upcoming or live class schedules for your section at this time.
-              </p>
             </div>
           )}
         </CardContent>
+
+        {/* Pagination Controls in CardFooter */}
+        {filteredClasses.length > 1 && (
+          <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+            <div>
+              Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredClasses.length)} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredClasses.length)} of {filteredClasses.length} classes
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center justify-center min-w-[2rem]">
+                <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {currentPage}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || totalPages <= 1}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );
