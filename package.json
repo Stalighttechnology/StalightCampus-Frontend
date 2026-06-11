@@ -60,7 +60,6 @@
     "axios": "^1.8.4",
     "baseline-browser-mapping": "^2.9.11",
     "browser-image-compression": "^2.0.2",
-    "capacitor-plugin-safe-area": "^5.0.0",
     "chart.js": "^4.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

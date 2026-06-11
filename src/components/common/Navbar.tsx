@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/button";
 import { API_BASE_URL } from "../../utils/config";
+import { Capacitor } from "@capacitor/core";
 
 interface User {
   username: string;
@@ -99,7 +100,15 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
   return (
     <motion.div
-      className={`w-full flex items-center justify-between px-4 pb-3 pt-[max(0.75rem,var(--safe-area-inset-top,env(safe-area-inset-top,0px)))] lg:pb-0 lg:pt-[var(--safe-area-inset-top,env(safe-area-inset-top,0px))] lg:h-[calc(5rem+var(--safe-area-inset-top,env(safe-area-inset-top,0px)))] relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+      className={`w-full flex items-center justify-between px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+      style={{
+        paddingTop: window.innerWidth < 1024
+          ? (Capacitor.getPlatform() === 'android' ? '0.75rem' : 'max(0.75rem, env(safe-area-inset-top, 0px))')
+          : (Capacitor.getPlatform() === 'android' ? '0px' : 'env(safe-area-inset-top, 0px)'),
+        height: window.innerWidth >= 1024 
+          ? (Capacitor.getPlatform() === 'android' ? '5rem' : 'calc(5rem + env(safe-area-inset-top, 0px))')
+          : undefined
+      }}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
