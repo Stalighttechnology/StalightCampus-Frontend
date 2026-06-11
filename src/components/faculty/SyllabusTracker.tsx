@@ -18,8 +18,8 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
-import { getSyllabusStatus, updateSyllabusProgress } from "@/utils/faculty_api";
-import { BookOpen, CheckCircle, Clock, Save } from "lucide-react";
+import { getSyllabusStatus, updateSyllabusProgress, exportSyllabusPdf } from "@/utils/faculty_api";
+import { BookOpen, CheckCircle, Clock, Save, Loader2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { showConfirmAlert } from "../../utils/sweetalert";
 
@@ -50,6 +50,50 @@ const SyllabusTracker = () => {
 
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [isSectionOpen, setIsSectionOpen] = useState(false);
+  
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!subjectId) return;
+    setExportingPDF(true);
+    try {
+      const matchingAssignment = normalizedAssignments.find(a => a.subject_id === subjectId && a.semester_id === semesterId);
+      
+      const blob = await exportSyllabusPdf({
+        subject_id: subjectId.toString(),
+        branch_id: matchingAssignment?.branch_id?.toString() || "",
+        semester_id: semesterId?.toString() || "",
+        section_id: isElective ? "" : (sectionId?.toString() || "")
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const fileNameSuffix = isElective 
+        ? `${selectedSubject?.name.replace(/\s+/g, '_')}_Elective` 
+        : `${selectedSubject?.name.replace(/\s+/g, '_')}_Sem_${semesterId}_Sec_${sectionId}`;
+      link.setAttribute('download', `Syllabus_Progress_${fileNameSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Success',
+        description: 'Syllabus progress PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to export syllabus progress PDF',
+      });
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   // 1. Semesters (Unique list from assignments)
   const semesters = useMemo(() => {
@@ -213,12 +257,34 @@ const SyllabusTracker = () => {
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="faculty-syllabus-tracker-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="faculty-syllabus-tracker-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <h1 className={`text-2xl sm:text-2xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            Syllabus Tracing & Progress
-          </h1>
-          <p className={`text-md sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-            Track weekly teaching progress based on department master templates.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
+            <div>
+              <h1 className={`text-2xl sm:text-2xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                Syllabus Tracing & Progress
+              </h1>
+              <p className={`text-md sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                Track weekly teaching progress based on department master templates.
+              </p>
+            </div>
+            {syllabusData && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                disabled={exportingPDF}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto self-start sm:self-auto"
+              >
+                {exportingPDF ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Exporting...
+                  </>
+                ) : (
+                  "Export PDF"
+                )}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">
           {/* Dropdown Filters */}

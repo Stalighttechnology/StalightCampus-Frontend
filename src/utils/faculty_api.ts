@@ -2065,6 +2065,25 @@ export const getSyllabusStatus = async (params: {
   }
 };
 
+export const exportSyllabusPdf = async (params: {
+  subject_id: string;
+  branch_id: string;
+  semester_id: string;
+  section_id: string;
+}): Promise<Blob> => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/syllabus/export_pdf/?${query}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+    }
+  });
+  if (!response.ok) {
+    throw new Error("Failed to export syllabus PDF");
+  }
+  return response.blob();
+};
+
 export const updateSyllabusPlan = async (data: {
   subject_id: string;
   plan_data: Array<{ week: number; topics: string }>;
