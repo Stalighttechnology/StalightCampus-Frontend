@@ -121,9 +121,9 @@ const LoginMobile = ({ setRole, setPage, setUser }: LoginMobileProps) => {
                     className={`absolute right-3 top-1/2 -translate-y-1/2 ${error ? 'text-red-400' : 'text-slate-400'} disabled:opacity-50 cursor-pointer ml-2`}
                   >
                     {showPassword ? (
-                      <EyeOff size={16} min-h-[700px]:size={18} />
+                      <EyeOff className="w-4 h-4 min-h-[700px]:w-5 min-h-[700px]:h-5" />
                     ) : (
-                      <Eye size={16} min-h-[700px]:size={18} />
+                      <Eye className="w-4 h-4 min-h-[700px]:w-5 min-h-[700px]:h-5" />
                     )}
                   </button>
                 </div>
