@@ -198,7 +198,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                   size="sm"
                   onClick={() => downloadReport('pdf')}
                   disabled={loading || downloading || selectedRole === '' || startDate === '' || endDate === ''}
-                  className="bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 h-9 disabled:opacity-50">
+                  className="w-full sm:w-auto justify-center bg-primary text-white hover:bg-primary/90 transition-all shadow-md text-xs sm:text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 h-9 disabled:opacity-50">
                   {downloading ? (
                     <Loader2 className="h-4.5 w-4.5 animate-spin flex-shrink-0" />
                   ) : (
