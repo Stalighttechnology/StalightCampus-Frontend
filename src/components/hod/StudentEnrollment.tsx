@@ -422,6 +422,14 @@ const StudentEnrollment = () => {
     setStudents((prev) => prev.map((p) => p.id === id ? { ...p, checked: !p.checked } : p));
   };
 
+  const checkAllNotEnrolled = () => {
+    setStudents((prev) => prev.map((s) => !s.checked ? { ...s, checked: true } : s));
+  };
+
+  const uncheckAllEnrolled = () => {
+    setStudents((prev) => prev.map((s) => s.checked ? { ...s, checked: false } : s));
+  };
+
   const save = async () => {
     if (students.length === 0) return;
     setSaving(true);
@@ -490,7 +498,7 @@ const StudentEnrollment = () => {
       <Card className="shadow-lg">
         <div id="elective-enrollment-filters-section">
           <CardHeader className="pb-4 md:pb-2 lg:pb-4">
-            <CardTitle>Student Enrollment (Elective / Open Elective)</CardTitle>
+            <CardTitle>Student Enrollment <span className="block sm:inline">(Elective / Open Elective)</span></CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-5 md:space-y-4 lg:space-y-6 p-4 sm:p-5 md:p-4 lg:p-6 pb-0">
             <div className="w-full">
@@ -654,7 +662,7 @@ const StudentEnrollment = () => {
                 disabled={!selectedSubjectId || isLoading || saving || downloadingPDF}
                 className="w-full sm:w-auto px-6 bg-primary hover:bg-[#9147e0] text-white shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
                 {downloadingPDF ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <FileDown className="h-4.5 w-4.5" />
                 )}
@@ -722,73 +730,101 @@ const StudentEnrollment = () => {
                                 <UserCheck className={`w-5 h-5 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
                                 <strong className="text-lg font-semibold">Enrolled</strong>
                               </div>
-                              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          theme === 'dark' ?
-                          'bg-green-900/40 text-green-400 border border-green-800/50' :
-                          'bg-green-100 text-green-800 border border-green-200'}`
-                          }>
-                                {enrolledListFiltered.length}
-                              </span>
+                              <div className="flex items-center gap-3">
+                                {enrolledListFiltered.length > 0 && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={uncheckAllEnrolled}
+                                    className="text-xs border-red-500/30 bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all px-3 py-1 h-7 rounded-full shadow-sm"
+                                  >
+                                    Deselect All
+                                  </Button>
+                                )}
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                                  theme === 'dark' ?
+                                  'bg-green-900/40 text-green-400 border border-green-800/50' :
+                                  'bg-green-100 text-green-800 border border-green-200'}`
+                                }>
+                                  {enrolledListFiltered.length}
+                                </span>
+                              </div>
                             </div>
                             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
                               {enrolledListFiltered.map((s: any) =>
-                          <div key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
-                          theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`
-                          }>
+                                <label key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${
+                                  theme === 'dark'
+                                    ? 'border-border/50 bg-card/50 hover:bg-accent/50 text-foreground'
+                                    : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100/70 text-gray-900'
+                                }`}>
                                   <Checkbox checked={s.checked} onCheckedChange={() => toggleStudent(s.id)} />
-                                  <div className="text-sm">
-                                    <span className="font-semibold">{s.usn}</span>
-                                    <span className="mx-2 text-muted-foreground">•</span>
+                                  <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                    <span className="font-semibold tracking-wider font-mono">{s.usn}</span>
+                                    <span className="hidden sm:inline text-muted-foreground">•</span>
                                     <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{s.name}</span>
                                   </div>
-                                </div>
-                          )}
+                                </label>
+                              )}
                               {enrolledListFiltered.length === 0 &&
-                          <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
+                                <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
                                   <UserX className="w-8 h-8 mb-2 opacity-20" />
                                   <p className="text-sm font-medium">No enrolled students</p>
                                 </div>
-                          }
+                              }
                             </div>
                           </div>
 
                           {!showEnrolledOnly &&
-                      <div className={`p-4 sm:p-5 border rounded-xl custom-scrollbar transition-all ${theme === 'dark' ? 'bg-card/20 border-border' : 'bg-white border-gray-100 shadow-sm'}`}>
+                            <div className={`p-4 sm:p-5 border rounded-xl custom-scrollbar transition-all ${theme === 'dark' ? 'bg-card/20 border-border' : 'bg-white border-gray-100 shadow-sm'}`}>
                               <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2">
                                   <Users className={`w-5 h-5 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
                                   <strong className="text-lg font-semibold">Not Enrolled</strong>
                                 </div>
-                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          theme === 'dark' ?
-                          'bg-red-900/40 text-red-400 border border-red-800/50' :
-                          'bg-red-100 text-red-800 border border-red-200'}`
-                          }>
-                                  {notEnrolledListFiltered.length}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                  {notEnrolledListFiltered.length > 0 && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={checkAllNotEnrolled}
+                                      className="text-xs border-primary/30 bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all px-3 py-1 h-7 rounded-full shadow-sm"
+                                    >
+                                      Select All
+                                    </Button>
+                                  )}
+                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                                    theme === 'dark' ?
+                                    'bg-red-900/40 text-red-400 border border-red-800/50' :
+                                    'bg-red-100 text-red-800 border border-red-200'}`
+                                  }>
+                                    {notEnrolledListFiltered.length}
+                                  </span>
+                                </div>
                               </div>
                               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
                                 {notEnrolledListFiltered.map((s: any) =>
-                          <div key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
-                          theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-50'}`
-                          }>
+                                  <label key={s.id} className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all cursor-pointer ${
+                                    theme === 'dark'
+                                      ? 'border-border/50 bg-card/50 hover:bg-accent/50 text-foreground'
+                                      : 'border-gray-100 bg-gray-50/50 hover:bg-gray-100/70 text-gray-900'
+                                  }`}>
                                     <Checkbox checked={s.checked} onCheckedChange={() => toggleStudent(s.id)} />
-                                    <div className="text-sm">
-                                      <span className="font-semibold">{s.usn}</span>
-                                      <span className="mx-2 text-muted-foreground">•</span>
+                                    <div className="text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                      <span className="font-semibold tracking-wider font-mono">{s.usn}</span>
+                                      <span className="hidden sm:inline text-muted-foreground">•</span>
                                       <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{s.name}</span>
                                     </div>
-                                  </div>
-                          )}
+                                  </label>
+                                )}
                                 {notEnrolledListFiltered.length === 0 &&
-                          <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
+                                  <div className={`flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-xl ${theme === 'dark' ? 'border-border bg-card/20 text-muted-foreground' : 'border-gray-100 bg-gray-50/30 text-gray-400'}`}>
                                     <UserCheck className="w-8 h-8 mb-2 opacity-20" />
                                     <p className="text-sm font-medium">All students enrolled</p>
                                   </div>
-                          }
+                                }
                               </div>
                             </div>
-                      }
+                          }
                         </div>
                       </>);
 
