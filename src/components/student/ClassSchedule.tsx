@@ -399,12 +399,13 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
               <p className="text-sm text-muted-foreground font-semibold">No Upcoming Classes</p>
               <p className="text-xs text-muted-foreground/70 max-w-sm mx-auto">
                 There are no upcoming or live class schedules for your section at this time.
+              </p>
             </div>
           )}
         </CardContent>
 
         {/* Pagination Controls in CardFooter */}
-        {filteredClasses.length > 0 && (
+        {filteredClasses.length > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredClasses.length)} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredClasses.length)} of {filteredClasses.length} classes
