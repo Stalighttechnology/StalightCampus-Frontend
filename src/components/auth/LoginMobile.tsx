@@ -43,7 +43,7 @@ const LoginMobile = ({ setRole, setPage, setUser }: LoginMobileProps) => {
   };
 
   return (
-    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-x-hidden overflow-y-hidden flex flex-col w-full bg-transparent relative">
+    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[calc(env(safe-area-inset-bottom,0px)+20px)] overflow-x-hidden overflow-y-auto flex flex-col w-full bg-transparent relative">
       {/* HEADER */}
       <div className="text-center space-y-1 pt-7 pb-4 shrink-0 px-4">
         <p className="text-white text-sm font-medium opacity-90">Welcome to</p>
