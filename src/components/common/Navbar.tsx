@@ -103,7 +103,11 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
       className={`w-full flex items-center justify-between px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       style={{
         height: window.innerWidth >= 1024 ? '5rem' : undefined,
-        paddingTop: Capacitor.getPlatform() === 'android' ? 'max(2.5rem, env(safe-area-inset-top, 0px))' : 'env(safe-area-inset-top, 0px)'
+        paddingTop: Capacitor.getPlatform() === 'android'
+          ? 'max(2.5rem, env(safe-area-inset-top, 0px))'
+          : window.innerWidth < 1024
+            ? 'calc(env(safe-area-inset-top, 0px) + 16px)'
+            : 'env(safe-area-inset-top, 0px)'
       }}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
