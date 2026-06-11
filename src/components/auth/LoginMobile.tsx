@@ -43,7 +43,15 @@ const LoginMobile = ({ setRole, setPage, setUser }: LoginMobileProps) => {
   };
 
   return (
-    <div className="min-h-[100dvh] pt-[env(safe-area-inset-top,0px)] pb-[calc(env(safe-area-inset-bottom,0px)+12px)] overflow-x-hidden overflow-y-auto flex flex-col w-full bg-transparent relative">
+    <div
+      className="min-h-[100dvh] overflow-x-hidden overflow-y-auto flex flex-col w-full bg-transparent relative"
+      style={{
+        paddingTop: Capacitor.getPlatform() === 'android'
+          ? 'max(2.5rem, env(safe-area-inset-top, 0px))'
+          : 'max(1rem, env(safe-area-inset-top, 0px))',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)'
+      }}
+    >
       {/* HEADER */}
       <div className="text-center space-y-1 pt-7 pb-4 [@media(max-height:720px)]:pt-4 [@media(max-height:720px)]:pb-2 shrink-0 px-4">
         <p className="text-white text-sm font-medium opacity-90 [@media(max-height:720px)]:text-xs">Welcome to</p>
