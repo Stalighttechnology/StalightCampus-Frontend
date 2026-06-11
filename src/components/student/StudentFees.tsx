@@ -112,6 +112,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
   const [invoicePage, setInvoicePage] = useState(1);
   const [paymentPage, setPaymentPage] = useState(1);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [exportingPaymentsPDF, setExportingPaymentsPDF] = useState(false);
   const [downloadingReceiptId, setDownloadingReceiptId] = useState<number | null>(null);
   const { theme } = useTheme();
   const queryClient = useQueryClient();
@@ -151,6 +152,30 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
       showErrorAlert("Download Failed", "Failed to download PDF report.");
     } finally {
       setExportingPDF(false);
+    }
+  };
+
+  const handleExportPaymentsPDF = async () => {
+    setExportingPaymentsPDF(true);
+    try {
+      const url = `${API_ENDPOINT}/student/fee-data/export-payments-pdf/`;
+      const response = await fetchWithTokenRefresh(url);
+      if (!response.ok) {
+        throw new Error("Failed to download PDF from backend");
+      }
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `Payment_History_${feeData?.student?.usn || 'Report'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      showErrorAlert("Download Failed", "Failed to download payments history report.");
+    } finally {
+      setExportingPaymentsPDF(false);
     }
   };
 
@@ -819,11 +844,24 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
           {/* Payment History Section */}
           <motion.div variants={cardVariants} initial="hidden" animate="visible" className="h-full">
             <Card id="fees-history-card" className={`shadow-none border h-[650px] flex flex-col ${theme === 'dark' ? 'bg-muted/20 border-border' : 'bg-gray-50/50 border-gray-200'}`}>
-              <CardHeader id="fees-history-card-header">
+              <CardHeader id="fees-history-card-header" className="flex flex-row justify-between items-center space-y-0 pb-4">
                 <CardTitle className={`flex items-center gap-2 text-lg ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                   <CreditCard className="h-5 w-5" />
                   Payment History ({feeData?.statistics?.total_payments || 0})
                 </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-white border-primary"
+                  disabled={exportingPaymentsPDF}
+                  onClick={handleExportPaymentsPDF}>
+                  {exportingPaymentsPDF ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4 mr-2" />
+                  )}
+                  {exportingPaymentsPDF ? "Exporting..." : "Export History PDF"}
+                </Button>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 {feeData?.payments?.length ?
@@ -868,7 +906,7 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
                                   className={theme === 'dark' ? 'text-primary hover:bg-primary/10' : 'text-blue-600 hover:bg-blue-50'}
                                   onClick={() => handleDownloadReceipt(payment.id)}
                                   disabled={downloadingReceiptId === payment.id}
-                                  title="Download Receipt">
+                                  title="Export PDF">
 
                                   {downloadingReceiptId === payment.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
