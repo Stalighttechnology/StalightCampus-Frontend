@@ -907,15 +907,17 @@ const StudyMaterials = () => {
             )}
           </div>
 
-          <AdminPagination
-            pagination={{
-              page: currentPage,
-              pageSize: 20,
-              totalPages: totalPages,
-              totalItems: totalCount
-            }}
-            onPageChange={setCurrentPage}
-          />
+          {totalPages > 1 && (
+            <AdminPagination
+              pagination={{
+                page: currentPage,
+                pageSize: 20,
+                totalPages: totalPages,
+                totalItems: totalCount
+              }}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </CardContent>
       </Card>
 

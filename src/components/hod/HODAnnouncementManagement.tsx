@@ -318,18 +318,18 @@ const HODAnnouncementManagement = () => {
   return (
     <>
       <style>{`
-        @media (max-width: 480px) {
+        @media (max-width: 639px) {
           .announcements-card { border-radius: 8px; }
           .announcements-card-header { padding: 12px; }
           .announcements-card-title { font-size: 1.125rem; line-height: 1.3; }
           .announcements-card-desc { font-size: 0.75rem; margin-top: 4px; }
-          .mobile-modal { width: 90vw !important; max-width: 360px !important; padding: 12px !important; border-radius: 12px !important; }
+          .mobile-modal { width: 90% !important; height: 80vh !important; max-width: none !important; padding: 12px !important; border-radius: 12px !important; }
           .delete-modal { width: 90vw !important; max-width: 320px !important; padding: 16px !important; border-radius: 12px !important; }
         }
       `}</style>
 
       <div id="hod-announcements-container" className="w-full max-w-none mx-auto space-y-6">
-        <Card className={`announcements-card ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+        <Card className={`announcements-card border-none sm:border shadow-none sm:shadow-sm ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
           {/* Error State */}
           {error &&
             <div className="p-4 rounded-lg bg-destructive/10 text-destructive m-6">
@@ -398,7 +398,7 @@ const HODAnnouncementManagement = () => {
                             
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="priority">Priority</Label>
                             <Select

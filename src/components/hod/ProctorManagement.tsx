@@ -865,32 +865,34 @@ const ProctorStudents = () => {
               </div>
     
               {/* Pagination */}
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
-                <div className={`text-sm sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
-                  Showing {Math.min((state.currentPage - 1) * studentsPerPage + 1, state.totalCount)} to {Math.min(state.currentPage * studentsPerPage, state.totalCount)} of {state.totalCount}
+              {state.totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-6">
+                  <div className={`text-sm sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    Showing {Math.min((state.currentPage - 1) * studentsPerPage + 1, state.totalCount)} to {Math.min(state.currentPage * studentsPerPage, state.totalCount)} of {state.totalCount}
+                  </div>
+                  <div className="flex gap-2 items-center justify-center sm:justify-end">
+                    <Button
+                      variant="outline"
+                      disabled={state.currentPage === 1 || state.loading || state.students.length === 0}
+                      onClick={() => updateState({ currentPage: Math.max(state.currentPage - 1, 1) })}
+                      className="text-base font-semibold px-3 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
+                    >
+                      Prev
+                    </Button>
+                    <span className="px-3 text-base font-semibold text-primary">
+                      {state.currentPage}
+                    </span>
+                    <Button
+                      variant="outline"
+                      disabled={state.currentPage === state.totalPages || state.loading || state.students.length === 0}
+                      onClick={() => updateState({ currentPage: Math.min(state.currentPage + 1, state.totalPages) })}
+                      className="text-base font-semibold px-3 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2 items-center justify-center sm:justify-end">
-                  <Button
-                    variant="outline"
-                    disabled={state.currentPage === 1 || state.loading || state.students.length === 0}
-                    onClick={() => updateState({ currentPage: Math.max(state.currentPage - 1, 1) })}
-                    className="text-base font-semibold px-3 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                  >
-                    Prev
-                  </Button>
-                  <span className="px-3 text-base font-semibold text-primary">
-                    {state.currentPage}
-                  </span>
-                  <Button
-                    variant="outline"
-                    disabled={state.currentPage === state.totalPages || state.loading || state.students.length === 0}
-                    onClick={() => updateState({ currentPage: Math.min(state.currentPage + 1, state.totalPages) })}
-                    className="text-base font-semibold px-3 py-2 text-white bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white shadow-sm transition-all duration-200"
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
+              )}
             </>
           )}
         </CardContent>

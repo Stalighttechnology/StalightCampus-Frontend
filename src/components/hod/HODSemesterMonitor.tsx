@@ -254,9 +254,8 @@ const HODSemesterMonitor = () => {
             </div>
           )}
 
-          {/* Section details popup Dialog */}
           <Dialog open={!!selectedSubject} onOpenChange={(open) => !open && setSelectedSubject(null)}>
-            <DialogContent className={`max-w-2xl w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
+            <DialogContent className={`w-[90%] h-[80vh] sm:max-w-2xl sm:h-auto sm:max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                   Section-wise Syllabus Coverage

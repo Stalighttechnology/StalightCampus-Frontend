@@ -17,17 +17,17 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useTheme } from "@/context/ThemeContext";
-import { 
-  getSyllabusStatus, 
-  updateSyllabusPlan, 
-  getSyllabusBootstrap 
+import {
+  getSyllabusStatus,
+  updateSyllabusPlan,
+  getSyllabusBootstrap
 } from "@/utils/faculty_api";
-import { 
-  BookOpen, 
-  CheckCircle, 
-  Clock, 
-  Save, 
-  Edit3, 
+import {
+  BookOpen,
+  CheckCircle,
+  Clock,
+  Save,
+  Edit3,
   AlertCircle,
   Eye
 } from "lucide-react";
@@ -115,7 +115,7 @@ const HODSyllabusTracker = () => {
     try {
       const res = await getSyllabusStatus({
         subject_id: subjectId.toString(),
-        branch_id: "", 
+        branch_id: "",
         semester_id: semesterId?.toString() || "",
         section_id: ""
       });
@@ -276,9 +276,8 @@ const HODSyllabusTracker = () => {
                 </div>
               </div>
 
-              {/* Edit Plan Dialog (Popup Modal) */}
               <Dialog open={editingPlan} onOpenChange={setEditingPlan}>
-                <DialogContent className={`max-w-3xl w-[calc(100vw-1.5rem)] max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
+                <DialogContent className={`w-[90%] h-[80vh] sm:max-w-3xl sm:h-auto sm:max-h-[85vh] flex flex-col rounded-xl ${theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white text-gray-900 border-gray-200'}`}>
                   <DialogHeader className="shrink-0 pb-2 border-b border-border/40">
                     <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                       Edit Syllabus Plan Template
@@ -288,61 +287,61 @@ const HODSyllabusTracker = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex-1 overflow-y-auto py-4 pr-1 custom-scrollbar space-y-3">
-                      {weeksPlan.map((w, index) => (
-                        <div key={w.week} className="flex gap-3 items-center p-2 rounded-lg border border-border/80 bg-muted/20 hover:border-primary/40 transition-colors duration-200">
-                          <span className="font-semibold text-xs min-w-16 text-center text-muted-foreground">Week {w.week}:</span>
-                          <Input
-                            placeholder="Enter expected topics for this week"
-                            value={w.expected_topics}
-                            onChange={(e) => {
-                              const updated = [...weeksPlan];
-                              updated[index].expected_topics = e.target.value;
-                              setWeeksPlan(updated);
-                            }}
-                            className="bg-background"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2"
-                            onClick={() => {
-                              // If they want to delete a specific week, or just filter it out
-                              if (weeksPlan.length > 1) {
-                                const updated = weeksPlan.filter((_, idx) => idx !== index)
-                                  .map((item, idx) => ({ ...item, week: idx + 1 }));
-                                setWeeksPlan(updated);
-                              }
-                            }}
-                            disabled={weeksPlan.length <= 1}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ))}
-
-                      {/* Real-time Inline Add Button at the Bottom */}
-                      <div className="pt-2 flex justify-center">
+                    {weeksPlan.map((w, index) => (
+                      <div key={w.week} className="flex gap-3 items-center p-2 rounded-lg border border-border/80 bg-muted/20 hover:border-primary/40 transition-colors duration-200">
+                        <span className="font-semibold text-xs min-w-16 text-center text-muted-foreground">Week {w.week}:</span>
+                        <Input
+                          placeholder="Enter expected topics for this week"
+                          value={w.expected_topics}
+                          onChange={(e) => {
+                            const updated = [...weeksPlan];
+                            updated[index].expected_topics = e.target.value;
+                            setWeeksPlan(updated);
+                          }}
+                          className="bg-background"
+                        />
                         <Button
                           type="button"
-                          variant="outline"
-                          className="w-full border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 text-primary gap-2 transition-all duration-300 py-6"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-2"
                           onClick={() => {
-                            const nextWeek = weeksPlan.length + 1;
-                            setWeeksPlan([...weeksPlan, { week: nextWeek, expected_topics: "" }]);
-                            // Auto scroll to bottom after state update
-                            setTimeout(() => {
-                              const scrollContainer = document.querySelector(".thin-scrollbar");
-                              if (scrollContainer) {
-                                scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                              }
-                            }, 50);
+                            // If they want to delete a specific week, or just filter it out
+                            if (weeksPlan.length > 1) {
+                              const updated = weeksPlan.filter((_, idx) => idx !== index)
+                                .map((item, idx) => ({ ...item, week: idx + 1 }));
+                              setWeeksPlan(updated);
+                            }
                           }}
+                          disabled={weeksPlan.length <= 1}
                         >
-                          + Add Week {weeksPlan.length + 1}
+                          Remove
                         </Button>
                       </div>
+                    ))}
+
+                    {/* Real-time Inline Add Button at the Bottom */}
+                    <div className="pt-2 flex justify-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 text-primary gap-2 transition-all duration-300 py-6"
+                        onClick={() => {
+                          const nextWeek = weeksPlan.length + 1;
+                          setWeeksPlan([...weeksPlan, { week: nextWeek, expected_topics: "" }]);
+                          // Auto scroll to bottom after state update
+                          setTimeout(() => {
+                            const scrollContainer = document.querySelector(".thin-scrollbar");
+                            if (scrollContainer) {
+                              scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                            }
+                          }, 50);
+                        }}
+                      >
+                        + Add Week {weeksPlan.length + 1}
+                      </Button>
                     </div>
+                  </div>
 
                   <DialogFooter className="flex-col sm:flex-row gap-2 pt-4 border-t border-border/50">
                     <div className="flex-1 flex justify-start">

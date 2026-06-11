@@ -410,255 +410,278 @@ const QPApprovals = () => {
   );
 
   return (
-    <div id="hod-qp-approvals-container" className={`w-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-      <Tabs defaultValue="pending" className="w-full">
-        <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col min-h-[550px]'}>
-          <CardHeader className="pb-2">
-            <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
-                <div className="flex items-center gap-3">
-                  <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and track question papers from your department faculty</p>
-                </div>
-              </div>
-              <TabsList>
-                <TabsTrigger value="pending" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
-                <TabsTrigger value="history" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
-              </TabsList>
-            </div>
-          </CardHeader>
-
-          <TabsContent value="pending" className="flex-1 mt-0">
-            <CardContent className="px-4 sm:px-6 pt-0">
-              <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
-                {pendingQPs.length === 0 ?
-                  <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
-                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
-                      <ClipboardCheck className="w-12 h-12 opacity-80" />
-                    </div>
-                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Pending QPs</h3>
-                    <p className="max-w-xs text-base leading-relaxed">
-                      All question papers have been reviewed. Check back later for new submissions.
-                    </p>
-                  </div> :
-                  renderQPGrid(pendingQPs, false)
-                }
-              </div>
-            </CardContent>
-            {pendingQPs.length > 0 && (
-              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                <div>
-                  Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1 || loading}
-                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                    Previous
-                  </Button>
-                  <div className="flex items-center justify-center min-w-[2rem]">
-                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      {currentPage}
-                    </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages || loading}
-                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                    Next
-                  </Button>
-                </div>
-              </CardFooter>
-            )}
-          </TabsContent>
-
-          <TabsContent value="history" className="flex-1 mt-0">
-            <CardContent className="px-4 sm:px-6 pt-0">
-              <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
-                {historyLoading && historyQPs.length === 0 ? (
-                  <SkeletonTable rows={3} cols={3} />
-                ) : historyQPs.length === 0 ? (
-                  <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
-                    <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                      <ClipboardCheck className="w-12 h-12 opacity-80" />
-                    </div>
-                    <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No History Found</h3>
-                    <p className="max-w-xs text-base leading-relaxed">
-                      You haven't approved or rejected any question papers yet.
-                    </p>
-                  </div>
-                ) : (
-                  renderQPGrid(historyQPs, true)
-                )}
-              </div>
-            </CardContent>
-            {historyQPs.length > 0 && (
-              <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
-                <div>
-                  Showing {historyTotalCount === 0 ? 0 : (historyPage - 1) * 10 + 1} to {Math.min(historyPage * 10, historyTotalCount)} of {historyTotalCount} records
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
-                    disabled={historyPage === 1 || historyLoading}
-                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                    Previous
-                  </Button>
-                  <div className="flex items-center justify-center min-w-[2rem]">
-                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                      {historyPage}
-                    </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
-                    disabled={historyPage === historyTotalPages || historyLoading}
-                    className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
-                    Next
-                  </Button>
-                </div>
-              </CardFooter>
-            )}
-          </TabsContent>
-        </Card>
-      </Tabs>
-
-      <Dialog open={dialogOpen} onOpenChange={(open) => {
-        if (!open) {
-          setSelectedQP(null);
-          setQpDetail(null);
-          setComment("");
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .qp-dialog-content { padding: 12px !important; }
+          .qp-dialog-footer { 
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 16px !important; 
+            gap: 12px !important; 
+          }
+          .action-buttons-group { gap: 10px !important; width: 100% !important; }
+          .action-btn-mobile { flex: 1 !important; height: 40px !important; font-size: 0.875rem !important; }
+          .download-btn-mobile { 
+            width: 100% !important; 
+            height: 42px !important; 
+            background-color: hsl(var(--primary)) !important; 
+            color: hsl(var(--primary-foreground)) !important; 
+            border: none !important;
+            margin-top: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
         }
-        setDialogOpen(open);
-      }}>
-        <DialogContent
-          onPointerDownOutside={() => {
-            setDialogOpen(false);
+      `}</style>
+
+      <div id="hod-qp-approvals-container" className={`w-full ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+        <Tabs defaultValue="pending" className="w-full">
+          <Card className={theme === 'dark' ? 'bg-card border border-border flex flex-col min-h-[550px]' : 'bg-white border border-gray-200 flex flex-col min-h-[550px]'}>
+            <CardHeader className="pb-2">
+              <div id="qp-approvals-header-section" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className={`mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Question Paper Approvals</CardTitle>
+                  <div className="flex items-center gap-3">
+                    <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Review and track question papers from your department faculty</p>
+                  </div>
+                </div>
+                <TabsList>
+                  <TabsTrigger value="pending" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">Pending Requests</TabsTrigger>
+                  <TabsTrigger value="history" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-white">History</TabsTrigger>
+                </TabsList>
+              </div>
+            </CardHeader>
+
+            <TabsContent value="pending" className="flex-1 mt-0">
+              <CardContent className="px-4 sm:px-6 pt-0">
+                <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
+                  {pendingQPs.length === 0 ?
+                    <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                      <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'} animate-pulse`}>
+                        <ClipboardCheck className="w-12 h-12 opacity-80" />
+                      </div>
+                      <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Pending QPs</h3>
+                      <p className="max-w-xs text-base leading-relaxed">
+                        All question papers have been reviewed. Check back later for new submissions.
+                      </p>
+                    </div> :
+                    renderQPGrid(pendingQPs, false)
+                  }
+                </div>
+              </CardContent>
+              {pendingQPs.length > 0 && (
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                  <div>
+                    Showing {totalCount === 0 ? 0 : (currentPage - 1) * 10 + 1} to {Math.min(currentPage * 10, totalCount)} of {totalCount} requests
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1 || loading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                      Previous
+                    </Button>
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {currentPage}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages || loading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
+            </TabsContent>
+
+            <TabsContent value="history" className="flex-1 mt-0">
+              <CardContent className="px-4 sm:px-6 pt-0">
+                <div className="h-full overflow-y-auto custom-scrollbar border rounded-md p-4 mb-4">
+                  {historyLoading && historyQPs.length === 0 ? (
+                    <SkeletonTable rows={3} cols={3} />
+                  ) : historyQPs.length === 0 ? (
+                    <div className={`flex flex-col h-full items-center justify-center py-16 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                      <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-accent/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                        <ClipboardCheck className="w-12 h-12 opacity-80" />
+                      </div>
+                      <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No History Found</h3>
+                      <p className="max-w-xs text-base leading-relaxed">
+                        You haven't approved or rejected any question papers yet.
+                      </p>
+                    </div>
+                  ) : (
+                    renderQPGrid(historyQPs, true)
+                  )}
+                </div>
+              </CardContent>
+              {historyQPs.length > 0 && (
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
+                  <div>
+                    Showing {historyTotalCount === 0 ? 0 : (historyPage - 1) * 10 + 1} to {Math.min(historyPage * 10, historyTotalCount)} of {historyTotalCount} records
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
+                      disabled={historyPage === 1 || historyLoading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                      Previous
+                    </Button>
+                    <div className="flex items-center justify-center min-w-[2rem]">
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                        {historyPage}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setHistoryPage(Math.min(historyTotalPages, historyPage + 1))}
+                      disabled={historyPage === historyTotalPages || historyLoading}
+                      className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all">
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
+              )}
+            </TabsContent>
+          </Card>
+        </Tabs>
+
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          if (!open) {
             setSelectedQP(null);
             setQpDetail(null);
             setComment("");
-          }}
-          className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90vw] mx-4 rounded-lg flex flex-col max-h-[92vh] custom-scrollbar`}>
-          <DialogHeader>
-            <DialogTitle className={`text-left pr-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}</DialogTitle>
-          </DialogHeader>
-          <div className="overflow-auto px-4 py-2 space-y-4 flex-1">
-            {detailLoading ?
-            <div className="text-center py-4">Loading QP details...</div> :
-            qpDetail ?
-            <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                <h4 className="font-semibold mb-4">Question Paper Preview</h4>
-                <div className="space-y-4">
-                  {qpDetail.questions.map((q, qIndex) =>
-                <div key={qIndex} className="space-y-3">
-                      {q.subparts.map((s, sIndex) => {
-                    const key = `${qIndex}-${sIndex}`;
-                    const isExpanded = !!expanded[key];
-                    const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
-                    return (
-                      <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
-                            <div className="flex items-start gap-3">
-                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
-                                {q.question_number}{s.subpart_label}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start gap-4">
-                                  <div className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1">
-                                    {isExpanded ? s.content : shortContent}
+          }
+          setDialogOpen(open);
+        }}>
+          <DialogContent
+            onPointerDownOutside={() => {
+              setDialogOpen(false);
+              setSelectedQP(null);
+              setQpDetail(null);
+              setComment("");
+            }}
+            className={`qp-dialog-content ${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[720px] w-[90%] rounded-lg flex flex-col max-h-[80vh]`}>
+            <DialogHeader>
+              <DialogTitle className={`text-left pr-6 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Review QP: {selectedQP?.subject} - {selectedQP?.test_type} {selectedQP?.set_number}</DialogTitle>
+            </DialogHeader>
+            <div className="overflow-auto custom-scrollbar px-4 py-2 space-y-4 flex-1">
+              {detailLoading ?
+              <div className="text-center py-4">Loading QP details...</div> :
+              qpDetail ?
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                  <h4 className="font-semibold mb-4">Question Paper Preview</h4>
+                  <div className="space-y-4">
+                    {qpDetail.questions.map((q, qIndex) =>
+                  <div key={qIndex} className="space-y-3">
+                        {q.subparts.map((s, sIndex) => {
+                      const key = `${qIndex}-${sIndex}`;
+                      const isExpanded = !!expanded[key];
+                      const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
+                      return (
+                        <div key={sIndex} className="border rounded-md p-3 bg-white dark:bg-gray-900">
+                              <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-medium text-sm">
+                                  {q.question_number}{s.subpart_label}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex justify-between items-start gap-4">
+                                    <div className="text-sm text-gray-900 dark:text-gray-100 mb-1 flex-1">
+                                      {isExpanded ? s.content : shortContent}
+                                    </div>
+                                    <div className="ml-2 flex-shrink-0">
+                                      <Badge className="text-black font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
+                                    </div>
                                   </div>
-                                  <div className="ml-2 flex-shrink-0">
-                                    <Badge className="text-black font-semibold text-sm bg-transparent">{s.max_marks}m</Badge>
+                                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                                    <Badge className="text-black bg-transparent">CO: {q.co}</Badge>
+                                    <Badge className="text-black bg-transparent">{q.blooms_level}</Badge>
+                                    {(s.content || '').length > 160 &&
+                                 <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
+                                         {isExpanded ? 'Show less' : 'Show more'}
+                                       </button>
+                                 }
                                   </div>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-2 mt-2">
-                                  <Badge className="text-black bg-transparent">CO: {q.co}</Badge>
-                                  <Badge className="text-black bg-transparent">{q.blooms_level}</Badge>
-                                  {(s.content || '').length > 160 &&
-                              <button onClick={() => toggleExpanded(key)} className="text-sm text-primary-600 dark:text-primary-400 ml-2">
-                                      {isExpanded ? 'Show less' : 'Show more'}
-                                    </button>
-                              }
-                                </div>
                               </div>
-                            </div>
-                          </div>);
+                            </div>);
 
-                  })}
-                    </div>
-                )}
-                  <div className="font-semibold pt-2 border-t">
-                    Total Marks: {qpDetail.questions.reduce((total, q) =>
-                  total + q.subparts.reduce((subTotal, s) => subTotal + s.max_marks, 0), 0
+                    })}
+                      </div>
                   )}
+                    <div className="font-semibold pt-2 border-t">
+                      Total Marks: {qpDetail.questions.reduce((total, q) =>
+                    total + q.subparts.reduce((subTotal, s) => subTotal + s.max_marks, 0), 0
+                    )}
+                    </div>
                   </div>
+                </div> :
+
+              <div className="text-center py-4 text-muted-foreground">
+                  Failed to load QP details
                 </div>
-              </div> :
+              }
 
-            <div className="text-center py-4 text-muted-foreground">
-                Failed to load QP details
-              </div>
-            }
-
-            {!isHistoryView && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Comment (optional)</label>
-                <Textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add a comment for the faculty..."
-                  rows={3} />
-              </div>
-            )}
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <div className="flex gap-2 w-full sm:w-auto">
               {!isHistoryView && (
-                <>
-                  <Button
-                    onClick={() => selectedQP && handleApprove(selectedQP.id)}
-                    disabled={actionLoading}
-                    className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}>
-                    
-                    <CheckCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                    <span className="whitespace-normal">Approve</span>
-                  </Button>
-                  <Button
-                    onClick={() => selectedQP && handleReject(selectedQP.id)}
-                    disabled={actionLoading}
-                    className={`flex items-center gap-1 text-sm font-medium px-4 py-2 rounded-md transition border whitespace-nowrap w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}>
-                    
-                    <XCircle className={`w-4 h-4 mr-1 hidden sm:inline-block ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                    <span className="whitespace-normal">Reject</span>
-                  </Button>
-                </>
-              )}
-              {isHistoryView && (
-                <div className="flex items-center justify-center text-sm font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg border border-border w-full sm:w-auto">
-                  <CheckCircle className="w-4 h-4 mr-1.5 text-blue-500" />
-                  <span>Archived Request (Read Only)</span>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Comment (optional)</label>
+                  <Textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Add a comment for the faculty..."
+                    rows={3} />
                 </div>
               )}
             </div>
-            <div className="ml-auto">
-              <Button variant="outline" onClick={() => downloadPDF()} disabled={downloadingPDF} className="bg-primary hover:bg-primary/90 text-white hover:text-white w-full sm:w-auto justify-center transition-none disabled:opacity-50">
-                {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
-                <span className="whitespace-normal">{downloadingPDF ? "Downloading..." : "Download"}</span>
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ConfirmDialog removed — using SweetAlert (MySwal) like Admin page */}
-    </div>);
+            <DialogFooter className="qp-dialog-footer flex flex-col sm:flex-row gap-2">
+              <div className="action-buttons-group flex gap-2 w-full sm:w-auto">
+                {!isHistoryView && (
+                  <>
+                    <Button
+                      onClick={() => selectedQP && handleApprove(selectedQP.id)}
+                      disabled={actionLoading}
+                      className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20 border' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100 border'}`}>
+                      <CheckCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                      <span className="whitespace-normal">Approve</span>
+                    </Button>
+                    <Button
+                      onClick={() => selectedQP && handleReject(selectedQP.id)}
+                      disabled={actionLoading}
+                      className={`action-btn-mobile w-full sm:w-auto justify-center transition-none ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 border' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100 border'}`}>
+                      <XCircle className={`w-4 h-4 mr-1 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                      <span className="whitespace-normal">Reject</span>
+                    </Button>
+                  </>
+                )}
+                {isHistoryView && (
+                  <div className="flex items-center justify-center text-sm font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg border border-border w-full sm:w-auto">
+                    <CheckCircle className="w-4 h-4 mr-1.5 text-blue-500" />
+                    <span>Archived Request (Read Only)</span>
+                  </div>
+                )}
+              </div>
+              <div className="w-full sm:w-auto sm:ml-auto">
+                <Button variant="outline" onClick={() => downloadPDF()} disabled={downloadingPDF} className="download-btn-mobile bg-primary hover:bg-primary/90 text-white hover:text-white w-full sm:w-auto justify-center transition-none disabled:opacity-50">
+                  {downloadingPDF ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+                  <span className="whitespace-normal">{downloadingPDF ? "Downloading..." : "Download"}</span>
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </>);
 
 };
 

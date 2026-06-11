@@ -496,7 +496,7 @@ const COAttainment = () => {
               {/* PO Attainment & Mapping Card */}
               <div className="mt-6">
                 <Card className="border border-border/50 shadow-sm">
-                  <CardHeader className="p-5 border-b border-border/50 flex flex-row items-center justify-between">
+                  <CardHeader className="p-5 border-b border-border/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
                     <CardTitle className="text-lg font-semibold leading-none tracking-tight text-gray-900">Program Outcome (PO) Attainment</CardTitle>
                     <Button 
                       onClick={async () => {
@@ -511,7 +511,7 @@ const COAttainment = () => {
                           setErrorMessage("Failed to save mapping");
                         }
                       }}
-                      className="bg-primary text-white h-8"
+                      className="bg-primary text-white h-8 w-full sm:w-auto"
                     >
                       Save Mapping & Recalculate
                     </Button>

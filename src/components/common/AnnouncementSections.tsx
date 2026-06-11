@@ -165,7 +165,7 @@ export const AnnouncementSections = ({
   return (
     <>
       <style>{`
-        @media (max-width: 480px) {
+        @media (max-width: 639px) {
           .ann-tabs-list { width: 100% !important; grid-template-columns: 1fr 1fr !important; margin-top: 8px !important; }
           .ann-archive-btn { width: 100% !important; margin-top: 8px !important; }
           .ann-table-container { border: none !important; }
@@ -248,7 +248,7 @@ export const AnnouncementSections = ({
             </p>
           </div>
         ) : (
-          <div className={`ann-table-container rounded-2xl border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'} overflow-hidden shadow-sm`}>
+          <div className={`ann-table-container rounded-2xl border-none sm:border ${theme === 'dark' ? 'border-border bg-transparent sm:bg-card' : 'border-gray-200 bg-transparent sm:bg-white'} overflow-hidden shadow-none sm:shadow-sm`}>
             {/* Desktop Table View */}
             <div className="hidden sm:block overflow-x-auto custom-scrollbar">
               <Table>
@@ -377,7 +377,7 @@ export const AnnouncementSections = ({
             </div>
 
             {/* Mobile Card View */}
-            <div className="block sm:hidden space-y-3 p-3">
+            <div className="block sm:hidden space-y-3 p-0">
               {filteredMyAnnouncements.map((announcement) => {
                 const expired = isExpired(announcement.expires_at);
                 return (
@@ -481,7 +481,7 @@ export const AnnouncementSections = ({
             </p>
           </div>
         ) : (
-          <div className={`ann-table-container rounded-2xl border ${theme === 'dark' ? 'border-border bg-card' : 'border-gray-200 bg-white'} overflow-hidden shadow-sm`}>
+          <div className={`ann-table-container rounded-2xl border-none sm:border ${theme === 'dark' ? 'border-border bg-transparent sm:bg-card' : 'border-gray-200 bg-transparent sm:bg-white'} overflow-hidden shadow-none sm:shadow-sm`}>
             {/* Desktop Table View */}
             <div className="hidden sm:block overflow-x-auto custom-scrollbar">
               <Table>
@@ -564,7 +564,7 @@ export const AnnouncementSections = ({
             </div>
 
             {/* Mobile Card View (Received) */}
-            <div className="block sm:hidden space-y-3 p-3">
+            <div className="block sm:hidden space-y-3 p-0">
               {filteredReceivedAnnouncements.map((announcement) => {
                 const unread = announcement.is_read === false;
                 return (

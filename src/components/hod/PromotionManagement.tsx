@@ -720,19 +720,19 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
     <div className="space-y-6">
       {/* Header */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader>
-          <CardTitle className={`flex items-center justify-between gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            <span className="flex items-center gap-2">
-              <UserCheck className="h-5 w-5 text-green-400" />
+        <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+          <CardTitle className={`flex flex-row items-center justify-between gap-2 w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <span className="flex items-center gap-2 whitespace-nowrap text-xl sm:text-lg">
+              <UserCheck className="h-5 w-5 text-green-400 shrink-0" />
               Student Promotion
             </span>
             <Button
               onClick={() => onTabChange("overview")}
               variant="outline"
               size="sm"
-              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md">
-              
-              Back to Overview
+              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md text-xs sm:text-sm shrink-0">
+              <span className="hidden sm:inline">Back to Overview</span>
+              <span className="inline sm:hidden">Back</span>
             </Button>
           </CardTitle>
         </CardHeader>
@@ -745,13 +745,13 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
           <CardTitle className={`text-lg ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Promote Students to Next Semester</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-2 gap-3 w-full">
             <Select
               value={state.selectedSemester}
               onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
               disabled={state.isLoading}>
               
-              <SelectTrigger className={theme === 'dark' ? 'w-48 bg-background text-foreground border-border' : 'w-48 bg-white text-gray-900 border-gray-300'}>
+              <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
                 <SelectValue placeholder="Select Semester" />
               </SelectTrigger>
               <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
@@ -770,11 +770,10 @@ const PromotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab:
             <Select
               value={state.selectedSection}
               onValueChange={(value) => updateState({ selectedSection: value })}
-              open={state.isSectionOpen}
-              onOpenChange={(open) => updateState({ isSectionOpen: open })}
+              {...({ open: state.isSectionOpen, onOpenChange: (open: boolean) => updateState({ isSectionOpen: open }) } as any)}
               disabled={state.isLoading || !state.selectedSemester}>
               
-              <SelectTrigger className={theme === 'dark' ? 'w-48 bg-background text-foreground border-border' : 'w-48 bg-white text-gray-900 border-gray-300'}>
+              <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
                 <SelectValue placeholder="Select Section" />
               </SelectTrigger>
               <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
@@ -1299,19 +1298,19 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
     <div className="space-y-6">
       {/* Header */}
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
-        <CardHeader>
-          <CardTitle className={`flex items-center justify-between gap-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            <span className="flex items-center gap-2">
-              <UserX className="h-5 w-5 text-red-400" />
+        <CardHeader className="px-3 sm:px-6 py-3 sm:py-4">
+          <CardTitle className={`flex flex-row items-center justify-between gap-2 w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+            <span className="flex items-center gap-2 whitespace-nowrap text-xl sm:text-lg">
+              <UserX className="h-5 w-5 text-red-400 shrink-0" />
               Student Demotion
             </span>
             <Button
               onClick={() => onTabChange("overview")}
               variant="outline"
               size="sm"
-              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md">
-              
-              Back to Overview
+              className="bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 shadow-md text-xs sm:text-sm shrink-0">
+              <span className="hidden sm:inline">Back to Overview</span>
+              <span className="inline sm:hidden">Back</span>
             </Button>
           </CardTitle>
         </CardHeader>
@@ -1324,59 +1323,60 @@ const DemotionPage = ({ theme, onTabChange }: {theme: string;onTabChange: (tab: 
           <CardTitle className={`text-lg ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Demote Students to Previous Semester</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <Select
-              value={state.selectedSemester}
-              onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
-              disabled={state.isLoading}>
-              
-              <SelectTrigger className={theme === 'dark' ? 'w-48 bg-background text-foreground border-border' : 'w-48 bg-white text-gray-900 border-gray-300'}>
-                <SelectValue placeholder="Select Semester" />
-              </SelectTrigger>
-              <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
-                {state.semesters.length === 0 ? (
-                  <SelectItem value="none" disabled className="text-muted-foreground">No Semester</SelectItem>
-                ) : (
-                  state.semesters.map((semester) => (
-                    <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                      Semester {semester.number}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <Select
+                value={state.selectedSemester}
+                onValueChange={(value) => updateState({ selectedSemester: value, selectedSection: "", isSectionOpen: false })}
+                disabled={state.isLoading}>
+                
+                <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
+                  <SelectValue placeholder="Select Semester" />
+                </SelectTrigger>
+                <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                  {state.semesters.length === 0 ? (
+                    <SelectItem value="none" disabled className="text-muted-foreground">No Semester</SelectItem>
+                  ) : (
+                    state.semesters.map((semester) => (
+                      <SelectItem key={semester.id} value={`${semester.number}th Semester`} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                        Semester {semester.number}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
 
-            <Select
-              value={state.selectedSection}
-              onValueChange={(value) => updateState({ selectedSection: value })}
-              open={state.isSectionOpen}
-              onOpenChange={(open) => updateState({ isSectionOpen: open })}
-              disabled={state.isLoading || !state.selectedSemester}>
-              
-              <SelectTrigger className={theme === 'dark' ? 'w-48 bg-background text-foreground border-border' : 'w-48 bg-white text-gray-900 border-gray-300'}>
-                <SelectValue placeholder="Select Section" />
-              </SelectTrigger>
-              <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
-                {(() => {
-                  const semesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
-                  const filteredSections = state.sections.filter((section) => semesterId ? section.semester_id === semesterId : false);
-                  if (filteredSections.length === 0) {
-                    return <SelectItem value="none" disabled className="text-muted-foreground">No Section</SelectItem>;
-                  }
-                  return filteredSections.map((section) => (
-                    <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
-                      Section {section.name}
-                    </SelectItem>
-                  ));
-                })()}
-              </SelectContent>
-            </Select>
+              <Select
+                value={state.selectedSection}
+                onValueChange={(value) => updateState({ selectedSection: value })}
+                {...({ open: state.isSectionOpen, onOpenChange: (open: boolean) => updateState({ isSectionOpen: open }) } as any)}
+                disabled={state.isLoading || !state.selectedSemester}>
+                
+                <SelectTrigger className={theme === 'dark' ? 'w-full bg-background text-foreground border-border' : 'w-full bg-white text-gray-900 border-gray-300'}>
+                  <SelectValue placeholder="Select Section" />
+                </SelectTrigger>
+                <SelectContent className={cn("max-h-[200px]", theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300')}>
+                  {(() => {
+                    const semesterId = state.semesters.find((s) => `${s.number}th Semester` === state.selectedSemester)?.id;
+                    const filteredSections = state.sections.filter((section) => semesterId ? section.semester_id === semesterId : false);
+                    if (filteredSections.length === 0) {
+                      return <SelectItem value="none" disabled className="text-muted-foreground">No Section</SelectItem>;
+                    }
+                    return filteredSections.map((section) => (
+                      <SelectItem key={section.id} value={section.name} className={theme === 'dark' ? 'focus:bg-accent' : 'focus:bg-gray-100'}>
+                        Section {section.name}
+                      </SelectItem>
+                    ));
+                  })()}
+                </SelectContent>
+              </Select>
+            </div>
 
             <Button
               onClick={() => updateState({ showBulkDemoteDialog: true })}
               disabled={!state.selectedSemester}
+              className="w-full sm:w-auto self-start"
               variant="destructive">
-              
               <Users className="h-4 w-4 mr-2" />
               Bulk Demote Students
             </Button>

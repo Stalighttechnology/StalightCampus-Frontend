@@ -463,20 +463,20 @@ const ApplyLeave = () => {
         {/* Recent Leave Applications - Right Side */}
         <Card id="hod-recent-leave-applications" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-row items-start justify-between gap-3">
             <div>
               <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
               <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
             </div>
-            <div className="relative sm:flex-shrink-0" ref={filterRef}>
+            <div className="relative flex-shrink-0" ref={filterRef}>
               <Button
                 onClick={() => setShowFilter((prev) => !prev)}
-                className="w-full sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90">
+                className="w-10 sm:w-auto h-10 text-sm font-medium flex items-center justify-center gap-1.5 shadow-sm transition-all duration-200 bg-primary text-white hover:bg-primary/90 p-0 sm:px-4">
                 <FilterIcon className="w-4 h-4" />
-                {statusFilter === "All" ? "Filter" : statusFilter}
+                <span className="hidden sm:inline">{statusFilter === "All" ? "Filter" : statusFilter}</span>
               </Button>
               {showFilter &&
-                <div className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-20 border ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
                   <div className="py-1">
                     {["All", "Approved", "Pending", "Rejected"].map((status) => (
                       <button

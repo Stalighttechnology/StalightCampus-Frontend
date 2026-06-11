@@ -426,7 +426,7 @@ const LeaveManagement = () => {
                     <div className="flex items-center justify-center mb-4">
                       <button
                         onClick={() => setViewReason(row.reason)}
-                        className={`w-32 h-8 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
+                        className={`w-full sm:w-32 h-8 text-sm font-semibold flex items-center justify-center rounded-lg shadow-sm transition-all duration-200
                         ${theme === 'dark' ?
                             'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' :
                             'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10'}`
@@ -608,7 +608,7 @@ const LeaveManagement = () => {
 
       {/* View Reason Dialog */}
       <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[80%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6`}>
           <DialogHeader>
             <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
           </DialogHeader>

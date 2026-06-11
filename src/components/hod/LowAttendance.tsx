@@ -878,7 +878,7 @@ const LowAttendance = ({ setError }: LowAttendanceProps) => {
                 </div>
             }
           </CardContent>
-          {!state.loading && state.students.length > 0 && (
+          {!state.loading && state.totalCount > state.pageSize && (
             <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
               <div>
                 Showing <span className="font-medium">{Math.min((state.currentPage - 1) * state.pageSize + 1, state.totalCount)}</span> to <span className="font-medium">{Math.min(state.currentPage * state.pageSize, state.totalCount)}</span> of <span className="font-medium">{state.totalCount}</span> students

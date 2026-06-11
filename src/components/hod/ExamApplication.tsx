@@ -452,8 +452,7 @@ const ExamApplication: React.FC = () => {
                 setTimeout(() => setIsSemOpen(true), 150);
               }} 
               disabled={loadingDropdowns || !examPeriod}
-              open={isBatchOpen}
-              onOpenChange={setIsBatchOpen}
+              {...({ open: isBatchOpen, onOpenChange: setIsBatchOpen } as any)}
             >
               <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
                 <SelectValue placeholder="Select batch" />
@@ -480,8 +479,7 @@ const ExamApplication: React.FC = () => {
                 setTimeout(() => setIsSecOpen(true), 150);
               }} 
               disabled={loadingDropdowns || !batchId}
-              open={isSemOpen}
-              onOpenChange={setIsSemOpen}
+              {...({ open: isSemOpen, onOpenChange: setIsSemOpen } as any)}
             >
               <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
                 <SelectValue placeholder="Select semester" />
@@ -504,8 +502,7 @@ const ExamApplication: React.FC = () => {
               value={sectionId} 
               onValueChange={setSectionId} 
               disabled={loadingDropdowns || !semesterId || loadingSections}
-              open={isSecOpen}
-              onOpenChange={setIsSecOpen}
+              {...({ open: isSecOpen, onOpenChange: setIsSecOpen } as any)}
             >
               <SelectTrigger className={theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'}>
                 <SelectValue placeholder={loadingSections ? "Loading sections..." : "Select section"} />
@@ -550,48 +547,50 @@ const ExamApplication: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <table className={`hidden md:table w-full rounded-md ${theme === 'dark' ? 'border border-border' : 'border border-gray-200'} border-collapse`}>
-                  <thead className={theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-100 text-gray-900'}>
-                    <tr>
-                      <th className="px-4 py-3 text-center text-sm font-semibold">USN</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold">Name</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold">Semester</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold">Status</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className={theme === 'dark' ? 'divide-border' : 'divide-gray-200'}>
-                    {students.map((student: any) =>
-                  <tr key={student.usn} className={`border-b ${theme === 'dark' ? 'border-border hover:bg-muted' : 'border-gray-100 hover:bg-gray-50'} transition-colors`}>
-                        <td className="px-4 py-3 text-sm font-medium text-center">{student.usn}</td>
-                        <td className="px-4 py-3 text-sm text-center">{student.name}</td>
-                        <td className="px-4 py-3 text-sm text-center">{student.semester}</td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium inline-block ${studentStatuses[student.usn] === 'Applied' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                            {studentStatuses[student.usn] || 'Not Applied'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm flex gap-2 justify-center">
-                          <Button onClick={() => openFor(student)} className="bg-primary hover:bg-primary/90 text-white h-8 px-3">
-                            Apply / View
-                          </Button>
-                          {studentStatuses[student.usn] === 'Applied' &&
-                            <Button
-                              onClick={() => downloadHallTicket(student)}
-                              className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 flex items-center gap-2"
-                              disabled={downloadingHallTicketId === student.usn}>
-                              {downloadingHallTicketId === student.usn ?
-                                <Loader2 className="h-4 w-4 animate-spin" /> :
-                                <FileDown className="h-4 w-4" />
-                              }
-                              Hall Ticket
-                            </Button>
-                          }
-                        </td>
+                <div className={`overflow-x-auto rounded-md border ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                  <table className="w-full border-collapse min-w-[600px]">
+                    <thead className={theme === 'dark' ? 'bg-muted text-foreground' : 'bg-gray-100 text-gray-900'}>
+                      <tr>
+                        <th className="px-4 py-3 text-center text-sm font-semibold">USN</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold">Name</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold">Semester</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold">Status</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold">Action</th>
                       </tr>
-                  )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className={theme === 'dark' ? 'divide-border' : 'divide-gray-200'}>
+                      {students.map((student: any) =>
+                        <tr key={student.usn} className={`border-b ${theme === 'dark' ? 'border-border hover:bg-muted' : 'border-gray-100 hover:bg-gray-50'} transition-colors`}>
+                          <td className="px-4 py-3 text-sm font-medium text-center">{student.usn}</td>
+                          <td className="px-4 py-3 text-sm text-center">{student.name}</td>
+                          <td className="px-4 py-3 text-sm text-center">{student.semester}</td>
+                          <td className="px-4 py-3 text-sm text-center">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium inline-block ${studentStatuses[student.usn] === 'Applied' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                              {studentStatuses[student.usn] || 'Not Applied'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm flex gap-2 justify-center">
+                            <Button onClick={() => openFor(student)} className="bg-primary hover:bg-primary/90 text-white h-8 px-3">
+                              Apply / View
+                            </Button>
+                            {studentStatuses[student.usn] === 'Applied' &&
+                              <Button
+                                onClick={() => downloadHallTicket(student)}
+                                className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 flex items-center gap-2"
+                                disabled={downloadingHallTicketId === student.usn}>
+                                {downloadingHallTicketId === student.usn ?
+                                  <Loader2 className="h-4 w-4 animate-spin" /> :
+                                  <FileDown className="h-4 w-4" />
+                                }
+                                Hall Ticket
+                              </Button>
+                            }
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </>
           }
