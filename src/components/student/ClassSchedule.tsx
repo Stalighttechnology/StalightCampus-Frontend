@@ -404,7 +404,7 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
         </CardContent>
 
         {/* Pagination Controls in CardFooter */}
-        {filteredClasses.length > 1 && (
+        {filteredClasses.length > 0 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredClasses.length)} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredClasses.length)} of {filteredClasses.length} classes
