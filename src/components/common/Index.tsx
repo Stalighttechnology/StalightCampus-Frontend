@@ -130,7 +130,7 @@ const Index = () => {
     };
 
     return (
-      <div className={isMobile ? "relative min-h-[100dvh] overflow-hidden bg-gradient-to-b from-violet-600 via-violet-800 to-violet-950" : "w-full"}>
+      <div className={isMobile ? "relative min-h-[100dvh] overflow-x-hidden overflow-y-auto bg-gradient-to-b from-violet-600 via-violet-800 to-violet-950" : "w-full"}>
         {isMobile && (
           <>
             <div className="absolute w-[360px] h-[360px] bg-violet-500/30 blur-[72px] rounded-full top-[-100px] left-[-80px] z-0 pointer-events-none" />
