@@ -506,7 +506,7 @@ const SubjectManagement = () => {
           )}
 
         </CardContent>
-        {state.filters.semester_id && state.filters.subject_type && state.filters.semester_id !== "all" && state.filters.subject_type !== "all" && (
+        {state.filters.semester_id && state.filters.subject_type && state.filters.semester_id !== "all" && state.filters.subject_type !== "all" && totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {state.totalCount === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalCount)} of {state.totalCount} courses
