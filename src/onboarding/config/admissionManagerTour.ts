@@ -127,6 +127,14 @@ export const admissionManagerTour: Step[] = [
     route: '/admission-manager/admission-settings',
   },
   {
+    target: '#sidebar-my-attendance',
+    title: 'My Attendance',
+    content: 'Check your personal attendance logs and administrative schedule tracking.',
+    placement: 'right' as const,
+    disableBeacon: false,
+    route: '/admission-manager/my-attendance',
+  },
+  {
     target: '#sidebar-profile',
     title: 'Account Settings',
     content:
