@@ -1694,7 +1694,7 @@ const StudentManagement = () => {
             </>
           )}
         </CardContent>
-        {state.semesterFilter !== "" && state.sectionFilter !== "" && state.students.length > 0 && (
+        {state.semesterFilter !== "" && state.sectionFilter !== "" && state.students.length > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {state.totalStudents === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1} to {Math.min(state.currentPage * state.pageSize, state.totalStudents)} of {state.totalStudents} students
