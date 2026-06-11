@@ -6,7 +6,7 @@ import { Capacitor } from "@capacitor/core";
 // Use public directory asset via URL
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { isPageAllowed } from "../../utils/planGating";
+import { isPageAllowed, PLAN_TIERS } from "../../utils/planGating";
 import {
   LayoutDashboard,
   Users,
@@ -263,6 +263,11 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
   const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const orgPlan = user?.org_plan || "basic";
+
+  const userTier = PLAN_TIERS[(orgPlan || 'basic').toLowerCase()] || 1;
+  const advanceRoles = ['transport_admin', 'driver', 'library_admin', 'admission_manager', 'hms', 'warden'];
+
+  const isRoleAllowed = !(advanceRoles.includes(role) && userTier < 3);
 
   const menuItems: { [key: string]: { name: string; page: string }[] } = {
     fees_manager: [
@@ -663,8 +668,8 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
         transition={{ duration: 0.4, delay: 0.2 }}
       >
         <div className="space-y-1 px-3">
-          {menuItems[role]
-            ?.filter(item => isPageAllowed(item.page, orgPlan))
+          {isRoleAllowed && menuItems[role]
+            ?.filter(item => isPageAllowed(item.page, orgPlan, role))
             ?.map((item, index) => (
               <motion.div
                 key={item.page}
