@@ -503,7 +503,7 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and update your personal information</p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 sm:ml-auto">
             <Button
               size="sm"
               onClick={() => {if (editing) handleSaveProfile();else setEditing(true);}}
@@ -519,7 +519,7 @@ const HodProfile = ({ user: propUser, setError }: {user?: User;setError?: (error
             </Button>
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
               <DialogTrigger asChild>
-                <Button className="text-sm px-3 sm:px-4 py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
+                <Button className="w-full sm:w-auto text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-9 bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
               </DialogTrigger>
               <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
                 <DialogHeader>
