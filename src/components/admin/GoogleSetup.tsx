@@ -7,6 +7,8 @@ import { Input } from "../ui/input";
 import { useTheme } from "../../context/ThemeContext";
 import { fetchWithTokenRefresh } from "../../utils/authService";
 import { API_ENDPOINT } from "../../utils/config";
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 interface GoogleSetupProps {
   setError: (error: string | null) => void;
@@ -101,7 +103,19 @@ const GoogleSetup: React.FC<GoogleSetupProps> = ({ setError, toast }) => {
           title: "Redirecting...",
           description: "Redirecting you to Google to authorize Calendar access.",
         });
-        window.location.href = data.authorization_url;
+        const isNative = Capacitor.isNativePlatform();
+        if (isNative) {
+          // Note: Here we don't pass ?source=app if we expect GoogleSetup to be used primarily on Web/Admin, 
+          // but just in case it's used on native admin app, we can handle it if we want.
+          // Wait, the backend only parses source from /connect/ GET request, not POST.
+          // In GoogleSetup, we POST to /connect/. Let's leave source out and just use Browser.open.
+          // Or wait, if we use Browser.open without ?source=app, the callback will redirect to FRONTEND_URL.
+          // Which won't trigger stalightcampus:// deep link, so the browser won't close automatically unless App Links are set.
+          // Actually, we can just use Browser.open.
+          Browser.open({ url: data.authorization_url });
+        } else {
+          window.location.href = data.authorization_url;
+        }
       } else {
         const errorMsg = data.error || "Failed to acquire Google authorization URL.";
         setError(errorMsg);

@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import Swal from "sweetalert2";
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import {
   Card,
   CardContent,
@@ -1016,10 +1018,16 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
               className={`w-full sm:w-auto font-medium shadow-sm transition-colors border ${theme === 'dark' ? 'bg-[#131314] hover:bg-[#1e1e20] text-[#e3e3e3] border-[#8e918f]' : 'bg-white hover:bg-[#f8f9fa] text-[#3c4043] border-[#747775]'}`}
               onClick={async () => {
                 try {
-                  const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/`);
+                  const isNative = Capacitor.isNativePlatform();
+                  const sourceQuery = isNative ? "?source=app" : "";
+                  const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/${sourceQuery}`);
                   const data = await res.json();
                   if (data.authorization_url) {
-                    window.location.href = data.authorization_url;
+                    if (isNative) {
+                      await Browser.open({ url: data.authorization_url });
+                    } else {
+                      window.location.href = data.authorization_url;
+                    }
                   } else {
                     toast({ title: 'Error', description: 'Failed to initiate Google connection.', variant: 'destructive' });
                   }

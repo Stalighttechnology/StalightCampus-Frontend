@@ -11,6 +11,8 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Camera } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
+import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 // Lazy loaded components
 const NotFound = lazy(() => import("./components/common/NotFound"));
@@ -128,6 +130,19 @@ const AppContent = () => {
       };
 
       requestAllPermissions();
+
+      // Listen for custom scheme deep links
+      CapApp.addListener('appUrlOpen', (event) => {
+        // If the URL is our custom scheme, we can close the Browser if it's open
+        if (event.url.includes('stalightcampus://')) {
+          Browser.close().catch(console.error);
+          
+          // Optionally parse the URL and dispatch an event or handle routing
+          if (event.url.includes('google-connected=')) {
+             window.dispatchEvent(new Event("googleOAuthCompleted"));
+          }
+        }
+      });
     }
   }, []);
 
