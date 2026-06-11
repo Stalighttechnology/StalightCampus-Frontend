@@ -833,135 +833,135 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
       </Card>
 
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-lg w-[90vw] h-[80vh] md:h-auto border-none shadow-2xl p-0 gap-0 overflow-hidden bg-card rounded-xl flex flex-col">
-          {/* Refined Header */}
-          <div className="px-6 py-5 border-b border-border/50 bg-muted/20">
-            <div className="flex items-center justify-between pr-8">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary opacity-80" />
-                  <span className="text-[13px] uppercase font-semibold tracking-[0.15em] text-muted-foreground/80">Invoice Statement</span>
-                </div>
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">{selectedInvoice?.invoice_number}</h2>
+        <DialogContent className="max-w-lg w-[90vw] h-[80vh] md:h-[80vh] border border-slate-200 shadow-2xl p-0 gap-0 overflow-hidden bg-white rounded-xl flex flex-col">
+          {/* Header */}
+          <div className="p-6 pr-12 border-b border-slate-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-white flex-shrink-0">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Invoice Statement</h2>
+              <p className="text-slate-500 text-sm mt-1 font-mono">{selectedInvoice?.invoice_number}</p>
+            </div>
+            <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1.5 shrink-0">
+              <div className="scale-100 origin-right">
+                {selectedInvoice && getStatusBadge(selectedInvoice.status)}
               </div>
-              <div className="flex flex-col items-end gap-1.5">
-                <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 px-2.5 py-0.5 text-[14px] font-semibold uppercase tracking-wider">
-                  {selectedInvoice?.status}
-                </Badge>
-                <span className="text-[13px] text-muted-foreground font-semibold">
-                  {selectedInvoice && new Date(selectedInvoice.created_at).toLocaleDateString()}
-                </span>
-              </div>
+              <span className="text-slate-500 text-sm font-medium">
+                {selectedInvoice && new Date(selectedInvoice.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+              </span>
             </div>
           </div>
 
-          <div className="p-4 md:p-6 pt-2 md:pt-6 space-y-2.5 md:space-y-5 flex-1 overflow-y-auto custom-scrollbar">
-            {/* Info Grid - Responsive */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-6">
-              <div className="space-y-2.5 p-3 md:p-4 rounded-xl border border-border/50 bg-muted/5">
-                <h4 className="text-[14px] font-semibold uppercase text-muted-foreground flex items-center gap-1.5 tracking-wider">
-                  <Users className="h-3.5 w-3.5 text-primary" /> BILL TO
-                </h4>
-                 <div className="space-y-1.5 pl-5">
-                  <p className="text-sm font-semibold text-foreground leading-tight">{selectedInvoice?.student?.name}</p>
-                  <p className="text-xs font-medium text-muted-foreground">{selectedInvoice?.student?.usn}</p>
-                  <p className="text-xs text-muted-foreground/70">{selectedInvoice?.student?.department}</p>
-                  <p className="text-xs font-semibold text-primary/80">Semester {selectedInvoice?.student?.semester}</p>
-                </div>
+          <div className="p-6 bg-slate-50/50 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+            {/* Bill To */}
+            <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Bill To</p>
+                <p className="text-base font-semibold mt-1 text-slate-900 leading-tight">{selectedInvoice?.student?.name}</p>
               </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">USN</p>
+                <p className="text-sm font-medium mt-1 text-slate-700">{selectedInvoice?.student?.usn}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Department</p>
+                <p className="text-sm font-medium mt-1 text-slate-700">{selectedInvoice?.student?.department}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Semester</p>
+                <p className="text-sm font-semibold mt-1 text-primary">Semester {selectedInvoice?.student?.semester || 'N/A'}</p>
+              </div>
+            </div>
 
-              <div className="space-y-2.5 p-3 md:p-4 rounded-xl border border-border/50 bg-muted/5">
-                <h4 className="text-[14px] font-semibold uppercase text-muted-foreground flex items-center gap-1.5 tracking-wider">
-                  <LayoutGrid className="h-3.5 w-3.5 text-primary" /> FEE DETAILS
-                </h4>
-                <div className="space-y-1.5 pl-5">
-                  <p className="text-sm font-semibold text-foreground leading-tight">
-                    {selectedInvoice?.fee_assignment?.template?.name || 'Custom Assignment'}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 font-semibold uppercase border-none">
-                      {selectedInvoice?.fee_assignment?.template?.fee_type || 'Annual'}
-                    </Badge>
-                    <span className="text-xs font-semibold text-muted-foreground">{selectedInvoice?.academic_year}</span>
-                  </div>
-                  <p className="text-xs font-semibold text-red-500 uppercase tracking-tight">
-                    Due: {selectedInvoice?.due_date ? new Date(selectedInvoice.due_date).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
+            {/* Fee Details */}
+            <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Fee Details</p>
+                <p className="text-base font-semibold mt-1 text-slate-900 leading-tight">
+                  {selectedInvoice?.fee_assignment?.template?.name || 'Custom Assignment'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Fee Type / Year</p>
+                <p className="text-sm font-medium mt-1 text-slate-700 capitalize">
+                  {selectedInvoice?.fee_assignment?.template?.fee_type || 'Annual'} ({selectedInvoice?.academic_year})
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Due Date</p>
+                <p className="text-sm font-semibold mt-1 text-red-500">
+                  {selectedInvoice?.due_date ? new Date(selectedInvoice.due_date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' }) : 'N/A'}
+                </p>
               </div>
             </div>
 
             {/* Financial Summary */}
-            <div className="bg-primary/5 rounded-xl border border-primary/10 p-3 md:p-4 grid grid-cols-3 gap-3 md:gap-4">
-              <div className="text-center">
-                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Total</p>
-                <p className="text-sm font-semibold text-foreground">{formatCurrency(selectedInvoice?.total_amount || 0)}</p>
+            <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-3 gap-4">
+              <div className="text-center border-r border-slate-100">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Total</p>
+                <p className="text-base font-bold text-slate-900">{formatCurrency(selectedInvoice?.total_amount || 0)}</p>
               </div>
-              <div className="text-center border-x border-primary/10">
-                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Paid</p>
-                <p className="text-sm font-semibold text-green-600">{formatCurrency(selectedInvoice?.paid_amount || 0)}</p>
+              <div className="text-center border-r border-slate-100">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Paid</p>
+                <p className="text-base font-bold text-emerald-600">{formatCurrency(selectedInvoice?.paid_amount || 0)}</p>
               </div>
               <div className="text-center">
-                <p className="text-[14px] text-muted-foreground uppercase font-semibold tracking-wider mb-1">Balance</p>
-                <p className="text-sm font-semibold text-red-600">{formatCurrency(selectedInvoice?.pending_amount || 0)}</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Balance</p>
+                <p className="text-base font-bold text-red-600">{formatCurrency(selectedInvoice?.pending_amount || 0)}</p>
               </div>
             </div>
 
-            {/* Transactions Section */}
-            <div className="space-y-2.5">
-              <h4 className="text-[13px] font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest px-1">
-                <CreditCard className="h-3.5 w-3.5 text-primary" /> Payment History
-              </h4>
-              <div className="border border-border/50 rounded-xl overflow-hidden bg-card">
-                {payments.length === 0 ?
-                <div className="p-8 text-center bg-muted/10">
-                    <p className="text-xs text-muted-foreground font-medium italic">No payments recorded for this invoice</p>
-                  </div> :
-
-                <Table>
-                    <TableHeader className="bg-muted/30">
+            {/* Payment History */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-widest block px-1">Payment History</h4>
+              <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+                {payments.length === 0 ? (
+                  <div className="p-6 text-center bg-slate-50/30">
+                    <p className="text-xs text-slate-500 font-medium italic">No payments recorded for this invoice</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader className="bg-slate-50 border-b border-slate-200">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-9 text-[13px] font-semibold uppercase px-4">Date</TableHead>
-                        <TableHead className="h-9 text-[13px] font-semibold uppercase">Method</TableHead>
-                        <TableHead className="h-9 text-right text-[13px] font-semibold uppercase px-4">Amount</TableHead>
+                        <TableHead className="h-9 text-xs font-semibold uppercase text-slate-600 px-4">Date</TableHead>
+                        <TableHead className="h-9 text-xs font-semibold uppercase text-slate-600">Method</TableHead>
+                        <TableHead className="h-9 text-right text-xs font-semibold uppercase text-slate-600 px-4">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {payments.map((p) =>
-                    <TableRow key={p.id} className="hover:bg-muted/10 transition-colors border-b border-border/30 last:border-0">
-                          <TableCell className="py-2.5 px-4 text-xs font-medium">
-                            {new Date(p.payment_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                      {payments.map((p) => (
+                        <TableRow key={p.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
+                          <TableCell className="py-2.5 px-4 text-xs font-medium text-slate-700">
+                            {new Date(p.payment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                           </TableCell>
-                          <TableCell className="py-2.5 text-[13px] font-semibold uppercase opacity-70">
+                          <TableCell className="py-2.5 text-xs font-semibold uppercase text-slate-500">
                             {p.payment_method}
                           </TableCell>
-                          <TableCell className="py-2.5 px-4 text-right font-semibold text-green-600 text-xs">
+                          <TableCell className="py-2.5 px-4 text-right font-bold text-emerald-600 text-xs">
                             {formatCurrency(p.amount)}
                           </TableCell>
                         </TableRow>
-                    )}
+                      ))}
                     </TableBody>
                   </Table>
-                }
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button
-                className="flex-1 h-10 text-xs font-semibold uppercase tracking-widest shadow-lg shadow-primary/20"
-                onClick={() => downloadInvoice(selectedInvoice?.id || 0)}>
-                
-                <Download className="h-3.5 w-3.5 mr-2" /> Download Statement
-              </Button>
-              <Button
-                variant="outline"
-                className="h-10 px-6 text-xs font-semibold uppercase tracking-widest"
-                onClick={() => setIsDetailsDialogOpen(false)}>
-                
-                Close
-              </Button>
-            </div>
+          {/* Footer Actions */}
+          <div className="p-6 bg-white border-t border-slate-100 flex flex-col sm:flex-row gap-3 flex-shrink-0">
+            <button
+              onClick={() => downloadInvoice(selectedInvoice?.id || 0)}
+              className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
+            >
+              <Download className="h-4 w-4" />
+              <span>Download Statement</span>
+            </button>
+            <button
+              onClick={() => setIsDetailsDialogOpen(false)}
+              className="px-6 py-2.5 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium rounded-lg transition-colors text-sm"
+            >
+              Close
+            </button>
           </div>
         </DialogContent>
       </Dialog>

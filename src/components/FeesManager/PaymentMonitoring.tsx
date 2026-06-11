@@ -686,37 +686,30 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
       {/* Payment Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-lg w-[90vw] h-[80vh] md:h-[80hv] border-none shadow-2xl p-0 gap-0 overflow-hidden bg-card rounded-xl flex flex-col">
+        <DialogContent className="max-w-lg w-[90vw] h-[80vh] md:h-[80vh] border border-slate-200 shadow-2xl p-0 gap-0 overflow-hidden bg-white rounded-xl flex flex-col">
           <DialogHeader className="sr-only">
             <DialogTitle>Payment Details</DialogTitle>
             <DialogDescription>Detailed information about the selected payment transaction</DialogDescription>
           </DialogHeader>
-          {/* Refined Header */}
-          <div className="px-4 py-4 md:px-6 md:py-5 border-b border-border/50 bg-muted/20">
-            <div className="flex items-center justify-between pr-10">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-primary opacity-80" />
-                  <span className="text-sm md:text-sm font-semibold uppercase tracking-[0.15em] text-muted-foreground/80">Transaction Statement</span>
-                </div>
-                <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate max-w-[200px] sm:max-w-none">
-                  #{selectedPayment?.transaction_id?.substring(0, 12) || 'REF-N/A'}
-                </h2>
+          {/* Header */}
+          <div className="p-6 pr-12 border-b border-slate-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-white flex-shrink-0">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Transaction Statement</h2>
+              <p className="text-slate-500 text-sm mt-1">#{selectedPayment?.transaction_id?.substring(0, 12) || 'REF-N/A'}</p>
+            </div>
+            <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1.5 shrink-0">
+              <div className="scale-100 origin-right">
+                {selectedPayment && getStatusBadge(selectedPayment.status)}
               </div>
-              <div className="flex flex-col items-end gap-1.5 shrink-0">
-                <div className="scale-100 origin-right">
-                  {selectedPayment && getStatusBadge(selectedPayment.status)}
-                </div>
-                <span className="text-sm md:text-sm text-muted-foreground font-semibold">
-                  {selectedPayment && new Date(selectedPayment.payment_date).toLocaleDateString()}
-                </span>
-              </div>
+              <span className="text-slate-500 text-sm font-medium">
+                {selectedPayment && new Date(selectedPayment.payment_date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+              </span>
             </div>
           </div>
 
-          <div className="p-4 md:p-6 pt-2 md:pt-6 space-y-3 md:space-y-5 flex-1 overflow-y-auto custom-scrollbar">
-            {isDetailLoading ?
-            <div className="space-y-6">
+          <div className="p-6 bg-slate-50/50 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+            {isDetailLoading ? (
+              <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <SkeletonCard className="h-32" />
                   <SkeletonCard className="h-32" />
@@ -731,112 +724,125 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                   <Skeleton className="h-11 flex-1 rounded-xl" />
                   <Skeleton className="h-11 flex-1 rounded-xl" />
                 </div>
-              </div> :
-            selectedPayment &&
-
-            <>
-                {/* Info Grid - Responsive */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
-                  <div className="space-y-2 md:space-y-3 p-3 md:p-4 rounded-xl border border-border/50 bg-muted/5">
-                    <h4 className="text-sm md:text-sm font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
-                      <Users className="h-3.5 w-3.5 text-primary" /> Payer Information
-                    </h4>
-                    <div className="space-y-1 pl-[22px]">
-                      <p className="text-base md:text-lg font-semibold text-foreground leading-tight">{selectedPayment.invoice.student.name}</p>
-                      <div className="space-y-0.5">
-                        <p className="text-sm md:text-sm font-medium text-muted-foreground uppercase tracking-wider">{selectedPayment.invoice.student.usn}</p>
-                        <p className="text-sm md:text-sm text-muted-foreground/70">{selectedPayment.invoice.student.department}</p>
-                        <p className="text-sm md:text-sm font-semibold text-primary/80">Semester {selectedPayment.invoice.student.semester || 'N/A'}</p>
-                      </div>
+              </div>
+            ) : (
+              selectedPayment && (
+                <>
+                  {/* Payer Information */}
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+                    <div className="col-span-2">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Payer Information</p>
+                      <p className="text-base font-semibold mt-1 text-slate-900 leading-tight">{selectedPayment.invoice.student.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">USN</p>
+                      <p className="text-sm font-medium mt-1 text-slate-700">{selectedPayment.invoice.student.usn}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Department</p>
+                      <p className="text-sm font-medium mt-1 text-slate-700">{selectedPayment.invoice.student.department}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Semester</p>
+                      <p className="text-sm font-semibold mt-1 text-primary">Semester {selectedPayment.invoice.student.semester || 'N/A'}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-2 md:space-y-3 p-3 md:p-4 rounded-xl border border-border/50 bg-muted/5">
-                    <h4 className="text-sm md:text-sm font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest">
-                      <FileText className="h-3.5 w-3.5 text-primary" /> Associated Fee
-                    </h4>
-                    <div className="space-y-1 pl-[22px]">
-                      <p className="text-base md:text-lg font-semibold text-foreground leading-tight">
+                  {/* Associated Fee */}
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+                    <div className="col-span-2">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Associated Fee</p>
+                      <p className="text-base font-semibold mt-1 text-slate-900 leading-tight">
                         {selectedPayment.invoice?.fee_assignment?.template?.name || 'Manual Assignment'}
                       </p>
-                      <div className="flex flex-col gap-1.5 mt-1">
-                        <Badge variant="secondary" className="w-fit text-xs md:text-xs h-4.5 px-2.5 py-0.5 font-semibold uppercase border-none">
-                          {selectedPayment.invoice?.fee_assignment?.template?.fee_type || 'N/A'}
-                        </Badge>
-                        <div className="text-sm md:text-sm font-semibold text-muted-foreground">Invoice: <span className="text-primary font-mono">{selectedPayment.invoice?.invoice_number}</span></div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Fee Type / Semester</p>
+                      <p className="text-sm font-medium mt-1 text-slate-700 capitalize">
+                        {selectedPayment.invoice?.fee_assignment?.template?.fee_type || 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">Invoice</p>
+                      <p className="text-sm font-medium mt-1 text-slate-700 font-mono">
+                        {selectedPayment.invoice?.invoice_number}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Financial Summary */}
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-2 gap-y-4">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Payment Amount</p>
+                      <p className="text-xl font-bold mt-1 text-emerald-600 tracking-tight">
+                        {formatCurrency(selectedPayment.amount)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Method</p>
+                      <div className="mt-1 flex justify-end">
+                        {getMethodBadge(selectedPayment.payment_method)}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Financial Summary */}
-                <div className="bg-primary/5 rounded-xl border border-primary/10 p-3 md:p-5 grid grid-cols-2 gap-4 text-center shadow-inner">
-                  <div className="border-r border-primary/10">
-                    <p className="text-sm md:text-sm text-muted-foreground uppercase font-semibold tracking-wider mb-1">Payment Amount</p>
-                    <p className="text-xl md:text-2xl font-extrabold text-green-600 tracking-tight">{formatCurrency(selectedPayment.amount)}</p>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                    <p className="text-sm md:text-sm text-muted-foreground uppercase font-semibold tracking-wider mb-1">Method</p>
-                    <div className="scale-100">{getMethodBadge(selectedPayment.payment_method)}</div>
-                  </div>
-                </div>
-
-                {/* Technical Details */}
-                <div className="space-y-2 md:space-y-4">
-                  <h4 className="text-sm md:text-sm font-semibold uppercase text-muted-foreground flex items-center gap-2 tracking-widest px-1">
-                    <LayoutGrid className="h-3.5 w-3.5 text-primary" /> Technical Details
-                  </h4>
-                  <div className="border border-border/50 rounded-xl p-3 md:p-5 space-y-3 md:space-y-4 bg-muted/5 font-mono text-sm md:text-sm">
-                    <div className="space-y-1.5 pb-2 md:pb-3 border-b border-border/30">
-                      <span className="text-xs md:text-xs text-muted-foreground uppercase font-semibold tracking-widest">Transaction ID</span>
-                      <p className="font-semibold text-foreground select-all break-all leading-relaxed bg-background/50 p-2 rounded-lg border border-border/20 text-sm md:text-sm">
+                  {/* Technical Details */}
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 grid grid-cols-1 gap-y-4">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Technical Details</p>
+                    </div>
+                    <div className="h-px bg-slate-100"></div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">Transaction ID</p>
+                      <p className="text-sm font-medium mt-1 text-slate-700 font-mono break-all select-all">
                         {selectedPayment.transaction_id || 'N/A'}
                       </p>
                     </div>
-                    {selectedPayment.stripe_payment_intent_id &&
-                  <div className="space-y-1.5 pb-2 md:pb-3 border-b border-border/30">
-                        <span className="text-xs md:text-xs text-muted-foreground uppercase font-semibold tracking-widest">Stripe Payment Intent</span>
-                        <p className="font-semibold text-foreground select-all break-all leading-relaxed bg-background/50 p-2 rounded-lg border border-border/20 text-sm md:text-sm">
+                    {selectedPayment.stripe_payment_intent_id && (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest font-mono">Stripe Payment Intent</p>
+                        <p className="text-sm font-medium mt-1 text-slate-700 font-mono break-all select-all">
                           {selectedPayment.stripe_payment_intent_id}
                         </p>
                       </div>
-                  }
-                    <div className="flex justify-between items-center pt-1">
-                      <span className="text-xs md:text-xs text-muted-foreground uppercase font-semibold tracking-widest">Logged At</span>
-                      <span className="text-foreground font-semibold text-sm md:text-sm">{new Date(selectedPayment.created_at).toLocaleString()}</span>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Logged At</p>
+                      <p className="text-sm font-medium text-slate-700">
+                        {new Date(selectedPayment.created_at).toLocaleString()}
+                      </p>
                     </div>
                   </div>
-                </div>
+                </>
+              )
+            )}
+          </div>
 
-                {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  {(selectedPayment.status === 'completed' || selectedPayment.status === 'success') &&
-                <Button
-                  className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold uppercase tracking-widest shadow-lg shadow-primary/20 rounded-xl"
-                  onClick={() => downloadReceipt(selectedPayment.id)}>
-                  
-                      <Download className="h-3.5 w-3.5 mr-2" /> Download Receipt
-                    </Button>
-                }
-                  {selectedPayment.status === 'completed' && selectedPayment.payment_method === 'stripe' &&
-                <Button
-                  variant="destructive"
-                  className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold uppercase tracking-widest rounded-xl"
-                  onClick={() => processRefund(selectedPayment.id)}>
-                  
-                      Process Refund
-                    </Button>
-                }
-                  <Button
-                  variant="outline"
-                  className="h-10 md:h-11 px-8 text-xs md:text-sm font-semibold uppercase tracking-widest rounded-xl border-border/50"
-                  onClick={() => setIsDetailsDialogOpen(false)}>
-                  
-                    Close Window
-                  </Button>
-                </div>
-              </>
-            }
+          {/* Footer Actions */}
+          <div className="p-6 bg-white border-t border-slate-100 flex flex-col sm:flex-row gap-3 flex-shrink-0">
+            {selectedPayment && (selectedPayment.status === 'completed' || selectedPayment.status === 'success') && (
+              <button
+                onClick={() => downloadReceipt(selectedPayment.id)}
+                className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
+              >
+                <Download className="h-4 w-4" />
+                <span>Download Receipt</span>
+              </button>
+            )}
+            {selectedPayment && selectedPayment.status === 'completed' && selectedPayment.payment_method === 'stripe' && (
+              <button
+                onClick={() => processRefund(selectedPayment.id)}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
+              >
+                Process Refund
+              </button>
+            )}
+            <button
+              onClick={() => setIsDetailsDialogOpen(false)}
+              className="px-6 py-2.5 border border-slate-200 hover:border-slate-300 text-slate-700 font-medium rounded-lg transition-colors text-sm"
+            >
+              Close Window
+            </button>
           </div>
         </DialogContent>
       </Dialog>
