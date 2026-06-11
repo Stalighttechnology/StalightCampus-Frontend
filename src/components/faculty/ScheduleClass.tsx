@@ -650,6 +650,27 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const [historyClasses, setHistoryClasses] = useState<ScheduledClassRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // Pagination States for History
+  const [currentHistoryPage, setCurrentHistoryPage] = useState(1);
+  const HISTORY_ITEMS_PER_PAGE = 5;
+
+  // Reset history page to 1 when filters change
+  useEffect(() => {
+    setCurrentHistoryPage(1);
+  }, [
+    historyDropdowns.subjectId,
+    historyDropdowns.branchId,
+    historyDropdowns.semesterId,
+    historyDropdowns.sectionId,
+  ]);
+
+  const totalHistoryPages = Math.ceil(historyClasses.length / HISTORY_ITEMS_PER_PAGE);
+
+  const paginatedHistoryClasses = useMemo(() => {
+    const startIndex = (currentHistoryPage - 1) * HISTORY_ITEMS_PER_PAGE;
+    return historyClasses.slice(startIndex, startIndex + HISTORY_ITEMS_PER_PAGE);
+  }, [historyClasses, currentHistoryPage]);
+
   // ── Google Connection State ──────────────────────────────────────────────
   const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
   const [googleConnectLoading, setGoogleConnectLoading] = useState(true);
@@ -736,8 +757,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
               cls.branch_id === assignment.branch_id &&
               cls.semester_id === assignment.semester_id &&
               cls.section_id === assignment.section_id
-            ))
-            .slice(0, 5);
+            ));
           setHistoryClasses(filtered);
         }
       } catch (e: any) {
@@ -1165,7 +1185,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
             <div>
               <CardTitle className="text-xl sm:text-2xl">Class History</CardTitle>
               <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
-                Select a subject to view last 5 scheduled classes
+                Select a subject to view scheduled classes history
               </CardDescription>
             </div>
           </div>
@@ -1181,13 +1201,53 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                   <Loader2 className="w-4 h-4 animate-spin" /> Loading class history…
                 </div>
               ) : historyClasses.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <p className="text-xs text-muted-foreground font-medium mb-2">
-                    Showing {historyClasses.length} most recent scheduled class{historyClasses.length !== 1 ? "es" : ""}
+                    Showing {((currentHistoryPage - 1) * HISTORY_ITEMS_PER_PAGE) + 1} - {Math.min(currentHistoryPage * HISTORY_ITEMS_PER_PAGE, historyClasses.length)} of {historyClasses.length} scheduled class{historyClasses.length !== 1 ? "es" : ""}
                   </p>
-                  {historyClasses.map((cls) => (
-                    <ClassHistoryCard key={cls.id} cls={cls} theme={theme} currentTime={currentTime} />
-                  ))}
+                  <div className="space-y-2">
+                    {paginatedHistoryClasses.map((cls) => (
+                      <ClassHistoryCard key={cls.id} cls={cls} theme={theme} currentTime={currentTime} />
+                    ))}
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {historyClasses.length > 1 && (
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground pt-4 border-t border-border mt-4">
+                      <div>
+                        Showing {Math.min((currentHistoryPage - 1) * HISTORY_ITEMS_PER_PAGE + 1, historyClasses.length)} to {Math.min(currentHistoryPage * HISTORY_ITEMS_PER_PAGE, historyClasses.length)} of {historyClasses.length} classes
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentHistoryPage(Math.max(1, currentHistoryPage - 1))}
+                          disabled={currentHistoryPage === 1}
+                          className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                        >
+                          Previous
+                        </Button>
+
+                        <div className="flex items-center justify-center min-w-[2rem]">
+                          <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                            {currentHistoryPage}
+                          </span>
+                        </div>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentHistoryPage(Math.min(totalHistoryPages, currentHistoryPage + 1))}
+                          disabled={currentHistoryPage === totalHistoryPages || totalHistoryPages <= 1}
+                          className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
