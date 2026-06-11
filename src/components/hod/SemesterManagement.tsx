@@ -437,7 +437,7 @@ const SemesterManagement = () => {
                       </div>
 
                       <div className="mt-3 flex gap-2">
-                          <Button onClick={() => openSectionModal(sem)} disabled={loading} className={`flex-1 text-sm ${theme === 'dark' ? 'bg-card border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-100 border bottom-1 text-black'}`}>
+                          <Button onClick={() => openSectionModal(sem)} disabled={loading} className="flex-1 text-sm bg-primary text-white hover:bg-primary/90 border-transparent shadow-sm">
                             Add
                           </Button>
                         <Button onClick={() => openModal(sem)} disabled={loading} className={`flex-1 text-sm ${theme === 'dark' ? 'bg-card border-border hover:bg-accent' : 'bg-white border-gray-300 hover:bg-gray-100 border bottom-2 text-black'}`}>
@@ -578,11 +578,17 @@ const SemesterManagement = () => {
                 name="number"
                 value={form.number}
                 onChange={handleChange}
+                onWheel={(e) => e.currentTarget.blur()}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                  }
+                }}
                 placeholder="Enter semester number (1-8)"
                 min="1"
                 max="8"
                 disabled={loading}
-                className={`text-center ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                className={`text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
               />
             </div>
           </div>

@@ -1191,7 +1191,7 @@ const StudentManagement = () => {
         <CardHeader>
           <CardTitle className={`text-2xl font-semibold leading-none tracking-tight text-gray-900 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Add Student Manually</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-y-auto max-h-[60vh] sm:max-h-none sm:overflow-visible custom-scrollbar">
+        <CardContent className="overflow-visible custom-scrollbar">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-3">
             {/* USN */}
             <div className="flex flex-col">
@@ -2209,11 +2209,17 @@ const StudentManagement = () => {
                 type="number"
                 value={newSemesterNumber}
                 onChange={(e) => setNewSemesterNumber(e.target.value)}
+                onWheel={(e) => e.currentTarget.blur()}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                  }
+                }}
                 placeholder="Enter semester number (1-8)"
                 min="1"
                 max="8"
                 disabled={addingSemester}
-                className={`text-center ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
+                className={`text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
               />
             </div>
             <DialogFooter className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">

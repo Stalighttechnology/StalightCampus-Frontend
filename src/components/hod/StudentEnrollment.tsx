@@ -938,7 +938,13 @@ const StudentEnrollment = () => {
                     placeholder="Enter semester number (1-8)"
                     value={newSemesterNumber}
                     onChange={(e) => setNewSemesterNumber(e.target.value)}
-                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 ${
+                    onWheel={(e) => e.currentTarget.blur()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                        e.preventDefault();
+                      }
+                    }}
+                    className={`w-full px-3 py-2.5 text-sm rounded-md border shadow-sm transition-all focus:ring-2 focus:ring-purple-500/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                       theme === 'dark' ? 'bg-background border-border text-foreground' : 'bg-white border-gray-300 text-gray-900'
                     }`}
                   />
