@@ -1493,12 +1493,12 @@ const StudentManagement = () => {
       <Card className={theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}>
         <div id="student-list-header-section">
           <CardHeader>
-            <div className="flex flex-row justify-between items-center gap-2 md:gap-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-4">
               <CardTitle>Student List</CardTitle>
-              <div className="flex gap-2">
+              <div className="flex w-full sm:w-auto gap-2">
                 <Button
                   onClick={handleExportPDF}
-                  className="flex-shrink-0 flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap disabled:opacity-50"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap disabled:opacity-50"
                   disabled={state.isLoading || !state.branchId || state.semesterFilter === "" || state.sectionFilter === "" || downloadingPDF}
                 >
                   {downloadingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
@@ -1507,7 +1507,7 @@ const StudentManagement = () => {
                 </Button>
                 <Button
                   onClick={() => updateState({ addStudentModal: true })}
-                  className="flex-shrink-0 flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1 text-xs md:text-sm font-semibold px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white whitespace-nowrap"
                   disabled={state.isLoading || !state.branchId}>
 
                   <Upload className="w-4 h-4" />
