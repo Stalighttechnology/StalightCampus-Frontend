@@ -18,6 +18,8 @@ import { fetchWithTokenRefresh } from "../../utils/authService";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
 import { Camera, Upload } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import LoginActivity from '../common/LoginActivity';
 import { uploadFileViaBackendProxy } from "../../utils/common_api";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -561,10 +563,16 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                           className={`w-full sm:w-auto font-medium shadow-sm transition-colors border ${theme === 'dark' ? 'bg-[#131314] hover:bg-[#1e1e20] text-[#e3e3e3] border-[#8e918f]' : 'bg-white hover:bg-[#f8f9fa] text-[#3c4043] border-[#747775]'}`}
                           onClick={async () => {
                             try {
-                              const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/`);
+                              const isNative = Capacitor.isNativePlatform();
+                              const sourceQuery = isNative ? "?source=app" : "";
+                              const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/${sourceQuery}`);
                               const data = await res.json();
                               if (data.authorization_url) {
-                                window.location.href = data.authorization_url;
+                                if (isNative) {
+                                  await Browser.open({ url: data.authorization_url });
+                                } else {
+                                  window.location.href = data.authorization_url;
+                                }
                               } else {
                                 showErrorAlert('Error', 'Failed to initiate Google connection.');
                               }

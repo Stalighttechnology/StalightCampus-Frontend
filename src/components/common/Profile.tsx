@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -431,10 +433,16 @@ const Profile = ({ role, user }: ProfileProps) => {
                     className="bg-primary text-white border-primary hover:bg-primary/90"
                     onClick={async () => {
                       try {
-                        const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/`);
+                        const isNative = Capacitor.isNativePlatform();
+                        const sourceQuery = isNative ? "?source=app" : "";
+                        const res = await fetchWithTokenRefresh(`${API_ENDPOINT}/integrations/google/connect/${sourceQuery}`);
                         const data = await res.json();
                         if (data.authorization_url) {
-                          window.location.href = data.authorization_url;
+                          if (isNative) {
+                            await Browser.open({ url: data.authorization_url });
+                          } else {
+                            window.location.href = data.authorization_url;
+                          }
                         } else {
                           showErrorAlert('Error', 'Failed to initiate Google connection.');
                         }
