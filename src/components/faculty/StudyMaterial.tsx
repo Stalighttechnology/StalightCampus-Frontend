@@ -4,6 +4,7 @@ import { FileText, Download, UploadCloud, Trash2, Loader2, Search, BookOpen, X, 
 import { getStudyMaterials, uploadStudyMaterial, getAssignedSubjectsGrouped, getBranches, getSemesters, getSections, AssignedSubject, deleteStudyMaterial } from "../../utils/faculty_api";
 import { uploadFileViaBackendProxy, downloadFileViaBackendProxy } from "../../utils/common_api";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-hot-toast";
 import {
   Select,
@@ -46,8 +47,12 @@ interface Subject {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMaterial; theme: string; onDelete: (id: number) => void; }) => {
+  const { user } = useAuth();
   const [deleting, setDeleting] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  const expectedUploaderName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : '';
+  const isOwner = material.uploaded_by === expectedUploaderName || material.uploaded_by === user?.username;
 
   const handleDelete = async () => {
     Swal.fire({
@@ -158,13 +163,15 @@ const StudyMaterialRow = ({ material, theme, onDelete }: { material: StudyMateri
           >
             {downloading ? <Loader2 className="animate-spin" size={22} /> : <Download size={22} />}
           </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
-          >
-            {deleting ? <Loader2 className="animate-spin" size={22} /> : <Trash2 size={22} />}
-          </button>
+          {isOwner && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className={`inline-flex items-center justify-center p-3 rounded-2xl transition-all duration-200 ${theme === 'dark' ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
+            >
+              {deleting ? <Loader2 className="animate-spin" size={22} /> : <Trash2 size={22} />}
+            </button>
+          )}
         </div>
       </TableCell>
     </TableRow>
