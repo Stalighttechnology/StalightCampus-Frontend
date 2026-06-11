@@ -53,7 +53,7 @@ const CampusPageRenderer: React.FC<CampusPageRendererProps> = ({ blocks, orgName
     
     setEnquiryStatus('submitting');
     try {
-      await axios.post(`/api/admission/public/${orgSlug}/enquire/`, enquiryForm);
+      await axios.post(`/api/admission/public/${orgSlug}/enquiry/`, enquiryForm);
       setEnquiryStatus('success');
       setEnquiryForm({ name: '', phone: '', email: '', course_interested: '', message: '' });
       setTimeout(() => setEnquiryStatus('idle'), 5000);
