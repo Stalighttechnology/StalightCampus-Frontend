@@ -28,6 +28,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  Loader2,
   Mail } from
 'lucide-react';
 import DashboardCard from '@/components/common/DashboardCard';
@@ -102,6 +103,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [notifying, setNotifying] = useState(false);
   const [hasNotified, setHasNotified] = useState(false);
+  const [downloadingReceiptId, setDownloadingReceiptId] = useState<number | null>(null);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -273,6 +275,7 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   };
 
   const downloadReceipt = async (paymentId: number) => {
+    setDownloadingReceiptId(paymentId);
     try {
       const response = await downloadReceiptApi(paymentId);
 
@@ -291,6 +294,8 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
       document.body.removeChild(a);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to download receipt');
+    } finally {
+      setDownloadingReceiptId(null);
     }
   };
 
@@ -608,16 +613,20 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                             <Eye className="h-4.5 w-4.5" />
                           </Button>
                           {(p.status === 'completed' || p.status === 'success') &&
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-full transition-all active:scale-95"
-                        onClick={() => downloadReceipt(p.id)}
-                        title="Download Receipt">
-                        
-                              <Download className="h-4.5 w-4.5" />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-full transition-all active:scale-95"
+                              onClick={() => downloadReceipt(p.id)}
+                              disabled={downloadingReceiptId !== null}
+                              title="Download Receipt">
+                              {downloadingReceiptId === p.id ? (
+                                <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                              ) : (
+                                <Download className="h-4.5 w-4.5" />
+                              )}
                             </Button>
-                      }
+                          }
                           {!isReadOnly && p.status === 'successful' && (
                             <Button 
                               variant="ghost" 
@@ -820,13 +829,23 @@ const PaymentMonitoring: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
 
           {/* Footer Actions */}
           <div className="p-6 bg-white border-t border-slate-100 flex flex-col sm:flex-row gap-3 flex-shrink-0">
-            {selectedPayment && (selectedPayment.status === 'completed' || selectedPayment.status === 'success') && (
+             {selectedPayment && (selectedPayment.status === 'completed' || selectedPayment.status === 'success') && (
               <button
                 onClick={() => downloadReceipt(selectedPayment.id)}
-                className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
+                disabled={downloadingReceiptId !== null}
+                className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
               >
-                <Download className="h-4 w-4" />
-                <span>Download Receipt</span>
+                {downloadingReceiptId === selectedPayment.id ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Downloading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" />
+                    <span>Download Receipt</span>
+                  </>
+                )}
               </button>
             )}
             {selectedPayment && selectedPayment.status === 'completed' && selectedPayment.payment_method === 'stripe' && (

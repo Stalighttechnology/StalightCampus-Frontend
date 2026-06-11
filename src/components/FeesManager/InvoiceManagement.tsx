@@ -25,6 +25,7 @@ import {
   CreditCard,
   LayoutGrid,
   MousePointer2,
+  Loader2,
   CheckCircle2 as CheckIcon } from
 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
@@ -48,6 +49,7 @@ import {
   getInvoices,
   recordPayment,
   downloadInvoice as downloadInvoiceApi,
+  downloadInvoicePdf,
   getInvoiceDetails } from
 "../../utils/fees_manager_api";
 
@@ -105,6 +107,7 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     mode: 'cash',
@@ -377,15 +380,26 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
   };
 
   const downloadInvoice = async (invoiceId: number) => {
+    setDownloadingInvoiceId(invoiceId);
     try {
-      const json = await downloadInvoiceApi(invoiceId);
-      if (!json.success) throw new Error(json.message || 'Failed to download invoice');
-
-      if (json.data?.download_url) {
-        window.open(`${window.location.origin}${json.data.download_url}`, '_blank');
+      const response = await downloadInvoicePdf(invoiceId);
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to download invoice');
       }
+
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice_${invoiceId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (err) {
-      setError('Failed to initiate download');
+      setError(err instanceof Error ? err.message : 'Failed to download invoice');
+    } finally {
+      setDownloadingInvoiceId(null);
     }
   };
 
@@ -772,13 +786,17 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
                             <Eye className="h-4.5 w-4.5" />
                           </Button>
                           <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-amber-600 hover:bg-amber-50 rounded-full transition-all active:scale-95"
-                        onClick={() => downloadInvoice(inv.id)}
-                        title="Download PDF">
-                        
-                            <Download className="h-4.5 w-4.5" />
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-amber-600 hover:bg-amber-50 rounded-full transition-all active:scale-95"
+                            onClick={() => downloadInvoice(inv.id)}
+                            disabled={downloadingInvoiceId !== null}
+                            title="Download PDF">
+                            {downloadingInvoiceId === inv.id ? (
+                              <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                            ) : (
+                              <Download className="h-4.5 w-4.5" />
+                            )}
                           </Button>
                         </div>
                       </TableCell>
@@ -951,10 +969,20 @@ const InvoiceManagement: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = fa
           <div className="p-6 bg-white border-t border-slate-100 flex flex-col sm:flex-row gap-3 flex-shrink-0">
             <button
               onClick={() => downloadInvoice(selectedInvoice?.id || 0)}
-              className="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
+              disabled={downloadingInvoiceId !== null}
+              className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm"
             >
-              <Download className="h-4 w-4" />
-              <span>Download Statement</span>
+              {downloadingInvoiceId === selectedInvoice?.id ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Downloading...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  <span>Download Statement</span>
+                </>
+              )}
             </button>
             <button
               onClick={() => setIsDetailsDialogOpen(false)}

@@ -314,6 +314,21 @@ export const downloadInvoice = async (id: number) => {
   }
 };
 
+export const downloadInvoicePdf = async (id: number) => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/fees-manager/invoices/${id}/pdf/`, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      return { success: false, message: "Failed to download invoice PDF" };
+    }
+    const blob = await response.blob();
+    return { success: true, data: blob };
+  } catch (error) {
+    return { success: false, message: "Network error" };
+  }
+};
+
 // Payments
 export const getPayments = async (params: any) => {
   try {
