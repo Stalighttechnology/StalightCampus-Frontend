@@ -63,9 +63,10 @@ const Sidebar = ({ activePage, setActivePage, onLogout, collapsed, toggleCollaps
     >
       {/* Header */}
       <div 
-        className={`px-4 pt-4 pb-3 lg:pb-0 flex items-center justify-between border-b ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-200'}`}
+        className={`px-4 pb-3 lg:pb-0 flex items-center justify-between border-b ${theme === 'dark' ? 'border-zinc-800' : 'border-gray-200'}`}
         style={{
-          height: window.innerWidth >= 1024 ? '5rem' : undefined
+          height: window.innerWidth >= 1024 ? '5rem' : undefined,
+          paddingTop: Capacitor.getPlatform() === 'android' ? 'max(2.5rem, env(safe-area-inset-top, 0px))' : 'env(safe-area-inset-top, 0px)'
         }}
       >
         <div className="flex items-center gap-3 overflow-hidden">
