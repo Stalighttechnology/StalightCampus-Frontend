@@ -649,6 +649,65 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   const historyDropdowns = useAssignmentDropdowns(rawAssignments);
   const [historyClasses, setHistoryClasses] = useState<ScheduledClassRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    setExportingPDF(true);
+    try {
+      const params = new URLSearchParams();
+      const assignment = historyDropdowns.currentAssignment;
+      if (assignment) {
+        if (assignment.subject_id) params.append('subject_id', assignment.subject_id.toString());
+        if (assignment.branch_id) params.append('branch_id', assignment.branch_id.toString());
+        if (assignment.semester_id) params.append('semester_id', assignment.semester_id.toString());
+        if (assignment.section_id) params.append('section_id', assignment.section_id.toString());
+      }
+      
+      let url = `${API_ENDPOINT}/scheduled-classes/export_pdf/`;
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await fetchWithTokenRefresh(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("access_token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export PDF");
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      
+      const fileNameSuffix = assignment 
+        ? `${assignment.subject_name.replace(/\s+/g, '_')}_${assignment.branch.replace(/\s+/g, '_')}_Sem_${assignment.semester}_Sec_${assignment.section}` 
+        : 'All';
+      link.setAttribute('download', `Class_History_${fileNameSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+
+      toast({
+        title: 'Success',
+        description: 'Class history PDF downloaded successfully',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to export class history PDF',
+      });
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   // Pagination States for History
   const [currentHistoryPage, setCurrentHistoryPage] = useState(1);
@@ -1178,16 +1237,36 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
       {/* ── Section 2: Class History ─────────────────────────────────────── */}
       <Card className={selectorCardCls}>
         <CardHeader className="border-b border-border/50 pb-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-muted bg-primary/10">
-              <ClipboardList className="w-5 h-5 text-muted-foreground text-primary" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-muted bg-primary/10">
+                <ClipboardList className="w-5 h-5 text-muted-foreground text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl sm:text-2xl">Class History</CardTitle>
+                <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
+                  Select a subject to view scheduled classes history
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-xl sm:text-2xl">Class History</CardTitle>
-              <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
-                Select a subject to view scheduled classes history
-              </CardDescription>
-            </div>
+            {historyClasses.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                disabled={exportingPDF}
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto self-start sm:self-auto"
+              >
+                {exportingPDF ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Exporting...
+                  </>
+                ) : (
+                  "Export PDF"
+                )}
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="pt-5 space-y-4">
