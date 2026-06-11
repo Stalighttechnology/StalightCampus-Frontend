@@ -616,14 +616,9 @@ const Sidebar = ({ role, setPage, activePage, logout, collapsed, toggleCollapse 
     >
       {/* Header */}
       <motion.div
-        className={`px-4 pb-3 lg:pb-0 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
+        className={`px-4 pt-4 pb-3 lg:pb-0 flex items-center border-b ${theme === 'dark' ? 'bg-background border-border' : 'bg-white border-gray-200'}`}
         style={{
-          paddingTop: window.innerWidth < 1024
-            ? (Capacitor.getPlatform() === 'android' ? '0.75rem' : 'max(0.75rem, env(safe-area-inset-top, 0px))')
-            : (Capacitor.getPlatform() === 'android' ? '0px' : 'env(safe-area-inset-top, 0px)'),
-          height: window.innerWidth >= 1024 
-            ? (Capacitor.getPlatform() === 'android' ? '5rem' : 'calc(5rem + env(safe-area-inset-top, 0px))')
-            : undefined
+          height: window.innerWidth >= 1024 ? '5rem' : undefined
         }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

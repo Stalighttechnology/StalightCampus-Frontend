@@ -100,14 +100,9 @@ const Navbar = ({ role, user, onNotificationClick, setPage, showHamburger = fals
 
   return (
     <motion.div
-      className={`w-full flex items-center justify-between px-4 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
+      className={`w-full flex items-center justify-between px-4 pt-3 pb-3 lg:pb-0 relative border-b transition-all duration-500 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}
       style={{
-        paddingTop: window.innerWidth < 1024
-          ? (Capacitor.getPlatform() === 'android' ? '0.75rem' : 'max(0.75rem, env(safe-area-inset-top, 0px))')
-          : (Capacitor.getPlatform() === 'android' ? '0px' : 'env(safe-area-inset-top, 0px)'),
-        height: window.innerWidth >= 1024 
-          ? (Capacitor.getPlatform() === 'android' ? '5rem' : 'calc(5rem + env(safe-area-inset-top, 0px))')
-          : undefined
+        height: window.innerWidth >= 1024 ? '5rem' : undefined
       }}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
