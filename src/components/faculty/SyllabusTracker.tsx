@@ -21,6 +21,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { getSyllabusStatus, updateSyllabusProgress } from "@/utils/faculty_api";
 import { BookOpen, CheckCircle, Clock, Save } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import { showConfirmAlert } from "../../utils/sweetalert";
 
 const SyllabusTracker = () => {
   const { toast } = useToast();
@@ -142,7 +143,7 @@ const SyllabusTracker = () => {
   }, [semesterId, subjectId, sectionId, isElective]);
 
   // Save individual week progress
-  const handleSaveProgress = async (weekNum: number) => {
+  const handleSaveProgress = async (weekNum: number, currentCompleted: boolean) => {
     if (!subjectId) return;
     setSavingProgress(weekNum);
     const edit = progressEdits[weekNum];
@@ -154,7 +155,7 @@ const SyllabusTracker = () => {
         semester_id: isElective ? undefined : semesterId?.toString(),
         section_id: isElective ? undefined : sectionId?.toString(),
         week_number: weekNum,
-        is_completed: edit.is_completed,
+        is_completed: currentCompleted, // Only save text, keep completion status unchanged
         topics_covered: edit.topics_covered,
         notes: edit.notes
       });
@@ -168,6 +169,43 @@ const SyllabusTracker = () => {
       toast({ title: "Error", description: "Failed to save progress", variant: "destructive" });
     } finally {
       setSavingProgress(null);
+    }
+  };
+
+  // Toggle completion with confirmation dialog
+  const handleToggleCompletion = async (weekNum: number, currentCompleted: boolean) => {
+    if (!subjectId) return;
+    const actionText = currentCompleted ? "incomplete" : "completed";
+    const confirmResult = await showConfirmAlert(
+      `Mark as ${actionText}?`,
+      `Are you sure you want to mark Week ${weekNum} as ${actionText}?`,
+      `Yes, mark as ${actionText}`
+    );
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+      const matchingAssignment = normalizedAssignments.find(a => a.subject_id === subjectId && a.semester_id === semesterId);
+      const edit = progressEdits[weekNum] || { topics_covered: "", notes: "" };
+      const res = await updateSyllabusProgress({
+        subject_id: subjectId.toString(),
+        branch_id: isElective ? undefined : matchingAssignment?.branch_id?.toString(),
+        semester_id: isElective ? undefined : semesterId?.toString(),
+        section_id: isElective ? undefined : sectionId?.toString(),
+        week_number: weekNum,
+        is_completed: !currentCompleted,
+        topics_covered: edit.topics_covered,
+        notes: edit.notes
+      });
+
+      if (res.success) {
+        toast({ title: "Success", description: `Week ${weekNum} marked as ${actionText}!` });
+        fetchSyllabus();
+      } else {
+        toast({ title: "Error", description: res.message || "Failed to update completion status", variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to update completion status", variant: "destructive" });
     }
   };
 
@@ -352,24 +390,21 @@ const SyllabusTracker = () => {
                         </div>
 
                         {/* Completed Toggle & Save Action */}
-                        <div className="flex flex-col md:flex-col items-stretch md:items-end gap-4 w-full md:w-auto pl-0 md:pl-0 border-t md:border-t-0 pt-4 md:pt-0">
+                        <div className="flex flex-col md:flex-col items-stretch md:items-end gap-3 w-full md:w-auto pl-0 md:pl-0 border-t md:border-t-0 pt-4 md:pt-0">
                           <div className="flex flex-row items-center justify-between gap-4 w-full">
                             <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                id={`complete-week-${w.week}`}
-                                className="w-5 h-5 rounded text-primary focus:ring-primary border-gray-300 dark:border-gray-700 cursor-pointer"
-                                checked={edit.is_completed}
-                                onChange={(e) => {
-                                  setProgressEdits({
-                                    ...progressEdits,
-                                    [w.week]: { ...edit, is_completed: e.target.checked }
-                                  });
-                                }}
-                              />
-                              <label htmlFor={`complete-week-${w.week}`} className="text-sm font-semibold select-none cursor-pointer">
-                                Marked Completed
-                              </label>
+                              <Button
+                                size="sm"
+                                variant={w.is_completed ? "destructive" : "outline"}
+                                className={`text-xs font-semibold px-3 py-1.5 h-8 border transition-all active:scale-95 ${
+                                  w.is_completed
+                                    ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800'
+                                }`}
+                                onClick={() => handleToggleCompletion(w.week, w.is_completed)}
+                              >
+                                {w.is_completed ? "Mark Incomplete" : "Mark Completed"}
+                              </Button>
                             </div>
                             {w.completed_date && (
                               <div className="text-xs text-right opacity-70 leading-tight">
@@ -380,8 +415,8 @@ const SyllabusTracker = () => {
                           </div>
                           <Button
                             size="sm"
-                            className="w-full md:w-auto"
-                            onClick={() => handleSaveProgress(w.week)}
+                            className="w-full md:w-auto text-xs"
+                            onClick={() => handleSaveProgress(w.week, w.is_completed)}
                             disabled={savingProgress === w.week}
                           >
                             {savingProgress === w.week ? "Saving..." : <><Save className="w-4 h-4 mr-2" /> Save Progress</>}
