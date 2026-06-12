@@ -1309,7 +1309,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                   </div>
 
                   {/* Pagination Controls */}
-                  {historyClasses.length > 1 && (
+                  {historyClasses.length > HISTORY_ITEMS_PER_PAGE && (
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground pt-4 border-t border-border mt-4">
                       <div>
                         Showing {Math.min((currentHistoryPage - 1) * HISTORY_ITEMS_PER_PAGE + 1, historyClasses.length)} to {Math.min(currentHistoryPage * HISTORY_ITEMS_PER_PAGE, historyClasses.length)} of {historyClasses.length} classes

@@ -59,7 +59,6 @@ const HODAnnouncementManagement = () => {
   const [error, setError] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
   const { theme } = useTheme();
 
   // Form state
@@ -227,39 +226,69 @@ const HODAnnouncementManagement = () => {
     setShowCreateDialog(true);
   };
 
-  const handleDelete = async () => {
-    if (!deletingId) return;
+  const handleDeleteClick = async (announcementId: number) => {
+    const result = await MySwal.fire({
+      title: "Delete Announcement?",
+      text: "Are you sure you want to delete this announcement? This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      target: document.body
+    });
 
-    try {
-      const response = await deleteAnnouncement(deletingId);
-      if (response.success) {
-        setMyAnnouncements((prev) => prev.filter((a) => a.id !== deletingId));
-        MySwal.fire({
-          title: "Deleted",
-          text: "Announcement deleted successfully",
-          icon: "success",
-          confirmButtonColor: "#9147e0"
-        });
-      } else {
+    if (result.isConfirmed) {
+      try {
+        const response = await deleteAnnouncement(announcementId);
+        if (response.success) {
+          setMyAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
+          MySwal.fire({
+            title: "Deleted",
+            text: "Announcement deleted successfully",
+            icon: "success",
+            confirmButtonColor: "#9147e0",
+            target: document.body
+          });
+        } else {
+          MySwal.fire({
+            title: "Error",
+            text: response.message || "Failed to delete announcement",
+            icon: "error",
+            confirmButtonColor: "#9147e0",
+            target: document.body
+          });
+        }
+      } catch (error: any) {
         MySwal.fire({
           title: "Error",
-          text: response.message || "Failed to delete announcement",
+          text: error.message || "An error occurred",
           icon: "error",
-          confirmButtonColor: "#9147e0"
+          confirmButtonColor: "#9147e0",
+          target: document.body
         });
       }
-      setDeletingId(null);
-    } catch (error: any) {
-      MySwal.fire({
-        title: "Error",
-        text: error.message || "An error occurred",
-        icon: "error",
-        confirmButtonColor: "#9147e0"
-      });
     }
   };
 
   const handleToggleActive = async (announcementId: number) => {
+    const announcement = myAnnouncements.find((a) => a.id === announcementId) || receivedAnnouncements.find((a) => a.id === announcementId);
+    const isCurrentlyActive = announcement ? announcement.is_active : false;
+
+    if (isCurrentlyActive) {
+      const result = await MySwal.fire({
+        title: "Deactivate Announcement?",
+        text: "Are you sure you want to deactivate this announcement? It will no longer be visible to students/faculty.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, deactivate it!",
+        target: document.body
+      });
+      if (!result.isConfirmed) return;
+    }
+
     try {
       const response = await toggleAnnouncementActive(announcementId);
       if (response.success) {
@@ -271,7 +300,8 @@ const HODAnnouncementManagement = () => {
           title: "Error",
           text: response.message || "Failed to toggle announcement",
           icon: "error",
-          confirmButtonColor: "#9147e0"
+          confirmButtonColor: "#9147e0",
+          target: document.body
         });
       }
     } catch (error: any) {
@@ -279,7 +309,8 @@ const HODAnnouncementManagement = () => {
         title: "Error",
         text: error.message || "An error occurred",
         icon: "error",
-        confirmButtonColor: "#9147e0"
+        confirmButtonColor: "#9147e0",
+        target: document.body
       });
     }
   };
@@ -523,7 +554,7 @@ const HODAnnouncementManagement = () => {
               myAnnouncements={myAnnouncements}
               receivedAnnouncements={receivedAnnouncements}
               onEdit={handleEdit}
-              onDelete={(id) => setDeletingId(id)}
+              onDelete={handleDeleteClick}
               onToggleActive={handleToggleActive}
               onMarkRead={handleMarkRead}
               loading={loading}
@@ -543,28 +574,6 @@ const HODAnnouncementManagement = () => {
             />
           }
         </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
-        <AlertDialogContent className="delete-modal">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Announcement</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this announcement? This action cannot
-              be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex gap-3 justify-end">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                
-              Delete
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
     </>);
 
