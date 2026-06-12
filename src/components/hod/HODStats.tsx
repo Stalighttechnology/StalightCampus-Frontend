@@ -22,6 +22,7 @@ import {
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { getHODStats, manageLeaves, manageProfile, getHODDashboard, getHODDashboardBootstrap } from "../../utils/hod_api";
+import { PLAN_TIERS } from "../../utils/planGating";
 import { motion } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
 import { SkeletonCard, SkeletonChart, SkeletonList, SkeletonStatsGrid, SkeletonTable, Skeleton } from "../ui/skeleton";
@@ -84,6 +85,11 @@ export default function HODStats({ setError, setPage, onBootstrapData }: HODStat
   const [hodName, setHodName] = useState("HOD");
   const [branchName, setBranchName] = useState("your");
   const { theme } = useTheme();
+
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
   // Format date range to "MMM DD, YYYY to MMM DD, YYYY"
   const formatPeriod = (startDate: string, endDate: string): string => {
@@ -489,196 +495,198 @@ const handleApprove = async (index: number) => {
       </div>
 
       {/* Leave Requests */}
-      <div id="hod-leave-table" className={`p-6 rounded-lg shadow-sm text-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-        <div id="hod-leave-header" className="flex justify-between items-center mb-4">
-          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</h3>
-          <button
-            className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
-            onClick={() => setPage("leaves")}
-          >
-            View All
-          </button>
-        </div>
-
-        <div className="max-h-[60vh] overflow-y-auto custom-scrollbar scroll-smooth"> 
-          {/* Mobile-only card list */}
-          <div className={`block md:hidden space-y-3`}> 
-            {leaveRequests.length === 0 && !isLoading ? (
-              <div className={`p-8 mt-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                  <ClipboardList className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-                </div>
-                <div className="text-center">
-                  <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests found</p>
-                  <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Check back later for new applications</p>
-                </div>
-              </div>
-            ) : (
-              leaveRequests.slice(0, 10).map((row, index) => (
-                <div
-                  key={row.id}
-                  className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-100 text-gray-900 shadow-sm'}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="text-lg font-semibold text-gray-900 dark:text-foreground">{row.name}</div>
-                      <div className="text-sm text-gray-500 dark:text-muted-foreground">{row.dept}</div>
-                    </div>
-                    <div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          row.status === 'Pending'
-                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400'
-                            : row.status === 'Approved'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400'
-                            : 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400'
-                        }`}
-                      >
-                        {row.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Period (date range) on separate line */}
-                  <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium">{row.period}</div>
-
-                  {/* View reason via modal instead of showing text */}
-                  <div className="mt-3">
-                    <button
-                      onClick={() => openReasonModal(row.reason)}
-                      className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
-                        theme === 'dark'
-                          ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
-                          : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
-                      }`}
-                    >
-                      View Reason
-                    </button>
-                  </div>
-
-                  {/* Buttons on their own line - make them flex so they expand evenly */}
-                  <div className="mt-3 flex gap-3">
-                    {row.status === 'Pending' ? (
-                      <>
-                        <button
-                          onClick={() => handleApprove(index)}
-                          className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark' ? 'border-green-500/20 text-green-400 bg-green-950/20 hover:bg-green-950/40' : 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100'}`}
-                          disabled={isLoading}
-                        >
-                          <CheckCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(index)}
-                          className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark' ? 'border-red-500/20 text-red-400 bg-red-950/20 hover:bg-red-950/40' : 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100'}`}
-                          disabled={isLoading}
-                        >
-                          <XCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                          Reject
-                        </button>
-                      </>
-                    ) : (
-                      <div className="text-sm text-gray-500 mt-1">Reviewed</div>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
+      {userTier >= 2 && (
+        <div id="hod-leave-table" className={`p-6 rounded-lg shadow-sm text-sm ${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200'} ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <div id="hod-leave-header" className="flex justify-between items-center mb-4">
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Requests</h3>
+            <button
+              className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white"
+              onClick={() => setPage("leaves")}
+            >
+              View All
+            </button>
           </div>
 
-          {/* Desktop/table view for md+ screens (restored to original desktop markup) */}
-          <div className="hidden md:block">
-            <table className="w-full">
-              <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
-                <tr className={`text-center border-b ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-200 text-gray-900'} text-xs md:text-sm`}>
-                  <th className="py-3 px-2 md:px-4">Faculty</th>
-                  <th className="py-3 px-2 md:px-4">Period</th>
-                  <th className="py-3 px-2 md:px-4">Reason</th>
-                  <th className="py-3 px-2 md:px-4">Status</th>
-                  <th className="py-3 px-2 md:px-4">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaveRequests.length === 0 && !isLoading ? (
-                  <tr>
-                    <td colSpan={5} className="py-8">
-                      <div className={`mx-auto w-full max-w-sm border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                        <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
-                          <ClipboardList className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
-                        </div>
-                        <div className="text-center">
-                          <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests found</p>
-                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>All applications have been reviewed</p>
-                        </div>
+          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar scroll-smooth"> 
+            {/* Mobile-only card list */}
+            <div className={`block md:hidden space-y-3`}> 
+              {leaveRequests.length === 0 && !isLoading ? (
+                <div className={`p-8 mt-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                  <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                    <ClipboardList className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests found</p>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Check back later for new applications</p>
+                  </div>
+                </div>
+              ) : (
+                leaveRequests.slice(0, 10).map((row, index) => (
+                  <div
+                    key={row.id}
+                    className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-100 text-gray-900 shadow-sm'}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-lg font-semibold text-gray-900 dark:text-foreground">{row.name}</div>
+                        <div className="text-sm text-gray-500 dark:text-muted-foreground">{row.dept}</div>
                       </div>
-                    </td>
-                  </tr>
-                ) : (
-                  leaveRequests.slice(0, 10).map((row, index) => (
-                    <tr
-                      key={row.id}
-                      className={`border-b last:border-none text-sm md:text-base hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} text-center`}
-                    >
-                      <td className="py-3 md:py-4 px-2 md:px-4">
-                        <div>
-                          <p className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.name}</p>
-                          <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</p>
-                        </div>
-                      </td>
-                      <td className="py-3 md:py-4 px-2 md:px-4">{row.period}</td>
-                      <td className="py-3 md:py-4 px-2 md:px-4">
-                        <button
-                          onClick={() => openReasonModal(row.reason)}
-                          className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                          View
-                        </button>
-                      </td>
-                      <td className="py-3 md:py-4 px-2 md:px-4">
+                      <div>
                         <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium align-middle ${
-                            row.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : row.status === "Approved"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            row.status === 'Pending'
+                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400'
+                              : row.status === 'Approved'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400'
+                              : 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400'
                           }`}
                         >
                           {row.status}
                         </span>
-                      </td>
-                      <td className="py-3 md:py-4 px-2 md:px-4">
-                        {row.status === "Pending" ? (
-                          <div className="flex flex-col md:flex-row gap-2 md:gap-2 align-middle text-center md:px-1 justify-center">
-                            <button
-                              onClick={() => handleApprove(index)}
-                              className={`flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border whitespace-nowrap ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}
-                              disabled={isLoading}
-                            >
-                              <CheckCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleReject(index)}
-                              className={`flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border whitespace-nowrap ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
-                              disabled={isLoading}
-                            >
-                              <XCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
-                              Reject
-                            </button>
+                      </div>
+                    </div>
+
+                    {/* Period (date range) on separate line */}
+                    <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium">{row.period}</div>
+
+                    {/* View reason via modal instead of showing text */}
+                    <div className="mt-3">
+                      <button
+                        onClick={() => openReasonModal(row.reason)}
+                        className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
+                          theme === 'dark'
+                            ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                            : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                        }`}
+                      >
+                        View Reason
+                      </button>
+                    </div>
+
+                    {/* Buttons on their own line - make them flex so they expand evenly */}
+                    <div className="mt-3 flex gap-3">
+                      {row.status === 'Pending' ? (
+                        <>
+                          <button
+                            onClick={() => handleApprove(index)}
+                            className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark' ? 'border-green-500/20 text-green-400 bg-green-950/20 hover:bg-green-950/40' : 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100'}`}
+                            disabled={isLoading}
+                          >
+                            <CheckCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReject(index)}
+                            className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark' ? 'border-red-500/20 text-red-400 bg-red-950/20 hover:bg-red-950/40' : 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                            disabled={isLoading}
+                          >
+                            <XCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                            Reject
+                          </button>
+                        </>
+                      ) : (
+                        <div className="text-sm text-gray-500 mt-1">Reviewed</div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop/table view for md+ screens (restored to original desktop markup) */}
+            <div className="hidden md:block">
+              <table className="w-full">
+                <thead className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-card' : 'bg-white'}`}>
+                  <tr className={`text-center border-b ${theme === 'dark' ? 'border-border text-foreground' : 'border-gray-200 text-gray-900'} text-xs md:text-sm`}>
+                    <th className="py-3 px-2 md:px-4">Faculty</th>
+                    <th className="py-3 px-2 md:px-4">Period</th>
+                    <th className="py-3 px-2 md:px-4">Reason</th>
+                    <th className="py-3 px-2 md:px-4">Status</th>
+                    <th className="py-3 px-2 md:px-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaveRequests.length === 0 && !isLoading ? (
+                    <tr>
+                      <td colSpan={5} className="py-8">
+                        <div className={`mx-auto w-full max-w-sm border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center space-y-3 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                          <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-accent/10' : 'bg-gray-100'}`}>
+                            <ClipboardList className={`w-8 h-8 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`} />
                           </div>
-                        ) : (
-                          <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
-                        )}
+                          <div className="text-center">
+                            <p className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No leave requests found</p>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>All applications have been reviewed</p>
+                          </div>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    leaveRequests.slice(0, 10).map((row, index) => (
+                      <tr
+                        key={row.id}
+                        className={`border-b last:border-none text-sm md:text-base hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-50'} text-center`}
+                      >
+                        <td className="py-3 md:py-4 px-2 md:px-4">
+                          <div>
+                            <p className={`font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{row.name}</p>
+                            <p className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{row.dept}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 md:py-4 px-2 md:px-4">{row.period}</td>
+                        <td className="py-3 md:py-4 px-2 md:px-4">
+                          <button
+                            onClick={() => openReasonModal(row.reason)}
+                            className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                          >
+                            View
+                          </button>
+                        </td>
+                        <td className="py-3 md:py-4 px-2 md:px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium align-middle ${
+                              row.status === "Pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : row.status === "Approved"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="py-3 md:py-4 px-2 md:px-4">
+                          {row.status === "Pending" ? (
+                            <div className="flex flex-col md:flex-row gap-2 md:gap-2 align-middle text-center md:px-1 justify-center">
+                              <button
+                                onClick={() => handleApprove(index)}
+                                className={`flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border whitespace-nowrap ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}
+                                disabled={isLoading}
+                              >
+                                <CheckCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleReject(index)}
+                                className={`flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border whitespace-nowrap ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                                disabled={isLoading}
+                              >
+                                <XCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <span className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>No action needed</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

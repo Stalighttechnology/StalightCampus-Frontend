@@ -37,6 +37,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useTheme } from "@/context/ThemeContext";
+import { PLAN_TIERS } from "@/utils/planGating";
 import { SkeletonTable } from "@/components/ui/skeleton";
 import {
   fetchAnnouncements,
@@ -75,6 +76,11 @@ const AdminAnnouncementManagement = () => {
   const pageSize = 10;
 
   const { theme } = useTheme();
+
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
   // Form state
   const [formData, setFormData] = useState<CreateAnnouncementRequest>({
@@ -361,7 +367,12 @@ const AdminAnnouncementManagement = () => {
     });
   };
 
-  const roles = ["student", "hod", "faculty", "principal", "placement_officer"];
+  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
+  const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean"];
+  
+  // Use a predefined list if we have specific roles in the form, currently it was a hardcoded list.
+  const baseRoles = ["student", "hod", "faculty", "principal", "placement_officer"];
+  const roles = userTier >= 2 ? baseRoles : baseRoles.filter(r => BASIC_ROLES.includes(r));
 
   const renderHeader = (
     <CardHeader className="announcements-card-header flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

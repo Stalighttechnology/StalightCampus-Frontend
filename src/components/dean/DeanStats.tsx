@@ -4,6 +4,7 @@ import { fetchWithTokenRefresh } from "@/utils/authService";
 import { Pie, Bar } from "react-chartjs-2";
 import DashboardCard from "../common/DashboardCard";
 import { useTheme } from "../../context/ThemeContext";
+import { PLAN_TIERS } from "../../utils/planGating";
 import { SkeletonStatsGrid, SkeletonChart, SkeletonTable, SkeletonPageHeader } from "../ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { FaUserGraduate, FaChalkboardTeacher, FaUserTie, FaUserCheck, FaBuilding } from "react-icons/fa";
@@ -50,6 +51,11 @@ const DeanStats = () => {
   const [rows, setRows] = useState<BranchRow[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [roleDistribution, setRoleDistribution] = useState<{[k:string]:number} | null>(null);
+
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
   useEffect(() => {
     let mounted = true;
@@ -238,12 +244,14 @@ const DeanStats = () => {
                   description="Dept heads"
                   icon={<FaUserTie className={theme === 'dark' ? 'text-yellow-400 text-3xl' : 'text-yellow-500 text-3xl'} />}
                 />
-                <DashboardCard
-                  title="COE"
-                  value={totalCoe}
-                  description="Exams controller"
-                  icon={<FaUserCheck className={theme === 'dark' ? 'text-green-400 text-3xl' : 'text-green-500 text-3xl'} />}
-                />
+                {userTier >= 2 && (
+                  <DashboardCard
+                    title="COE"
+                    value={totalCoe}
+                    description="Exams controller"
+                    icon={<FaUserCheck className={theme === 'dark' ? 'text-green-400 text-3xl' : 'text-green-500 text-3xl'} />}
+                  />
+                )}
               </div>
 
               <div id="dean-charts-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">

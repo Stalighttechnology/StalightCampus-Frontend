@@ -32,6 +32,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getStaffAttendanceAudit, getStaffDetailedAttendance, STAFF_ROLES } from '../../utils/fees_manager_api';
 import { useTheme } from '@/context/ThemeContext';
+import { PLAN_TIERS } from '../../utils/planGating';
 import {
   Skeleton,
   SkeletonStatsGrid,
@@ -63,6 +64,15 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const [endDate, setEndDate] = useState('');
   const [isStartPopoverOpen, setIsStartPopoverOpen] = useState(false);
   const [isEndPopoverOpen, setIsEndPopoverOpen] = useState(false);
+
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
+
+  const filteredRoles = userTier <= 2 
+    ? STAFF_ROLES.filter(r => ['principal', 'dean', 'hod', 'teacher', 'coe', 'fees_manager'].includes(r.value))
+    : STAFF_ROLES;
 
   // Calendar Detailed View
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
@@ -223,7 +233,7 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl shadow-xl">
-                  {STAFF_ROLES.map((role) =>
+                  {filteredRoles.map((role) =>
                   <SelectItem key={role.value} value={role.value} className="rounded-lg">
                       {role.label}
                     </SelectItem>

@@ -18,6 +18,7 @@ import {
 import { enrollUser } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
+import { PLAN_TIERS } from "../../utils/planGating";
 
 interface EnrollUserProps {
   setError: (error: string | null) => void;
@@ -38,6 +39,11 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
   const [phoneError, setPhoneError] = useState("");
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { theme } = useTheme();
+
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -190,13 +196,21 @@ const EnrollUser = ({ setError, toast }: EnrollUserProps) => {
                     <SelectItem value="hod">HOD</SelectItem>
                     <SelectItem value="teacher">Faculty/Teacher</SelectItem>
                     <SelectItem value="dean">Dean</SelectItem>
-                    <SelectItem value="coe">COE</SelectItem>
-                    <SelectItem value="fees_manager">Fees Manager</SelectItem>
-                    <SelectItem value="hms_admin">HMS Admin</SelectItem>
-                    <SelectItem value="transport_admin">Transport Admin</SelectItem>
-                    <SelectItem value="library_admin">Library Admin</SelectItem>
-                    <SelectItem value="admission_manager">Admission Manager</SelectItem>
-                    <SelectItem value="placement_officer">Placement Officer (Sync Admin)</SelectItem>
+                    {userTier >= 2 && (
+                      <>
+                        <SelectItem value="coe">COE</SelectItem>
+                        <SelectItem value="fees_manager">Fees Manager</SelectItem>
+                      </>
+                    )}
+                    {userTier >= 3 && (
+                      <>
+                        <SelectItem value="hms_admin">HMS Admin</SelectItem>
+                        <SelectItem value="transport_admin">Transport Admin</SelectItem>
+                        <SelectItem value="library_admin">Library Admin</SelectItem>
+                        <SelectItem value="admission_manager">Admission Manager</SelectItem>
+                        <SelectItem value="placement_officer">Placement Officer (Sync Admin)</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
