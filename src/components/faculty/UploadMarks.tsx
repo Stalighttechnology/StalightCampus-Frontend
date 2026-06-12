@@ -1299,11 +1299,10 @@ const UploadMarks = () => {
                                             title={isSaved ? "Marks are saved locally as draft" : "Save marks locally as draft"}
                                             variant="outline"
                                             size="sm"
-                                            className={`h-8 px-2 text-xs flex items-center gap-1 border-dashed shrink-0 ${
-                                              isSaved
+                                            className={`h-8 px-2 text-xs flex items-center gap-1 border-dashed shrink-0 ${isSaved
                                                 ? "text-emerald-600 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 dark:border-emerald-950 dark:hover:border-emerald-900 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30"
                                                 : "text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300 dark:border-blue-950 dark:hover:border-blue-900 bg-blue-50/50 hover:bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30"
-                                            }`}
+                                              }`}
                                             disabled={isSaved}
                                             onClick={() => {
                                               const localKey = `local_marks_${selected.subject_id}_${selected.testType}_${student.id}`;
@@ -1313,7 +1312,7 @@ const UploadMarks = () => {
                                                 totalEdited: student.totalEdited || false,
                                               };
                                               localStorage.setItem(localKey, JSON.stringify(marksData));
-                                              
+
                                               // Force a re-render of this student's row
                                               setStudents((prev) => prev.map((s) => s.id === student.id ? { ...s } : s));
 
@@ -1423,12 +1422,12 @@ const UploadMarks = () => {
             {qpReady && areAllDropdownsSelected() ?
               <div>
                 <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white border border-gray-300'}`}>
-                  <div className="flex justify-between items-center mb-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <h3 className="text-lg font-semibold">Question Paper Format</h3>
                     <Button
                       onClick={downloadQuestionPaperPDF}
                       disabled={downloadingPDF}
-                      className="bg-primary text-white hover:bg-primary/90 flex items-center gap-2">
+                      className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90 flex items-center justify-center gap-2">
                       {downloadingPDF ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
@@ -1494,8 +1493,8 @@ const UploadMarks = () => {
                     </div>
                   }
 
-                  <div className={`border rounded-lg ${theme === 'dark' ? 'bg-gray-800 border-border' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="space-y-4 p-4">
+                  <div className={`border-0 sm:border rounded-none sm:rounded-lg ${theme === 'dark' ? 'bg-transparent sm:bg-gray-800 border-border' : 'bg-transparent sm:bg-gray-50 border-gray-200'}`}>
+                    <div className="space-y-3 p-0 sm:p-4">
                       {Object.keys(groupQuestionsByMain()).map((mainQ) => {
                         const grouped = groupQuestionsByMain();
                         return (
@@ -1505,21 +1504,52 @@ const UploadMarks = () => {
                               const isExpanded = !!expanded[key];
                               const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
                               return (
-                                <div key={s.id} className={getQuestionCardClassName()}>
-                                  <div className="flex items-start gap-3">
+                                <div key={s.id} className={`${getQuestionCardClassName()} shadow-sm hover:shadow-md transition-all duration-200`}>
+                                  {/* Mobile View Layout */}
+                                  <div className="block sm:hidden space-y-3">
+                                    <div className="flex items-center justify-between border-b pb-2 border-border/50">
+                                      <div className="flex items-center gap-2">
+                                        <div className={`flex-shrink-0 w-8 h-8 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center font-medium text-xs`}>
+                                          {s.number}
+                                        </div>
+                                      </div>
+                                      <Badge className={`font-semibold text-xs ${getBadgeClassName()}`}>
+                                        {s.maxMarks}m
+                                      </Badge>
+                                    </div>
+                                    <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}>
+                                      {isExpanded ? s.content : shortContent}
+                                    </div>
+                                    {(s.content || '').length > 160 && (
+                                      <div className="pt-1 text-left">
+                                        <button
+                                          onClick={() => toggleExpanded(key)}
+                                          className={getButtonClassName()}>
+                                          {isExpanded ? 'Show less' : 'Show more'}
+                                        </button>
+                                      </div>
+                                    )}
+                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                      <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
+                                      <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
+                                    </div>
+                                  </div>
+
+                                  {/* Desktop View Layout */}
+                                  <div className="hidden sm:flex items-start gap-3">
                                     <div className={`flex-shrink-0 w-10 h-10 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center font-medium text-sm`}>
                                       {s.number}
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 pt-2">
                                       <div className="flex justify-between items-start gap-4">
-                                        <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left`}>
+                                        <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}>
                                           {isExpanded ? s.content : shortContent}
                                         </div>
                                         <div className="ml-2 flex-shrink-0">
                                           <Badge className={`font-semibold text-sm ${getBadgeClassName()}`}>{s.maxMarks}m</Badge>
                                         </div>
                                       </div>
-                                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                                      <div className="flex flex-wrap items-center justify-start gap-2 mt-2 w-full text-left">
                                         <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
                                         <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
                                         {(s.content || '').length > 160 &&
@@ -1543,19 +1573,19 @@ const UploadMarks = () => {
                       </div>
                     </div>
                   </div>
-                    <div className="flex justify-end gap-2 mt-6">
-                      {/* Edit removed — QP editing happens on the Upload QP page */}
-                      <Button
-                        onClick={() => setTabValue("manual")}
-                        disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
-                        className={`${existingQpSummary?.status === 'approved' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-                        title={existingQpSummary?.status !== 'approved' ? 'Question paper must be approved by COE before proceeding to marks entry' : ''}>
+                  <div className="flex justify-end gap-2 mt-6">
+                    {/* Edit removed — QP editing happens on the Upload QP page */}
+                    <Button
+                      onClick={() => setTabValue("manual")}
+                      disabled={!existingQpSummary || existingQpSummary.status !== 'approved'}
+                      className={`${existingQpSummary?.status === 'approved' ? 'bg-primary text-white hover:bg-primary/90' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                      title={existingQpSummary?.status !== 'approved' ? 'Question paper must be approved by COE before proceeding to marks entry' : ''}>
 
-                        Proceed to Marks Entry
-                      </Button>
-                    </div>
+                      Proceed to Marks Entry
+                    </Button>
                   </div>
-                </div> :
+                </div>
+              </div> :
 
               <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-6 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`
               }>

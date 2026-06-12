@@ -49,7 +49,7 @@ interface SubPart {
 
 interface QPMetadata {
   status: string;
-  last_action?: {actor?: string;role: string;action: string;comment: string;};
+  last_action?: { actor?: string; role: string; action: string; comment: string; };
 }
 
 interface QuestionPaper {
@@ -59,10 +59,10 @@ interface QuestionPaper {
   subject_name?: string;
   test_type: string;
   set_number?: string;
-  branch?: {id: number;name: string;} | number;
+  branch?: { id: number; name: string; } | number;
   semester?: number;
   section?: number;
-  last_action?: {actor?: string;role: string;action: string;comment: string;};
+  last_action?: { actor?: string; role: string; action: string; comment: string; };
   questions?: QuestionData[];
   questions_data?: QuestionData[];
 }
@@ -75,7 +75,7 @@ interface CreateQPPayload {
     question_number: string;
     co: string;
     blooms_level: string;
-    subparts_data: Array<{subpart_label: string;content: string;max_marks: number;}>;
+    subparts_data: Array<{ subpart_label: string; content: string; max_marks: number; }>;
   }>;
   branch: number;
   semester: number;
@@ -87,10 +87,10 @@ const UploadQP = () => {
   const { data: assignments = [] } = useFacultyAssignmentsQuery();
   const { toast } = useToast();
   const [dropdownData, setDropdownData] = useState({
-    branch: [] as {id: number;name: string;}[],
-    semester: [] as {id: number;number: number;}[],
-    section: [] as {id: number;name: string;}[],
-    subject: [] as {id: number;name: string;}[],
+    branch: [] as { id: number; name: string; }[],
+    semester: [] as { id: number; number: number; }[],
+    section: [] as { id: number; name: string; }[],
+    subject: [] as { id: number; name: string; }[],
     testType: ["IA1", "IA2", "IA3", "IA4", "IA5", "SEE"],
     setNumber: ["Set 1", "Set 2"]
   });
@@ -144,7 +144,7 @@ const UploadQP = () => {
     return rows;
   };
 
-  const getDerivedIds = (assignForSubject: {branch_id?: number;semester_id?: number;section_id?: number;} | undefined) => ({
+  const getDerivedIds = (assignForSubject: { branch_id?: number; semester_id?: number; section_id?: number; } | undefined) => ({
     branch: selected.branch_id || assignForSubject?.branch_id,
     semester: selected.semester_id || assignForSubject?.semester_id,
     section: selected.section_id || assignForSubject?.section_id
@@ -162,9 +162,9 @@ const UploadQP = () => {
       if (!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) return;
       // default template to show when no saved QP exists
       const defaultTemplate: QuestionRow[] = [
-      { id: '1a', number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
-      { id: '1b', number: '1b', content: 'Question 1b', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
-      { id: '1c', number: '1c', content: 'Question 1c', maxMarks: '6', co: 'CO1', bloomsLevel: 'Remember' }];
+        { id: '1a', number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
+        { id: '1b', number: '1b', content: 'Question 1b', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
+        { id: '1c', number: '1c', content: 'Question 1c', maxMarks: '6', co: 'CO1', bloomsLevel: 'Remember' }];
 
       try {
         setLoading(true);
@@ -274,7 +274,7 @@ const UploadQP = () => {
     interface GroupedQuestion {
       co: string;
       blooms_level: string;
-      subparts: Array<{subpart_label: string;content: string;max_marks: number;}>;
+      subparts: Array<{ subpart_label: string; content: string; max_marks: number; }>;
     }
     const grouped: Record<string, GroupedQuestion> = {};
     questions.forEach((q) => {
@@ -312,11 +312,11 @@ const UploadQP = () => {
       if (res?.success && Array.isArray(res.data)) {
         // Find exact match on Subject, Test Type, Set Number
         return res.data.find((q: QuestionPaper) =>
-        q.subject === selected.subject_id &&
-        q.test_type === selected.testType &&
-        q.set_number === selected.setNumber &&
-        q.semester === selected.semester_id &&
-        q.section === selected.section_id
+          q.subject === selected.subject_id &&
+          q.test_type === selected.testType &&
+          q.set_number === selected.setNumber &&
+          q.semester === selected.semester_id &&
+          q.section === selected.section_id
         ) || null;
       }
     } catch (err) {
@@ -589,9 +589,9 @@ const UploadQP = () => {
             </CardContent>
           </div>
 
-          <CardContent className="pt-6 px-0 sm:px-6">
+          <CardContent className="pt-6">
             {rejectedQPs.length > 0 &&
-              <div className="mb-4 space-y-2 px-3 sm:px-0">
+              <div className="mb-4 space-y-2">
                 <div className="font-semibold">Rejected Question Papers</div>
                 <div className="grid grid-cols-1 gap-2">
                   {rejectedQPs.map((qp) =>
@@ -625,7 +625,7 @@ const UploadQP = () => {
               </div>
             }
             {currentQPMeta?.status === 'rejected' &&
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded mx-3 sm:mx-0">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
                 <div className="font-semibold text-sm text-red-700">Rejected</div>
                 <div className="text-sm text-muted-foreground">{currentQPMeta.last_action?.comment || 'No comment provided'}</div>
               </div>
@@ -638,8 +638,7 @@ const UploadQP = () => {
                     <SkeletonList items={3} />
                   </div> :
                   !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ?
-                    <div className="mx-3 sm:mx-0">
-                      <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                       <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                         <Layers className="w-12 h-12 opacity-80" />
                       </div>
@@ -647,8 +646,7 @@ const UploadQP = () => {
                       <p className="max-w-xs text-base leading-relaxed">
                         Please select Branch, Subject, Test Type, and Set Number to load or create a question paper.
                       </p>
-                    </div>
-                  </div> :
+                    </div> :
 
                     <>
                       {(() => {
@@ -656,7 +654,7 @@ const UploadQP = () => {
                         return (
                           <>
                             {isLocked && (
-                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded mx-3 sm:mx-0">
+                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
                                 <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Locked</div>
                                 <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
                               </div>
@@ -708,7 +706,7 @@ const UploadQP = () => {
                               </Table>
                             </div>
                             {!isLocked && (
-                              <div className="flex flex-row justify-between items-center gap-3 mt-6 w-full px-3 sm:px-0">
+                              <div className="flex flex-row justify-between items-center gap-3 mt-6 w-full">
                                 <Button
                                   onClick={addQuestion}
                                   disabled={!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber}
@@ -793,8 +791,8 @@ const UploadQP = () => {
                       }
                     </div>
                   }
-                  <div className={`border rounded-lg ${theme === 'dark' ? 'bg-gray-800 border-border' : 'bg-gray-50 border-gray-200'}`}>
-                    <div className="space-y-4 p-4">
+                  <div className={`border-0 sm:border rounded-none sm:rounded-lg ${theme === 'dark' ? 'bg-transparent sm:bg-gray-800 border-border' : 'bg-transparent sm:bg-gray-50 border-gray-200'}`}>
+                    <div className="space-y-3 p-0 sm:p-4">
                       {loading ?
                         <SkeletonList items={4} /> :
                         Object.keys(groupQuestionsByMain()).map((mainQ) => {
@@ -806,21 +804,52 @@ const UploadQP = () => {
                                 const isExpanded = !!expanded[key];
                                 const shortContent = (s.content || '').length > 160 ? (s.content || '').slice(0, 160) + '…' : s.content || '';
                                 return (
-                                  <div key={s.id} className={getQuestionCardClassName()}>
-                                    <div className="flex items-start gap-3">
+                                  <div key={s.id} className={`${getQuestionCardClassName()} shadow-sm hover:shadow-md transition-all duration-200`}>
+                                    {/* Mobile View Layout */}
+                                    <div className="block sm:hidden space-y-3">
+                                      <div className="flex items-center justify-between border-b pb-2 border-border/50">
+                                        <div className="flex items-center gap-2">
+                                          <div className={`flex-shrink-0 w-8 h-8 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center font-medium text-xs`}>
+                                            {s.number}
+                                          </div>
+                                        </div>
+                                        <Badge className={`font-semibold text-xs ${getBadgeClassName()}`}>
+                                          {s.maxMarks}m
+                                        </Badge>
+                                      </div>
+                                      <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} text-left whitespace-pre-line break-words`}>
+                                        {isExpanded ? s.content : shortContent}
+                                      </div>
+                                      {(s.content || '').length > 160 && (
+                                        <div className="pt-1 text-left">
+                                          <button
+                                            onClick={() => toggleExpanded(key)}
+                                            className={getButtonClassName()}>
+                                            {isExpanded ? 'Show less' : 'Show more'}
+                                          </button>
+                                        </div>
+                                      )}
+                                      <div className="flex flex-wrap gap-1.5 pt-1">
+                                        <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
+                                        <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
+                                      </div>
+                                    </div>
+
+                                    {/* Desktop View Layout */}
+                                    <div className="hidden sm:flex items-start gap-3">
                                       <div className={`flex-shrink-0 w-10 h-10 rounded-full ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center font-medium text-sm`}>
                                         {s.number}
                                       </div>
-                                      <div className="flex-1">
+                                      <div className="flex-1 pt-2">
                                         <div className="flex justify-between items-start gap-4">
-                                          <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1`}>
+                                          <div className={`text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} mb-1 flex-1 text-left whitespace-pre-line break-words`}>
                                             {isExpanded ? s.content : shortContent}
                                           </div>
                                           <div className="ml-2 flex-shrink-0">
                                             <Badge className={`font-semibold text-sm ${getBadgeClassName()}`}>{s.maxMarks}m</Badge>
                                           </div>
                                         </div>
-                                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                                        <div className="flex flex-wrap items-center justify-start gap-2 mt-2 w-full text-left">
                                           <Badge className={getBadgeClassName()}>CO: {s.co}</Badge>
                                           <Badge className={getBadgeClassName()}>{s.bloomsLevel}</Badge>
                                           {(s.content || '').length > 160 &&
@@ -833,7 +862,8 @@ const UploadQP = () => {
                                         </div>
                                       </div>
                                     </div>
-                                  </div>);
+                                  </div>
+                                );
                               })}
                             </div>);
                         })}
