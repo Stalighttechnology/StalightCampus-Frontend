@@ -504,21 +504,21 @@ const handleApprove = async (index: number) => {
               leaveRequests.slice(0, 10).map((row, index) => (
                 <div
                   key={row.id}
-                  className={`p-3 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'}`}
+                  className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-100 text-gray-900 shadow-sm'}`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <div className="font-medium">{row.name}</div>
-                      <div className="text-xs text-gray-500">{row.dept}</div>
+                      <div className="text-lg font-semibold text-gray-900 dark:text-foreground">{row.name}</div>
+                      <div className="text-sm text-gray-500 dark:text-muted-foreground">{row.dept}</div>
                     </div>
                     <div>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           row.status === 'Pending'
-                            ? 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400'
                             : row.status === 'Approved'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400'
                         }`}
                       >
                         {row.status}
@@ -527,25 +527,29 @@ const handleApprove = async (index: number) => {
                   </div>
 
                   {/* Period (date range) on separate line */}
-                  <div className="mt-2 text-xs text-gray-500">{row.period}</div>
+                  <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 font-medium">{row.period}</div>
 
                   {/* View reason via modal instead of showing text */}
-                  <div className="mt-2">
+                  <div className="mt-3">
                     <button
                       onClick={() => openReasonModal(row.reason)}
-                      className={`text-sm font-medium px-2 py-1 rounded-md ${theme === 'dark' ? 'bg-muted/10 text-foreground border border-border' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                      className={`w-full text-center text-sm font-medium py-2 px-4 rounded-lg transition border ${
+                        theme === 'dark'
+                          ? 'border-purple-500/20 text-purple-400 bg-purple-950/20 hover:bg-purple-950/40'
+                          : 'border-purple-100 text-purple-600 bg-purple-50 hover:bg-purple-100/80'
+                      }`}
                     >
                       View Reason
                     </button>
                   </div>
 
                   {/* Buttons on their own line - make them flex so they expand evenly */}
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 flex gap-3">
                     {row.status === 'Pending' ? (
                       <>
                         <button
                           onClick={() => handleApprove(index)}
-                          className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-green-500 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-green-500 text-green-700 bg-green-50 hover:bg-green-100'}`}
+                          className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark' ? 'border-green-500/20 text-green-400 bg-green-950/20 hover:bg-green-950/40' : 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100'}`}
                           disabled={isLoading}
                         >
                           <CheckCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
@@ -553,7 +557,7 @@ const handleApprove = async (index: number) => {
                         </button>
                         <button
                           onClick={() => handleReject(index)}
-                          className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-1.5 rounded-md transition border ${theme === 'dark' ? 'border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-red-500 text-red-700 bg-red-50 hover:bg-red-100'}`}
+                          className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold py-2 px-4 rounded-lg transition border ${theme === 'dark' ? 'border-red-500/20 text-red-400 bg-red-950/20 hover:bg-red-950/40' : 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100'}`}
                           disabled={isLoading}
                         >
                           <XCircle className={`w-4 h-4 ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`} />
@@ -561,7 +565,7 @@ const handleApprove = async (index: number) => {
                         </button>
                       </>
                     ) : (
-                      <div className="text-sm text-gray-500">Reviewed</div>
+                      <div className="text-sm text-gray-500 mt-1">Reviewed</div>
                     )}
                   </div>
                 </div>
