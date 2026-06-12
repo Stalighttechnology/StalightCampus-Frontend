@@ -20,6 +20,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { isPageAllowed } from "../../utils/planGating";
 import UpgradeRequired from "../common/UpgradeRequired";
 import BillingManagement from "../org_admin/BillingManagement";
+import AnnouncementManagement from "../admin/AnnouncementManagement";
 
 interface DeanUser {
   username: string;
@@ -48,6 +49,7 @@ const getActivePageFromPath = (pathname: string): string => {
     'admin-leaves': 'admin-leaves',
     'enroll-user': 'enroll-user',
     'billing': 'billing',
+    'announcement-management': 'announcement-management',
   };
   return pathMap[lastPart] || 'dashboard';
 };
@@ -108,6 +110,8 @@ const DeanDashboard = ({ user, setPage }: { user: DeanUser; setPage: (p: string)
         return <div><EnrollUser setError={setError} toast={toast} /></div>;
       case 'billing':
         return <BillingManagement />;
+      case 'announcement-management':
+        return <AnnouncementManagement />;
       default:
         return <div>Welcome, Dean.</div>;
     }

@@ -57,6 +57,7 @@ interface AnnouncementSectionsProps {
   header?: React.ReactNode;
   showExpired?: boolean;
   setShowExpired?: (val: boolean) => void;
+  hideReceivedTab?: boolean;
 }
 
 const getPriorityColor = (priority: string) => {
@@ -143,6 +144,7 @@ export const AnnouncementSections = ({
   header,
   showExpired: propShowExpired,
   setShowExpired: propSetShowExpired,
+  hideReceivedTab = false,
 }: AnnouncementSectionsProps) => {
   const { theme } = useTheme();
   const [localShowExpired, setLocalShowExpired] = useState(false);
@@ -197,22 +199,24 @@ export const AnnouncementSections = ({
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-            <span className="text-sm font-semibold">Received</span>
-            {receivedPagination && receivedPagination.unreadCount !== undefined ? (
-              totalUnread > 0 && (
-                <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-primary text-white border-none shadow-sm pointer-events-none select-none">
-                  {totalUnread}
-                </Badge>
-              )
-            ) : (
-              filteredReceivedAnnouncements.length > 0 && (
-                <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-muted text-muted-foreground border-none pointer-events-none select-none">
-                  {filteredReceivedAnnouncements.length}
-                </Badge>
-              )
-            )}
-          </TabsTrigger>
+          {!hideReceivedTab && (
+            <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+              <span className="text-sm font-semibold">Received</span>
+              {receivedPagination && receivedPagination.unreadCount !== undefined ? (
+                totalUnread > 0 && (
+                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-primary text-white border-none shadow-sm pointer-events-none select-none">
+                    {totalUnread}
+                  </Badge>
+                )
+              ) : (
+                filteredReceivedAnnouncements.length > 0 && (
+                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold ml-1 bg-muted text-muted-foreground border-none pointer-events-none select-none">
+                    {filteredReceivedAnnouncements.length}
+                  </Badge>
+                )
+              )}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {activeTab !== "received" && (

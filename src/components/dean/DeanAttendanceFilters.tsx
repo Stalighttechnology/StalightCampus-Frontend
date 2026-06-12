@@ -3,6 +3,7 @@ import { API_ENDPOINT } from "@/utils/config";
 import { fetchWithTokenRefresh } from "@/utils/authService";
 import { useTheme } from "../../context/ThemeContext";
 import { format } from "date-fns";
+import { useAuth } from "@/context/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,8 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 const DeanAttendanceFilters = () => {
   const { theme } = useTheme();
+  const { user } = useAuth();
+  const userTier = user?.organization?.plan?.tier || 1;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
@@ -228,7 +231,7 @@ const DeanAttendanceFilters = () => {
                       <SelectContent>
                         {selectedRole === "hod" && hodList.map((h: any) => (
                           <SelectItem key={h.id} value={h.id}>
-                            {h.name} {h.branch ? `• ${h.branch}` : ""}
+                            {h.name}
                           </SelectItem>
                         ))}
                         {selectedRole === "admin" && adminList.map((a: any) => (
@@ -437,7 +440,7 @@ const DeanAttendanceFilters = () => {
               </div>
 
               {/* Paginated Leaves Section */}
-              {selectedRole === "hod" && selectedPersonSummary?.leaves && (
+              {userTier >= 2 && selectedRole === "hod" && selectedPersonSummary?.leaves && (
                 <div className="mt-6 border-t border-border pt-4">
                   <div className="text-md font-semibold mb-3">Leave History</div>
                   <div className="overflow-x-auto">
@@ -475,7 +478,7 @@ const DeanAttendanceFilters = () => {
                 </div>
               )}
               </CardContent>
-              {selectedRole === "hod" && selectedPersonSummary?.leaves && selectedPersonSummary.leaves_pagination?.total_pages > 1 && (
+              {userTier >= 2 && selectedRole === "hod" && selectedPersonSummary?.leaves && selectedPersonSummary.leaves_pagination?.total_pages > 1 && (
                 <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto w-full">
                   <div className={`text-xs font-medium ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                     Showing Page {leavesPage} of {selectedPersonSummary.leaves_pagination.total_pages}

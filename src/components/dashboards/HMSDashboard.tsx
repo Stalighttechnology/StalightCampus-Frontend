@@ -17,6 +17,7 @@ import HmsVisitorLogs from "../hms/HmsVisitorLogs";
 import ApplyLeaveDepartmentAdmin from "../common/ApplyLeaveDepartmentAdmin";
 import WardenLeaveManagement from "../hms/WardenLeaveManagement";
 import FacultyAttendance from "../faculty/FacultyAttendance";
+import AnnouncementManagement from "../admin/AnnouncementManagement";
 import { useToast } from "../../hooks/use-toast";
 import { logoutUser } from "../../utils/authService";
 import { useTheme } from "../../context/ThemeContext";
@@ -95,6 +96,8 @@ const HMSDashboardContent = ({ user, setPage }: HMSDashboardProps) => {
         return <WardenLeaveManagement setError={() => {}} toast={toast} />;
       case "apply-leave":
         return <ApplyLeaveDepartmentAdmin />;
+      case "announcement-management":
+        return <AnnouncementManagement />;
       case "my-attendance":
         return <FacultyAttendance />;
       case "profile":
