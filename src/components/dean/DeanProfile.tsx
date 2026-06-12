@@ -310,25 +310,18 @@ const DeanProfile = () => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-          {editing ?
-          <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => {
-              setEditing(false);
-              setFormData({
-                first_name: profile.first_name || "",
-                last_name: profile.last_name || "",
-                email: profile.email || "",
-                phone_number: profile.phone_number || "",
-                address: profile.address || ""
-              });
-            }}>
-                Cancel
-              </Button>
-              <Button size="sm" className="bg-primary text-white border-primary hover:bg-primary/90" onClick={handleUpdateProfile}>Save Changes</Button>
-            </div> :
-
-          <Button size="sm" className="bg-primary text-white border-primary hover:bg-primary/90" onClick={() => setEditing(true)}>Edit Profile</Button>
-          }
+          <Button
+            size="sm"
+            onClick={() => { if (editing) handleUpdateProfile(); else setEditing(true); }}
+            variant="outline"
+            className={`w-full sm:w-auto text-sm text-white border transition-colors ${
+              editing 
+                ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
+                : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
+            }`}
+            disabled={loading}>
+            {editing ? 'Save Profile' : 'Edit Profile'}
+          </Button>
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>

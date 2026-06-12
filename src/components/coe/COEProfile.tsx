@@ -312,25 +312,17 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
           <Button
-            className="text-[16px] sm:text-md px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto bg-primary text-white border-primary hover:bg-primary/90"
-            onClick={() => {
-              if (editing) {
-                handleUpdateProfile();
-              } else {
-                setEditing(true);
-              }
-            }}>
-            
-            {editing ? 'Save' : 'Edit Profile'}
+            size="sm"
+            onClick={() => { if (editing) handleUpdateProfile(); else setEditing(true); }}
+            variant="outline"
+            className={`w-full sm:w-auto text-sm text-white border transition-colors ${
+              editing 
+                ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
+                : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
+            }`}
+            disabled={loading}>
+            {editing ? 'Save Profile' : 'Edit Profile'}
           </Button>
-          {editing &&
-            <Button
-              variant="outline"
-              onClick={handleCancelEdit}
-              className="text-[16px] sm:text-md px-3 sm:px-4 py-1.5 sm:py-2 h-12 sm:h-auto">
-              Cancel
-            </Button>
-          }
 
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogTrigger asChild>

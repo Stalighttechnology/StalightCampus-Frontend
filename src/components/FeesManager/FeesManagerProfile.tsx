@@ -253,14 +253,17 @@ const FeesManagerProfile: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-            {editing &&
-            <Button size="sm" variant="ghost" onClick={() => {setEditing(false);setFormData({ first_name: profile.first_name || "", last_name: profile.last_name || "", email: profile.email || "", phone: profile.phone_number || profile.mobile_number || "", address: profile.address || "", bio: profile.bio || "" });}}>
-                Cancel
-              </Button>
-            }
-
-            <Button size="sm" onClick={() => {if (editing) handleSave();else setEditing(true);}} variant="outline" className="text-white text-md sm:text-sm bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white" disabled={loading}>
-              {editing ? 'Save' : 'Edit Profile'}
+            <Button
+              size="sm"
+              onClick={() => { if (editing) handleSave(); else setEditing(true); }}
+              variant="outline"
+              className={`w-full sm:w-auto text-sm text-white border transition-colors ${
+                editing 
+                  ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
+                  : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
+              }`}
+              disabled={loading}>
+              {editing ? loading ? 'Saving Profile...' : 'Save Profile' : 'Edit Profile'}
             </Button>
 
             <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
