@@ -566,8 +566,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
       </div>
 
       {/* View Reason Dialog */}
-      <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-3xl p-4 sm:p-6'}>
+      <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}> 
+        <DialogContent className={theme === 'dark' ? 'bg-card text-foreground border border-border max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6' : 'bg-white text-gray-900 border border-gray-200 max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6'}>
           <DialogHeader>
             <DialogTitle className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>Leave Reason</DialogTitle>
           </DialogHeader>

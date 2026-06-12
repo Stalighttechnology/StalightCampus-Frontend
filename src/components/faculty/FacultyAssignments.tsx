@@ -565,7 +565,7 @@ const FacultyAssignments = () => {
           </div>
         </CardHeader>
 
-        <CardContent className="p-8 space-y-10">
+        <CardContent className="space-y-5">
           {/* Stats Overview - Now more integrated */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -911,16 +911,16 @@ const FacultyAssignments = () => {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
           <div
-            className={`relative w-[90%] max-w-xl max-h-[80vh] overflow-y-auto rounded-3xl shadow-xl ${theme === 'dark' ? 'bg-background border border-border custom-scrollbar' : 'bg-white custom-scrollbar'}`}>
+            className={`relative w-[90%] md:w-full md:max-w-xl h-[80vh] md:h-auto md:max-h-[80vh] overflow-y-auto rounded-xl shadow-xl ${theme === 'dark' ? 'bg-background border border-border custom-scrollbar' : 'bg-white custom-scrollbar'}`}>
 
-            <div className="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-inherit z-10">
+            <div className="p-6 border-b border-border flex items-start justify-between sticky top-0 bg-inherit z-10">
               <div>
                 <h2 className="text-xl font-semibold">{editingAssignment ? 'Edit Assignment' : 'New Assignment'}</h2>
                 <p className="text-sm text-muted-foreground">
                   {editingAssignment ? 'Update the assignment details' : 'Fill in the details to publish a new assignment'}
                 </p>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setShowCreateModal(false)}>
+              <Button variant="ghost" size="icon" onClick={() => setShowCreateModal(false)} className="-mt-1.5 -mr-2 shrink-0">
                 <X size={20} />
               </Button>
             </div>
@@ -1225,16 +1225,16 @@ const FacultyAssignments = () => {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
             <div
-              className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}>
+              className={`relative w-[90%] md:w-full md:max-w-3xl h-[80vh] md:h-auto md:max-h-[80vh] flex flex-col rounded-xl md:rounded-3xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}>
 
-              <div className="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-inherit z-10">
+              <div className="p-6 border-b border-border flex items-start justify-between sticky top-0 bg-inherit z-10">
                 <div>
                   <h2 className="text-xl font-semibold">{selectedAssignment?.title}</h2>
                   <p className="text-sm text-muted-foreground">
                     {selectedAssignment?.subject} • {selectedAssignment?.branch_name} • Sem {selectedAssignment?.semester_number} {selectedAssignment?.section_name ? `• ${selectedAssignment?.section_name}` : ''}
                   </p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setShowSubmissionsModal(false)}>
+                <Button variant="ghost" size="icon" onClick={() => setShowSubmissionsModal(false)} className="-mt-1.5 -mr-2 shrink-0">
                   <X size={20} />
                 </Button>
               </div>

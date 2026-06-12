@@ -142,48 +142,65 @@ const ManageStudentLeave = () => {
       <Card id="manage-student-leave-card" className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 shadow-sm'}`}>
         <div id="manage-student-leave-header-section">
           <CardHeader className="border-b">
-            <CardTitle>Leave Approvals</CardTitle>
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle className="m-0 leading-none">Leave Approvals</CardTitle>
+              
+              {/* Search + Filter container */}
+              <div className="flex items-center gap-3">
+                {/* Search Bar (Laptop/Desktop only) */}
+                <div className="hidden lg:block w-64">
+                  <Input
+                    placeholder="Search student..."
+                    value={search}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className={`text-sm h-8 sm:h-10 ${theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
+                  />
+                </div>
+
+                {/* Filter Button */}
+                <div className="relative" ref={filterRef}>
+                  <Button
+                    onClick={() => setShowFilter(!showFilter)}
+                    className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-8 sm:h-10 px-2 sm:px-4 rounded-xl font-medium shadow-sm transition-colors text-xs sm:text-sm whitespace-nowrap"
+                  >
+                    <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Filter</span>
+                  </Button>
+                  {showFilter && (
+                    <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-lg z-20 overflow-hidden`}>
+                      <div className="py-1">
+                        {statusOptions.map((status) => (
+                          <button
+                            key={status}
+                            className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${filterStatus === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900 font-semibold' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
+                            onClick={() => {
+                              handleFilterChange(status);
+                              setShowFilter(false);
+                            }}
+                          >
+                            {status === 'All' ? 'All Status' : status.charAt(0) + status.slice(1).toLowerCase()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </CardHeader>
-          <div className="p-4 sm:p-6">
-            {/* Search Bar */}
-            <div className="flex flex-col sm:flex-row items-center gap-2">
+          {/* Search Bar (Mobile/Tablet only: lg:hidden) */}
+          <div className="p-4 sm:p-6 lg:hidden">
+            <div className="flex items-center gap-2">
               <Input
                 placeholder="Search student..."
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className={`flex-1 w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
+                className={`w-full text-sm ${theme === 'dark' ? 'bg-card border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
               />
-              <div className="relative w-full sm:w-auto" ref={filterRef}>
-                <Button
-                  onClick={() => setShowFilter(!showFilter)}
-                  className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-2 h-10 px-4 rounded-xl font-medium shadow-sm transition-colors w-full sm:w-auto"
-                >
-                  <Filter className="w-4 h-4" />
-                  Filter
-                </Button>
-                {showFilter && (
-                  <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-lg z-10 overflow-hidden`}>
-                    <div className="py-1">
-                      {statusOptions.map((status) => (
-                        <button
-                          key={status}
-                          className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${filterStatus === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900 font-semibold' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
-                          onClick={() => {
-                            handleFilterChange(status);
-                            setShowFilter(false);
-                          }}
-                        >
-                          {status === 'All' ? 'All Status' : status.charAt(0) + status.slice(1).toLowerCase()}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
-        <CardContent className="p-4 sm:p-6 pt-0">
+        <CardContent className="p-4 sm:p-6 pt-0 lg:pt-6">
           {/* Mobile: Stacked Cards View */}
           <div className="md:hidden space-y-3">
             {isLoading ? (
@@ -208,70 +225,73 @@ const ManageStudentLeave = () => {
               </div>
             ) : (
               leaves.map((leave) => (
-                <div key={leave.id} className={`p-4 rounded-md border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div>
-                      <div className="font-medium">{leave.student_name}</div>
-                      <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.usn}</div>
-                      <div className={`text-sm mt-2 font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                        {formatPeriod(leave.start_date, leave.end_date)}
+                <div key={leave.id} className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div>
+                    <div className="font-semibold text-base">{leave.student_name}</div>
+                    <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.usn}</div>
+                    {leave.submitted_at && (
+                      <div className={`text-[10px] mt-0.5 italic ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+                        Applied: {leave.submitted_at}
                       </div>
-                    </div>
-                    <div className="shrink-0">
-                      {getStatusBadge(leave.status)}
-                    </div>
+                    )}
                   </div>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-xs text-muted-foreground">
-                      Applied: {leave.submitted_at || '—'}
-                    </div>
-                    <button
-                      onClick={() => setViewReason(leave.reason)}
-                      className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${theme === 'dark'
-                          ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20'
-                          : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                        }`}
-                    >
-                      View Reason
-                    </button>
+                  <div className="shrink-0">
+                    {getStatusBadge(leave.status)}
                   </div>
-
-                  {leave.status === "PENDING" ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        variant="outline"
-                        className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
-                            ? 'text-green-400 border-green-400 hover:bg-green-900/20'
-                            : 'text-green-700 border-green-600 hover:bg-green-100'
-                          }`}
-                        onClick={() => handleApprove(leave.id)}
-                        disabled={!!actionLoading}
-                      >
-                        <CheckCircle size={16} /> Approve
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className={`text-xs flex items-center justify-center gap-1 ${theme === 'dark'
-                            ? 'text-red-400 border-red-400 hover:bg-red-900/20'
-                            : 'text-red-700 border-red-600 hover:bg-red-100'
-                          }`}
-                        onClick={() => setShowRejectModal(leave.id)}
-                        disabled={!!actionLoading}
-                      >
-                        <XCircle size={16} /> Reject
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between pt-2 border-t mt-2">
-                      <span className="text-xs text-muted-foreground italic">Processed</span>
-                      {leave.reviewed_by && (
-                        <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
-                      )}
-                    </div>
-                  )}
                 </div>
-              ))
+
+                <div className={`text-sm my-3 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                  {formatPeriod(leave.start_date, leave.end_date)}
+                </div>
+
+                <Button
+                  onClick={() => setViewReason(leave.reason)}
+                  className={`w-full mb-3 h-10 rounded-xl font-medium transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
+                      : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                  }`}
+                  variant="outline"
+                >
+                  View Reason
+                </Button>
+
+                {leave.status === "PENDING" ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
+                          ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
+                          : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                        }`}
+                      onClick={() => handleApprove(leave.id)}
+                      disabled={!!actionLoading}
+                    >
+                      <CheckCircle size={16} /> Approve
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
+                          ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
+                          : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                        }`}
+                      onClick={() => setShowRejectModal(leave.id)}
+                      disabled={!!actionLoading}
+                    >
+                      <XCircle size={16} /> Reject
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between pt-2 border-t mt-2">
+                    <span className="text-xs text-muted-foreground italic">Processed</span>
+                    {leave.reviewed_by && (
+                      <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
             )}
           </div>
 
@@ -305,15 +325,16 @@ const ManageStudentLeave = () => {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <button
+                      <Button
                         onClick={() => setViewReason(leave.reason)}
-                        className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${theme === 'dark'
-                            ? 'bg-muted/10 text-foreground border border-border hover:bg-muted/20'
-                            : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                        className={`text-xs font-semibold px-3 py-1 rounded-lg transition-colors ${theme === 'dark'
+                            ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
+                            : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
                           }`}
+                        variant="outline"
                       >
                         View
-                      </button>
+                      </Button>
                     </td>
                     <td className="px-4 py-3 text-center">
                       {getStatusBadge(leave.status)}
@@ -326,8 +347,8 @@ const ManageStudentLeave = () => {
                             size="sm"
                             variant="outline"
                             className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                ? 'text-green-400 border-green-400 hover:bg-green-900/20'
-                                : 'text-green-700 border-green-600 hover:bg-green-100'
+                                ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
+                                : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                               }`}
                             disabled={!!actionLoading}
                           >
@@ -339,8 +360,8 @@ const ManageStudentLeave = () => {
                             size="sm"
                             variant="outline"
                             className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                ? 'text-red-400 border-red-400 hover:bg-red-900/20'
-                                : 'text-red-700 border-red-600 hover:bg-red-100'
+                                ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
+                                : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                               }`}
                             disabled={!!actionLoading}
                           >
@@ -421,7 +442,7 @@ const ManageStudentLeave = () => {
 
       {/* View Reason Dialog */}
       <Dialog open={!!viewReason} onOpenChange={() => setViewReason(null)}>
-        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[80%] sm:max-w-md mx-auto rounded-2xl p-4 sm:p-6`}>
+        <DialogContent className={`${theme === 'dark' ? 'bg-card text-foreground border border-border' : 'bg-white text-gray-900 border border-gray-200'} max-w-[90%] sm:max-w-md mx-auto rounded-xl p-4 sm:p-6`}>
           <DialogHeader>
             <DialogTitle className={`text-lg font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Reason</DialogTitle>
           </DialogHeader>
