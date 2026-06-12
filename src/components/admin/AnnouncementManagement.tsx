@@ -310,6 +310,23 @@ const AdminAnnouncementManagement = () => {
   };
 
   const handleToggleActive = async (announcementId: number) => {
+    const announcement = myAnnouncements.find((a) => a.id === announcementId) || receivedAnnouncements.find((a) => a.id === announcementId);
+    const isCurrentlyActive = announcement ? announcement.is_active : false;
+
+    if (isCurrentlyActive) {
+      const result = await MySwal.fire({
+        title: "Deactivate Announcement?",
+        text: "Are you sure you want to deactivate this announcement? It will no longer be visible to targeted users.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, deactivate it!",
+        target: document.body
+      });
+      if (!result.isConfirmed) return;
+    }
+
     try {
       const response = await toggleAnnouncementActive(announcementId);
       if (response.success) {
@@ -324,7 +341,8 @@ const AdminAnnouncementManagement = () => {
           title: "Error",
           text: response.message || "Failed to toggle announcement",
           icon: "error",
-          confirmButtonColor: "#9147e0"
+          confirmButtonColor: "#9147e0",
+          target: document.body
         });
       }
     } catch (error: any) {
@@ -332,7 +350,8 @@ const AdminAnnouncementManagement = () => {
         title: "Error",
         text: error.message || "An error occurred",
         icon: "error",
-        confirmButtonColor: "#9147e0"
+        confirmButtonColor: "#9147e0",
+        target: document.body
       });
     }
   };
