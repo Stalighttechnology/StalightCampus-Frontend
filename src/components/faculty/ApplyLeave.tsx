@@ -228,39 +228,16 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   };
 
   const renderStatus = (status: LeaveStatus) => {
+    const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    const bgClass = status === 'Approved' ? 'text-green-700 bg-green-100' :
+                    status === 'Rejected' ? 'text-red-700 bg-red-100' :
+                    'text-yellow-700 bg-yellow-100';
 
-    const baseClass = 'flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[8px] sm:text-xs font-semibold whitespace-nowrap uppercase tracking-tight';
-    switch (status) {
-      case 'Pending':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-yellow-900/30 text-yellow-500' : 'bg-yellow-100 text-yellow-800'}`}>
-            <Circle className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${theme === 'dark' ? 'text-yellow-500' : 'text-yellow-500'}`} fill="currentColor" />
-            <span>Pending</span>
-          </div>);
-
-      case 'Approved':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-green-900/30 text-green-500' : 'bg-green-100 text-green-700'}`}>
-            <CalendarCheck2 className={`w-3 h-3 sm:w-4 sm:h-4 ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`} />
-            <span>Approved</span>
-          </div>);
-
-      case 'Rejected':
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-red-900/30 text-red-500' : 'bg-red-100 text-red-700'}`}>
-            <CalendarX2 className={`w-3 h-3 sm:w-4 sm:h-4 ${theme === 'dark' ? 'text-red-500' : 'text-red-600'}`} />
-            <span>Rejected</span>
-          </div>);
-
-      default:
-
-        return (
-          <div className={`${baseClass} ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
-            <Circle className={`w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`} fill="currentColor" />
-            <span>{status || 'Unknown'}</span>
-          </div>);
-
-    }
+    return (
+      <span className={`px-3 py-1 text-xs font-semibold rounded-full inline-block whitespace-nowrap ${bgClass}`}>
+        {displayStatus}
+      </span>
+    );
   };
 
   return (
@@ -396,55 +373,57 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           {/* Leave Requests List - Right Side */}
           <Card id="recent-leaves-card" className={`apply-leave-card flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
-                  <p className={`apply-leave-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
-                </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between gap-4">
+                  <CardTitle className={`apply-leave-title text-xl font-semibold m-0 leading-none ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    Recent Leave Applications
+                  </CardTitle>
+                  
+                  {/* Filter Button */}
+                  <div className="flex-shrink-0">
+                    <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1.5 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-3 whitespace-nowrap"
+                        >
+                          <Filter className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Filter</span>
+                        </Button>
+                      </PopoverTrigger>
 
-            {/* Filter Button */}
-            <div className="flex-shrink-0">
-              <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-0.5 sm:gap-1 bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md text-xs sm:text-sm h-7 sm:h-8 lg:h-9 px-1.5 sm:px-2 lg:px-3 whitespace-nowrap">
-                    
-                    <Filter className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
-                    <span className="hidden sm:inline">Filter</span>
-                  </Button>
-                </PopoverTrigger>
-
-                <PopoverContent className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark' ?
-                'bg-card text-foreground border-border' :
-                'bg-white text-gray-900 border-gray-200'}`
-                }>
-                  <div className="space-y-1 sm:space-y-2">
-                    <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Filter Status</p>
-                    {['All', 'Pending', 'Approved', 'Rejected'].map((status) =>
-                    <Button
-                      key={status}
-                      variant={filterStatus === status ? "default" : "ghost"}
-                      className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${filterStatus === status ?
-                      'bg-primary text-white hover:bg-primary/90' :
-                      'hover:bg-primary/10 hover:text-primary'}`
-                      }
-                      onClick={() => {
-                        setFilterStatus(status as any);
-                        setFilterOpen(false);
-                      }}>
-                      
-                        {status}
-                      </Button>
-                    )}
+                      <PopoverContent
+                        className={`w-40 sm:w-48 p-2 sm:p-3 lg:p-4 ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}
+                      >
+                        <div className="space-y-1 sm:space-y-2">
+                          <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                            Filter Status
+                          </p>
+                          {['All', 'Pending', 'Approved', 'Rejected'].map((status) => (
+                            <Button
+                              key={status}
+                              variant={filterStatus === status ? "default" : "ghost"}
+                              className={`w-full justify-start text-xs h-8 px-2 transition-all duration-200 ${filterStatus === status ? 'bg-primary text-white hover:bg-primary/90' : 'hover:bg-primary/10 hover:text-primary'}`}
+                              onClick={() => {
+                                setFilterStatus(status as any);
+                                setFilterOpen(false);
+                              }}
+                            >
+                              {status}
+                            </Button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-        </CardHeader>
-          <CardContent className="flex-1 p-2 sm:p-4 lg:p-6 max-h-[500px] overflow-y-auto custom-scrollbar">
+                </div>
+                <p className={`apply-leave-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  View and track your leave requests
+                </p>
+              </div>
+            </CardHeader>
+          <CardContent className="flex-1 p-4 pt-0 max-h-[500px] overflow-y-auto custom-scrollbar">
             <div className="overflow-x-auto thin-scrollbar">
               {/* Mobile: stacked cards */}
               <div className="md:hidden space-y-3">
