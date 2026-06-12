@@ -168,7 +168,7 @@ export const AnnouncementSections = ({
     <>
       <style>{`
         @media (max-width: 639px) {
-          .ann-tabs-list { width: 100% !important; grid-template-columns: 1fr 1fr !important; margin-top: 8px !important; }
+          .ann-tabs-list { width: 100% !important; grid-template-columns: ${hideReceivedTab ? '1fr' : '1fr 1fr'} !important; margin-top: 8px !important; }
           .ann-archive-btn { width: 100% !important; margin-top: 8px !important; }
           .ann-table-container { border: none !important; }
           .ann-card-mobile { padding: 12px !important; margin-bottom: 12px !important; border-radius: 12px !important; border: 1px solid hsl(var(--border)) !important; }
@@ -190,16 +190,25 @@ export const AnnouncementSections = ({
         <div id={header ? "announcement-header-section" : undefined} className={header ? "flex flex-col" : undefined}>
           {header}
           <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${header ? 'px-6 pb-2 sm:pb-4' : ''}`}>
-        <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl mt-5">
-          <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
-            <span className="text-sm font-semibold">My Announcements</span>
+        {hideReceivedTab ? (
+          <div className="flex items-center gap-2 mt-5">
+            <h3 className="text-lg font-semibold">My Announcements</h3>
             {myPagination && myPagination.count > 0 && (
               <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary border-none">
                 {myPagination.count}
               </Badge>
             )}
-          </TabsTrigger>
-          {!hideReceivedTab && (
+          </div>
+        ) : (
+          <TabsList className="ann-tabs-list grid w-full sm:w-auto grid-cols-2 max-w-md bg-muted/50 p-1 rounded-xl mt-5">
+            <TabsTrigger value="my" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+              <span className="text-sm font-semibold">My Announcements</span>
+              {myPagination && myPagination.count > 0 && (
+                <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-primary/10 text-primary border-none">
+                  {myPagination.count}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="received" className="gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
               <span className="text-sm font-semibold">Received</span>
               {receivedPagination && receivedPagination.unreadCount !== undefined ? (
@@ -216,8 +225,8 @@ export const AnnouncementSections = ({
                 )
               )}
             </TabsTrigger>
-          )}
-        </TabsList>
+          </TabsList>
+        )}
 
         {activeTab !== "received" && (
           <Button
