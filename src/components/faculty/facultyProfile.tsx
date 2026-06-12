@@ -760,9 +760,9 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 
       <CardContent className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-6">
         {error && <div className={`mb-3 sm:mb-4 text-sm ${theme === 'dark' ? 'text-destructive' : 'text-red-600'}`}>{error}</div>}
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
           {/* Left column: avatar and basic */}
-          <div className="col-span-1 flex flex-col items-center h-full">
+          <div className="col-span-1 flex flex-col items-center">
             <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0 group cursor-pointer">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden">
                 <Avatar className="w-full h-full">

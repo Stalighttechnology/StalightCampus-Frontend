@@ -410,8 +410,8 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
       </CardHeader>
 
       <CardContent className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-stretch">
-          <div className="col-span-1 flex flex-col items-center h-full">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
+          <div className="col-span-1 flex flex-col items-center">
             <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0 group cursor-pointer">
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden">
                 <Avatar className="w-full h-full shadow-sm border border-gray-100 dark:border-gray-800">
@@ -466,10 +466,10 @@ const COEProfile = React.forwardRef<HTMLDivElement>((_, ref) => {
             <div className="text-md sm:text-lg font-semibold text-center mb-1">{profile.first_name} {profile.last_name}</div>
             <div className={`text-md sm:text-md mb-4 sm:mb-6 text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Controller of Examinations</div>
 
-            <div className="w-full mt-4 sm:mt-6 flex-1 flex flex-col">
+            <div className="w-full mt-4 sm:mt-6 flex flex-col">
               <h4 className={`text-[16px] sm:text-sm font-bold mb-2.5 sm:mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Quick Info</h4>
-              <div className={`border rounded-lg p-2.5 sm:p-4 flex-1 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
-                <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5 h-full">
+              <div className={`border rounded-lg p-2.5 sm:p-4 ${theme === 'dark' ? 'bg-card border-input' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="grid grid-cols-1 gap-2.5 sm:gap-3.5">
                   <div className="flex flex-col justify-start">
                     <span className={`text-[16px] sm:text-xs font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Role</span>
                     <span className={`text-[18px] sm:text-sm break-words px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-2xl line-clamp-2 ${theme === 'dark' ? 'bg-accent text-foreground' : 'bg-purple-100 text-purple-700'}`}>{profile.role || '—'}</span>
