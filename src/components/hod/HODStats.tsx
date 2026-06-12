@@ -179,6 +179,19 @@ export default function HODStats({ setError, setPage, onBootstrapData }: HODStat
 const handleApprove = async (index: number) => {
   const leave = leaveRequests[index];
 
+  const result = await Swal.fire({
+    title: "Are you sure?",
+    text: "You are about to approve this leave request.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, approve it!",
+    cancelButtonText: "No, cancel",
+    background: theme === 'dark' ? '#23232a' : '#fff',
+    color: theme === 'dark' ? '#e5e7eb' : '#000',
+  });
+
+  if (!result.isConfirmed) return;
+
   updateLeaveStatus(index, "Approved"); // Optimistic UI
 
   try {

@@ -220,6 +220,22 @@ const LeaveManagement = () => {
       leave_id: leave.id,
       status: "APPROVED" as const
     };
+
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'You are about to approve this leave request. Are you sure you want to proceed?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, approve it!',
+      cancelButtonText: 'No, cancel',
+      customClass: {
+        confirmButton: 'bg-green-600 text-white',
+        cancelButton: 'bg-gray-300 text-black'
+      }
+    });
+
+    if (!result.isConfirmed) return;
+
     // Debug log
     try {
       const res = await manageLeaves(payload, "PATCH");
