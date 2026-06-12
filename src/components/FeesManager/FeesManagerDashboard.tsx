@@ -56,6 +56,7 @@ import FeesManagerLeave from './FeesManagerLeave';
 import FeesManagerProfile from './FeesManagerProfile';
 import PaymentSettings from './PaymentSettings';
 import FacultyAttendance from '../faculty/FacultyAttendance';
+import AnnouncementManagement from '../admin/AnnouncementManagement';
 
 interface DashboardStats {
   total_students: number;
@@ -373,6 +374,7 @@ const FeesManagerDashboard: React.FC<FeesManagerDashboardProps> = ({ user, setPa
       case 'payment-settings': return <PaymentSettings />;
       case 'reports': return <Reports />;
       case 'student-reports': return <StudentFeeReports />;
+      case 'announcement-management': return <AnnouncementManagement />;
       case 'leave': return <FeesManagerLeave />;
       case 'my-attendance': return <FacultyAttendance />;
       case 'profile': return <FeesManagerProfile user={user} />;

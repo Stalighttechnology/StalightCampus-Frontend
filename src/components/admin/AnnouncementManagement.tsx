@@ -174,7 +174,8 @@ const AdminAnnouncementManagement = () => {
       return;
     }
 
-    if (formData.target_roles.includes("student") && formData.is_global) {
+    const allowGlobalStudents = ["coe", "dean", "fees_manager", "principal", "org_admin", "hms", "transport_admin"].includes(user?.role);
+    if (!allowGlobalStudents && formData.target_roles.includes("student") && formData.is_global) {
       MySwal.fire({
         title: "Validation Error",
         text: "Please select a specific department when targeting students.",

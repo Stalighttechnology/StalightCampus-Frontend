@@ -21,6 +21,7 @@ import UpgradeRequired from "../common/UpgradeRequired";
 import { logoutUser } from "../../utils/authService";
 import StudentInfoScanner from "../hod/StudentInfoScanner";
 import FacultyAttendance from "../faculty/FacultyAttendance";
+import AnnouncementManagement from "../admin/AnnouncementManagement";
 
 interface COEDashboardProps {
   user: {
@@ -58,6 +59,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'apply-leave': 'apply-leave',
       'scan-student-info': 'scan-student-info',
       'my-attendance': 'my-attendance',
+      'announcement-management': 'announcement-management',
       'profile': 'profile'
     };
 
@@ -95,6 +97,7 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
       'apply-leave': '/coe/apply-leave',
       'scan-student-info': '/coe/scan-student-info',
       'my-attendance': '/coe/my-attendance',
+      'announcement-management': '/coe/announcement-management',
       'profile': '/coe/profile',
       'fee-settings': '/coe/fee-settings'
     };
@@ -149,6 +152,8 @@ const COEDashboard = ({ user }: COEDashboardProps) => {
         return <StudentInfoScanner />;
       case 'my-attendance':
         return <FacultyAttendance />;
+      case 'announcement-management':
+        return <AnnouncementManagement />;
       default:
         return <COEDashboardStats />;
     }
