@@ -396,7 +396,7 @@ const AttendanceRecords = () => {
                                 View Details
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className={`w-[90vw] max-w-xl h-[90vh] rounded-2xl p-0 overflow-hidden border-none shadow-2xl ${theme === 'dark' ? 'bg-[#0f172a] text-slate-100' : 'bg-white text-slate-900'}`}>
+                            <DialogContent className={`w-[90%] md:w-[90vw] md:max-w-xl h-[80vh] md:h-[90vh] rounded-2xl p-0 overflow-hidden border-none shadow-2xl ${theme === 'dark' ? 'bg-[#0f172a] text-slate-100' : 'bg-white text-slate-900'}`}>
                               <div className={`p-6 border-b ${theme === 'dark' ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
                                 <DialogHeader>
                                   <DialogTitle className="text-xl font-semibold tracking-tight">Attendance Details</DialogTitle>
