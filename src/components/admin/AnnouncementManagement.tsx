@@ -387,11 +387,27 @@ const AdminAnnouncementManagement = () => {
     });
   };
 
-  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms_admin", "transport_admin", "library_admin", "admission_manager"];
+  const ALL_ROLES = ["student", "hod", "faculty", "principal", "placement_officer", "org_admin", "dean", "coe", "fees_manager", "hms", "transport_admin", "library_admin", "admission_manager"];
   const BASIC_ROLES = ["student", "hod", "faculty", "principal", "org_admin", "dean"];
   
-  // Use a predefined list if we have specific roles in the form, currently it was a hardcoded list.
-  const baseRoles = ["student", "hod", "faculty", "principal", "placement_officer"];
+  const getTargetRolesForUser = (userRole: string) => {
+    switch (userRole) {
+      case "principal":
+      case "org_admin":
+      case "dean":
+        return ALL_ROLES;
+      case "coe":
+        return ["student", "faculty", "hod", "principal"];
+      case "fees_manager":
+      case "hms":
+      case "transport_admin":
+        return ["student"];
+      default:
+        return ["student", "hod", "faculty", "principal", "placement_officer"];
+    }
+  };
+
+  const baseRoles = getTargetRolesForUser(user?.role);
   const roles = userTier >= 2 ? baseRoles : baseRoles.filter(r => BASIC_ROLES.includes(r));
 
   const renderHeader = (
