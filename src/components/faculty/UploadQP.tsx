@@ -493,8 +493,8 @@ const UploadQP = () => {
   };
 
   return (
-    <div>
-      <Card className={theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}>
+    <div className="w-full max-w-full overflow-hidden">
+      <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full overflow-hidden`}>
         <Tabs value={tabValue} onValueChange={(v) => setTabValue(v)}>
           <div id="upload-qp-header-section" className="border-b border-border/50 pb-4">
             <CardHeader>
@@ -510,6 +510,11 @@ const UploadQP = () => {
                     const subjectsForBranch = assignments.filter((a) => a.branch_id === branchId);
                     const firstSubject = subjectsForBranch.length > 0 ? subjectsForBranch[0].subject_id : undefined;
                     setSelected((s) => ({ ...s, branch_id: branchId, subject_id: firstSubject }));
+                    if (firstSubject) {
+                      setTimeout(() => setIsTestTypeOpen(true), 150);
+                    } else {
+                      setTimeout(() => setIsSubjectOpen(true), 150);
+                    }
                   }}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Branch" />
@@ -529,6 +534,7 @@ const UploadQP = () => {
                   <label htmlFor="subject-select" className="text-sm">Subject</label>
                   <Select value={selected.subject_id ? String(selected.subject_id) : undefined} onValueChange={(v) => {
                     setSelected((s) => ({ ...s, subject_id: Number(v) }));
+                    setTimeout(() => setIsTestTypeOpen(true), 150);
                   }} disabled={!selected.branch_id} open={isSubjectOpen} onOpenChange={setIsSubjectOpen}>
                     <SelectTrigger className="w-full" disabled={!selected.branch_id}>
                       <SelectValue placeholder="Select Subject" />
@@ -546,7 +552,10 @@ const UploadQP = () => {
                 </div>
                 <div>
                   <label htmlFor="test-type-select" className="text-sm">Test Type</label>
-                  <Select value={selected.testType} onValueChange={(v) => setSelected((s) => ({ ...s, testType: String(v) }))} disabled={!selected.subject_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
+                  <Select value={selected.testType} onValueChange={(v) => {
+                    setSelected((s) => ({ ...s, testType: String(v) }));
+                    setTimeout(() => setIsSetNumberOpen(true), 150);
+                  }} disabled={!selected.subject_id} open={isTestTypeOpen} onOpenChange={setIsTestTypeOpen}>
                     <SelectTrigger className="w-full" disabled={!selected.subject_id}>
                       <SelectValue placeholder="Select Test Type" />
                     </SelectTrigger>
@@ -580,9 +589,9 @@ const UploadQP = () => {
             </CardContent>
           </div>
 
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 px-0 sm:px-6">
             {rejectedQPs.length > 0 &&
-              <div className="mb-4 space-y-2">
+              <div className="mb-4 space-y-2 px-3 sm:px-0">
                 <div className="font-semibold">Rejected Question Papers</div>
                 <div className="grid grid-cols-1 gap-2">
                   {rejectedQPs.map((qp) =>
@@ -616,20 +625,21 @@ const UploadQP = () => {
               </div>
             }
             {currentQPMeta?.status === 'rejected' &&
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded mx-3 sm:mx-0">
                 <div className="font-semibold text-sm text-red-700">Rejected</div>
                 <div className="text-sm text-muted-foreground">{currentQPMeta.last_action?.comment || 'No comment provided'}</div>
               </div>
             }
 
-            <TabsContent value="questionFormat">
-              <div className="space-y-2">
+            <TabsContent value="questionFormat" className="w-full max-w-full overflow-hidden mt-0">
+              <div className="space-y-2 w-full max-w-full">
                 {loading ?
                   <div className="py-4">
                     <SkeletonList items={3} />
                   </div> :
                   !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ?
-                    <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                    <div className="mx-3 sm:mx-0">
+                      <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                       <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                         <Layers className="w-12 h-12 opacity-80" />
                       </div>
@@ -637,7 +647,8 @@ const UploadQP = () => {
                       <p className="max-w-xs text-base leading-relaxed">
                         Please select Branch, Subject, Test Type, and Set Number to load or create a question paper.
                       </p>
-                    </div> :
+                    </div>
+                  </div> :
 
                     <>
                       {(() => {
@@ -645,7 +656,7 @@ const UploadQP = () => {
                         return (
                           <>
                             {isLocked && (
-                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded mx-3 sm:mx-0">
                                 <div className="font-semibold text-sm text-blue-700 dark:text-blue-400">Locked</div>
                                 <div className="text-sm text-muted-foreground">This question paper has been submitted for approval and cannot be edited.</div>
                               </div>
@@ -665,29 +676,29 @@ const UploadQP = () => {
                                 <TableBody>
                                   {questions.map((q) =>
                                     <TableRow key={q.id} className={theme === 'dark' ? 'hover:bg-muted/50' : 'hover:bg-gray-50/50'}>
-                                      <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.number} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
+                                        <Input value={q.number} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'number', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
-                                      <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-9 w-full focus-visible:ring-1" />
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
+                                        <Input value={q.content} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'content', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
-                                      <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.maxMarks} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
+                                        <Input value={q.maxMarks} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'maxMarks', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
-                                      <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.co} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'co', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
+                                        <Input value={q.co} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'co', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
-                                      <TableCell className="p-2 whitespace-nowrap">
-                                        <Input value={q.bloomsLevel} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="h-9 w-full text-center focus-visible:ring-1" />
+                                      <TableCell className="p-1 sm:p-2 whitespace-nowrap">
+                                        <Input value={q.bloomsLevel} disabled={isLocked} onChange={(e) => updateQuestion(q.id, 'bloomsLevel', e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm w-full text-center focus-visible:ring-1 px-1 sm:px-3" />
                                       </TableCell>
                                       {!isLocked && (
-                                        <TableCell className="p-2 text-right whitespace-nowrap">
+                                        <TableCell className="p-1 sm:p-2 text-right whitespace-nowrap">
                                           <Button
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => removeQuestion(q.id)}
-                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 w-9 p-0">
-                                            <Trash2 size={16} />
+                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 h-8 sm:h-9 w-8 sm:w-9 p-0">
+                                            <Trash2 size={14} className="sm:size-4" />
                                           </Button>
                                         </TableCell>
                                       )}
@@ -697,17 +708,17 @@ const UploadQP = () => {
                               </Table>
                             </div>
                             {!isLocked && (
-                              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                              <div className="flex flex-row justify-between items-center gap-3 mt-6 w-full px-3 sm:px-0">
                                 <Button
                                   onClick={addQuestion}
                                   disabled={!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber}
-                                  className="bg-primary text-white hover:bg-primary/90 transition-all duration-200">
-                                  <Plus size={14} className="mr-2" /> Add Question
+                                  className="bg-primary text-white hover:bg-primary/90 transition-all duration-200 flex-1 sm:flex-none sm:w-auto text-[15px] sm:text-sm px-2 py-1.5 h-8 sm:h-10 sm:px-4 sm:py-2">
+                                  <Plus size={12} className="mr-1 sm:mr-2" /> Add Question
                                 </Button>
                                 <Button
                                   onClick={saveFormat}
                                   disabled={!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber}
-                                  className="bg-primary text-white hover:bg-primary/90 transition-all duration-200">
+                                  className="bg-primary text-white hover:bg-primary/90 transition-all duration-200 flex-1 sm:flex-none sm:w-auto text-[15px] sm:text-sm px-2 py-1.5 h-8 sm:h-10 sm:px-4 sm:py-2">
                                   Save Format
                                 </Button>
                               </div>
@@ -719,7 +730,7 @@ const UploadQP = () => {
                 }
               </div>
             </TabsContent>
-            <TabsContent value="questionPaper">
+            <TabsContent value="questionPaper" className="w-full max-w-full overflow-hidden mt-0">
               {!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber ?
                 <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 mt-2 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
                   <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
