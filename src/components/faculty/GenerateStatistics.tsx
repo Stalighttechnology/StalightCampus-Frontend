@@ -303,7 +303,7 @@ const GenerateStatistics: React.FC = () => {
           </div>
         </CardContent>
 
-        {totalCount > 0 && (
+        {totalCount > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
             <div>
               Showing {Math.min((page - 1) * pageSize + 1, totalCount)} to {Math.min(page * pageSize, totalCount)} of {totalCount} records
