@@ -294,6 +294,7 @@ const COEApplyLeave = React.forwardRef<HTMLDivElement>((_, ref) => {
         <Card id="coe-leave-application-form" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4 lg:p-6 border-b h-14 sm:h-16 lg:h-20">
             <CardTitle className={`text-xl sm:text-xl lg:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Dean</span> for approval.</p>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
             {/* Title */}

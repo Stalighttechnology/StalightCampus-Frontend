@@ -270,7 +270,10 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         {/* Leave Application Form - Left Side */}
         <Card id="apply-leave-form-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
           <CardHeader id="driver-apply-leave-header" className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
-            <CardTitle>Leave Application Form</CardTitle>
+            <div className="flex flex-col">
+              <CardTitle>Leave Application Form</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Transport Admin</span> for approval.</p>
+            </div>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
 

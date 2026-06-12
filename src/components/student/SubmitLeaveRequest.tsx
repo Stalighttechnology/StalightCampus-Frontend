@@ -191,6 +191,7 @@ const SubmitLeaveRequest = () => {
         <Card id="leave-form-card" className={`${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
           <CardHeader>
             <CardTitle className={`text-lg sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Your leave request will be routed to your <span className="font-medium text-primary">Faculty (Proctor)</span> for approval.</p>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">

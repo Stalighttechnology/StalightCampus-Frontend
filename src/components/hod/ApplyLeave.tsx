@@ -364,6 +364,7 @@ const ApplyLeave = () => {
         <Card id="hod-leave-application-form" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
         <CardHeader>
           <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1 font-normal">Your leave request will be routed to the <span className="font-medium text-primary">Principal</span> for approval.</p>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Error Message */}
