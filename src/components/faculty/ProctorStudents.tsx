@@ -160,7 +160,7 @@ const ProctorStudents = () => {
 
       </CardContent>
 
-      {pagination?.paginationState && pagination.paginationState.totalItems > 1 && (
+      {pagination?.paginationState && pagination.paginationState.totalItems > pagination.paginationState.pageSize && (
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
           <div>
             Showing {Math.min((pagination.paginationState.page - 1) * pagination.paginationState.pageSize + 1, pagination.paginationState.totalItems)} to {Math.min(pagination.paginationState.page * pagination.paginationState.pageSize, pagination.paginationState.totalItems)} of {pagination.paginationState.totalItems} records
