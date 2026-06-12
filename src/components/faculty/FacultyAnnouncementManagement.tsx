@@ -314,7 +314,6 @@ const FacultyAnnouncementManagement = () => {
     <>
       <style>{`
         @media (max-width: 480px) {
-          .announcements-container { padding: 12px; }
           .announcements-card { border-radius: 8px; }
           .announcements-card-header { padding: 12px; }
           .announcements-card-title { font-size: 1.125rem; line-height: 1.3; }

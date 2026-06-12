@@ -424,35 +424,37 @@ export const AnnouncementSections = ({
                         <Eye className="w-4 h-4 mr-2" /> View Content
                       </Button>
                       {showActions && (
-                        <div className="ann-card-actions-row">
+                        <div className="flex flex-col gap-2 mt-2 w-full">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={`h-9 text-[11px] font-semibold border flex items-center justify-center gap-1 ${announcement.is_active ? 'text-orange-500 border-orange-100 bg-orange-50/30' : 'text-green-500 border-green-100 bg-green-50/30'}`}
+                            className={`w-full h-9 text-xs font-semibold border flex items-center justify-center gap-1.5 rounded-xl ${announcement.is_active ? 'text-orange-500 border-orange-100 bg-orange-50/30 hover:bg-orange-50/50' : 'text-green-500 border-green-100 bg-green-50/30 hover:bg-green-50/50'}`}
                             onClick={() => onToggleActive(announcement.id)}
                           >
                             {announcement.is_active ? (
-                              <><XCircle className="h-3.5 w-3.5 shrink-0" /> Deactivate</>
+                              <><XCircle className="h-4 w-4 shrink-0" /> Deactivate</>
                             ) : (
-                              <><CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> Activate</>
+                              <><CheckCircle2 className="h-4 w-4 shrink-0" /> Activate</>
                             )}
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 text-[11px] font-semibold border border-border flex items-center justify-center gap-1"
-                            onClick={() => onEdit(announcement)}
-                          >
-                            <Edit2 className="h-3.5 w-3.5 shrink-0" /> Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 text-[11px] font-semibold border border-destructive/20 text-destructive bg-destructive/5 flex items-center justify-center gap-1"
-                            onClick={() => onDelete(announcement.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 shrink-0" /> Delete
-                          </Button>
+                          <div className="grid grid-cols-2 gap-2 w-full">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 text-xs font-semibold border border-border flex items-center justify-center gap-1.5 rounded-xl bg-background hover:bg-muted/30"
+                              onClick={() => onEdit(announcement)}
+                            >
+                              <Edit2 className="h-3.5 w-3.5 shrink-0" /> Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 text-xs font-semibold border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive/10 flex items-center justify-center gap-1.5 rounded-xl"
+                              onClick={() => onDelete(announcement.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 shrink-0" /> Delete
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>

@@ -635,7 +635,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
         </div>
       </CardContent>
 
-      {proctorPagination?.paginationState && proctorPagination.paginationState.totalItems > 0 && (
+      {proctorPagination?.paginationState && proctorPagination.paginationState.totalItems > 1 && (
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">
           <div>
             Showing {Math.min((proctorPagination.paginationState.page - 1) * proctorPagination.paginationState.pageSize + 1, proctorPagination.paginationState.totalItems)} to {Math.min(proctorPagination.paginationState.page * proctorPagination.paginationState.pageSize, proctorPagination.paginationState.totalItems)} of {proctorPagination.paginationState.totalItems} records
@@ -900,9 +900,9 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                 </div>
               </div>
             </div>
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-4 gap-3">
               {isEditMode ?
-              <Button onClick={handleUpdateApplication} className="bg-blue-500 hover:bg-blue-600 text-white">
+              <Button onClick={handleUpdateApplication} className="bg-blue-500 hover:bg-blue-600 text-white h-10 rounded-xl font-semibold w-full sm:w-auto">
                   Update Application
                 </Button> :
 
@@ -1070,11 +1070,11 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                     variant: "destructive"
                   });
                 }
-              }} className="bg-primary hover:bg-primary/90 text-white">
+              }} className="bg-primary hover:bg-[#9147e0] text-white h-10 rounded-xl font-semibold w-full sm:w-auto">
                   Apply
                 </Button>
               }
-              <Button onClick={() => setOpen(false)} className="bg-white border border-gray-300 text-gray-900 hover:bg-gray-50">Close</Button>
+              <Button onClick={() => setOpen(false)} className="bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 h-10 rounded-xl font-semibold w-full sm:w-auto">Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

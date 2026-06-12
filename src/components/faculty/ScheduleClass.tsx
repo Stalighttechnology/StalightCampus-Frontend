@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import Swal from "sweetalert2";
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -975,11 +976,20 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
             </p>
           )}
 
-          {!scheduleDropdowns.isFullySelected && scheduleDropdowns.subjectId && (
-            <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1.5">
-              <BookOpen className="w-3.5 h-3.5" />
-              Complete all four selections above to open the scheduling form.
-            </p>
+          {!scheduleDropdowns.isFullySelected && scheduleDropdowns.subjects.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center py-12 bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50 mt-6"
+            >
+              <CalendarDays className="w-12 h-12 text-muted-foreground/30 mb-4" />
+              <p className="text-muted-foreground font-medium text-lg text-center px-4">
+                Select a subject assignment to open the scheduling form
+              </p>
+              <p className="text-muted-foreground/70 text-sm text-center px-4 mt-1">
+                Choose an assignment from the dropdowns above to continue
+              </p>
+            </motion.div>
           )}
 
           {/* Optimistic immediately-added history (from this session's saves) */}
@@ -1349,12 +1359,19 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           )}
 
           {!historyDropdowns.isFullySelected && !historyLoading && (
-            <div className="flex flex-col items-center justify-center py-8 text-center space-y-2">
-              <ClipboardList className="w-8 h-8 text-muted-foreground/30" />
-              <p className="text-xs text-muted-foreground">
-                Select all four filters above to load class history.
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center py-12 bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50 mt-6"
+            >
+              <ClipboardList className="w-12 h-12 text-muted-foreground/30 mb-4" />
+              <p className="text-muted-foreground font-medium text-lg text-center px-4">
+                Select a subject to view scheduled classes history
               </p>
-            </div>
+              <p className="text-muted-foreground/70 text-sm text-center px-4 mt-1">
+                Select all four filters above to load class history
+              </p>
+            </motion.div>
           )}
         </CardContent>
       </Card>
