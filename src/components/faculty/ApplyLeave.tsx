@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Calendar } from '../ui/calendar';
@@ -263,116 +264,143 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   };
 
   return (
-    <div ref={ref}>
-      {/* Main Container with Responsive Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-6 lg:gap-8">
-        {/* Leave Application Form - Left Side */}
-        <Card id="apply-leave-form-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-4 lg:p-6 gap-1 sm:gap-2 min-h-fit">
-            <CardTitle>Leave Application Form</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
+    <>
+      <style>{`
+        @media (max-width: 480px) {
+          .apply-leave-card { border-radius: 12px !important; }
+          .apply-leave-title { font-size: 1.25rem !important; margin-bottom: 4px !important; }
+          .apply-leave-desc { font-size: 0.8125rem !important; }
+          .apply-leave-label { font-size: 0.875rem !important; font-weight: 600 !important; }
+          .apply-leave-input { font-size: 14px !important; height: 44px !important; }
+          .apply-leave-btn { height: 44px !important; font-size: 15px !important; font-weight: 600 !important; }
+          .calendar-popover-content { 
+            width: 92vw !important; 
+            max-width: 340px !important; 
+            padding: 0 !important; 
+            margin: 0 auto !important;
+            overflow: hidden !important;
+          }
+          .rdp { margin: 0 !important; width: 100% !important; }
+          .rdp-months { width: 100% !important; }
+          .rdp-month { width: 100% !important; }
+          .rdp-table { width: 100% !important; max-width: 100% !important; }
+        }
+      `}</style>
 
+      <div ref={ref} className={` ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+        {/* Main Container with Responsive Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Leave Application Form - Left Side */}
+          <Card id="apply-leave-form-card" className={`apply-leave-card flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+            <CardHeader>
+              <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Application Form</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-destructive/20 text-destructive-foreground border border-destructive' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                  {error}
+                </div>
+              )}
 
-            {/* Title */}
-            <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label htmlFor="title" className={`text-md sm:text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title <span className="text-red-500">*</span></Label>
-              <input
-                id="title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter leave request title"
-                className={`w-full text-xs sm:text-sm h-8 sm:h-9 lg:h-10 px-3 rounded-md border ${theme === 'dark' ? 'bg-background text-foreground border-border focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]' : 'bg-white text-gray-900 border-gray-300 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]'}`}
-                required />
-              
-            </div>
-
-            {/* Branch Selection */}
-            <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</Label>
-              <div
-                className={`w-full text-xs sm:text-sm h-8 sm:h-9 lg:h-10 px-3 py-1.5 sm:py-2 rounded-md border flex items-center ${theme === 'dark' ? 'bg-muted text-muted-foreground border-border' : 'bg-gray-100 text-gray-500 border-gray-300'}`}>
-                {branches.length > 0 ? (branches.find((b) => b.id.toString() === selectedBranch)?.name || branches[0].name) : "No branch assigned"}
+              {/* Title */}
+              <div className="space-y-2">
+                <Label htmlFor="title" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Title for Leave *</Label>
+                <Input
+                  id="title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter a title for your leave"
+                  disabled={submitting}
+                  className={`apply-leave-input ${theme === 'dark' ? 'w-full bg-background text-foreground border-border focus:ring-primary/30' : 'w-full bg-white text-gray-900 border-gray-300 focus:ring-primary/20'}`}
+                  required />
               </div>
-            </div>
 
-            {/* Date Range */}
-            <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal text-xs sm:text-sm h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}`}>
-                    
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange?.from ?
-                    dateRange.from.getTime() === dateRange.to?.getTime() ?
-                    // Single date (same from and to)
-                    format(dateRange.from, "PPP") :
-                    dateRange.to ?
-                    // Date range
-                    <>
-                          {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
-                        </> :
+              {/* Branch Selection */}
+              <div className="space-y-2">
+                <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Branch</Label>
+                <div
+                  className={`apply-leave-input ${theme === 'dark' ? 'w-full bg-muted text-muted-foreground border-border flex items-center px-3 rounded-md border text-xs sm:text-sm h-8 sm:h-9 lg:h-10' : 'w-full bg-gray-100 text-gray-500 border-gray-300 flex items-center px-3 rounded-md border text-xs sm:text-sm h-8 sm:h-9 lg:h-10'}`}>
+                  {branches.length > 0 ? (branches.find((b) => b.id.toString() === selectedBranch)?.name || branches[0].name) : "No branch assigned"}
+                </div>
+              </div>
 
-                    // Only from date selected
-                    format(dateRange.from, "PPP") :
+              {/* Date Range */}
+              <div className="space-y-2">
+                <Label className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Date Range *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`apply-leave-input ${theme === 'dark' ? 'w-full justify-start text-left font-normal bg-background text-foreground border-border hover:bg-accent hover:text-foreground' : 'w-full justify-start text-left font-normal bg-white text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900'}`}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <span className="truncate">
+                        {dateRange?.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "PPP")
+                          )
+                        ) : (
+                          <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
+                        )}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
 
+                  {/* Calendar with theme support and disabled past dates */}
+                  <PopoverContent
+                    className="calendar-popover-content w-auto p-0 bg-background text-foreground border-border shadow-xl"
+                    align="center"
+                    side="bottom"
+                    sideOffset={4}
+                  >
+                    <Calendar
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={handleDateRangeChange}
+                      disabled={(date) => date < today}
+                      initialFocus
+                      className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'} />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-                    <span className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Pick a date range</span>
-                    }
-                  </Button>
-                </PopoverTrigger>
+              {/* Reason */}
+              <div className="space-y-2">
+                <Label htmlFor="reason" className={`apply-leave-label ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason for Leave *</Label>
+                <Textarea
+                  id="reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Please provide a detailed reason for your leave request"
+                  className={`apply-leave-input ${theme === 'dark' ? 'min-h-[100px] bg-background text-foreground border-border focus:ring-primary/30' : 'min-h-[100px] bg-white text-gray-900 border-gray-300 focus:ring-primary/20'}`}
+                  required
+                  disabled={submitting} />
+              </div>
 
-                {/* Calendar with theme support */}
-                <PopoverContent className={theme === 'dark' ? 'w-auto p-0 bg-background text-foreground border-border shadow-lg' : 'w-auto p-0 bg-white text-gray-900 border-gray-200 shadow-lg'}>
-                  <Calendar
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={handleDateRangeChange}
-                    disabled={(date) => date < today}
-                    initialFocus
-                    className={theme === 'dark' ? 'rounded-md bg-background text-foreground [&_.rdp-day:hover]:bg-accent [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed' : 'rounded-md bg-white text-gray-900 [&_.rdp-day:hover]:bg-gray-100 [&_.rdp-day_selected]:bg-blue-600 [&_.rdp-day_selected]:text-white [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed'} />
-                  
-                </PopoverContent>
-              </Popover>
-            </div>
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                onClick={handleSubmit}
+                className={`apply-leave-btn ${theme === 'dark' ? 'w-full text-white bg-primary hover:bg-primary/90 border-border' : 'w-full text-white bg-primary hover:bg-primary/90 border-primary'}`}
+                disabled={submitting}>
+                {submitting ? "Submitting..." : "Submit Request"}
+              </Button>
+            </CardContent>
+          </Card>
 
-            {/* Reason */}
-            <div className="space-y-0.5 sm:space-y-1 lg:space-y-2">
-              <Label htmlFor="reason" className={`text-sm font-medium ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Reason</Label>
-              <Textarea
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Please provide a detailed reason for your leave request"
-                className={`min-h-[60px] sm:min-h-[80px] lg:min-h-[100px] text-xs sm:text-sm ${theme === 'dark' ? 'bg-background text-foreground border-border' : 'bg-white text-gray-900 border-gray-300'}`}
-                required />
-              
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              onClick={handleSubmit}
-              className={`w-full text-md h-8 sm:h-9 lg:h-10 ${theme === 'dark' ? 'text-white bg-primary hover:bg-primary/90 border-primary' : 'text-white bg-primary hover:bg-primary/90 border-primary'}`}
-              disabled={submitting}>
-              
-              {submitting ? "Submitting..." : "Submit Request"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Leave Requests List - Right Side */}
-        <Card id="recent-leaves-card" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'} rounded-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2">
-            {/* Title */}
-            <CardTitle>
-              
-              Leave Requests
-            </CardTitle>
+          {/* Leave Requests List - Right Side */}
+          <Card id="recent-leaves-card" className={`apply-leave-card flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground border-border shadow-sm' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className={`apply-leave-title text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Recent Leave Applications</CardTitle>
+                  <p className={`apply-leave-desc text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>View and track your leave requests</p>
+                </div>
 
             {/* Filter Button */}
             <div className="flex-shrink-0">
@@ -414,8 +442,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
                 </PopoverContent>
               </Popover>
             </div>
-
-          </CardHeader>
+          </div>
+        </CardHeader>
           <CardContent className="flex-1 p-2 sm:p-4 lg:p-6 max-h-[500px] overflow-y-auto custom-scrollbar">
             <div className="overflow-x-auto thin-scrollbar">
               {/* Mobile: stacked cards */}
@@ -584,7 +612,8 @@ const LeaveRequests = React.forwardRef<HTMLDivElement, any>((props, ref) => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>);
+    </div>
+  </>);
 
 });
 
