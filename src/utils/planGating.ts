@@ -107,6 +107,10 @@ export const isPageAllowed = (page: string, orgPlan: string, role?: string): boo
     return userTier >= 2;
   }
 
+  if (role === 'faculty' && page === 'faculty-assignments' && userTier < 2) {
+    return false;
+  }
+
   if (page === 'dashboard') return true;
 
   const requiredTier = PAGE_REQUIRED_TIERS[page] || 1;

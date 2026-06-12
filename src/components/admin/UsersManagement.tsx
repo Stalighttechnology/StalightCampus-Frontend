@@ -25,6 +25,7 @@ import {
 import { manageUsers, manageUserAction, getBranchesWithHODs } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
+import { PLAN_TIERS } from "../../utils/planGating";
 import { SkeletonTable, SkeletonPageHeader } from "../ui/skeleton";
 
 interface User {
@@ -73,7 +74,7 @@ const getRoleBadge = (role: string, theme: string) => {
 
 };
 
-const roles = [
+const ALL_ROLES = [
   "Student", 
   "Head of Department", 
   "Teacher", 
@@ -88,6 +89,26 @@ const roles = [
   "Transport Admin",
   "Library Admin",
   "Admission Manager"
+];
+
+const BASIC_PLAN_ROLES = [
+  "Org Admin",
+  "Principal",
+  "Head of Department",
+  "Teacher",
+  "Student",
+  "Dean"
+];
+
+const PRO_PLAN_ROLES = [
+  "Org Admin",
+  "Principal",
+  "Head of Department",
+  "Teacher",
+  "Student",
+  "Dean",
+  "COE",
+  "Fees Manager"
 ];
 
 const roleMap: Record<string, string> = {
@@ -126,6 +147,12 @@ const UsersManagement = ({ setError, toast }: UsersManagementProps) => {
   const normalize = (str: string) => str.toLowerCase().trim();
   const { theme } = useTheme();
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
+  const roles = userTier >= 3 ? ALL_ROLES : userTier === 2 ? PRO_PLAN_ROLES : BASIC_PLAN_ROLES;
 
   const rolesNeedingDept = ["Head of Department", "Teacher", "Student"];
   const isAnyFilterActive =

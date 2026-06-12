@@ -20,6 +20,7 @@ import { getAdminStats } from "../../utils/admin_api";
 import { useToast } from "../../hooks/use-toast";
 import { useTheme } from "../../context/ThemeContext";
 import { fetchWithTokenRefresh } from "../../utils/authService";
+import { PLAN_TIERS } from "../../utils/planGating";
 import { API_ENDPOINT } from "../../utils/config";
 import {
   Users,
@@ -53,6 +54,11 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { theme } = useTheme();
+
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
   const handleCardClick = (page: string) => {
     if (onNavigate) {
@@ -285,11 +291,13 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
             description="Dept heads"
             icon={<FaUserTie className={theme === 'dark' ? "text-yellow-400 text-3xl" : "text-yellow-500 text-3xl"} />} />
 
-          <DashboardCard
-            title="COE"
-            value={stats.total_coe || 0}
-            description="Exams controller"
-            icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />} />
+          {userTier >= 2 && (
+            <DashboardCard
+              title="COE"
+              value={stats.total_coe || 0}
+              description="Exams controller"
+              icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />} />
+          )}
 
           <DashboardCard
             title="Principals"
@@ -299,31 +307,35 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
         </div>
 
         {/* Admission Overview */}
-        <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-          Admission Overview
-        </h3>
-        <div id="admission-overview-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <DashboardCard
-            title="Total Enquiries"
-            value={stats.admission_enquiries || 0}
-            description="All active leads"
-            icon={<FaUserTie className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />} />
-          <DashboardCard
-            title="Applications"
-            value={stats.admission_applications || 0}
-            description="Submitted forms"
-            icon={<ClipboardList className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />} />
-          <DashboardCard
-            title="Admissions Confirmed"
-            value={stats.admissions_confirmed || 0}
-            description="Seat allocated"
-            icon={<UserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />} />
-          <DashboardCard
-            title="Enrolled"
-            value={stats.admissions_enrolled || 0}
-            description="Completed admission"
-            icon={<FaUserGraduate className={theme === 'dark' ? "text-yellow-400 text-3xl" : "text-yellow-500 text-3xl"} />} />
-        </div>
+        {userTier >= 3 && (
+          <>
+            <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+              Admission Overview
+            </h3>
+            <div id="admission-overview-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <DashboardCard
+                title="Total Enquiries"
+                value={stats.admission_enquiries || 0}
+                description="All active leads"
+                icon={<FaUserTie className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />} />
+              <DashboardCard
+                title="Applications"
+                value={stats.admission_applications || 0}
+                description="Submitted forms"
+                icon={<ClipboardList className={theme === 'dark' ? "text-purple-400 text-3xl" : "text-purple-500 text-3xl"} />} />
+              <DashboardCard
+                title="Admissions Confirmed"
+                value={stats.admissions_confirmed || 0}
+                description="Seat allocated"
+                icon={<UserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />} />
+              <DashboardCard
+                title="Enrolled"
+                value={stats.admissions_enrolled || 0}
+                description="Completed admission"
+                icon={<FaUserGraduate className={theme === 'dark' ? "text-yellow-400 text-3xl" : "text-yellow-500 text-3xl"} />} />
+            </div>
+          </>
+        )}
 
         {/* Search and Export */}
         <div className="flex justify-between items-center flex-wrap gap-4 mt-8">
@@ -535,12 +547,14 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           icon={<User size={20} />}
           onClick={() => handleCardClick("enroll-user")} />
 
-        <DashboardCard
-          id="bulk-upload-card"
-          title="Bulk Upload Faculty"
-          description="Upload faculty list"
-          icon={<ClipboardList size={20} />}
-          onClick={() => handleCardClick("bulk-upload")} />
+        {userTier >= 3 && (
+          <DashboardCard
+            id="bulk-upload-card"
+            title="Bulk Upload Faculty"
+            description="Upload faculty list"
+            icon={<ClipboardList size={20} />}
+            onClick={() => handleCardClick("bulk-upload")} />
+        )}
 
         <DashboardCard
           id="manage-branches-card"
@@ -549,12 +563,14 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           icon={<GitBranch size={20} />}
           onClick={() => handleCardClick("branches")} />
 
-        <DashboardCard
-          id="faculty-assignments-card"
-          title="Faculty Assignments"
-          description="Assign teachers to branches & subjects"
-          icon={<UserCheck size={20} />}
-          onClick={() => handleCardClick("teacher-assignments")} />
+        {userTier >= 3 && (
+          <DashboardCard
+            id="faculty-assignments-card"
+            title="Faculty Assignments"
+            description="Assign teachers to branches & subjects"
+            icon={<UserCheck size={20} />}
+            onClick={() => handleCardClick("teacher-assignments")} />
+        )}
 
         <DashboardCard
           id="manage-batches-card"
@@ -570,12 +586,14 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
           icon={<Bell size={20} />}
           onClick={() => handleCardClick("announcement-management")} />
 
-        <DashboardCard
-          id="hod-leaves-card"
-          title="HOD Leaves"
-          description="Manage HOD leave requests"
-          icon={<UserCheck size={20} />}
-          onClick={() => handleCardClick("hod-leaves")} />
+        {userTier >= 3 && (
+          <DashboardCard
+            id="hod-leaves-card"
+            title="HOD Leaves"
+            description="Manage HOD leave requests"
+            icon={<UserCheck size={20} />}
+            onClick={() => handleCardClick("hod-leaves")} />
+        )}
 
         <DashboardCard
           id="users-management-card"

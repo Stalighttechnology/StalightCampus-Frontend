@@ -49,6 +49,7 @@ import DashboardCard from "../common/DashboardCard";
 import { FaUserGraduate, FaChalkboardTeacher, FaUserCheck } from "react-icons/fa";
 import { getFacultyDashboardBootstrap } from "@/utils/faculty_api";
 import { useTheme } from "@/context/ThemeContext";
+import { PLAN_TIERS } from "@/utils/planGating";
 import { SkeletonStatsGrid, SkeletonChart, SkeletonCard } from "../ui/skeleton";
 
 interface Stat {
@@ -94,6 +95,11 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const { theme } = useTheme();
+
+  const userStr = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
   // class/section filters removed; use per-subject trends instead
   const subjectOptions = [
@@ -487,13 +493,13 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
           icon={<GraduationCap size={20} />}
           onClick={() => setActivePage("proctor-students")} />
         
-
-        <DashboardCard
-          title="View Reports"
-          description="Open performance and attendance reports"
-          icon={<FileBarChart size={20} />}
-          onClick={() => setActivePage("statistics")} />
-        
+        {userTier >= 3 && (
+          <DashboardCard
+            title="View Reports"
+            description="Open performance and attendance reports"
+            icon={<FileBarChart size={20} />}
+            onClick={() => setActivePage("statistics")} />
+        )}
       </motion.div>
     </div>);
 
