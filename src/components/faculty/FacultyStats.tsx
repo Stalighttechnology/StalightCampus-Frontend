@@ -260,16 +260,18 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
   return (
     <div ref={ref} className={`space-y-6 w-full max-w-full min-h-0 ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       {/* Top Stats Cards (admin style) */}
-      <motion.div id="faculty-stats-cards" className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-        <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <DashboardCard
-            title="Total Proctor Students"
-            value={proctorStudentsCount || 0}
-            description="Students under your proctoring"
-            icon={<FaUserGraduate className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />}
-            className="h-full" />
-          
-        </motion.div>
+      <motion.div id="faculty-stats-cards" className={`grid grid-cols-1 ${userTier >= 2 ? 'md:grid-cols-3' : 'md:grid-cols-1'} gap-4 items-stretch`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+        {userTier >= 2 && (
+          <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            <DashboardCard
+              title="Total Proctor Students"
+              value={proctorStudentsCount || 0}
+              description="Students under your proctoring"
+              icon={<FaUserGraduate className={theme === 'dark' ? "text-blue-400 text-3xl" : "text-blue-500 text-3xl"} />}
+              className="h-full" />
+            
+          </motion.div>
+        )}
 
         <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
           <DashboardCard
@@ -281,81 +283,85 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
           
         </motion.div>
 
-        <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <DashboardCard
-            title="Avg IA Marks"
-            value={performanceTrends?.avg_ia_mark ?? 0}
-            description="Average internal assessment"
-            icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />}
-            className="h-full" />
-          
-        </motion.div>
+        {userTier >= 2 && (
+          <motion.div className="h-full" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <DashboardCard
+              title="Avg IA Marks"
+              value={performanceTrends?.avg_ia_mark ?? 0}
+              description="Average internal assessment"
+              icon={<FaUserCheck className={theme === 'dark' ? "text-green-400 text-3xl" : "text-green-500 text-3xl"} />}
+              className="h-full" />
+            
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Main Content - stacked full-width rows */}
       <div className="flex flex-col gap-6 w-full">
         {/* Performance Trends (full width) */}
-        <Card id="faculty-charts" className={`h-full flex flex-col w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} shadow-sm`}>
-          <CardHeader id="faculty-charts-header" className="flex flex-col md:flex-row items-start md:items-center justify-between ">
-            <div className="flex-1 text-left">
-              <CardTitle>Performance Trends</CardTitle>
-              <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Average Attendance and IA marks per subject</p>
-            </div>
-            <div className="mt-3 md:mt-0 md:ml-4 flex-none w-full md:w-48">
-              <Select onValueChange={(v) => setSelectedSubject(v)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All Subjects" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {subjectOptions.map((opt) =>
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent className="flex-1 h-full mt-3">
-            <div className="h-full flex flex-col md:flex-row gap-4 items-stretch">
-              {/* Bar chart - Average Attendance */}
-              <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
-                <h4 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average Attendance (30 days)</h4>
-                <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
-                  <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
-                    <ResponsiveContainer width="100%" height={240}>
-                      <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
-                        <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
-                        <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                        <Tooltip formatter={(value: any) => `${value}%`} />
-                        <Bar dataKey="attendance" fill="#3b82f6" radius={[6, 6, 0, 0]}>
-                          <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: 10 }} />
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+        {userTier >= 2 && (
+          <Card id="faculty-charts" className={`h-full flex flex-col w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} shadow-sm`}>
+            <CardHeader id="faculty-charts-header" className="flex flex-col md:flex-row items-start md:items-center justify-between ">
+              <div className="flex-1 text-left">
+                <CardTitle>Performance Trends</CardTitle>
+                <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Average Attendance and IA marks per subject</p>
+              </div>
+              <div className="mt-3 md:mt-0 md:ml-4 flex-none w-full md:w-48">
+                <Select onValueChange={(v) => setSelectedSubject(v)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Subjects" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {subjectOptions.map((opt) =>
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 h-full mt-3">
+              <div className="h-full flex flex-col md:flex-row gap-4 items-stretch">
+                {/* Bar chart - Average Attendance */}
+                <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
+                  <h4 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average Attendance (30 days)</h4>
+                  <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                    <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
+                      <ResponsiveContainer width="100%" height={240}>
+                        <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
+                          <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
+                          <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                          <Tooltip formatter={(value: any) => `${value}%`} />
+                          <Bar dataKey="attendance" fill="#3b82f6" radius={[6, 6, 0, 0]}>
+                            <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: 10 }} />
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Line chart - IA Marks */}
-              <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
-                <h4 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average IA Marks</h4>
-                <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
-                  <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
-                    <ResponsiveContainer width="100%" height={240}>
-                      <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
-                        <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
-                        <YAxis />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="iaMarks" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                {/* Line chart - IA Marks */}
+                <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
+                  <h4 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average IA Marks</h4>
+                  <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                    <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
+                      <ResponsiveContainer width="100%" height={240}>
+                        <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 25 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#2a2a2a' : '#eaeaea'} />
+                          <XAxis dataKey="subject" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={45} />
+                          <YAxis />
+                          <Tooltip />
+                          <Line type="monotone" dataKey="iaMarks" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Current & Next Session (full width row) */}
         <section id="faculty-live-timer" className="w-full">
@@ -487,11 +493,13 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
           onClick={() => setActivePage("timetable")} />
         
 
-        <DashboardCard
-          title="Mentoring"
-          description="Open mentoring / proctor students"
-          icon={<GraduationCap size={20} />}
-          onClick={() => setActivePage("proctor-students")} />
+        {userTier >= 2 && (
+          <DashboardCard
+            title="Mentoring"
+            description="Open mentoring / proctor students"
+            icon={<GraduationCap size={20} />}
+            onClick={() => setActivePage("proctor-students")} />
+        )}
         
         {userTier >= 3 && (
           <DashboardCard

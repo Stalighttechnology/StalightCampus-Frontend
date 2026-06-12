@@ -23,6 +23,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getDashboardOverview } from "../../utils/student_api";
 import { useTheme } from "@/context/ThemeContext";
 import { API_BASE_URL } from "../../utils/config";
+import { PLAN_TIERS } from "@/utils/planGating";
 
 import { SkeletonStatsGrid, SkeletonChart, SkeletonPageHeader } from "../ui/skeleton";
 
@@ -97,6 +98,11 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
   const [nextSession, setNextSession] = useState<any>(null);
   const [viewportTrigger, setViewportTrigger] = useState(0);
   const { theme } = useTheme();
+
+  const userStr = typeof window !== 'undefined' ? sessionStorage.getItem("user") || localStorage.getItem("user") : null;
+  const sessionUser = userStr ? JSON.parse(userStr) : null;
+  const orgPlan = sessionUser?.org_plan || user?.org_plan || "basic";
+  const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
   // Update current time every second
   useEffect(() => {
@@ -570,41 +576,43 @@ const StudentDashboardOverview: React.FC<StudentDashboardOverviewProps> = ({ use
       </section>
 
       {/* Performance Overview */}
-      <section>
-        <Card
-          id="student-performance-card"
-          className={`overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}
-        >
-          <CardHeader className="p-5 pb-0">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                  <CardTitle className="text-lg font-semibold">Performance Metrics</CardTitle>
+      {userTier >= 2 && (
+        <section>
+          <Card
+            id="student-performance-card"
+            className={`overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-100'} shadow-sm`}
+          >
+            <CardHeader className="p-5 pb-0">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    <CardTitle className="text-lg font-semibold">Performance Metrics</CardTitle>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium">Comparative analytics of attendance vs academic scores</p>
                 </div>
-                <p className="text-xs text-muted-foreground font-medium">Comparative analytics of attendance vs academic scores</p>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-5 pt-6">
-            <div className="w-full h-[250px] md:h-[320px]">
-              {dashboardData.performance_overview.subject_performance.length > 0 ?
-                <Bar key={`chart-${viewportTrigger}`} data={generateChartData} options={chartOptions} /> :
+            </CardHeader>
+            <CardContent className="p-5 pt-6">
+              <div className="w-full h-[250px] md:h-[320px]">
+                {dashboardData.performance_overview.subject_performance.length > 0 ?
+                  <Bar key={`chart-${viewportTrigger}`} data={generateChartData} options={chartOptions} /> :
 
-                <div className="h-full flex flex-col items-center justify-center">
-                  <div className={`p-10 w-full h-full border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-2 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
-                    <FaBookOpen className={`w-12 h-12 mb-2 ${theme === 'dark' ? 'text-primary/60' : 'text-primary/60'}`} />
-                    <div className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                      <p className="text-lg font-semibold">No Results Found</p>
-                      <p className="text-sm">Academic performance metrics will be available once assessment data is published.</p>
+                  <div className="h-full flex flex-col items-center justify-center">
+                    <div className={`p-10 w-full h-full border-2 border-dashed rounded-xl flex flex-col items-center justify-center space-y-2 ${theme === 'dark' ? 'border-border bg-accent/5' : 'border-gray-200 bg-gray-50/50'}`}>
+                      <FaBookOpen className={`w-12 h-12 mb-2 ${theme === 'dark' ? 'text-primary/60' : 'text-primary/60'}`} />
+                      <div className={`text-center ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                        <p className="text-lg font-semibold">No Results Found</p>
+                        <p className="text-sm">Academic performance metrics will be available once assessment data is published.</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              }
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+                }
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
     </div>);
 
 };

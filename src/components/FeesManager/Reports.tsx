@@ -70,9 +70,9 @@ const Reports: React.FC<{ isReadOnly?: boolean }> = ({ isReadOnly = false }) => 
   const orgPlan = user?.org_plan || "basic";
   const userTier = PLAN_TIERS[orgPlan.toLowerCase()] || 1;
 
-  const filteredRoles = userTier <= 2 
-    ? STAFF_ROLES.filter(r => ['principal', 'dean', 'hod', 'teacher', 'coe', 'fees_manager'].includes(r.value))
-    : STAFF_ROLES;
+  const filteredRoles = (userTier <= 2 
+    ? STAFF_ROLES.filter(r => ['principal', 'hod', 'teacher', 'coe', 'fees_manager'].includes(r.value))
+    : STAFF_ROLES).filter(r => r.value !== 'dean');
 
   // Calendar Detailed View
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);

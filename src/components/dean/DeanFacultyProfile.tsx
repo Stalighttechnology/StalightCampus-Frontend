@@ -15,6 +15,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { SkeletonStatsGrid, SkeletonTable, SkeletonPageHeader, SkeletonCard, SkeletonList } from "../ui/skeleton";
 import { Alert, AlertDescription } from "../ui/alert";
 import { normalizePaginatedResponse } from "../../utils/normalizePagination";
+import { useAuth } from "@/context/AuthContext";
 
 interface Branch {
   readonly id?: number;
@@ -308,6 +309,8 @@ const DeanFacultyProfile = ({
   initialStartDate,
   initialEndDate,
 }: DeanFacultyProfileProps) => {
+  const { user } = useAuth();
+  const userTier = user?.organization?.plan?.tier || 1;
   const [error, setError] = useState<string | null>(null);
   const { branches, loading: branchesLoading } = useBranches(setError);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
@@ -797,25 +800,27 @@ const DeanFacultyProfile = ({
                     </div>
 
                     {/* Leave Requests */}
-                    <div>
-                      <h3
-                        className={`text-xl font-semibold mb-4 flex items-center ${
-                          theme === "dark" ? "text-foreground" : "text-gray-800"
-                        }`}
-                      >
-                        <svg className="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m0 10a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v10z" />
-                        </svg>
-                        Leave Requests
-                      </h3>
-                      <LeaveRequestsTable
-                        leaves={profile.leaves ?? []}
-                        theme={theme}
-                        pagination={profile.leaves_pagination}
-                        currentPage={leavesPage}
-                        onPageChange={setLeavesPage}
-                      />
-                    </div>
+                    {userTier >= 2 && (
+                      <div>
+                        <h3
+                          className={`text-xl font-semibold mb-4 flex items-center ${
+                            theme === "dark" ? "text-foreground" : "text-gray-800"
+                          }`}
+                        >
+                          <svg className="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m0 10a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v10z" />
+                          </svg>
+                          Leave Requests
+                        </h3>
+                        <LeaveRequestsTable
+                          leaves={profile.leaves ?? []}
+                          theme={theme}
+                          pagination={profile.leaves_pagination}
+                          currentPage={leavesPage}
+                          onPageChange={setLeavesPage}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

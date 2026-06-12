@@ -142,14 +142,27 @@ const DeanStats = () => {
   
   const topBranches = branchStats.slice().sort((a, b) => (b.total_students || 0) - (a.total_students || 0)).slice(0, 6);
 
+  const filteredRoleDistribution: Record<string, number> = {};
+  if (roleDistribution) {
+    Object.keys(roleDistribution).forEach(key => {
+      const lowerKey = key.toLowerCase();
+      if (userTier === 1) {
+        if (lowerKey.includes('coe') || lowerKey.includes('fees') || lowerKey.includes('manager') || lowerKey.includes('admin') && !lowerKey.includes('org')) {
+          return; // skip unsupported roles
+        }
+      }
+      filteredRoleDistribution[key] = roleDistribution[key];
+    });
+  }
+
   // Pie: use roleDistribution if provided, otherwise fallback to present/absent pie
   const pieData = roleDistribution
     ? {
-        labels: Object.keys(roleDistribution),
+        labels: Object.keys(filteredRoleDistribution),
         datasets: [
           {
-            data: Object.values(roleDistribution),
-            backgroundColor: ['#60a5fa', '#34d399', '#f97316', '#ef4444'],
+            data: Object.values(filteredRoleDistribution),
+            backgroundColor: ['#60a5fa', '#34d399', '#f97316', '#ef4444', '#a855f7', '#ec4899', '#eab308'],
           },
         ],
       }

@@ -204,38 +204,43 @@ const AdminStats = ({ setError, onNavigate }: AdminStatsProps) => {
 
   };
 
+  const roleLabels = ["Students", "Faculty", "HODs", "Principals"];
+  const roleData = [
+    stats?.role_distribution?.students || 0,
+    stats?.role_distribution?.faculty || 0,
+    stats?.role_distribution?.hods || 0,
+    stats?.role_distribution?.principals || 0,
+  ];
+  const roleBgColor = [
+    "rgba(59, 130, 246, 0.6)",
+    "rgba(168, 85, 247, 0.6)",
+    "rgba(234, 179, 8, 0.6)",
+    "rgba(236, 72, 153, 0.6)",
+  ];
+  const roleBorderColor = [
+    "rgba(59, 130, 246, 1)",
+    "rgba(168, 85, 247, 1)",
+    "rgba(234, 179, 8, 1)",
+    "rgba(236, 72, 153, 1)",
+  ];
+
+  if (userTier >= 2) {
+    roleLabels.push("COE", "Fees Managers");
+    roleData.push(stats?.role_distribution?.coe || 0, stats?.role_distribution?.fees_managers || 0);
+    roleBgColor.push("rgba(34, 197, 94, 0.6)", "rgba(249, 115, 22, 0.6)");
+    roleBorderColor.push("rgba(34, 197, 94, 1)", "rgba(249, 115, 22, 1)");
+  }
+
   // Pie chart data for role distribution
   const pieData = {
-    labels: ["Students", "Faculty", "HODs", "COE", "Fees Managers", "Principals"],
+    labels: roleLabels,
     datasets: [
       {
-        data: [
-          stats?.role_distribution?.students || 0,
-          stats?.role_distribution?.faculty || 0,
-          stats?.role_distribution?.hods || 0,
-          stats?.role_distribution?.coe || 0,
-          stats?.role_distribution?.fees_managers || 0,
-          stats?.role_distribution?.principals || 0],
-
-        backgroundColor: [
-          "rgba(59, 130, 246, 0.6)",
-          "rgba(168, 85, 247, 0.6)",
-          "rgba(234, 179, 8, 0.6)",
-          "rgba(34, 197, 94, 0.6)",
-          "rgba(249, 115, 22, 0.6)",
-          "rgba(236, 72, 153, 0.6)"],
-
-        borderColor: [
-          "rgba(59, 130, 246, 1)",
-          "rgba(168, 85, 247, 1)",
-          "rgba(234, 179, 8, 1)",
-          "rgba(34, 197, 94, 1)",
-          "rgba(249, 115, 22, 1)",
-          "rgba(236, 72, 153, 1)"],
-
+        data: roleData,
+        backgroundColor: roleBgColor,
+        borderColor: roleBorderColor,
         borderWidth: 1
       }]
-
   };
 
 
