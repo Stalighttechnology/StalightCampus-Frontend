@@ -429,11 +429,10 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
         <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Exam Applications</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className={`block text-lg font-medium mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Period</label>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="w-full sm:w-64">
             <Select value={examPeriod} onValueChange={setExamPeriod}>
-              <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+              <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground h-10 rounded-xl' : 'bg-white border border-gray-300 text-gray-900 h-10 rounded-xl'}>
                 <SelectValue placeholder="Select exam period" />
               </SelectTrigger>
               <SelectContent>
@@ -448,13 +447,14 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
               </SelectContent>
             </Select>
           </div>
+          <div className="flex-1">
+            <Input
+              placeholder="Search proctor students by USN or name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={theme === 'dark' ? 'bg-background border border-input text-foreground h-10 rounded-xl' : 'bg-white border border-gray-300 text-gray-900 h-10 rounded-xl'} />
+          </div>
         </div>
-
-        <Input
-          placeholder="Search proctor students by USN or name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} />
         
 
         <div>
@@ -474,9 +474,9 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                 {students.map((student: any) =>
               <div key={student.usn} className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900'} shadow-sm`}>
                     <div className="flex justify-between items-start mb-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate">{student.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{student.usn}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-sm break-words">{student.name}</p>
+                        <p className="text-xs text-muted-foreground break-all">{student.usn}</p>
                       </div>
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${studentStatuses[student.usn] === 'Applied' ?
                   'bg-green-100 text-green-800' :
@@ -494,33 +494,51 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <Button onClick={() => openFor(student)} className="w-full bg-primary hover:bg-primary/90 text-white h-9">
+                      <Button
+                        onClick={() => openFor(student)}
+                        className={`w-full h-9 font-medium ${
+                          studentStatuses[student.usn] === 'Applied'
+                            ? theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                            : 'bg-primary hover:bg-[#9147e0] text-white border-0'
+                        }`}
+                        variant={studentStatuses[student.usn] === 'Applied' ? 'outline' : 'default'}
+                      >
                         {studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
                       </Button>
                       {studentStatuses[student.usn] === 'Applied' && (
-                        <Button
-                          onClick={() => handleDirectDownload(student)}
-                          className="w-full bg-primary hover:bg-primary/90 text-white h-9 flex items-center justify-center gap-2"
-                          disabled={downloadingId === student.usn}>
-                          {downloadingId === student.usn ?
-                            <Loader2 className="h-4 w-4 animate-spin" /> :
-                            <FileDown className="h-4 w-4" />
-                          }
-                          Export PDF
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            onClick={() => handleDirectDownload(student)}
+                            className={`w-full h-9 flex items-center justify-center gap-1.5 font-medium text-xs ${
+                              theme === 'dark'
+                                ? 'bg-blue-950/20 text-blue-400 border border-blue-500/30 hover:bg-blue-950/40'
+                                : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
+                            }`}
+                            variant="outline"
+                            disabled={downloadingId === student.usn}>
+                            {downloadingId === student.usn ?
+                              <Loader2 className="h-4 w-4 animate-spin" /> :
+                              <FileDown className="h-4 w-4" />
+                            }
+                            Export PDF
+                          </Button>
+                          <Button
+                            onClick={() => downloadHallTicket(student)}
+                            className={`w-full h-9 flex items-center justify-center gap-1.5 font-medium text-xs ${
+                              theme === 'dark'
+                                ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
+                                : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                            }`}
+                            variant="outline"
+                            disabled={downloadingHallTicketId === student.usn}>
+                            {downloadingHallTicketId === student.usn ?
+                              <Loader2 className="h-4 w-4 animate-spin" /> :
+                              <FileDown className="h-4 w-4" />
+                            }
+                            Hall Ticket
+                          </Button>
+                        </div>
                       )}
-                      {studentStatuses[student.usn] === 'Applied' &&
-                  <Button
-                    onClick={() => downloadHallTicket(student)}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white h-9 flex items-center justify-center gap-2"
-                    disabled={downloadingHallTicketId === student.usn}>
-                    {downloadingHallTicketId === student.usn ?
-                      <Loader2 className="h-4 w-4 animate-spin" /> :
-                      <FileDown className="h-4 w-4" />
-                    }
-                    Download Hall Ticket
-                  </Button>
-                  }
                     </div>
                   </div>
               )}
@@ -555,13 +573,26 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm flex gap-2 justify-center">
-                        <Button onClick={() => openFor(student)} className="bg-primary hover:bg-primary/90 text-white h-8 px-3">
+                        <Button
+                          onClick={() => openFor(student)}
+                          className={`h-8 px-3 font-semibold transition-colors ${
+                            studentStatuses[student.usn] === 'Applied'
+                              ? theme === 'dark' ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20' : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                              : 'bg-primary hover:bg-[#9147e0] text-white border-0'
+                          }`}
+                          variant={studentStatuses[student.usn] === 'Applied' ? 'outline' : 'default'}
+                        >
                           {studentStatuses[student.usn] === 'Applied' ? 'Edit Application' : 'Apply'}
                         </Button>
                         {studentStatuses[student.usn] === 'Applied' && (
                           <Button
                             onClick={() => handleDirectDownload(student)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-3 flex items-center gap-2"
+                            className={`h-8 px-3 flex items-center gap-2 font-semibold transition-colors ${
+                              theme === 'dark'
+                                ? 'bg-blue-950/20 text-blue-400 border border-blue-500/30 hover:bg-blue-950/40'
+                                : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
+                            }`}
+                            variant="outline"
                             disabled={downloadingId === student.usn}>
                             {downloadingId === student.usn ?
                               <Loader2 className="h-4 w-4 animate-spin" /> :
@@ -570,18 +601,23 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                             Export PDF
                           </Button>
                         )}
-                        {studentStatuses[student.usn] === 'Applied' &&
-                    <Button
-                      onClick={() => downloadHallTicket(student)}
-                      className="bg-green-600 hover:bg-green-700 text-white h-8 px-3 flex items-center gap-2"
-                      disabled={downloadingHallTicketId === student.usn}>
-                      {downloadingHallTicketId === student.usn ?
-                        <Loader2 className="h-4 w-4 animate-spin" /> :
-                        <FileDown className="h-4 w-4" />
-                      }
-                      Hall Ticket
-                    </Button>
-                    }
+                        {studentStatuses[student.usn] === 'Applied' && (
+                          <Button
+                            onClick={() => downloadHallTicket(student)}
+                            className={`h-8 px-3 flex items-center gap-2 font-semibold transition-colors ${
+                              theme === 'dark'
+                                ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
+                                : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                            }`}
+                            variant="outline"
+                            disabled={downloadingHallTicketId === student.usn}>
+                            {downloadingHallTicketId === student.usn ?
+                              <Loader2 className="h-4 w-4 animate-spin" /> :
+                              <FileDown className="h-4 w-4" />
+                            }
+                            Hall Ticket
+                          </Button>
+                        )}
                       </td>
                     </tr>
                 )}
@@ -635,7 +671,7 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[70vw] max-h-[90vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar">
+          <DialogContent className="w-[90%] md:w-full md:max-w-[70vw] h-[80vh] md:h-auto md:max-h-[80vh] overflow-y-auto custom-scrollbar rounded-xl">
             <DialogTitle className="sr-only">
               Exam Application — {selectedStudent?.name || 'Student'}
             </DialogTitle>
