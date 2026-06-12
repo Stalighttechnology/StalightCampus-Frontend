@@ -76,14 +76,26 @@ const ProctorStudents = () => {
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader id="proctor-students-header">
-        <div className="flex items-center justify-between gap-4">
-          <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Proctor Students</CardTitle>
+      <CardHeader id="proctor-students-header" className="space-y-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Proctor Students</CardTitle>
+              {pagination?.paginationState?.totalItems !== undefined && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                  {pagination.paginationState.totalItems} Total
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground leading-normal">
+              View and export performance and attendance statistics for your proctored students
+            </p>
+          </div>
           <Button
             id="proctor-export-pdf-btn"
             onClick={handleExportPDF}
             disabled={downloadingPDF || proctorStudents.length === 0}
-            className="h-9 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center gap-2 text-sm"
+            className="w-full md:w-auto h-9 bg-primary text-white hover:bg-primary/90 shadow-md transition-all duration-200 flex items-center justify-center gap-2 text-sm"
           >
             {downloadingPDF
               ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -134,7 +146,7 @@ const ProctorStudents = () => {
                       </div>
                       <h3 className="text-lg font-semibold mb-1">No students found</h3>
                       <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                        {debouncedSearch 
+                        {debouncedSearch
                           ? `We couldn't find any proctor students matching "${debouncedSearch}".`
                           : "You don't have any students assigned for proctoring yet."}
                       </p>

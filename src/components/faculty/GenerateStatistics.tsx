@@ -250,14 +250,14 @@ const GenerateStatistics: React.FC = () => {
                 View and export performance and attendance statistics for your proctored students
               </p>
             </div>
-            <div>
+            <div className="w-full md:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 id="generate-stats-export-pdf-btn"
                 onClick={handleExportPDF}
                 disabled={downloadingPDF || proctorStudents.length === 0}
-                className="flex items-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2"
+                className="w-full md:w-auto flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2 h-9"
               >
                 {downloadingPDF
                   ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
