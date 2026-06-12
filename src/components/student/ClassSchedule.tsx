@@ -338,7 +338,7 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                           {item.meeting_link}
                           <ExternalLink className="w-3 h-3 flex-shrink-0" />
                         </a>
-                        <div className="flex items-center gap-1.5 shrink-0 sm:self-auto self-end">
+                        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 sm:self-auto">
                           {classState === "live" && (
                             <Button
                               size="sm"
@@ -346,21 +346,21 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                                 item.meeting_link &&
                                 window.open(item.meeting_link, "_blank")
                               }
-                              className="text-xs h-7 px-3 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20"
+                              className="text-xs h-8 px-3 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 flex-1 sm:flex-initial"
                             >
                               Join Meet
                               <ArrowUpRight className="w-3 h-3 ml-1 shrink-0" />
                             </Button>
                           )}
                           {classState === "upcoming" && (
-                             <span className="text-[10px] font-medium text-muted-foreground mr-1">
+                             <span className="text-[10px] font-medium text-muted-foreground mr-auto sm:mr-1">
                                Join at {formatTo12Hour(item.start_time)}
                              </span>
                            )}
                           <Button
                             variant="outline"
                             size="icon"
-                            className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
+                            className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground shrink-0"
                             title="Copy Link"
                             onClick={(e) => handleCopyLink(item.meeting_link || "", e)}
                           >
@@ -369,7 +369,7 @@ const ClassSchedule: React.FC<ClassScheduleProps> = ({ user, setError }) => {
                           <Button
                             variant="outline"
                             size="icon"
-                            className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground"
+                            className="w-8 h-8 rounded-md border-gray-200 dark:border-border text-muted-foreground hover:text-foreground shrink-0"
                             title="Share Link"
                             onClick={(e) =>
                               handleShareLink(item.meeting_link || "", item.topic, e)

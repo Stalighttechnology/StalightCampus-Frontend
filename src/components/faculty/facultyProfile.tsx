@@ -667,17 +667,18 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
-          <Button className="text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90" onClick={() => {if (isEditing) {handleSave();} else {setIsEditing(true);}}}>
-            {isEditing ?
-            isSaving ?
-            <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-white/40 animate-pulse" />
-                  Saving...
-                </div> :
-            'Save' :
-            'Edit Profile'}
+          <Button
+            size="sm"
+            onClick={() => { if (isEditing) handleSave(); else setIsEditing(true); }}
+            variant="outline"
+            className={`w-full sm:w-auto text-sm text-white border transition-colors ${
+              isEditing 
+                ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
+                : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
+            }`}
+            disabled={loading || isSaving}>
+            {isEditing ? isSaving ? 'Saving Profile...' : 'Save Profile' : 'Edit Profile'}
           </Button>
-          {isEditing && <button onClick={() => setIsEditing(false)} className={`text-sm px-3 sm:px-4 py-1.5 sm:py-2 border rounded-md transition-colors ${theme === 'dark' ? 'border-muted-foreground text-muted-foreground hover:border-foreground hover:text-foreground' : 'border-gray-600 text-gray-600 hover:border-gray-900 hover:text-gray-900'}`}>Cancel</button>}
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogTrigger asChild>
               <Button className="text-sm px-3 sm:px-4 py-1.5 sm:py-2 h-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
@@ -762,17 +763,28 @@ const FacultyProfile = React.forwardRef<HTMLDivElement, any>((props, ref) => {
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-stretch">
           {/* Left column: avatar and basic */}
           <div className="col-span-1 flex flex-col items-center h-full">
-            <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0">
-              <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                <AvatarImage src={formData.profile_picture || undefined} alt={`${formData.firstName} ${formData.lastName}`} />
-<AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+            <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0 group cursor-pointer">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden">
+                <Avatar className="w-full h-full">
+                  <AvatarImage src={formData.profile_picture || undefined} alt={`${formData.firstName} ${formData.lastName}`} />
+                  <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
                     {(formData.firstName?.[0] || "") + (formData.lastName?.[0] || "")}
                   </AvatarFallback>
-              </Avatar>
+                </Avatar>
+                {(isEditing || !formData?.profile_picture) && (
+                  <label 
+                    htmlFor="profile-picture-upload" 
+                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white cursor-pointer"
+                  >
+                    <Camera className="h-5 w-5 mb-1 transform scale-75 group-hover:scale-100 group-hover:animate-bounce transition-transform duration-300" />
+                    <span className="text-[9px] font-semibold tracking-wider uppercase">Change</span>
+                  </label>
+                )}
+              </div>
               {(isEditing || !formData?.profile_picture) && (
                 <label 
                   htmlFor="profile-picture-upload" 
-                  className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                  className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg md:hidden"
                 >
                   <Camera className="h-4 w-4" />
                 </label>

@@ -42,6 +42,7 @@ import {
   ExternalLink,
   Copy,
   Share2,
+  Plus,
 } from "lucide-react";
 import { useFacultyAssignmentsQuery } from "@/hooks/useApiQueries";
 import { useTheme } from "@/context/ThemeContext";
@@ -196,17 +197,52 @@ function useAssignmentDropdowns(assignments: any[]) {
     else if (uSecs.length !== 1) setTimeout(() => setIsSectionOpen(true), 150);
   }, [subjectId, normalized]);
 
-  // When branch changes manually, clear downstream
+  // When branch changes manually, clear downstream and cascade trigger
   useEffect(() => {
     if (suppressBranchClear.current) { suppressBranchClear.current = false; return; }
     setSemesterId(null);
     setSectionId(null);
-  }, [branchId]);
+
+    if (subjectId && branchId) {
+      const matching = normalized.filter(
+        (a) => a.subject_id === subjectId && a.branch_id === branchId
+      );
+      const uniqueSems = [...new Set(matching.map((a) => a.semester_id))].filter(Boolean);
+      if (uniqueSems.length === 1) {
+        suppressSemClear.current = true;
+        setSemesterId(uniqueSems[0]);
+        // Also check section
+        const uniqueSecs = [...new Set(matching.filter(a => a.semester_id === uniqueSems[0]).map(a => a.section_id))].filter(Boolean);
+        if (uniqueSecs.length === 1) {
+          setSectionId(uniqueSecs[0]);
+        } else if (uniqueSecs.length > 1) {
+          setTimeout(() => setIsSectionOpen(true), 150);
+        }
+      } else if (uniqueSems.length > 1) {
+        setTimeout(() => setIsSemesterOpen(true), 150);
+      }
+    }
+  }, [branchId, subjectId, normalized]);
 
   useEffect(() => {
     if (suppressSemClear.current) { suppressSemClear.current = false; return; }
     setSectionId(null);
-  }, [semesterId]);
+
+    if (subjectId && branchId && semesterId) {
+      const matching = normalized.filter(
+        (a) =>
+          a.subject_id === subjectId &&
+          a.branch_id === branchId &&
+          a.semester_id === semesterId
+      );
+      const uniqueSecs = [...new Set(matching.map((a) => a.section_id))].filter(Boolean);
+      if (uniqueSecs.length === 1) {
+        setSectionId(uniqueSecs[0]);
+      } else if (uniqueSecs.length > 1) {
+        setTimeout(() => setIsSectionOpen(true), 150);
+      }
+    }
+  }, [semesterId, subjectId, branchId, normalized]);
 
   const reset = () => {
     setSubjectId(null);
@@ -253,9 +289,10 @@ interface DropdownGroupProps {
   dropdowns: ReturnType<typeof useAssignmentDropdowns>;
   theme: string;
   disabled?: boolean;
+  className?: string;
 }
 
-const DropdownGroup = ({ dropdowns, theme, disabled }: DropdownGroupProps) => {
+const DropdownGroup = ({ dropdowns, theme, disabled, className }: DropdownGroupProps) => {
   const {
     subjectId, setSubjectId,
     branchId, setBranchId,
@@ -278,7 +315,7 @@ const DropdownGroup = ({ dropdowns, theme, disabled }: DropdownGroupProps) => {
     } max-h-[200px]`;
 
   return (
-    <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-4 w-full">
+    <div className={className || "flex flex-col gap-2 sm:grid sm:grid-cols-2 md:grid-cols-4 w-full"}>
       {/* Subject */}
       <Select
         value={subjectId?.toString()}
@@ -304,10 +341,7 @@ const DropdownGroup = ({ dropdowns, theme, disabled }: DropdownGroupProps) => {
       {/* Branch */}
       <Select
         value={branchId?.toString()}
-        onValueChange={(v) => {
-          setBranchId(Number(v));
-          setTimeout(() => setIsSemesterOpen(true), 150);
-        }}
+        onValueChange={(v) => setBranchId(Number(v))}
         disabled={!subjectId || disabled}
         open={isBranchOpen}
         onOpenChange={setIsBranchOpen}
@@ -327,10 +361,7 @@ const DropdownGroup = ({ dropdowns, theme, disabled }: DropdownGroupProps) => {
       {/* Semester */}
       <Select
         value={semesterId?.toString()}
-        onValueChange={(v) => {
-          setSemesterId(Number(v));
-          setTimeout(() => setIsSectionOpen(true), 150);
-        }}
+        onValueChange={(v) => setSemesterId(Number(v))}
         disabled={!branchId || semesters.length === 0 || disabled}
         open={isSemesterOpen}
         onOpenChange={setIsSemesterOpen}
@@ -605,7 +636,6 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // ── Section 1: Schedule dropdowns ────────────────────────────────────────
   const scheduleDropdowns = useAssignmentDropdowns(rawAssignments);
 
   // ── Dialog / form state ──────────────────────────────────────────────────
@@ -754,28 +784,29 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
       .finally(() => setGoogleConnectLoading(false));
   }, []);
 
-  // Open dialog when scheduleDropdowns is fully selected
-  useEffect(() => {
-    if (scheduleDropdowns.isFullySelected) {
-      if (googleConnected === false) {
-        setGoogleDialogOpen(true);
-        scheduleDropdowns.reset();
-      } else {
-        // Refresh with latest current time when form is opened
-        const freshVals = getInitialScheduleState();
-        setDate(freshVals.date);
-        setStartHour(freshVals.startHour);
-        setStartMinute(freshVals.startMinute);
-        setStartPeriod(freshVals.startPeriod);
-        setEndHour(freshVals.endHour);
-        setEndMinute(freshVals.endMinute);
-        setEndPeriod(freshVals.endPeriod);
-        setDialogOpen(true);
-      }
+  const handleScheduleButtonClick = () => {
+    // Sync current history selections to schedule dropdowns if they exist
+    if (historyDropdowns.subjectId) {
+      scheduleDropdowns.setSubjectId(historyDropdowns.subjectId);
     }
-  }, [scheduleDropdowns.isFullySelected, googleConnected]);
 
-  // Close dialog resets the schedule dropdowns
+    if (googleConnected === false) {
+      setGoogleDialogOpen(true);
+    } else {
+      // Refresh with latest current time when form is opened
+      const freshVals = getInitialScheduleState();
+      setDate(freshVals.date);
+      setStartHour(freshVals.startHour);
+      setStartMinute(freshVals.startMinute);
+      setStartPeriod(freshVals.startPeriod);
+      setEndHour(freshVals.endHour);
+      setEndMinute(freshVals.endMinute);
+      setEndPeriod(freshVals.endPeriod);
+      setDialogOpen(true);
+    }
+  };
+
+  // Close dialog
   const handleDialogClose = () => {
     setDialogOpen(false);
     scheduleDropdowns.reset();
@@ -946,70 +977,7 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
   return (
     <div className={`w-full space-y-6 ${theme === "dark" ? "bg-background text-foreground" : "bg-gray-50 text-gray-900"}`}>
 
-      {/* ── Section 1: Schedule a New Class ─────────────────────────────── */}
-      <Card className={selectorCardCls}>
-        <CardHeader id="schedule-class-header" className="border-b border-border/50 pb-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <CalendarDays className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-xl sm:text-2xl" >Schedule a New Class</CardTitle>
-              <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
-                Select a subject assignment to open the scheduling form
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-5">
-          {assignmentsLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading your assignments…
-            </div>
-          ) : (
-            <DropdownGroup dropdowns={scheduleDropdowns} theme={theme} />
-          )}
 
-          {!assignmentsLoading && scheduleDropdowns.subjects.length === 0 && (
-            <p className="text-sm text-muted-foreground mt-4 text-center py-4">
-              No subject assignments found. Contact your administrator.
-            </p>
-          )}
-
-          {!scheduleDropdowns.isFullySelected && scheduleDropdowns.subjects.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center py-12 bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50 mt-6"
-            >
-              <CalendarDays className="w-12 h-12 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground font-medium text-lg text-center px-4">
-                Select a subject assignment to open the scheduling form
-              </p>
-              <p className="text-muted-foreground/70 text-sm text-center px-4 mt-1">
-                Choose an assignment from the dropdowns above to continue
-              </p>
-            </motion.div>
-          )}
-
-          {/* Optimistic immediately-added history (from this session's saves) */}
-          {immediateHistory.length > 0 && (
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                <h3 className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                  Just Scheduled This Session
-                </h3>
-              </div>
-              <div className="space-y-2">
-                {immediateHistory.map((cls) => (
-                  <ClassHistoryCard key={`immediate-${cls.id}`} cls={cls} theme={theme} currentTime={currentTime} />
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* ── Google Not Connected Dialog ──────────────────────────────────── */}
       <Dialog open={googleDialogOpen} onOpenChange={setGoogleDialogOpen}>
@@ -1058,26 +1026,21 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Schedule Class Dialog Modal ──────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleDialogClose(); }}>
-        <DialogContent className="max-w-[90%] sm:max-w-[540px] max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl">
+        <DialogContent className="w-[90%] h-[80vh] sm:w-full sm:max-w-[540px] sm:h-auto overflow-y-auto custom-scrollbar rounded-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <CalendarDays className="w-5 h-5 text-primary" />
               Schedule Class
             </DialogTitle>
-            {scheduleDropdowns.currentAssignment && (
-              <DialogDescription>
-                <span className="font-medium text-foreground">
-                  {scheduleDropdowns.currentAssignment.subject_name}
-                </span>
-                {" "}·{" "}
-                {scheduleDropdowns.currentAssignment.branch} · Sem{" "}
-                {scheduleDropdowns.currentAssignment.semester} ·{" "}
-                {scheduleDropdowns.currentAssignment.section}
-              </DialogDescription>
-            )}
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+            {/* Class Assignment Dropdowns */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">Class Assignment Details *</label>
+              <DropdownGroup dropdowns={scheduleDropdowns} theme={theme} className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full" />
+            </div>
+
             {/* Topic */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground">
@@ -1267,24 +1230,33 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
                 </CardDescription>
               </div>
             </div>
-            {historyClasses.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto self-start sm:self-auto">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportPDF}
-                disabled={exportingPDF}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto self-start sm:self-auto"
+                onClick={handleScheduleButtonClick}
+                className="bg-primary hover:bg-primary/90 text-white h-9 px-4 transition-all w-full sm:w-auto"
               >
-                {exportingPDF ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Exporting...
-                  </>
-                ) : (
-                  "Export PDF"
-                )}
+                <Plus className="w-4 h-4 mr-2" />
+                Schedule Class
               </Button>
-            )}
+              {historyClasses.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPDF}
+                  disabled={exportingPDF}
+                  className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto"
+                >
+                  {exportingPDF ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Exporting...
+                    </>
+                  ) : (
+                    "Export PDF"
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-5 space-y-4">
@@ -1292,7 +1264,21 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
           {/* History list */}
           {historyDropdowns.isFullySelected && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-4">
+              {immediateHistory.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <h3 className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                      Just Scheduled This Session
+                    </h3>
+                  </div>
+                  {immediateHistory.map((cls) => (
+                    <ClassHistoryCard key={`immediate-${cls.id}`} cls={cls} theme={theme} currentTime={currentTime} />
+                  ))}
+                </div>
+              )}
+
               {historyLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
                   <Loader2 className="w-4 h-4 animate-spin" /> Loading class history…
@@ -1375,6 +1361,17 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Floating Action Button (FAB) for mobile view to Schedule Class */}
+      <div className="fixed bottom-6 right-6 z-50 sm:hidden">
+        <Button
+          onClick={handleScheduleButtonClick}
+          className="bg-primary hover:bg-primary/90 text-white rounded-full w-14 h-14 shadow-lg flex items-center justify-center p-0 transition-transform active:scale-95 border-none"
+          title="Schedule Class"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      </div>
     </div>
   );
 };

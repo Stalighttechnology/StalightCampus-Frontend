@@ -490,12 +490,12 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               <div className="w-full">
                 <label className={`block text-sm sm:text-xs mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>First Name</label>
-                <Input value={profile.first_name} name="first_name" onChange={handleChange} disabled={true} placeholder="First name" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+                <Input value={profile.first_name} name="first_name" onChange={handleChange} disabled={!editing} placeholder="First name" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
                 {localErrors.first_name && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.first_name}</p>}
               </div>
               <div className="w-full">
                 <label className={`block text-sm sm:text-xs mb-1.5 sm:mb-2 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Last Name</label>
-                <Input value={profile.last_name} name="last_name" onChange={handleChange} disabled={true} placeholder="Last name" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
+                <Input value={profile.last_name} name="last_name" onChange={handleChange} disabled={!editing} placeholder="Last name" className="text-base sm:text-sm h-8 sm:h-9 md:h-10 w-full disabled:opacity-80 disabled:placeholder-opacity-80" />
                 {localErrors.last_name && <p className={`text-xs mt-1 sm:mt-1.5 ${theme === 'dark' ? 'text-destructive' : 'text-red-500'}`}>{localErrors.last_name}</p>}
               </div>
             </div>
@@ -1030,17 +1030,28 @@ const AdminProfile = ({ user: propUser, setError }: AdminProfileProps) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-start">
             <div className="col-span-1 flex flex-col items-center">
-              <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0">
-                <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                  <AvatarImage src={(profile as any).profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
-<AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+              <div className="relative mb-3 sm:mb-4 mt-4 flex-shrink-0 group cursor-pointer">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden">
+                  <Avatar className="w-full h-full">
+                    <AvatarImage src={(profile as any).profile_picture} alt={`${profile.first_name} ${profile.last_name}`} />
+                    <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
                       {(profile.first_name?.[0] || "") + (profile.last_name?.[0] || "")}
                     </AvatarFallback>
-                </Avatar>
+                  </Avatar>
+                  {(editing || !profile?.profile_picture) && (
+                    <label 
+                      htmlFor="profile-picture-upload" 
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white cursor-pointer"
+                    >
+                      <Camera className="h-5 w-5 mb-1 transform scale-75 group-hover:scale-100 group-hover:animate-bounce transition-transform duration-300" />
+                      <span className="text-[9px] font-semibold tracking-wider uppercase">Change</span>
+                    </label>
+                  )}
+                </div>
                 {(editing || !profile?.profile_picture) && (
                   <label
                     htmlFor="profile-picture-upload"
-                    className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                    className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg md:hidden"
                   >
                     <Camera className="h-4 w-4" />
                   </label>

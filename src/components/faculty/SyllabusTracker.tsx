@@ -455,38 +455,35 @@ const SyllabusTracker = () => {
                           </div>
                         </div>
 
-                        {/* Completed Toggle & Save Action */}
-                        <div className="flex flex-col md:flex-col items-stretch md:items-end gap-3 w-full md:w-auto pl-0 md:pl-0 border-t md:border-t-0 pt-4 md:pt-0">
-                          <div className="flex flex-row items-center justify-between gap-4 w-full">
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant={w.is_completed ? "destructive" : "outline"}
-                                className={`text-xs font-semibold px-3 py-1.5 h-8 border transition-all active:scale-95 ${
-                                  w.is_completed
-                                    ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800'
-                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800'
-                                }`}
-                                onClick={() => handleToggleCompletion(w.week, w.is_completed)}
-                              >
-                                {w.is_completed ? "Mark Incomplete" : "Mark Completed"}
-                              </Button>
+                         {/* Completed Toggle & Save Action */}
+                        <div className="flex flex-col items-stretch md:items-end gap-3 w-full md:w-auto pl-0 border-t md:border-t-0 pt-4 md:pt-0">
+                          {w.completed_date && (
+                            <div className="text-xs text-muted-foreground md:text-right leading-tight">
+                              Covered: <span className="font-semibold text-foreground">{w.completed_date}</span> &bull; By: <span className="font-semibold text-foreground">{w.faculty_name}</span>
                             </div>
-                            {w.completed_date && (
-                              <div className="text-xs text-right opacity-70 leading-tight">
-                                <p>Covered: {w.completed_date}</p>
-                                <p className="font-medium">By: {w.faculty_name}</p>
-                              </div>
-                            )}
+                          )}
+                          <div className="flex flex-col sm:flex-row gap-2 w-full">
+                            <Button
+                              size="sm"
+                              variant={w.is_completed ? "destructive" : "outline"}
+                              className={`text-xs font-semibold h-9 w-full sm:w-auto transition-all active:scale-95 ${
+                                w.is_completed
+                                  ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800'
+                              }`}
+                              onClick={() => handleToggleCompletion(w.week, w.is_completed)}
+                            >
+                              {w.is_completed ? "Mark Incomplete" : "Mark Completed"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="w-full sm:w-auto text-xs h-9 font-semibold transition-all active:scale-95"
+                              onClick={() => handleSaveProgress(w.week, w.is_completed)}
+                              disabled={savingProgress === w.week}
+                            >
+                              {savingProgress === w.week ? "Saving..." : <><Save className="w-4 h-4 mr-2" /> Save Progress</>}
+                            </Button>
                           </div>
-                          <Button
-                            size="sm"
-                            className="w-full md:w-auto text-xs"
-                            onClick={() => handleSaveProgress(w.week, w.is_completed)}
-                            disabled={savingProgress === w.week}
-                          >
-                            {savingProgress === w.week ? "Saving..." : <><Save className="w-4 h-4 mr-2" /> Save Progress</>}
-                          </Button>
                         </div>
                       </div>
                     );

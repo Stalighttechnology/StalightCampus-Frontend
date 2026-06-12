@@ -421,21 +421,32 @@ const DeanProfile = () => {
       <CardContent className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 items-stretch">
           <div className="col-span-1 flex flex-col items-center h-full">
-            <div className="relative mb-3 sm:mb-4 flex-shrink-0">
-              <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                <AvatarImage src={profile.profile_image || (profile as any).profile_picture || undefined} alt={`${profile.first_name} ${profile.last_name}`} className="object-cover" />
-                <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
-                  {getInitials(profile)}
-                </AvatarFallback>
-              </Avatar>
+            <div className="relative mb-3 sm:mb-4 flex-shrink-0 group cursor-pointer">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden">
+                <Avatar className="w-full h-full">
+                  <AvatarImage src={profile.profile_image || (profile as any).profile_picture || undefined} alt={`${profile.first_name} ${profile.last_name}`} className="object-cover" />
+                  <AvatarFallback className="bg-primary text-white text-lg sm:text-2xl font-semibold">
+                    {getInitials(profile)}
+                  </AvatarFallback>
+                </Avatar>
+                {(editing || !profile?.profile_picture) && (
+                  <label 
+                    htmlFor="dean-profile-picture-upload" 
+                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white cursor-pointer"
+                  >
+                    <Camera className="h-5 w-5 mb-1 transform scale-75 group-hover:scale-100 group-hover:animate-bounce transition-transform duration-300" />
+                    <span className="text-[9px] font-semibold tracking-wider uppercase">Change</span>
+                  </label>
+                )}
+              </div>
               {(editing || !profile?.profile_picture) && (
-<label 
-                htmlFor="dean-profile-picture-upload" 
-                className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
-              >
-                <Camera className="h-4 w-4" />
-              </label>
-)}
+                <label 
+                  htmlFor="dean-profile-picture-upload" 
+                  className="absolute bottom-0 right-0 bg-primary hover:bg-primary/90 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg md:hidden"
+                >
+                  <Camera className="h-4 w-4" />
+                </label>
+              )}
               <input 
                 id="dean-profile-picture-upload" 
                 type="file" 
@@ -443,16 +454,15 @@ const DeanProfile = () => {
                 onChange={handleProfilePictureSelect} 
                 className="hidden" 
               />
-                {editing && profile?.profile_picture && (
-                  <button
-                    onClick={handleDeleteProfilePicture}
-                    className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
-                    title="Remove Photo"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </button>
-                )}
-
+              {editing && profile?.profile_picture && (
+                <button
+                  onClick={handleDeleteProfilePicture}
+                  className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full cursor-pointer transition-colors shadow-lg"
+                  title="Remove Photo"
+                >
+                  <Trash className="h-4 w-4" />
+                </button>
+              )}
             </div>
             
             {isUploading && (
