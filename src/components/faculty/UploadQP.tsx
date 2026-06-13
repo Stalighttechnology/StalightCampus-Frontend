@@ -14,7 +14,7 @@ import jsPDF from 'jspdf';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
-import { createQuestionPaper, updateQuestionPaper, getQuestionPapers, submitQPForApproval, getQuestionPaperDetail } from "../../utils/faculty_api";
+import { createQuestionPaper, updateQuestionPaper, getQuestionPapers, submitQPForApproval, getQuestionPaperDetail, getBatches } from "../../utils/faculty_api";
 import { useTheme } from "@/context/ThemeContext";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { API_ENDPOINT } from "../../utils/config";
@@ -60,7 +60,7 @@ interface QuestionPaper {
   subject_name?: string;
   test_type: string;
   set_number?: string;
-  branch?: { id: number; name: string; } | number;
+  batch?: { id: number; name: string; } | number;
   semester?: number;
   section?: number;
   last_action?: { actor?: string; role: string; action: string; comment: string; };
@@ -78,6 +78,7 @@ interface CreateQPPayload {
     blooms_level: string;
     subparts_data: Array<{ subpart_label: string; content: string; max_marks: number; }>;
   }>;
+  batch: number;
   branch: number;
   semester: number;
   section: number;
@@ -88,6 +89,7 @@ const UploadQP = () => {
   const { data: assignments = [] } = useFacultyAssignmentsQuery();
   const { toast } = useToast();
   const [dropdownData, setDropdownData] = useState({
+    batch: [] as { id: number; name: string; }[],
     branch: [] as { id: number; name: string; }[],
     semester: [] as { id: number; number: number; }[],
     section: [] as { id: number; name: string; }[],
@@ -97,6 +99,7 @@ const UploadQP = () => {
   });
 
   const [selected, setSelected] = useState({
+    batch_id: location.state?.batch_id || undefined as number | undefined,
     branch_id: location.state?.branch_id || undefined as number | undefined,
     semester_id: location.state?.semester_id || undefined as number | undefined,
     section_id: location.state?.section_id || undefined as number | undefined,
@@ -116,6 +119,7 @@ const UploadQP = () => {
   const [loading, setLoading] = useState(false);
   const [rejectedQPs, setRejectedQPs] = useState<QuestionPaper[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [isBatchOpen, setIsBatchOpen] = useState(false);
   const [isSubjectOpen, setIsSubjectOpen] = useState(false);
   const [isTestTypeOpen, setIsTestTypeOpen] = useState(false);
   const [isSetNumberOpen, setIsSetNumberOpen] = useState(false);
@@ -157,10 +161,22 @@ const UploadQP = () => {
     setDropdownData((prev) => ({ ...prev, branch: branches, subject: subjects }));
   }, [assignments]);
 
-  // Load existing QP when Branch + Subject + Test Type are selected
+  useEffect(() => {
+    const loadBatches = async () => {
+      try {
+        const res = await getBatches();
+        if (res?.success && res.data) {
+          setDropdownData((prev) => ({ ...prev, batch: res.data || [] }));
+        }
+      } catch (err) {}
+    };
+    loadBatches();
+  }, []);
+
+  // Load existing QP when Batch + Branch + Subject + Test Type are selected
   useEffect(() => {
     const loadIfReady = async () => {
-      if (!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) return;
+      if (!selected.batch_id || !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) return;
       // default template to show when no saved QP exists
       const defaultTemplate: QuestionRow[] = [
         { id: '1a', number: '1a', content: 'Question 1a', maxMarks: '7', co: 'CO2', bloomsLevel: 'Apply' },
@@ -169,7 +185,7 @@ const UploadQP = () => {
 
       try {
         setLoading(true);
-        const res = await getQuestionPapers({ branch_id: selected.branch_id?.toString(), semester_id: selected.semester_id?.toString(), section_id: selected.section_id?.toString(), subject_id: selected.subject_id?.toString(), test_type: selected.testType, set_number: selected.setNumber, detail: true });
+        const res = await getQuestionPapers({ batch_id: selected.batch_id?.toString(), branch_id: selected.branch_id?.toString(), semester_id: selected.semester_id?.toString(), section_id: selected.section_id?.toString(), subject_id: selected.subject_id?.toString(), test_type: selected.testType, set_number: selected.setNumber, detail: true });
         if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
           // prefer exact match on subject+test_type+set_number
           const qp = res.data.find((q: QuestionPaper) => q.subject === selected.subject_id && q.test_type === selected.testType && q.set_number === selected.setNumber);
@@ -203,7 +219,7 @@ const UploadQP = () => {
       }
     };
     loadIfReady();
-  }, [selected.branch_id, selected.subject_id, selected.testType, selected.setNumber, selected.semester_id, selected.section_id]);
+  }, [selected.batch_id, selected.branch_id, selected.subject_id, selected.testType, selected.setNumber, selected.semester_id, selected.section_id]);
 
   // Load rejected QPs for this faculty to show editable items on the page
   useEffect(() => {
@@ -263,9 +279,9 @@ const UploadQP = () => {
   const totalMarks = questions.reduce((s, q) => s + (Number.parseInt(q.maxMarks || '0', 10) || 0), 0);
 
   const validateSelection = () => {
-    if (!selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) {
+    if (!selected.batch_id || !selected.branch_id || !selected.subject_id || !selected.testType || !selected.setNumber) {
       const MySwal = withReactContent(Swal);
-      MySwal.fire('Validation Error', 'Please select branch, subject, test type and set number', 'error');
+      MySwal.fire('Validation Error', 'Please select batch, branch, subject, test type and set number', 'error');
       return false;
     }
     return true;
@@ -288,6 +304,7 @@ const UploadQP = () => {
       test_type: selected.testType,
       set_number: selected.setNumber as string,
       questions_data: Object.keys(grouped).map((k) => ({ question_number: k, co: grouped[k].co, blooms_level: grouped[k].blooms_level, subparts_data: grouped[k].subparts })),
+      batch: selected.batch_id,
       branch,
       semester,
       section
@@ -301,6 +318,7 @@ const UploadQP = () => {
   const findExistingQP = async (): Promise<QuestionPaper | null> => {
     try {
       const res = await getQuestionPapers({
+        batch_id: selected.batch_id?.toString(),
         branch_id: selected.branch_id?.toString(),
         semester_id: selected.semester_id?.toString(),
         section_id: selected.section_id?.toString(),
@@ -504,7 +522,27 @@ const UploadQP = () => {
               </div>
             </CardHeader>
             <CardContent className="pb-0">
-              <div id="upload-qp-selectors" className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div id="upload-qp-selectors" className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                <div>
+                  <label htmlFor="batch-select" className="text-sm">Batch</label>
+                  <Select value={selected.batch_id ? String(selected.batch_id) : undefined} onValueChange={(v) => {
+                    const batchId = Number(v);
+                    setSelected((s) => ({ ...s, batch_id: batchId }));
+                  }}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Batch" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {dropdownData.batch.length > 0 ? (
+                        dropdownData.batch.map((b) => <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>)
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No batches found
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <label htmlFor="branch-select" className="text-sm">{translateTerminology("Branch")}</label>
                   <Select value={selected.branch_id ? String(selected.branch_id) : undefined} onValueChange={(v) => {

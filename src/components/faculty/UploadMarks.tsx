@@ -34,7 +34,8 @@ import {
   UploadIAMarksRequest,
   updateQuestionPaper,
   getQuestionPapers,
-  getQuestionPaperDetail
+  getQuestionPaperDetail,
+  getBatches
 } from
   "../../utils/faculty_api";
 import { useFacultyAssignmentsQuery } from "../../hooks/useApiQueries";
@@ -107,6 +108,7 @@ const UploadMarks = () => {
   const [tabValue, setTabValue] = useState("questionPaper");
   const [errorMessage, setErrorMessage] = useState("");
   const [dropdownData, setDropdownData] = useState({
+    batch: [] as { id: number; name: string; }[],
     branch: [] as { id: number; name: string; }[],
     semester: [] as { id: number; number: number; }[],
     section: [] as { id: number; name: string; }[],
@@ -114,6 +116,7 @@ const UploadMarks = () => {
     testType: ["IA1", "IA2", "IA3", "IA4", "IA5", "SEE"]
   });
   const [selected, setSelected] = useState({
+    batch_id: undefined as number | undefined,
     branch: "",
     branch_id: undefined as number | undefined,
     subject: "",
@@ -149,6 +152,7 @@ const UploadMarks = () => {
   const fetchStudentsPage = async (page: number) => {
     if (!selected.subject_id || !selected.testType) return;
     const params: any = { subject_id: selected.subject_id.toString(), test_type: selected.testType, page, page_size: studentsPerPage };
+    if (selected.batch_id) params.batch_id = selected.batch_id.toString();
     if (selected.branch_id) params.branch_id = selected.branch_id.toString();
     if (selected.semester_id) params.semester_id = selected.semester_id.toString();
     if (selected.section_id) params.section_id = selected.section_id.toString();
@@ -303,6 +307,18 @@ const UploadMarks = () => {
 
     return true;
   };
+
+  useEffect(() => {
+    const loadBatches = async () => {
+      try {
+        const res = await getBatches();
+        if (res?.success && res.data) {
+          setDropdownData((prev) => ({ ...prev, batch: res.data || [] }));
+        }
+      } catch (err) {}
+    };
+    loadBatches();
+  }, []);
 
   // Update dropdown data when assignments change
   useEffect(() => {
@@ -518,6 +534,7 @@ const UploadMarks = () => {
 
     try {
       const qpResponse = await getQuestionPapers({
+        batch_id: selected.batch_id?.toString(),
         branch_id: selected.branch_id?.toString(),
         semester_id: selected.semester_id?.toString(),
         section_id: selected.section_id?.toString(),
@@ -978,7 +995,25 @@ const UploadMarks = () => {
             </div>
           </CardHeader>
           <CardContent className="pb-0 space-y-6">
-            <div id="upload-marks-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div id="upload-marks-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+              <Select value={selected.batch_id?.toString()} onValueChange={(value) => handleSelectChange('batch_id', Number(value))}>
+                <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
+                  <SelectValue placeholder="Select Batch" />
+                </SelectTrigger>
+                <SelectContent className={`${theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'} max-h-[200px]`}>
+                  {dropdownData.batch.length > 0 ? (
+                    dropdownData.batch.map((item) =>
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        {item.name}
+                      </SelectItem>
+                    )
+                  ) : (
+                    <div className="p-2 text-sm text-center text-muted-foreground">
+                      No batches found
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
               <Select value={selected.subject_id?.toString()} onValueChange={(value) => handleSelectChange('subject_id', Number(value))}>
                 <SelectTrigger className={theme === 'dark' ? 'bg-background border border-input text-foreground' : 'bg-white border border-gray-300 text-gray-900'}>
                   <SelectValue placeholder="Select Subject" />

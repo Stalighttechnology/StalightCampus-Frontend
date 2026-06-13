@@ -115,6 +115,18 @@ export const getBranches = async (): Promise<{success: boolean;data?: {id: strin
   }
 };
 
+export const getBatches = async (): Promise<{success: boolean;data?: {id: string;name: string;}[];message?: string;}> => {
+  try {
+    const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/batches/`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    return await response.json();
+  } catch (error: unknown) {
+    return { success: false, message: (error as any).toString() };
+  }
+};
+
 export const getSemesters = async (branch_id: string): Promise<{success: boolean;data?: {id: string;number: number;}[];message?: string;}> => {
   try {
     const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/faculty/semesters/?branch_id=${branch_id}`, {
