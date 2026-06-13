@@ -32,6 +32,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { getStudentAssignments, submitAssignment } from "../../utils/student_api";
 import { normalizePaginatedResponse } from "../../utils/normalizePagination";
 import Swal from 'sweetalert2';
+import { downloadFile } from '@/utils/downloadHelper';
 
 const StudentAssignments = () => {
   const { theme } = useTheme();
@@ -55,17 +56,9 @@ const StudentAssignments = () => {
   const triggerDownload = async (id: string, url: string, filename: string) => {
     setDownloadingIds(prev => ({ ...prev, [id]: true }));
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', filename);
-      link.target = '_blank';
-      link.rel = 'noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      await downloadFile(url, filename);
     } catch (e) {
-      // Non-blocking
+      // Handled by utility
     } finally {
       setDownloadingIds(prev => ({ ...prev, [id]: false }));
     }

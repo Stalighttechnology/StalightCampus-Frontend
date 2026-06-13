@@ -130,7 +130,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
     };
     options.headers = safeHeaders as Record<string, string>;
     options.credentials = 'include'; // Include cookies
-    const response = await fetch(url, options);
+    let response = await fetch(url, options);
 
     if (response.status === 401) {
       let isRevoked = false;
@@ -170,7 +170,7 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
           ...options.headers,
           Authorization: `Bearer ${refreshResult.access}`
         } as any;
-        return fetch(url, options);
+        response = await fetch(url, options);
       } else {
         sessionStorage.clear();
         localStorage.removeItem("has_session");
@@ -196,7 +196,17 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
       }
     }
 
+    // Intercept PDF/file downloads that return HTML (indicates redirect or server template issue)
+    const isFileExport = url.includes('export-pdf') || url.includes('/receipt/') || url.includes('/download/') || url.includes('export-payments-pdf');
+    if (isFileExport && response.ok) {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error("Server returned HTML instead of PDF binary.");
+      }
+    }
+
     return response;
+
   } catch (error) {
     sessionStorage.clear();
     stopTokenRefresh();

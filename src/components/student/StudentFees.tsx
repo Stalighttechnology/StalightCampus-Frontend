@@ -15,6 +15,7 @@ import { fetchWithTokenRefresh } from '@/utils/authService';
 import { API_ENDPOINT } from '@/utils/config';
 import { SkeletonPageHeader, SkeletonStatsGrid, SkeletonTable } from "@/components/ui/skeleton";
 import { showErrorAlert, showSuccessAlert } from '@/utils/sweetalert';
+import { downloadFile } from '@/utils/downloadHelper';
 
 interface InvoiceComponent {
   id: number;
@@ -136,20 +137,9 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
     try {
       const url = `${API_ENDPOINT}/student/fee-data/export-pdf/`;
       const response = await fetchWithTokenRefresh(url);
-      if (!response.ok) {
-        throw new Error("Failed to download PDF from backend");
-      }
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute("download", `Student_Fees_${feeData?.student?.usn || 'Report'}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
+      await downloadFile(response, `Student_Fees_${feeData?.student?.usn || 'Report'}.pdf`);
     } catch (error) {
-      showErrorAlert("Download Failed", "Failed to download PDF report.");
+      // Handled by utility
     } finally {
       setExportingPDF(false);
     }
@@ -160,20 +150,9 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
     try {
       const url = `${API_ENDPOINT}/student/fee-data/export-payments-pdf/`;
       const response = await fetchWithTokenRefresh(url);
-      if (!response.ok) {
-        throw new Error("Failed to download PDF from backend");
-      }
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute("download", `Payment_History_${feeData?.student?.usn || 'Report'}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
+      await downloadFile(response, `Payment_History_${feeData?.student?.usn || 'Report'}.pdf`);
     } catch (error) {
-      showErrorAlert("Download Failed", "Failed to download payments history report.");
+      // Handled by utility
     } finally {
       setExportingPaymentsPDF(false);
     }
@@ -407,21 +386,9 @@ const StudentFees: React.FC<StudentFeesProps> = ({ user }) => {
     setDownloadingReceiptId(paymentId);
     try {
       const response = await fetchWithTokenRefresh(`${API_ENDPOINT}/payments/receipt/${paymentId}/`);
-
-      if (!response.ok) throw new Error('Failed to download receipt');
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `receipt_${paymentId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadFile(response, `receipt_${paymentId}.pdf`);
     } catch (error) {
-
-      showErrorAlert('Download Failed', 'Failed to download receipt.');
+      // Handled by utility
     } finally {
       setDownloadingReceiptId(null);
     }
