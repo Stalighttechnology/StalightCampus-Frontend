@@ -200,7 +200,9 @@ export const fetchWithTokenRefresh = async (url: string, options: RequestInit = 
   } catch (error) {
     sessionStorage.clear();
     stopTokenRefresh();
-    window.location.href = "/"; // Redirect to home
+    if (window.location.pathname !== "/") {
+      window.location.href = "/"; // Redirect to home
+    }
     throw error;
   }
 };
@@ -261,8 +263,11 @@ export const startTokenRefresh = () => {
     } else {
 
       sessionStorage.clear();
+      localStorage.removeItem("has_session");
       stopTokenRefresh();
-      window.location.href = "/"; // Redirect to home
+      if (window.location.pathname !== "/") {
+        window.location.href = "/"; // Redirect to home
+      }
     }
   }, 900000); // 15 minutes
 };

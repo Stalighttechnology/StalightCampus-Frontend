@@ -547,18 +547,18 @@ const FacultyAssignments = () => {
   return (
     <div>
       <Card>
-        <CardHeader id="faculty-assignments-header" >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <CardTitle>Assignment Management</CardTitle>
-              <CardDescription className="text-base">Create, track, and grade student assignments with a unified view.</CardDescription>
+        <CardHeader id="faculty-assignments-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Assignment Management</CardTitle>
+              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Create, track, and grade student assignments with a unified view.</p>
             </div>
             <Button
               onClick={() => {
                 loadSubjects();
                 setShowCreateModal(true);
               }}
-              className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center gap-2 h-11 px-6 rounded-lgl transition-all">
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 flex items-center justify-center gap-2 h-11 px-6 rounded-xl transition-all">
 
               <Plus size={20} />
               <span className="font-semibold">Create Assignment</span>
@@ -752,7 +752,7 @@ const FacultyAssignments = () => {
                           key={assignment.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`p-5 rounded-2xl border transition-all ${theme === 'dark' ?
+                          className={`p-5 rounded-xl border transition-all ${theme === 'dark' ?
                             'bg-muted/10 border-border/40 hover:bg-muted/20' :
                             'bg-white border-gray-100 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5'}`
                           }>
@@ -845,8 +845,8 @@ const FacultyAssignments = () => {
                   </div>
                 </> :
 
-                <div className={`flex flex-col items-center justify-center py-20 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
-                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <div className={`flex flex-col items-center justify-center py-20 px-4 text-center rounded-xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+                  <div className={`w-20 h-20 rounded-xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
                     <FileText size={36} />
                   </div>
                   <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
@@ -1226,7 +1226,7 @@ const FacultyAssignments = () => {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
             <div
-              className={`relative w-[90%] md:w-full md:max-w-3xl h-[80vh] md:h-auto md:max-h-[80vh] flex flex-col rounded-xl md:rounded-3xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}>
+              className={`relative w-[90%] md:w-full md:max-w-3xl h-[80vh] md:h-auto md:max-h-[80vh] flex flex-col rounded-xl md:rounded-xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-background border border-border' : 'bg-white'}`}>
 
               <div className="p-6 border-b border-border flex items-start justify-between sticky top-0 bg-inherit z-10">
                 <div>
@@ -1380,7 +1380,7 @@ const FacultyAssignments = () => {
 
             {/* Modal panel */}
             <div
-              className={`relative w-full max-w-md m-4 flex flex-col rounded-3xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-[#18181b] border border-white/10' : 'bg-white'
+              className={`relative w-[90%] md:w-full md:max-w-md m-4 flex flex-col rounded-xl overflow-hidden shadow-2xl ${theme === 'dark' ? 'bg-[#18181b] border border-white/10' : 'bg-white'
                 }`}
             >
               {/* Header */}

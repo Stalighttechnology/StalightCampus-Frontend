@@ -341,8 +341,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           }
         </motion.main>
       </div>
-    </motion.div>);
-
+    </motion.div>
+  );
 };
 
 export default DashboardLayout;

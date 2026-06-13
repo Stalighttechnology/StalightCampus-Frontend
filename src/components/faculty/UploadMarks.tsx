@@ -972,8 +972,10 @@ const UploadMarks = () => {
         setTabValue(newTab);
       }} className={theme === 'dark' ? 'text-foreground' : 'text-gray-900'}>
         <div id="upload-marks-header-section" className="border-b border-border/50 pb-4">
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Upload Marks</CardTitle>
+          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b mb-3">
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Upload Marks</CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="pb-0 space-y-6">
             <div id="upload-marks-selectors" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

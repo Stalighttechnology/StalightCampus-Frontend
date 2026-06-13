@@ -16,7 +16,7 @@ import type { ProctorStudent } from "@/utils/faculty_api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { SkeletonList, SkeletonTable } from "@/components/ui/skeleton";
 import { useDebouncedSearch } from "@/hooks/useOptimizations";
-import { FileDown, Loader2 } from "lucide-react";
+import { FileDown, Loader2, ClipboardList } from "lucide-react";
 
 interface ExamApplicationProps {
   proctorStudents?: ProctorStudent[];
@@ -426,8 +426,15 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
 
   return (
     <Card className={theme === 'dark' ? 'bg-card text-foreground shadow-md' : 'bg-white text-gray-900 shadow-md'}>
-      <CardHeader id="exam-applications-header">
-        <CardTitle className="text-2xl font-semibold leading-none tracking-tight text-gray-900">Exam Applications</CardTitle>
+      <CardHeader id="exam-applications-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+          <div className="flex-1 min-w-0">
+            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Exam Applications</CardTitle>
+            <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              Manage and approve exam registration requests for your proctored students
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -468,7 +475,29 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                 <SkeletonTable rows={5} cols={5} />
               </div>
             </div> :
-
+          students.length === 0 ? (
+            <div className={`flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'
+              }`}>
+              <div className={`p-6 rounded-full mb-6 ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <ClipboardList className="w-12 h-12 opacity-80" />
+              </div>
+              <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>No Students Found</h3>
+              <p className="max-w-md text-sm leading-relaxed">
+                {(() => {
+                  let periodLabel = examPeriod;
+                  if (examPeriod === 'june_july') periodLabel = 'June/July';
+                  else if (examPeriod === 'nov_dec') periodLabel = 'November/December';
+                  else if (examPeriod === 'jan_feb') periodLabel = 'January/February';
+                  else if (examPeriod === 'apr_may') periodLabel = 'April/May';
+                  else if (examPeriod === 'sept_oct') periodLabel = 'September/October';
+                  else if (examPeriod === 'feb_mar') periodLabel = 'February/March';
+                  else if (examPeriod === 'supplementary') periodLabel = 'Supplementary';
+                  else if (examPeriod === 'revaluation') periodLabel = 'Revaluation';
+                  return `No students found with exam applications for the ${periodLabel} period.`;
+                })()}
+              </p>
+            </div>
+          ) : (
           <>
               {/* Mobile view: Stacked cards */}
               <div className="md:hidden space-y-3">
@@ -543,9 +572,6 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                     </div>
                   </div>
               )}
-                {students.length === 0 &&
-              <div className="text-center py-10 text-muted-foreground">No students found.</div>
-              }
               </div>
 
               {/* Desktop view: Table */}
@@ -622,17 +648,10 @@ const ExamApplication: React.FC<ExamApplicationProps> = ({ proctorStudents: init
                       </td>
                     </tr>
                 )}
-                  {students.length === 0 &&
-                <tr>
-                      <td colSpan={5} className="text-center py-6">
-                        {examPeriod ? `No students found with exam applications for ${examPeriod === 'june_july' ? 'June/July' : 'January/February'} period.` : 'No students found.'}
-                      </td>
-                    </tr>
-                }
                 </tbody>
               </table>
             </>
-          }
+          )}
         </div>
       </CardContent>
 

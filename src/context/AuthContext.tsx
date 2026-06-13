@@ -90,6 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           // HttpOnly cookie expired or invalid – clear stale session
+          localStorage.removeItem("has_session");
           sessionStorage.removeItem("role");
           sessionStorage.removeItem("user");
           sessionStorage.removeItem("access_token");

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
+import { FileDown, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 import { ProctorStudent, getProctorStudentsForStats } from '../../utils/faculty_api';
 import { normalizePaginatedResponse } from '../../utils/normalizePagination';
@@ -141,123 +141,135 @@ const GenerateStatistics: React.FC = () => {
       <div id="statistics-charts-container" className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
         {/* Attendance Overview */}
         <Card id="statistics-attendance-overview-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg overflow-hidden`}>
-          <CardHeader>
-            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Attendance Overview
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4">
-            <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
-              <div style={{ width: proctorStudents.length > 6 ? `${proctorStudents.length * 70}px` : "100%", minWidth: "100%" }}>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={attendanceData} margin={{ bottom: 30, left: 0, right: 10, top: 10 }}>
-                    <CartesianGrid stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'}
-                      interval={0}
-                      tick={{ fontSize: 9 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={70}
-                    />
-                    <YAxis stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-                        border: theme === 'dark' ? '1px solid #2e2e30' : '1px solid #e5e7eb',
-                        color: theme === 'dark' ? '#f3f4f6' : '#1f2937'
-                      }}
-                      itemStyle={{ color: theme === 'dark' ? '#f3f4f6' : '#1f2937' }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="attendance"
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      name="Attendance %"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+            {proctorStudents.length > 0 ? (
+              <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                <div style={{ width: proctorStudents.length > 6 ? `${proctorStudents.length * 70}px` : "100%", minWidth: "100%" }}>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={attendanceData} margin={{ bottom: 30, left: 0, right: 10, top: 10 }}>
+                      <CartesianGrid stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'}
+                        interval={0}
+                        tick={{ fontSize: 9 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={70}
+                      />
+                      <YAxis stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+                          border: theme === 'dark' ? '1px solid #2e2e30' : '1px solid #e5e7eb',
+                          color: theme === 'dark' ? '#f3f4f6' : '#1f2937'
+                        }}
+                        itemStyle={{ color: theme === 'dark' ? '#f3f4f6' : '#1f2937' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="attendance"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        name="Attendance %"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className={`flex flex-col items-center justify-center h-[200px] border-2 border-dashed rounded-xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                <p className="text-sm italic">No data available</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Average Marks */}
         <Card id="statistics-average-marks-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg overflow-hidden`}>
-          <CardHeader>
-            <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+            <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Average Marks
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2 sm:p-4">
-            <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
-              <div style={{ width: proctorStudents.length > 6 ? `${proctorStudents.length * 70}px` : "100%", minWidth: "100%" }}>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={marksData} margin={{ bottom: 30, left: 0, right: 10, top: 10 }}>
-                    <CartesianGrid stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'}
-                      interval={0}
-                      tick={{ fontSize: 9 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={70}
-                    />
-                    <YAxis stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
-                        border: theme === 'dark' ? '1px solid #2e2e30' : '1px solid #e5e7eb',
-                        color: theme === 'dark' ? '#f3f4f6' : '#1f2937'
-                      }}
-                      itemStyle={{ color: theme === 'dark' ? '#f3f4f6' : '#1f2937' }}
-                    />
-                    <Bar dataKey="avgMark" fill="#6366f1" radius={[4, 4, 0, 0]}>
-                      {/* 👇 Label inside each bar, only if marks exist */}
-                      <LabelList
-                        dataKey="avgMark"
-                        position="top"
-                        fill={theme === 'dark' ? '#94a3b8' : '#64748b'}
-                        fontSize={9}
-                        formatter={(val: any) => val > 0 ? val : ''}
+            {proctorStudents.length > 0 ? (
+              <div className="overflow-x-auto custom-scrollbar pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
+                <div style={{ width: proctorStudents.length > 6 ? `${proctorStudents.length * 70}px` : "100%", minWidth: "100%" }}>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={marksData} margin={{ bottom: 30, left: 0, right: 10, top: 10 }}>
+                      <CartesianGrid stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e7eb'} vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'}
+                        interval={0}
+                        tick={{ fontSize: 9 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={70}
                       />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                      <YAxis stroke={theme === 'dark' ? '#d1d5db' : '#6b7280'} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: theme === 'dark' ? '#1c1c1e' : '#ffffff',
+                          border: theme === 'dark' ? '1px solid #2e2e30' : '1px solid #e5e7eb',
+                          color: theme === 'dark' ? '#f3f4f6' : '#1f2937'
+                        }}
+                        itemStyle={{ color: theme === 'dark' ? '#f3f4f6' : '#1f2937' }}
+                      />
+                      <Bar dataKey="avgMark" fill="#6366f1" radius={[4, 4, 0, 0]}>
+                        {/* 👇 Label inside each bar, only if marks exist */}
+                        <LabelList
+                          dataKey="avgMark"
+                          position="top"
+                          fill={theme === 'dark' ? '#94a3b8' : '#64748b'}
+                          fontSize={9}
+                          formatter={(val: any) => val > 0 ? val : ''}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className={`flex flex-col items-center justify-center h-[200px] border-2 border-dashed rounded-xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+                <p className="text-sm italic">No data available</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Table */}
       <Card id="statistics-table-card" className={`${theme === 'dark' ? 'shadow-sm bg-card text-foreground' : 'shadow-sm bg-white text-gray-900'} rounded-lg flex flex-col`}>
-        <CardHeader id="statistics-table-header" className="pb-2">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <CardTitle className={`text-2xl font-semibold leading-none tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
+        <CardHeader id="statistics-table-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Proctor Students</CardTitle>
                 {totalCount > 0 &&
                   <span className={`text-xs font-medium px-2.5 py-0.5 mt-1 rounded-full ${theme === 'dark' ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-700'}`}>
                     {totalCount} Total
                   </span>
                 }
               </div>
-              <p className={`text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 View and export performance and attendance statistics for your proctored students
               </p>
             </div>
-            <div className="w-full md:w-auto">
+            <div className="w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 id="generate-stats-export-pdf-btn"
                 onClick={handleExportPDF}
                 disabled={downloadingPDF || proctorStudents.length === 0}
-                className="w-full md:w-auto flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2 h-9"
+                className="w-full sm:w-auto flex items-center justify-center bg-primary text-white border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white transition-all duration-200 ease-in-out shadow-md gap-2 h-9 text-sm"
               >
                 {downloadingPDF
                   ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -269,38 +281,50 @@ const GenerateStatistics: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent className="p-2 sm:p-6">
-          <div className="w-full overflow-x-auto">
-            <table className="w-full text-xs sm:text-sm border-collapse">
-              <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
-                <tr>
-                  <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
-                  <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
-                  <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance</th>
-                  <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Avg</th>
-                </tr>
-              </thead>
-              <tbody>
-                {proctorStudents.map((student, idx) => (
-                  <tr key={idx} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
-                    <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
-                    <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
-                    <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{formatAttendancePercentage(student.attendance)}</td>
-                    <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{((student as any).avg_mark !== undefined ? (student as any).avg_mark : (() => {
-                      const internalMarks = student.marks || [];
-                      const iaMarks = student.ia_marks || [];
-                      const allMarks = [
-                        ...internalMarks.map(m => m.mark),
-                        ...iaMarks.map(m => m.total_obtained)
-                      ];
-                      return allMarks.length > 0
-                        ? Number((allMarks.reduce((sum, mark) => sum + (mark || 0), 0) / allMarks.length).toFixed(2))
-                        : 0;
-                    })())}</td>
+          {proctorStudents.length > 0 ? (
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-xs sm:text-sm border-collapse">
+                <thead className={theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}>
+                  <tr>
+                    <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>USN</th>
+                    <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Name</th>
+                    <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Attendance</th>
+                    <th className={`p-2 sm:p-3 text-left text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Avg</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {proctorStudents.map((student, idx) => (
+                    <tr key={idx} className={theme === 'dark' ? 'border-border' : 'border-gray-200'}>
+                      <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.usn}</td>
+                      <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{student.name}</td>
+                      <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{formatAttendancePercentage(student.attendance)}</td>
+                      <td className={`p-2 sm:p-3 text-md sm:text-md ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>{((student as any).avg_mark !== undefined ? (student as any).avg_mark : (() => {
+                        const internalMarks = student.marks || [];
+                        const iaMarks = student.ia_marks || [];
+                        const allMarks = [
+                          ...internalMarks.map(m => m.mark),
+                          ...iaMarks.map(m => m.total_obtained)
+                        ];
+                        return allMarks.length > 0
+                          ? Number((allMarks.reduce((sum, mark) => sum + (mark || 0), 0) / allMarks.length).toFixed(2))
+                          : 0;
+                      })())}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className={`flex flex-col items-center justify-center py-12 px-6 text-center border-2 border-dashed rounded-2xl transition-all duration-300 ${theme === 'dark' ? 'border-border bg-card/30 text-muted-foreground' : 'border-gray-200 bg-gray-50/50 text-gray-500'}`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-primary/20 ${theme === 'dark' ? 'bg-muted' : 'bg-gray-100'}`}>
+                <Users className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-1">No students found</h3>
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                You don't have any students assigned for proctoring yet.
+              </p>
+            </div>
+          )}
         </CardContent>
 
         {totalPages > 1 && (

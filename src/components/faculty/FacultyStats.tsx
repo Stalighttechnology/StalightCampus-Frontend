@@ -304,8 +304,8 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
           <Card id="faculty-charts" className={`h-full flex flex-col w-full ${theme === 'dark' ? 'bg-card text-foreground border-border' : 'bg-white text-gray-900 border-gray-200'} shadow-sm`}>
             <CardHeader id="faculty-charts-header" className="flex flex-col md:flex-row items-start md:items-center justify-between ">
               <div className="flex-1 text-left">
-                <CardTitle>Performance Trends</CardTitle>
-                <p className={`text-sm mt-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Average Attendance and IA marks per subject</p>
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Performance Trends</CardTitle>
+                <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Average Attendance and IA marks per subject</p>
               </div>
               <div className="mt-3 md:mt-0 md:ml-4 flex-none w-full md:w-48">
                 <Select onValueChange={(v) => setSelectedSubject(v)}>
@@ -324,7 +324,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
               <div className="h-full flex flex-col md:flex-row gap-4 items-stretch">
                 {/* Bar chart - Average Attendance */}
                 <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
-                  <h4 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average Attendance (30 days)</h4>
+                  <h4 className={`text-base sm:text-base font-semibold mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average Attendance (30 days)</h4>
                   <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
                     <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
                       <ResponsiveContainer width="100%" height={240}>
@@ -344,7 +344,7 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
 
                 {/* Line chart - IA Marks */}
                 <div className="flex-1 min-h-[240px] overflow-hidden custom-scrollbar">
-                  <h4 className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average IA Marks</h4>
+                  <h4 className={`text-base sm:text-base font-semibold mb-2 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-700'}`}>Average IA Marks</h4>
                   <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-zinc-800">
                     <div style={{ width: chartData.length > 6 ? `${chartData.length * 70}px` : "100%", minWidth: "100%" }}>
                       <ResponsiveContainer width="100%" height={240}>
@@ -369,10 +369,10 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
           <Card className={`h-full flex flex-col justify-between w-full ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
             <CardHeader className="p-3 md:p-4">
               <div id="live-session-timer-header" className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-2 sm:gap-0">
-                <CardTitle>Current & Next Session</CardTitle>
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Current & Next Session</CardTitle>
                 <div className="flex items-center gap-2 text-xs md:text-xs">
                   <Clock className="w-4 h-4" />
-                  <span className={`flex items-center gap-2 px-3 py-1 rounded-full font-medium shadow-sm ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-900'}`
+                  <span className={`flex items-center gap-2 px-3 py-1 rounded-full font-medium shadow-sm text-sm sm:text-xs ${theme === 'dark' ? 'bg-muted text-muted-foreground' : 'bg-gray-100 text-gray-900'}`
                   }>
                     <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                     Live: {nowDate.toLocaleTimeString('en-US', { hour12: false })}
@@ -386,19 +386,19 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
               <>
                   <div className={`border-2 border-blue-500 rounded-md p-3 md:p-4 w-full shadow-md flex flex-col items-center sm:items-start gap-2 ${theme === 'dark' ? 'bg-blue-900/20' : 'bg-blue-50'}`
                 }>
-                    <h4 className={`font-semibold text-sm mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                    <h4 className={`font-semibold text-base sm:text-lg mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                       {ongoingClass.subject}
                     </h4>
-                    <p className={`text-xs truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Teacher: {ongoingClass.section ?? ''}
                     </p>
-                    <p className={`text-xs truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                    <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                       Room: {ongoingClass.room}
                     </p>
-                    <p className={`text-[10px] ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                    <p className={`text-xs sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                       {ongoingClass.start_time} - {ongoingClass.end_time}
                     </p>
-                    <p className={`text-xs mt-1 font-medium ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>Currently Running</p>
+                    <p className={`text-sm sm:text-base mt-1 font-medium ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>Currently Running</p>
                   </div>
                   {nextClass &&
                 <div className={`border rounded-md p-3 w-full shadow-md ${getClassStatus(nextClass).status === 'starting-soon' ?
@@ -407,16 +407,16 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                 theme === 'dark' ? 'border-yellow-500 bg-yellow-900/20' : 'border-yellow-500 bg-yellow-50' :
                 theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-gray-50'}`
                 }>
-                      <h4 className={`font-semibold text-sm mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                      <h4 className={`font-semibold text-base sm:text-lg mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                         {nextClass.subject}
                       </h4>
-                      <p className={`text-xs truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Teacher: {nextClass.section ?? ''}
                       </p>
-                      <p className={`text-xs truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Room: {nextClass.room}
                       </p>
-                      <p className={`text-[10px] mt-1 font-medium line-clamp-2 ${getClassStatus(nextClass).color || (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
+                      <p className={`text-xs sm:text-sm mt-1 font-medium line-clamp-2 ${getClassStatus(nextClass).color || (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
                         {getClassStatus(nextClass).message || `Starts at ${nextClass.start_time}`}
                       </p>
                     </div>
@@ -429,10 +429,10 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                     <div className={`p-4 rounded-full mb-4 ${theme === 'dark' ? 'bg-accent/20 text-primary/80' : 'bg-primary/10 text-primary/80'}`}>
                       <Activity className="w-8 h-8 opacity-60" />
                     </div>
-                    <h4 className={`text-base font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                    <h4 className={`text-lg sm:text-xl font-semibold mb-1 ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                       No class is currently running
                     </h4>
-                    <p className="text-xs max-w-[200px] mx-auto leading-relaxed opacity-70">
+                    <p className="text-sm sm:text-base max-w-[200px] sm:max-w-md mx-auto leading-relaxed opacity-70">
                       Take a break or prepare for your next scheduled session.
                     </p>
                   </div>
@@ -444,24 +444,24 @@ const FacultyStats = React.forwardRef<HTMLDivElement, FacultyStatsProps>(({ setA
                 theme === 'dark' ? 'border-yellow-500 bg-yellow-900/20' : 'border-yellow-500 bg-yellow-50' :
                 theme === 'dark' ? 'border-border bg-card' : 'border-gray-300 bg-gray-50'}`
                 }>
-                      <h4 className={`font-semibold text-sm mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
+                      <h4 className={`font-semibold text-base sm:text-lg mb-2 line-clamp-2 ${theme === 'dark' ? 'text-card-foreground' : 'text-gray-900'}`}>
                         Next: {nextClass.subject}
                       </h4>
-                      <p className={`text-xs truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Teacher: {nextClass.section ?? ''}
                       </p>
-                      <p className={`text-xs truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+                      <p className={`text-sm sm:text-base truncate ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
                         Room: {nextClass.room}
                       </p>
-                      <p className={`text-[10px] mt-1 font-medium line-clamp-2 ${getClassStatus(nextClass).color || (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
+                      <p className={`text-xs sm:text-sm mt-1 font-medium line-clamp-2 ${getClassStatus(nextClass).color || (theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500')}`}>
                         {getClassStatus(nextClass).message || `Starts at ${nextClass.start_time}`}
                       </p>
                       {getClassStatus(nextClass).status === 'starting-soon' &&
-                  <div className="flex items-center gap-2 mt-2">
-                          <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-                          <span className={`text-xs font-medium ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`}>Get ready!</span>
-                        </div>
-                  }
+                      <div className="flex items-center gap-2 mt-2">
+                           <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
+                           <span className={`text-sm sm:text-base font-medium ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`}>Get ready!</span>
+                         </div>
+                      }
                     </div>
                 }
                 </div>

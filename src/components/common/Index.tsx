@@ -102,14 +102,7 @@ const Index = () => {
   }, [isInitializing, isAuthenticated, role, authUser, navigate]);
 
   if (isInitializing) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#1c1c1e] text-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-lg font-semibold">Checking authorization...</div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Authentication pages
@@ -163,15 +156,8 @@ const Index = () => {
     );
   }
 
-  // If still loading or redirecting, show loading
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-[#1c1c1e] text-white">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <div className="text-lg font-semibold">Loading...</div>
-      </div>
-    </div>
-  );
+  // If still loading or redirecting, show nothing to prevent visual flash
+  return null;
 };
 
 export default Index;

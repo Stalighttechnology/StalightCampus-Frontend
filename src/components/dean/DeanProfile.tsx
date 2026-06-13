@@ -304,17 +304,17 @@ const DeanProfile = () => {
       <CardHeader id="dean-profile-card" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b">
         <div className="flex-1 min-w-0">
           <CardTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-            Profile
+            Profile Information
           </CardTitle>
           <p className="text-sm sm:text-sm mt-1 text-gray-500">Manage your dean profile and account settings</p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap ml-auto">
+        <div className="flex flex-row items-center gap-2 w-full sm:w-auto sm:ml-auto">
           <Button
             size="sm"
             onClick={() => { if (editing) handleUpdateProfile(); else setEditing(true); }}
             variant="outline"
-            className={`w-full sm:w-auto text-sm text-white border transition-colors ${
+            className={`flex-1 sm:flex-none w-full sm:w-auto text-sm text-white border transition-colors ${
               editing 
                 ? 'bg-emerald-600 border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 hover:text-white' 
                 : 'bg-primary border-primary hover:bg-primary/90 hover:border-primary/90 hover:text-white'
@@ -324,7 +324,7 @@ const DeanProfile = () => {
           </Button>
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
+              <Button size="sm" className="flex-1 sm:flex-none w-full sm:w-auto bg-primary text-white border-primary hover:bg-primary/90">Change Password</Button>
             </DialogTrigger>
             <DialogContent ref={passwordDialogContentRef} className="w-[calc(100vw-1.5rem)] sm:w-full max-w-[420px] rounded-xl sm:rounded-2xl">
               <DialogHeader>

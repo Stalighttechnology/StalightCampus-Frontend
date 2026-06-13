@@ -74,12 +74,7 @@ const WardenDashboard = () => {
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
   const dataFetchedRef = useRef(false);
 
-  useEffect(() => {
-    if (!contextLoading && hostels.length === 0 && !dataFetchedRef.current) {
-      dataFetchedRef.current = true;
-      refreshWardenData();
-    }
-  }, [contextLoading, hostels.length, refreshWardenData]);
+
 
   useEffect(() => {
     if (hostels.length > 0 && selectedHostel === null) {

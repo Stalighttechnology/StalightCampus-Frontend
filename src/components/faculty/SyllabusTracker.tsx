@@ -257,13 +257,13 @@ const SyllabusTracker = () => {
   return (
     <div className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
       <Card id="faculty-syllabus-tracker-card" className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
-        <CardHeader id="faculty-syllabus-tracker-header" className="p-3 sm:p-4 lg:p-6 border-b">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
-            <div>
-              <h1 className={`text-2xl sm:text-2xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+        <CardHeader id="faculty-syllabus-tracker-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <h1 className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Syllabus Tracing & Progress
               </h1>
-              <p className={`text-md sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-600'}`}>
+              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Track weekly teaching progress based on department master templates.
               </p>
             </div>
@@ -273,7 +273,7 @@ const SyllabusTracker = () => {
                 size="sm"
                 onClick={handleExportPDF}
                 disabled={exportingPDF}
-                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto self-start sm:self-auto"
+                className="bg-primary hover:bg-primary/90 text-white border-primary h-9 px-4 transition-all w-full sm:w-auto self-start sm:self-auto text-sm"
               >
                 {exportingPDF ? (
                   <>
@@ -493,14 +493,16 @@ const SyllabusTracker = () => {
               </div>
             </div>
           ) : (
-            <div className="py-16 text-center space-y-4 border-2 border-dashed rounded-xl dark:border-border">
-              <div className="flex justify-center">
-                <BookOpen className="w-12 h-12 text-muted-foreground opacity-50" />
+            <div className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+              <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner animate-pulse ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <BookOpen className="w-12 h-12" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">No Syllabus Traced Yet</h3>
-                <p className="text-sm opacity-70 max-w-sm mx-auto mt-1">Please select the Semester, Subject, and Section to load the weekly syllabus tracing workflow.</p>
-              </div>
+              <h3 className={`text-xl md:text-xl font-semibold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                No Syllabus Traced Yet
+              </h3>
+              <p className={`text-base md:text-md max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Please select the Semester, Subject, and Section to load the weekly syllabus tracing workflow.
+              </p>
             </div>
           )}
         </CardContent>

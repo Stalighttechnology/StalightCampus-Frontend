@@ -569,9 +569,11 @@ const TakeAttendance = () => {
     <div className={`w-full overflow-visible ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'} w-full max-w-full flex flex-col`}>
           <div id="take-attendance-header-section" className="border-b border-border/50 pb-4">
-            <CardHeader>
-              <CardTitle>Take Attendance</CardTitle>
-              <CardDescription className={theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}>Record student attendance for your classes</CardDescription>
+            <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b mb-3">
+              <div className="flex-1 min-w-0">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Take Attendance</CardTitle>
+                <p className={`text-[16px] sm:text-sm mt-1${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>Record student attendance for your classes</p>
+              </div>
             </CardHeader>
             <CardContent className="pb-0">
               <div className="space-y-4 w-full max-w-full">

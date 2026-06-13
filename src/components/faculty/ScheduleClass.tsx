@@ -1218,23 +1218,18 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
 
       {/* ── Section 2: Class History ─────────────────────────────────────── */}
       <Card className={selectorCardCls}>
-        <CardHeader className="border-b border-border/50 pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-muted bg-primary/10">
-                <ClipboardList className="w-5 h-5 text-muted-foreground text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-xl sm:text-2xl">Class History</CardTitle>
-                <CardDescription className={theme === "dark" ? "text-muted-foreground" : "text-gray-500"}>
-                  Select a subject to view scheduled classes history
-                </CardDescription>
-              </div>
+        <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Class History</CardTitle>
+              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                Select a subject to view scheduled classes history
+              </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto self-start sm:self-auto">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
               <Button
                 onClick={handleScheduleButtonClick}
-                className="bg-primary hover:bg-primary/90 text-white h-9 px-4 transition-all w-full sm:w-auto"
+                className="bg-primary hover:bg-primary/90 text-white h-9 px-4 transition-all w-full sm:w-auto text-sm"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Schedule Class
@@ -1349,13 +1344,15 @@ const ScheduleClass = ({ user, setError }: ScheduleClassProps) => {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center py-12 bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50 mt-6"
+              className={`flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed shadow-sm mt-6 ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}
             >
-              <ClipboardList className="w-12 h-12 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground font-medium text-lg text-center px-4">
+              <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-inner animate-pulse ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <ClipboardList className="w-12 h-12" />
+              </div>
+              <h3 className={`text-xl md:text-xl font-semibold mb-4 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
                 Select a subject to view scheduled classes history
-              </p>
-              <p className="text-muted-foreground/70 text-sm text-center px-4 mt-1">
+              </h3>
+              <p className={`text-base md:text-md max-w-md mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
                 Select all four filters above to load class history
               </p>
             </motion.div>

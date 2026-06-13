@@ -141,12 +141,17 @@ const ManageStudentLeave = () => {
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-background text-foreground' : 'bg-gray-50 text-gray-900'}`}>
       <Card id="manage-student-leave-card" className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 shadow-sm'}`}>
         <div id="manage-student-leave-header-section">
-          <CardHeader className="border-b">
-            <div className="flex items-center justify-between gap-4">
-              <CardTitle className="m-0 leading-none">Leave Approvals</CardTitle>
-              
+          <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
+            <div className="flex items-center justify-between gap-4 w-full">
+              <div className="flex flex-col gap-1 flex-1 min-w-0">
+                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
+                <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                  Review and approve leave requests <br className="block sm:hidden" /> submitted by your students
+                </p>
+              </div>
+
               {/* Search + Filter container */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 {/* Search Bar (Laptop/Desktop only) */}
                 <div className="hidden lg:block w-64">
                   <Input
@@ -161,7 +166,7 @@ const ManageStudentLeave = () => {
                 <div className="relative" ref={filterRef}>
                   <Button
                     onClick={() => setShowFilter(!showFilter)}
-                    className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-8 sm:h-10 px-2 sm:px-4 rounded-xl font-medium shadow-sm transition-colors text-xs sm:text-sm whitespace-nowrap"
+                    className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-9 w-9 sm:w-auto sm:h-10 sm:px-4 rounded-lg font-medium shadow-sm transition-colors text-xs sm:text-sm whitespace-nowrap"
                   >
                     <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">Filter</span>
@@ -178,7 +183,7 @@ const ManageStudentLeave = () => {
                               setShowFilter(false);
                             }}
                           >
-                            {status === 'All' ? 'All Status' : status.charAt(0) + status.slice(1).toLowerCase()}
+                            {status}
                           </button>
                         ))}
                       </div>
@@ -201,208 +206,192 @@ const ManageStudentLeave = () => {
           </div>
         </div>
         <CardContent className="p-4 sm:p-6 pt-0 lg:pt-6">
-          {/* Mobile: Stacked Cards View */}
-          <div className="md:hidden space-y-3">
-            {isLoading ? (
-              <div className="space-y-4">
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="md:hidden">
                 {[...Array(3)].map((_, i) => (
                   <SkeletonCard key={i} className="h-[200px]" />
                 ))}
               </div>
-            ) : leaves.length === 0 ? (
-              <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
-                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                  <CalendarCheck2 className="w-10 h-10" />
-                </div>
-                <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {search ? 'No Matches Found' : 'No Leave Requests'}
-                </h3>
-                <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                  {search
-                    ? `We couldn't find any leave requests matching "${search}". Please try a different search term.`
-                    : "There are no active leave requests currently pending your review."}
-                </p>
+              <div className="hidden md:block">
+                <SkeletonTable rows={10} cols={5} />
               </div>
-            ) : (
-              leaves.map((leave) => (
-                <div key={leave.id} className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div>
-                    <div className="font-semibold text-base">{leave.student_name}</div>
-                    <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.usn}</div>
-                    {leave.submitted_at && (
-                      <div className={`text-[10px] mt-0.5 italic ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
-                        Applied: {leave.submitted_at}
+            </div>
+          ) : leaves.length === 0 ? (
+            <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
+              <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                <CalendarCheck2 className="w-10 h-10" />
+              </div>
+              <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                {search ? 'No Matches Found' : 'No Leave Requests'}
+              </h3>
+              <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+                {search
+                  ? `We couldn't find any leave requests matching "${search}". Please try a different search term.`
+                  : "There are no active leave requests currently pending your review."}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Mobile: Stacked Cards View */}
+              <div className="md:hidden space-y-3">
+                {leaves.map((leave) => (
+                  <div key={leave.id} className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-card border-border text-foreground' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div>
+                        <div className="font-semibold text-base">{leave.student_name}</div>
+                        <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.usn}</div>
+                        {leave.submitted_at && (
+                          <div className={`text-[10px] mt-0.5 italic ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-400'}`}>
+                            Applied: {leave.submitted_at}
+                          </div>
+                        )}
+                      </div>
+                      <div className="shrink-0">
+                        {getStatusBadge(leave.status)}
+                      </div>
+                    </div>
+
+                    <div className={`text-sm my-3 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
+                      {formatPeriod(leave.start_date, leave.end_date)}
+                    </div>
+
+                    <Button
+                      onClick={() => setViewReason(leave.reason)}
+                      className={`w-full mb-3 h-10 rounded-xl font-medium transition-all duration-200 ${theme === 'dark'
+                          ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
+                          : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                        }`}
+                      variant="outline"
+                    >
+                      View Reason
+                    </Button>
+
+                    {leave.status === "PENDING" ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          variant="outline"
+                          className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
+                            ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
+                            : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                            }`}
+                          onClick={() => handleApprove(leave.id)}
+                          disabled={!!actionLoading}
+                        >
+                          <CheckCircle size={16} /> Approve
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
+                            ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
+                            : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                            }`}
+                          onClick={() => setShowRejectModal(leave.id)}
+                          disabled={!!actionLoading}
+                        >
+                          <XCircle size={16} /> Reject
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between pt-2 border-t mt-2">
+                        <span className="text-xs text-muted-foreground italic">Processed</span>
+                        {leave.reviewed_by && (
+                          <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
+                        )}
                       </div>
                     )}
                   </div>
-                  <div className="shrink-0">
-                    {getStatusBadge(leave.status)}
-                  </div>
-                </div>
-
-                <div className={`text-sm my-3 font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                  {formatPeriod(leave.start_date, leave.end_date)}
-                </div>
-
-                <Button
-                  onClick={() => setViewReason(leave.reason)}
-                  className={`w-full mb-3 h-10 rounded-xl font-medium transition-all duration-200 ${
-                    theme === 'dark'
-                      ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
-                      : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
-                  }`}
-                  variant="outline"
-                >
-                  View Reason
-                </Button>
-
-                {leave.status === "PENDING" ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
-                          ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
-                          : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                        }`}
-                      onClick={() => handleApprove(leave.id)}
-                      disabled={!!actionLoading}
-                    >
-                      <CheckCircle size={16} /> Approve
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className={`flex items-center justify-center gap-1.5 h-10 rounded-xl font-medium ${theme === 'dark'
-                          ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
-                          : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                        }`}
-                      onClick={() => setShowRejectModal(leave.id)}
-                      disabled={!!actionLoading}
-                    >
-                      <XCircle size={16} /> Reject
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between pt-2 border-t mt-2">
-                    <span className="text-xs text-muted-foreground italic">Processed</span>
-                    {leave.reviewed_by && (
-                      <span className="text-xs text-muted-foreground font-medium">by {leave.reviewed_by}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))
-            )}
-          </div>
-
-          {/* Desktop Table View */}
-          <div className={`hidden md:block overflow-x-auto border rounded-lg ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-            <table className="w-full text-sm">
-              <thead className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-gray-50 text-gray-900'}`}>
-                <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
-                  <th className="px-4 py-3 text-left font-semibold">Student</th>
-                  <th className="px-4 py-3 text-left font-semibold">Period</th>
-                  <th className="px-4 py-3 text-left font-semibold">Reason</th>
-                  <th className="px-4 py-3 text-left font-semibold text-center">Status</th>
-                  <th className="px-4 py-3 text-left font-semibold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-100'}`}>
-                {isLoading ? (
-                  <tr><td colSpan={5} className="p-4"><SkeletonTable rows={10} cols={5} /></td></tr>
-                ) : leaves.map((leave) => (
-                  <tr key={leave.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{leave.student_name}</div>
-                      <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.usn}</div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm font-medium">
-                        {formatPeriod(leave.start_date, leave.end_date)}
-                      </div>
-                      {leave.submitted_at && (
-                        <div className="text-xs text-muted-foreground mt-0.5">Applied: {leave.submitted_at}</div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button
-                        onClick={() => setViewReason(leave.reason)}
-                        className={`text-xs font-semibold px-3 py-1 rounded-lg transition-colors ${theme === 'dark'
-                            ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
-                            : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
-                          }`}
-                        variant="outline"
-                      >
-                        View
-                      </Button>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {getStatusBadge(leave.status)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {leave.status === "PENDING" ? (
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            onClick={() => handleApprove(leave.id)}
-                            size="sm"
-                            variant="outline"
-                            className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
-                                : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                              }`}
-                            disabled={!!actionLoading}
-                          >
-                            {actionLoading === leave.id + "APPROVE" ? "..." : <CheckCircle size={16} />}
-                            <span className="ml-1 hidden sm:inline">Approve</span>
-                          </Button>
-                          <Button
-                            onClick={() => setShowRejectModal(leave.id)}
-                            size="sm"
-                            variant="outline"
-                            className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
-                                ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
-                                : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                              }`}
-                            disabled={!!actionLoading}
-                          >
-                            {actionLoading === leave.id + "REJECT" ? "..." : <XCircle size={16} />}
-                            <span className="ml-1 hidden sm:inline">Reject</span>
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-end gap-0.5">
-                          <span className="text-xs text-muted-foreground italic">Processed</span>
-                          {leave.reviewed_by && (
-                            <span className="text-xs text-muted-foreground">by {leave.reviewed_by}</span>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
                 ))}
-                {!isLoading && leaves.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-16">
-                      <div className={`flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed shadow-sm ${theme === 'dark' ? 'bg-muted/10 border-border/60' : 'bg-gray-50 border-gray-200/60'}`}>
-                        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-inner ${theme === 'dark' ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
-                          <CalendarCheck2 className="w-10 h-10" />
-                        </div>
-                        <h3 className={`text-xl font-semibold mb-2 tracking-tight ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
-                          {search ? 'No Matches Found' : 'No Leave Requests'}
-                        </h3>
-                        <p className={`text-sm max-w-[280px] mx-auto leading-relaxed ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                          {search
-                            ? `We couldn't find any leave requests matching "${search}". Please try a different search term.`
-                            : "There are no active leave requests currently pending your review."}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              </div>
 
+              {/* Desktop Table View */}
+              <div className={`hidden md:block overflow-x-auto border rounded-lg ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                <table className="w-full text-sm">
+                  <thead className={`${theme === 'dark' ? 'bg-card text-foreground' : 'bg-gray-50 text-gray-900'}`}>
+                    <tr className={`border-b ${theme === 'dark' ? 'border-border' : 'border-gray-200'}`}>
+                      <th className="px-4 py-3 text-left font-semibold">Student</th>
+                      <th className="px-4 py-3 text-left font-semibold">Period</th>
+                      <th className="px-4 py-3 text-left font-semibold">Reason</th>
+                      <th className="px-4 py-3 text-left font-semibold text-center">Status</th>
+                      <th className="px-4 py-3 text-left font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${theme === 'dark' ? 'divide-border' : 'divide-gray-100'}`}>
+                    {leaves.map((leave) => (
+                      <tr key={leave.id} className={`border-b transition-colors duration-200 ${theme === 'dark' ? 'border-border hover:bg-accent' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{leave.student_name}</div>
+                          <div className={`text-xs ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>{leave.usn}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium">
+                            {formatPeriod(leave.start_date, leave.end_date)}
+                          </div>
+                          {leave.submitted_at && (
+                            <div className="text-xs text-muted-foreground mt-0.5">Applied: {leave.submitted_at}</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Button
+                            onClick={() => setViewReason(leave.reason)}
+                            className={`text-xs font-semibold px-3 py-1 rounded-lg transition-colors ${theme === 'dark'
+                              ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20'
+                              : 'bg-primary/5 text-primary border border-primary/20 hover:bg-primary/10 hover:text-primary'
+                              }`}
+                            variant="outline"
+                          >
+                            View
+                          </Button>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {getStatusBadge(leave.status)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {leave.status === "PENDING" ? (
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                onClick={() => handleApprove(leave.id)}
+                                size="sm"
+                                variant="outline"
+                                className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                  ? 'bg-green-950/20 text-green-400 border-green-500/30 hover:bg-green-950/40'
+                                  : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                  }`}
+                                disabled={!!actionLoading}
+                              >
+                                {actionLoading === leave.id + "APPROVE" ? "..." : <CheckCircle size={16} />}
+                                <span className="ml-1 hidden sm:inline">Approve</span>
+                              </Button>
+                              <Button
+                                onClick={() => setShowRejectModal(leave.id)}
+                                size="sm"
+                                variant="outline"
+                                className={`px-3 py-1 text-xs flex items-center gap-1 ${theme === 'dark'
+                                  ? 'bg-red-950/20 text-red-400 border-red-500/30 hover:bg-red-950/40'
+                                  : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                                  }`}
+                                disabled={!!actionLoading}
+                              >
+                                {actionLoading === leave.id + "REJECT" ? "..." : <XCircle size={16} />}
+                                <span className="ml-1 hidden sm:inline">Reject</span>
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="text-xs text-muted-foreground italic">Processed</span>
+                              {leave.reviewed_by && (
+                                <span className="text-xs text-muted-foreground">by {leave.reviewed_by}</span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </CardContent>
         {pagination && pagination.totalPages > 1 && (
           <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground px-6 py-4 border-t border-border mt-auto">

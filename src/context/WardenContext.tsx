@@ -29,9 +29,11 @@ export const WardenProvider: React.FC<{children: React.ReactNode;}> = ({ childre
   const [stats, setStats] = useState<WardenStats | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const isFetchingRef = useRef(false);
+
   const refreshWardenData = async () => {
-    // If we're already loading or already have data from a previous successful fetch, 
-    // we can skip unless explicitly requested. But for the first time, we must fetch.
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       const result = await getWardenDashboard();
       if (result.success) {
@@ -41,9 +43,10 @@ export const WardenProvider: React.FC<{children: React.ReactNode;}> = ({ childre
         setStats(result.statistics);
       }
     } catch (error) {
-
+      console.error(error);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
