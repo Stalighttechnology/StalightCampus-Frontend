@@ -176,19 +176,12 @@ export const downloadFileViaBackendProxy = async (
       throw new Error(errorData.message || `Failed to download file: ${response.statusText}`);
     }
     
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    
     // Resolve filename from URL if not provided
     const resolvedName = fileName || fileUrl.split('/').pop() || 'download';
-    link.download = resolvedName;
     
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    // Use the unified downloadFile helper to handle web/PWA/mobile downloads correctly
+    const { downloadFile } = await import('./downloadHelper');
+    await downloadFile(response, resolvedName);
   } catch (error: any) {
     console.error("downloadFileViaBackendProxy error:", error);
     alert(error.message || "Failed to download file.");
