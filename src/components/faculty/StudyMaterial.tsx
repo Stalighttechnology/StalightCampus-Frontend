@@ -343,16 +343,20 @@ const StudyMaterialsFaculty = React.forwardRef<HTMLDivElement, any>((props, ref)
     <div ref={ref} className={`w-full ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`} {...props}>
       <Card className={`${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'}`}>
         <CardHeader id="study-materials-header" className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
-            <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-1.5 w-full">
+            <div className="flex items-center justify-between gap-4 w-full">
               <h1 className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Study Materials</h1>
-              <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
-                View and upload course-related study materials for your assigned subjects.
-              </p>
+              <button 
+                onClick={() => setShowUploadModal(true)} 
+                className="flex items-center justify-center bg-primary text-white hover:bg-primary/90 transition-all duration-200 ease-in-out shadow-md h-9 px-3 sm:h-10 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap gap-1.5"
+              >
+                <UploadCloud size={16} />
+                <span>Upload</span>
+              </button>
             </div>
-            <button onClick={() => setShowUploadModal(true)} className={`w-full sm:w-auto px-4 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 bg-primary text-white hover:bg-primary/90 whitespace-nowrap h-10`}>
-              <UploadCloud size={16} /> Upload
-            </button>
+            <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+              View and upload course-related study materials for your assigned subjects.
+            </p>
           </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6">

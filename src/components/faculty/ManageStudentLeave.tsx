@@ -142,53 +142,54 @@ const ManageStudentLeave = () => {
       <Card id="manage-student-leave-card" className={`${theme === 'dark' ? 'bg-card border border-border' : 'bg-white border border-gray-200 shadow-sm'}`}>
         <div id="manage-student-leave-header-section">
           <CardHeader className="px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 border-b mb-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
-              <div className="flex-1 min-w-0">
-                <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
-                <p className={`text-[16px] sm:text-sm mt-1 ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'}`}>
+            <div className="flex flex-col gap-1.5 w-full">
+              <CardTitle className={`tracking-tight text-xl sm:text-xl md:text-2xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>Leave Approvals</CardTitle>
+              
+              <div className="flex items-start justify-between gap-4 w-full">
+                <p className={`text-[16px] sm:text-sm ${theme === 'dark' ? 'text-muted-foreground' : 'text-gray-500'} flex-1`}>
                   Review and approve leave requests submitted by your students
                 </p>
-              </div>
-              
-              {/* Search + Filter container */}
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                {/* Search Bar (Laptop/Desktop only) */}
-                <div className="hidden lg:block w-64">
-                  <Input
-                    placeholder="Search student..."
-                    value={search}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    className={`text-sm h-8 sm:h-10 ${theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
-                  />
-                </div>
+                
+                {/* Search + Filter container */}
+                <div className="flex items-center gap-3 shrink-0">
+                  {/* Search Bar (Laptop/Desktop only) */}
+                  <div className="hidden lg:block w-64">
+                    <Input
+                      placeholder="Search student..."
+                      value={search}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      className={`text-sm h-8 sm:h-10 ${theme === 'dark' ? 'bg-background border-border text-foreground placeholder:text-muted-foreground' : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'}`}
+                    />
+                  </div>
 
-                {/* Filter Button */}
-                <div className="relative" ref={filterRef}>
-                  <Button
-                    onClick={() => setShowFilter(!showFilter)}
-                    className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-8 sm:h-10 px-2 sm:px-4 rounded-xl font-medium shadow-sm transition-colors text-xs sm:text-sm whitespace-nowrap"
-                  >
-                    <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Filter</span>
-                  </Button>
-                  {showFilter && (
-                    <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-lg z-20 overflow-hidden`}>
-                      <div className="py-1">
-                        {statusOptions.map((status) => (
-                          <button
-                            key={status}
-                            className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${filterStatus === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900 font-semibold' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
-                            onClick={() => {
-                              handleFilterChange(status);
-                              setShowFilter(false);
-                            }}
-                          >
-                            {status === 'All' ? 'All Status' : status.charAt(0) + status.slice(1).toLowerCase()}
-                          </button>
-                        ))}
+                  {/* Filter Button */}
+                  <div className="relative mt-2 sm:mt-0" ref={filterRef}>
+                    <Button
+                      onClick={() => setShowFilter(!showFilter)}
+                      className="bg-primary hover:bg-[#9147e0] text-white flex items-center justify-center gap-1.5 h-9 w-9 sm:w-auto sm:h-10 sm:px-4 rounded-lg font-medium shadow-sm transition-colors text-xs sm:text-sm whitespace-nowrap"
+                    >
+                      <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Filter</span>
+                    </Button>
+                    {showFilter && (
+                      <div className={`absolute right-0 mt-2 w-48 ${theme === 'dark' ? 'bg-card border-border' : 'bg-white border-gray-200'} border rounded-xl shadow-lg z-20 overflow-hidden`}>
+                        <div className="py-1">
+                          {statusOptions.map((status) => (
+                            <button
+                              key={status}
+                              className={`block w-full text-left px-4 py-2 text-sm hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} ${filterStatus === status ? theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900 font-semibold' : theme === 'dark' ? 'text-foreground' : 'text-gray-700'}`}
+                              onClick={() => {
+                                handleFilterChange(status);
+                                setShowFilter(false);
+                              }}
+                            >
+                              {status}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
