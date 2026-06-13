@@ -65,14 +65,16 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 2000, // KB - increased to reduce warnings for large legitimate chunks
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          pdf: ['jspdf', 'html2canvas'],
-          images: ['browser-image-compression'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-toast', '@radix-ui/react-tabs', 'lucide-react'],
-          charts: ['recharts'],
-          utils: ['xlsx', 'framer-motion', 'sweetalert2', 'lodash', 'date-fns'],
-          scanning: ['@zxing/library', '@zxing/browser'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor';
+            if (id.includes('jspdf') || id.includes('html2canvas')) return 'pdf';
+            if (id.includes('browser-image-compression')) return 'images';
+            if (id.includes('@radix-ui') || id.includes('lucide-react')) return 'ui';
+            if (id.includes('recharts')) return 'charts';
+            if (id.includes('xlsx') || id.includes('framer-motion') || id.includes('sweetalert2') || id.includes('lodash') || id.includes('date-fns')) return 'utils';
+            if (id.includes('@zxing')) return 'scanning';
+          }
         },
       },
     },
