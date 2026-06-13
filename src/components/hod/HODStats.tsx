@@ -1,3 +1,4 @@
+import { translateTerminology, getTerm } from "@/utils/institutionConfig";
 import { useState, useEffect } from "react";
 import {
   Users,
