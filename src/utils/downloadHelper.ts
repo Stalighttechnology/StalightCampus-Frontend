@@ -36,8 +36,30 @@ export const downloadFile = async (source: Response | string, defaultFilename: s
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      // On mobile viewports/PWAs, open the Blob URL directly in a new window/tab 
-      // to trigger the native device's built-in PDF viewer/handler.
+      // For mobile devices and PWAs, try to use the Web Share API first.
+      // This is the most reliable way to save/export files within native WebView contexts
+      // (like Capacitor or Safari/Chrome iOS/Android) where window.open of blobs is restricted.
+      if (navigator.share && navigator.canShare) {
+        try {
+          const fileToShare = new File([blob], defaultFilename, { type: mimeType });
+          if (navigator.canShare({ files: [fileToShare] })) {
+            await navigator.share({
+              files: [fileToShare],
+              title: defaultFilename,
+              text: `Download ${defaultFilename}`
+            });
+            // Successfully shared/saved, clean up and return
+            setTimeout(() => {
+              window.URL.revokeObjectURL(downloadUrl);
+            }, 1500);
+            return;
+          }
+        } catch (shareError) {
+          console.warn("Navigator share failed, falling back to window.open:", shareError);
+        }
+      }
+
+      // Fallback: Open the Blob URL directly in a new window/tab to trigger viewer
       window.open(downloadUrl, '_blank');
     } else {
       // On desktop, simulate an anchor click to save directly with the correct filename.
