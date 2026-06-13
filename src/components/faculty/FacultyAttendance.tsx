@@ -596,11 +596,11 @@ const FacultyAttendance = () => {
         </Card>
 
         <Card id="faculty-attendance-history" className={`flex flex-col h-full ${theme === 'dark' ? 'bg-card text-foreground' : 'bg-white text-gray-900'}`}>
-          <CardHeader id="faculty-attendance-history-header" className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 pb-2 min-h-[72px] sm:h-[80px] gap-3">
+          <CardHeader id="faculty-attendance-history-header" className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 pb-4 min-h-[72px] sm:h-[80px] gap-3">
             <CardTitle className={`text-xl sm:text-xl font-semibold ${theme === 'dark' ? 'text-foreground' : 'text-gray-900'}`}>
               Attendance History
             </CardTitle>
-            <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start">
+            <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start mb-3 sm:mb-0">
               <Button
                 onClick={handleExportPdf}
                 disabled={exportingPdf}
@@ -713,7 +713,7 @@ const FacultyAttendance = () => {
               </Popover>
             </div>
           </CardHeader>
-          <CardContent className="flex-1">
+          <CardContent className="flex-1 pt-2 sm:pt-0">
             {historyLoading ? (
               <SkeletonList items={5} />
             ) : historyRecords.length > 1 ? (
